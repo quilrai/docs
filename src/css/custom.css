@@ -1,0 +1,744 @@
+/**
+ * Mintlify-inspired theme for Docusaurus.
+ * Clean, minimal, modern — white content surface, muted sidebar, emerald accents.
+ */
+
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist/600.css";
+@import "@fontsource/geist/700.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
+/* Theme + utilities only — no Preflight, which breaks Infima/Docusaurus. */
+@import "tailwindcss/theme.css" layer(theme);
+@plugin "@tailwindcss/typography";
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* ────────────────────────────────── Light mode variables ─────────────── */
+:root {
+  --ifm-color-primary: #059669;
+  --ifm-color-primary-dark: #047857;
+  --ifm-color-primary-darker: #065f46;
+  --ifm-color-primary-darkest: #064e3b;
+  --ifm-color-primary-light: #10b981;
+  --ifm-color-primary-lighter: #34d399;
+  --ifm-color-primary-lightest: #6ee7b7;
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-hover-color: var(--ifm-color-primary-dark);
+
+  --ifm-font-color-base: var(--color-neutral-800);
+  --ifm-color-content-secondary: var(--color-neutral-600);
+  --ifm-navbar-link-color: var(--color-neutral-800);
+  --ifm-navbar-link-hover-color: var(--color-neutral-950);
+
+  --ifm-font-family-base: "Geist", system-ui, -apple-system, sans-serif;
+  --ifm-font-family-monospace:
+    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+  --ifm-font-size-base: 100%;
+  --ifm-line-height-base: 1.7;
+  --ifm-code-font-size: 13px;
+  --ifm-heading-font-weight: 700;
+
+  --ifm-color-emphasis-300: var(--color-neutral-200);
+  --ifm-toc-border-color: var(--color-neutral-200);
+  --ifm-table-border-color: var(--color-neutral-200);
+  --ifm-blockquote-border-color: var(--color-neutral-200);
+  --ifm-hr-border-color: var(--color-neutral-200);
+
+  --ifm-code-background: var(--color-neutral-100);
+  --ifm-code-border-radius: 0.375rem;
+  --ifm-code-padding-horizontal: 0.35rem;
+  --ifm-code-padding-vertical: 0.15rem;
+
+  --ifm-global-radius: 0.5rem;
+  --ifm-pagination-nav-border-radius: 0.75rem;
+  --ifm-card-border-radius: 0.75rem;
+
+  --ifm-navbar-shadow: none;
+  --ifm-global-shadow-lw: none;
+
+  --docusaurus-highlighted-code-line-bg: rgba(5, 150, 105, 0.08);
+}
+
+/* ────────────────────────────────── Dark mode variables ──────────────── */
+[data-theme="dark"] {
+  --ifm-color-primary: #34d399;
+  --ifm-color-primary-dark: #10b981;
+  --ifm-color-primary-darker: #059669;
+  --ifm-color-primary-darkest: #047857;
+  --ifm-color-primary-light: #6ee7b7;
+  --ifm-color-primary-lighter: #a7f3d0;
+  --ifm-color-primary-lightest: #d1fae5;
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-hover-color: var(--ifm-color-primary-light);
+
+  --ifm-font-color-base: var(--color-neutral-200);
+  --ifm-color-content-secondary: var(--color-neutral-400);
+  --ifm-navbar-link-color: var(--color-neutral-200);
+  --ifm-navbar-link-hover-color: var(--color-neutral-50);
+
+  --ifm-color-emphasis-300: var(--color-neutral-800);
+  --ifm-toc-border-color: var(--color-neutral-800);
+  --ifm-table-border-color: var(--color-neutral-800);
+  --ifm-blockquote-border-color: var(--color-neutral-800);
+  --ifm-hr-border-color: var(--color-neutral-800);
+
+  --ifm-code-background: var(--color-neutral-900);
+  --ifm-background-color: #0a0a0a;
+  --ifm-background-surface-color: #0a0a0a;
+
+  --docusaurus-highlighted-code-line-bg: rgba(52, 211, 153, 0.12);
+}
+
+/* ────────────────────────────────── Base ─────────────────────────────── */
+body {
+  @apply antialiased;
+}
+
+code,
+pre,
+pre code {
+  font-weight: 500;
+}
+
+/* Inline code: pill-like, no border (Mintlify style) */
+code {
+  border: none;
+}
+
+/* ────────────────────────────────── Layout ───────────────────────────── */
+.theme-layout-navbar {
+  background-color: var(--color-neutral-50);
+  border-bottom: none;
+}
+
+[data-theme="dark"] .theme-layout-navbar {
+  background-color: #0a0a0a;
+  border-bottom: none;
+}
+
+.theme-doc-sidebar-container {
+  background-color: var(--color-neutral-50);
+  border: none;
+}
+
+[data-theme="dark"] .theme-doc-sidebar-container {
+  background-color: #0a0a0a;
+}
+
+.theme-layout-main,
+.main-wrapper {
+  background-color: var(--color-neutral-50);
+  padding: 0 0.5rem;
+  padding-bottom: 0 !important;
+}
+
+[data-theme="dark"] .theme-layout-main,
+[data-theme="dark"] .main-wrapper {
+  background-color: #0a0a0a;
+}
+
+/* ────────────────────────────────── Doc layout: fill height, footer bottom ─ */
+.docsWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.docRoot {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.doc-main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  /* Fill viewport below navbar so the panel + footer can pin to bottom */
+  height: calc(100vh - 68px);
+  overflow-y: scroll !important;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-2xl);
+  background-color: var(--color-white);
+}
+
+/* ────────────────────────────────── Doc content panel ────────────────── */
+main > .container.padding-top--md.padding-bottom--lg,
+.doc-main__panel.container.padding-top--md.padding-bottom--lg {
+  margin-bottom: 0 !important;
+  /* Infima `.container` caps width with max-width; width: 100% is not enough */
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0;
+  /* Override Infima `.container` + padding-* utilities — no padding */
+  padding: 0 !important;
+  /* Sticky footer: fill main column, footer sits at bottom when content is short */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.doc-main__panel > *:not(.doc-page-footer) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.doc-page-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.doc-page-footer .footer {
+  margin-bottom: 0;
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+/* footer--dark defaults use light title text; on panel-white we need contrast */
+.doc-page-footer .footer.footer--dark {
+  --ifm-footer-background-color: var(--color-white);
+  --ifm-footer-color: var(--color-neutral-600);
+  --ifm-footer-link-color: var(--color-neutral-600);
+  --ifm-footer-link-hover-color: var(--ifm-color-primary);
+  --ifm-footer-title-color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .doc-page-footer .footer {
+  background-color: var(--color-neutral-950);
+  border-top-color: var(--color-neutral-800);
+}
+
+[data-theme="dark"] .doc-page-footer .footer.footer--dark {
+  --ifm-footer-background-color: var(--color-neutral-950);
+}
+
+.doc-page-footer .footer > .container {
+  @apply max-w-4xl mx-auto w-full;
+}
+
+/* Infima `.row` uses negative side margins; with panel padding: 0 that overflows */
+.doc-main__panel .row {
+  @apply w-full max-w-4xl mx-auto mb-6;
+}
+
+.doc-main__panel .theme-doc-markdown.markdown,
+.doc-main__panel article {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* DocCardList: 2 columns desktop, 1 column mobile (matches Infima 997px breakpoint) */
+.doc-main__panel .doc-card-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 997px) {
+  .doc-main__panel .doc-card-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 996px) {
+  .doc-main {
+    min-height: 0;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .doc-main__panel.container {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .docsWrapper,
+  .docRoot {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .main-wrapper,
+  .theme-layout-main {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    margin-bottom: 0.5rem;
+  }
+}
+
+[data-theme="dark"] main > .container.padding-top--md.padding-bottom--lg,
+[data-theme="dark"]
+  .doc-main__panel.container.padding-top--md.padding-bottom--lg {
+  background-color: var(--color-neutral-950);
+  border-color: var(--color-neutral-800);
+}
+
+/* ────────────────────────────────── Doc prose (Tailwind Typography) ─── */
+.theme-doc-markdown.markdown {
+  @apply prose prose-neutral max-w-none;
+  /* Match site primary (emerald) for links */
+  --tw-prose-links: var(--ifm-color-primary);
+}
+
+.theme-doc-markdown.markdown :where(h1, h2, h3, h4, h5, h6) {
+  font-weight: 700;
+}
+
+.theme-doc-markdown.markdown a:hover {
+  color: var(--ifm-link-hover-color);
+}
+
+[data-theme="dark"] .theme-doc-markdown.markdown {
+  @apply prose-invert;
+  --tw-prose-invert-links: var(--ifm-color-primary);
+}
+
+[data-theme="dark"]
+  .theme-doc-markdown.markdown
+  :where(h1, h2, h3, h4, h5, h6) {
+  font-weight: 700;
+}
+
+/* Inline code (Typography backticks off; violet) — fenced blocks reset below */
+.theme-doc-markdown.markdown code {
+  color: #7c3aed;
+  font-weight: 500;
+  background-color: var(--ifm-code-background);
+  border-radius: var(--ifm-code-border-radius);
+  padding: var(--ifm-code-padding-vertical) var(--ifm-code-padding-horizontal);
+  font-size: var(--ifm-code-font-size);
+}
+
+[data-theme="dark"] .theme-doc-markdown.markdown code {
+  color: #a78bfa;
+}
+
+.theme-doc-markdown.markdown code::before,
+.theme-doc-markdown.markdown code::after {
+  content: none !important;
+}
+
+/* `pre code`: no inline-code pill — Prism / theme handle appearance */
+.theme-doc-markdown.markdown pre code {
+  color: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  background: none;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* Fenced code: `not-prose` on CodeBlock container — Prism/Infima only */
+.theme-doc-markdown.markdown .not-prose code {
+  color: inherit;
+  font-weight: inherit;
+  background: none;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
+.row {
+  @apply max-w-4xl mx-auto py-0 md:py-6;
+}
+
+/* ────────────────────────────────── Desktop sidebar layout ───────────── */
+.sidebar-desktop-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sidebar-desktop-content__menu {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-desktop-content__footer {
+  flex-shrink: 0;
+  padding: 0.5rem 0.5rem;
+  border-top: 1px solid var(--ifm-toc-border-color);
+}
+
+/* ────────────────────────────────── Sidebar ──────────────────────────── */
+.theme-doc-sidebar-container .menu {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.5rem;
+}
+
+.menu__link {
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.625rem;
+  font-size: 14px;
+  color: var(--color-neutral-700);
+  transition:
+    background var(--ifm-transition-fast) var(--ifm-transition-timing-default),
+    color var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+}
+
+.menu__link:hover {
+  color: var(--color-neutral-900);
+}
+
+.menu__link--active {
+  background-color: rgba(5, 150, 105, 0.08) !important;
+  color: var(--color-emerald-700) !important;
+  font-weight: 600;
+}
+
+.menu__list-item-collapsible {
+  border-radius: 0.5rem;
+}
+
+/* Dark sidebar */
+[data-theme="dark"] .menu__link {
+  color: var(--color-neutral-400);
+}
+[data-theme="dark"] .menu__link:hover {
+  color: var(--color-neutral-100);
+}
+[data-theme="dark"] .menu__link--active {
+  color: var(--color-emerald-400) !important;
+  background-color: rgba(52, 211, 153, 0.08) !important;
+}
+
+/* ────────────────────────────────── Sidebar caret ────────────────────── */
+.menu__list-item-collapsible .clean-btn.menu__caret {
+  color: var(--color-neutral-400);
+  transition:
+    background var(--ifm-transition-fast) var(--ifm-transition-timing-default),
+    color var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+}
+
+.menu__list-item-collapsible:has(.menu__link--active) .clean-btn.menu__caret {
+  color: var(--color-emerald-700);
+}
+
+[data-theme="dark"] .menu__list-item-collapsible .clean-btn.menu__caret {
+  color: var(--color-neutral-600);
+}
+[data-theme="dark"]
+  .menu__list-item-collapsible:has(.menu__link--active)
+  .clean-btn.menu__caret {
+  color: var(--color-emerald-400);
+}
+
+.menu__list-item-collapsible .clean-btn.menu__caret::before {
+  width: 0.875rem;
+  height: 0.875rem;
+  background: none;
+  background-color: currentColor;
+  mask-image: var(--ifm-menu-link-sublist-icon);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--ifm-menu-link-sublist-icon);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  filter: none;
+}
+
+/* ────────────────────────────────── Code blocks ─────────────────────── */
+.theme-code-block {
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 0.75rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.theme-code-block pre {
+  border-radius: 0;
+  margin: 0;
+  padding: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.theme-doc-markdown.markdown pre {
+  margin: 0;
+  padding: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+[data-theme="dark"] .theme-code-block {
+  border-color: var(--color-neutral-800);
+}
+
+/* ────────────────────────────────── Breadcrumbs ─────────────────────── */
+.theme-doc-breadcrumbs {
+  --ifm-breadcrumb-size-multiplier: 0.85;
+  margin-bottom: 2rem;
+}
+
+.breadcrumbs__link {
+  color: var(--color-neutral-600);
+  padding: 0.25rem 0.5rem;
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  background: none;
+  color: var(--color-neutral-800);
+}
+
+[data-theme="dark"] .breadcrumbs__link {
+  color: var(--color-neutral-400);
+}
+[data-theme="dark"] .breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--color-neutral-200);
+}
+
+/* ────────────────────────────────── Pagination nav (prev/next) ───── */
+.pagination-nav__link {
+  border-radius: 0.75rem;
+  border-color: var(--color-neutral-200);
+  padding: 0.875rem 1rem;
+  transition:
+    border-color var(--ifm-transition-fast) var(--ifm-transition-timing-default),
+    background var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--color-emerald-500);
+  background: rgba(5, 150, 105, 0.04);
+}
+
+.pagination-nav__sublabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-neutral-500);
+}
+
+.pagination-nav__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+}
+
+[data-theme="dark"] .pagination-nav__link {
+  border-color: var(--color-neutral-800);
+}
+[data-theme="dark"] .pagination-nav__link:hover {
+  border-color: var(--color-emerald-500);
+  background: rgba(52, 211, 153, 0.04);
+}
+[data-theme="dark"] .pagination-nav__sublabel {
+  color: var(--color-neutral-500);
+}
+
+[data-theme="dark"] .pagination-nav__label {
+  color: var(--color-neutral-200);
+}
+
+/* ────────────────────────────────── Desktop TOC ─────────────────────── */
+.table-of-contents__left-border {
+  border-left-color: var(--color-neutral-200);
+}
+
+.table-of-contents {
+  font-size: 0.8125rem;
+}
+
+.table-of-contents__link {
+  color: var(--color-neutral-600);
+  transition: color var(--ifm-transition-fast)
+    var(--ifm-transition-timing-default);
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--color-emerald-600);
+}
+
+[data-theme="dark"] .table-of-contents__left-border {
+  border-left-color: var(--color-neutral-800);
+}
+[data-theme="dark"] .table-of-contents__link {
+  color: var(--color-neutral-400);
+}
+[data-theme="dark"] .table-of-contents__link:hover,
+[data-theme="dark"] .table-of-contents__link--active {
+  color: var(--color-emerald-400);
+}
+
+/* ────────────────────────────────── Mobile TOC ──────────────────────── */
+.theme-doc-toc-mobile {
+  background-color: var(--color-neutral-100);
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-neutral-200);
+}
+
+[data-theme="dark"] .theme-doc-toc-mobile {
+  background-color: var(--color-neutral-900);
+  border-color: var(--color-neutral-800);
+}
+
+.theme-doc-toc-mobile .table-of-contents__link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  color: var(--color-neutral-700);
+}
+
+.theme-doc-toc-mobile .table-of-contents__link:hover {
+  background: var(--ifm-menu-color-background-hover);
+  color: var(--color-neutral-900);
+  text-decoration: none;
+}
+
+.theme-doc-toc-mobile .table-of-contents__link--active {
+  background-color: rgba(5, 150, 105, 0.08);
+  color: var(--color-emerald-700);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .theme-doc-toc-mobile .table-of-contents__link {
+  color: var(--color-neutral-400);
+}
+[data-theme="dark"] .theme-doc-toc-mobile .table-of-contents__link:hover {
+  color: var(--color-neutral-200);
+}
+[data-theme="dark"] .theme-doc-toc-mobile .table-of-contents__link--active {
+  color: var(--color-emerald-400);
+  background-color: rgba(52, 211, 153, 0.08);
+}
+
+/* ────────────────────────────────── Footer ───────────────────────────── */
+.footer--dark {
+  background-color: var(--color-neutral-950);
+}
+
+/* Navbar: Infima padding fix (see Docusaurus theme Navbar/Content) */
+.navbar__items--right > :last-child {
+  padding-right: 0;
+}
+
+@media (max-width: 996px) {
+  .navbar__inner {
+    flex-wrap: nowrap;
+  }
+
+  .navbar__brand {
+    min-width: 0;
+  }
+
+  .navbar__logo {
+    overflow: hidden;
+  }
+
+  .navbar__toggle {
+    flex-shrink: 0;
+  }
+}
+
+/* Mobile drawer: column layout so theme row stays after links / anchored bottom */
+.navbar-sidebar__item.menu {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.navbar-sidebar-menu-stack {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.navbar-sidebar-menu-stack > .menu__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.navbar-sidebar-menu-stack > .navbar-sidebar__theme {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+/* Mobile drawer: minimal theme control (system / light / dark) */
+.navbar-sidebar__theme {
+  margin-top: 0;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+[data-theme="dark"] .navbar-sidebar__theme {
+  border-top-color: var(--color-neutral-800);
+}
+
+.navbar-sidebar__theme--docs {
+  margin-top: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.sidebar-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  border-radius: 0.375rem;
+  background: var(--color-neutral-100);
+  width: fit-content;
+}
+
+[data-theme="dark"] .sidebar-theme-toggle {
+  background: var(--color-neutral-900);
+}
+
+.sidebar-theme-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.sidebar-theme-toggle__btn:hover {
+  color: var(--color-neutral-900);
+  background: var(--color-neutral-200);
+}
+
+[data-theme="dark"] .sidebar-theme-toggle__btn:hover {
+  color: var(--color-neutral-100);
+  background: var(--color-neutral-800);
+}
+
+.sidebar-theme-toggle__btn[aria-pressed="true"] {
+  color: var(--color-emerald-700);
+  background: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-neutral-200);
+}
+
+[data-theme="dark"] .sidebar-theme-toggle__btn[aria-pressed="true"] {
+  color: var(--color-emerald-400);
+  background: var(--color-neutral-950);
+  box-shadow: 0 0 0 1px var(--color-neutral-700);
+}

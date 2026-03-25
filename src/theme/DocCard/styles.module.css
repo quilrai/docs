@@ -1,0 +1,26 @@
+.cardContainer {
+  --ifm-link-color: var(--ifm-color-emphasis-800);
+  --ifm-link-hover-color: var(--ifm-color-emphasis-700);
+  --ifm-link-hover-decoration: none;
+
+  box-shadow: none !important;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  transition: border-color var(--ifm-transition-fast) ease;
+}
+
+.cardContainer:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: none !important;
+}
+
+.cardContainer *:last-child {
+  margin-bottom: 0;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+}
+
+.cardDescription {
+  font-size: 0.8rem;
+}
