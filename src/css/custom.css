@@ -166,6 +166,11 @@ code {
   background-color: var(--color-white);
 }
 
+[data-theme="dark"] .doc-main {
+  border-color: var(--color-neutral-800);
+  background-color: var(--color-neutral-950);
+}
+
 /* ────────────────────────────────── Doc content panel ────────────────── */
 main > .container.padding-top--md.padding-bottom--lg,
 .doc-main__panel.container.padding-top--md.padding-bottom--lg {
@@ -346,6 +351,128 @@ main > .container.padding-top--md.padding-bottom--lg,
   border-radius: 0;
   padding: 0;
   font-size: inherit;
+}
+
+/* ────────────────────────────────── Admonitions (minimal callouts) ─── */
+.admonition-block.alert {
+  --ifm-alert-padding-vertical: 0.5rem;
+  --ifm-alert-padding-horizontal: 0.75rem;
+  --ifm-alert-border-radius: 0.625rem;
+  --ifm-alert-border-width: 1px;
+  --ifm-alert-border-left-width: var(--ifm-alert-border-width);
+  --ifm-alert-shadow: none;
+  margin-bottom: 0.75rem;
+}
+
+.theme-doc-markdown.markdown .admonition-block.alert .admonition-block__heading {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.055em;
+  line-height: 1.35;
+}
+
+.theme-doc-markdown.markdown .admonition-block.alert .admonition-block__content {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.theme-doc-markdown.markdown
+  .admonition-block.alert
+  .admonition-block__heading:not(:last-child) {
+  margin-bottom: 0.35rem;
+}
+
+.theme-doc-markdown.markdown .admonition-block.alert :where(p, ul, ol) {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+}
+
+.theme-doc-markdown.markdown .admonition-block.alert :where(p, ul, ol):last-child {
+  margin-bottom: 0;
+}
+
+/* Light — soft board + tint (Mintlify-style references) */
+:root .admonition-block.alert--success {
+  --ifm-alert-background-color: rgba(5, 150, 105, 0.08);
+  --ifm-alert-background-color-highlight: rgba(5, 150, 105, 0.14);
+  --ifm-alert-foreground-color: #065f46;
+  --ifm-alert-border-color: rgba(16, 185, 129, 0.5);
+}
+
+:root .admonition-block.alert--danger {
+  --ifm-alert-background-color: rgba(225, 29, 72, 0.07);
+  --ifm-alert-background-color-highlight: rgba(225, 29, 72, 0.12);
+  --ifm-alert-foreground-color: #9f1239;
+  --ifm-alert-border-color: rgba(251, 113, 133, 0.85);
+}
+
+:root .admonition-block.alert--info {
+  --ifm-alert-background-color: rgba(14, 165, 233, 0.09);
+  --ifm-alert-background-color-highlight: rgba(14, 165, 233, 0.14);
+  --ifm-alert-foreground-color: #0c4a6e;
+  --ifm-alert-border-color: rgba(56, 189, 248, 0.75);
+}
+
+:root .admonition-block.alert--secondary {
+  --ifm-alert-background-color: var(--color-neutral-50);
+  --ifm-alert-background-color-highlight: var(--color-neutral-100);
+  --ifm-alert-foreground-color: var(--color-neutral-800);
+  --ifm-alert-border-color: var(--color-neutral-300);
+}
+
+:root .admonition-block.alert--warning {
+  --ifm-alert-background-color: rgba(245, 158, 11, 0.1);
+  --ifm-alert-background-color-highlight: rgba(245, 158, 11, 0.16);
+  --ifm-alert-foreground-color: #92400e;
+  --ifm-alert-border-color: rgba(251, 191, 36, 0.85);
+}
+
+.theme-doc-markdown.markdown .admonition-block.alert code {
+  color: inherit;
+  opacity: 0.92;
+  background-color: var(--ifm-alert-background-color-highlight);
+  font-size: 0.8125em;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .theme-doc-markdown.markdown .admonition-block.alert code {
+  color: inherit;
+  opacity: 1;
+}
+
+[data-theme="dark"] .admonition-block.alert--success {
+  --ifm-alert-background-color: rgba(6, 78, 59, 0.55);
+  --ifm-alert-background-color-highlight: rgba(16, 185, 129, 0.22);
+  --ifm-alert-foreground-color: #ecfdf5;
+  --ifm-alert-border-color: rgba(52, 211, 153, 0.7);
+}
+
+[data-theme="dark"] .admonition-block.alert--danger {
+  --ifm-alert-background-color: rgba(127, 29, 29, 0.42);
+  --ifm-alert-background-color-highlight: rgba(248, 113, 113, 0.16);
+  --ifm-alert-foreground-color: #fef2f2;
+  --ifm-alert-border-color: rgba(248, 113, 113, 0.9);
+}
+
+[data-theme="dark"] .admonition-block.alert--info {
+  --ifm-alert-background-color: rgba(12, 74, 110, 0.48);
+  --ifm-alert-background-color-highlight: rgba(56, 189, 248, 0.18);
+  --ifm-alert-foreground-color: #e0f2fe;
+  --ifm-alert-border-color: rgba(125, 211, 252, 0.8);
+}
+
+[data-theme="dark"] .admonition-block.alert--secondary {
+  --ifm-alert-background-color: rgba(23, 23, 23, 0.92);
+  --ifm-alert-background-color-highlight: rgba(64, 64, 64, 0.55);
+  --ifm-alert-foreground-color: var(--color-neutral-100);
+  --ifm-alert-border-color: var(--color-neutral-600);
+}
+
+[data-theme="dark"] .admonition-block.alert--warning {
+  --ifm-alert-background-color: rgba(120, 53, 15, 0.48);
+  --ifm-alert-background-color-highlight: rgba(251, 191, 36, 0.14);
+  --ifm-alert-foreground-color: #fffbeb;
+  --ifm-alert-border-color: rgba(252, 211, 77, 0.85);
 }
 
 .row {
@@ -577,6 +704,11 @@ main > .container.padding-top--md.padding-bottom--lg,
 }
 
 /* ────────────────────────────────── Mobile TOC ──────────────────────── */
+/* TOC chevron: same mask + color rhythm as sidebar `.menu__caret` */
+[data-theme="dark"] .toc-mobile-collapse-btn {
+  color: var(--color-neutral-600);
+}
+
 .theme-doc-toc-mobile {
   background-color: var(--color-neutral-100);
   border-radius: 0.75rem;
@@ -645,6 +777,12 @@ main > .container.padding-top--md.padding-bottom--lg,
   .navbar__toggle {
     flex-shrink: 0;
   }
+}
+
+/* Mobile drawer: docs secondary menu — back to primary */
+.navbar-sidebar__back {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* Mobile drawer: column layout so theme row stays after links / anchored bottom */

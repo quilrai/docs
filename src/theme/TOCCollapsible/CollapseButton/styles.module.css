@@ -1,0 +1,47 @@
+/**
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.tocCollapsibleButton {
+  font-size: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.8rem;
+  width: 100%;
+  /* Chevron uses `currentColor` in ::after — match sidebar caret */
+  color: var(--color-neutral-400);
+}
+
+.tocCollapsibleButtonLabel {
+  color: var(--ifm-font-color-base);
+}
+
+/* Match sidebar `.menu__caret::before`: same SVG mask, no bitmap background */
+.tocCollapsibleButton::after {
+  content: "";
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: none;
+  background-color: currentColor;
+  mask-image: var(--ifm-menu-link-sublist-icon);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--ifm-menu-link-sublist-icon);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  transform: rotate(180deg);
+  transition: transform var(--ifm-transition-fast)
+    var(--ifm-transition-timing-default);
+  filter: none;
+}
+
+.tocCollapsibleButtonExpanded::after {
+  transform: none;
+}
