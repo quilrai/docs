@@ -452,14 +452,18 @@ main > .container.padding-top--md.padding-bottom--lg,
   margin-bottom: 0.75rem;
 }
 
-.theme-doc-markdown.markdown .admonition-block.alert .admonition-block__heading {
+.theme-doc-markdown.markdown
+  .admonition-block.alert
+  .admonition-block__heading {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.055em;
   line-height: 1.35;
 }
 
-.theme-doc-markdown.markdown .admonition-block.alert .admonition-block__content {
+.theme-doc-markdown.markdown
+  .admonition-block.alert
+  .admonition-block__content {
   font-size: 0.875rem;
   line-height: 1.55;
 }
@@ -475,7 +479,9 @@ main > .container.padding-top--md.padding-bottom--lg,
   margin-bottom: 0.4rem;
 }
 
-.theme-doc-markdown.markdown .admonition-block.alert :where(p, ul, ol):last-child {
+.theme-doc-markdown.markdown
+  .admonition-block.alert
+  :where(p, ul, ol):last-child {
   margin-bottom: 0;
 }
 
@@ -967,4 +973,195 @@ main > .container.padding-top--md.padding-bottom--lg,
   color: var(--color-emerald-400);
   background: var(--color-neutral-950);
   box-shadow: 0 0 0 1px var(--color-neutral-700);
+}
+
+.search-trigger {
+  @apply flex h-8 shrink-0 items-center border cursor-pointer hover:bg-white transition-all ease-in-out border-neutral-200 rounded-lg p-2;
+}
+
+@media (min-width: 997px) {
+  .search-trigger {
+    @apply w-56;
+  }
+}
+
+/* Icon-only tap target (aligns with Infima navbar mobile breakpoint) */
+@media (max-width: 996px) {
+  .search-trigger {
+    @apply w-8 justify-center p-0;
+  }
+
+  .search-trigger__text,
+  .search-trigger .search-trigger__keys {
+    @apply hidden;
+  }
+}
+
+.search-trigger__text {
+  @apply text-sm mx-1;
+}
+
+.search-trigger .search-trigger__keys {
+  @apply ml-auto;
+}
+
+[data-theme="dark"] .search-trigger {
+  @apply bg-neutral-900 border-neutral-800 hover:bg-neutral-950;
+}
+
+/* ─── Command palette (modal) ─── */
+.search-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: max(5vh, 3rem) 1rem 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.search-modal {
+  width: 100%;
+  max-width: 36rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-neutral-200);
+  background: var(--color-white);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  /* absolute dropdown lives inside first column; hidden/max-height clip it */
+  overflow: visible;
+  /* Local-search plugin: strip card + panel shadows inside our modal */
+  --search-local-hit-shadow: none;
+  --search-local-modal-shadow: none;
+}
+
+[data-theme="dark"] .search-modal {
+  border-color: var(--color-neutral-700);
+  background: var(--color-neutral-900);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+/* Stretch wrappers so the real <input> can be 100% of modal */
+.search-modal > div:not(.search-modal__footer),
+.search-modal .navbar__search,
+.search-modal [class*="searchBarContainer"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Modal body padding (must follow rule above so it is not reset) */
+.search-modal > div:first-child {
+  z-index: 2;
+}
+
+/*
+ * Autocomplete wraps the input in a span with display:inline-block, so the
+ * wrapper (and dropdown autoWidth) shrink to a narrow box. Force full width
+ * so the focus ring, input row, and results match the modal.
+ */
+.search-modal .navbar__search > span:first-of-type {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.search-modal .navbar__search-input,
+.search-modal .navbar__search-input:focus {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Plugin puts outline on the input only — ring the full search row instead */
+.search-modal .navbar__search-input:focus {
+  outline: none !important;
+}
+
+.search-modal .navbar__search:focus-within {
+  border-radius: 0.5rem;
+}
+
+.search-modal [class*="dropdownMenu"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  margin-top: 0 !important;
+  /* Beat plugin right:0 + JS autoWidth so the panel spans the modal */
+  left: 0 !important;
+  right: auto !important;
+}
+
+.search-modal .aa-suggestions {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.search-modal .aa-suggestion {
+  box-shadow: none !important;
+}
+
+/* Hashed module class `suggestion_*` — avoid matching `aa-suggestions` container */
+.search-modal
+  [class*="dropdownMenu"]
+  [class*="suggestion"]:not([class*="suggestions"]) {
+  box-shadow: none !important;
+}
+
+.search-modal__footer {
+  @apply relative z-1 flex flex-wrap rounded-b-xl items-center justify-start gap-2.5 w-full box-border p-2.5 border-t border-neutral-200  bg-white;
+}
+
+[data-theme="dark"] .search-modal__footer {
+  @apply border-neutral-700 bg-neutral-950;
+}
+
+.search-modal__footer-item {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.search-modal__footer-item span {
+  @apply text-xs font-medium text-neutral-600;
+}
+
+.search-modal__footer-item span kbd {
+  @apply text-xs font-medium text-neutral-600 p-0!;
+}
+
+[data-theme="dark"] .search-modal__footer-item span {
+  @apply text-neutral-400;
+}
+
+/* Navbar + modal: no Infima search background/icon; keep 0.5rem horizontal padding */
+.navbar__search .navbar__search-input {
+  appearance: none;
+  background: transparent none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: var(--ifm-navbar-search-input-color);
+  cursor: text;
+  display: block;
+  font-size: 1rem;
+  height: 40px;
+  padding: 0 0.5rem 0 0.5rem !important;
+  width: 100% !important;
+  box-sizing: border-box;
 }
