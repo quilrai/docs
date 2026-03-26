@@ -1,0 +1,39 @@
+---
+sidebar_position: 1
+---
+
+# MCP Library
+
+One-click install pre-built MCP integrations from the catalog.
+
+## How It Works
+
+1. **Browse** — Open the MCP Library catalog
+2. **Install** — One-click install, no URLs needed
+3. **Configure** — Open Settings to customize tools and guardrails
+
+## Pre-Built Integrations
+
+The catalog includes ready-to-use MCP servers across categories:
+
+- Productivity
+- Developer Tools
+- Data & Analytics
+- Communication
+- Cloud Services
+- Security
+- Web Search
+
+## Authentication
+
+### OAuth MCPs
+
+Click **Connect** to authorize. The gateway handles client registration and capability fetching automatically.
+
+### No-Auth MCPs
+
+Ready immediately after install. Create API tokens in **Settings** for programmatic access.
+
+## Custom MCP Servers
+
+Don't see what you need? Click **"Add MCP"** to register any MCP server by providing its transport URL (ending in `/sse` or `/mcp`). The gateway auto-detects auth requirements and probes capabilities.
