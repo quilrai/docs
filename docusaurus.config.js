@@ -86,10 +86,11 @@ const config = {
         disableSwitch: false,
       },
       navbar: {
-        title: 'QuilrAI Docs',
+        title: '',
         logo: {
-          alt: 'QuilrAI Docs',
-          src: 'img/logo.svg',
+          alt: 'QuilrAi',
+          src: 'img/QuilrAI-light.png',
+          srcDark: 'img/QuilrAI-dark.png',
         },
         items: [
           {
