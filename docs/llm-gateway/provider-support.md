@@ -8,7 +8,7 @@ Supported providers, API formats, and configuration details.
 
 ## Overview
 
-Your app authenticates to the gateway using a Quilr API key. Provider credentials are configured in the dashboard and never exposed to clients.
+Your app authenticates to the gateway using a QuilrAI API key. Provider credentials are configured in the dashboard and never exposed to clients.
 
 ## Capability Matrix
 
@@ -102,4 +102,4 @@ npm install quilrai
 
 ### LiteLLM Proxy Plugin
 
-Quilr integrates as a plugin for [LiteLLM's](https://docs.litellm.ai) proxy gateway. Configure it in your LiteLLM proxy config to add guardrails to all LLM traffic.
+QuilrAI integrates as a plugin for [LiteLLM's](https://docs.litellm.ai) proxy gateway. Configure it in your LiteLLM proxy config to add guardrails to all LLM traffic.

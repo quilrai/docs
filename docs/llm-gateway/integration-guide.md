@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Integration Guide
 
-Connect to the Quilr gateway in minutes — same SDK, one-line change.
+Connect to the QuilrAI gateway in minutes — same SDK, one-line change.
 
 ## 1. Choose Your Endpoint
 
@@ -37,7 +37,7 @@ https://guardrails.quilr.ai/openai_compatible/
 ```python
 from openai import OpenAI
 
-# Point the client to Quilr's gateway
+# Point the client to QuilrAI's gateway
 client = OpenAI(
     base_url='https://guardrails.quilr.ai/openai_compatible/',
     api_key='sk-quilr-xxx'
@@ -128,7 +128,7 @@ from google.auth import credentials as auth_credentials
 
 
 class APIKeyCredentials(auth_credentials.Credentials):
-    """Pass the Quilr API key as a Bearer token."""
+    """Pass the QuilrAI API key as a Bearer token."""
 
     def __init__(self, api_key):
         super().__init__()
@@ -168,7 +168,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 
 class _NoopCredentials(ga_credentials.Credentials):
-    """Inject the Quilr API key as a Bearer token."""
+    """Inject the QuilrAI API key as a Bearer token."""
 
     def __init__(self, api_key):
         super().__init__(token=api_key)

@@ -11,8 +11,8 @@ import {prismDark} from './src/themes/prismDark.js';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'QuilrDocs',
-  tagline: 'Documentation for Quilr',
+  title: 'QuilrAI Docs',
+  tagline: 'Documentation for QuilrAI',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -86,9 +86,9 @@ const config = {
         disableSwitch: false,
       },
       navbar: {
-        title: 'QuilrDocs',
+        title: 'QuilrAI Docs',
         logo: {
-          alt: 'QuilrDocs',
+          alt: 'QuilrAI Docs',
           src: 'img/logo.svg',
         },
         items: [
@@ -127,7 +127,7 @@ const config = {
           },
           
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} QuilrDocs. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} QuilrAI. Built with Docusaurus.`,
       },
       prism: {
         theme: prismLight,

@@ -10,14 +10,14 @@ Get up and running with the LLM Gateway in 4 steps.
 
 Go to the **LLM Gateway** tab and click **Create New Key**. Select your provider (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, or any OpenAI-compatible endpoint), choose which models to expose, and generate your key.
 
-Your provider API key is stored securely — developers only see the Quilr proxy key.
+Your provider API key is stored securely — developers only see the QuilrAI proxy key.
 
 ## 2. Swap the Base URL
 
-Replace your provider's base URL with the Quilr gateway URL and use your Quilr key. Everything else — SDK, parameters, response format — stays exactly the same.
+Replace your provider's base URL with the QuilrAI gateway URL and use your QuilrAI key. Everything else — SDK, parameters, response format — stays exactly the same.
 
 ```python
-# Point the client to Quilr's gateway
+# Point the client to QuilrAI's gateway
 client = OpenAI(
     base_url='https://guardrails.quilr.ai/openai_compatible/',
     api_key='sk-quilr-xxx'
