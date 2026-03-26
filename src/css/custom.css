@@ -123,6 +123,11 @@ code {
   border: none;
 }
 
+/* Docusaurus CSS-module hashed class on the docs sidebar wrapper */
+[class*="docSidebarContainer"] {
+  border-right: none !important;
+}
+
 [data-theme="dark"] .theme-doc-sidebar-container {
   background-color: #0a0a0a;
 }
@@ -167,8 +172,7 @@ code {
 }
 
 [data-theme="dark"] .doc-main {
-  border-color: var(--color-neutral-800);
-  background-color: var(--color-neutral-950);
+  @apply bg-neutral-950 border-neutral-800;
 }
 
 /* ────────────────────────────────── Doc content panel ────────────────── */
@@ -282,8 +286,7 @@ main > .container.padding-top--md.padding-bottom--lg,
 [data-theme="dark"] main > .container.padding-top--md.padding-bottom--lg,
 [data-theme="dark"]
   .doc-main__panel.container.padding-top--md.padding-bottom--lg {
-  background-color: var(--color-neutral-950);
-  border-color: var(--color-neutral-800);
+  @apply bg-neutral-950 border-neutral-800;
 }
 
 /* ────────────────────────────────── Doc prose (Tailwind Typography) ─── */
@@ -356,30 +359,41 @@ main > .container.padding-top--md.padding-bottom--lg,
 /* ────────────────────────────────── Markdown tables (docs-style) ───── */
 /* Infima uses a full grid + zebra + grey thead; align with modern doc prose */
 .theme-doc-markdown.markdown table {
-  display: table;
+  display: block;
   width: 100%;
   max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   margin-top: 1.25rem;
   margin-bottom: 1.25rem;
   border-collapse: collapse;
   border: 1px solid var(--ifm-table-border-color);
   border-radius: var(--ifm-global-radius);
-  overflow: hidden;
   font-size: 0.9375rem;
   line-height: 1.55;
 }
 
+.theme-doc-markdown.markdown table tbody,
+.theme-doc-markdown.markdown table thead,
+.theme-doc-markdown.markdown table tfoot {
+  width: 100%;
+}
+
 .theme-doc-markdown.markdown thead {
   background-color: var(--color-neutral-50);
+  border-top: none !important;
 }
 
 .theme-doc-markdown.markdown thead tr {
+  border-top: none !important;
   border-bottom: none;
 }
 
 .theme-doc-markdown.markdown thead th {
   padding: 0.65rem 1rem;
   border: none;
+  border-top: none !important;
   border-bottom: 1px solid var(--ifm-table-border-color);
   background-color: transparent;
   color: var(--ifm-color-content-secondary);
@@ -414,6 +428,7 @@ main > .container.padding-top--md.padding-bottom--lg,
 .theme-doc-markdown.markdown th,
 .theme-doc-markdown.markdown td {
   text-align: start;
+  border-top: none;
 }
 
 .theme-doc-markdown.markdown thead th:first-child,

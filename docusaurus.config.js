@@ -79,7 +79,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/QuilrAi-Open-Graph.png',
       colorMode: {
         defaultMode: 'light',
         respectPrefersColorScheme: true,
@@ -109,7 +109,6 @@ const config = {
         ],
       },
       footer: {
-        style: 'dark',
         links: [
           {
             title: 'Docs',
