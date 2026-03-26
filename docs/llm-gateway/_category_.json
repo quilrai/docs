@@ -1,0 +1,8 @@
+{
+  "label": "LLM Gateway",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Unified API gateway for LLM providers — route, secure, monitor, and optimize all your LLM traffic through a single endpoint."
+  }
+}

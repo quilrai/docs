@@ -78,6 +78,13 @@ const config = {
             position: 'left',
             label: 'Documentation',
           },
+          {
+            href: 'https://www.quilr.ai/resources',
+            label: 'Resources',
+            position: 'right',
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          },
         ],
       },
       footer: {
@@ -90,25 +97,15 @@ const config = {
                 label: 'Documentation',
                 to: '/',
               },
+              {
+                label: 'Resources',
+                href: 'https://www.quilr.ai/resources',
+                target: '_blank',
+                rel: 'noopener noreferrer',
+              }
             ],
           },
-          {
-            title: 'Community',
-            items: [
-              {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-              },
-              {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'X',
-                href: 'https://x.com/docusaurus',
-              },
-            ],
-          },
+          
         ],
         copyright: `Copyright © ${new Date().getFullYear()} QuilrDocs. Built with Docusaurus.`,
       },

@@ -353,6 +353,94 @@ main > .container.padding-top--md.padding-bottom--lg,
   font-size: inherit;
 }
 
+/* ────────────────────────────────── Markdown tables (docs-style) ───── */
+/* Infima uses a full grid + zebra + grey thead; align with modern doc prose */
+.theme-doc-markdown.markdown table {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-collapse: collapse;
+  border: 1px solid var(--ifm-table-border-color);
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.theme-doc-markdown.markdown thead {
+  background-color: var(--color-neutral-50);
+}
+
+.theme-doc-markdown.markdown thead tr {
+  border-bottom: none;
+}
+
+.theme-doc-markdown.markdown thead th {
+  padding: 0.65rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--ifm-table-border-color);
+  background-color: transparent;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: bottom;
+}
+
+.theme-doc-markdown.markdown tbody tr {
+  background-color: transparent !important;
+  border-top: none;
+  border-bottom: none;
+}
+
+.theme-doc-markdown.markdown tbody tr:nth-child(2n) {
+  background-color: transparent !important;
+}
+
+.theme-doc-markdown.markdown tbody td {
+  padding: 0.8rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--ifm-table-border-color);
+  vertical-align: top;
+}
+
+.theme-doc-markdown.markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.theme-doc-markdown.markdown th,
+.theme-doc-markdown.markdown td {
+  text-align: start;
+}
+
+.theme-doc-markdown.markdown thead th:first-child,
+.theme-doc-markdown.markdown tbody td:first-child {
+  min-width: 11rem;
+  width: 30%;
+}
+
+.theme-doc-markdown.markdown tbody td:first-child {
+  font-weight: 600;
+}
+
+.theme-doc-markdown.markdown tbody td:first-child ~ td {
+  font-weight: 400;
+  color: var(--ifm-font-color-base);
+}
+
+.theme-doc-markdown.markdown tfoot td {
+  border: none;
+  border-top: 1px solid var(--ifm-table-border-color);
+  padding: 0.8rem 1rem;
+}
+
+[data-theme="dark"] .theme-doc-markdown.markdown thead {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
 /* ────────────────────────────────── Admonitions (minimal callouts) ─── */
 .admonition-block.alert {
   --ifm-alert-padding-vertical: 0.5rem;
