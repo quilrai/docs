@@ -1,0 +1,205 @@
+/* ─── Wrapper ────────────────────────────────────────────────────────── */
+.wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.125rem 0.75rem;
+  background: #ffffff;
+  margin: 1.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #86efac, #34d399, #059669);
+}
+
+:global([data-theme="dark"]) .wrapper {
+  background: #0f0f0f;
+  border-color: #262626;
+}
+
+:global([data-theme="dark"]) .wrapper::before {
+  background: linear-gradient(90deg, #059669, #10b981, #34d399);
+}
+
+/* ─── Horizontal card row ────────────────────────────────────────────── */
+.flow {
+  display: flex;
+  align-items: stretch;
+}
+
+/* ─── Card ───────────────────────────────────────────────────────────── */
+.card {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:global([data-theme="dark"]) .card {
+  border-color: #333;
+}
+
+/* ─── Card header — green progression ────────────────────────────────── */
+.cardHeader {
+  padding: 0.45rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:global([data-theme="dark"]) .cardHeader {
+  border-bottom-color: #333;
+}
+
+/* Light mode */
+.cardHeader[data-step="0"] {
+  background: #f0fdf4;
+  color: #166534;
+}
+.cardHeader[data-step="1"] {
+  background: #dcfce7;
+  color: #15803d;
+}
+.cardHeader[data-step="2"] {
+  background: #d1fae5;
+  color: #059669;
+}
+.cardHeader[data-step="3"] {
+  background: #a7f3d0;
+  color: #047857;
+}
+.cardHeader[data-step="4"] {
+  background: #6ee7b7;
+  color: #065f46;
+}
+.cardHeader[data-step="5"] {
+  background: #34d399;
+  color: #064e3b;
+}
+
+/* Dark mode */
+:global([data-theme="dark"]) .cardHeader[data-step="0"] {
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+}
+:global([data-theme="dark"]) .cardHeader[data-step="1"] {
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+}
+:global([data-theme="dark"]) .cardHeader[data-step="2"] {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+:global([data-theme="dark"]) .cardHeader[data-step="3"] {
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
+}
+:global([data-theme="dark"]) .cardHeader[data-step="4"] {
+  background: rgba(4, 120, 87, 0.14);
+  color: #047857;
+}
+:global([data-theme="dark"]) .cardHeader[data-step="5"] {
+  background: rgba(6, 95, 70, 0.16);
+  color: #065f46;
+}
+
+/* ─── Card body ──────────────────────────────────────────────────────── */
+.cardBody {
+  padding: 0.5rem 0.75rem;
+  flex: 1;
+}
+
+.line {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: var(--ifm-color-content-secondary, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Status markers ─────────────────────────────────────────────────── */
+.check {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.cross {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+:global([data-theme="dark"]) .check {
+  color: #4ade80;
+}
+
+:global([data-theme="dark"]) .cross {
+  color: #f87171;
+}
+
+/* ─── Chevron connector ──────────────────────────────────────────────── */
+.connector {
+  display: flex;
+  align-self: center;
+  flex-shrink: 0;
+  color: var(--ifm-color-primary, #059669);
+  opacity: 0.4;
+  padding: 0 2px;
+}
+
+/* ─── Brand tag ──────────────────────────────────────────────────────── */
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  font-size: 0.6875rem;
+  color: var(--ifm-color-primary, #059669);
+  font-weight: 600;
+  margin-top: 0.75rem;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+}
+
+.brandDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .wrapper {
+    padding: 1.25rem 0.875rem 0.625rem;
+  }
+
+  .flow {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .card {
+    flex: none;
+  }
+
+  .connector {
+    padding: 2px 0;
+    margin-left: 1rem;
+    transform: rotate(90deg);
+  }
+
+  .line {
+    white-space: normal;
+  }
+}

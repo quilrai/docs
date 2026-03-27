@@ -8,9 +8,36 @@ One-click install pre-built MCP integrations from the catalog.
 
 ## How It Works
 
-1. **Browse** — Open the MCP Library catalog
-2. **Install** — One-click install, no URLs needed
-3. **Configure** — Open Settings to customize tools and guardrails
+<StepFlow steps={[
+  {
+    label: "Browse Catalog",
+    items: [
+      "Developer Tools: 8 servers",
+      "Productivity: 12 servers",
+      "Communication: 5 servers",
+    ],
+  },
+  {
+    label: "One-Click Install",
+    items: [
+      "GitHub MCP → installed ✓",
+      "OAuth: auto-authorized",
+      "Tools: auto-detected",
+    ],
+  },
+  {
+    label: "Configure",
+    items: [
+      "Read tools: 5 enabled",
+      "Write tools: 3 enabled",
+      "Destructive: 1 disabled ✗",
+    ],
+  },
+]} />
+
+1. **Browse** - Open the MCP Library catalog
+2. **Install** - One-click install, no URLs needed
+3. **Configure** - Open Settings to customize tools and guardrails
 
 ## Pre-Built Integrations
 

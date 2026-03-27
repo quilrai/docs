@@ -8,15 +8,42 @@ Authorize OAuth-protected MCP servers with one click.
 
 ## How It Works
 
-1. **Probe URL** — The gateway detects the MCP server's auth requirements
-2. **Authorize** — You're redirected to the MCP's OAuth authorization page
-3. **Fetch Capabilities** — Tools, resources, and prompts are cached automatically
+<StepFlow steps={[
+  {
+    label: "Probe MCP URL",
+    items: [
+      "URL: github-mcp.example.com",
+      "Auth: OAuth 2.0 detected",
+      "DCR: supported ✓",
+    ],
+  },
+  {
+    label: "Authorize",
+    items: [
+      "→ GitHub OAuth consent",
+      "Scope: repo, read:org",
+      "Status: authorized ✓",
+    ],
+  },
+  {
+    label: "Capabilities Cached",
+    items: [
+      "Tools: 12 fetched",
+      "Resources: 3 fetched",
+      "Prompts: 2 fetched",
+    ],
+  },
+]} />
+
+1. **Probe URL** - The gateway detects the MCP server's auth requirements
+2. **Authorize** - You're redirected to the MCP's OAuth authorization page
+3. **Fetch Capabilities** - Tools, resources, and prompts are cached automatically
 
 ## OAuth Modes
 
-### Dynamic Client Registration (DCR) — Recommended
+### Dynamic Client Registration (DCR) - Recommended
 
-The gateway automatically registers as an OAuth client with the MCP server. No Client ID or Secret needed — just click **Connect** and authorize.
+The gateway automatically registers as an OAuth client with the MCP server. No Client ID or Secret needed - just click **Connect** and authorize.
 
 ### Manual OAuth
 

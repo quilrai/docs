@@ -8,9 +8,33 @@ Manage and version system prompts centrally.
 
 ## How It Works
 
-1. **Create** — Store a prompt with a unique ID (e.g., `code-reviewer`)
-2. **Reference** — Use it as the system message content: `quilrai-prompt-store-code-reviewer`
-3. **Gateway Resolves** — The gateway resolves the prompt and sends the full text to the LLM
+<StepFlow steps={[
+  {
+    label: "Prompt Stored",
+    items: [
+      "ID: code-reviewer",
+      '"You are a {{tone}} reviewer"',
+    ],
+  },
+  {
+    label: "API References It",
+    items: [
+      "system: quilrai-prompt-store-code-reviewer",
+      'vars: {tone: "formal"}',
+    ],
+  },
+  {
+    label: "QuilrAI Resolves",
+    items: [
+      '"You are a formal reviewer"',
+      "Sent to LLM ✓",
+    ],
+  },
+]} />
+
+1. **Create** - Store a prompt with a unique ID (e.g., `code-reviewer`)
+2. **Reference** - Use it as the system message content: `quilrai-prompt-store-code-reviewer`
+3. **Gateway Resolves** - The gateway resolves the prompt and sends the full text to the LLM
 
 ## Template Variables
 

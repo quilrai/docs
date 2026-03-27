@@ -12,10 +12,10 @@ Rate limits protect your LLM spend and availability. All limits are enforced at 
 
 ## Key Features
 
-- **Per-key rate limits** — Requests per minute, hour, or day
-- **Token limits** — Input and output token budgets per request or over time
-- **API key expiration** — Configurable epoch time for automatic key expiry
-- **Response timeout** — Maximum wait time to prevent hung requests from consuming resources
+- **Per-key rate limits** - Requests per minute, hour, or day
+- **Token limits** - Input and output token budgets per request or over time
+- **API key expiration** - Configurable epoch time for automatic key expiry
+- **Response timeout** - Maximum wait time to prevent hung requests from consuming resources
 
 ## Configuration
 
