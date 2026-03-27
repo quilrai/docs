@@ -105,6 +105,26 @@ message = client.messages.create(
 print(message.content[0].text)
 ```
 
+### Anthropic — JavaScript
+
+```javascript
+import Anthropic from "@anthropic-ai/sdk";
+
+// Point the client to QuilrAI's gateway
+const client = new Anthropic({
+  baseURL: "https://guardrails.quilr.ai/anthropic_messages/",
+  apiKey: "sk-quilr-xxx",
+});
+
+// Everything below stays exactly the same
+const message = await client.messages.create({
+  model: "claude-sonnet-4-20250514",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Hello!" }],
+});
+console.log(message.content[0].text);
+```
+
 ### Anthropic — cURL
 
 ```bash

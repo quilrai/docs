@@ -21,8 +21,8 @@ const config = {
   },
 
   // GitHub Pages: https://docusaurus.io/docs/deployment#deploying-to-github-pages
-  url: 'https://quilrai.github.io',
-  baseUrl: '/docs/',
+	url: 'https://localhost:3001',
+  baseUrl: '/',
 
   organizationName: 'quilrai',
   projectName: 'docs',
