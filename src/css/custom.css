@@ -1180,3 +1180,31 @@ main > .container.padding-top--md.padding-bottom--lg,
   width: 100% !important;
   box-sizing: border-box;
 }
+
+/* ────────────────────────────────── Diff-style code lines ─────────────── */
+.code-block-diff-add-line {
+  background-color: rgba(16, 185, 129, 0.10);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+  border-left: 3px solid #10b981;
+}
+
+.code-block-diff-remove-line {
+  background-color: rgba(239, 68, 68, 0.10);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+  border-left: 3px solid #ef4444;
+  opacity: 0.65;
+  text-decoration: line-through;
+  text-decoration-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .code-block-diff-add-line {
+  background-color: rgba(16, 185, 129, 0.08);
+}
+
+[data-theme="dark"] .code-block-diff-remove-line {
+  background-color: rgba(239, 68, 68, 0.08);
+}
