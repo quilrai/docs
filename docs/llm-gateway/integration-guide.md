@@ -1,10 +1,10 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # Integration Guide
 
-Connect to the QuilrAI gateway in minutes — same SDK, one-line change.
+Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
 
 ## 1. Choose Your Endpoint
 
@@ -32,7 +32,7 @@ https://guardrails.quilr.ai/openai_compatible/
 
 ## 2. Code Examples
 
-### OpenAI — Python
+### OpenAI - Python
 
 ```python
 from openai import OpenAI
@@ -62,7 +62,7 @@ embedding = client.embeddings.create(
 print(embedding.data[0].embedding[:5])
 ```
 
-### OpenAI — JavaScript
+### OpenAI - JavaScript
 
 ```javascript
 import OpenAI from "openai";
@@ -85,7 +85,7 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
-### OpenAI — cURL
+### OpenAI - cURL
 
 ```bash
 # Point the request to QuilrAI's gateway
@@ -104,7 +104,7 @@ curl https://guardrails.quilr.ai/openai_compatible/v1/chat/completions \
   }'
 ```
 
-### Anthropic — Python
+### Anthropic - Python
 
 ```python
 import anthropic
@@ -130,7 +130,7 @@ message = client.messages.create(
 print(message.content[0].text)
 ```
 
-### Anthropic — JavaScript
+### Anthropic - JavaScript
 
 ```javascript
 import Anthropic from "@anthropic-ai/sdk";
@@ -156,7 +156,7 @@ const message = await client.messages.create({
 console.log(message.content[0].text);
 ```
 
-### Anthropic — cURL
+### Anthropic - cURL
 
 ```bash
 # Point the request to QuilrAI's gateway
@@ -177,7 +177,7 @@ curl https://guardrails.quilr.ai/anthropic_messages/v1/messages \
   }'
 ```
 
-### Vertex AI — Google GenAI SDK
+### Vertex AI - Google GenAI SDK
 
 ```python
 from google import genai
@@ -248,7 +248,7 @@ response = client.models.generate_content(
 print(response.text)
 ```
 
-### Vertex AI — LangChain
+### Vertex AI - LangChain
 
 ```python
 # diff-remove

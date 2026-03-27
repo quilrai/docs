@@ -33,9 +33,9 @@ Multi-provider load balancing and failover behind a single API key.
   },
 ]} />
 
-1. **Create Group** — Define a named routing group (e.g., `Group1`)
-2. **Add Models** — Add providers with traffic weights (e.g., `gpt-4o 60%`, `claude 40%`)
-3. **Use as Model** — Pass the group name as the `model` parameter in your API call
+1. **Create Group** - Define a named routing group (e.g., `Group1`)
+2. **Add Models** - Add providers with traffic weights (e.g., `gpt-4o 60%`, `claude 40%`)
+3. **Use as Model** - Pass the group name as the `model` parameter in your API call
 
 ## Weight-Based Routing
 
@@ -89,7 +89,7 @@ Group names can match actual model names. Your application keeps sending request
 |-----------|-----------|
 | `gpt-4.1` | `gpt-4.1-nano` (70%), `gpt-4.1-mini` (30%) |
 
-Your code still sends `model="gpt-4.1"` — zero code changes, but requests get routed to cheaper or faster models behind the scenes.
+Your code still sends `model="gpt-4.1"` - zero code changes, but requests get routed to cheaper or faster models behind the scenes.
 
 ## Code Examples
 

@@ -31,11 +31,11 @@ mcpuser: user@company.com
 - Each token is scoped to a specific agent
 - The `mcpuser` header identifies the end user for per-user tracking
 
-### OAuth — Dynamic Client Registration (DCR)
+### OAuth - Dynamic Client Registration (DCR)
 
-The gateway automatically registers as an OAuth client with the MCP server. No Client ID or Secret needed — just click **Connect** and authorize.
+The gateway automatically registers as an OAuth client with the MCP server. No Client ID or Secret needed - just click **Connect** and authorize.
 
-### OAuth — Manual
+### OAuth - Manual
 
 For MCP servers without DCR support. Provide your **Client ID** and **Client Secret** during MCP setup. The gateway uses these credentials for the authorization flow.
 

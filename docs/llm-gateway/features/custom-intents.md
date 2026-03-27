@@ -20,8 +20,8 @@ Custom intents extend the guardrails system with your own detection logic. Provi
 
 1. **Name** your intent (e.g., `competitor-mentions`)
 2. **Describe** what the intent should detect
-3. **Add positive examples** — prompts that should trigger the intent
-4. **Add negative examples** — prompts that should not trigger the intent
-5. **Assign an action** — block, monitor, or redact
+3. **Add positive examples** - prompts that should trigger the intent
+4. **Add negative examples** - prompts that should not trigger the intent
+5. **Assign an action** - block, monitor, or redact
 
 The classifier learns from your examples and applies the configured action when a match is detected.

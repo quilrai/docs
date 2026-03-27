@@ -35,9 +35,9 @@ Filter web search domains using enterprise security gateway rules.
   },
 ]} />
 
-1. **Connect Gateway** — Link your enterprise security gateway
-2. **Sync Rules** — Cache groups, users, and URL filter rules
-3. **Enforce** — Domain checks run on every web search tool call
+1. **Connect Gateway** - Link your enterprise security gateway
+2. **Sync Rules** - Cache groups, users, and URL filter rules
+3. **Enforce** - Domain checks run on every web search tool call
 
 ## Supported Security Gateways
 

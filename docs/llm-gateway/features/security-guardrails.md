@@ -16,10 +16,10 @@ Contextual detection identifies sensitive data categories and applies the config
 
 ### Supported Categories
 
-- **PII** — Personally Identifiable Information
-- **PHI** — Protected Health Information
-- **PCI** — Payment Card Industry data
-- **Financial data** — Financial records and account information
+- **PII** - Personally Identifiable Information
+- **PHI** - Protected Health Information
+- **PCI** - Payment Card Industry data
+- **Financial data** - Financial records and account information
 
 ### Exact Data Matching (EDM)
 
@@ -29,9 +29,9 @@ Pattern matching with custom EDM rules for specific data formats.
 
 Catches adversarial attack patterns in requests:
 
-- **Prompt injection** — Attempts to override system instructions
-- **Jailbreak** — Attempts to bypass safety controls
-- **Social engineering** — Manipulation attempts targeting the AI model
+- **Prompt injection** - Attempts to override system instructions
+- **Jailbreak** - Attempts to bypass safety controls
+- **Social engineering** - Manipulation attempts targeting the AI model
 
 ## Configurable Actions
 

@@ -35,27 +35,27 @@ Control which MCP tools are available to AI agents, organized by risk level.
   },
 ]} />
 
-1. **MCP Exposes Tools** — The server declares its available tools
-2. **Gateway Categorizes** — Tools are sorted by risk level automatically
-3. **Admin Controls** — Enable or disable each tool individually
+1. **MCP Exposes Tools** - The server declares its available tools
+2. **Gateway Categorizes** - Tools are sorted by risk level automatically
+3. **Admin Controls** - Enable or disable each tool individually
 
 ## Tool Categories
 
-### Read Only — Low Risk
+### Read Only - Low Risk
 
-Tools that only read data. Safe to enable by default — no modifications to external systems.
+Tools that only read data. Safe to enable by default - no modifications to external systems.
 
 Examples: `get_file`, `list_repos`, `search_docs`, `read_database`
 
-### Write Access — Medium Risk
+### Write Access - Medium Risk
 
-Tools that create or modify data. Review before enabling — changes can be undone but may have side effects.
+Tools that create or modify data. Review before enabling - changes can be undone but may have side effects.
 
 Examples: `create_issue`, `update_record`, `send_message`, `write_file`
 
-### Destructive — High Risk
+### Destructive - High Risk
 
-Tools that delete or irreversibly modify data. Disabled by default — enable only when explicitly needed.
+Tools that delete or irreversibly modify data. Disabled by default - enable only when explicitly needed.
 
 Examples: `delete_repo`, `drop_table`, `revoke_access`, `purge_data`
 

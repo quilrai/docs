@@ -14,7 +14,7 @@ API tokens provide programmatic access to MCP servers that don't use OAuth. Each
 
 - **Create named API tokens** for non-OAuth MCPs
 - **Assign each token to a specific agent** (OpenAI, Claude, Cursor, or custom)
-- **Token shown once at creation** — copy immediately
+- **Token shown once at creation** - copy immediately
 - **Revoke tokens at any time** from the Settings panel
 - **Track last-used date** per token for auditing
 
@@ -34,7 +34,7 @@ mcpuser: user@company.com
 
 ## Security
 
-- Tokens are displayed **only once** at creation — copy and store them securely
+- Tokens are displayed **only once** at creation - copy and store them securely
 - Revoke any token instantly from the Settings panel
 - Each token tracks its last usage timestamp for auditing
-- Tokens are scoped to a specific agent — a token created for OpenAI cannot be used by Claude
+- Tokens are scoped to a specific agent - a token created for OpenAI cannot be used by Claude

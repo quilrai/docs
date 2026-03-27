@@ -12,10 +12,10 @@ Access Control lets you restrict each MCP to specific AI agents. When enabled, o
 
 ## How It Works
 
-- **Per-MCP agent-level access control** — Configure allowed agents for each MCP independently
-- **Toggle access for predefined agents** — OpenAI, Claude, Cursor, Gemini
-- **Support for custom agents** — User-Agent keyword matching for any AI client
-- **Changes take effect immediately** — No restart needed
+- **Per-MCP agent-level access control** - Configure allowed agents for each MCP independently
+- **Toggle access for predefined agents** - OpenAI, Claude, Cursor, Gemini
+- **Support for custom agents** - User-Agent keyword matching for any AI client
+- **Changes take effect immediately** - No restart needed
 
 ## Predefined Agents
 

@@ -35,9 +35,9 @@ One-click install pre-built MCP integrations from the catalog.
   },
 ]} />
 
-1. **Browse** — Open the MCP Library catalog
-2. **Install** — One-click install, no URLs needed
-3. **Configure** — Open Settings to customize tools and guardrails
+1. **Browse** - Open the MCP Library catalog
+2. **Install** - One-click install, no URLs needed
+3. **Configure** - Open Settings to customize tools and guardrails
 
 ## Pre-Built Integrations
 
