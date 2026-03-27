@@ -6,6 +6,41 @@ sidebar_position: 1
 
 Get up and running with the LLM Gateway in 4 steps.
 
+<StepFlow steps={[
+  {
+    label: "Create API Key",
+    items: [
+      "Provider: OpenAI",
+      "Models: gpt-4o, gpt-4o-mini",
+      "Key: sk-quilr-•••",
+    ],
+  },
+  {
+    label: "Swap Base URL",
+    items: [
+      "base_url → guardrails.quilr.ai",
+      "api_key → sk-quilr-•••",
+      "SDK code: unchanged ✓",
+    ],
+  },
+  {
+    label: "Configure",
+    items: [
+      "PII detection: ON",
+      "Rate limit: 100 req/min",
+      "Routing: weighted group",
+    ],
+  },
+  {
+    label: "Monitor",
+    items: [
+      "Requests: 1,247",
+      "Cost: $12.40",
+      "Avg latency: 340ms",
+    ],
+  },
+]} />
+
 ## 1. Create an API Key
 
 Go to the **LLM Gateway** tab and click **Create New Key**. Select your provider (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, or any OpenAI-compatible endpoint), choose which models to expose, and generate your key.

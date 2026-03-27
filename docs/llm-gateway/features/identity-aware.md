@@ -8,6 +8,30 @@ Authenticate and track users behind each API key.
 
 ## How It Works
 
+<StepFlow steps={[
+  {
+    label: "Request Arrives",
+    items: [
+      "Authorization: Bearer sk-quilr-•••",
+      "X-User-Email: alice@acme.com",
+    ],
+  },
+  {
+    label: "QuilrAI Identifies",
+    items: [
+      "User: alice@acme.com",
+      "Domain: acme.com ✓",
+    ],
+  },
+  {
+    label: "Per-User Tracking",
+    items: [
+      "Requests today: 142",
+      "Rate limit: 80% used",
+    ],
+  },
+]} />
+
 1. **Request Arrives** — App sends an API call with identity info
 2. **Gateway Identifies User** — Extracts identity via header or JWT token
 3. **Per-User Tracking** — Usage tracked per user with rate limits and analytics

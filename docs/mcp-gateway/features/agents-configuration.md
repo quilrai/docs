@@ -8,6 +8,33 @@ Map AI clients to MCPs and monitor per-agent usage.
 
 ## How It Works
 
+<StepFlow steps={[
+  {
+    label: "Registered Agents",
+    items: [
+      "Cursor (cursor)",
+      "Claude (claude)",
+      "Custom: my-bot",
+    ],
+  },
+  {
+    label: "MCP Mapping",
+    items: [
+      "Cursor → GitHub ✓ Slack ✓",
+      "Claude → GitHub ✓ S3 ✗",
+      "my-bot → Slack ✓",
+    ],
+  },
+  {
+    label: "Usage Stats",
+    items: [
+      "Cursor: 1,247 calls",
+      "Claude: 892 calls",
+      "my-bot: 156 calls",
+    ],
+  },
+]} />
+
 1. **Register Agents** — Use predefined agents or create custom ones
 2. **Map to MCPs** — Enable or disable MCPs per agent
 3. **Monitor Usage** — Track per-agent tool call statistics

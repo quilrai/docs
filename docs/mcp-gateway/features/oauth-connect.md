@@ -8,6 +8,33 @@ Authorize OAuth-protected MCP servers with one click.
 
 ## How It Works
 
+<StepFlow steps={[
+  {
+    label: "Probe MCP URL",
+    items: [
+      "URL: github-mcp.example.com",
+      "Auth: OAuth 2.0 detected",
+      "DCR: supported ✓",
+    ],
+  },
+  {
+    label: "Authorize",
+    items: [
+      "→ GitHub OAuth consent",
+      "Scope: repo, read:org",
+      "Status: authorized ✓",
+    ],
+  },
+  {
+    label: "Capabilities Cached",
+    items: [
+      "Tools: 12 fetched",
+      "Resources: 3 fetched",
+      "Prompts: 2 fetched",
+    ],
+  },
+]} />
+
 1. **Probe URL** — The gateway detects the MCP server's auth requirements
 2. **Authorize** — You're redirected to the MCP's OAuth authorization page
 3. **Fetch Capabilities** — Tools, resources, and prompts are cached automatically

@@ -8,6 +8,33 @@ Control which MCP tools are available to AI agents, organized by risk level.
 
 ## How It Works
 
+<StepFlow steps={[
+  {
+    label: "MCP Exposes Tools",
+    items: [
+      "get_repos → read",
+      "create_issue → write",
+      "delete_repo → destructive",
+    ],
+  },
+  {
+    label: "QuilrAI Categorizes",
+    items: [
+      "Low risk: 5 tools",
+      "Medium risk: 3 tools",
+      "High risk: 1 tool",
+    ],
+  },
+  {
+    label: "Admin Controls",
+    items: [
+      "get_repos: enabled ✓",
+      "create_issue: enabled ✓",
+      "delete_repo: disabled ✗",
+    ],
+  },
+]} />
+
 1. **MCP Exposes Tools** — The server declares its available tools
 2. **Gateway Categorizes** — Tools are sorted by risk level automatically
 3. **Admin Controls** — Enable or disable each tool individually

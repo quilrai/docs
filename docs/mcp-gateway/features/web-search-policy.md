@@ -8,6 +8,33 @@ Filter web search domains using enterprise security gateway rules.
 
 ## How It Works
 
+<StepFlow steps={[
+  {
+    label: "Gateway Connected",
+    items: [
+      "Provider: Zscaler ZIA",
+      "Rules synced: 24",
+      "Groups: 8 cached",
+    ],
+  },
+  {
+    label: "Search Request",
+    items: [
+      "Agent: Cursor",
+      "Query: competitor-site.com",
+      "Category: blocked-domains",
+    ],
+  },
+  {
+    label: "Policy Enforced",
+    items: [
+      "Domain: blocked ✗",
+      "Rule: #7 URL filter",
+      "Search denied",
+    ],
+  },
+]} />
+
 1. **Connect Gateway** — Link your enterprise security gateway
 2. **Sync Rules** — Cache groups, users, and URL filter rules
 3. **Enforce** — Domain checks run on every web search tool call

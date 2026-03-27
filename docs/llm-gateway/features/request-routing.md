@@ -8,6 +8,31 @@ Multi-provider load balancing and failover behind a single API key.
 
 ## How It Works
 
+<StepFlow steps={[
+  {
+    label: "API Request",
+    items: [
+      'model: "Group1"',
+      'content: "Hello!"',
+    ],
+  },
+  {
+    label: "QuilrAI Routes",
+    items: [
+      "Group1 found ✓",
+      "gpt-4o → 60% weight",
+      "claude-sonnet → 40% weight",
+    ],
+  },
+  {
+    label: "Provider Selected",
+    items: [
+      "→ gpt-4o (weighted)",
+      "Response returned ✓",
+    ],
+  },
+]} />
+
 1. **Create Group** — Define a named routing group (e.g., `Group1`)
 2. **Add Models** — Add providers with traffic weights (e.g., `gpt-4o 60%`, `claude 40%`)
 3. **Use as Model** — Pass the group name as the `model` parameter in your API call

@@ -8,6 +8,30 @@ Reduce token usage by compressing input content automatically.
 
 ## How It Works
 
+<StepFlow steps={[
+  {
+    label: "Request Arrives",
+    items: [
+      '{"name": "John", "age": 30}',
+      "14 input tokens",
+    ],
+  },
+  {
+    label: "QuilrAI Compresses",
+    items: [
+      "name:John|age:30",
+      "8 input tokens",
+    ],
+  },
+  {
+    label: "Sent to LLM",
+    items: [
+      "43% tokens saved",
+      "Same response quality ✓",
+    ],
+  },
+]} />
+
 1. **Request Arrives** — Your app sends a normal API call
 2. **Gateway Compresses** — Content is transformed to use fewer tokens
 3. **Forwarded to LLM** — Optimized content sent — same accuracy, lower cost

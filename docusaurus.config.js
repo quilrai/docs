@@ -39,7 +39,13 @@ const config = {
         locales: ['en'],
     },
 
+    markdown: {
+        mermaid: true,
+        format: 'mdx',
+    },
+
     themes: [
+        '@docusaurus/theme-mermaid',
         [
             // @ts-ignore
             '@easyops-cn/docusaurus-search-local',
@@ -132,6 +138,21 @@ const config = {
             prism: {
                 theme: prismLight,
                 darkTheme: prismDark,
+                magicComments: [
+                    {
+                        className: 'theme-code-block-highlighted-line',
+                        line: 'highlight-next-line',
+                        block: { start: 'highlight-start', end: 'highlight-end' },
+                    },
+                    {
+                        className: 'code-block-diff-add-line',
+                        line: 'diff-add',
+                    },
+                    {
+                        className: 'code-block-diff-remove-line',
+                        line: 'diff-remove',
+                    },
+                ],
             },
         }),
 };

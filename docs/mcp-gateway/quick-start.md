@@ -6,6 +6,41 @@ sidebar_position: 1
 
 Get up and running with MCP Gateway in 4 steps.
 
+<StepFlow steps={[
+  {
+    label: "Add MCP",
+    items: [
+      "Source: MCP Library",
+      "Server: GitHub MCP",
+      "Transport: SSE",
+    ],
+  },
+  {
+    label: "Configure",
+    items: [
+      "Tools: 12 enabled",
+      "Guardrails: PII detection ON",
+      "Access: Cursor, Claude",
+    ],
+  },
+  {
+    label: "Connect Agent",
+    items: [
+      "url: mcp.quilr.ai/github/mcp",
+      "auth: Bearer <token>",
+      "mcpuser: user@company.com",
+    ],
+  },
+  {
+    label: "Monitor",
+    items: [
+      "Tool calls: 3,421",
+      "Agents: 4 connected",
+      "Blocked: 12 requests",
+    ],
+  },
+]} />
+
 ## 1. Add an MCP Server
 
 Go to the **MCP Gateway** tab and install from the **MCP Library** for one-click pre-built integrations, or click **Add MCP** to register any server by its transport URL (ending in `/sse` or `/mcp`).
