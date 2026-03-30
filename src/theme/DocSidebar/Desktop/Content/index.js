@@ -4,6 +4,7 @@ import {ThemeClassNames} from '@docusaurus/theme-common';
 import DocSidebarItems from '@theme/DocSidebarItems';
 import SidebarThemeToggle from '@site/src/components/SidebarThemeToggle';
 import SidebarLlmsTxt from '@site/src/components/SidebarLlmsTxt';
+import SidebarAskAI from '@site/src/components/SidebarAskAI';
 
 export default function DocSidebarDesktopContent({path, sidebar, className}) {
   return (
@@ -26,6 +27,7 @@ export default function DocSidebarDesktopContent({path, sidebar, className}) {
       </ul>
       <div className="sidebar-desktop-content__footer">
         <SidebarLlmsTxt />
+        <SidebarAskAI />
         <SidebarThemeToggle />
       </div>
     </nav>

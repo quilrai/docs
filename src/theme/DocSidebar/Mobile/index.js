@@ -7,6 +7,7 @@ import {
 import {useNavbarMobileSidebar} from '@docusaurus/theme-common/internal';
 import DocSidebarItems from '@theme/DocSidebarItems';
 import SidebarThemeToggle from '@site/src/components/SidebarThemeToggle';
+import SidebarAskAI from '@site/src/components/SidebarAskAI';
 
 const DocSidebarMobileSecondaryMenu = ({sidebar, path}) => {
   const mobileSidebar = useNavbarMobileSidebar();
@@ -27,6 +28,9 @@ const DocSidebarMobileSecondaryMenu = ({sidebar, path}) => {
           level={1}
         />
       </ul>
+      <div style={{padding: '0.5rem 0.75rem'}}>
+        <SidebarAskAI />
+      </div>
       <div className="navbar-sidebar__theme navbar-sidebar__theme--docs">
         <SidebarThemeToggle />
       </div>
