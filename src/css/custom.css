@@ -937,6 +937,52 @@ main > .container.padding-top--md.padding-bottom--lg,
   padding-right: 0.5rem;
 }
 
+/* ──────────────────────────────── LLMs.txt ─────────────────────────── */
+.sidebar-llms-txt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  margin-bottom: 0.375rem;
+}
+
+.sidebar-llms-txt__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+  letter-spacing: 0.01em;
+}
+
+[data-theme="dark"] .sidebar-llms-txt__label {
+  color: var(--color-neutral-400);
+}
+
+.sidebar-llms-txt__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-neutral-500);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.sidebar-llms-txt__btn:hover {
+  color: var(--color-emerald-700);
+  background: var(--color-neutral-100);
+}
+
+[data-theme="dark"] .sidebar-llms-txt__btn:hover {
+  color: var(--color-emerald-400);
+  background: var(--color-neutral-800);
+}
+
 .sidebar-theme-toggle {
   display: flex;
   align-items: center;

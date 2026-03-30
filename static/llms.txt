@@ -1,0 +1,39 @@
+# QuilrAI Documentation
+
+> QuilrAI provides an LLM Gateway and MCP Gateway for securing, controlling, and optimizing AI application traffic.
+
+## LLM Gateway
+
+- [Quick Start](https://quilrai.github.io/docs/llm-gateway/quick-start): Set up the LLM Gateway in 4 steps — create an app, add a provider key, configure guardrails, and connect your application.
+- [Architecture](https://quilrai.github.io/docs/llm-gateway/architecture): Request processing pipeline — Validate, Scan, Transform, Route — with a visual diagram of every stage.
+- [Integration Guide](https://quilrai.github.io/docs/llm-gateway/integration-guide): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway.
+- [Provider Support](https://quilrai.github.io/docs/llm-gateway/provider-support): Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI) and their capability matrix.
+- [UX Changelog](https://quilrai.github.io/docs/llm-gateway/ux-changelog): Recent interface improvements — tagging, filtering, and quality-of-life updates.
+
+### LLM Gateway Features
+
+- [Request Routing](https://quilrai.github.io/docs/llm-gateway/features/request-routing): Multi-provider load balancing and automatic failover behind a single API key.
+- [Token Saving](https://quilrai.github.io/docs/llm-gateway/features/token-saving): Reduce input token usage by compressing JSON and stripping HTML/Markdown automatically.
+- [Security Guardrails](https://quilrai.github.io/docs/llm-gateway/features/security-guardrails): Detect and act on PII, PHI, PCI, financial data, and adversarial inputs in requests and responses.
+- [Custom Intents](https://quilrai.github.io/docs/llm-gateway/features/custom-intents): Define your own detection categories trained with positive and negative examples.
+- [Rate Limits](https://quilrai.github.io/docs/llm-gateway/features/rate-limits): Control request rates, token budgets, and API key expiration.
+- [Prompt Store](https://quilrai.github.io/docs/llm-gateway/features/prompt-store): Manage and version system prompts centrally with template variable substitution.
+- [Red Team Testing](https://quilrai.github.io/docs/llm-gateway/features/red-team-testing): Test guardrails configuration against adversarial prompts.
+- [Identity Aware](https://quilrai.github.io/docs/llm-gateway/features/identity-aware): Authenticate and track individual users behind each API key via JWT/JWKS or header validation.
+
+## MCP Gateway
+
+- [Quick Start](https://quilrai.github.io/docs/mcp-gateway/quick-start): Set up the MCP Gateway in 4 steps — add an MCP, configure tools and guardrails, connect an agent, and monitor.
+- [Architecture](https://quilrai.github.io/docs/mcp-gateway/architecture): Tool call processing pipeline — Authenticate, Authorize, Scan, Policy, Connect — with auth mediation details.
+- [Integration Guide](https://quilrai.github.io/docs/mcp-gateway/integration-guide): MCP endpoint URLs, authentication methods (Bearer token, OAuth DCR, OAuth manual), and connection examples.
+
+### MCP Gateway Features
+
+- [MCP Library](https://quilrai.github.io/docs/mcp-gateway/features/mcp-library): One-click install pre-built MCP integrations from the catalog across productivity, developer tools, and more.
+- [Tools Management](https://quilrai.github.io/docs/mcp-gateway/features/tools-management): Control which MCP tools are available to agents, organized by risk level (read, write, destructive).
+- [Agents Configuration](https://quilrai.github.io/docs/mcp-gateway/features/agents-configuration): Map AI agents to MCPs, manage per-agent permissions, and monitor usage statistics.
+- [Security Guardrails](https://quilrai.github.io/docs/mcp-gateway/features/security-guardrails): Detect sensitive data (PII, PHI, PCI) and adversarial attacks in MCP tool call inputs and outputs.
+- [Access Control](https://quilrai.github.io/docs/mcp-gateway/features/access-control): Restrict which AI agents can use each MCP server via User-Agent header matching.
+- [API Tokens](https://quilrai.github.io/docs/mcp-gateway/features/api-tokens): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access.
+- [OAuth Connect](https://quilrai.github.io/docs/mcp-gateway/features/oauth-connect): Authorize OAuth-protected MCP servers with one click via Dynamic Client Registration or manual credentials.
+- [Web Search Policy](https://quilrai.github.io/docs/mcp-gateway/features/web-search-policy): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).

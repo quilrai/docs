@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import {ThemeClassNames} from '@docusaurus/theme-common';
 import DocSidebarItems from '@theme/DocSidebarItems';
 import SidebarThemeToggle from '@site/src/components/SidebarThemeToggle';
+import SidebarLlmsTxt from '@site/src/components/SidebarLlmsTxt';
 
 export default function DocSidebarDesktopContent({path, sidebar, className}) {
   return (
@@ -24,6 +25,7 @@ export default function DocSidebarDesktopContent({path, sidebar, className}) {
         <DocSidebarItems items={sidebar} activePath={path} level={1} />
       </ul>
       <div className="sidebar-desktop-content__footer">
+        <SidebarLlmsTxt />
         <SidebarThemeToggle />
       </div>
     </nav>
