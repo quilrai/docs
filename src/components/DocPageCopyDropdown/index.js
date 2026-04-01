@@ -67,52 +67,6 @@ function IconChevron(props) {
   );
 }
 
-function IconMarkdown(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      className="shrink-0"
-      {...props}
-    >
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="8" y1="13" x2="16" y2="13" />
-      <line x1="8" y1="17" x2="14" y2="17" />
-    </svg>
-  );
-}
-
-function IconLink(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      className="shrink-0"
-      {...props}
-    >
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-    </svg>
-  );
-}
-
 const menuItemCls =
   "flex w-full items-center group gap-3 rounded-md px-2.5 py-2 text-left no-underline! cursor-pointer border-none bg-transparent text-inherit font-inherit hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-45 disabled:cursor-not-allowed";
 
@@ -154,7 +108,6 @@ export default function DocPageCopyDropdown() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [copiedMd, setCopiedMd] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const wrapRef = useRef(null);
   const menuId = useId();
 
@@ -167,26 +120,6 @@ export default function DocPageCopyDropdown() {
     } catch {
       // ignore
     }
-  }, [hasMarkdown, markdown]);
-
-  const copyLink = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(pageUrl);
-      setCopiedLink(true);
-      setMenuOpen(false);
-      setTimeout(() => setCopiedLink(false), 1500);
-    } catch {
-      // ignore
-    }
-  }, [pageUrl]);
-
-  const viewAsMarkdown = useCallback(() => {
-    if (!hasMarkdown) return;
-    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank", "noopener,noreferrer");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    setMenuOpen(false);
   }, [hasMarkdown, markdown]);
 
   useEffect(() => {
@@ -209,34 +142,14 @@ export default function DocPageCopyDropdown() {
     };
   }, [menuOpen]);
 
-  const dropdownItems = [
-    {
-      icon: <IconCopy />,
-      title: "Copy page as Markdown",
-      description: "Copy page as Markdown for LLMs",
-      onClick: copyMarkdown,
-    },
-    {
-      icon: <IconMarkdown />,
-      title: "View as Markdown",
-      description: "View this page as plain text",
-      onClick: viewAsMarkdown,
-    },
-    ...AI_PROVIDERS.map(({ name, icon: BrandIcon, buildUrl }) => ({
-      icon: <BrandIcon />,
-      title: `Open in ${name}`,
-      description: "Ask questions about this page",
-      href: buildUrl(aiMessage),
-      target: "_blank",
-      rel: "noopener noreferrer",
-    })),
-    {
-      icon: <IconLink />,
-      title: "Copy link",
-      description: "Copy page URL to clipboard",
-      onClick: copyLink,
-    },
-  ];
+  const dropdownItems = AI_PROVIDERS.map(({ name, icon: BrandIcon, buildUrl }) => ({
+    icon: <BrandIcon />,
+    title: `Open in ${name}`,
+    description: "Ask questions about this page",
+    href: buildUrl(aiMessage),
+    target: "_blank",
+    rel: "noopener noreferrer",
+  }));
 
   return (
     <div
@@ -266,13 +179,14 @@ export default function DocPageCopyDropdown() {
         />
         <button
           type="button"
-          className="inline-flex items-center justify-center px-1.5 min-w-7 border-none bg-transparent text-neutral-600 dark:text-neutral-400 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900"
+          className="inline-flex font-sans items-center gap-1 px-2.5 py-1.5 text-[0.8125rem] font-medium leading-tight text-neutral-800 dark:text-neutral-100 border-none bg-transparent cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900"
           aria-expanded={menuOpen}
           aria-haspopup="true"
           aria-controls={menuId}
           onClick={() => setMenuOpen((o) => !o)}
-          title="More actions"
+          title="Ask AI about this page"
         >
+          <span>Ask AI</span>
           <IconChevron
             style={{
               transform: menuOpen ? "rotate(180deg)" : undefined,
