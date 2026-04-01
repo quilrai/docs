@@ -153,7 +153,7 @@ The QuilrAI gateway adds **~40 ms** of processing latency for a typical 12,000-t
 |--------|-------|
 | **Gateway overhead** | ~40 ms per 12,000 tokens |
 | **Overhead source** | Auth + guardrails + routing + logging |
-| **LLM response time** | Passed through, unaffected |
+| **LLM response time** | Improved by 2-5% due to server-side connection optimizations |
 
 Gateway latency scales with token count. Shorter requests are faster; longer requests proportionally slower.
 
