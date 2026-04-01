@@ -675,6 +675,37 @@ main > .container.padding-top--md.padding-bottom--lg,
   background-color: rgba(52, 211, 153, 0.08) !important;
 }
 
+/* ────────────────────────────────── Sidebar badge ────────────────────── */
+.menu__link {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-link-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-badge--new {
+  flex-shrink: 0;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(5, 150, 105, 0.1);
+  color: var(--color-emerald-700);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="dark"] .sidebar-badge--new {
+  background-color: rgba(52, 211, 153, 0.12);
+  color: var(--color-emerald-400);
+}
+
 /* ────────────────────────────────── Sidebar caret ────────────────────── */
 .menu__list-item-collapsible .clean-btn.menu__caret {
   color: var(--color-neutral-400);

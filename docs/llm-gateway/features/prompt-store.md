@@ -1,5 +1,7 @@
 ---
 sidebar_position: 7
+sidebar_custom_props:
+  badge: new
 ---
 
 # Prompt Store
