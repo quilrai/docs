@@ -65,6 +65,8 @@ const config = {
         ],
     ],
 
+    plugins: ['./plugins/doc-page-markdown.js'],
+
     presets: [
         [
             'classic',

@@ -14,6 +14,9 @@
 @plugin "@tailwindcss/typography";
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* Docusaurus uses [data-theme="dark"] on <html>, not a class or media query */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ────────────────────────────────── Light mode variables ─────────────── */
 :root {
   --ifm-color-primary: #059669;
@@ -313,6 +316,28 @@ main > .container.padding-top--md.padding-bottom--lg,
   .theme-doc-markdown.markdown
   :where(h1, h2, h3, h4, h5, h6) {
   font-weight: 700;
+}
+
+/* Doc title copy dropdown: neutralize prose list markers and link underlines */
+.theme-doc-markdown.markdown [data-doc-copy-dropdown] :is(ul, ol) {
+  list-style: none;
+  list-style-type: none;
+  padding-inline-start: 0;
+  margin-inline-start: 0;
+}
+.theme-doc-markdown.markdown [data-doc-copy-dropdown] li {
+  list-style: none;
+  list-style-type: none;
+}
+.theme-doc-markdown.markdown [data-doc-copy-dropdown] li::marker {
+  content: none;
+  font-size: 0;
+}
+.theme-doc-markdown.markdown [data-doc-copy-dropdown] a,
+.theme-doc-markdown.markdown [data-doc-copy-dropdown] a:hover,
+.theme-doc-markdown.markdown [data-doc-copy-dropdown] a:focus,
+.theme-doc-markdown.markdown [data-doc-copy-dropdown] a:visited {
+  text-decoration: none;
 }
 
 /* Inline code (Typography backticks off; violet) — fenced blocks reset below */
