@@ -1,6 +1,6 @@
 # QuilrAI Docs
 
-This is public documentation — the help center for QuilrAI features.
+This is public documentation - the help center for QuilrAI features.
 
 ## Run the project
 

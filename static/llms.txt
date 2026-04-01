@@ -4,11 +4,11 @@
 
 ## LLM Gateway
 
-- [Quick Start](https://quilrai.github.io/docs/llm-gateway/quick-start): Set up the LLM Gateway in 4 steps — create an app, add a provider key, configure guardrails, and connect your application.
-- [Architecture](https://quilrai.github.io/docs/llm-gateway/architecture): Request processing pipeline — Validate, Scan, Transform, Route — with a visual diagram of every stage.
+- [Quick Start](https://quilrai.github.io/docs/llm-gateway/quick-start): Set up the LLM Gateway in 4 steps - create an app, add a provider key, configure guardrails, and connect your application.
+- [Architecture](https://quilrai.github.io/docs/llm-gateway/architecture): Request processing pipeline - Validate, Scan, Transform, Route - with a visual diagram of every stage.
 - [Integration Guide](https://quilrai.github.io/docs/llm-gateway/integration-guide): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway.
 - [Provider Support](https://quilrai.github.io/docs/llm-gateway/provider-support): Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI) and their capability matrix.
-- [UX Changelog](https://quilrai.github.io/docs/llm-gateway/ux-changelog): Recent interface improvements — tagging, filtering, and quality-of-life updates.
+- [UX Changelog](https://quilrai.github.io/docs/llm-gateway/ux-changelog): Recent interface improvements - tagging, filtering, and quality-of-life updates.
 
 ### LLM Gateway Features
 
@@ -23,8 +23,8 @@
 
 ## MCP Gateway
 
-- [Quick Start](https://quilrai.github.io/docs/mcp-gateway/quick-start): Set up the MCP Gateway in 4 steps — add an MCP, configure tools and guardrails, connect an agent, and monitor.
-- [Architecture](https://quilrai.github.io/docs/mcp-gateway/architecture): Tool call processing pipeline — Authenticate, Authorize, Scan, Policy, Connect — with auth mediation details.
+- [Quick Start](https://quilrai.github.io/docs/mcp-gateway/quick-start): Set up the MCP Gateway in 4 steps - add an MCP, configure tools and guardrails, connect an agent, and monitor.
+- [Architecture](https://quilrai.github.io/docs/mcp-gateway/architecture): Tool call processing pipeline - Authenticate, Authorize, Scan, Policy, Connect - with auth mediation details.
 - [Integration Guide](https://quilrai.github.io/docs/mcp-gateway/integration-guide): MCP endpoint URLs, authentication methods (Bearer token, OAuth DCR, OAuth manual), and connection examples.
 
 ### MCP Gateway Features
