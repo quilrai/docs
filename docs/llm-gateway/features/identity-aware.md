@@ -1,5 +1,7 @@
 ---
 sidebar_position: 9
+sidebar_custom_props:
+  icon: Fingerprint
 ---
 
 # Identity Aware

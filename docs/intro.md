@@ -1,6 +1,8 @@
 ---
 sidebar_position: 1
 slug: /
+sidebar_custom_props:
+  icon: BookOpen
 ---
 
 # Welcome to QuilrAI Docs

@@ -3,69 +3,7 @@ import { useDoc } from "@docusaurus/plugin-content-docs/client";
 import { usePluginData } from "@docusaurus/useGlobalData";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import { AI_PROVIDERS, buildDocPageAiPrompt } from "@site/src/data/aiProviders";
-
-function IconCopy(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      className="shrink-0"
-      {...props}
-    >
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-    </svg>
-  );
-}
-
-function IconCheck(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      className="shrink-0"
-      {...props}
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
-
-function IconChevron(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      {...props}
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
+import { Copy, Check, ChevronDown } from "lucide-react";
 
 const menuItemCls =
   "flex w-full items-center group gap-3 rounded-md px-2.5 py-2 text-left no-underline! cursor-pointer border-none bg-transparent text-inherit font-inherit hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-45 disabled:cursor-not-allowed";
@@ -170,7 +108,7 @@ export default function DocPageCopyDropdown() {
               : "Markdown not available for this page"
           }
         >
-          {copiedMd ? <IconCheck /> : <IconCopy />}
+          {copiedMd ? <Check size={16} className="shrink-0" aria-hidden /> : <Copy size={16} className="shrink-0" aria-hidden />}
           <span>{copiedMd ? "Copied!" : "Copy page"}</span>
         </button>
         <span
@@ -187,7 +125,9 @@ export default function DocPageCopyDropdown() {
           title="Ask AI about this page"
         >
           <span>Ask AI</span>
-          <IconChevron
+          <ChevronDown
+            size={16}
+            aria-hidden
             style={{
               transform: menuOpen ? "rotate(180deg)" : undefined,
               transition: "transform 0.15s ease",

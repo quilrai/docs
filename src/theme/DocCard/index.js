@@ -9,6 +9,7 @@ import {usePluralForm} from '@docusaurus/theme-common';
 import isInternalUrl from '@docusaurus/isInternalUrl';
 import {translate} from '@docusaurus/Translate';
 import Heading from '@theme/Heading';
+import {FolderOpen, FileText, ExternalLink} from 'lucide-react';
 import styles from './styles.module.css';
 
 function useCategoryItemsPlural() {
@@ -72,7 +73,7 @@ function CardCategory({item}) {
     <CardLayout
       className={item.className}
       href={href}
-      icon="🗃️"
+      icon={<FolderOpen size={18} />}
       title={item.label}
       description={item.description ?? categoryItemsPlural(item.items.length)}
     />
@@ -80,7 +81,7 @@ function CardCategory({item}) {
 }
 
 function CardLink({item}) {
-  const icon = isInternalUrl(item.href) ? '📄️' : '🔗';
+  const icon = isInternalUrl(item.href) ? <FileText size={18} /> : <ExternalLink size={18} />;
   const doc = useDocById(item.docId ?? undefined);
   return (
     <CardLayout

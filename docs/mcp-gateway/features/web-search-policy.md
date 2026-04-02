@@ -2,6 +2,7 @@
 sidebar_position: 8
 sidebar_custom_props:
   badge: new
+  icon: Globe
 ---
 
 # Web Search Policy

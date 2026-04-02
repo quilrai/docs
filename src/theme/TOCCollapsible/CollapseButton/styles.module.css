@@ -12,7 +12,6 @@
   align-items: center;
   padding: 0.4rem 0.8rem;
   width: 100%;
-  /* Chevron uses `currentColor` in ::after — match sidebar caret */
   color: var(--color-neutral-400);
 }
 
@@ -20,28 +19,14 @@
   color: var(--ifm-font-color-base);
 }
 
-/* Match sidebar `.menu__caret::before`: same SVG mask, no bitmap background */
-.tocCollapsibleButton::after {
-  content: "";
+.tocCollapsibleChevron {
   flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  background: none;
-  background-color: currentColor;
-  mask-image: var(--ifm-menu-link-sublist-icon);
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
-  -webkit-mask-image: var(--ifm-menu-link-sublist-icon);
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
+  color: currentColor;
   transform: rotate(180deg);
   transition: transform var(--ifm-transition-fast)
     var(--ifm-transition-timing-default);
-  filter: none;
 }
 
-.tocCollapsibleButtonExpanded::after {
+.tocCollapsibleButtonExpanded .tocCollapsibleChevron {
   transform: none;
 }

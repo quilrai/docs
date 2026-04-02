@@ -1,5 +1,7 @@
 ---
 sidebar_position: 7
+sidebar_custom_props:
+  icon: Link
 ---
 
 # OAuth Connect

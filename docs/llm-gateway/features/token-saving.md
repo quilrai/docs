@@ -2,6 +2,7 @@
 sidebar_position: 2
 sidebar_custom_props:
   badge: new
+  icon: Coins
 ---
 
 # Token Saving

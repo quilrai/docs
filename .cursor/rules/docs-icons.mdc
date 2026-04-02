@@ -1,0 +1,57 @@
+---
+description: Enforce sidebar icons on all documentation pages and categories
+globs: docs/**/*.md, docs/**/_category_.json
+alwaysApply: false
+---
+
+# Sidebar Icon Requirement
+
+Every doc page and category MUST have a sidebar icon from `lucide-react`.
+
+## Markdown pages (`docs/**/*.md`)
+
+Add `sidebar_custom_props` with an `icon` in frontmatter:
+
+```yaml
+---
+sidebar_position: 1
+sidebar_custom_props:
+  icon: Rocket
+---
+```
+
+## Category folders (`_category_.json`)
+
+Add `customProps` with an `icon`:
+
+```json
+{
+  "label": "Features",
+  "position": 3,
+  "customProps": {
+    "icon": "Sparkles"
+  }
+}
+```
+
+## Available icons
+
+Only use icons registered in `src/utils/sidebarIcons.js`:
+
+BookOpen, Network, BrainCircuit, Rocket, Layers, Sparkles, LibraryBig, Wrench, Bot, ShieldCheck, Lock, KeyRound, Link, Globe, Plug, Route, Coins, Target, Gauge, MessageSquareText, FlaskConical, Fingerprint, Activity, ClipboardList, Handshake
+
+## Adding a new icon
+
+If none of the above fit:
+
+1. Import the icon from `lucide-react` in `src/utils/sidebarIcons.js`
+2. Add it to `iconMap`
+3. Use the exact export name as the icon value
+
+Browse https://lucide.dev/icons to find appropriate icons.
+
+## Rules
+
+- NEVER create a doc page or category without an icon
+- Choose an icon that semantically matches the page content
+- After adding a new icon to `sidebarIcons.js`, use it immediately in the page frontmatter or `_category_.json`

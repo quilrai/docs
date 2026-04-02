@@ -1,0 +1,1 @@
+node scripts/check-sidebar-icons.js --staged

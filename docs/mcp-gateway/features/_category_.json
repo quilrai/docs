@@ -6,6 +6,7 @@
     "description": "Detailed documentation for each MCP Gateway capability - MCP Library, Tools Management, Guardrails, Access Control, and more."
   },
   "customProps": {
-    "badge": "new"
+    "badge": "new",
+    "icon": "Sparkles"
   }
 }
