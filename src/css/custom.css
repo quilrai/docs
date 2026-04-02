@@ -687,6 +687,18 @@ main > .container.padding-top--md.padding-bottom--lg,
   align-items: center;
 }
 
+.sidebar-icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2;
+  color: var(--ifm-color-content-secondary);
+}
+
+.menu__link--active > .sidebar-icon {
+  color: var(--ifm-color-primary);
+}
+
 .sidebar-link-label {
   overflow: hidden;
   text-overflow: ellipsis;

@@ -5,6 +5,7 @@ import { isActiveSidebarItem } from "@docusaurus/plugin-content-docs/client";
 import Link from "@docusaurus/Link";
 import isInternalUrl from "@docusaurus/isInternalUrl";
 import IconExternalLink from "@theme/Icon/ExternalLink";
+import { getSidebarIcon } from "@site/src/utils/sidebarIcons";
 
 export default function DocSidebarItemLink({
   item,
@@ -18,6 +19,7 @@ export default function DocSidebarItemLink({
   const isActive = isActiveSidebarItem(item, activePath);
   const isInternalLink = isInternalUrl(href);
   const badge = customProps?.badge;
+  const IconComponent = getSidebarIcon(customProps?.icon);
 
   return (
     <li
@@ -30,7 +32,7 @@ export default function DocSidebarItemLink({
       key={label}
     >
       <Link
-        className={clsx("menu__link", {
+        className={clsx("menu__link flex items-center gap-2", {
           "menu__link--active": isActive,
         })}
         autoAddBaseUrl={autoAddBaseUrl}
@@ -41,10 +43,15 @@ export default function DocSidebarItemLink({
         })}
         {...props}
       >
+        {IconComponent && (
+          <IconComponent className="sidebar-icon" aria-hidden="true" />
+        )}
         <span className="sidebar-link-label" title={label}>
           {label}
         </span>
-        {badge && <span className="sidebar-badge sidebar-badge--new">{badge}</span>}
+        {badge && (
+          <span className="sidebar-badge sidebar-badge--new">{badge}</span>
+        )}
         {!isInternalLink && <IconExternalLink />}
       </Link>
     </li>

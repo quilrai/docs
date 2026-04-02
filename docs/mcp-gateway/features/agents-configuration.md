@@ -1,5 +1,7 @@
 ---
 sidebar_position: 3
+sidebar_custom_props:
+  icon: Bot
 ---
 
 # Agents Configuration

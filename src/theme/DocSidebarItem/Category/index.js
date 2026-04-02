@@ -19,6 +19,7 @@ import { translate } from "@docusaurus/Translate";
 import useIsBrowser from "@docusaurus/useIsBrowser";
 import DocSidebarItems from "@theme/DocSidebarItems";
 import DocSidebarItemLink from "@theme/DocSidebarItem/Link";
+import { getSidebarIcon } from "@site/src/utils/sidebarIcons";
 
 function useAutoExpandActiveCategory({
   isActive,
@@ -106,7 +107,14 @@ function DocSidebarItemCategoryEmpty({ item, ...props }) {
   if (!isCategoryWithHref(item)) {
     return null;
   }
-  const { type, collapsed, collapsible, items, linkUnlisted, ...forwardableProps } = item;
+  const {
+    type,
+    collapsed,
+    collapsible,
+    items,
+    linkUnlisted,
+    ...forwardableProps
+  } = item;
   const linkItem = { type: "link", ...forwardableProps };
   return <DocSidebarItemLink item={linkItem} {...props} />;
 }
@@ -175,6 +183,7 @@ function DocSidebarItemCategoryCollapsible({
   };
 
   const badge = customProps?.badge;
+  const IconComponent = getSidebarIcon(customProps?.icon);
 
   return (
     <li
@@ -194,7 +203,7 @@ function DocSidebarItemCategoryCollapsible({
         })}
       >
         <Link
-          className={clsx("menu__link", {
+          className={clsx("menu__link flex items-center gap-2", {
             "menu__link--sublist": collapsible,
             "menu__link--sublist-caret": !href && collapsible,
             "menu__link--active": isActive,
@@ -203,9 +212,18 @@ function DocSidebarItemCategoryCollapsible({
           aria-current={isCurrentPage ? "page" : undefined}
           role={collapsible && !href ? "button" : undefined}
           aria-expanded={collapsible && !href ? !collapsed : undefined}
-          href={collapsible ? hrefWithSSRFallback ?? "#" : hrefWithSSRFallback}
+          href={
+            collapsible ? (hrefWithSSRFallback ?? "#") : hrefWithSSRFallback
+          }
           {...props}
         >
+          {IconComponent && (
+            <IconComponent
+              size={16}
+              className="sidebar-icon"
+              aria-hidden="true"
+            />
+          )}
           <span className="sidebar-link-label" title={label}>
             {label}
           </span>

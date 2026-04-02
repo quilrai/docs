@@ -4,5 +4,8 @@
   "link": {
     "type": "generated-index",
     "description": "Enterprise-grade management layer for MCP servers - install, configure, secure, and monitor MCP integrations used by AI agents."
+  },
+  "customProps": {
+    "icon": "Network"
   }
 }
