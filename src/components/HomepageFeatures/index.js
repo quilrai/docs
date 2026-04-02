@@ -1,11 +1,12 @@
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
+import {FileText, Layers, Sparkles} from 'lucide-react';
 import styles from './styles.module.css';
 
 const FeatureList = [
   {
     title: 'Clear documentation',
-    Svg: require('@site/static/img/icon-docs.svg').default,
+    Icon: FileText,
     description: (
       <>
         Structure guides, API notes, and examples in one place so teams can ship
@@ -15,7 +16,7 @@ const FeatureList = [
   },
   {
     title: 'Organized by design',
-    Svg: require('@site/static/img/icon-stack.svg').default,
+    Icon: Layers,
     description: (
       <>
         Sidebars, versioning, and search-friendly layouts help readers find the
@@ -25,7 +26,7 @@ const FeatureList = [
   },
   {
     title: 'Easy to extend',
-    Svg: require('@site/static/img/icon-sparkle.svg').default,
+    Icon: Sparkles,
     description: (
       <>
         Built on React and MDX—customize components and theme details when you
@@ -35,11 +36,11 @@ const FeatureList = [
   },
 ];
 
-function Feature({Svg, title, description}) {
+function Feature({Icon, title, description}) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
+        <Icon className={styles.featureSvg} role="img" />
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
@@ -54,8 +55,8 @@ export default function HomepageFeatures() {
     <section className={styles.features}>
       <div className="container">
         <div className="row">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
+          {FeatureList.map(({Icon, ...rest}, idx) => (
+            <Feature key={idx} Icon={Icon} {...rest} />
           ))}
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import Translate from '@docusaurus/Translate';
+import {ChevronDown} from 'lucide-react';
 import styles from './styles.module.css';
 
 export default function TOCCollapsibleCollapseButton({collapsed, ...props}) {
@@ -22,6 +23,11 @@ export default function TOCCollapsibleCollapseButton({collapsed, ...props}) {
           On this page
         </Translate>
       </span>
+      <ChevronDown
+        size={20}
+        className={styles.tocCollapsibleChevron}
+        aria-hidden
+      />
     </button>
   );
 }

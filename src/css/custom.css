@@ -732,6 +732,10 @@ main > .container.padding-top--md.padding-bottom--lg,
     color var(--ifm-transition-fast) var(--ifm-transition-timing-default);
 }
 
+.menu__list-item-collapsible .clean-btn.menu__caret::before {
+  display: none;
+}
+
 .menu__list-item-collapsible:has(.menu__link--active) .clean-btn.menu__caret {
   color: var(--color-emerald-700);
 }
@@ -743,22 +747,6 @@ main > .container.padding-top--md.padding-bottom--lg,
   .menu__list-item-collapsible:has(.menu__link--active)
   .clean-btn.menu__caret {
   color: var(--color-emerald-400);
-}
-
-.menu__list-item-collapsible .clean-btn.menu__caret::before {
-  width: 0.875rem;
-  height: 0.875rem;
-  background: none;
-  background-color: currentColor;
-  mask-image: var(--ifm-menu-link-sublist-icon);
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
-  -webkit-mask-image: var(--ifm-menu-link-sublist-icon);
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  filter: none;
 }
 
 /* ────────────────────────────────── Code blocks ─────────────────────── */

@@ -3,24 +3,7 @@ import {createPortal} from 'react-dom';
 import {useLocation} from '@docusaurus/router';
 import useIsBrowser from '@docusaurus/useIsBrowser';
 import OriginalSearchBar from '@theme-original/SearchBar';
-
-function SearchIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="search-trigger__icon">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  );
-}
+import {Search} from 'lucide-react';
 
 function SearchModal({onClose, children}) {
   const overlayRef = useRef(null);
@@ -111,7 +94,7 @@ export default function SearchBarWrapper(props) {
         onClick={() => setIsOpen(true)}
         type="button"
         aria-label="Search">
-        <SearchIcon />
+        <Search size={15} strokeWidth={2.5} className="search-trigger__icon" />
         <span className="search-trigger__text">Search</span>
         <span className="search-trigger__keys">
           <kbd>{isMac ? '⌘' : 'Ctrl'}</kbd>

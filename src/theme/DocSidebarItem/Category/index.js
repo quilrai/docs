@@ -20,6 +20,7 @@ import useIsBrowser from "@docusaurus/useIsBrowser";
 import DocSidebarItems from "@theme/DocSidebarItems";
 import DocSidebarItemLink from "@theme/DocSidebarItem/Link";
 import { getSidebarIcon } from "@site/src/utils/sidebarIcons";
+import { ChevronDown } from "lucide-react";
 
 function useAutoExpandActiveCategory({
   isActive,
@@ -83,7 +84,9 @@ function CollapseButton({ collapsed, categoryLabel, onClick }) {
       type="button"
       className="clean-btn menu__caret"
       onClick={onClick}
-    />
+    >
+      <ChevronDown size={14} aria-hidden />
+    </button>
   );
 }
 
