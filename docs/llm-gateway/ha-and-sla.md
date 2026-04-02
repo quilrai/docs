@@ -82,14 +82,18 @@ Even though `guardrails.quilr.ai` auto-routes to the nearest healthy server, we 
 Auto-routing handles most failure scenarios transparently. However, explicit regional fallbacks protect against edge cases that auto-routing alone cannot cover:
 
 - **DNS or routing-layer issues** - If the global endpoint's routing layer itself is degraded, direct regional URLs bypass it entirely.
+- **Auto-routing detection latency** - The auto-router takes 3-7 seconds to detect a downed host. During this window, your request may still be routed to the unhealthy server. Retrying with an explicit regional URL immediately targets a different host, avoiding the detection delay.
 - **Regional propagation delays** - A server that has just recovered may not yet be visible to the auto-router. Hitting it directly avoids propagation lag.
 - **Geographic redundancy** - Retrying across regions ensures your request reaches an entirely independent infrastructure stack, eliminating single points of failure.
 
 The overhead is minimal - two additional fallback URLs in your retry logic - but the resilience improvement is significant.
 
+We recommend **one retry per QuilrAI host**. If a request fails on a given endpoint, move on to the next one rather than retrying the same host. This maximizes the chance of hitting a healthy server quickly, especially during the 3-7 second window before auto-routing detects a failure.
+
 ### Code Example
 
 ```python
+import time
 import httpx
 
 ENDPOINTS = [
@@ -110,6 +114,32 @@ def call_llm(payload: dict) -> dict:
             resp.raise_for_status()
             return resp.json()
         except (httpx.RequestError, httpx.HTTPStatusError):
+            time.sleep(0.3)  # optionally sleep slightly before retrying the next host
+            continue
+    raise RuntimeError("All gateway endpoints failed")
+```
+
+```python
+import time
+from openai import OpenAI
+
+ENDPOINTS = [
+    "https://guardrails.quilr.ai/openai_compatible/v1",        # auto-routes to nearest
+    "https://guardrails-usa-1.quilr.ai/openai_compatible/v1",   # direct US fallback
+    "https://guardrails-india-1.quilr.ai/openai_compatible/v1", # direct India fallback
+]
+
+def call_llm(messages: list) -> str:
+    for base_url in ENDPOINTS:
+        try:
+            client = OpenAI(base_url=base_url, api_key="sk-quilr-xxx")
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+            )
+            return response.choices[0].message.content
+        except Exception:
+            time.sleep(0.3)  # optionally sleep slightly before retrying the next host
             continue
     raise RuntimeError("All gateway endpoints failed")
 ```
@@ -138,6 +168,7 @@ async function callLLM(payload) {
       if (!res.ok) throw new Error(res.statusText);
       return await res.json();
     } catch {
+      await new Promise((r) => setTimeout(r, 300)); // optionally sleep slightly before retrying the next host
       continue;
     }
   }
@@ -145,7 +176,17 @@ async function callLLM(payload) {
 }
 ```
 
+## Data Residency Note
+
+:::info Only LLM requests are routed across regions
+When a request is routed to a different regional endpoint (either by auto-routing or your retry logic), **only the LLM API call itself** is forwarded to that region's gateway server. All other data - request logs, analytics, guardrail audit trails, prompt history, and dashboard metrics - remains stored in your account's primary region. Cross-region routing does not replicate or move any of your logged data to another geography.
+:::
+
 ## SLA
+
+### Uptime
+
+QuilrAI guarantees **99.6% uptime** across all gateway endpoints. This is measured as the combined availability of the global and regional endpoints. With the recommended retry strategy across multiple hosts, effective availability from your application's perspective is significantly higher.
 
 ### Gateway Latency
 
