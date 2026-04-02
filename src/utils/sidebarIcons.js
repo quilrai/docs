@@ -24,6 +24,7 @@ import {
   Activity,
   ClipboardList,
   Handshake,
+  Hash,
 } from "lucide-react";
 
 const iconMap = {
@@ -55,5 +56,5 @@ const iconMap = {
 };
 
 export function getSidebarIcon(name) {
-  return iconMap[name] ?? null;
+  return iconMap[name] ?? Hash;
 }
