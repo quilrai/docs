@@ -382,19 +382,25 @@ main > .container.padding-top--md.padding-bottom--lg,
 }
 
 /* ────────────────────────────────── Markdown tables (docs-style) ───── */
-/* Infima uses a full grid + zebra + grey thead; align with modern doc prose */
-.theme-doc-markdown.markdown table {
-  display: block;
+/* Scrollable wrapper injected via MDXComponents so table keeps display:table */
+.theme-doc-markdown.markdown .table-scroll-wrapper {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   margin-top: 1.25rem;
   margin-bottom: 1.25rem;
-  border-collapse: collapse;
   border: 1px solid var(--ifm-table-border-color);
-  border-radius: var(--ifm-global-radius);
+  border-radius: 8px;
+}
+
+.theme-doc-markdown.markdown table {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  border-collapse: collapse;
   font-size: 0.9375rem;
   line-height: 1.55;
 }
@@ -1025,7 +1031,9 @@ main > .container.padding-top--md.padding-bottom--lg,
   font-size: 0.6875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
   white-space: nowrap;
 }
 
@@ -1077,7 +1085,10 @@ main > .container.padding-top--md.padding-bottom--lg,
   font-size: 0.625rem;
   font-weight: 500;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
   white-space: nowrap;
   text-decoration: none;
   line-height: 1.4;
@@ -1152,7 +1163,10 @@ main > .container.padding-top--md.padding-bottom--lg,
   font-size: 0.625rem;
   font-weight: 500;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .sidebar-ask-ai__copy-btn:hover {
@@ -1417,7 +1431,7 @@ main > .container.padding-top--md.padding-bottom--lg,
 
 /* ────────────────────────────────── Diff-style code lines ─────────────── */
 .code-block-diff-add-line {
-  background-color: rgba(16, 185, 129, 0.10);
+  background-color: rgba(16, 185, 129, 0.1);
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);
@@ -1425,7 +1439,7 @@ main > .container.padding-top--md.padding-bottom--lg,
 }
 
 .code-block-diff-remove-line {
-  background-color: rgba(239, 68, 68, 0.10);
+  background-color: rgba(239, 68, 68, 0.1);
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);

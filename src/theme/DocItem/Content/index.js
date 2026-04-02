@@ -22,7 +22,7 @@ export default function DocItemContent({ children }) {
   return (
     <div className={clsx(ThemeClassNames.docs.docMarkdown, "markdown")}>
       <div className="relative">
-        <div className="absolute top-0 right-0">
+        <div className="flex items-center justify-end md:absolute top-0 right-0 mb-4">
           <DocPageCopyDropdown />
         </div>
         <MDXContent>{children}</MDXContent>
