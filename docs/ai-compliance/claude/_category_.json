@@ -1,0 +1,11 @@
+{
+  "label": "Claude",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Monitor Claude.ai usage across your organization - fetch compliance data, surface DLP findings, and manage Compliance API keys."
+  },
+  "customProps": {
+    "icon": "Bot"
+  }
+}
