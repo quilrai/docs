@@ -1,0 +1,11 @@
+{
+  "label": "Compliance API Integration",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Monitor AI usage across your organization - fetch compliance data, surface DLP findings, and manage API keys for supported AI providers."
+  },
+  "customProps": {
+    "icon": "ShieldCheck"
+  }
+}
