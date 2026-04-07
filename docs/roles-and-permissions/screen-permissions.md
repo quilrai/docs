@@ -10,16 +10,16 @@ sidebar_custom_props:
 ## Role Definitions
 
 **Super Admin**
-The top-level owner of the tenant. Has unrestricted access to everything — including user management, role and permission management, tenant configuration, and subscriber data. Typically assigned to the person or team responsible for the initial setup and ongoing governance of the organisation in Quilr.
+Full access. Owns the tenant. Manages users, roles, permissions, tenant config, and subscriber data.
 
 **Admin**
-The day-to-day operational administrator. Can configure and manage all security controls, integrations, AI gateway, extensions, endpoint agents, findings, compliance, and users. Cannot modify roles or RBAC permissions, cannot create or delete the tenant, and has no access to subscriber data. Suitable for IT administrators and security operations leads who run the platform but should not alter its governance structure.
+Manages security controls, integrations, gateways, agents, findings, compliance, and users. Cannot modify roles/RBAC, create/delete tenants, or access subscriber data.
 
 **Analyst**
-A read-only investigator focused on security outcomes. Can view and export findings, compliance reports, AI assets, policies, guardrails, red team results, and AI/LLM/MCP gateway data. Has no access to administrative screens (users, roles, settings, integrations). Suitable for security analysts, auditors, and compliance officers who need to investigate and report but not configure anything.
+Read-only plus export. Views findings, compliance reports, AI assets, policies, guardrails, red team results, and gateway data. No access to admin screens.
 
 **Viewer**
-A broad read-only observer. Can see almost every screen across the platform but cannot make any changes or export data. Suitable for executives, stakeholders, or external auditors who need visibility into the organisation's security posture without the ability to act.
+Read-only. Can see most screens but cannot make changes or export data.
 
 ---
 
@@ -203,12 +203,13 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View user list (name, department, IDP group, risk, apps) | ✓ | ✓ | ✓ | ✓ |
 | Search and filter users | ✓ | ✓ | ✓ | ✓ |
 | Click through to user profile | ✓ | ✓ | ✓ | ✓ |
-| Actions — Create Smart Group | ✓ | ✓ | - | - |
-| Actions — Add Users to Smart Group | ✓ | ✓ | - | - |
-| Actions — Delete Users from Smart Group | ✓ | ✓ | - | - |
-| Actions — Preview Smart Group | ✓ | ✓ | ✓ | ✓ |
-| Actions — Activate Agent (With Findings) | ✓ | ✓ | - | - |
-| Actions — Activate Agent (Without Findings) | ✓ | ✓ | - | - |
+| Actions: Create Smart Group | ✓ | ✓ | - | - |
+| Actions: Add Users to Smart Group | ✓ | ✓ | - | - |
+| Actions: Delete Users from Smart Group | ✓ | ✓ | - | - |
+| Actions: Preview Smart Group | ✓ | ✓ | ✓ | ✓ |
+| Actions: Activate Agent (With Findings) | ✓ | ✓ | - | - |
+| Actions: Activate Agent (Without Findings) | ✓ | ✓ | - | - |
+| Actions: User-App Approvals | ✓ | ✓ | - | - |
 
 ---
 
@@ -255,9 +256,9 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View summary stats (total, by browser, enabled/disabled) | ✓ | ✓ | - | ✓ |
 | Search and filter extensions | ✓ | ✓ | - | ✓ |
 | Click through to extension details | ✓ | ✓ | - | ✓ |
-| Actions — Enable Extension | ✓ | ✓ | - | - |
-| Actions — Disable Extension | ✓ | ✓ | - | - |
-| Actions — Remove Extension | ✓ | ✓ | - | - |
+| Actions: Enable Extension | ✓ | ✓ | - | - |
+| Actions: Disable Extension | ✓ | ✓ | - | - |
+| Actions: Remove Extension | ✓ | ✓ | - | - |
 
 ---
 
@@ -270,7 +271,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View account list (account, user, app, browser, endpoint, status) | ✓ | ✓ | ✓ | ✓ |
 | Search and filter accounts | ✓ | ✓ | ✓ | ✓ |
 | Click through to account details | ✓ | ✓ | ✓ | ✓ |
-| Actions — Activate Agent | ✓ | ✓ | - | - |
+| Actions: Activate Agent | ✓ | ✓ | - | - |
 
 ---
 
@@ -283,11 +284,18 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View app list (name, type, category, owner) | ✓ | ✓ | ✓ | ✓ |
 | Search and filter (All / AI toggle) | ✓ | ✓ | ✓ | ✓ |
 | Click through to app details | ✓ | ✓ | ✓ | ✓ |
-| Actions — Approve Applications | ✓ | ✓ | - | - |
-| Actions — Unapprove Applications | ✓ | ✓ | - | - |
-| Actions — Block Applications | ✓ | ✓ | - | - |
-| Actions — Unblock Applications | ✓ | ✓ | - | - |
-| Actions — Activate Agent | ✓ | ✓ | - | - |
+| Actions: Approve Applications | ✓ | ✓ | - | - |
+| Actions: Unapprove Applications | ✓ | ✓ | - | - |
+| Actions: Block Applications | ✓ | ✓ | - | - |
+| Actions: Unblock Applications | ✓ | ✓ | - | - |
+| Actions: Activate Agent | ✓ | ✓ | - | - |
+| Edit: App Category | ✓ | ✓ | - | - |
+| Edit: App Type | ✓ | ✓ | - | - |
+| Edit: License | ✓ | ✓ | - | - |
+| Edit: Block | ✓ | ✓ | - | - |
+| Edit: Unblock | ✓ | ✓ | - | - |
+| Edit: Approval | ✓ | ✓ | - | - |
+| Edit: Criticality | ✓ | ✓ | - | - |
 
 ---
 
@@ -304,4 +312,5 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | Search findings | ✓ | ✓ | ✓ | ✓ |
 | Filter findings (type, criticality, channel, source, app, smart group, etc.) | ✓ | ✓ | ✓ | ✓ |
 | Select All / Global Actions | ✓ | ✓ | - | - |
+| View sensitive data in prompts and AI conversations | ✓ | ✓ | - | - |
 | Export findings | ✓ | ✓ | ✓ | - |
