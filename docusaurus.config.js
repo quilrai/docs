@@ -73,7 +73,7 @@ const config = {
                 createRedirects(existingPath) {
                     // Redirect legacy /docs/* URLs to the new / root
                     if (existingPath === '/') {
-                        return ['/docs', '/docs/'];
+                        return ['/docs'];
                     }
                     return [`/docs${existingPath}`];
                 },
