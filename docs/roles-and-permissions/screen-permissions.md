@@ -29,14 +29,14 @@ A broad read-only observer. Can see almost every screen across the platform but 
 
 #### General
 
-| Action | Super Admin | Admin | Analyst | Viewer |
-|--------|:-----------:|:-----:|:-------:|:------:|
-| View organization name and domains | ✓ | ✓ | - | ✓ |
-| Edit organization name | ✓ | ✓ | - | - |
-| Add / remove domains | ✓ | ✓ | - | - |
-| View unmanaged browser settings | ✓ | ✓ | - | ✓ |
-| Change unmanaged browser settings | ✓ | ✓ | - | - |
-| Upload / download custom IDP page | ✓ | ✓ | - | - |
+| Action                             | Super Admin | Admin | Analyst | Viewer |
+|------------------------------------|:-----------:|:-----:|:-------:|:------:|
+| View organization name and domains | ✓ | ✓ | - |   ✓    |
+| Edit organization name             | ✓ | ✓ | - |   -    |
+| Add / remove domains               | ✓ | ✓ | - |   -    |
+| View unmanaged browser settings    | ✓ | ✓ | - |   ✓    |
+| Change unmanaged browser settings  | ✓ | ✓ | - |   -    |
+| Download mdm config                | ✓ | ✓ | - |   ✓    |
 
 #### Organizational Policies
 
@@ -45,9 +45,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View list of policies | ✓ | ✓ | ✓ | ✓ |
 | Create a new policy | ✓ | ✓ | - | - |
 | Edit a policy | ✓ | ✓ | - | - |
-| Enable / disable a policy | ✓ | ✓ | - | - |
 | Delete a policy | ✓ | ✓ | - | - |
-| Export a policy | ✓ | ✓ | ✓ | - |
 
 #### Smart Groups
 
@@ -64,8 +62,6 @@ A broad read-only observer. Can see almost every screen across the platform but 
 |--------|:-----------:|:-----:|:-------:|:------:|
 | View user list (name, role, email, last login) | ✓ | ✓ | - | ✓ |
 | Add / invite users | ✓ | ✓ | - | - |
-| Change a user's role | ✓ | ✓ | - | - |
-| Enable / disable a user | ✓ | ✓ | - | - |
 | Delete users | ✓ | ✓ | - | - |
 
 ---
@@ -206,7 +202,6 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View top trending users | ✓ | ✓ | ✓ | ✓ |
 | View user list (name, department, IDP group, risk, apps) | ✓ | ✓ | ✓ | ✓ |
 | Search and filter users | ✓ | ✓ | ✓ | ✓ |
-| Group by / configure columns | ✓ | ✓ | ✓ | ✓ |
 | Click through to user profile | ✓ | ✓ | ✓ | ✓ |
 | Actions — Create Smart Group | ✓ | ✓ | - | - |
 | Actions — Add Users to Smart Group | ✓ | ✓ | - | - |
