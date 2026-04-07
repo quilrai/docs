@@ -1,0 +1,11 @@
+{
+  "label": "Endpoint Agent",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Monitor and govern network traffic and application behavior on enterprise endpoints."
+  },
+  "customProps": {
+    "icon": "Bot"
+  }
+}

@@ -38,12 +38,9 @@
 - [OAuth Connect](https://quilrai.github.io/docs/mcp-gateway/features/oauth-connect): Authorize OAuth-protected MCP servers with one click via Dynamic Client Registration or manual credentials.
 - [Web Search Policy](https://quilrai.github.io/docs/mcp-gateway/features/web-search-policy): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).
 
-## Network Monitoring
+## Endpoint Agent
 
-- [Quick Start](https://quilrai.github.io/docs/network-monitoring/quick-start): Set up Network Monitoring in 4 steps - install the Sentinel agent, enable traffic interception, configure DLP policies, and monitor activity.
-- [Architecture](https://quilrai.github.io/docs/network-monitoring/architecture): Request processing pipeline - Intercept, Inspect, Scan, Enforce - with TLS MITM, DLP engine, and health monitoring.
-
-## Process Mapping
-
-- [Quick Start](https://quilrai.github.io/docs/process-mapping/quick-start): Set up Process Mapping in 4 steps - deploy the System Monitor, review discovered applications, configure policies, and monitor activity.
-- [Architecture](https://quilrai.github.io/docs/process-mapping/architecture): Discovery and enforcement pipeline - Discover, Correlate, Sync, Enforce - covering process monitoring, Lua-based AI agent scanning, and governance.
+- [Network Monitoring Quick Start](https://quilrai.github.io/docs/endpoint-agent/network-monitoring/quick-start): Set up Network Monitoring in 4 steps - install the Sentinel agent, enable traffic interception, configure DLP policies, and monitor activity.
+- [Network Monitoring Architecture](https://quilrai.github.io/docs/endpoint-agent/network-monitoring/architecture): Request processing pipeline - Intercept, Inspect, Scan, Enforce - with TLS MITM, DLP engine, and health monitoring.
+- [Process Mapping Quick Start](https://quilrai.github.io/docs/endpoint-agent/process-mapping/quick-start): Set up Process Mapping in 4 steps - deploy the System Monitor, review discovered applications, configure policies, and monitor activity.
+- [Process Mapping Architecture](https://quilrai.github.io/docs/endpoint-agent/process-mapping/architecture): Discovery and enforcement pipeline - Discover, Correlate, Sync, Enforce - covering process monitoring, Lua-based AI agent scanning, and governance.
