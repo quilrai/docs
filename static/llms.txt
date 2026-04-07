@@ -1,6 +1,6 @@
 # QuilrAI Documentation
 
-> QuilrAI provides an LLM Gateway and MCP Gateway for securing, controlling, and optimizing AI application traffic.
+> QuilrAI provides an LLM Gateway, MCP Gateway, Network monitoring and Process mapping for securing, controlling, and optimizing AI application traffic.
 
 ## LLM Gateway
 
@@ -44,3 +44,10 @@
 
 - [Overview](https://quilrai.github.io/docs/compliance-api-integration/claude/overview): Connect to Anthropic's Compliance API to monitor Claude.ai usage - sync organizations, users, chats, projects, and activities, with automatic DLP scanning of all user inputs.
 - [Key Management](https://quilrai.github.io/docs/compliance-api-integration/claude/key-management): Register, monitor, and revoke Compliance API keys - keys are validated on registration, stored encrypted, and drive continuous sync and DLP passes.
+
+## Endpoint Agent
+
+- [Network Monitoring Quick Start](https://quilrai.github.io/docs/endpoint-agent/network-monitoring/quick-start): Set up Network Monitoring in 4 steps - install the Sentinel agent, enable traffic interception, configure DLP policies, and monitor activity.
+- [Network Monitoring Architecture](https://quilrai.github.io/docs/endpoint-agent/network-monitoring/architecture): Request processing pipeline - Intercept, Inspect, Scan, Enforce - with TLS MITM, DLP engine, and health monitoring.
+- [Process Mapping Quick Start](https://quilrai.github.io/docs/endpoint-agent/process-mapping/quick-start): Set up Process Mapping in 4 steps - deploy the System Monitor, review discovered applications, configure policies, and monitor activity.
+- [Process Mapping Architecture](https://quilrai.github.io/docs/endpoint-agent/process-mapping/architecture): Discovery and enforcement pipeline - Discover, Correlate, Sync, Enforce - covering process monitoring, Lua-based AI agent scanning, and governance.

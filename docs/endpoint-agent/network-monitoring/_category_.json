@@ -1,0 +1,11 @@
+{
+  "label": "Network Monitoring",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Transparent HTTP/HTTPS proxy with TLS interception, Data Loss Prevention, and system-wide traffic redirection. Monitor and protect all endpoint network activity."
+  },
+  "customProps": {
+    "icon": "Activity"
+  }
+}

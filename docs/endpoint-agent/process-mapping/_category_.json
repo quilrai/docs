@@ -1,0 +1,11 @@
+{
+  "label": "Process Mapping",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Discover, monitor, and govern applications, AI agents, models, skills, and tools on enterprise endpoints. Policy-driven enforcement and real-time process correlation."
+  },
+  "customProps": {
+    "icon": "Route"
+  }
+}
