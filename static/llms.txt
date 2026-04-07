@@ -37,3 +37,10 @@
 - [API Tokens](https://quilrai.github.io/docs/mcp-gateway/features/api-tokens): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access.
 - [OAuth Connect](https://quilrai.github.io/docs/mcp-gateway/features/oauth-connect): Authorize OAuth-protected MCP servers with one click via Dynamic Client Registration or manual credentials.
 - [Web Search Policy](https://quilrai.github.io/docs/mcp-gateway/features/web-search-policy): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).
+
+## Compliance API Integration
+
+### Claude
+
+- [Overview](https://quilrai.github.io/docs/compliance-api-integration/claude/overview): Connect to Anthropic's Compliance API to monitor Claude.ai usage - sync organizations, users, chats, projects, and activities, with automatic DLP scanning of all user inputs.
+- [Key Management](https://quilrai.github.io/docs/compliance-api-integration/claude/key-management): Register, monitor, and revoke Compliance API keys - keys are validated on registration, stored encrypted, and drive continuous sync and DLP passes.
