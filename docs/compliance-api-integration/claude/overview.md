@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Overview
 
-Claude Compliance gives your organization visibility into Claude.ai usage by connecting to Anthropic's Compliance API. Once you register a Compliance API key, the platform continuously fetches your organization's activity data and runs DLP scanning on all user inputs — surfacing findings directly in the dashboard.
+Claude Compliance gives your organization visibility into Claude.ai usage by connecting to Anthropic's Compliance API. Once you register a Compliance API key, the platform continuously fetches your organization's activity data and runs DLP scanning on all user inputs - surfacing findings directly in the dashboard.
 
 ## What it provides
 
@@ -16,14 +16,14 @@ Claude Compliance gives your organization visibility into Claude.ai usage by con
 | **Organizations & users** | List of all organizations under your parent org and their member users |
 | **Chats & files** | Chat message content and file attachments from user sessions |
 | **Projects** | Project names, descriptions, instructions, and attached documents |
-| **DLP findings** | Automatic scanning of all user inputs for sensitive data — PII, credentials, financial data, and more |
+| **DLP findings** | Automatic scanning of all user inputs for sensitive data - PII, credentials, financial data, and more |
 
 ## How it works
 
-1. **Register a Compliance API key** — your `sk-ant-api01-…` key is validated and stored securely. The plaintext key is never exposed after registration.
-2. **Data is synced automatically** — organizations, users, chats, projects, and activities are fetched from the Compliance API on a regular schedule.
-3. **Inputs are scanned for DLP** — user message text, file attachments, and project content are scanned and classified by severity.
-4. **Findings are surfaced** — DLP results are available through the dashboard, filtered by time, severity, user, and more.
+1. **Register a Compliance API key** - your `sk-ant-api01-…` key is validated and stored securely. The plaintext key is never exposed after registration.
+2. **Data is synced automatically** - organizations, users, chats, projects, and activities are fetched from the Compliance API on a regular schedule.
+3. **Inputs are scanned for DLP** - user message text, file attachments, and project content are scanned and classified by severity.
+4. **Findings are surfaced** - DLP results are available through the dashboard, filtered by time, severity, user, and more.
 
 ## DLP severity levels
 

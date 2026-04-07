@@ -244,6 +244,13 @@ main > .container.padding-top--md.padding-bottom--lg,
   overflow-wrap: break-word;
 }
 
+/* Landing/intro doc page: widen content + footer for the AskAiBanner to breathe.
+   Scoped to the intro page only — prose-heavy doc articles keep their readable cap. */
+.docs-doc-id-intro .doc-main__panel .row,
+.docs-doc-id-intro .doc-page-footer .footer > .container {
+  @apply max-w-6xl;
+}
+
 /* DocCardList: 2 columns desktop, 1 column mobile (matches Infima 997px breakpoint) */
 .doc-main__panel .doc-card-list {
   display: grid;

@@ -12,7 +12,7 @@ Compliance API keys connect QuilrAI to your Claude.ai organization data. Keys ar
 
 Go to **Settings → Compliance → Claude** in the dashboard and click **Add Key**. Enter your Anthropic Compliance API key (`sk-ant-api01-…`).
 
-The key is validated immediately — if it cannot authenticate with the Compliance API, registration is rejected and nothing is stored.
+The key is validated immediately - if it cannot authenticate with the Compliance API, registration is rejected and nothing is stored.
 
 Once registered, the key is stored encrypted at rest and the plaintext is never returned or logged.
 
@@ -20,9 +20,9 @@ Once registered, the key is stored encrypted at rest and the plaintext is never 
 
 After registration, the platform automatically:
 
-- **Syncs data** on a regular schedule — fetching the latest organizations, users, chats, projects, and activity events
+- **Syncs data** on a regular schedule - fetching the latest organizations, users, chats, projects, and activity events
 - **Runs DLP scans** on all new user inputs since the last pass
-- **Tracks sync state** per key — each key maintains its own sync timestamp independently
+- **Tracks sync state** per key - each key maintains its own sync timestamp independently
 
 No action is required to keep a key active. As long as the key remains valid with Anthropic, data will continue to be fetched and scanned.
 
@@ -47,5 +47,5 @@ Each registered key shows its current state in the dashboard:
 | Status | Meaning |
 |--------|---------|
 | **Active** | Key is registered and syncing normally |
-| **Sync error** | Last sync attempt failed — check the key is still valid with Anthropic |
+| **Sync error** | Last sync attempt failed - check the key is still valid with Anthropic |
 | **Revoked** | Key has been removed and is no longer synced |

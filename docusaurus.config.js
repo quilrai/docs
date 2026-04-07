@@ -21,8 +21,8 @@ const config = {
     },
 
     // GitHub Pages: https://docusaurus.io/docs/deployment#deploying-to-github-pages
-    url: 'https://quilrai.github.io',
-    baseUrl: '/docs/',
+    url: 'https://docs.quilrai.dev',
+    baseUrl: '/',
 
     organizationName: 'quilrai',
     projectName: 'docs',
@@ -65,7 +65,21 @@ const config = {
         ],
     ],
 
-    plugins: ['./plugins/doc-page-markdown.js'],
+    plugins: [
+        './plugins/doc-page-markdown.js',
+        [
+            '@docusaurus/plugin-client-redirects',
+            {
+                createRedirects(existingPath) {
+                    // Redirect legacy /docs/* URLs to the new / root
+                    if (existingPath === '/') {
+                        return ['/docs'];
+                    }
+                    return [`/docs${existingPath}`];
+                },
+            },
+        ],
+    ],
 
     presets: [
         [

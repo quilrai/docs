@@ -98,3 +98,11 @@ export const AI_PROVIDERS = [
 export function buildDocPageAiPrompt(pageTitle, canonicalPageUrl) {
   return `Please read this documentation page and help me with questions about it.\n\nTitle: ${pageTitle}\nURL: ${canonicalPageUrl}`;
 }
+
+/**
+ * @param {string} productName
+ * @param {string} llmsTxtUrl
+ */
+export function buildProductIndexAiPrompt(productName, llmsTxtUrl) {
+  return `Please read the ${productName} documentation at ${llmsTxtUrl} and help me with questions about it.`;
+}
