@@ -313,4 +313,8 @@ Read-only. Can see most screens but cannot make changes or export data.
 | Filter findings (type, criticality, channel, source, app, smart group, etc.) | ✓ | ✓ | ✓ | ✓ |
 | Select All / Global Actions | ✓ | ✓ | - | - |
 | View sensitive data in prompts and AI conversations | ✓ | ✓ | - | - |
+| Approve / unapprove credential sharing | ✓ | ✓ | - | - |
+| Approve / unapprove weak password | ✓ | ✓ | - | - |
+| Approve / unapprove compromised password | ✓ | ✓ | - | - |
+| Approve / unapprove password reuse | ✓ | ✓ | - | - |
 | Export findings | ✓ | ✓ | ✓ | - |
