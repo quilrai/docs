@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # SDK Mode
 
-Scan content directly from your application code — no LLM proxy required.
+Scan content directly from your application code - no LLM proxy required.
 
 ## Overview
 
@@ -21,7 +21,7 @@ Common uses:
 
 ## Authentication
 
-SDK mode requires a dedicated **SDK key** — regular LLM proxy keys are rejected with `403`.
+SDK mode requires a dedicated **SDK key** - regular LLM proxy keys are rejected with `403`.
 
 When creating an API key in the dashboard, set the provider to `quilr_sdk`. Then use it as a Bearer token:
 
@@ -85,9 +85,9 @@ The endpoint always returns HTTP 200. The response shape depends on which input 
 }
 ```
 
-- `messages` — the (possibly redacted) messages array; `null` if blocked
-- `blocked_text` — only present when `status` is `blocked`
-- `error` — only present when `status` is `blocked`
+- `messages` - the (possibly redacted) messages array; `null` if blocked
+- `blocked_text` - only present when `status` is `blocked`
+- `error` - only present when `status` is `blocked`
 
 ### Text response
 
@@ -103,14 +103,14 @@ The endpoint always returns HTTP 200. The response shape depends on which input 
 }
 ```
 
-- `processed_text` — the redacted text; `null` if blocked
-- `error` — only present when `status` is `blocked`
+- `processed_text` - the redacted text; `null` if blocked
+- `error` - only present when `status` is `blocked`
 
 ---
 
 ## Code Examples
 
-### Python — `httpx` (async)
+### Python - `httpx` (async)
 
 A typical pattern: check the user message before sending it to your LLM, then check the LLM response before returning it to the user.
 
@@ -178,7 +178,7 @@ async def safe_chat(user_message: str) -> str:
 asyncio.run(safe_chat("What is my SSN?"))
 ```
 
-### Python — `requests` (sync)
+### Python - `requests` (sync)
 
 ```python
 import requests
@@ -208,7 +208,7 @@ match result["status"]:
         print("Blocked. Detected:", result["categories_detected"])
 ```
 
-### JavaScript / TypeScript — `fetch`
+### JavaScript / TypeScript - `fetch`
 
 ```typescript
 const QUILR_BASE = "https://guardrails.quilr.ai";
@@ -289,7 +289,7 @@ curl -X POST https://guardrails.quilr.ai/sdk/v1/check \
 
 ## LiteLLM Guardrails Integration
 
-If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can plug Quilr guardrails in as a native guardrail plugin. The plugin calls `/sdk/v1/check` automatically on every request and/or response — no changes needed in your application code.
+If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can plug Quilr guardrails in as a native guardrail plugin. The plugin calls `/sdk/v1/check` automatically on every request and/or response - no changes needed in your application code.
 
 ### Installation
 
@@ -303,7 +303,7 @@ Or copy `quilr_litellm_guardrails.py` into your project.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `QUILR_GUARDRAILS_KEY` | Yes | — | Your `quilr_sdk` API key |
+| `QUILR_GUARDRAILS_KEY` | Yes | - | Your `quilr_sdk` API key |
 | `QUILR_GUARDRAILS_BASE_URL` | No | `https://guardrails.quilr.ai` | Override for self-hosted deployments |
 | `QUILR_GUARDRAILS_TIMEOUT` | No | `3` | Seconds before the check times out (request passes on timeout) |
 | `APPLY_QUILR_GUARDRAILS_FOR_MODELS` | No | (all) | Comma-separated list of models to restrict guardrails to |
@@ -332,7 +332,7 @@ guardrails:
       mode: "post_call"
 ```
 
-You can configure all three, or only the modes you need. `during_call` is the recommended input mode when latency matters — the guardrail check runs concurrently with the LLM and does not add to total response time unless it detects a problem.
+You can configure all three, or only the modes you need. `during_call` is the recommended input mode when latency matters - the guardrail check runs concurrently with the LLM and does not add to total response time unless it detects a problem.
 
 ### Enabling guardrails per request
 
