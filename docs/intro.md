@@ -3,6 +3,7 @@ sidebar_position: 1
 slug: /
 sidebar_custom_props:
   icon: BookOpen
+hide_copy_dropdown: true
 ---
 
 import AskAiBanner from '@site/src/components/AskAiBanner';
