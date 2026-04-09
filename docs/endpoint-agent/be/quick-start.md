@@ -47,17 +47,18 @@ Get the Sentinel agent connected to the Quilr backend in 4 steps.
 
 The agent reads its connection settings from the local configuration file in the data directory. Set these values before starting the agent:
 
-```toml title="sentinel.toml"
+```toml
 [backend]
-# Quilr backend API root
 base_url       = "https://api.quilr.ai"
-
-# Your organization's tenant UUID — find it in Settings → Organization
 tenant_id      = "<your-tenant-uuid>"
-
-# Subscriber identifier — find it in Settings → Subscribers
 subscriber_id  = "<your-subscriber-id>"
 ```
+ 
+| Field | Description |
+|-------|-------------|
+| `base_url` | Quilr backend API root |
+| `tenant_id` | Your organization's tenant UUID |
+| `subscriber_id` | Subscriber identifier from the Quilr dashboard |
 
 Replace the placeholder values with your credentials from the **Quilr dashboard**.
 
