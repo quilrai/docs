@@ -20,24 +20,24 @@ Get the Sentinel agent connected to the Quilr backend in 4 steps.
   {
     label: "Sync Apps",
     items: [
-      "POST /ea/v1/sync/discovered-apps",
+      "Auto-push on startup",
       "Batches of 50, gzip-compressed",
-      "202 Accepted on success",
+      "Visible in Applications tab",
     ],
   },
   {
     label: "Pull Governance",
     items: [
-      "GET /ea/v1/sync/delta",
-      "Polls every 60s",
+      "Delta sync every 60s",
+      "No agent restart needed",
       "Approval status + policy",
     ],
   },
   {
     label: "Report Activity",
     items: [
-      "POST /ea/v1/sync/activity",
-      "POST /ea/v1/sync/alerts",
+      "Enforcement audit log",
+      "Block & quarantine alerts",
       "Fire-and-forget",
     ],
   },
@@ -47,18 +47,19 @@ Get the Sentinel agent connected to the Quilr backend in 4 steps.
 
 The agent reads its connection settings from the local configuration file in the data directory. Set these values before starting the agent:
 
-```toml
+```toml title="sentinel.toml"
 [backend]
+# Quilr backend API root
 base_url       = "https://api.quilr.ai"
+
+# Your organization's tenant UUID — find it in Settings → Organization
 tenant_id      = "<your-tenant-uuid>"
+
+# Subscriber identifier — find it in Settings → Subscribers
 subscriber_id  = "<your-subscriber-id>"
 ```
 
-| Field | Description |
-|-------|-------------|
-| `base_url` | Quilr backend API root |
-| `tenant_id` | Your organization's tenant UUID |
-| `subscriber_id` | Subscriber identifier from the Quilr dashboard |
+Replace the placeholder values with your credentials from the **Quilr dashboard**.
 
 ## 2. Verify Discovery Sync
 
@@ -72,7 +73,7 @@ The agent batches up to 50 entities per request, compresses with gzip, and retri
 
 ## 3. Confirm Governance Pull
 
-The agent polls for governance overrides every 60 seconds from `GET /ea/v1/sync/delta`. After setting a policy in the dashboard:
+The agent polls for governance overrides every 60 seconds via [delta sync](./architecture#api-endpoints). After setting a policy in the dashboard:
 
 - Policy changes reach the agent within the next poll cycle
 - No agent restart needed
@@ -82,7 +83,7 @@ The agent polls for governance overrides every 60 seconds from `GET /ea/v1/sync/
 
 Enforcement events (block, quarantine, justify) are reported to the backend as they happen:
 
-- **`/ea/v1/sync/activity`** : enforcement audit log per decision
-- **`/ea/v1/sync/alerts`** : block and quarantine alerts for dashboard notifications
+- **Activity sync** : enforcement audit log per decision
+- **Alert sync** : block and quarantine alerts for dashboard notifications
 
 Both are fire-and-forget. Critical alerts are buffered in a local SQLite database if the backend is unreachable and retried automatically.
