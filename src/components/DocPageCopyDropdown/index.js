@@ -41,7 +41,7 @@ export default function DocPageCopyDropdown() {
   const markdown = pluginData?.markdownByPermalink?.[metadata.permalink] ?? "";
   const hasMarkdown = Boolean(markdown?.trim());
 
-  const pageUrl = useBaseUrl(metadata.permalink, { absolute: true });
+  const pageUrl = useBaseUrl(metadata.permalink + '.md', { absolute: true });
   const aiMessage = buildDocPageAiPrompt(metadata.title, pageUrl);
 
   const [menuOpen, setMenuOpen] = useState(false);
