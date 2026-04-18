@@ -1,0 +1,11 @@
+{
+  "label": "Kill Switch",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Runtime disable and re-enable of the Sentinel endpoint agent. Persisted in SQLite, enforced at startup and applied immediately at runtime without a process restart."
+  },
+  "customProps": {
+    "icon": "Shield"
+  }
+}

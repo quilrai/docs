@@ -1,0 +1,11 @@
+{
+  "label": "File Indexing",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Configure and manage the endpoint file index from the browser extension. Drives DLP file-path resolution for upload and download scanning."
+  },
+  "customProps": {
+    "icon": "Database"
+  }
+}
