@@ -10,11 +10,17 @@ How the Sentinel endpoint agent enforces the kill switch — persisting state, s
 
 <ArchitectureDiagram
   source={{
-    label: "Browser Extension",
-    code: `// Sent from Agent Settings in the extension
-// Delivered via Native Messaging pipe
+    label: "Control Plane",
+    code: `// Backend API (polled every ~30 min)
+endpointAgentEnabled = false      // device-level
+tenantEndpointAgentEnabled = false // tenant-level (wins)
+
+// Browser Extension (Native Messaging)
 { "disable_agent": true  }  // kill
-{ "disable_agent": false }  // revive`,
+{ "disable_agent": false }  // revive
+
+// IT / launchctl (immediate, macOS)
+sudo launchctl bootout "system/com.sentinel.agent"`,
   }}
   gateway={{
     label: "QuilrAI Sentinel Agent",
@@ -22,7 +28,8 @@ How the Sentinel endpoint agent enforces the kill switch — persisting state, s
       {
         label: "Receive & Persist",
         stages: [
-          { label: "Kill Switch Handler", items: ["Receives disable signal", "Writes flag to local SQLite DB", "No application mutex — WAL mode"] },
+          { label: "Kill Switch Handler", items: ["Backend poll (~30 min cycle)", "Extension via Native Messaging", "IT via launchctl (immediate)"] },
+          { label: "Flag Hierarchy", items: ["Tenant flag overrides device flag", "Writes boolean to local SQLite DB", "WAL mode — no application mutex"] },
           { label: "Startup Enforcement", items: ["Reads flag on every boot", "Disabled: skips all registration", "Only re-enable channel created"] },
         ],
       },
@@ -53,7 +60,8 @@ How the Sentinel endpoint agent enforces the kill switch — persisting state, s
 
 | Stage | Description |
 |-------|-------------|
-| **Kill Switch Handler** | The sole handler for the disable signal. Persists the flag to the local database, then applies the kill or revive operation synchronously. Returns confirmation to the extension on completion. |
+| **Kill Switch Handler** | Accepts disable signals from three sources: backend API (polled every ~30 min), browser extension (Native Messaging), and IT via `launchctl`. Persists the flag to the local database, then applies kill or revive synchronously. |
+| **Flag Hierarchy** | Tenant-level flag (`tenantEndpointAgentEnabled`) takes priority over device-level flag (`endpointAgentEnabled`). If the tenant flag is `false`, device flags are ignored. |
 | **Local Database** | Stores `disable_agent` as a boolean in a single-row configuration table. WAL mode ensures concurrent reads are never blocked. The flag persists across process restarts and reboots. |
 | **Startup Enforcement** | On every agent start, the flag is read before any service or chain is registered. If disabled, all registration is skipped — nothing is created and torn down, services and chains simply never come into existence. |
 | **Event Broker — Kill** | Removes all DLP process chains at runtime. Only the re-enable chain (`AgentUpdate:Configuration:Disable`) remains registered. |
@@ -71,12 +79,29 @@ One chain is never removed during a kill:
 
 This guarantees the extension can always reach the agent to restore it — even after a managed disable deployed via MDM or GPO.
 
+## Sub-feature Flags
+
+Individual capabilities can be disabled independently of the top-level kill switch, but require a code change (not remotely toggleable today).
+
+| Sub-feature | What it does | Config flag |
+|-------------|--------------|-------------|
+| Enforcement | Kills non-compliant processes | `enforcement.enabled` |
+| Enforcement dry-run | Logs violations but does NOT kill processes | `enforcement.dry_run` |
+| File scanning | Scans for sensitive files (`.claude`, `.cursor`, etc.) | `scan.enabled` |
+| Hook integrity | Verifies Claude/Cursor hook files aren't tampered | `hook_manager.enabled` |
+| Package scanning (npm/cargo/go) | Scans installed packages | `pkg_scanner.enabled` |
+
+If a sub-feature must be stopped before engineering can deploy, use the tenant or device-level kill switch to disable the entire agent.
+
 ## State Machine
 
 | Event | From | To | What Happens |
 |-------|------|----|-------------|
-| `disable_agent: true` received | Enabled | Disabled | Flag persisted; chains removed; services stopped |
-| `disable_agent: false` received | Disabled | Enabled | Flag cleared; chains restored; services started |
+| Backend poll: `endpointAgentEnabled = false` | Enabled | Disabled | Flag persisted; chains removed; services stopped |
+| Backend poll: `tenantEndpointAgentEnabled = false` | Enabled | Disabled | Tenant flag overrides; all devices in tenant disabled |
+| `disable_agent: true` received (extension) | Enabled | Disabled | Flag persisted; chains removed; services stopped |
+| `disable_agent: false` received (extension) | Disabled | Enabled | Flag cleared; chains restored; services started |
+| `launchctl bootout` (IT) | Enabled | Stopped | Process terminated immediately; restarts on bootstrap |
 | Agent starts, flag = disabled | — | Disabled | Registration skipped; only re-enable chain active |
 | Agent starts, flag = enabled | — | Enabled | All chains and services registered normally |
 
