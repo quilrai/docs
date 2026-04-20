@@ -78,6 +78,8 @@ Every API request flows through these stages in order. Each stage is independent
 
 Responses from the LLM provider pass back through the **security guardrails** for output scanning before being returned to your application. The same detection categories and configurable actions (block, redact, anonymize, monitor) apply to both requests and responses.
 
+Non-streaming chat completions, Anthropic Messages, Vertex/Gemini `generateContent`, and the OpenAI Responses API all follow the full request → scan → forward → scan → return pipeline. For **streaming** responses (SSE), request-side scanning runs as usual but response-side scanning is skipped so chunks pass straight through; request-side prediction results are still logged. **Realtime** websocket sessions are a raw passthrough today - neither request-side nor response-side DLP runs on live Realtime events, though session-level logs are still recorded.
+
 ## Observability
 
 Every request is logged with cost, latency, token counts, and guardrail actions. Use the **Logs** tab to review request history and the **Red Team Testing** tool to [validate your guardrail configuration](./features/red-team-testing) against adversarial prompts.

@@ -62,23 +62,22 @@ Traffic automatically shifts to remaining models. No code changes needed.
 
 ## Multi-Provider Support
 
-Models in a group must share the same API format. You can mix providers freely within a format.
+Each routing group has a **kind** that determines which providers can be combined in it. Providers across kinds cannot be mixed - OpenAI chat completions and Anthropic Messages use different request/response shapes, Responses and Realtime have their own wire formats, and Vertex AI speaks its native protocol.
 
-### OpenAI-compatible format
+| Group kind | Used for endpoint | Providers allowed in the group |
+|------------|-------------------|--------------------------------|
+| `chat_completion` | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Anthropic (chat completions), DeepSeek, Gemini (chat completions), General LLM |
+| `anthropic_messages` | `/anthropic_messages/v1/messages` | Anthropic, AWS Bedrock (Anthropic), Azure Anthropic |
+| `vertex_ai` | `/vertex_ai/` | Vertex AI |
+| `responses` | `/openai_responses/v1/responses` | OpenAI Responses, Azure OpenAI Responses |
+| `realtime` | `/openai_realtime/v1/realtime` (wss) | OpenAI Realtime, Azure OpenAI Realtime |
 
-- OpenAI
-- Azure OpenAI
-- Anthropic (chat completions)
-- Bedrock (chat completions)
-- General LLM (vLLM, etc.)
+:::warning Cannot mix kinds
+Providers from different kinds cannot be combined in the same group - pick one kind per group.
+:::
 
-### Anthropic Messages format
-
-- Anthropic
-- AWS Bedrock (Anthropic)
-
-:::warning Cannot mix formats
-OpenAI-compatible and Anthropic Messages use different request/response structures, so they cannot be combined in the same group.
+:::note Small-request custom routing
+"Small request" custom routing (Low/Medium/High context tiers) applies to `chat_completion`, `anthropic_messages`, `vertex_ai`, and `responses` groups. It does **not** apply to `realtime` - a Realtime session is a long-lived websocket, so the group's primary weighted routing is always used.
 :::
 
 ## Group Naming

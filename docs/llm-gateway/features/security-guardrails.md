@@ -35,6 +35,12 @@ Catches adversarial attack patterns in requests:
 - **Jailbreak** - Attempts to bypass safety controls
 - **Social engineering** - Manipulation attempts targeting the AI model
 
+## Endpoint Coverage
+
+Guardrails run on chat completions, embeddings (input), TTS (input), STT (output), Anthropic Messages, Vertex/Gemini `generateContent`, and the OpenAI Responses API. For **streaming** responses (SSE), request-side scanning runs as normal but response-side scanning is skipped so chunks stream through unmodified.
+
+**OpenAI Realtime** websocket sessions are passthrough today - DLP does not yet run on live Realtime events in either direction. Session-level logs (handshake status, byte counters, usage summary) are still recorded. Use [SDK Mode](./sdk-mode) if you need to scan Realtime transcripts out-of-band.
+
 ## Configurable Actions
 
 Each detection category supports per-category actions:
