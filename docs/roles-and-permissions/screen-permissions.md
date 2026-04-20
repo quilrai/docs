@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Roles and Permissions
 
-### Note : Feature Available from 30th April.
+### Note : Feature will be available soon.
 
 Overview of user roles and their permissions across different screens and features in the QuilrAI platform.
 ## Role Definitions
@@ -90,28 +90,6 @@ Read-only across all screens. No changes, no data export.
 | Force update for selected users | ✓ | ✓ | - | - |
 | Export user list | ✓ | ✓ | - | - |
 
----
-
-### Endpoint
-
-#### Deployment Management *(tenant-wide)*
-
-| Action | Super Admin | Admin | Analyst | Viewer |
-|--------|:-----------:|:-----:|:-------:|:------:|
-| View configuration | ✓ | ✓ | - | ✓ |
-| Enable / disable endpoint agent for all users | ✓ | ✓ | - | - |
-| Force update for all users | ✓ | ✓ | - | - |
-| Change persona creation settings | ✓ | ✓ | - | - |
-
-#### Deployment Status *(per user / per device)*
-
-| Action | Super Admin | Admin | Analyst | Viewer |
-|--------|:-----------:|:-----:|:-------:|:------:|
-| View user list (IDP status, device info, enablement) | ✓ | ✓ | - | ✓ |
-| Enable / disable agent for selected users | ✓ | ✓ | - | - |
-| Force update for selected users | ✓ | ✓ | - | - |
-
----
 
 ### AI Gateway
 
