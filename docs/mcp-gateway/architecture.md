@@ -40,7 +40,7 @@ How the QuilrAI MCP Gateway processes every tool call - from your AI agent to th
       {
         label: "Scan",
         stages: [
-          { label: "PII / PHI / PCI", items: ["Contextual detection", "Exact data matching", "Block / redact / anonymize"] },
+          { label: "PII / PHI / PCI", items: ["Contextual detection", "Block / redact / anonymize"] },
           { label: "Adversarial Detection", items: ["Prompt injection", "Jailbreak detection", "Context corruption"] },
         ],
       },

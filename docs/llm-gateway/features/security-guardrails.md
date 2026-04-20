@@ -23,10 +23,6 @@ Contextual detection identifies sensitive data categories and applies the config
 - **PCI** - Payment Card Industry data
 - **Financial data** - Financial records and account information
 
-### Exact Data Matching (EDM)
-
-Pattern matching with custom EDM rules for specific data formats.
-
 ## Adversarial Risk Detection
 
 Catches adversarial attack patterns in requests:

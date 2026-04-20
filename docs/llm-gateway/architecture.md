@@ -33,7 +33,7 @@ client.chat.completions.create(
       {
         label: "Scan",
         stages: [
-          { label: "PII / PHI / PCI", items: ["Contextual detection", "Exact data matching", "Block / redact / anonymize"] },
+          { label: "PII / PHI / PCI", items: ["Contextual detection", "Block / redact / anonymize"] },
           { label: "Adversarial Detection", items: ["Prompt injection", "Jailbreak detection", "Social engineering"] },
           { label: "Custom Intents", items: ["User-defined categories", "Example-trained classifier"] },
         ],

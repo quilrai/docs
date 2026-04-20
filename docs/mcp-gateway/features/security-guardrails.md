@@ -25,20 +25,6 @@ Identifies sensitive data categories and applies the configured action.
 - **Insurance** - Insurance-related sensitive data
 - **Auth & Secrets** - Authentication credentials and secrets
 
-### Exact Data Matching (EDM)
-
-Pattern matching for specific data formats:
-
-- SSN
-- Aadhaar
-- PAN
-- Passport numbers
-- Bank account numbers
-- Credit card numbers
-- Email addresses
-- Phone numbers
-- 20+ more patterns
-
 ## Adversarial Risk Detection
 
 Catches adversarial attack patterns in tool call data:
