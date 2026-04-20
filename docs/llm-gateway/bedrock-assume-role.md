@@ -4,7 +4,7 @@ sidebar_custom_props:
   icon: KeyRound
 ---
 
-# AWS Bedrock — Assume Role Setup
+# AWS Bedrock - Assume Role Setup
 
 Configure an AWS Bedrock-backed API key using IAM role assumption instead of long-lived access keys. Applies to `anthropic_messages_bedrock`, `bedrock_embeddings`, and `bedrock_rerank` providers.
 
@@ -28,7 +28,7 @@ You'll reference this ARN in the trust policy of the IAM role you create below.
 
 ## 1. Pick an ExternalId
 
-Generate a random, unguessable string — a UUID works. It doesn't need to be secret but it must be unique per role and not predictable.
+Generate a random, unguessable string - a UUID works. It doesn't need to be secret but it must be unique per role and not predictable.
 
 ```sh
 uuidgen
@@ -36,7 +36,7 @@ uuidgen
 python -c "import uuid; print(uuid.uuid4())"
 ```
 
-Save it — you'll paste it in two places: the role's trust policy (step 2) and the QuilrAI API key form (step 4).
+Save it - you'll paste it in two places: the role's trust policy (step 2) and the QuilrAI API key form (step 4).
 
 ## 2. Create the IAM role in your AWS account
 
@@ -84,7 +84,7 @@ On the same role, attach a permissions policy granting the Bedrock actions you n
 
 The same `bedrock:InvokeModel` action also covers Titan embeddings and Cohere / Amazon rerank models, so one role can serve all three Bedrock provider types.
 
-Name the role (e.g. `quilr-gateway-bedrock`), save, and copy the **role ARN** — it looks like:
+Name the role (e.g. `quilr-gateway-bedrock`), save, and copy the **role ARN** - it looks like:
 
 ```
 arn:aws:iam::<YOUR-ACCOUNT-ID>:role/quilr-gateway-bedrock
@@ -134,7 +134,7 @@ aws sts assume-role \
 # Should succeed.
 ```
 
-If the first call succeeds, the trust policy is missing the ExternalId condition — fix it before using the role.
+If the first call succeeds, the trust policy is missing the ExternalId condition - fix it before using the role.
 
 ## How the gateway uses these values at runtime
 
