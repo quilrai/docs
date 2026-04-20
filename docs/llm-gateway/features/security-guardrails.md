@@ -56,27 +56,43 @@ Adversarial categories only support `block` and `monitor` - redact/anonymize fal
 
 ## Per-Category Risk Level
 
-Each data-risk category has a configurable **Risk Level** that controls how aggressively it fires. Each individual detection carries an internal severity (High / Medium / Low); the Risk Level you set is the *threshold* that decides which severities are caught.
+Each data-risk category has a configurable **Risk Level** that controls how wide a net the category casts. Raise it to catch more sub-categories; lower it to limit detections to only the most unambiguous values.
 
-:::caution Risk Level is inverted vs. detection severity
-Risk Level describes how much risk the category represents to you, not the minimum severity to catch. Setting Risk Level to **High** means you treat this category as high-risk and want the widest net - including low-severity matches. Setting it to **Low** means you only want the strongest, most confident matches.
-:::
+| Risk Level | What fires |
+|------------|------------|
+| **Low** | Only the most unambiguous sub-categories - clearly sensitive values like unique identifiers or structured credentials. |
+| **High** | Everything Low catches, plus weaker, contextual sub-categories like names, emails, and amounts. |
 
-| Risk Level | Detections caught | Use when |
-|------------|-------------------|----------|
-| **High** | High + Medium + Low severity | Category is critical - widest net, highest recall, more false positives |
-| **Medium** | High + Medium severity | Balanced - drops the noisiest tier |
-| **Low** | High severity only | You only want alerts on strong, high-confidence matches |
+### Which sub-categories fire at which Risk Level
 
-So if PII is set to Risk Level **High**, a low-severity detection like a bare person name (e.g. `NAME`) will still fire. Drop PII to Risk Level **Low** and only unambiguous matches (e.g. a full SSN) will fire.
+| Category | Fires at Risk = Low | Also fires at Risk = High |
+|---|---|---|
+| **PII** | SSN, Passport, Driver's License, National ID | Name, Email, Phone, Date of Birth, Home Address, Employee ID |
+| **PHI** | Medical Appointment, Medical Record Number, Prescription | Medical Facility, Medical Condition, Medical Treatment |
+| **PFI** | Bank Account, Bank Identification Code, PAN Card, Tax Information | Financial Amount, Invoice, Payment Processor, Transaction ID, Customer ID |
+| **PCI** | Credit/Debit Card | — |
+| **Auth & Secrets** | Access Token, API Key, AWS Credentials, Password | Username, Username or Alias |
 
-### Category-level Risk Level
+### Examples (PII)
 
-Pick the Risk Level for the whole category. For example, PII at **High** catches emails, phone numbers, and names even when context is weak; PII at **Low** only fires on clearly sensitive values.
+How the same input is evaluated at different Risk Levels:
+
+| Request body | Risk = Low | Risk = High |
+|---|---|---|
+| `My name is Praneeth Bedapudi and I live in Bengaluru` | Allowed | Detected (`NAME`, `HOME ADDRESS`) |
+| `Reach me at praneeth@example.com or +91-98765-43210` | Allowed | Detected (`EMAIL ADDRESS`, `PHONE NUMBER`) |
+| `My passport number is M1234567` | Detected (`PASSPORT NUMBER`) | Detected (`PASSPORT NUMBER`) |
+| `SSN 123-45-6789` | Detected (`SOCIAL SECURITY NUMBER`) | Detected (`SOCIAL SECURITY NUMBER`) |
+
+And a mixed example across categories, both at **Risk = Low**:
+
+| Request body | PII | PFI |
+|---|---|---|
+| `Praneeth Bedapudi, PAN ABCDE1234F` | Allowed (Name only fires at Risk = High) | Detected (`PAN CARD`) |
 
 ### Sub-category Risk Level
 
-Within a category, each sub-category (for example the individual PII types like email address, phone number, person name) can be pinned to its own Risk Level. Sub-category settings narrow the category-level setting - a sub-category won't fire at a severity the parent category has excluded.
+Within a category, each sub-category can be pinned to its own Risk Level to override the category-level setting.
 
 Raise the Risk Level to catch more. Lower it to cut noise on categories you only want alerts on when confidence is very high.
 
