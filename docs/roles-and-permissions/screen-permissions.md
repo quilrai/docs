@@ -7,6 +7,9 @@ sidebar_custom_props:
 
 # Roles and Permissions
 
+### Note : Feature Available from 30th April.
+
+Overview of user roles and their permissions across different screens and features in the QuilrAI platform.
 ## Role Definitions
 
 **Super Admin**
