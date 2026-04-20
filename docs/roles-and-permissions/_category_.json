@@ -1,9 +1,9 @@
 {
-  "label": "Role Based Access Control",
+  "label": "QuilrAI Platform",
   "position": 4,
   "link": {
     "type": "generated-index",
-    "description": "Understand what each role can do across every screen in the Quilr platform."
+    "description": "Understand what each role can do across every screen in the QuilrAI platform."
   },
   "customProps": {
     "icon": "ShieldCheck"

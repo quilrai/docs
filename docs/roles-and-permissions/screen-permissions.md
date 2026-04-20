@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-sidebar_label: All Screens Permissions
+sidebar_label: Roles and Permissions (RBAC)
 sidebar_custom_props:
   icon: ShieldCheck
 ---
@@ -13,7 +13,7 @@ sidebar_custom_props:
 The top-level owner of the tenant. Has unrestricted access to everything — including user management, role and permission management, tenant configuration, and subscriber data. Typically assigned to the person or team responsible for the initial setup and ongoing governance of the organisation in Quilr.
 
 **Admin**
-The day-to-day operational administrator. Can configure and manage all security controls, integrations, AI gateway, extensions, endpoint agents, findings, compliance, and users. Cannot modify roles or RBAC permissions, cannot create or delete the tenant, and has no access to subscriber data. Suitable for IT administrators and security operations leads who run the platform but should not alter its governance structure.
+The day-to-day operational administrator. Can configure and manage all security controls, integrations, AI gateway, extensions, endpoint agents, findings, compliance, and users. Cannot delete or purge any resource — destructive operations are reserved for Super Admin. Cannot modify roles or RBAC permissions, cannot create or delete the tenant, and has no access to subscriber data. Suitable for IT administrators and security operations leads who run the platform but should not alter its governance structure or permanently remove data.
 
 **Analyst**
 A read-only investigator focused on security outcomes. Can view and export findings, compliance reports, AI assets, policies, guardrails, red team results, and AI/LLM/MCP gateway data. Has no access to administrative screens (users, roles, settings, integrations). Suitable for security analysts, auditors, and compliance officers who need to investigate and report but not configure anything.
@@ -45,7 +45,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View list of policies | ✓ | ✓ | ✓ | ✓ |
 | Create a new policy | ✓ | ✓ | - | - |
 | Edit a policy | ✓ | ✓ | - | - |
-| Delete a policy | ✓ | ✓ | - | - |
+| Delete a policy | ✓ | - | - | - |
 
 #### Smart Groups
 
@@ -54,7 +54,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | View list of smart groups | ✓ | ✓ | ✓ | ✓ |
 | Create a smart group | ✓ | ✓ | - | - |
 | Edit a smart group | ✓ | ✓ | - | - |
-| Delete a smart group | ✓ | ✓ | - | - |
+| Delete a smart group | ✓ | - | - | - |
 
 #### Manage Users
 
@@ -62,7 +62,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 |--------|:-----------:|:-----:|:-------:|:------:|
 | View user list (name, role, email, last login) | ✓ | ✓ | - | ✓ |
 | Add / invite users | ✓ | ✓ | - | - |
-| Delete users | ✓ | ✓ | - | - |
+| Delete users | ✓ | - | - | - |
 
 ---
 
@@ -176,7 +176,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | Add a new control | ✓ | ✓ | - | - |
 | Enable / disable a control | ✓ | ✓ | - | - |
 | Change control mode (Monitor / Action) | ✓ | ✓ | - | - |
-| Delete / purge a control | ✓ | ✓ | - | - |
+| Delete / purge a control | ✓ | - | - | - |
 
 ### Edit Control
 
@@ -227,7 +227,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | Browse MCP Gateway integrations | ✓ | ✓ | - | ✓ |
 | Edit an integration (pencil icon) | ✓ | ✓ | - | - |
 | Enable / disable an integration (tick icon) | ✓ | ✓ | - | - |
-| Delete an integration (block icon) | ✓ | ✓ | - | - |
+| Delete an integration (block icon) | ✓ | - | - | - |
 | Configure alerts (bell icon) | ✓ | ✓ | - | - |
 | Bulk actions | ✓ | ✓ | - | - |
 | Add a new integration | ✓ | ✓ | - | - |
@@ -257,7 +257,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | Click through to extension details | ✓ | ✓ | - | ✓ |
 | Actions — Enable Extension | ✓ | ✓ | - | - |
 | Actions — Disable Extension | ✓ | ✓ | - | - |
-| Actions — Remove Extension | ✓ | ✓ | - | - |
+| Actions — Remove Extension | ✓ | - | - | - |
 
 ---
 
