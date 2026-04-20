@@ -51,3 +51,37 @@ Each detection category supports per-category actions:
 | **Redact** | Remove the sensitive data and allow the request |
 | **Anonymize** | Replace sensitive data with anonymized placeholders |
 | **Monitor** | Allow the request and log the detection for review |
+
+Adversarial categories only support `block` and `monitor` — redact/anonymize fall back to `block` since there's no entity to redact.
+
+## Per-Category Sensitivity
+
+Each data-risk category can be tuned to only fire at the severity levels you care about. A category fires when a detection's severity is in the category's allowed sensitivity list.
+
+| Sensitivity | Typical meaning |
+|-------------|-----------------|
+| **High** | Strong, high-confidence match on a clearly sensitive value |
+| **Medium** | Plausible match; lower confidence or weaker context |
+| **Low** | Broad / contextual match; highest recall, more false positives |
+
+### Category-level sensitivity
+
+Pick which severity levels a category should fire on. For example, enabling only High on PII suppresses medium and low-confidence PII detections without turning the category off. High + Medium on PHI keeps the strongest two tiers and drops the noisiest one. All three enabled is the widest net.
+
+### Sub-category sensitivity
+
+Within a category, each sub-category (for example the individual PII types like email address, phone number, person name) can be pinned to its own sensitivity level. Sub-category settings narrow the category-level setting — a sub-category won't fire at a level the parent category has excluded.
+
+Raise sensitivity to catch more. Lower it to cut noise on categories you only want alerts on when confidence is very high.
+
+## Action Scope
+
+Each category can be scoped to run on the **request** side, the **response** side, or **both**. Scope controls which direction a detection runs in — it does not change the configured action.
+
+| Scope | Runs on | Use when |
+|-------|---------|----------|
+| **Request** | User input only | You only want to gate what users send (e.g. PII leaving your app) |
+| **Response** | Model output only | You only want to gate what the model returns (e.g. leaked secrets, unsafe generation) |
+| **Both** (default) | Both directions | Full bidirectional coverage |
+
+Adversarial categories are scoped automatically — Response Risks runs on assistant output, all other adversarial categories run on user input.

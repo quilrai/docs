@@ -62,10 +62,14 @@ You are a formal code reviewer for Python.
 
 ## Enforce System Prompts
 
+Require System From Store locks system prompts to the Prompt Store so application code can't inject ad-hoc system instructions.
+
 | Mode | Behavior |
 |------|----------|
-| **Enabled** | Only stored prompts are allowed as system messages. Freeform system prompts return a 400 error. |
-| **Disabled** | Both stored and freeform system prompts are accepted. |
+| **Enabled** | Every system message must be a Prompt Store reference (e.g. `quilrai-prompt-store-<id>`, or multiple refs separated by whitespace). Requests with freeform system text, mixed text + ref, or no system message at all are rejected with a 400 error. |
+| **Disabled** (default) | Both stored and freeform system prompts are accepted. |
+
+This applies uniformly across Chat Completions, Anthropic Messages (both the top-level `system` field and any `system`-role messages), Vertex/Gemini, and the OpenAI Responses API. Useful when you want prompt changes to go through a review/versioning workflow in the Prompt Store rather than through code deploys.
 
 ## Code Examples
 

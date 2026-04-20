@@ -75,10 +75,37 @@ MIIBIjANBgkqh...
 
 ## Access Controls
 
+Each API key has three independent identity controls. They compose: turn on header identity to accept the `X-User-Email` header, turn on enforced identity to make identity mandatory, and list allowed domains to whitelist who counts as identity.
+
+### Identity Header Mode
+
+Controls whether the gateway reads the `X-User-Email` header at all.
+
+| Mode | Behavior |
+|------|----------|
+| **Enabled** | Gateway reads `X-User-Email` from every request, attaches it to logs and per-user analytics, and (when Enforce Identity is on) accepts it as valid identity. |
+| **Disabled** (default) | `X-User-Email` is ignored even if sent. JWT is still the only identity source. |
+
+Leave it off for apps using JWT only. Turn it on for trusted backends that pass the logged-in user's email to the gateway.
+
 ### Enforce Identity
 
-When enabled, requests without valid identity (header or JWT) are **rejected at the gateway** - bare API key access is blocked.
+Makes identity mandatory. After auth succeeds, the request is only accepted if identity was also provided.
+
+| Mode | Behavior |
+|------|----------|
+| **Enabled** | Request must carry either a valid JWT or a valid `X-User-Email` (when Identity Header Mode is on). Bare API-key requests are rejected with *"This API key requires identity context."* |
+| **Disabled** (default) | Identity is logged if present but never required. |
+
+JWT auth always satisfies Enforce Identity — the JWT itself is the identity. The `X-User-Email` header only satisfies it when Identity Header Mode is also enabled.
 
 ### Allowed User Domains
 
-Restrict access to specific email domains (e.g., `company.com`). Applies to both `X-User-Email` header and JWT email claims.
+A list of email domains permitted as identity.
+
+| Setting | Behavior |
+|---------|----------|
+| Empty (default) | Any email domain is accepted. |
+| Specific domains (e.g. `company.com`, `partner.com`) | Only emails in these domains are accepted. |
+
+The check runs on both the `X-User-Email` header and the `email` claim extracted from JWTs. Requests from disallowed domains are rejected even if the JWT signature is otherwise valid.
