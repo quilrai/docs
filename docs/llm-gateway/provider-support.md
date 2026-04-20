@@ -58,10 +58,11 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | Provider | Auth Mode | Required Fields | Optional Fields |
 |----------|-----------|-----------------|-----------------|
 | Anthropic (Native Messages API) | API Key | `api_key` | - |
-| AWS Bedrock (Anthropic via Bedrock) | AWS Credentials | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+| AWS Bedrock (Anthropic via Bedrock) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+| AWS Bedrock (Anthropic via Bedrock) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
 | Azure (Anthropic Messages) | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
 
-AWS Bedrock default region: `us-east-1`
+AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock — Assume Role Setup](./bedrock-assume-role.md).
 
 ## Vertex AI
 
@@ -103,9 +104,10 @@ STT also supports `/v1/audio/translations`. Azure deployments use the `/openai/d
 |----------|-----------|-----------------|-----------------|
 | OpenAI | API Key | `api_key` | - |
 | Azure OpenAI | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
-| AWS Bedrock (Embeddings) | AWS Credentials | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+| AWS Bedrock (Embeddings) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+| AWS Bedrock (Embeddings) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
 
-AWS Bedrock default region: `us-east-1`. Supports Titan and Cohere Embed families on Bedrock; requests and responses follow the OpenAI embeddings shape.
+AWS Bedrock default region: `us-east-1`. Supports Titan and Cohere Embed families on Bedrock; requests and responses follow the OpenAI embeddings shape. For assume-role setup, see [AWS Bedrock — Assume Role Setup](./bedrock-assume-role.md).
 
 ## Rerank
 
@@ -117,7 +119,8 @@ All three paths are registered to match Cohere's upstream routes (v2, v1, and le
 | Provider | Auth Mode | Required Fields | Optional Fields | Notes |
 |----------|-----------|-----------------|-----------------|-------|
 | Cohere Rerank | API Key | `api_key` | - | - |
-| AWS Bedrock Rerank | AWS Credentials | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` | Cohere Rerank 3.5 and Amazon Rerank families; reuses `bedrock:InvokeModel` IAM permission |
+| AWS Bedrock Rerank | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` | Cohere Rerank 3.5 and Amazon Rerank families; reuses `bedrock:InvokeModel` IAM permission |
+| AWS Bedrock Rerank | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` | See [AWS Bedrock — Assume Role Setup](./bedrock-assume-role.md) |
 | Jina Rerank | API Key | `api_key` | - | - |
 | Voyage Rerank | API Key | `api_key` | - | - |
 | General Rerank | API Key | `api_key`, `base_url` | - | Self-hosted ColBERT / TEI / Infinity exposing a Cohere-shaped `/rerank` endpoint |
