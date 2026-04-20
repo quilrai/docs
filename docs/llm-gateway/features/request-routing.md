@@ -41,14 +41,14 @@ Multi-provider load balancing and failover behind a single API key.
 
 ## Routing Modes
 
-A routing group runs in one of two modes. Both route by weight — they just measure "share" differently.
+A routing group runs in one of two modes. Both route by weight - they just measure "share" differently.
 
 | Mode | Share measured in | Best for |
 |------|-------------------|----------|
 | **Request count** (default) | Cumulative requests per model | Even request distribution, simple round-robin-like behavior |
 | **Token based** | Cumulative input + output tokens per model | Cost/capacity balancing where request sizes vary widely |
 
-Pick the mode when you create the group. Your app just uses the group name — the gateway handles the rest.
+Pick the mode when you create the group. Your app just uses the group name - the gateway handles the rest.
 
 ### Weight-Based Routing
 
@@ -63,9 +63,9 @@ Use the **distribute** button to split weights evenly across all models in a gro
 
 ### Token-Based Routing
 
-In token mode, a model's share is the fraction of cumulative tokens (input + output) it has served, not the fraction of requests. This is useful when requests differ in size by an order of magnitude — for example, one 200-token chat and one 20k-token RAG call should not count equally against a provider's capacity.
+In token mode, a model's share is the fraction of cumulative tokens (input + output) it has served, not the fraction of requests. This is useful when requests differ in size by an order of magnitude - for example, one 200-token chat and one 20k-token RAG call should not count equally against a provider's capacity.
 
-Weights still sum to 100% and work the same way — only the accounting unit changes.
+Weights still sum to 100% and work the same way - only the accounting unit changes.
 
 | Model | Weight | Example after 100k tokens |
 |-------|--------|---------------------------|
@@ -82,15 +82,15 @@ Configure Low / Medium / High context tiers on the group and pick which models s
 
 ## Routing Across Multiple Credentials
 
-A single API key can carry credentials for several providers — your OpenAI account, an Azure OpenAI deployment, a second OpenAI account for extra TPM, etc. When you build a routing group, you don't re-enter credentials: you pick from the models already available on the providers attached to the key, and the gateway uses that provider's credentials at request time.
+A single API key can carry credentials for several providers - your OpenAI account, an Azure OpenAI deployment, a second OpenAI account for extra TPM, etc. When you build a routing group, you don't re-enter credentials: you pick from the models already available on the providers attached to the key, and the gateway uses that provider's credentials at request time.
 
 Typical patterns this enables:
 
-- **Cross-provider load split** — e.g. `gpt-4o` on OpenAI (50%) and `gpt-4o` on Azure OpenAI (50%) in one group, transparent to your app.
-- **Same-model / different-account split** — two OpenAI accounts running `gpt-4o` to double effective TPM.
-- **Region-tied routing** — a US and an EU Azure OpenAI deployment for the same model.
+- **Cross-provider load split** - e.g. `gpt-4o` on OpenAI (50%) and `gpt-4o` on Azure OpenAI (50%) in one group, transparent to your app.
+- **Same-model / different-account split** - two OpenAI accounts running `gpt-4o` to double effective TPM.
+- **Region-tied routing** - a US and an EU Azure OpenAI deployment for the same model.
 
-Models available to a group are driven by the providers on the key — you won't see a model in the group config that isn't backed by a provider you've already added.
+Models available to a group are driven by the providers on the key - you won't see a model in the group config that isn't backed by a provider you've already added.
 
 ## Automatic Failover
 

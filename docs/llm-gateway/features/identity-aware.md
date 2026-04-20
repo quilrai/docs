@@ -97,7 +97,7 @@ Makes identity mandatory. After auth succeeds, the request is only accepted if i
 | **Enabled** | Request must carry either a valid JWT or a valid `X-User-Email` (when Identity Header Mode is on). Bare API-key requests are rejected with *"This API key requires identity context."* |
 | **Disabled** (default) | Identity is logged if present but never required. |
 
-JWT auth always satisfies Enforce Identity — the JWT itself is the identity. The `X-User-Email` header only satisfies it when Identity Header Mode is also enabled.
+JWT auth always satisfies Enforce Identity - the JWT itself is the identity. The `X-User-Email` header only satisfies it when Identity Header Mode is also enabled.
 
 ### Allowed User Domains
 

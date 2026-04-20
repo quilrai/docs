@@ -84,6 +84,14 @@ On the same role, attach a permissions policy granting the Bedrock actions you n
 
 The same `bedrock:InvokeModel` action also covers Titan embeddings and Cohere / Amazon rerank models, so one role can serve all three Bedrock provider types.
 
+:::note Non-foundation-model resources
+The `arn:aws:bedrock:*::foundation-model/*` resource only covers on-demand foundation models. If you use any of the following, add their ARNs to the `Resource` array:
+
+- **Inference profiles** (required for cross-region inference on newer Claude models): `arn:aws:bedrock:*:<YOUR-ACCOUNT-ID>:inference-profile/*`
+- **Provisioned Throughput**: `arn:aws:bedrock:*:<YOUR-ACCOUNT-ID>:provisioned-model/*`
+- **Custom models**: `arn:aws:bedrock:*:<YOUR-ACCOUNT-ID>:custom-model/*`
+:::
+
 Name the role (e.g. `quilr-gateway-bedrock`), save, and copy the **role ARN** - it looks like:
 
 ```
@@ -100,7 +108,7 @@ When creating or updating the Bedrock API key, select **Assume Role** and provid
 |-------|--------|---------|
 | `aws_role_arn` | Role ARN from step 3 | `arn:aws:iam::123456789012:role/quilr-gateway-bedrock` |
 | `aws_external_id` | UUID from step 1 | `7f3c2b1e-acme-2026` |
-| `aws_region` | Your Bedrock region | `us-east-1` (default) |
+| `aws_region` | Your Bedrock region | `us-east-1` (default - check [Bedrock model availability](https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html); newer models often land in `us-west-2` first) |
 
 ### Optional
 
@@ -119,13 +127,30 @@ These belong to the static-key path and will be rejected:
 
 ## 5. Verify before going live
 
-AWS recommends confirming that the role cannot be assumed without the correct ExternalId:
+The fastest way to verify is to save the key in the QuilrAI dashboard and send a test request - if the role, ExternalId, and permissions are correct, it will succeed; otherwise the error surfaces directly in the dashboard and maps to the [troubleshooting table below](#troubleshooting).
+
+### Optional: local CLI check
+
+You **cannot** run `aws sts assume-role` against this role from your own terminal as written - the trust policy in step 2 pins the `Principal` to `arn:aws:iam::975050335771:user/quilr-gateway`, so AWS denies any caller that isn't the QuilrAI gateway user before it even looks at the ExternalId.
+
+If you still want to exercise the trust policy locally, temporarily add your own IAM user or role to the `Principal.AWS` array:
+
+```json
+"Principal": {
+  "AWS": [
+    "arn:aws:iam::975050335771:user/quilr-gateway",
+    "arn:aws:iam::<YOUR-ACCOUNT>:user/<your-iam-user>"
+  ]
+}
+```
+
+Then run:
 
 ```sh
 aws sts assume-role \
   --role-arn arn:aws:iam::<YOUR-ACCOUNT>:role/quilr-gateway-bedrock \
   --role-session-name test
-# Should fail with AccessDenied.
+# Should fail with AccessDenied (ExternalId condition not satisfied).
 
 aws sts assume-role \
   --role-arn arn:aws:iam::<YOUR-ACCOUNT>:role/quilr-gateway-bedrock \
@@ -134,7 +159,7 @@ aws sts assume-role \
 # Should succeed.
 ```
 
-If the first call succeeds, the trust policy is missing the ExternalId condition - fix it before using the role.
+If the first call succeeds, the trust policy is missing the ExternalId condition - fix it before using the role. **Remove your own ARN from the `Principal` block before going live** so only the QuilrAI gateway user can assume the role.
 
 ## How the gateway uses these values at runtime
 

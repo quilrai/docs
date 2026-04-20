@@ -52,7 +52,7 @@ Each detection category supports per-category actions:
 | **Anonymize** | Replace sensitive data with anonymized placeholders |
 | **Monitor** | Allow the request and log the detection for review |
 
-Adversarial categories only support `block` and `monitor` — redact/anonymize fall back to `block` since there's no entity to redact.
+Adversarial categories only support `block` and `monitor` - redact/anonymize fall back to `block` since there's no entity to redact.
 
 ## Per-Category Sensitivity
 
@@ -70,13 +70,13 @@ Pick which severity levels a category should fire on. For example, enabling only
 
 ### Sub-category sensitivity
 
-Within a category, each sub-category (for example the individual PII types like email address, phone number, person name) can be pinned to its own sensitivity level. Sub-category settings narrow the category-level setting — a sub-category won't fire at a level the parent category has excluded.
+Within a category, each sub-category (for example the individual PII types like email address, phone number, person name) can be pinned to its own sensitivity level. Sub-category settings narrow the category-level setting - a sub-category won't fire at a level the parent category has excluded.
 
 Raise sensitivity to catch more. Lower it to cut noise on categories you only want alerts on when confidence is very high.
 
 ## Action Scope
 
-Each category can be scoped to run on the **request** side, the **response** side, or **both**. Scope controls which direction a detection runs in — it does not change the configured action.
+Each category can be scoped to run on the **request** side, the **response** side, or **both**. Scope controls which direction a detection runs in - it does not change the configured action.
 
 | Scope | Runs on | Use when |
 |-------|---------|----------|
@@ -84,4 +84,4 @@ Each category can be scoped to run on the **request** side, the **response** sid
 | **Response** | Model output only | You only want to gate what the model returns (e.g. leaked secrets, unsafe generation) |
 | **Both** (default) | Both directions | Full bidirectional coverage |
 
-Adversarial categories are scoped automatically — Response Risks runs on assistant output, all other adversarial categories run on user input.
+Adversarial categories are scoped automatically - Response Risks runs on assistant output, all other adversarial categories run on user input.
