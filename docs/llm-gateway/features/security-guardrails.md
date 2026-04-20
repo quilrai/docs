@@ -54,25 +54,31 @@ Each detection category supports per-category actions:
 
 Adversarial categories only support `block` and `monitor` - redact/anonymize fall back to `block` since there's no entity to redact.
 
-## Per-Category Sensitivity
+## Per-Category Risk Level
 
-Each data-risk category can be tuned to only fire at the severity levels you care about. A category fires when a detection's severity is in the category's allowed sensitivity list.
+Each data-risk category has a configurable **Risk Level** that controls how aggressively it fires. Each individual detection carries an internal severity (High / Medium / Low); the Risk Level you set is the *threshold* that decides which severities are caught.
 
-| Sensitivity | Typical meaning |
-|-------------|-----------------|
-| **High** | Strong, high-confidence match on a clearly sensitive value |
-| **Medium** | Plausible match; lower confidence or weaker context |
-| **Low** | Broad / contextual match; highest recall, more false positives |
+:::caution Risk Level is inverted vs. detection severity
+Risk Level describes how much risk the category represents to you, not the minimum severity to catch. Setting Risk Level to **High** means you treat this category as high-risk and want the widest net - including low-severity matches. Setting it to **Low** means you only want the strongest, most confident matches.
+:::
 
-### Category-level sensitivity
+| Risk Level | Detections caught | Use when |
+|------------|-------------------|----------|
+| **High** | High + Medium + Low severity | Category is critical - widest net, highest recall, more false positives |
+| **Medium** | High + Medium severity | Balanced - drops the noisiest tier |
+| **Low** | High severity only | You only want alerts on strong, high-confidence matches |
 
-Pick which severity levels a category should fire on. For example, enabling only High on PII suppresses medium and low-confidence PII detections without turning the category off. High + Medium on PHI keeps the strongest two tiers and drops the noisiest one. All three enabled is the widest net.
+So if PII is set to Risk Level **High**, a low-severity detection like a bare person name (e.g. `NAME`) will still fire. Drop PII to Risk Level **Low** and only unambiguous matches (e.g. a full SSN) will fire.
 
-### Sub-category sensitivity
+### Category-level Risk Level
 
-Within a category, each sub-category (for example the individual PII types like email address, phone number, person name) can be pinned to its own sensitivity level. Sub-category settings narrow the category-level setting - a sub-category won't fire at a level the parent category has excluded.
+Pick the Risk Level for the whole category. For example, PII at **High** catches emails, phone numbers, and names even when context is weak; PII at **Low** only fires on clearly sensitive values.
 
-Raise sensitivity to catch more. Lower it to cut noise on categories you only want alerts on when confidence is very high.
+### Sub-category Risk Level
+
+Within a category, each sub-category (for example the individual PII types like email address, phone number, person name) can be pinned to its own Risk Level. Sub-category settings narrow the category-level setting - a sub-category won't fire at a severity the parent category has excluded.
+
+Raise the Risk Level to catch more. Lower it to cut noise on categories you only want alerts on when confidence is very high.
 
 ## Action Scope
 
