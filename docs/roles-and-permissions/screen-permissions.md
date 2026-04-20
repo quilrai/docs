@@ -13,13 +13,13 @@ sidebar_custom_props:
 Full access. Owns the tenant. Manages users, roles, permissions, tenant config, and subscriber data.
 
 **Admin**
-The day-to-day operational administrator. Can configure and manage all security controls, integrations, AI gateway, extensions, endpoint agents, findings, compliance, and users. Cannot delete or purge any resource — destructive operations are reserved for Super Admin. Cannot modify roles or RBAC permissions, cannot create or delete the tenant, and has no access to subscriber data. Suitable for IT administrators and security operations leads who run the platform but should not alter its governance structure or permanently remove data.
+Day-to-day operations. Manages controls, integrations, gateways, extensions, endpoint agents, findings, compliance, and users. Cannot delete or purge any resource. Cannot modify roles, RBAC permissions, or tenant settings. No subscriber data access.
 
 **Analyst**
 Read-only plus export. Views findings, compliance reports, AI assets, policies, guardrails, red team results, and gateway data. No access to admin screens.
 
 **Viewer**
-A broad read-only observer. Can see almost every screen across the platform but cannot make any changes or export data. Suitable for executives, stakeholders, or external auditors who need visibility into the organisation's security posture without the ability to act.
+Read-only across all screens. No changes, no data export.
 
 ---
 
@@ -258,7 +258,7 @@ A broad read-only observer. Can see almost every screen across the platform but 
 | Click through to extension details | ✓ | ✓ | - | ✓ |
 | Actions: Enable Extension | ✓ | ✓ | - | - |
 | Actions: Disable Extension | ✓ | ✓ | - | - |
-| Actions: Remove Extension | ✓ | ✓ | - | - |
+| Actions: Remove Extension | ✓ | - | - | - |
 
 ---
 
