@@ -1,6 +1,7 @@
 ---
 sidebar_position: 5
 sidebar_custom_props:
+  badge: new
   icon: Handshake
 ---
 
@@ -14,18 +15,24 @@ Your app authenticates to the gateway using a QuilrAI API key. Provider credenti
 
 ## Capability Matrix
 
-| Provider | Chat | Embeddings | TTS | STT | Responses | Realtime | Models |
-|----------|:----:|:----------:|:---:|:---:|:---------:|:--------:|:------:|
-| OpenAI | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Azure OpenAI | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Anthropic (Chat Completions) | ✓ | - | - | - | - | - | ✓ |
-| DeepSeek | ✓ | - | - | - | - | - | ✓ |
-| Gemini (Chat Completions) | ✓ | - | - | - | - | - | ✓ |
-| General LLM | ✓ | - | - | - | - | - | ✓ |
-| Anthropic (Messages) | ✓ | - | - | - | - | - | ✓ |
-| AWS Bedrock (Anthropic) | ✓ | - | - | - | - | - | ✓ |
-| Azure (Anthropic Messages) | ✓ | - | - | - | - | - | ✓ |
-| Vertex AI | ✓ | - | - | - | - | - | ✓ |
+| Provider | Chat | Embeddings | Rerank | TTS | STT | Responses | Realtime | Models |
+|----------|:----:|:----------:|:------:|:---:|:---:|:---------:|:--------:|:------:|
+| OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Azure OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Anthropic (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ |
+| DeepSeek | ✓ | - | - | - | - | - | - | ✓ |
+| Gemini (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ |
+| General LLM | ✓ | - | - | - | - | - | - | ✓ |
+| Anthropic (Messages) | ✓ | - | - | - | - | - | - | ✓ |
+| AWS Bedrock (Anthropic) | ✓ | - | - | - | - | - | - | ✓ |
+| Azure (Anthropic Messages) | ✓ | - | - | - | - | - | - | ✓ |
+| Vertex AI | ✓ | - | - | - | - | - | - | ✓ |
+| AWS Bedrock (Embeddings) | - | ✓ | - | - | - | - | - | ✓ |
+| Cohere Rerank | - | - | ✓ | - | - | - | - | ✓ |
+| AWS Bedrock Rerank | - | - | ✓ | - | - | - | - | ✓ |
+| Jina Rerank | - | - | ✓ | - | - | - | - | ✓ |
+| Voyage Rerank | - | - | ✓ | - | - | - | - | ✓ |
+| General Rerank | - | - | ✓ | - | - | - | - | ✓ |
 
 Responses and Realtime are supported on dedicated provider types (`openai_responses`, `openai_responses_azure`, `openai_realtime`, `openai_realtime_azure`). A key configured for any other primary provider must add one of these as an additional provider on the key to access the Responses or Realtime endpoints.
 
@@ -70,6 +77,12 @@ Vertex AI supports multiple authentication modes. Select the mode when creating 
 | Service Account | `service_account_json` | `gcp_project_id`, `gcp_region` | Project ID derived from JSON if omitted |
 | ADC | `gcp_project_id` | `gcp_region` | Application Default Credentials from environment |
 
+### Multimodal & image-capable Gemini models
+
+Vertex is a native passthrough to `generateContent`, so any Gemini model configured on the key works - including multimodal models that accept image / audio / video inputs and image-output models like `gemini-2.5-flash-image-preview`. Add the model name to the key's `selected_models` list and call it the same way you would upstream.
+
+Request-side DLP scans text parts of the request. Non-text parts (image / audio / video bytes) and image / audio outputs pass through without response-side DLP - the guardrails pipeline is text-focused today.
+
 ## TTS & STT
 
 **Endpoints:** `/openai_compatible/v1/audio/speech` and `/openai_compatible/v1/audio/transcriptions`
@@ -80,6 +93,36 @@ Vertex AI supports multiple authentication modes. Select the mode when creating 
 | Azure OpenAI | ✓ | ✓ | API Key | `api_key`, `azure_endpoint` |
 
 STT also supports `/v1/audio/translations`. Azure deployments use the `/openai/deployments/{deployment}/` path prefix.
+
+## Embeddings
+
+**Endpoint:** `/openai_compatible/v1/embeddings`
+**Auth:** `Authorization: Bearer sk-quilr-xxx`
+
+| Provider | Auth Mode | Required Fields | Optional Fields |
+|----------|-----------|-----------------|-----------------|
+| OpenAI | API Key | `api_key` | - |
+| Azure OpenAI | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
+| AWS Bedrock (Embeddings) | AWS Credentials | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+
+AWS Bedrock default region: `us-east-1`. Supports Titan and Cohere Embed families on Bedrock; requests and responses follow the OpenAI embeddings shape.
+
+## Rerank
+
+**Endpoints:** `/rerank/v2/rerank`, `/rerank/v1/rerank`, `/rerank/rerank`
+**Auth:** `Authorization: Bearer sk-quilr-xxx`
+
+All three paths are registered to match Cohere's upstream routes (v2, v1, and legacy). Accepts a Cohere-compatible body (`model`, `query`, `documents`, optional `top_n`, `return_documents`) and returns a Cohere-shaped response (`id`, `model`, `results[]`, `usage`).
+
+| Provider | Auth Mode | Required Fields | Optional Fields | Notes |
+|----------|-----------|-----------------|-----------------|-------|
+| Cohere Rerank | API Key | `api_key` | - | - |
+| AWS Bedrock Rerank | AWS Credentials | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` | Cohere Rerank 3.5 and Amazon Rerank families; reuses `bedrock:InvokeModel` IAM permission |
+| Jina Rerank | API Key | `api_key` | - | - |
+| Voyage Rerank | API Key | `api_key` | - | - |
+| General Rerank | API Key | `api_key`, `base_url` | - | Self-hosted ColBERT / TEI / Infinity exposing a Cohere-shaped `/rerank` endpoint |
+
+Request-side DLP scans the `query` and `documents` fields. Response-side DLP is not applied - responses are scores and indices only.
 
 ## Responses API
 
@@ -131,11 +174,11 @@ A key can have one primary provider plus any number of additional providers of t
 
 | Endpoint | Body field | Header | Query param |
 |----------|-----------|--------|-------------|
-| Chat Completions / Anthropic Messages / Vertex | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
+| Chat Completions / Anthropic Messages / Vertex / Embeddings / Rerank | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Realtime (websocket) | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
 
-Match by either the provider type (`openai_responses_azure`, `openai_realtime`, `anthropic_messages_bedrock`, etc.) or the `label` you assigned to the additional provider when you added it in the dashboard.
+Match by either the provider type (`openai_responses_azure`, `openai_realtime`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `cohere_rerank`, `bedrock_rerank`, `jina_rerank`, `voyage_rerank`, `general_rerank`, etc.) or the `label` you assigned to the additional provider when you added it in the dashboard.
 
 ## SDK
 

@@ -1,6 +1,7 @@
 ---
 sidebar_position: 10
 sidebar_custom_props:
+  badge: new
   icon: Wrench
 ---
 

@@ -6,7 +6,6 @@
     "description": "Detailed documentation for each LLM Gateway capability - Routing, Token Saving, Guardrails, Prompt Store, Identity Aware, and more."
   },
   "customProps": {
-    "badge": "new",
     "icon": "Sparkles"
   }
 }

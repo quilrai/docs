@@ -108,6 +108,102 @@ curl https://guardrails.quilr.ai/openai_compatible/v1/chat/completions \
   }'
 ```
 
+### Embeddings - Python
+
+Embeddings use the OpenAI embeddings shape for every supported provider - OpenAI, Azure OpenAI, and AWS Bedrock (Titan / Cohere Embed). The gateway translates to the underlying provider based on how the key is configured, so client code never changes.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    # diff-add
+    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    # diff-add
+    api_key='sk-quilr-xxx',
+)
+
+# Same call for OpenAI, Azure OpenAI, or AWS Bedrock keys.
+# Just use the model name configured on your key
+# (e.g. 'text-embedding-3-small', 'amazon.titan-embed-text-v2:0',
+# 'cohere.embed-english-v3').
+embedding = client.embeddings.create(
+    model='amazon.titan-embed-text-v2:0',
+    input='The quick brown fox',
+)
+print(embedding.data[0].embedding[:5])
+```
+
+### Embeddings - cURL
+
+```bash
+curl https://guardrails.quilr.ai/openai_compatible/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -d '{
+    "model": "amazon.titan-embed-text-v2:0",
+    "input": "The quick brown fox"
+  }'
+```
+
+:::info AWS Bedrock embeddings
+No boto3 / `invoke_model` call on the client side - AWS credentials live on the key in the QuilrAI dashboard, and the gateway performs the Bedrock `invoke_model` call for you. Titan uses `{inputText}` and Cohere uses `{texts, input_type}` upstream; the OpenAI shape is what you send and receive.
+:::
+
+### Rerank - Python
+
+Rerank uses the Cohere-compatible shape for every supported provider - Cohere, AWS Bedrock (Cohere Rerank 3.5 / Amazon Rerank), Jina, Voyage, and self-hosted (ColBERT / TEI / Infinity). Point the Cohere SDK at the gateway, or just POST JSON.
+
+```python
+import cohere
+
+co = cohere.ClientV2(
+    # diff-add
+    base_url='https://guardrails.quilr.ai/rerank',
+    # diff-remove
+    api_key='co-xxx',
+    # diff-add
+    api_key='sk-quilr-xxx',
+)
+
+# Same call for any configured rerank provider.
+result = co.rerank(
+    model='rerank-english-v3.0',
+    query='What is the capital of France?',
+    documents=[
+        'Paris is the capital of France.',
+        'Berlin is the capital of Germany.',
+        'The Eiffel Tower is in Paris.',
+    ],
+    top_n=2,
+)
+for r in result.results:
+    print(r.index, r.relevance_score)
+```
+
+### Rerank - cURL
+
+```bash
+curl https://guardrails.quilr.ai/rerank/v2/rerank \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -d '{
+    "model": "rerank-english-v3.0",
+    "query": "What is the capital of France?",
+    "documents": [
+      "Paris is the capital of France.",
+      "Berlin is the capital of Germany.",
+      "The Eiffel Tower is in Paris."
+    ],
+    "top_n": 2
+  }'
+```
+
+The gateway mirrors Cohere's upstream paths, so `/rerank/rerank`, `/rerank/v1/rerank`, and `/rerank/v2/rerank` all work - point your SDK at `base_url='https://guardrails.quilr.ai/rerank'` and it'll append whichever version it uses.
+
+:::info AWS Bedrock rerank
+Same pattern as Bedrock embeddings - AWS credentials live on the key, the gateway performs the Bedrock `invoke_model` call, and your client speaks the Cohere rerank shape. Request-side DLP scans the `query` and `documents` fields; the response (scores + indices) is passed through.
+:::
+
 ### Anthropic - Python
 
 ```python
