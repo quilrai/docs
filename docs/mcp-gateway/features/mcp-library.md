@@ -67,3 +67,17 @@ Ready immediately after install. Create API tokens in **Settings** for programma
 ## Custom MCP Servers
 
 Don't see what you need? Click **"Add MCP"** to register any MCP server by providing its transport URL (ending in `/sse` or `/mcp`). The gateway auto-detects auth requirements and probes capabilities.
+
+## Internal MCPs
+
+To register an MCP server hosted inside your private network, allowlist the following Quilr gateway IPs on your firewall, VPC security group, or reverse proxy so the gateway can reach your internal endpoint:
+
+```
+132.226.119.116
+```
+
+```
+80.225.216.37
+```
+
+Once the MCP URL is reachable from these IPs, add it via **"Add MCP"** like any other custom server. Capability probing and subsequent tool calls will originate from the same addresses.
