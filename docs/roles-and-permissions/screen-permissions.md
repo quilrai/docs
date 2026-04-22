@@ -186,7 +186,7 @@ Read-only across all screens. No changes, no data export.
 | Click through to user profile | ✓ | ✓ | ✓ | ✓ |
 | Actions: Create Smart Group | ✓ | ✓ | - | - |
 | Actions: Add Users to Smart Group | ✓ | ✓ | - | - |
-| Actions: Delete Users from Smart Group | ✓ | ✓ | - | - |
+| Actions: Delete Users from Smart Group | ✓ | - | - | - |
 | Actions: Preview Smart Group | ✓ | ✓ | ✓ | ✓ |
 | Actions: Activate Agent (With Findings) | ✓ | ✓ | - | - |
 | Actions: Activate Agent (Without Findings) | ✓ | ✓ | - | - |
