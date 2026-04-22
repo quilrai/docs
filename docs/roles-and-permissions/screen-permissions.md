@@ -22,7 +22,7 @@ Day-to-day operations. Manages controls, integrations, gateways, extensions, end
 Read-only plus export. Views findings, compliance reports, AI assets, policies, guardrails, red team results, and gateway data. No access to admin screens.
 
 **Viewer**
-Read-only across all screens. No changes, no data export.
+Read-only across all screens. No changes.
 
 ---
 
@@ -88,7 +88,7 @@ Read-only across all screens. No changes, no data export.
 | View user list (IDP status, device, browser, enrollment) | ✓ | ✓ | - | ✓ |
 | Enable / disable extension for selected users | ✓ | ✓ | - | - |
 | Force update for selected users | ✓ | ✓ | - | - |
-| Export user list | ✓ | ✓ | - | - |
+| Export user list | ✓ | ✓ | ✓ | ✓ |
 
 
 ### AI Gateway
@@ -125,7 +125,7 @@ Read-only across all screens. No changes, no data export.
 
 | Action | Super Admin | Admin | Analyst | Viewer |
 |--------|:-----------:|:-----:|:-------:|:------:|
-| View current configuration and preview | ✓ | ✓ | - | ✓ |
+| View current configuration and preview | ✓ | ✓ | ✓ | ✓ |
 | Customize logo (upload / reset) | ✓ | ✓ | - | - |
 | Customize prompt content | ✓ | ✓ | - | - |
 | Customize links | ✓ | ✓ | - | - |
@@ -298,4 +298,4 @@ Read-only across all screens. No changes, no data export.
 | Approve / unapprove weak password | ✓ | ✓ | - | - |
 | Approve / unapprove compromised password | ✓ | ✓ | - | - |
 | Approve / unapprove password reuse | ✓ | ✓ | - | - |
-| Export findings | ✓ | ✓ | ✓ | - |
+| Export findings | ✓ | ✓ | ✓ | ✓ |
