@@ -81,6 +81,15 @@ Read-only across all screens. No changes.
 | Change domain monitoring settings | ✓ | ✓ | - | - |
 | Change persona creation settings | ✓ | ✓ | - | - |
 
+#### Persona Creation Exclusion
+
+| Action | Super Admin | Admin | Analyst | Viewer |
+|--------|:-----------:|:-----:|:-------:|:------:|
+| View persona creation exclusions | ✓ | ✓ | - | ✓ |
+| Add a persona creation exclusion | ✓ | ✓ | - | - |
+| Edit a persona creation exclusion | ✓ | ✓ | - | - |
+| Delete a persona creation exclusion | ✓ | ✓ | - | - |
+
 #### Deployment Status *(per user)*
 
 | Action | Super Admin | Admin | Analyst | Viewer |
@@ -226,6 +235,7 @@ Read-only across all screens. No changes.
 | Search and filter models | ✓ | ✓ | ✓ | ✓ |
 | Enable / disable a detection model | ✓ | ✓ | - | - |
 | Add a new detection model | ✓ | ✓ | - | - |
+| Delete a detection model | ✓ | - | - | - |
 
 ---
 
