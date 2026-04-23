@@ -226,4 +226,4 @@ After any kill switch action:
 
 ---
 
-**Next step:** See the [Architecture](./architecture) for the full enforcement pipeline and state machine.
+**Next step:** See the [Architecture](../../../endpoint-agent/agent-kill-switch/architecture) for the full enforcement pipeline and state machine.
