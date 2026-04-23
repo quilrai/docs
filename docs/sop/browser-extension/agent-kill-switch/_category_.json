@@ -1,0 +1,11 @@
+{
+  "label": "Agent Kill Switch",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Disable or re-enable the Sentinel endpoint agent from the browser extension without a process restart, with state persisted across reboots."
+  },
+  "customProps": {
+    "icon": "ShieldCheck"
+  }
+}
