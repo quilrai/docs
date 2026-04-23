@@ -8,15 +8,18 @@ Go to https://github.com/quilrbusiness/ConstantsConfigsSync
 
 Make changes in the tenant specific json file in `constants/defaults/abc-...json`
 
-Raise a PR to main
+Raise a PR to quilr-preprod, get approval and merged then quilr-preprod to main
 
 Contact Kashi or Thiru for PR approval and merge.
 
 Note: We can find tenant ID in browser extension API calls.
 
-## Step 1 – Create a branch from main
 
-Pull the latest main, then create a new branch named like:
+Details:
+
+## Step 1 – Create a branch from quilr-preprod
+
+Pull the latest quilr-preprod, then create a new branch named like:
 
 ```
 feat/disable-agent-kill-switch
@@ -66,7 +69,7 @@ Push your branch.
 
 ## Step 4 – Raise a PR
 
-Create a Pull Request to main. In the PR description include:
+Create a Pull Request to quilr-preprod and then to main. In the PR description include:
 
 - What `disable_agent` does
 - Whether it's global or tenant-specific
