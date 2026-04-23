@@ -307,7 +307,4 @@ Read-only across all screens. No changes.
 | Activate Agent | ✓ | ✓ | - | - |
 | View sensitive data in prompts and AI conversations | ✓ | ✓ | - | - |
 | Approve / unapprove credential sharing | ✓ | ✓ | - | - |
-| Approve / unapprove weak password | ✓ | ✓ | - | - |
-| Approve / unapprove compromised password | ✓ | ✓ | - | - |
-| Approve / unapprove password reuse | ✓ | ✓ | - | - |
 | Export findings | ✓ | ✓ | ✓ | ✓ |
