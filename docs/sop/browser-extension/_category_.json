@@ -3,7 +3,7 @@
   "position": 2,
   "link": {
     "type": "generated-index",
-    "description": "Incident procedures for the Quilr Browser Extension — kill switch, rollback, and escalation playbooks."
+    "description": "Incident procedures for the Quilr Browser Extension: kill switch, rollback, and escalation playbooks."
   },
   "customProps": {
     "icon": "Plug"
