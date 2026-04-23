@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"/Users/adarsh/Desktop/Screenshot 2026-04-19 at 12.35.53 PM.heic\" /tmp/ss1.heic)",
+      "Bash(cp \"/Users/adarsh/Desktop/Screenshot 2026-04-19 at 12.36.53 PM.heic\" /tmp/ss2.heic)",
+      "Bash(cp \"/Users/adarsh/Desktop/Screenshot 2026-04-19 at 12.47.26 PM.heic\" /tmp/ss3.heic)"
+    ]
+  }
+}
