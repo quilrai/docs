@@ -8,17 +8,21 @@ Go to https://github.com/quilrbusiness/ConstantsConfigsSync
 
 Make changes in the tenant specific json file in `constants/defaults/abc-...json`
 
-Raise a PR to main
+Raise a PR to quilr-preprod, get approval and merged then quilr-preprod to main
 
 Contact Kashi or Thiru for PR approval and merge.
 
+Note: We can find tenant ID in browser extension API calls.
 
-## Step 1 – Create a branch from main
 
-Pull the latest main, then create a new branch named like:
+Details:
+
+## Step 1 – Create a branch from quilr-preprod
+
+Pull the latest quilr-preprod, then create a new branch named like:
 
 ```
-feat/add-enable-extension-management
+feat/disable-agent-kill-switch
 ```
 
 ## Step 2 – Add your constant
@@ -29,7 +33,7 @@ If the constant is for all tenants, add it to `default.json`.
 
 ```json
 {
-  "ENABLE_EXTENSION_MANAGEMENT": true
+  "disable_agent": true
 }
 ```
 
@@ -41,7 +45,7 @@ Example: `442e052d-4c60-4cdc-961e-bc9db74a40ca.json`
 
 ```json
 {
-  "ENABLE_EXTENSION_MANAGEMENT": true
+  "disable_agent": true
 }
 ```
 
@@ -57,18 +61,16 @@ Stage only the files under `constants` that you changed.
 Example commit messages:
 
 ```
-feat: add ENABLE_EXTENSION_MANAGEMENT constant globally
-feat: override ENABLE_EXTENSION_MANAGEMENT for tenant 442e052d
+feat: add disable_agent constant globally
+feat: override disable_agent for tenant 442e052d
 ```
 
 Push your branch.
 
 ## Step 4 – Raise a PR
 
-Create a Pull Request to main. In the PR description include:
+Create a Pull Request to quilr-preprod and then to main. In the PR description include:
 
-- What `ENABLE_EXTENSION_MANAGEMENT` does
+- What `disable_agent` does
 - Whether it's global or tenant-specific
 - Tenant UUID (if applicable)
-
-We can find tenant ID in browser extension API calls.
