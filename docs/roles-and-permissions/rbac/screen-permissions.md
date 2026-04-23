@@ -1,6 +1,6 @@
 ---
-sidebar_position: 1
-sidebar_label: Roles and Permissions (RBAC)
+sidebar_position: 2
+sidebar_label: Roles and Permissions
 sidebar_custom_props:
   icon: ShieldCheck
 ---
@@ -45,7 +45,7 @@ Read-only across all screens. No changes.
 
 | Action | Super Admin | Admin | Analyst | Viewer |
 |--------|:-----------:|:-----:|:-------:|:------:|
-| View list of policies | ✓ | ✓ | ✓ | ✓ |
+| View policies | ✓ | ✓ | ✓ | ✓ |
 | Create a new policy | ✓ | ✓ | - | - |
 | Edit a policy | ✓ | ✓ | - | - |
 | Delete a policy | ✓ | - | - | - |
@@ -65,6 +65,7 @@ Read-only across all screens. No changes.
 |--------|:-----------:|:-----:|:-------:|:------:|
 | View user list (name, role, email, last login) | ✓ | ✓ | - | ✓ |
 | Add / invite users | ✓ | ✓ | - | - |
+| Change role | ✓ | ✓ | - | - |
 | Delete users | ✓ | - | - | - |
 
 ---
@@ -97,7 +98,7 @@ Read-only across all screens. No changes.
 | View user list (IDP status, device, browser, enrollment) | ✓ | ✓ | - | ✓ |
 | Enable / disable extension for selected users | ✓ | ✓ | - | - |
 | Force update for selected users | ✓ | ✓ | - | - |
-| Export user list | ✓ | ✓ | ✓ | ✓ |
+| Export user list | ✓ | ✓ | - | ✓ |
 
 
 ### AI Gateway
@@ -135,6 +136,7 @@ Read-only across all screens. No changes.
 | Action | Super Admin | Admin | Analyst | Viewer |
 |--------|:-----------:|:-----:|:-------:|:------:|
 | View current configuration and preview | ✓ | ✓ | ✓ | ✓ |
+| Toggle Use URLs in Popups | ✓ | ✓ | - | - |
 | Customize logo (upload / reset) | ✓ | ✓ | - | - |
 | Customize prompt content | ✓ | ✓ | - | - |
 | Customize links | ✓ | ✓ | - | - |
@@ -302,7 +304,7 @@ Read-only across all screens. No changes.
 | View finding details (ID, channel, source, user, app, control, outcome) | ✓ | ✓ | ✓ | ✓ |
 | Search findings | ✓ | ✓ | ✓ | ✓ |
 | Filter findings (type, criticality, channel, source, app, smart group, etc.) | ✓ | ✓ | ✓ | ✓ |
-| Select All / Global Actions | ✓ | ✓ | - | - |
+| Activate Agent | ✓ | ✓ | - | - |
 | View sensitive data in prompts and AI conversations | ✓ | ✓ | - | - |
 | Approve / unapprove credential sharing | ✓ | ✓ | - | - |
 | Approve / unapprove weak password | ✓ | ✓ | - | - |
