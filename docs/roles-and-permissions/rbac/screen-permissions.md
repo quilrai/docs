@@ -7,8 +7,6 @@ sidebar_custom_props:
 
 # Roles and Permissions
 
-### Note : Feature will be available soon.
-
 Overview of user roles and their permissions across different screens and features in the QuilrAI platform.
 ## Role Definitions
 
