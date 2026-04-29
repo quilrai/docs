@@ -550,7 +550,16 @@ rt.send({ type: "response.create" });
 
 Realtime sessions are a raw websocket passthrough. Voice I/O (PCM16 `input_audio_buffer.append` / `response.output_audio.delta`) works end-to-end. Live-event DLP is not yet applied to Realtime sessions - see [Provider Support](./provider-support#realtime-api).
 
-## 3. Using Routing Groups
+## 3. Optional Headers
+
+| Header | Purpose |
+|--------|---------|
+| `X-User-Email` | Identifies the end user behind the request. See [Identity Aware](./features/identity-aware). |
+| `X-Conversation-Id` | Groups related requests into a single conversation in logs and analytics. See [Conversation Grouping](./features/conversation-grouping). |
+| `X-Provider-Name` / `X-Provider-Label` | Selects a specific provider on multi-provider keys (see section 5 below). |
+| `X-Prompt-Variables` | Supplies `{{variable}}` values for stored prompts. See [Prompt Store](./features/prompt-store). |
+
+## 4. Using Routing Groups
 
 If you've configured a [Routing Group](./features/request-routing), pass the group name as the `model` parameter. The gateway automatically load-balances and fails over across providers in that group.
 
@@ -563,7 +572,7 @@ response = client.chat.completions.create(
 
 See [Request Routing](./features/request-routing) for full details on setting up groups.
 
-## 4. Selecting a Provider on Multi-Provider Keys
+## 5. Selecting a Provider on Multi-Provider Keys
 
 A single QuilrAI key can have one primary provider plus any number of additional providers. For **Responses** and **Realtime** keys, you can pick which configured provider handles a specific request. If you omit a selector, QuilrAI uses the first compatible provider on the key.
 

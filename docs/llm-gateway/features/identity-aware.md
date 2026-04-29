@@ -109,3 +109,7 @@ A list of email domains permitted as identity.
 | Specific domains (e.g. `company.com`, `partner.com`) | Only emails in these domains are accepted. |
 
 The check runs on both the `X-User-Email` header and the `email` claim extracted from JWTs. Requests from disallowed domains are rejected even if the JWT signature is otherwise valid.
+
+:::tip Group requests by conversation
+Pair `X-User-Email` with [`X-Conversation-Id`](./conversation-grouping) to view per-user activity grouped into individual conversations in the dashboard.
+:::
