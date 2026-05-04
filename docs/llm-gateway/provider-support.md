@@ -15,24 +15,27 @@ Your app authenticates to the gateway using a QuilrAI API key. Provider credenti
 
 ## Capability Matrix
 
-| Provider | Chat | Embeddings | Rerank | TTS | STT | Responses | Realtime | Models |
-|----------|:----:|:----------:|:------:|:---:|:---:|:---------:|:--------:|:------:|
-| OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Azure OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Anthropic (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ |
-| DeepSeek | ✓ | - | - | - | - | - | - | ✓ |
-| Gemini (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ |
-| General LLM | ✓ | - | - | - | - | - | - | ✓ |
-| Anthropic (Messages) | ✓ | - | - | - | - | - | - | ✓ |
-| AWS Bedrock (Anthropic) | ✓ | - | - | - | - | - | - | ✓ |
-| Azure (Anthropic Messages) | ✓ | - | - | - | - | - | - | ✓ |
-| Vertex AI | ✓ | - | - | - | - | - | - | ✓ |
-| AWS Bedrock (Embeddings) | - | ✓ | - | - | - | - | - | ✓ |
-| Cohere Rerank | - | - | ✓ | - | - | - | - | ✓ |
-| AWS Bedrock Rerank | - | - | ✓ | - | - | - | - | ✓ |
-| Jina Rerank | - | - | ✓ | - | - | - | - | ✓ |
-| Voyage Rerank | - | - | ✓ | - | - | - | - | ✓ |
-| General Rerank | - | - | ✓ | - | - | - | - | ✓ |
+| Provider | Chat | Embeddings | Rerank | TTS | STT | Responses | Realtime | Models | SDK / Webhook |
+|----------|:----:|:----------:|:------:|:---:|:---:|:---------:|:--------:|:------:|:-------------:|
+| OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ | - |
+| Azure OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ | - |
+| Anthropic (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ | - |
+| DeepSeek | ✓ | - | - | - | - | - | - | ✓ | - |
+| Gemini (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ | - |
+| General LLM | ✓ | - | - | - | - | - | - | ✓ | - |
+| Anthropic (Messages) | ✓ | - | - | - | - | - | - | ✓ | - |
+| AWS Bedrock (Anthropic) | ✓ | - | - | - | - | - | - | ✓ | - |
+| AWS Bedrock Runtime (boto3) | ✓ | - | - | - | - | - | - | ✓ | - |
+| Azure (Anthropic Messages) | ✓ | - | - | - | - | - | - | ✓ | - |
+| Vertex AI | ✓ | - | - | - | - | - | - | ✓ | - |
+| AWS Bedrock (Embeddings) | - | ✓ | - | - | - | - | - | ✓ | - |
+| Cohere Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
+| AWS Bedrock Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
+| Jina Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
+| Voyage Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
+| General Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
+| QuilrAI SDK | - | - | - | - | - | - | - | - | ✓ |
+| Microsoft Copilot Studio | - | - | - | - | - | - | - | - | ✓ |
 
 Responses and Realtime are supported on dedicated provider types (`openai_responses`, `openai_responses_azure`, `openai_realtime`, `openai_realtime_azure`). A key configured for any other primary provider must add one of these as an additional provider on the key to access the Responses or Realtime endpoints.
 
@@ -63,6 +66,23 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | Azure (Anthropic Messages) | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
 
 AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
+
+## AWS Bedrock Runtime (boto3)
+
+**Endpoints:** `/model/{model_id}/converse`, `/model/{model_id}/converse-stream`, `/model/{model_id}/invoke`
+**Alternate prefix:** `/bedrock-runtime/model/{model_id}/...`
+**Auth:** AWS SigV4 signed request using the QuilrAI key as both access key ID and secret access key
+
+Use this surface when your application already calls Bedrock Runtime through boto3 or another AWS SDK. Configure a `bedrock` provider key in QuilrAI, then set the SDK `endpoint_url` to `https://guardrails.quilr.ai/bedrock-runtime`.
+
+| Provider | Auth Mode | Required Fields | Optional Fields |
+|----------|-----------|-----------------|-----------------|
+| AWS Bedrock Runtime (boto3) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+| AWS Bedrock Runtime (boto3) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
+
+Supported text families are Amazon Nova, Anthropic, and OpenAI-style Bedrock models. Non-streaming `converse` and supported `invoke_model` calls run request and response DLP. `converse_stream` runs request-side DLP, then passes the AWS EventStream response through unchanged. `invoke_model_with_response_stream` is registered but returns `ValidationException`.
+
+Only Bedrock Runtime is proxied. Bedrock control-plane APIs and Bedrock Agent Runtime APIs are not proxied. For setup and boto3 examples, see [AWS Bedrock - boto3 Runtime](./bedrock-boto3.md).
 
 ## Vertex AI
 
@@ -205,3 +225,15 @@ npm install quilrai
 ### LiteLLM Proxy Plugin
 
 QuilrAI integrates as a plugin for [LiteLLM's](https://docs.litellm.ai) proxy gateway. Configure it in your LiteLLM proxy config to add guardrails to all LLM traffic.
+
+## Microsoft Copilot Studio
+
+**Endpoint base:** `/copilot_studio/{sk-quilr-xxx}`
+**Routes:** `/validate`, `/analyze-tool-execution`
+**Auth:** QuilrAI key in the endpoint path
+
+Copilot Studio support is SDK-style external threat detection, not LLM proxying. Create a key with provider `copilot_studio`, configure the endpoint base in Power Platform admin center, and Copilot Studio calls QuilrAI before tool execution.
+
+QuilrAI scans recent user prompt context and tool `inputValues`. It returns `blockAction: true` for block/redact/partial-redact outcomes because Copilot Studio cannot accept rewritten tool input. DLP timeout or internal DLP errors fail open with `blockAction: false` so transient service issues do not break the agent flow.
+
+For setup steps, see [Copilot Studio](./features/copilot-studio.md).

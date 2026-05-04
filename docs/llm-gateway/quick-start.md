@@ -45,7 +45,7 @@ Get up and running with the LLM Gateway in 4 steps.
 
 ## 1. Create an API Key
 
-Go to the **LLM Gateway** tab and click **Create New Key**. Select your provider (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, OpenAI Responses, OpenAI Realtime, or any OpenAI-compatible endpoint), choose which models to expose, and generate your key.
+Go to the **LLM Gateway** tab and click **Create New Key**. Select your provider (OpenAI, Anthropic, Azure, Bedrock, Bedrock Runtime boto3, Vertex AI, OpenAI Responses, OpenAI Realtime, Copilot Studio, or any OpenAI-compatible endpoint), choose which models to expose, and generate your key.
 
 Your provider API key is stored securely - developers only see the QuilrAI proxy key.
 

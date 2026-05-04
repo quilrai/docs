@@ -24,9 +24,11 @@ Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
 |--------|------|-------------|
 | **OpenAI** | `/openai_compatible/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Anthropic** | `/anthropic_messages/` | `x-api-key: sk-quilr-xxx` |
+| **AWS Bedrock Runtime** (boto3) | `/bedrock-runtime/` | AWS SigV4 using `sk-quilr-xxx` |
 | **Vertex AI** | `/vertex_ai/` | `Authorization: Bearer sk-quilr-xxx` |
 | **OpenAI Responses** | `/openai_responses/` | `Authorization: Bearer sk-quilr-xxx` |
 | **OpenAI Realtime** (wss) | `/openai_realtime/` | `Authorization: Bearer sk-quilr-xxx` |
+| **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | QuilrAI key in endpoint path |
 
 Combine a region base URL with the API format path to get your full endpoint. For example:
 
@@ -412,6 +414,48 @@ print(response.content)
 
 Replace `sk-quilr-xxx` with the API key you created in the dashboard. The model parameter uses the same model names as your provider. For Vertex AI, the `project` and `location` should match the values configured when creating the key.
 
+### AWS Bedrock Runtime - boto3
+
+Use this mode when your app already calls Bedrock Runtime through boto3. Create a QuilrAI key with provider `bedrock`, then point the Bedrock Runtime client at QuilrAI.
+
+```python
+import boto3
+from botocore.config import Config
+
+QUILR_KEY = "sk-quilr-xxx"
+
+bedrock = boto3.client(
+    "bedrock-runtime",
+    region_name="us-east-1",
+    # diff-add
+    endpoint_url="https://guardrails.quilr.ai/bedrock-runtime",
+    # diff-remove
+    aws_access_key_id="AKIA...",
+    # diff-add
+    aws_access_key_id=QUILR_KEY,
+    # diff-remove
+    aws_secret_access_key="aws-secret",
+    # diff-add
+    aws_secret_access_key=QUILR_KEY,
+    config=Config(read_timeout=300),
+)
+
+response = bedrock.converse(
+    modelId="amazon.nova-lite-v1:0",
+    messages=[
+        {
+            "role": "user",
+            "content": [{"text": "Hello!"}],
+        }
+    ],
+    inferenceConfig={"maxTokens": 256},
+)
+
+print(response["output"]["message"]["content"][0]["text"])
+```
+
+`converse`, `converse_stream`, and `invoke_model` are supported. `invoke_model_with_response_stream` is not enabled yet and returns `ValidationException`. See [AWS Bedrock - boto3 Runtime](./bedrock-boto3.md) for operation coverage, guardrail behavior, and troubleshooting.
+
 :::info Provider configuration required
 The Responses and Realtime endpoints are only served for keys whose primary provider is `openai_responses` / `openai_responses_azure` / `openai_realtime` / `openai_realtime_azure`, or that have one of those added as an additional provider. A plain "OpenAI" or "Azure OpenAI" chat-completions key cannot hit `/openai_responses/` or `/openai_realtime/` by just swapping the URL - add the Responses or Realtime provider to the key first. See [Provider Support](./provider-support#responses-api) for the full matrix.
 :::
@@ -549,6 +593,18 @@ rt.send({ type: "response.create" });
 ```
 
 Realtime sessions are a raw websocket passthrough. Voice I/O (PCM16 `input_audio_buffer.append` / `response.output_audio.delta`) works end-to-end. Live-event DLP is not yet applied to Realtime sessions - see [Provider Support](./provider-support#realtime-api).
+
+### Microsoft Copilot Studio
+
+Create a QuilrAI key with provider `copilot_studio`, then use the full endpoint base in Power Platform admin center:
+
+```text
+https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx
+```
+
+Power Platform appends `/validate` during setup and `/analyze-tool-execution` at runtime. QuilrAI scans Copilot user context and proposed tool inputs, then returns Copilot's expected allow/block response.
+
+See [Copilot Studio](./features/copilot-studio.md) for Power Platform configuration steps.
 
 ## 3. Optional Headers
 

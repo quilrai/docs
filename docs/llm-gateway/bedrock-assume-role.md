@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # AWS Bedrock - Assume Role Setup
 
-Configure an AWS Bedrock-backed API key using IAM role assumption instead of long-lived access keys. Applies to `anthropic_messages_bedrock`, `bedrock_embeddings`, and `bedrock_rerank` providers.
+Configure an AWS Bedrock-backed API key using IAM role assumption instead of long-lived access keys. Applies to `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, and `bedrock_rerank` providers.
 
 ## Why assume role
 
@@ -82,7 +82,7 @@ On the same role, attach a permissions policy granting the Bedrock actions you n
 }
 ```
 
-The same `bedrock:InvokeModel` action also covers Titan embeddings and Cohere / Amazon rerank models, so one role can serve all three Bedrock provider types.
+The same `bedrock:InvokeModel` action also covers boto3 Runtime `converse` / `invoke_model`, Titan embeddings, and Cohere / Amazon rerank models, so one role can serve all Bedrock provider types.
 
 :::note Non-foundation-model resources
 The `arn:aws:bedrock:*::foundation-model/*` resource only covers on-demand foundation models. If you use any of the following, add their ARNs to the `Resource` array:
@@ -165,7 +165,7 @@ If the first call succeeds, the trust policy is missing the ExternalId condition
 
 1. For each Bedrock request, the gateway calls `sts:AssumeRole` on your role using its own base IAM user, passing your `aws_role_arn`, `aws_external_id`, `aws_role_session_name`, and `aws_session_duration_seconds`.
 2. The resulting temporary credentials are cached in-process and auto-refreshed before expiry, so the STS call cost is amortized across many requests.
-3. The Bedrock client is built with those temporary credentials and makes the actual `InvokeModel` / embeddings / rerank call.
+3. The Bedrock client is built with those temporary credentials and makes the actual boto3 Runtime / Anthropic Messages / embeddings / rerank call.
 
 ## Troubleshooting
 

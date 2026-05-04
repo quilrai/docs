@@ -4,12 +4,14 @@
 
 ## LLM Gateway
 
-Connect to any LLM provider — OpenAI, Anthropic, Azure, Bedrock, Vertex AI — through a single API key. Route traffic across multiple providers with weighted load balancing and automatic failover, with zero code changes in your application.
+Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropic, Azure, Bedrock, Vertex AI, and Copilot Studio - through a single API key. Route traffic across multiple providers with weighted load balancing and automatic failover, with zero code changes in your application.
 
 - [Quick Start](https://docs.quilrai.dev/llm-gateway/quick-start.md): Set up the LLM Gateway in 4 steps - create an app, add a provider key, configure guardrails, and connect your application.
 - [Architecture](https://docs.quilrai.dev/llm-gateway/architecture.md): Request processing pipeline - Validate, Scan, Transform, Route - with a visual diagram of every stage.
-- [Integration Guide](https://docs.quilrai.dev/llm-gateway/integration-guide.md): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway.
-- [Provider Support](https://docs.quilrai.dev/llm-gateway/provider-support.md): Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI) and their capability matrix.
+- [Integration Guide](https://docs.quilrai.dev/llm-gateway/integration-guide.md): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway, including boto3 Bedrock Runtime and Copilot Studio.
+- [Provider Support](https://docs.quilrai.dev/llm-gateway/provider-support.md): Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Copilot Studio) and their capability matrix.
+- [AWS Bedrock boto3 Runtime](https://docs.quilrai.dev/llm-gateway/bedrock-boto3.md): Use boto3 Bedrock Runtime with QuilrAI by setting endpoint_url, with Converse, ConverseStream, and InvokeModel coverage.
+- [AWS Bedrock Assume Role Setup](https://docs.quilrai.dev/llm-gateway/bedrock-assume-role.md): Configure Bedrock provider keys with cross-account IAM role assumption instead of long-lived AWS credentials.
 - [HA & SLA](https://docs.quilrai.dev/llm-gateway/ha-and-sla.md): Regional endpoints, recommended retry strategy, connection pooling, and 99.6% uptime SLA.
 - [UX Changelog](https://docs.quilrai.dev/llm-gateway/ux-changelog.md): Recent interface improvements - tagging, filtering, and quality-of-life updates.
 
@@ -24,6 +26,7 @@ Connect to any LLM provider — OpenAI, Anthropic, Azure, Bedrock, Vertex AI —
 - [Red Team Testing](https://docs.quilrai.dev/llm-gateway/features/red-team-testing.md): Test guardrails configuration against adversarial prompts.
 - [Identity Aware](https://docs.quilrai.dev/llm-gateway/features/identity-aware.md): Authenticate and track individual users behind each API key via JWT/JWKS or header validation.
 - [SDK Mode](https://docs.quilrai.dev/llm-gateway/features/sdk-mode.md): Scan content directly from your application code — no LLM proxy required.
+- [Copilot Studio](https://docs.quilrai.dev/llm-gateway/features/copilot-studio.md): Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution.
 
 ## MCP Gateway
 

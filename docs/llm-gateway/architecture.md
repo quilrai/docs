@@ -78,7 +78,9 @@ Every API request flows through these stages in order. Each stage is independent
 
 Responses from the LLM provider pass back through the **security guardrails** for output scanning before being returned to your application. The same detection categories and configurable actions (block, redact, anonymize, monitor) apply to both requests and responses.
 
-Non-streaming chat completions, Anthropic Messages, Vertex/Gemini `generateContent`, and the OpenAI Responses API all follow the full request → scan → forward → scan → return pipeline. For **streaming** responses (SSE), request-side scanning runs as usual but response-side scanning is skipped so chunks pass straight through; request-side prediction results are still logged. **Realtime** websocket sessions are a raw passthrough today - neither request-side nor response-side DLP runs on live Realtime events, though session-level logs are still recorded.
+Non-streaming chat completions, Anthropic Messages, AWS Bedrock Runtime `converse` / supported `invoke_model`, Vertex/Gemini `generateContent`, and the OpenAI Responses API all follow the full request → scan → forward → scan → return pipeline. For **streaming** responses (SSE), request-side scanning runs as usual but response-side scanning is skipped so chunks pass straight through; request-side prediction results are still logged. AWS Bedrock Runtime `converse_stream` follows the same request-scan / response-passthrough pattern for AWS EventStream responses. **Realtime** websocket sessions are a raw passthrough today - neither request-side nor response-side DLP runs on live Realtime events, though session-level logs are still recorded.
+
+Copilot Studio is different from LLM proxy routes: Copilot calls QuilrAI before tool execution, QuilrAI scans the user context and proposed tool input values, and the response is only an allow/block decision.
 
 ## Observability
 
