@@ -58,11 +58,24 @@ https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx/analyze-tool-execution
 
 Copilot Studio may also include an `api-version` query parameter. QuilrAI ignores unknown query parameters.
 
+## Admin consent
+
+A Microsoft 365 or Power Platform admin must grant tenant-wide consent before the organization can use the QuilrAI Copilot Studio integration.
+
+<a
+  className="button button--primary"
+  href="https://login.microsoftonline.com/common/adminconsent?client_id=54abe80d-4f95-4e44-a19a-d360e5cdb617"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Grant admin consent
+</a>
+
 ## Power Platform setup
 
 1. In QuilrAI, create an LLM Gateway API key with provider `copilot_studio`.
 2. Copy the full endpoint base URL, including the `sk-quilr-...` key.
-3. Follow Microsoft's external threat detection setup to configure the Microsoft Entra application required by Power Platform.
+3. Have a Microsoft 365 or Power Platform admin grant tenant-wide consent for the QuilrAI Copilot Studio integration.
 4. Open Power Platform admin center.
 5. Go to **Security** and then **Threat detection**.
 6. Select **Additional threat detection**.
