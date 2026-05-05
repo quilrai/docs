@@ -1463,3 +1463,38 @@ main > .container.padding-top--md.padding-bottom--lg,
 [data-theme="dark"] .code-block-diff-remove-line {
   background-color: rgba(239, 68, 68, 0.08);
 }
+
+/* Doc CTAs */
+.docs-admin-consent-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ifm-color-primary-dark);
+  border-radius: 0.5rem;
+  background: var(--color-white);
+  color: var(--ifm-color-primary-darkest);
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 0.6rem 0.9rem;
+  text-decoration: none !important;
+}
+
+.docs-admin-consent-button:hover,
+.docs-admin-consent-button:focus-visible {
+  background: var(--ifm-color-primary-dark);
+  color: var(--color-white);
+  text-decoration: none !important;
+}
+
+[data-theme="dark"] .docs-admin-consent-button {
+  background: transparent;
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary-lightest);
+}
+
+[data-theme="dark"] .docs-admin-consent-button:hover,
+[data-theme="dark"] .docs-admin-consent-button:focus-visible {
+  background: var(--ifm-color-primary-dark);
+  border-color: var(--ifm-color-primary-dark);
+  color: var(--color-neutral-950);
+}

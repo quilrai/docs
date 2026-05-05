@@ -60,16 +60,22 @@ Copilot Studio may also include an `api-version` query parameter. QuilrAI ignore
 
 ## Admin consent
 
-A Microsoft 365 or Power Platform admin must grant tenant-wide consent before the organization can use the QuilrAI Copilot Studio integration.
+A Microsoft 365 or Power Platform admin must grant tenant-wide consent to the QuilrAI Microsoft Entra application before the organization can use the QuilrAI Copilot Studio integration.
 
 <a
-  className="button button--primary"
+  className="docs-admin-consent-button"
   href="https://login.microsoftonline.com/common/adminconsent?client_id=54abe80d-4f95-4e44-a19a-d360e5cdb617"
   target="_blank"
   rel="noopener noreferrer"
 >
   Grant admin consent
 </a>
+
+Use this same Microsoft Entra App ID when Power Platform asks for the Azure Entra App ID:
+
+```text
+54abe80d-4f95-4e44-a19a-d360e5cdb617
+```
 
 ## Power Platform setup
 
@@ -81,7 +87,7 @@ A Microsoft 365 or Power Platform admin must grant tenant-wide consent before th
 6. Select **Additional threat detection**.
 7. Select the environment, then select **Set up**.
 8. Enable **Allow Copilot Studio to share data with a threat detection provider**.
-9. Enter the Microsoft Entra App ID requested by Power Platform.
+9. Enter the QuilrAI Microsoft Entra App ID: `54abe80d-4f95-4e44-a19a-d360e5cdb617`.
 10. Enter the QuilrAI endpoint base URL as the endpoint link.
 11. Choose the Power Platform error behavior and save.
 
