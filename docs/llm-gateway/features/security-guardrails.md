@@ -68,7 +68,7 @@ Each data-risk category has a configurable **Risk Level** that controls how wide
 | **PII** | SSN, Passport, Driver's License, National ID | Name, Email, Phone, Date of Birth, Home Address, Employee ID |
 | **PHI** | Medical Appointment, Medical Record Number, Prescription | Medical Facility, Medical Condition, Medical Treatment |
 | **PFI** | Bank Account, Bank Identification Code, PAN Card, Tax Information | Financial Amount, Invoice, Payment Processor, Transaction ID, Customer ID |
-| **PCI** | Credit/Debit Card | — |
+| **PCI** | Credit/Debit Card | - |
 | **Auth & Secrets** | Access Token, API Key, AWS Credentials, Password | Username, Username or Alias |
 
 ### Examples (PII)
