@@ -24,6 +24,7 @@ Your app authenticates to the gateway using a QuilrAI API key. Provider credenti
 | Gemini (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ | - |
 | General LLM | ✓ | - | - | - | - | - | - | ✓ | - |
 | Anthropic (Messages) | ✓ | - | - | - | - | - | - | ✓ | - |
+| AWS Bedrock (OpenAI-compatible via Converse) | ✓ | - | - | - | - | - | - | ✓ | - |
 | AWS Bedrock (Anthropic) | ✓ | - | - | - | - | - | - | ✓ | - |
 | AWS Bedrock Runtime (boto3) | ✓ | - | - | - | - | - | - | ✓ | - |
 | Azure (Anthropic Messages) | ✓ | - | - | - | - | - | - | ✓ | - |
@@ -52,6 +53,12 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | DeepSeek | API Key | `api_key` | - |
 | Gemini (OpenAI-compatible) | API Key | `api_key` | - |
 | General LLM (vLLM, Ollama, etc.) | API Key | `api_key`, `base_url` | - |
+| AWS Bedrock (Converse via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+| AWS Bedrock (Converse via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
+
+The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI currently translates AWS Bedrock chat models into this surface by calling Bedrock `Converse` behind the scenes. Create a `bedrock` provider key, select any Bedrock model that supports `Converse`, and use that Bedrock model ID in the OpenAI SDK `model` parameter.
+
+AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
 
 ## Anthropic Messages
 
@@ -75,12 +82,14 @@ AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, Ex
 
 Use this surface when your application already calls Bedrock Runtime through boto3 or another AWS SDK. Configure a `bedrock` provider key in QuilrAI, then set the SDK `endpoint_url` to `https://guardrails.quilr.ai/bedrock-runtime`.
 
+If your application uses OpenAI-compatible clients instead, the same `bedrock` provider key can be called through `/openai_compatible/v1/chat/completions`; QuilrAI converts the OpenAI chat request to Bedrock `Converse` for you.
+
 | Provider | Auth Mode | Required Fields | Optional Fields |
 |----------|-----------|-----------------|-----------------|
 | AWS Bedrock Runtime (boto3) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
 | AWS Bedrock Runtime (boto3) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
 
-Supported text families are Amazon Nova, Anthropic, and OpenAI-style Bedrock models. Non-streaming `converse` and supported `invoke_model` calls run request and response DLP. `converse_stream` runs request-side DLP, then passes the AWS EventStream response through unchanged. `invoke_model_with_response_stream` is registered but returns `ValidationException`.
+`converse` supports any selected Bedrock model that supports the Bedrock `Converse` API. `invoke_model` schema coverage is limited to Amazon Nova, Anthropic, and OpenAI-style Bedrock models. Non-streaming `converse` and supported `invoke_model` calls run request and response DLP. `converse_stream` runs request-side DLP, then passes the AWS EventStream response through unchanged. `invoke_model_with_response_stream` is registered but returns `ValidationException`.
 
 Only Bedrock Runtime is proxied. Bedrock control-plane APIs and Bedrock Agent Runtime APIs are not proxied. For setup and boto3 examples, see [AWS Bedrock - boto3 Runtime](./bedrock-boto3.md).
 
@@ -201,7 +210,7 @@ A key can have one primary provider plus any number of additional providers of t
 | Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Realtime (websocket) | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
 
-Match by either the provider type (`openai_responses_azure`, `openai_realtime`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `cohere_rerank`, `bedrock_rerank`, `jina_rerank`, `voyage_rerank`, `general_rerank`, etc.) or the `label` you assigned to the additional provider when you added it in the dashboard.
+Match by either the provider type (`bedrock`, `openai_responses_azure`, `openai_realtime`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `cohere_rerank`, `bedrock_rerank`, `jina_rerank`, `voyage_rerank`, `general_rerank`, etc.) or the `label` you assigned to the additional provider when you added it in the dashboard.
 
 ## SDK
 

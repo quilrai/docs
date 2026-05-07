@@ -82,7 +82,7 @@ On the same role, attach a permissions policy granting the Bedrock actions you n
 }
 ```
 
-The same `bedrock:InvokeModel` action also covers boto3 Runtime `converse` / `invoke_model`, Titan embeddings, and Cohere / Amazon rerank models, so one role can serve all Bedrock provider types.
+The same `bedrock:InvokeModel` action also covers OpenAI-compatible chat through Bedrock `Converse`, boto3 Runtime `converse` / `invoke_model`, Titan embeddings, and Cohere / Amazon rerank models, so one role can serve all Bedrock provider types.
 
 :::note Non-foundation-model resources
 The `arn:aws:bedrock:*::foundation-model/*` resource only covers on-demand foundation models. If you use any of the following, add their ARNs to the `Resource` array:

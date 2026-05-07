@@ -11,6 +11,8 @@ Use the AWS SDK for Python (`boto3`) with QuilrAI guardrails by pointing the Bed
 
 This mode is for applications that already use `bedrock-runtime` directly and want to keep AWS request shapes such as `converse`, `converse_stream`, and `invoke_model`.
 
+If your application uses OpenAI-compatible clients, you can use the same `bedrock` provider key with `/openai_compatible/v1/chat/completions` instead. QuilrAI translates the OpenAI-compatible chat request to Bedrock `Converse`, so OpenAI SDKs and wrappers can call selected Bedrock models without boto3.
+
 ## What is supported
 
 | boto3 operation | Gateway path | Guardrail coverage |
@@ -128,17 +130,19 @@ for event in stream["stream"]:
         print(text, end="")
 ```
 
-## Supported model families
+## Supported model coverage
 
-The boto3 Runtime surface currently supports text models in these Bedrock families:
+`converse` can call any selected Bedrock model that supports the Bedrock `Converse` API, including inference profile IDs supported by Bedrock.
+
+`invoke_model` keeps provider-native Bedrock JSON bodies, so QuilrAI only parses deterministic text schemas for these Bedrock families:
 
 - Amazon Nova (`amazon.nova-*`)
 - Anthropic (`anthropic.*`)
 - OpenAI-style Bedrock models (`openai.*`)
 
-Inference profile IDs are accepted when they resolve to one of these families, including region-prefixed profile IDs such as `us.anthropic...`.
+For `invoke_model`, inference profile IDs are accepted when they resolve to one of these families, including region-prefixed profile IDs such as `us.anthropic...`.
 
-Unknown model families are rejected instead of being parsed best-effort. This keeps DLP behavior deterministic for every supported request and response schema.
+Unknown `invoke_model` families are rejected instead of being parsed best-effort. This keeps DLP behavior deterministic for every supported request and response schema.
 
 ## Guardrail behavior
 
@@ -155,6 +159,6 @@ Bedrock-native guardrail passthrough is not supported on this surface. Requests 
 | `UnrecognizedClientException` | The SigV4 access key ID is missing, invalid, or is not a `sk-quilr-*` key. |
 | `SignatureDoesNotMatch` | The request was not signed for the `bedrock` service, the host changed after signing, or the key/secret values differ. |
 | `AccessDeniedException` | The model is not selected on the QuilrAI key. |
-| `ValidationException` for model family | The model is not in a supported text family. |
+| `ValidationException` for `invoke_model` model family | The model is not in a supported `invoke_model` text family. Use `converse` or OpenAI-compatible chat for Converse-capable models. |
 | `ValidationException` for guardrails | Bedrock-native guardrail headers/body fields were sent. Use QuilrAI guardrail settings instead. |
 | `ModelTimeoutException` | The upstream Bedrock Runtime request timed out. |

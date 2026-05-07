@@ -22,7 +22,7 @@ Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
 
 | Format | Path | Auth Header |
 |--------|------|-------------|
-| **OpenAI** | `/openai_compatible/` | `Authorization: Bearer sk-quilr-xxx` |
+| **OpenAI-compatible** | `/openai_compatible/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Anthropic** | `/anthropic_messages/` | `x-api-key: sk-quilr-xxx` |
 | **AWS Bedrock Runtime** (boto3) | `/bedrock-runtime/` | AWS SigV4 using `sk-quilr-xxx` |
 | **Vertex AI** | `/vertex_ai/` | `Authorization: Bearer sk-quilr-xxx` |
@@ -36,9 +36,11 @@ Combine a region base URL with the API format path to get your full endpoint. Fo
 https://guardrails.quilr.ai/openai_compatible/
 ```
 
+The OpenAI-compatible path works with OpenAI SDKs and OpenAI-compatible client wrappers. It can call OpenAI / Azure OpenAI and other upstreams that already expose an OpenAI-compatible API. It can also call AWS Bedrock chat models through Bedrock `Converse`; Bedrock is currently the supported native provider that QuilrAI translates into OpenAI-compatible chat completions.
+
 ## 2. Code Examples
 
-### OpenAI - Python
+### OpenAI-compatible chat - Python
 
 ```python
 from openai import OpenAI
@@ -68,7 +70,7 @@ embedding = client.embeddings.create(
 print(embedding.data[0].embedding[:5])
 ```
 
-### OpenAI - JavaScript
+### OpenAI-compatible chat - JavaScript
 
 ```javascript
 import OpenAI from "openai";
@@ -91,7 +93,7 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
-### OpenAI - cURL
+### OpenAI-compatible chat - cURL
 
 ```bash
 # Point the request to QuilrAI's gateway
@@ -109,6 +111,28 @@ curl https://guardrails.quilr.ai/openai_compatible/v1/chat/completions \
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
+
+### AWS Bedrock via OpenAI-compatible chat - Python
+
+Create a QuilrAI key with provider `bedrock`, select the Bedrock models you want to expose, and use the same OpenAI client configuration. The gateway converts the OpenAI-compatible chat request to Bedrock `Converse` behind the scenes, so no boto3 client is needed.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    api_key='sk-quilr-xxx',
+)
+
+response = client.chat.completions.create(
+    model='amazon.nova-lite-v1:0',
+    messages=[{'role': 'user', 'content': 'Hello from an OpenAI client.'}],
+    max_tokens=256,
+)
+print(response.choices[0].message.content)
+```
+
+Use any Bedrock model ID selected on the key that supports Bedrock `Converse`, including inference profile IDs. The same base URL and key work with OpenAI-compatible wrappers such as LangChain `ChatOpenAI`; set the wrapper's model to the Bedrock model ID.
 
 ### Embeddings - Python
 
@@ -630,15 +654,15 @@ See [Request Routing](./features/request-routing) for full details on setting up
 
 ## 5. Selecting a Provider on Multi-Provider Keys
 
-A single QuilrAI key can have one primary provider plus any number of additional providers. For **Responses** and **Realtime** keys, you can pick which configured provider handles a specific request. If you omit a selector, QuilrAI uses the first compatible provider on the key.
+A single QuilrAI key can have one primary provider plus any number of additional providers. When more than one compatible provider is configured, you can pick which provider handles a specific request. If you omit a selector, QuilrAI uses the first compatible provider on the key.
 
 | Endpoint | Body field | Header | Query param |
 |----------|-----------|--------|-------------|
-| Chat Completions / Anthropic Messages / Vertex | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
+| Chat Completions / Anthropic Messages / Vertex / Embeddings / Rerank | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Realtime (websocket) | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
 
-Match by either the provider type (e.g. `openai_responses_azure`) or the `label` you set on the additional provider in the dashboard.
+Match by either the provider type (e.g. `bedrock`, `openai_responses_azure`, `anthropic_messages_bedrock`) or the `label` you set on the additional provider in the dashboard.
 
 ```python
 # Responses: pick a specific additional provider
