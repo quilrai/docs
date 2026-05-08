@@ -29,7 +29,7 @@ const FeatureList = [
     Icon: Sparkles,
     description: (
       <>
-        Built on React and MDX—customize components and theme details when you
+        Built on React and MDX to customize components and theme details when you
         need more than markdown alone.
       </>
     ),

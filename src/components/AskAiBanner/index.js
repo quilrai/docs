@@ -88,11 +88,11 @@ export default function AskAiBanner({ productName }) {
         </h3>
         <p className="mt-2 m-0 text-sm sm:text-[15px] leading-relaxed text-neutral-600 dark:text-neutral-400 max-w-xl">
           Open the {productName} docs in your favorite assistant and get instant
-          answers, code samples, and integration help — grounded in the latest
+          answers, code samples, and integration help grounded in the latest
           guides.
         </p>
 
-        {/* Provider cards — primary action */}
+        {/* Provider cards - primary action */}
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {AI_PROVIDERS.map(({ name, icon: BrandIcon, buildUrl }) => (
             <a

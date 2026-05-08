@@ -1,6 +1,6 @@
 /**
  * Minimal / modern dark Prism theme.
- * Desaturated tones on a deep surface — easy on the eyes.
+ * Desaturated tones on a deep surface - easy on the eyes.
  *
  * @type {import('prism-react-renderer').PrismTheme}
  */

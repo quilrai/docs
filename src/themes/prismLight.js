@@ -1,6 +1,6 @@
 /**
  * Minimal / modern light Prism theme.
- * Muted palette on a clean white background — lets content breathe.
+ * Muted palette on a clean white background - lets content breathe.
  *
  * @type {import('prism-react-renderer').PrismTheme}
  */

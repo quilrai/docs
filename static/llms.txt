@@ -17,7 +17,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 ### LLM Gateway Features
 
-- [Request Routing](https://docs.quilrai.dev/llm-gateway/features/request-routing.md): Weight-based load balancing across multiple providers and models, with automatic failover when a provider goes down — all behind a single API key.
+- [Request Routing](https://docs.quilrai.dev/llm-gateway/features/request-routing.md): Weight-based load balancing across multiple providers and models, with automatic failover when a provider goes down, all behind a single API key.
 - [Token Saving](https://docs.quilrai.dev/llm-gateway/features/token-saving.md): Reduce input token usage by compressing JSON and stripping HTML/Markdown automatically.
 - [Security Guardrails](https://docs.quilrai.dev/llm-gateway/features/security-guardrails.md): Detect and act on PII, PHI, PCI, financial data, and adversarial inputs in requests and responses.
 - [Custom Intents](https://docs.quilrai.dev/llm-gateway/features/custom-intents.md): Define your own detection categories trained with positive and negative examples.
@@ -25,7 +25,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Prompt Store](https://docs.quilrai.dev/llm-gateway/features/prompt-store.md): Manage and version system prompts centrally with template variable substitution.
 - [Red Team Testing](https://docs.quilrai.dev/llm-gateway/features/red-team-testing.md): Test guardrails configuration against adversarial prompts.
 - [Identity Aware](https://docs.quilrai.dev/llm-gateway/features/identity-aware.md): Authenticate and track individual users behind each API key via JWT/JWKS or header validation.
-- [SDK Mode](https://docs.quilrai.dev/llm-gateway/features/sdk-mode.md): Scan content directly from your application code — no LLM proxy required.
+- [SDK Mode](https://docs.quilrai.dev/llm-gateway/features/sdk-mode.md): Scan content directly from your application code with no LLM proxy required.
 - [Copilot Studio](https://docs.quilrai.dev/llm-gateway/features/copilot-studio.md): Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution.
 
 ## MCP Gateway

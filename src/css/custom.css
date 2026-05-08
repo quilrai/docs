@@ -1,6 +1,6 @@
 /**
  * Mintlify-inspired theme for Docusaurus.
- * Clean, minimal, modern — white content surface, muted sidebar, emerald accents.
+ * Clean, minimal, modern - white content surface, muted sidebar, emerald accents.
  */
 
 @import "@fontsource/geist/400.css";
@@ -9,7 +9,7 @@
 @import "@fontsource/geist/700.css";
 @import "@fontsource/geist-mono/400.css";
 @import "@fontsource/geist-mono/500.css";
-/* Theme + utilities only — no Preflight, which breaks Infima/Docusaurus. */
+/* Theme + utilities only - no Preflight, which breaks Infima/Docusaurus. */
 @import "tailwindcss/theme.css" layer(theme);
 @plugin "@tailwindcss/typography";
 @import "tailwindcss/utilities.css" layer(utilities);
@@ -186,7 +186,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0;
-  /* Override Infima `.container` + padding-* utilities — no padding */
+  /* Override Infima `.container` + padding-* utilities - no padding */
   padding: 0 !important;
   /* Sticky footer: fill main column, footer sits at bottom when content is short */
   flex: 1 1 auto;
@@ -245,7 +245,7 @@ main > .container.padding-top--md.padding-bottom--lg,
 }
 
 /* Landing/intro doc page: widen content + footer for the AskAiBanner to breathe.
-   Scoped to the intro page only — prose-heavy doc articles keep their readable cap. */
+   Scoped to the intro page only - prose-heavy doc articles keep their readable cap. */
 .docs-doc-id-intro .doc-main__panel .row,
 .docs-doc-id-intro .doc-page-footer .footer > .container {
   @apply max-w-6xl;
@@ -347,7 +347,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   text-decoration: none;
 }
 
-/* Inline code (Typography backticks off; violet) — fenced blocks reset below */
+/* Inline code (Typography backticks off; violet) - fenced blocks reset below */
 .theme-doc-markdown.markdown code {
   color: #7c3aed;
   font-weight: 500;
@@ -366,7 +366,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   content: none !important;
 }
 
-/* `pre code`: no inline-code pill — Prism / theme handle appearance */
+/* `pre code`: no inline-code pill - Prism / theme handle appearance */
 .theme-doc-markdown.markdown pre code {
   color: inherit;
   font-weight: inherit;
@@ -377,7 +377,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   padding: 0;
 }
 
-/* Fenced code: `not-prose` on CodeBlock container — Prism/Infima only */
+/* Fenced code: `not-prose` on CodeBlock container - Prism/Infima only */
 .theme-doc-markdown.markdown .not-prose code {
   color: inherit;
   font-weight: inherit;
@@ -538,7 +538,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   margin-bottom: 0;
 }
 
-/* Light — soft board + tint (Mintlify-style references) */
+/* Light - soft board + tint (Mintlify-style references) */
 :root .admonition-block.alert--success {
   --ifm-alert-background-color: rgba(5, 150, 105, 0.08);
   --ifm-alert-background-color-highlight: rgba(5, 150, 105, 0.14);
@@ -957,7 +957,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   }
 }
 
-/* Mobile drawer: docs secondary menu — back to primary */
+/* Mobile drawer: docs secondary menu - back to primary */
 .navbar-sidebar__back {
   font-size: 14px;
   font-weight: 500;
@@ -1357,7 +1357,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   box-sizing: border-box !important;
 }
 
-/* Plugin puts outline on the input only — ring the full search row instead */
+/* Plugin puts outline on the input only - ring the full search row instead */
 .search-modal .navbar__search-input:focus {
   outline: none !important;
 }
@@ -1386,7 +1386,7 @@ main > .container.padding-top--md.padding-bottom--lg,
   box-shadow: none !important;
 }
 
-/* Hashed module class `suggestion_*` — avoid matching `aa-suggestions` container */
+/* Hashed module class `suggestion_*` - avoid matching `aa-suggestions` container */
 .search-modal
   [class*="dropdownMenu"]
   [class*="suggestion"]:not([class*="suggestions"]) {
