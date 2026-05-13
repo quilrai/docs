@@ -132,7 +132,7 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-Use any Bedrock model ID selected on the key that supports Bedrock `Converse`, including inference profile IDs. The same base URL and key work with OpenAI-compatible wrappers such as LangChain `ChatOpenAI`; set the wrapper's model to the Bedrock model ID.
+Use any Bedrock model ID selected on the key that supports Bedrock `Converse`, including inference profile IDs. The same base URL and key work with OpenAI-compatible wrappers such as LangChain `ChatOpenAI`; set the wrapper's model to the Bedrock model ID. See [OpenAI to Bedrock Translation](./openai-to-bedrock.md) for supported request parameters, message formats, tools, streaming, and expected failures.
 
 ### Embeddings - Python
 

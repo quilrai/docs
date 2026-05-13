@@ -56,7 +56,7 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | AWS Bedrock (Converse via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
 | AWS Bedrock (Converse via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
 
-The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI currently translates AWS Bedrock chat models into this surface by calling Bedrock `Converse` behind the scenes. Create a `bedrock` provider key, select any Bedrock model that supports `Converse`, and use that Bedrock model ID in the OpenAI SDK `model` parameter.
+The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI currently translates AWS Bedrock chat models into this surface by calling Bedrock `Converse` behind the scenes. Create a `bedrock` provider key, select any Bedrock model that supports `Converse`, and use that Bedrock model ID in the OpenAI SDK `model` parameter. For exact parameter, message, tool, and streaming coverage, see [OpenAI to Bedrock Translation](./openai-to-bedrock.md).
 
 AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
 
