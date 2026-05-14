@@ -7,7 +7,7 @@
 export const prismDark = {
   plain: {
     color: '#d4d4d8',       // zinc-300
-    backgroundColor: '#18181b', // zinc-900
+    backgroundColor: '#1f232a',
   },
   styles: [
     {

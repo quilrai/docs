@@ -1,9 +1,9 @@
 /* ─── Wrapper ────────────────────────────────────────────────────────── */
 .wrapper {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--docs-light-border);
   border-radius: 0.75rem;
   padding: 1.5rem 1.125rem 0.75rem;
-  background: #ffffff;
+  background: var(--docs-light-surface);
   margin: 1.5rem 0;
   position: relative;
   overflow: hidden;
@@ -18,8 +18,8 @@
 }
 
 :global([data-theme="dark"]) .wrapper {
-  background: #0f0f0f;
-  border-color: #262626;
+  background: var(--docs-dark-surface);
+  border-color: var(--docs-dark-border);
 }
 
 :global([data-theme="dark"]) .wrapper::before {
@@ -35,16 +35,18 @@
 /* ─── Card ───────────────────────────────────────────────────────────── */
 .card {
   flex: 1;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--docs-light-border);
   border-radius: 0.5rem;
   overflow: hidden;
   min-width: 0;
+  background: var(--docs-light-surface-raised);
   display: flex;
   flex-direction: column;
 }
 
 :global([data-theme="dark"]) .card {
-  border-color: #333;
+  background: var(--docs-dark-surface-raised);
+  border-color: var(--docs-dark-border);
 }
 
 /* ─── Card header - green progression ────────────────────────────────── */
@@ -53,36 +55,36 @@
   font-weight: 600;
   font-size: 0.8125rem;
   letter-spacing: 0.01em;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--docs-light-border);
 }
 
 :global([data-theme="dark"]) .cardHeader {
-  border-bottom-color: #333;
+  border-bottom-color: var(--docs-dark-border);
 }
 
 /* Light mode */
 .cardHeader[data-step="0"] {
-  background: #f0fdf4;
+  background: #dfead7;
   color: #166534;
 }
 .cardHeader[data-step="1"] {
-  background: #dcfce7;
+  background: #d3e4cf;
   color: #15803d;
 }
 .cardHeader[data-step="2"] {
-  background: #d1fae5;
+  background: #c7dec8;
   color: #059669;
 }
 .cardHeader[data-step="3"] {
-  background: #a7f3d0;
+  background: #bad7c0;
   color: #047857;
 }
 .cardHeader[data-step="4"] {
-  background: #6ee7b7;
+  background: #abcdb3;
   color: #065f46;
 }
 .cardHeader[data-step="5"] {
-  background: #34d399;
+  background: #94bea3;
   color: #064e3b;
 }
 

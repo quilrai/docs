@@ -6,7 +6,7 @@ import { AI_PROVIDERS, buildDocPageAiPrompt } from "@site/src/data/aiProviders";
 import { Copy, Check, ChevronDown } from "lucide-react";
 
 const menuItemCls =
-  "flex w-full items-center group gap-3 rounded-md px-2.5 py-2 text-left no-underline! cursor-pointer border-none bg-transparent text-inherit font-inherit hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-45 disabled:cursor-not-allowed";
+  "flex w-full items-center group gap-3 rounded-md px-2.5 py-2 text-left no-underline! cursor-pointer border-none bg-transparent text-inherit font-inherit hover:bg-[#ebe1cf] dark:hover:bg-[#1f232a] disabled:opacity-45 disabled:cursor-not-allowed";
 
 const ListItem = ({ icon, title, description, asLink = false, ...props }) => {
   const Component = asLink ? "a" : "button";
@@ -20,10 +20,10 @@ const ListItem = ({ icon, title, description, asLink = false, ...props }) => {
       >
         <div className="group-hover:text-emerald-500">{icon}</div>
         <div>
-          <p className="font-medium! font-sans text-sm m-0 text-neutral-950 dark:text-neutral-50">
+          <p className="font-medium! font-sans text-sm m-0 text-[#252018] dark:text-neutral-50">
             {title}
           </p>
-          <p className="text-xs m-0 font-sans text-neutral-500 leading-snug">
+          <p className="text-xs m-0 font-sans text-[#706653] dark:text-neutral-500 leading-snug">
             {description}
           </p>
         </div>
@@ -96,10 +96,10 @@ export default function DocPageCopyDropdown() {
       data-doc-copy-dropdown
     >
       {/* Split button */}
-      <div className="inline-flex items-stretch rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-950">
+      <div className="inline-flex items-stretch rounded-lg border border-[#c7b99f] dark:border-[#30343b] overflow-hidden bg-[#f3ead9] dark:bg-[#171a1f]">
         <button
           type="button"
-          className="inline-flex font-sans items-center gap-1.5 px-2.5 py-1.5 text-[0.8125rem] font-medium leading-tight text-neutral-800 dark:text-neutral-100 bg-transparent border-none cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-45 disabled:cursor-not-allowed"
+          className="inline-flex font-sans items-center gap-1.5 px-2.5 py-1.5 text-[0.8125rem] font-medium leading-tight text-[#252018] dark:text-neutral-100 bg-transparent border-none cursor-pointer hover:bg-[#ebe1cf] dark:hover:bg-[#1f232a] disabled:opacity-45 disabled:cursor-not-allowed"
           onClick={copyMarkdown}
           disabled={!hasMarkdown}
           title={
@@ -112,12 +112,12 @@ export default function DocPageCopyDropdown() {
           <span>{copiedMd ? "Copied!" : "Copy page"}</span>
         </button>
         <span
-          className="w-px self-stretch bg-neutral-200 dark:bg-neutral-800"
+          className="w-px self-stretch bg-[#c7b99f] dark:bg-[#30343b]"
           aria-hidden
         />
         <button
           type="button"
-          className="inline-flex font-sans items-center gap-1 px-2.5 py-1.5 text-[0.8125rem] font-medium leading-tight text-neutral-800 dark:text-neutral-100 border-none bg-transparent cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900"
+          className="inline-flex font-sans items-center gap-1 px-2.5 py-1.5 text-[0.8125rem] font-medium leading-tight text-[#252018] dark:text-neutral-100 border-none bg-transparent cursor-pointer hover:bg-[#ebe1cf] dark:hover:bg-[#1f232a]"
           aria-expanded={menuOpen}
           aria-haspopup="true"
           aria-controls={menuId}
@@ -140,7 +140,7 @@ export default function DocPageCopyDropdown() {
       {menuOpen && (
         <ul
           id={menuId}
-          className="absolute z-20 pl-1! right-0 top-[calc(100%+0.35rem)] min-w-[16rem] p-1 m-0 list-none rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-[0_4px_6px_-1px_rgb(0_0_0/0.08),0_2px_4px_-2px_rgb(0_0_0/0.06)] dark:shadow-[0_4px_6px_-1px_rgb(0_0_0/0.4),0_2px_4px_-2px_rgb(0_0_0/0.3)]"
+          className="absolute z-20 pl-1! right-0 top-[calc(100%+0.35rem)] min-w-[16rem] p-1 m-0 list-none rounded-lg border border-[#c7b99f] dark:border-[#30343b] bg-[#f3ead9] dark:bg-[#171a1f] shadow-[0_4px_6px_-1px_rgb(0_0_0/0.08),0_2px_4px_-2px_rgb(0_0_0/0.06)] dark:shadow-[0_4px_6px_-1px_rgb(0_0_0/0.4),0_2px_4px_-2px_rgb(0_0_0/0.3)]"
           role="menu"
         >
           {dropdownItems.map(
