@@ -22,7 +22,7 @@ Content-Type: application/x-ndjson
 
 ## Authentication
 
-Pass the log export key for the MCP backend:
+Pass a log export key from MCP Gateway:
 
 ```http
 X-Quilr-Log-Export-Key: sk-export-...
@@ -30,9 +30,16 @@ X-Quilr-Log-Export-Key: sk-export-...
 
 Do not use your MCP API token or admin API key as the request credential for this endpoint. The log export key is separate from tool-call authentication and management API authentication.
 
-One `log_export_key` exports logs only for the MCP backend it belongs to. To export logs for multiple MCP backends, use the matching log export key for each one.
+MCP Gateway exposes two export scopes:
 
-Admin backend management responses include `log_export_key` for each backend. Treat it as a bearer secret. It cannot call MCP tools, but it can read exportable tool call logs for that backend.
+| Export key | Scope |
+|------------|-------|
+| `log_export_key` | Exports logs only for the MCP backend it belongs to. |
+| `tenant_log_export_key` | Exports logs for all MCP backends in the tenant. |
+
+Both scopes use the same endpoint, header, query parameters, pagination model, and response format. In tenant-scoped exports, each `mcpgateway.tool_call` event still includes the concrete backend in `backend.id` and `backend.name`.
+
+Admin backend management responses include `log_export_key` for each backend and `tenant_log_export_key` for the tenant. Treat both as bearer secrets. They cannot call MCP tools, but they can read exportable tool call logs for their scope.
 
 ## Query Parameters
 
@@ -45,7 +52,7 @@ All query parameters are optional.
 | `cursor` | Opaque cursor from the previous `checkpoint.next_cursor`. When provided, it wins over `start_time`. |
 | `limit` | Maximum tool call rows to export in this response. Default `1000`, maximum `5000`. |
 
-Logs are available for a maximum of 15 days. Choose `start_time` within that retention window when backfilling.
+Logs are available for a maximum of 15 days. Choose `start_time` within that retention window when backfilling. Requests with an effective `start_time`, `end_time`, or cursor timestamp before the retention window fail with `400`.
 
 If neither `start_time` nor `cursor` is provided, the API exports a default 24-hour window ending at the effective export end time.
 
@@ -57,11 +64,19 @@ If `end_time` is newer than `now - 15 minutes`, the server clamps it to the maxi
 
 ## Request Examples
 
-Start an export window:
+Start a backend-scoped export window:
 
 ```bash
 curl -N \
   -H "X-Quilr-Log-Export-Key: sk-export-..." \
+  "https://<your-gateway-host>/mcpgateway/logs/export?start_time=2026-05-14T00:00:00Z&end_time=2026-05-14T01:00:00Z&limit=1000"
+```
+
+Start a tenant-scoped export window:
+
+```bash
+curl -N \
+  -H "X-Quilr-Log-Export-Key: sk-exportl-..." \
   "https://<your-gateway-host>/mcpgateway/logs/export?start_time=2026-05-14T00:00:00Z&end_time=2026-05-14T01:00:00Z&limit=1000"
 ```
 
@@ -93,7 +108,7 @@ When an initial request returns zero rows, the API still returns a checkpoint cu
 
 ## Coverage
 
-The export covers MCP Gateway tool call traffic for the underlying backend, including:
+The export covers MCP Gateway tool call traffic for the selected export scope, including:
 
 | Data type | Exported |
 |-----------|----------|
@@ -116,7 +131,7 @@ Every successful response starts with `export_started`, contains zero or more `m
 
 ### `export_started`
 
-The first line describes the effective export window.
+The first line describes the export scope and effective export window.
 
 ```json
 {
@@ -138,12 +153,40 @@ The first line describes the effective export window.
 |-------|------|-------------|
 | `type` | string | Always `export_started`. |
 | `schema_version` | string | Event schema version. Current value is `v1`. |
-| `backend` | object | MCP backend metadata for the export key. |
+| `backend` | object or omitted | MCP backend metadata for a backend-scoped export. Omitted for tenant-scoped exports. |
+| `scope` | object or omitted | Tenant export scope metadata for a tenant-scoped export. Omitted for backend-scoped exports. |
 | `effective_start_time` | string | ISO 8601 timestamp where this export starts. |
 | `effective_end_time` | string | ISO 8601 timestamp where this export ends. |
 | `max_exportable_time` | string | Newest timestamp eligible for export after the 15-minute lag. |
 | `end_time_clamped` | boolean | `true` when the requested `end_time` was newer than `max_exportable_time`. |
 | `limit` | number | Maximum tool call rows returned in this response. |
+
+For tenant-scoped export, the first line uses this scope shape:
+
+```json
+{
+  "type": "export_started",
+  "schema_version": "v1",
+  "scope": {
+    "type": "tenant",
+    "tenant_id": "tenant_abc123",
+    "backend_count": 3
+  },
+  "effective_start_time": "2026-05-14T00:00:00.000000Z",
+  "effective_end_time": "2026-05-14T01:00:00.000000Z",
+  "max_exportable_time": "2026-05-14T10:45:00.000000Z",
+  "end_time_clamped": false,
+  "limit": 1000
+}
+```
+
+#### `scope`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | string | Always `tenant` for tenant-scoped exports. |
+| `tenant_id` | string | Tenant ID for the exported logs. |
+| `backend_count` | number | Number of tenant backends included in the export scope. |
 
 ### `mcpgateway.tool_call`
 
