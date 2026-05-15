@@ -352,6 +352,33 @@ main > .container.padding-top--md.padding-bottom--lg,
   font-weight: 700;
 }
 
+/* Page title actions: reserve space so desktop controls never cover the h1. */
+.doc-page-content-with-actions {
+  position: relative;
+}
+
+.doc-page-copy-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .doc-page-copy-actions {
+    position: absolute;
+    top: 0.1rem;
+    right: 0;
+    z-index: 2;
+    margin-bottom: 0;
+  }
+
+  .doc-page-copy-actions + h1,
+  .doc-page-copy-actions + header h1 {
+    min-height: 2.25rem;
+    padding-right: 13rem;
+  }
+}
+
 /* Doc title copy dropdown: neutralize prose list markers and link underlines */
 .theme-doc-markdown.markdown [data-doc-copy-dropdown] :is(ul, ol) {
   list-style: none;

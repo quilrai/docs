@@ -91,6 +91,11 @@ const config = {
                     sidebarPath: './sidebars.js',
                 },
                 blog: false,
+                sitemap: {
+                    filename: 'sitemap.xml',
+                    ignorePatterns: ['/search'],
+                    lastmod: 'date',
+                },
                 theme: {
                     customCss: './src/css/custom.css',
                 },
