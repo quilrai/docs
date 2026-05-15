@@ -48,7 +48,7 @@ All query parameters are optional.
 | `start_time` | ISO 8601 lower bound for exported logs. Naive timestamps are treated as UTC. |
 | `end_time` | ISO 8601 upper bound for exported logs. Naive timestamps are treated as UTC. |
 | `cursor` | Opaque cursor from the previous `checkpoint.next_cursor`. When provided, it wins over `start_time`. |
-| `limit` | Maximum request rows to export in this response. Default `1000`, maximum `5000`. |
+| `limit` | Maximum request rows to export in this response. Default `1000`. Values above `5000` are silently clamped to `5000`. Values below `1` or non-integer values return `400`. |
 
 Logs are available for a maximum of 15 days. Choose `start_time` within that retention window when backfilling. Requests with an effective `start_time`, `end_time`, or cursor timestamp before the retention window fail with `400`.
 
@@ -94,7 +94,9 @@ If `checkpoint.has_more` is `true`, call the endpoint again immediately with `cu
 
 If `checkpoint.has_more` is `false`, there are no more rows in the current effective window. Store `next_cursor` and poll later with that cursor to continue incremental export.
 
-When an initial request returns zero rows, the API still returns a checkpoint cursor pinned to the effective end time. This lets exporters store one cursor value even for empty windows.
+When an initial request (no `cursor` supplied) returns zero rows, the API returns a checkpoint cursor pinned to the effective end time. This lets exporters store one cursor value even for empty windows.
+
+When a request with a `cursor` returns zero rows, `checkpoint.next_cursor` echoes the inbound cursor unchanged and `has_more` is `false`. Re-poll later with the same cursor.
 
 ## Coverage
 
@@ -106,9 +108,12 @@ The export covers LLM Gateway traffic for the selected export scope, including:
 | Anthropic Messages | Yes |
 | OpenAI Responses | Yes |
 | OpenAI Realtime session logs | Yes |
+| OpenAI speech-to-text | Yes |
+| OpenAI text-to-speech | Yes |
 | Embeddings | Yes |
 | Rerank | Yes |
 | AWS Bedrock Runtime boto3 | Yes |
+| Vertex AI Gemini | Yes |
 | Streaming requests | Yes |
 | SDK mode checks | Yes |
 | Copilot Studio checks | Yes |
@@ -141,7 +146,7 @@ The first line describes the effective export window.
 | `type` | string | Always `export_started`. |
 | `schema_version` | string | Event schema version. Current value is `v1`. |
 | `scope` | string | `app` for a single-key export, or `all_apps` for a tenant-wide all-apps export. |
-| `app_name` | string or null | LLM Gateway app name for a single-key export. `null` for all-apps exports. |
+| `app_name` | string or null | LLM Gateway app name for a single-key export, or `""` if that app has no configured name. `null` for all-apps exports because the export spans multiple apps; the concrete per-request app name is on each `llmgateway.request` event at `app.name`. |
 | `app_count` | number | Number of active, non-expired apps included in the export scope. |
 | `effective_start_time` | string | ISO 8601 timestamp where this export starts. |
 | `effective_end_time` | string | ISO 8601 timestamp where this export ends. |
@@ -270,7 +275,7 @@ Each request row is emitted as one `llmgateway.request` event.
 | `stream` | boolean | Whether the request used a streaming response mode. |
 | `status_code` | number or null | HTTP status code returned to the client. |
 | `error_type` | string or null | Error category when the request failed. |
-| `error_message` | string or null | Error message when the request failed. |
+| `error_message` | string or null | Error message when the request failed. Credential-shaped substrings are redacted before export. |
 
 #### `tokens`
 
@@ -278,7 +283,7 @@ Each request row is emitted as one `llmgateway.request` event.
 |-------|------|-------------|
 | `request` | number or null | Input token count. |
 | `response` | number or null | Output token count. |
-| `cache_read` | number or null | Tokens read from provider prompt cache, when available. |
+| `cache_read` | number | Tokens read from provider prompt cache. `0` when the provider did not report a cache read. |
 | `cache_write` | number or null | Tokens written to provider prompt cache, when available. |
 | `reasoning` | number or null | Reasoning token count, when reported by the provider. |
 | `max_requested` | number or null | Maximum output tokens requested by the client. |
@@ -326,10 +331,10 @@ When hydration is unavailable, the payload object uses this shape:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `user_email` | string or null | User email associated with the request, when identity-aware tracking is configured. |
-| `conversation_id` | string or null | Conversation ID from `X-Conversation-Id`, when provided. |
-| `client_ip` | string or null | Client IP observed by the gateway. |
-| `extra_data` | object | Additional request metadata. |
+| `user_email` | string or null | User email associated with the request, when identity-aware tracking is configured. Also present in `extra_data` when populated. |
+| `conversation_id` | string or null | Conversation ID from `X-Conversation-Id`, when provided. Also present in `extra_data` when populated. |
+| `client_ip` | string or null | Client IP observed by the gateway. Also present in `extra_data` when populated. |
+| `extra_data` | object | Additional request metadata. The hoisted fields above (`user_email`, `conversation_id`, `client_ip`) are not removed from this object. The `jwt_claims` field is always stripped. |
 | `sdk` | object or null | SDK metadata when the request came from SDK mode or a tracked SDK client. |
 
 #### `routing`
@@ -372,6 +377,17 @@ The final line on a successful response is a checkpoint.
 | `effective_end_time` | string | Effective upper bound used for this export response. |
 | `max_exportable_time` | string | Newest timestamp eligible for export after the 15-minute lag. |
 
+## Redaction
+
+The export endpoint applies a best-effort credential scrub before emitting any row. Expect the following to be missing or rewritten in exported events:
+
+- `extra_data.jwt_claims` is removed from every row.
+- Any object key named `headers`, `request_headers`, `response_headers`, or `http_headers` is replaced with the string `[REDACTED_HEADERS]`.
+- Object keys that name a credential (such as `authorization`, `api_key`, `x_api_key`, `quilr_api_key`, `access_token`, `refresh_token`, `client_secret`, `password`, `private_key`, AWS credential field names) and any key suffixed with `_api_key`, `_apikey`, `_access_token`, `_refresh_token`, `_client_secret`, or `_private_key` are replaced with `[REDACTED]`.
+- String values are scanned for common credential patterns. Matches are rewritten to placeholders such as `[REDACTED_API_KEY]`, `[REDACTED_QUILR_API_KEY]`, `[REDACTED_LOG_EXPORT_KEY]`, or `Bearer [REDACTED]`.
+
+Redaction is applied recursively to `payload.request_text`, `payload.response_text`, `guardrails.actions_and_categories`, `guardrails.request_predictions`, `guardrails.response_predictions`, `metadata.extra_data`, `metadata.sdk`, `telemetry.processing_times`, `telemetry.chunk_funnel`, and the top-level `error_message` field. This is a safety layer, not a formal DLP pass over exported payloads.
+
 ## Errors
 
 Errors are returned as NDJSON too.
@@ -386,4 +402,4 @@ Errors are returned as NDJSON too.
 | `error.message` | string | Human-readable error message. |
 | `error.code` | string | Machine-readable error code. |
 
-Errors before streaming starts use HTTP status codes. Errors after streaming has started are emitted as an `error` event line because the HTTP response has already been committed.
+Errors before streaming starts return an HTTP error status with a single NDJSON `error` line as the response body. Errors after streaming has started return HTTP `200` and emit an `error` event line in the body because the HTTP response has already been committed.
