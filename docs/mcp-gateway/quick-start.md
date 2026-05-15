@@ -84,4 +84,4 @@ See the [Integration Guide](./integration-guide) for more client examples.
 
 ## 4. Monitor Tool Calls
 
-Every tool call through the gateway is logged with **tool name, parameters, guardrail actions, and user identity**. Check your **Logs** tab to verify requests are flowing through.
+Every tool call through the gateway is logged with **tool name, parameters, guardrail actions, and user identity**. Check your **Logs** tab to verify requests are flowing through, or use the [MCP Gateway Log Export API](./log-export-api) to stream logs into your own data platform.

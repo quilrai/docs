@@ -9,6 +9,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Quick Start](https://docs.quilrai.dev/llm-gateway/quick-start.md): Set up the LLM Gateway in 4 steps - create an app, add a provider key, configure guardrails, and connect your application.
 - [Architecture](https://docs.quilrai.dev/llm-gateway/architecture.md): Request processing pipeline - Validate, Scan, Transform, Route - with a visual diagram of every stage.
 - [Integration Guide](https://docs.quilrai.dev/llm-gateway/integration-guide.md): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway, including OpenAI-compatible access to Bedrock Converse models, boto3 Bedrock Runtime, and Copilot Studio.
+- [LLM Gateway Log Export API](https://docs.quilrai.dev/llm-gateway/log-export-api.md): Export LLM Gateway request logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
 - [Provider Support](https://docs.quilrai.dev/llm-gateway/provider-support.md): Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Copilot Studio) and their capability matrix, including Bedrock through the OpenAI-compatible chat endpoint.
 - [OpenAI to Bedrock Translation](https://docs.quilrai.dev/llm-gateway/openai-to-bedrock.md): Compatibility details for OpenAI Chat Completions requests translated to Bedrock Converse, including parameters, messages, tools, streaming, and unsupported features.
 - [AWS Bedrock boto3 Runtime](https://docs.quilrai.dev/llm-gateway/bedrock-boto3.md): Use boto3 Bedrock Runtime with QuilrAI by setting endpoint_url, with Converse, ConverseStream, and InvokeModel coverage.
@@ -34,6 +35,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Quick Start](https://docs.quilrai.dev/mcp-gateway/quick-start.md): Set up the MCP Gateway in 4 steps - add an MCP, configure tools and guardrails, connect an agent, and monitor.
 - [Architecture](https://docs.quilrai.dev/mcp-gateway/architecture.md): Tool call processing pipeline - Authenticate, Authorize, Scan, Policy, Connect - with auth mediation details.
 - [Integration Guide](https://docs.quilrai.dev/mcp-gateway/integration-guide.md): MCP endpoint URLs, authentication methods (Bearer token, OAuth DCR, OAuth manual), and connection examples.
+- [MCP Gateway Log Export API](https://docs.quilrai.dev/mcp-gateway/log-export-api.md): Export backend-scoped MCP tool call logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
 
 ### MCP Gateway Features
 

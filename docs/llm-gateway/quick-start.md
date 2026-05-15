@@ -90,7 +90,7 @@ Sane defaults are selected automatically. Change them when setting up the key or
 
 ## 4. Monitor Requests
 
-Every request through the gateway is logged with **cost, latency, token counts, and guardrail actions**. Check your **Logs** tab to verify requests are flowing through.
+Every request through the gateway is logged with **cost, latency, token counts, and guardrail actions**. Check your **Logs** tab to verify requests are flowing through, or use the [LLM Gateway Log Export API](./log-export-api) to stream logs into your own data platform.
 
 ---
 

@@ -97,4 +97,4 @@ The gateway decouples agent authentication from MCP server authentication, suppo
 
 ## Observability
 
-Every tool call is logged with latency, guardrail actions, and agent identity. Use the dashboard to review request history and monitor per-agent usage statistics.
+Every tool call is logged with latency, guardrail actions, and agent identity. Use the dashboard to review request history, the [MCP Gateway Log Export API](./log-export-api) to export logs programmatically, and per-agent usage statistics to monitor adoption.
