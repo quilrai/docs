@@ -22,7 +22,7 @@ Content-Type: application/x-ndjson
 
 ## Authentication
 
-Pass the log export key from the QuilrAI LLM Gateway UI:
+Pass a log export key from the QuilrAI LLM Gateway UI:
 
 ```http
 X-Quilr-Log-Export-Key: sk-export-...
@@ -30,7 +30,14 @@ X-Quilr-Log-Export-Key: sk-export-...
 
 Do not use your QuilrAI gateway API key as the request credential for this endpoint. The log export key is separate from model-call authentication.
 
-One `log_export_key` exports logs only for the underlying QuilrAI API key it belongs to. To export logs for multiple QuilrAI API keys, use the matching log export key for each one.
+The UI exposes two export scopes:
+
+| Export key | Scope |
+|------------|-------|
+| `log_export_key` | Exports logs only for the underlying QuilrAI API key it belongs to. |
+| `all_apps_log_export_key` | Exports logs for all active, non-expired LLM Gateway apps in the tenant. |
+
+Both scopes use the same endpoint, header, query parameters, pagination model, and response format. In all-apps exports, each `llmgateway.request` event still includes the concrete app name in `app.name`.
 
 ## Query Parameters
 
@@ -43,7 +50,7 @@ All query parameters are optional.
 | `cursor` | Opaque cursor from the previous `checkpoint.next_cursor`. When provided, it wins over `start_time`. |
 | `limit` | Maximum request rows to export in this response. Default `1000`, maximum `5000`. |
 
-Logs are available for a maximum of 15 days. Choose `start_time` within that retention window when backfilling.
+Logs are available for a maximum of 15 days. Choose `start_time` within that retention window when backfilling. Requests with an effective `start_time`, `end_time`, or cursor timestamp before the retention window fail with `400`.
 
 If neither `start_time` nor `cursor` is provided, the API exports a default 24-hour window ending at the effective export end time.
 
@@ -91,7 +98,7 @@ When an initial request returns zero rows, the API still returns a checkpoint cu
 
 ## Coverage
 
-The export covers LLM Gateway traffic for the underlying QuilrAI API key, including:
+The export covers LLM Gateway traffic for the selected export scope, including:
 
 | Traffic type | Exported |
 |--------------|----------|
@@ -118,7 +125,9 @@ The first line describes the effective export window.
 {
   "type": "export_started",
   "schema_version": "v1",
+  "scope": "app",
   "app_name": "my-app",
+  "app_count": 1,
   "effective_start_time": "2026-05-14T00:00:00.000Z",
   "effective_end_time": "2026-05-14T01:00:00.000Z",
   "max_exportable_time": "2026-05-14T10:45:00.000Z",
@@ -131,12 +140,31 @@ The first line describes the effective export window.
 |-------|------|-------------|
 | `type` | string | Always `export_started`. |
 | `schema_version` | string | Event schema version. Current value is `v1`. |
-| `app_name` | string | LLM Gateway app name for the API key. |
+| `scope` | string | `app` for a single-key export, or `all_apps` for a tenant-wide all-apps export. |
+| `app_name` | string or null | LLM Gateway app name for a single-key export. `null` for all-apps exports. |
+| `app_count` | number | Number of active, non-expired apps included in the export scope. |
 | `effective_start_time` | string | ISO 8601 timestamp where this export starts. |
 | `effective_end_time` | string | ISO 8601 timestamp where this export ends. |
 | `max_exportable_time` | string | Newest timestamp eligible for export after the 15-minute lag. |
 | `end_time_clamped` | boolean | `true` when the requested `end_time` was newer than `max_exportable_time`. |
 | `limit` | number | Maximum request rows returned in this response. |
+
+For all-apps export, the first line uses this scope shape:
+
+```json
+{
+  "type": "export_started",
+  "schema_version": "v1",
+  "scope": "all_apps",
+  "app_name": null,
+  "app_count": 3,
+  "effective_start_time": "2026-05-14T00:00:00.000Z",
+  "effective_end_time": "2026-05-14T01:00:00.000Z",
+  "max_exportable_time": "2026-05-14T10:45:00.000Z",
+  "end_time_clamped": false,
+  "limit": 1000
+}
+```
 
 ### `llmgateway.request`
 
