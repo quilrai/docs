@@ -36,6 +36,7 @@ client.chat.completions.create(
           { label: "PII / PHI / PCI", items: ["Contextual detection", "Block / redact / anonymize"] },
           { label: "Adversarial Detection", items: ["Prompt injection", "Jailbreak detection", "Social engineering"] },
           { label: "Custom Intents", items: ["User-defined categories", "Example-trained classifier"] },
+          { label: "Guardian Agent", items: ["Dependency review", "Task adherence", "Monitor / nudge / block"] },
         ],
       },
       {
@@ -70,13 +71,14 @@ Every API request flows through these stages in order. Each stage is independent
 | **Rate Limits** | Enforces request rates, token budgets, and key expiration before reaching the provider. | [Rate Limits →](./features/rate-limits) |
 | **Security Guardrails** | Detects PII, PHI, PCI, and financial data. Catches prompt injection, jailbreak, and social engineering. | [Security Guardrails →](./features/security-guardrails) |
 | **Custom Intents** | User-defined detection categories trained with positive and negative examples. | [Custom Intents →](./features/custom-intents) |
+| **Guardian Agent** | Adds dependency-safety guidance, reviews generated dependency output, and keeps agent requests aligned to the system prompt. | [Guardian Agent →](./features/guardian-agent) |
 | **Prompt Store** | Resolves centralized system prompts by ID with template variable substitution. | [Prompt Store →](./features/prompt-store) |
 | **Token Saving** | Compresses input tokens - JSON to TOON, HTML/Markdown to plain text. Responses unchanged. | [Token Saving →](./features/token-saving) |
 | **Request Routing** | Routes to the optimal provider using weighted load balancing with automatic failover. | [Request Routing →](./features/request-routing) |
 
 ## Response Path
 
-Responses from the LLM provider pass back through the **security guardrails** for output scanning before being returned to your application. The same detection categories and configurable actions (block, redact, anonymize, monitor) apply to both requests and responses.
+Responses from the LLM provider pass back through the **security guardrails** for output scanning before being returned to your application. The same detection categories and configurable actions (block, redact, anonymize, monitor) apply to both requests and responses. When [Guardian Agent](./features/guardian-agent) coding helpers are enabled, non-streaming responses can also be reviewed for dependency vulnerabilities and outdated exact pins before final delivery.
 
 Non-streaming chat completions, including Bedrock models reached through OpenAI-compatible chat via `Converse`, Anthropic Messages, AWS Bedrock Runtime boto3 `converse` / supported `invoke_model`, Vertex/Gemini `generateContent`, and the OpenAI Responses API all follow the full request → scan → forward → scan → return pipeline. For **streaming** responses (SSE), request-side scanning runs as usual but response-side scanning is skipped so chunks pass straight through; request-side prediction results are still logged. AWS Bedrock Runtime `converse_stream` follows the same request-scan / response-passthrough pattern for AWS EventStream responses. **Realtime** websocket sessions are a raw passthrough today - neither request-side nor response-side DLP runs on live Realtime events, though session-level logs are still recorded.
 

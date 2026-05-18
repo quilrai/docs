@@ -82,6 +82,7 @@ Sane defaults are selected automatically. Change them when setting up the key or
 | Setting | Description |
 |---------|-------------|
 | **[Security Guardrails](./features/security-guardrails)** | PII/PHI/PCI detection, adversarial blocking |
+| **[Guardian Agent](./features/guardian-agent)** | Dependency safety guidance and task-adherence checks |
 | **[Rate Limits](./features/rate-limits)** | Requests per min/hr/day, token budgets |
 | **[Request Routing](./features/request-routing)** | Multi-provider load balancing and failover |
 | **[Token Saving](./features/token-saving)** | JSON compression, HTML/MD to text |

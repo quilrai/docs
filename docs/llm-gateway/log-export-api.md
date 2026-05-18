@@ -309,6 +309,8 @@ Each request row is emitted as one `llmgateway.request` event.
 | `request_predictions` | array | Request-side prediction results. |
 | `response_predictions` | array | Response-side prediction results. |
 
+[Guardian Agent](./features/guardian-agent) findings are included in these same prediction arrays with `match_type: "guardian"`. Guardian request and response categories are also available under `metadata.extra_data.guardian_agent` when present.
+
 #### `payload`
 
 | Field | Type | Description |

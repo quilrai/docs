@@ -21,6 +21,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 - [Request Routing](https://docs.quilrai.dev/llm-gateway/features/request-routing.md): Weight-based load balancing across multiple providers and models, with automatic failover when a provider goes down, all behind a single API key.
 - [Token Saving](https://docs.quilrai.dev/llm-gateway/features/token-saving.md): Reduce input token usage by compressing JSON and stripping HTML/Markdown automatically.
+- [Guardian Agent](https://docs.quilrai.dev/llm-gateway/features/guardian-agent.md): Gateway-side policy checks for dependency safety and task adherence.
 - [Security Guardrails](https://docs.quilrai.dev/llm-gateway/features/security-guardrails.md): Detect and act on PII, PHI, PCI, financial data, and adversarial inputs in requests and responses.
 - [Custom Intents](https://docs.quilrai.dev/llm-gateway/features/custom-intents.md): Define your own detection categories trained with positive and negative examples.
 - [Rate Limits](https://docs.quilrai.dev/llm-gateway/features/rate-limits.md): Control request rates, token budgets, and API key expiration.
