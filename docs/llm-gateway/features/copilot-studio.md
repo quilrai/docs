@@ -24,18 +24,19 @@ Microsoft external threat detection is called for generative agents that use gen
 
 ## Endpoint
 
-Create a QuilrAI key with provider `copilot_studio`, then use this endpoint as the external threat detection base URL:
+Create a QuilrAI key with provider `copilot_studio`, then use the closest regional endpoint as the external threat detection base URL:
 
 ```text
-https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx
+https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx
 ```
 
-Use the regional base URL if your tenant uses a regional QuilrAI deployment:
+The example uses US East. Choose the nearest regional base URL for your tenant:
 
 | Endpoint | Region | Endpoint base |
 |----------|--------|---------------|
 | Global (auto-routed) | Nearest | `https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx` |
-| USA | US East | `https://guardrails-usa-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
+| USA 1 | US Central West | `https://guardrails-usa-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
+| USA 2 | US East | `https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx` |
 | India | Mumbai | `https://guardrails-india-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
 
 Treat this URL as a secret. The QuilrAI key is part of the path because Copilot Studio owns the webhook call shape.
@@ -49,11 +50,11 @@ Copilot Studio appends these paths to the endpoint base:
 | `POST /validate` | Checks that the QuilrAI endpoint is reachable and ready. |
 | `POST /analyze-tool-execution` | Sends proposed tool execution context for allow/block evaluation. |
 
-For example, if the endpoint base is `https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx`, Copilot Studio calls:
+For example, if the endpoint base is `https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx`, Copilot Studio calls:
 
 ```text
-https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx/validate
-https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx/analyze-tool-execution
+https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx/validate
+https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx/analyze-tool-execution
 ```
 
 Copilot Studio may also include an `api-version` query parameter. QuilrAI ignores unknown query parameters.

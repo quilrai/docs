@@ -41,7 +41,7 @@ For assume-role setup, see [AWS Bedrock - Assume Role Setup](./bedrock-assume-ro
 
 ## Configure boto3
 
-Set `endpoint_url` to the QuilrAI Bedrock Runtime endpoint. Use the same QuilrAI key for both `aws_access_key_id` and `aws_secret_access_key`; the gateway uses SigV4 to authenticate the request.
+Set `endpoint_url` to the closest regional QuilrAI Bedrock Runtime endpoint. Use the same QuilrAI key for both `aws_access_key_id` and `aws_secret_access_key`; the gateway uses SigV4 to authenticate the request.
 
 ```python
 import boto3
@@ -52,7 +52,7 @@ QUILR_KEY = "sk-quilr-xxx"
 bedrock = boto3.client(
     "bedrock-runtime",
     region_name="us-east-1",
-    endpoint_url="https://guardrails.quilr.ai/bedrock-runtime",
+    endpoint_url="https://guardrails-usa-2.quilr.ai/bedrock-runtime",
     aws_access_key_id=QUILR_KEY,
     aws_secret_access_key=QUILR_KEY,
     config=Config(read_timeout=300),
@@ -75,7 +75,7 @@ print(response["output"]["message"]["content"][0]["text"])
 You can also set `endpoint_url` to the service root:
 
 ```python
-endpoint_url="https://guardrails.quilr.ai"
+endpoint_url="https://guardrails-usa-2.quilr.ai"
 ```
 
 Both endpoint styles are accepted.

@@ -20,7 +20,7 @@ Get up and running with the LLM Gateway in 4 steps.
   {
     label: "Swap Base URL",
     items: [
-      "base_url → guardrails.quilr.ai",
+      "base_url → guardrails-usa-2.quilr.ai",
       "api_key → sk-quilr-•••",
       "SDK code: unchanged ✓",
     ],
@@ -57,12 +57,12 @@ For chat completions, a `bedrock` key can also use `/openai_compatible/v1/chat/c
 
 ## 2. Swap the Base URL
 
-Replace your provider's base URL with the QuilrAI gateway URL and use your QuilrAI key. Everything else - SDK, parameters, response format - stays exactly the same.
+Replace your provider's base URL with the closest QuilrAI regional gateway URL and use your QuilrAI key. Everything else - SDK, parameters, response format - stays exactly the same.
 
 ```python
 # Point the client to QuilrAI's gateway
 client = OpenAI(
-    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
     api_key='sk-quilr-xxx'
 )
 
@@ -73,7 +73,7 @@ resp = client.chat.completions.create(
 )
 ```
 
-Replace `sk-quilr-xxx` with the API key you created in the dashboard.
+Replace `sk-quilr-xxx` with the API key you created in the dashboard. The example uses the US East endpoint; choose the nearest regional endpoint from the [Integration Guide](./integration-guide) for production traffic.
 
 ## 3. Configure Your Key
 

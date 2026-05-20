@@ -15,8 +15,11 @@ Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
 | Region | Base URL |
 |--------|----------|
 | **Nearest** (auto) | `https://guardrails.quilr.ai` |
-| **USA** | `https://guardrails-usa-1.quilr.ai` |
+| **USA (US Central West)** | `https://guardrails-usa-1.quilr.ai` |
+| **USA (US East)** | `https://guardrails-usa-2.quilr.ai` |
 | **India** | `https://guardrails-india-1.quilr.ai` |
+
+For production traffic, use the location-specific endpoint closest to your application. The examples below use the US East endpoint; replace it with your nearest regional endpoint if needed. Use `https://guardrails.quilr.ai` only when you explicitly want global auto-routing.
 
 ### API Format
 
@@ -33,7 +36,7 @@ Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
 Combine a region base URL with the API format path to get your full endpoint. For example:
 
 ```
-https://guardrails.quilr.ai/openai_compatible/
+https://guardrails-usa-2.quilr.ai/openai_compatible/
 ```
 
 The OpenAI-compatible path works with OpenAI SDKs and OpenAI-compatible client wrappers. It can call OpenAI / Azure OpenAI and other upstreams that already expose an OpenAI-compatible API. It can also call AWS Bedrock chat models through Bedrock `Converse`; Bedrock is currently the supported native provider that QuilrAI translates into OpenAI-compatible chat completions.
@@ -48,7 +51,7 @@ from openai import OpenAI
 # Point the client to QuilrAI's gateway
 client = OpenAI(
     # diff-add
-    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
     # diff-remove
     api_key='sk-openai-xxx'
     # diff-add
@@ -78,7 +81,7 @@ import OpenAI from "openai";
 // Point the client to QuilrAI's gateway
 const client = new OpenAI({
   // diff-add
-  baseURL: "https://guardrails.quilr.ai/openai_compatible/",
+  baseURL: "https://guardrails-usa-2.quilr.ai/openai_compatible/",
   // diff-remove
   apiKey: "sk-openai-xxx",
   // diff-add
@@ -100,7 +103,7 @@ console.log(response.choices[0].message.content);
 # diff-remove
 curl https://api.openai.com/v1/chat/completions \
 # diff-add
-curl https://guardrails.quilr.ai/openai_compatible/v1/chat/completions \
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
   -H "Content-Type: application/json" \
   # diff-remove
   -H "Authorization: Bearer sk-openai-xxx" \
@@ -120,7 +123,7 @@ Create a QuilrAI key with provider `bedrock`, select the Bedrock models you want
 from openai import OpenAI
 
 client = OpenAI(
-    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
     api_key='sk-quilr-xxx',
 )
 
@@ -143,7 +146,7 @@ from openai import OpenAI
 
 client = OpenAI(
     # diff-add
-    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
     # diff-add
     api_key='sk-quilr-xxx',
 )
@@ -162,7 +165,7 @@ print(embedding.data[0].embedding[:5])
 ### Embeddings - cURL
 
 ```bash
-curl https://guardrails.quilr.ai/openai_compatible/v1/embeddings \
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/embeddings \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-quilr-xxx" \
   -d '{
@@ -184,7 +187,7 @@ import cohere
 
 co = cohere.ClientV2(
     # diff-add
-    base_url='https://guardrails.quilr.ai/rerank',
+    base_url='https://guardrails-usa-2.quilr.ai/rerank',
     # diff-remove
     api_key='co-xxx',
     # diff-add
@@ -209,7 +212,7 @@ for r in result.results:
 ### Rerank - cURL
 
 ```bash
-curl https://guardrails.quilr.ai/rerank/v2/rerank \
+curl https://guardrails-usa-2.quilr.ai/rerank/v2/rerank \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-quilr-xxx" \
   -d '{
@@ -224,7 +227,7 @@ curl https://guardrails.quilr.ai/rerank/v2/rerank \
   }'
 ```
 
-The gateway mirrors Cohere's upstream paths, so `/rerank/rerank`, `/rerank/v1/rerank`, and `/rerank/v2/rerank` all work - point your SDK at `base_url='https://guardrails.quilr.ai/rerank'` and it'll append whichever version it uses.
+The gateway mirrors Cohere's upstream paths, so `/rerank/rerank`, `/rerank/v1/rerank`, and `/rerank/v2/rerank` all work - point your SDK at `base_url='https://guardrails-usa-2.quilr.ai/rerank'` and it'll append whichever version it uses.
 
 :::info AWS Bedrock rerank
 Same pattern as Bedrock embeddings - AWS credentials live on the key, the gateway performs the Bedrock `invoke_model` call, and your client speaks the Cohere rerank shape. Request-side DLP scans the `query` and `documents` fields; the response (scores + indices) is passed through.
@@ -240,7 +243,7 @@ client = anthropic.Anthropic(
     # diff-remove
     # uses default base URL
     # diff-add
-    base_url='https://guardrails.quilr.ai/anthropic_messages/',
+    base_url='https://guardrails-usa-2.quilr.ai/anthropic_messages/',
     # diff-remove
     api_key='sk-ant-xxx'
     # diff-add
@@ -266,7 +269,7 @@ const client = new Anthropic({
   // diff-remove
   // uses default base URL
   // diff-add
-  baseURL: "https://guardrails.quilr.ai/anthropic_messages/",
+  baseURL: "https://guardrails-usa-2.quilr.ai/anthropic_messages/",
   // diff-remove
   apiKey: "sk-ant-xxx",
   // diff-add
@@ -289,7 +292,7 @@ console.log(message.content[0].text);
 # diff-remove
 curl https://api.anthropic.com/v1/messages \
 # diff-add
-curl https://guardrails.quilr.ai/anthropic_messages/v1/messages \
+curl https://guardrails-usa-2.quilr.ai/anthropic_messages/v1/messages \
   -H "Content-Type: application/json" \
   # diff-remove
   -H "x-api-key: sk-ant-xxx" \
@@ -363,7 +366,7 @@ client = genai.Client(
     # diff-remove
     # uses default Vertex AI endpoint
     # diff-add
-    http_options=HttpOptions(base_url='https://guardrails.quilr.ai/vertex_ai'),
+    http_options=HttpOptions(base_url='https://guardrails-usa-2.quilr.ai/vertex_ai'),
 )
 
 # Everything below stays exactly the same
@@ -425,7 +428,7 @@ llm = ChatGoogleGenerativeAI(
     model='gemini-2.5-flash',
     credentials=credentials,
     # diff-add
-    base_url='https://guardrails.quilr.ai/vertex_ai',
+    base_url='https://guardrails-usa-2.quilr.ai/vertex_ai',
     project='your-gcp-project',
     location='us-central1',
     vertexai=True,
@@ -452,7 +455,7 @@ bedrock = boto3.client(
     "bedrock-runtime",
     region_name="us-east-1",
     # diff-add
-    endpoint_url="https://guardrails.quilr.ai/bedrock-runtime",
+    endpoint_url="https://guardrails-usa-2.quilr.ai/bedrock-runtime",
     # diff-remove
     aws_access_key_id="AKIA...",
     # diff-add
@@ -492,7 +495,7 @@ from openai import OpenAI
 # Point the client to QuilrAI's gateway
 client = OpenAI(
     # diff-add
-    base_url='https://guardrails.quilr.ai/openai_responses/v1',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_responses/v1',
     # diff-remove
     api_key='sk-openai-xxx'
     # diff-add
@@ -516,7 +519,7 @@ import OpenAI from "openai";
 // Point the client to QuilrAI's gateway
 const client = new OpenAI({
   // diff-add
-  baseURL: "https://guardrails.quilr.ai/openai_responses/v1",
+  baseURL: "https://guardrails-usa-2.quilr.ai/openai_responses/v1",
   // diff-remove
   apiKey: "sk-openai-xxx",
   // diff-add
@@ -539,7 +542,7 @@ console.log(response.output_text);
 # diff-remove
 curl https://api.openai.com/v1/responses \
 # diff-add
-curl https://guardrails.quilr.ai/openai_responses/v1/responses \
+curl https://guardrails-usa-2.quilr.ai/openai_responses/v1/responses \
   -H "Content-Type: application/json" \
   # diff-remove
   -H "Authorization: Bearer sk-openai-xxx" \
@@ -563,7 +566,7 @@ from openai import AsyncOpenAI
 async def main():
     client = AsyncOpenAI(
         # diff-add
-        base_url='https://guardrails.quilr.ai/openai/v1',
+        base_url='https://guardrails-usa-2.quilr.ai/openai/v1',
         # diff-remove
         api_key='sk-openai-xxx',
         # diff-add
@@ -596,7 +599,7 @@ import { OpenAIRealtimeWebSocket } from "openai/realtime/websocket";
 
 const rt = new OpenAIRealtimeWebSocket({
   // diff-add
-  baseURL: "wss://guardrails.quilr.ai/openai/v1",
+  baseURL: "wss://guardrails-usa-2.quilr.ai/openai/v1",
   // diff-remove
   apiKey: "sk-openai-xxx",
   // diff-add
@@ -623,7 +626,7 @@ Realtime sessions are a raw websocket passthrough. Voice I/O (PCM16 `input_audio
 Create a QuilrAI key with provider `copilot_studio`, then use the full endpoint base in Power Platform admin center:
 
 ```text
-https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx
+https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx
 ```
 
 Power Platform appends `/validate` during setup and `/analyze-tool-execution` at runtime. QuilrAI scans Copilot user context and proposed tool inputs, then returns Copilot's expected allow/block response.

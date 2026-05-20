@@ -135,7 +135,7 @@ Your code still sends `model="gpt-4.1"` - zero code changes, but requests get ro
 from openai import OpenAI
 
 client = OpenAI(
-    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
     api_key='sk-quilr-xxx'
 )
 
@@ -150,7 +150,7 @@ print(response.choices[0].message.content)
 ### cURL
 
 ```bash
-curl https://guardrails.quilr.ai/openai_compatible/v1/chat/completions \
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-quilr-xxx" \
   -d '{

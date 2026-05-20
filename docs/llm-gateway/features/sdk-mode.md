@@ -118,7 +118,7 @@ A typical pattern: check the user message before sending it to your LLM, then ch
 ```python
 import httpx
 
-QUILR_BASE = "https://guardrails.quilr.ai"
+QUILR_BASE = "https://guardrails-usa-2.quilr.ai"
 QUILR_SDK_KEY = "sk-quilr-xxx"
 
 async def check_messages(messages: list[dict]) -> dict:
@@ -184,7 +184,7 @@ asyncio.run(safe_chat("What is my SSN?"))
 ```python
 import requests
 
-QUILR_BASE = "https://guardrails.quilr.ai"
+QUILR_BASE = "https://guardrails-usa-2.quilr.ai"
 QUILR_SDK_KEY = "sk-quilr-xxx"
 
 def check_text(text: str, type_: str = "response") -> dict:
@@ -212,7 +212,7 @@ match result["status"]:
 ### JavaScript / TypeScript - `fetch`
 
 ```typescript
-const QUILR_BASE = "https://guardrails.quilr.ai";
+const QUILR_BASE = "https://guardrails-usa-2.quilr.ai";
 const QUILR_SDK_KEY = "sk-quilr-xxx";
 
 async function checkMessages(messages: Array<{ role: string; content: string }>) {
@@ -269,13 +269,13 @@ async function safeChat(userMessage: string): Promise<string> {
 
 ```bash
 # Check raw text
-curl -X POST https://guardrails.quilr.ai/sdk/v1/check \
+curl -X POST https://guardrails-usa-2.quilr.ai/sdk/v1/check \
   -H "Authorization: Bearer sk-quilr-xxx" \
   -H "Content-Type: application/json" \
   -d '{"text": "Call me at 555-867-5309", "type": "request"}'
 
 # Check a conversation
-curl -X POST https://guardrails.quilr.ai/sdk/v1/check \
+curl -X POST https://guardrails-usa-2.quilr.ai/sdk/v1/check \
   -H "Authorization: Bearer sk-quilr-xxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -305,7 +305,7 @@ Or copy `quilr_litellm_guardrails.py` into your project.
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `QUILR_GUARDRAILS_KEY` | Yes | - | Your `quilr_sdk` API key |
-| `QUILR_GUARDRAILS_BASE_URL` | No | `https://guardrails.quilr.ai` | Override for self-hosted deployments |
+| `QUILR_GUARDRAILS_BASE_URL` | No | `https://guardrails.quilr.ai` | Override with the closest regional endpoint for production or with a self-hosted deployment URL |
 | `QUILR_GUARDRAILS_TIMEOUT` | No | `3` | Seconds before the check times out (request passes on timeout) |
 | `APPLY_QUILR_GUARDRAILS_FOR_MODELS` | No | (all) | Comma-separated list of models to restrict guardrails to |
 | `APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES` | No | (all) | Comma-separated list of LiteLLM key names to restrict guardrails to |

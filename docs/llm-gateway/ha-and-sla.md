@@ -15,10 +15,13 @@ All endpoints are fully interchangeable - same API surface, same features, same 
 | Endpoint | Region | Base URL |
 |----------|--------|----------|
 | **Global (auto-routed)** | Nearest | `https://guardrails.quilr.ai` |
-| **USA** | US East | `https://guardrails-usa-1.quilr.ai` |
+| **USA 1** | US Central West | `https://guardrails-usa-1.quilr.ai` |
+| **USA 2** | US East | `https://guardrails-usa-2.quilr.ai` |
 | **India** | Mumbai | `https://guardrails-india-1.quilr.ai` |
 
 Append the API format path to any base URL - for example, `https://guardrails-usa-1.quilr.ai/openai_compatible/`. See the [Integration Guide](./integration-guide) for all supported formats.
+
+For production traffic, choose the location-specific endpoint closest to your application as the primary base URL. Use `guardrails.quilr.ai` only when you explicitly want global auto-routing.
 
 :::info Expanding regions
 This list will continue to grow as we bring new regions online. Check this page or the [Integration Guide](./integration-guide) for the latest endpoints.
@@ -26,18 +29,20 @@ This list will continue to grow as we bring new regions online. Check this page 
 
 ## Routing Architecture
 
-When you send a request to `guardrails.quilr.ai`, it automatically routes to the nearest available gateway server based on your geographic location. No configuration needed.
+If you use `guardrails.quilr.ai`, it automatically routes to the nearest available gateway server based on your geographic location. For predictable production routing, use a regional endpoint directly.
 
 ```mermaid
 flowchart TD
     A["Your Application"] --> B["guardrails.quilr.ai"]
     B --> C{"Auto-route to<br/>nearest server"}
-    C -->|"US traffic"| D["guardrails-usa-1.quilr.ai"]
-    C -->|"India traffic"| E["guardrails-india-1.quilr.ai"]
-    C -->|"Future regions"| F["..."]
+    C -->|"US Central West traffic"| D["guardrails-usa-1.quilr.ai"]
+    C -->|"US East traffic"| E["guardrails-usa-2.quilr.ai"]
+    C -->|"India traffic"| F["guardrails-india-1.quilr.ai"]
+    C -->|"Future regions"| H["..."]
     D --> G["LLM Providers"]
     E --> G
     F --> G
+    H --> G
 ```
 
 Each regional server runs the full QuilrAI pipeline - validation, scanning, transformation, routing, and observability - so there is no functional difference between endpoints.
@@ -48,17 +53,17 @@ Each regional server runs the full QuilrAI pipeline - validation, scanning, tran
   {
     label: "Attempt 1",
     items: [
-      "→ guardrails.quilr.ai",
-      "Auto-routes to nearest ✓",
-      "Optimal latency ✓",
+      "→ guardrails-usa-2.quilr.ai",
+      "Direct to US East server ✓",
+      "Primary regional endpoint ✓",
     ],
   },
   {
     label: "Attempt 2",
     items: [
       "→ guardrails-usa-1.quilr.ai",
-      "Direct to US server ✓",
-      "Bypasses auto-routing ✓",
+      "Direct to US Central West server ✓",
+      "Host-level redundancy ✓",
     ],
   },
   {
@@ -71,24 +76,26 @@ Each regional server runs the full QuilrAI pipeline - validation, scanning, tran
   },
 ]} />
 
-Even though `guardrails.quilr.ai` auto-routes to the nearest healthy server, we recommend a three-tier retry strategy that falls back to explicit regional endpoints:
+For production retry logic, use explicit regional endpoints. Start with the location-specific endpoint closest to your application, then fail over to other regional hosts. Do not include the global auto-routed endpoint in the retry chain.
 
-1. **First attempt** - `guardrails.quilr.ai` - Uses auto-routing for optimal latency under normal conditions.
-2. **Second attempt** - `guardrails-usa-1.quilr.ai` - Direct connection to the US server, bypassing the auto-routing layer entirely.
+Example order for a US East deployment:
+
+1. **First attempt** - `guardrails-usa-2.quilr.ai` - Direct connection to the nearest regional server.
+2. **Second attempt** - `guardrails-usa-1.quilr.ai` - Direct connection to another US server for host-level redundancy.
 3. **Third attempt** - `guardrails-india-1.quilr.ai` - Targets a geographically distinct server for maximum redundancy.
 
 ### Why retry with regional endpoints?
 
-Auto-routing handles most failure scenarios transparently. However, explicit regional fallbacks protect against edge cases that auto-routing alone cannot cover:
+Explicit regional fallbacks protect against edge cases that auto-routing alone cannot cover:
 
-- **DNS or routing-layer issues** - If the global endpoint's routing layer itself is degraded, direct regional URLs bypass it entirely.
-- **Auto-routing detection latency** - The auto-router takes 3-7 seconds to detect a downed host. During this window, your request may still be routed to the unhealthy server. Retrying with an explicit regional URL immediately targets a different host, avoiding the detection delay.
+- **DNS or routing-layer issues** - Direct regional URLs bypass the global routing layer entirely.
+- **Deterministic failover** - Retrying with an explicit regional URL immediately targets a different host instead of letting the auto-router choose.
 - **Regional propagation delays** - A server that has just recovered may not yet be visible to the auto-router. Hitting it directly avoids propagation lag.
 - **Geographic redundancy** - Retrying across regions ensures your request reaches an entirely independent infrastructure stack, eliminating single points of failure.
 
 The overhead is minimal - two additional fallback URLs in your retry logic - but the resilience improvement is significant.
 
-We recommend **one retry per QuilrAI host**. If a request fails on a given endpoint, move on to the next one rather than retrying the same host. This maximizes the chance of hitting a healthy server quickly, especially during the 3-7 second window before auto-routing detects a failure.
+We recommend **one retry per QuilrAI host**. If a request fails on a given endpoint, move on to the next one rather than retrying the same host. This maximizes the chance of hitting a healthy server quickly.
 
 ### Code Example
 
@@ -97,8 +104,8 @@ import time
 import httpx
 
 ENDPOINTS = [
-    "https://guardrails.quilr.ai",           # auto-routes to nearest
-    "https://guardrails-usa-1.quilr.ai",      # direct US fallback
+    "https://guardrails-usa-2.quilr.ai",      # primary US East endpoint
+    "https://guardrails-usa-1.quilr.ai",      # direct US Central West fallback
     "https://guardrails-india-1.quilr.ai",    # direct India fallback
 ]
 
@@ -124,8 +131,8 @@ import time
 from openai import OpenAI
 
 ENDPOINTS = [
-    "https://guardrails.quilr.ai/openai_compatible/v1",        # auto-routes to nearest
-    "https://guardrails-usa-1.quilr.ai/openai_compatible/v1",   # direct US fallback
+    "https://guardrails-usa-2.quilr.ai/openai_compatible/v1",   # primary US East endpoint
+    "https://guardrails-usa-1.quilr.ai/openai_compatible/v1",   # direct US Central West fallback
     "https://guardrails-india-1.quilr.ai/openai_compatible/v1", # direct India fallback
 ]
 
@@ -146,8 +153,8 @@ def call_llm(messages: list) -> str:
 
 ```javascript
 const ENDPOINTS = [
-  "https://guardrails.quilr.ai",           // auto-routes to nearest
-  "https://guardrails-usa-1.quilr.ai",     // direct US fallback
+  "https://guardrails-usa-2.quilr.ai",     // primary US East endpoint
+  "https://guardrails-usa-1.quilr.ai",     // direct US Central West fallback
   "https://guardrails-india-1.quilr.ai",   // direct India fallback
 ];
 

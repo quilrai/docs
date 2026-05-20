@@ -79,7 +79,7 @@ This applies uniformly across Chat Completions, Anthropic Messages (both the top
 from openai import OpenAI
 
 client = OpenAI(
-    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
     api_key='sk-quilr-xxx'
 )
 
@@ -101,7 +101,7 @@ response = client.chat.completions.create(
 import anthropic
 
 client = anthropic.Anthropic(
-    base_url='https://guardrails.quilr.ai/anthropic_messages/',
+    base_url='https://guardrails-usa-2.quilr.ai/anthropic_messages/',
     api_key='sk-quilr-xxx'
 )
 

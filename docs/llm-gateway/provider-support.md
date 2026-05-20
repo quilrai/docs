@@ -80,7 +80,7 @@ AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, Ex
 **Alternate prefix:** `/bedrock-runtime/model/{model_id}/...`
 **Auth:** AWS SigV4 signed request using the QuilrAI key as both access key ID and secret access key
 
-Use this surface when your application already calls Bedrock Runtime through boto3 or another AWS SDK. Configure a `bedrock` provider key in QuilrAI, then set the SDK `endpoint_url` to `https://guardrails.quilr.ai/bedrock-runtime`.
+Use this surface when your application already calls Bedrock Runtime through boto3 or another AWS SDK. Configure a `bedrock` provider key in QuilrAI, then set the SDK `endpoint_url` to the closest regional endpoint, such as `https://guardrails-usa-2.quilr.ai/bedrock-runtime`.
 
 If your application uses OpenAI-compatible clients instead, the same `bedrock` provider key can be called through `/openai_compatible/v1/chat/completions`; QuilrAI converts the OpenAI chat request to Bedrock `Converse` for you.
 

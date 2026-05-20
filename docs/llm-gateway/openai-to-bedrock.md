@@ -32,7 +32,7 @@ Use this mode when your application already speaks OpenAI Chat Completions and y
 
 1. Create an LLM Gateway key with provider `bedrock`.
 2. Select one or more Bedrock chat models that support `Converse`.
-3. Point your OpenAI SDK or OpenAI-compatible wrapper at `https://guardrails.quilr.ai/openai_compatible/`.
+3. Point your OpenAI SDK or OpenAI-compatible wrapper at the closest regional endpoint, such as `https://guardrails-usa-2.quilr.ai/openai_compatible/`.
 4. Send `model` as the Bedrock model ID or inference profile ID.
 5. QuilrAI translates the OpenAI-style request to Bedrock `Converse` or `ConverseStream`.
 
@@ -40,7 +40,7 @@ Use this mode when your application already speaks OpenAI Chat Completions and y
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://guardrails.quilr.ai/openai_compatible/",
+    base_url="https://guardrails-usa-2.quilr.ai/openai_compatible/",
     api_key="sk-quilr-xxx",
 )
 

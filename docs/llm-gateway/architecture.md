@@ -12,7 +12,7 @@ How the QuilrAI LLM Gateway processes every request - from your application to t
   source={{
     label: "Your Application",
     code: `client = OpenAI(
-    base_url='https://guardrails.quilr.ai/openai_compatible/',
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
     api_key='sk-quilr-xxx'
 )
 client.chat.completions.create(
