@@ -13,6 +13,8 @@ Scan content directly from your application code - no LLM proxy required.
 
 SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages or text for sensitive data and adversarial inputs.
 
+Want to test a key before wiring it into your app? Use the [LLM Gateway SDK Playground](../../playground/llm-gateway-sdk).
+
 Common uses:
 
 - Check user input before forwarding to an LLM
@@ -71,6 +73,8 @@ Use this to check a single piece of text. The `type` field is optional.
 ## Response
 
 The endpoint always returns HTTP 200. The response shape depends on which input format you used.
+Use `action` for application control flow, and use `predictions` to inspect what
+the guardrail found.
 
 ### Messages response
 
@@ -80,7 +84,17 @@ The endpoint always returns HTTP 200. The response shape depends on which input 
   "action": "allow | redact | block",
   "messages": [...],
   "blocked_text": "...",
-  "predictions": [...],
+  "predictions": [
+    {
+      "id": "...",
+      "name": "...",
+      "type": "redact",
+      "sensitive_entities": ["123-45-6789"],
+      "entity_texts_with_subcategories": {
+        "123-45-6789": "SOCIAL SECURITY NUMBER"
+      }
+    }
+  ],
   "categories_detected": ["pii", "email", "ssn"],
   "error": {...}
 }
@@ -88,6 +102,8 @@ The endpoint always returns HTTP 200. The response shape depends on which input 
 
 - `messages` - the (possibly redacted) messages array; `null` if blocked
 - `blocked_text` - only present when `status` is `blocked`
+- `predictions` - rule-level details, including exact `sensitive_entities` and
+  `entity_texts_with_subcategories`
 - `error` - only present when `status` is `blocked`
 
 ### Text response
@@ -98,13 +114,25 @@ The endpoint always returns HTTP 200. The response shape depends on which input 
   "action": "allow | redact | block",
   "original_text": "...",
   "processed_text": "...",
-  "predictions": [...],
+  "predictions": [
+    {
+      "id": "...",
+      "name": "...",
+      "type": "redact",
+      "sensitive_entities": ["555-867-5309"],
+      "entity_texts_with_subcategories": {
+        "555-867-5309": "PHONE NUMBER"
+      }
+    }
+  ],
   "categories_detected": ["pii", "phone"],
   "error": {...}
 }
 ```
 
 - `processed_text` - the redacted text; `null` if blocked
+- `predictions` - rule-level details, including exact `sensitive_entities` and
+  `entity_texts_with_subcategories`
 - `error` - only present when `status` is `blocked`
 
 ---

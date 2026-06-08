@@ -1,0 +1,11 @@
+{
+  "label": "Playground",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Interactive playgrounds for trying QuilrAI API surfaces before integrating them into an application."
+  },
+  "customProps": {
+    "icon": "FlaskConical"
+  }
+}

@@ -31,6 +31,10 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [SDK Mode](https://docs.quilrai.dev/llm-gateway/features/sdk-mode.md): Scan content directly from your application code with no LLM proxy required.
 - [Copilot Studio](https://docs.quilrai.dev/llm-gateway/features/copilot-studio.md): Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution.
 
+## Playground
+
+- [LLM Gateway SDK Playground](https://docs.quilrai.dev/playground/llm-gateway-sdk.md): Test `quilr_sdk` keys against `POST /sdk/v1/check`, copy live cURL/Python/JavaScript examples, inspect allow/redact/block judgement, and review returned sensitive entities.
+
 ## MCP Gateway
 
 - [Quick Start](https://docs.quilrai.dev/mcp-gateway/quick-start.md): Set up the MCP Gateway in 4 steps - add an MCP, configure tools and guardrails, connect an agent, and monitor.
