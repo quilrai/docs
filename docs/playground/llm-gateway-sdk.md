@@ -6,6 +6,9 @@ sidebar_custom_props:
   icon: BrainCircuit
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # LLM Gateway SDK Playground
 
 Use this page to test a QuilrAI SDK-mode API key against the standalone guardrails endpoint. This does not proxy to an LLM and does not require provider credentials. It checks the content you send, then tells your application whether to allow, redact, or block it.
@@ -116,7 +119,10 @@ Use the prediction fields for inspection and audit:
 
 This pattern checks the caller's user message before sending it to an LLM. If QuilrAI redacts the request, your app forwards the redacted messages to the model.
 
-```typescript
+<Tabs groupId="sdk-playground-language">
+<TabItem value="javascript" label="JavaScript" default>
+
+```javascript
 const QUILR_BASE = "https://guardrails.quilr.ai";
 const QUILR_SDK_KEY = process.env.QUILR_SDK_KEY;
 
@@ -155,11 +161,64 @@ async function handleChat(userText) {
 }
 ```
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import os
+import requests
+
+QUILR_BASE = "https://guardrails.quilr.ai"
+QUILR_SDK_KEY = os.environ["QUILR_SDK_KEY"]
+
+
+def check_user_messages(messages):
+    response = requests.post(
+        f"{QUILR_BASE}/sdk/v1/check",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {QUILR_SDK_KEY}",
+        },
+        json={
+            "type": "request",
+            "messages": messages,
+            "metadata": {"caller": "chat-api"},
+        },
+        timeout=15,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def handle_chat(user_text):
+    messages = [{"role": "user", "content": user_text}]
+    check = check_user_messages(messages)
+
+    if check.get("action") == "block":
+        return {"blocked": True, "content": "I cannot process that request."}
+
+    llm_messages = check["messages"] if check.get("action") == "redact" else messages
+    detected_entities = [
+        entity
+        for prediction in check.get("predictions", [])
+        for entity in prediction.get("sensitive_entities", [])
+    ]
+
+    # Call your LLM with llm_messages.
+    return call_model(llm_messages, detected_entities=detected_entities)
+```
+
+</TabItem>
+</Tabs>
+
 ## Redact Before Returning to a Caller
 
 This pattern checks the model response before your app returns it to the user. If QuilrAI redacts the response, return `processed_text`.
 
-```typescript
+<Tabs groupId="sdk-playground-language">
+<TabItem value="javascript" label="JavaScript" default>
+
+```javascript
 async function checkModelOutput(text) {
   const res = await fetch(`${QUILR_BASE}/sdk/v1/check`, {
     method: "POST",
@@ -184,5 +243,35 @@ async function safeReturn(modelText) {
   return check.action === "redact" ? check.processed_text : modelText;
 }
 ```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+def check_model_output(text):
+    response = requests.post(
+        f"{QUILR_BASE}/sdk/v1/check",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {QUILR_SDK_KEY}",
+        },
+        json={"type": "response", "text": text},
+        timeout=15,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def safe_return(model_text):
+    check = check_model_output(model_text)
+
+    if check.get("action") == "block":
+        return "I cannot return that response."
+
+    return check["processed_text"] if check.get("action") == "redact" else model_text
+```
+
+</TabItem>
+</Tabs>
 
 See [SDK Mode](../llm-gateway/features/sdk-mode) for the full API reference and more integration patterns.
