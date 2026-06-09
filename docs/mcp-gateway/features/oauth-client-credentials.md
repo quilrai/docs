@@ -20,7 +20,7 @@ Have these values ready:
 
 | Value | Where to get it |
 |-------|-----------------|
-| QuilrAI callback URL | Copy it from the QuilrAI manual OAuth setup screen for the MCP. |
+| QuilrAI callback URL | The gateway displays it on the MCP setup screen when you **Add MCP** or install one from the library. Copy it from there. |
 | Provider scopes | Use the scopes requested by the MCP integration. Start with the least privileged scopes that support the tools you plan to enable. |
 | App owner | Use the Slack workspace, GitHub organization, or GitHub account that should own the integration. |
 
