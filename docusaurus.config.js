@@ -70,6 +70,17 @@ const config = {
         [
             '@docusaurus/plugin-client-redirects',
             {
+                redirects: [
+                    {
+                        from: [
+                            '/llm-gateway/openai-to-bedrock',
+                            '/llm-gateway/openai-to-bedrock.md',
+                            '/docs/llm-gateway/openai-to-bedrock',
+                            '/docs/llm-gateway/openai-to-bedrock.md',
+                        ],
+                        to: '/llm-gateway/unified-completions',
+                    },
+                ],
                 createRedirects(existingPath) {
                     // Redirect legacy /docs/* URLs to the new / root
                     if (existingPath === '/') {

@@ -55,8 +55,12 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | General LLM (vLLM, Ollama, etc.) | API Key | `api_key`, `base_url` | - |
 | AWS Bedrock (Converse via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
 | AWS Bedrock (Converse via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
+| Vertex AI Gemini (via OpenAI-compatible) | Express | `api_key` | - |
+| Vertex AI Gemini (via OpenAI-compatible) | API Key | `api_key`, `gcp_project_id` | `gcp_region` |
+| Vertex AI Gemini (via OpenAI-compatible) | Service Account | `service_account_json` | `gcp_project_id`, `gcp_region` |
+| Vertex AI Gemini (via OpenAI-compatible) | ADC | `gcp_project_id` | `gcp_region` |
 
-The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI currently translates AWS Bedrock chat models into this surface by calling Bedrock `Converse` behind the scenes. Create a `bedrock` provider key, select any Bedrock model that supports `Converse`, and use that Bedrock model ID in the OpenAI SDK `model` parameter. For exact parameter, message, tool, and streaming coverage, see [OpenAI to Bedrock Translation](./openai-to-bedrock.md).
+The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI can translate provider-native chat models into this surface. Create a `bedrock` provider key and use a selected Bedrock model ID to call Bedrock `Converse`, or create a `vertex_ai` provider key and use a selected Gemini model name to call Vertex AI `generateContent`. For exact parameter, message, tool, structured-output, and streaming coverage, see [Unified Completions](./unified-completions.md).
 
 AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
 

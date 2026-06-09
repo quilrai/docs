@@ -11,7 +11,7 @@ Use the AWS SDK for Python (`boto3`) with QuilrAI guardrails by pointing the Bed
 
 This mode is for applications that already use `bedrock-runtime` directly and want to keep AWS request shapes such as `converse`, `converse_stream`, and `invoke_model`.
 
-If your application uses OpenAI-compatible clients, you can use the same `bedrock` provider key with `/openai_compatible/v1/chat/completions` instead. QuilrAI translates the OpenAI-compatible chat request to Bedrock `Converse`, so OpenAI SDKs and wrappers can call selected Bedrock models without boto3. See [OpenAI to Bedrock Translation](./openai-to-bedrock.md) for the compatibility contract.
+If your application uses OpenAI-compatible clients, you can use the same `bedrock` provider key with `/openai_compatible/v1/chat/completions` instead. QuilrAI translates the OpenAI-compatible chat request to Bedrock `Converse`, so OpenAI SDKs and wrappers can call selected Bedrock models without boto3. See [Unified Completions](./unified-completions.md) for the compatibility contract.
 
 ## What is supported
 

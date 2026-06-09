@@ -39,7 +39,7 @@ Combine a region base URL with the API format path to get your full endpoint. Fo
 https://guardrails-usa-2.quilr.ai/openai_compatible/
 ```
 
-The OpenAI-compatible path works with OpenAI SDKs and OpenAI-compatible client wrappers. It can call OpenAI / Azure OpenAI and other upstreams that already expose an OpenAI-compatible API. It can also call AWS Bedrock chat models through Bedrock `Converse`; Bedrock is currently the supported native provider that QuilrAI translates into OpenAI-compatible chat completions.
+The OpenAI-compatible path works with OpenAI SDKs and OpenAI-compatible client wrappers. It can call OpenAI / Azure OpenAI and other upstreams that already expose an OpenAI-compatible API. It can also call provider-native chat models through translations such as AWS Bedrock `Converse` and Vertex AI Gemini `generateContent`.
 
 ## 2. Code Examples
 
@@ -135,7 +135,29 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-Use any Bedrock model ID selected on the key that supports Bedrock `Converse`, including inference profile IDs. The same base URL and key work with OpenAI-compatible wrappers such as LangChain `ChatOpenAI`; set the wrapper's model to the Bedrock model ID. See [OpenAI to Bedrock Translation](./openai-to-bedrock.md) for supported request parameters, message formats, tools, streaming, and expected failures.
+Use any Bedrock model ID selected on the key that supports Bedrock `Converse`, including inference profile IDs. The same base URL and key work with OpenAI-compatible wrappers such as LangChain `ChatOpenAI`; set the wrapper's model to the Bedrock model ID. See [Unified Completions](./unified-completions.md) for supported request parameters, message formats, tools, streaming, and expected failures.
+
+### Vertex AI via OpenAI-compatible chat - Python
+
+Create a QuilrAI key with provider `vertex_ai`, select the Gemini models you want to expose, and use the same OpenAI client configuration. The gateway converts the OpenAI-compatible chat request to Vertex AI `generateContent` behind the scenes, so no Google SDK client is needed for text chat.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
+    api_key='sk-quilr-xxx',
+)
+
+response = client.chat.completions.create(
+    model='gemini-2.5-flash',
+    messages=[{'role': 'user', 'content': 'Hello from an OpenAI client.'}],
+    max_tokens=256,
+)
+print(response.choices[0].message.content)
+```
+
+Use any Gemini model name selected on the key. This translated path is text-only; use the native `/vertex_ai/` endpoint for multimodal Gemini calls.
 
 ### Embeddings - Python
 
