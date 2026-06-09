@@ -210,7 +210,7 @@ Realtime sessions are passthrough today - DLP is not yet applied to live Realtim
 
 ## Selecting a Provider on Multi-Provider Keys
 
-A key can have one primary provider plus any number of additional providers of the same or different kind. When more than one compatible provider is configured, you can pick which one handles a request; if you don't pick, QuilrAI uses the first compatible provider on the key.
+A key can have one primary provider plus any number of additional providers of the same or different kind. When more than one compatible provider is configured, you can pick which one handles a request. If you don't pick, QuilrAI can still infer a provider from the requested model: when exactly one enabled provider has that model enabled on the key, that provider is used; when multiple enabled providers have the same model enabled, QuilrAI chooses one of those providers at random for that request. Use a provider selector when provider choice must be deterministic.
 
 | Endpoint | Body field | Header | Query param |
 |----------|-----------|--------|-------------|

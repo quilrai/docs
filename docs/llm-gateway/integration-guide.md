@@ -701,7 +701,7 @@ See [Request Routing](./features/request-routing) for full details on setting up
 
 ## 5. Selecting a Provider on Multi-Provider Keys
 
-A single QuilrAI key can have one primary provider plus any number of additional providers. When more than one compatible provider is configured, you can pick which provider handles a specific request. If you omit a selector, QuilrAI uses the first compatible provider on the key.
+A single QuilrAI key can have one primary provider plus any number of additional providers. When more than one compatible provider is configured, you can pick which provider handles a specific request. If you omit a selector, QuilrAI can still infer a provider from the requested model: when exactly one enabled provider has that model enabled on the key, that provider is used; when multiple enabled providers have the same model enabled, QuilrAI chooses one of those providers at random for that request. Use a provider selector when provider choice must be deterministic.
 
 | Endpoint | Body field | Header | Query param |
 |----------|-----------|--------|-------------|

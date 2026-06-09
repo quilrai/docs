@@ -80,9 +80,15 @@ On top of weighted routing, a group can override model selection based on the si
 
 Configure Low / Medium / High context tiers on the group and pick which models serve each tier. Available for Chat Completions, Anthropic Messages, Vertex AI, and OpenAI Responses groups. Realtime sessions always use the group's weighted routing.
 
-## Routing Across Multiple Credentials
+## Routing Without a Routing Group
 
-A single API key can carry credentials for several providers - your OpenAI account, an Azure OpenAI deployment, a second OpenAI account for extra TPM, etc. When you build a routing group, you don't re-enter credentials: you pick from the models already available on the providers attached to the key, and the gateway uses that provider's credentials at request time.
+A routing group is not required for QuilrAI to choose among providers. If a request names a real model and you don't pass a provider selector, the gateway checks the enabled providers attached to the key. When exactly one enabled provider has that model enabled on the key, the request uses that provider. When multiple enabled providers have the same model enabled, the gateway chooses one of those providers at random for that request.
+
+Use `provider`, `provider_label`, `X-Provider-Name`, or `X-Provider-Label` when you need deterministic provider selection.
+
+## Routing Groups for Model-Level Routing
+
+Routing groups are for explicit model-level routing: weighted load balancing, token-based distribution, context-tiered model selection, failover, and routing a single model name to one or more target models. A single API key can carry credentials for several providers - your OpenAI account, an Azure OpenAI deployment, a second OpenAI account for extra TPM, etc. When you build a routing group, you don't re-enter credentials: you pick from the models already available on the providers attached to the key, and the gateway uses that provider's credentials at request time.
 
 Typical patterns this enables:
 

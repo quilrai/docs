@@ -4,7 +4,7 @@
 
 ## LLM Gateway
 
-Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropic, Azure, Bedrock, Vertex AI, and Copilot Studio - through a single API key. Route traffic across multiple providers with weighted load balancing and automatic failover, with zero code changes in your application.
+Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropic, Azure, Bedrock, Vertex AI, and Copilot Studio - through a single API key. QuilrAI can infer providers from the requested model, or route traffic through routing groups for weighted load balancing, model-level routing, and automatic failover with zero code changes in your application.
 
 - [Quick Start](https://docs.quilrai.dev/llm-gateway/quick-start.md): Set up the LLM Gateway in 4 steps - create an app, add a provider key, configure guardrails, and connect your application.
 - [Architecture](https://docs.quilrai.dev/llm-gateway/architecture.md): Request processing pipeline - Validate, Scan, Transform, Route - with a visual diagram of every stage.
@@ -19,7 +19,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 ### LLM Gateway Features
 
-- [Request Routing](https://docs.quilrai.dev/llm-gateway/features/request-routing.md): Weight-based load balancing across multiple providers and models, with automatic failover when a provider goes down, all behind a single API key.
+- [Request Routing](https://docs.quilrai.dev/llm-gateway/features/request-routing.md): Automatic provider inference from requested models, plus routing groups for weight-based load balancing, model-level routing, and failover across multiple providers and models behind a single API key.
 - [Token Saving](https://docs.quilrai.dev/llm-gateway/features/token-saving.md): Reduce input token usage by compressing JSON and stripping HTML/Markdown automatically.
 - [Guardian Agent](https://docs.quilrai.dev/llm-gateway/features/guardian-agent.md): Gateway-side policy checks for dependency safety and task adherence.
 - [Security Guardrails](https://docs.quilrai.dev/llm-gateway/features/security-guardrails.md): Detect and act on PII, PHI, PCI, financial data, and adversarial inputs in requests and responses.
