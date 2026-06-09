@@ -141,7 +141,7 @@ Guardian Agent is implemented on these LLM Gateway surfaces:
 | Anthropic Messages | Yes | Yes |
 | Vertex AI Gemini | Yes | Yes |
 
-OpenAI-compatible chat includes provider-native chat models reached through gateway translations, including Bedrock `Converse` and Vertex AI Gemini `generateContent`.
+OpenAI-compatible chat includes provider-native chat models reached through gateway translations, including Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages.
 
 ## Configuration
 

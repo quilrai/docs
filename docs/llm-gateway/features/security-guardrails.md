@@ -33,7 +33,7 @@ Catches adversarial attack patterns in requests:
 
 ## Endpoint Coverage
 
-Guardrails run on chat completions, including provider-native models reached through OpenAI-compatible translations such as Bedrock `Converse` and Vertex AI Gemini `generateContent`, embeddings (input), TTS (input), STT (output), Anthropic Messages, AWS Bedrock Runtime boto3 calls, native Vertex/Gemini `generateContent`, the OpenAI Responses API, and Copilot Studio external threat detection. For **streaming** responses (SSE), request-side scanning runs as normal but response-side scanning is skipped so chunks stream through unmodified.
+Guardrails run on chat completions, including provider-native models reached through OpenAI-compatible translations such as Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages, embeddings (input), TTS (input), STT (output), native Anthropic Messages, AWS Bedrock Runtime boto3 calls, native Vertex/Gemini `generateContent`, the OpenAI Responses API, and Copilot Studio external threat detection. For **streaming** responses (SSE), request-side scanning runs as normal but response-side scanning is skipped so chunks stream through unmodified.
 
 **AWS Bedrock Runtime** `converse_stream` runs request-side DLP and then passes the AWS EventStream response through unchanged. **OpenAI Realtime** websocket sessions are passthrough today - DLP does not yet run on live Realtime events in either direction. Session-level logs (handshake status, byte counters, usage summary) are still recorded. Use [SDK Mode](./sdk-mode) if you need to scan Realtime transcripts out-of-band.
 

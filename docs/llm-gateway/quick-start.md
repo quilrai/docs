@@ -52,7 +52,7 @@ Your provider API key is stored securely - developers only see the QuilrAI proxy
 :::info Pick the right provider for the endpoint you want to hit
 Each QuilrAI endpoint is served only by matching provider types. A plain `OpenAI` chat-completions key cannot hit `/openai_responses/` or `/openai_realtime/` by swapping the URL - create the key with the `OpenAI Responses` / `OpenAI Realtime` provider (or their Azure variants), or add one as an additional provider on an existing key. See the [Provider Support](./provider-support) matrix.
 
-For chat completions, `bedrock` and `vertex_ai` keys can also use `/openai_compatible/v1/chat/completions`. QuilrAI translates the OpenAI-compatible request to Bedrock `Converse` or Vertex AI Gemini `generateContent`, so OpenAI SDKs and OpenAI-compatible wrappers can call selected provider-native models directly.
+For chat completions, `bedrock`, `vertex_ai`, and Anthropic Messages keys can also use `/openai_compatible/v1/chat/completions`. QuilrAI translates the OpenAI-compatible request to Bedrock `Converse`, Vertex AI Gemini `generateContent`, or native Anthropic Messages, so OpenAI SDKs and OpenAI-compatible wrappers can call selected provider-native models directly.
 :::
 
 ## 2. Swap the Base URL

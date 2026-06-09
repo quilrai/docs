@@ -53,6 +53,10 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | DeepSeek | API Key | `api_key` | - |
 | Gemini (OpenAI-compatible) | API Key | `api_key` | - |
 | General LLM (vLLM, Ollama, etc.) | API Key | `api_key`, `base_url` | - |
+| Anthropic Messages (via OpenAI-compatible) | API Key | `api_key` | `anthropic_version` |
+| Anthropic Messages on Bedrock (via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
+| Anthropic Messages on Bedrock (via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
+| Azure Anthropic Messages (via OpenAI-compatible) | API Key | `api_key`, `base_url` | `anthropic_version` |
 | AWS Bedrock (Converse via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
 | AWS Bedrock (Converse via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
 | Vertex AI Gemini (via OpenAI-compatible) | Express | `api_key` | - |
@@ -60,7 +64,7 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | Vertex AI Gemini (via OpenAI-compatible) | Service Account | `service_account_json` | `gcp_project_id`, `gcp_region` |
 | Vertex AI Gemini (via OpenAI-compatible) | ADC | `gcp_project_id` | `gcp_region` |
 
-The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI can translate provider-native chat models into this surface. Create a `bedrock` provider key and use a selected Bedrock model ID to call Bedrock `Converse`, or create a `vertex_ai` provider key and use a selected Gemini model name to call Vertex AI `generateContent`. For exact parameter, message, tool, structured-output, and streaming coverage, see [Unified Completions](./unified-completions.md).
+The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI can translate provider-native chat models into this surface. Create a `bedrock` provider key and use a selected Bedrock model ID to call Bedrock `Converse`; create a `vertex_ai` provider key and use a selected Gemini model name to call Vertex AI `generateContent`; or create an Anthropic Messages provider key and use a selected Claude model to call native Anthropic Messages. For exact parameter, message, tool, structured-output, and streaming coverage, see [Unified Completions](./unified-completions.md).
 
 AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
 

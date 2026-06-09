@@ -108,7 +108,7 @@ A routing group is tied to one API family. Providers within the same family can 
 
 | Group type | Used by | Providers you can combine |
 |------------|---------|---------------------------|
-| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, AWS Bedrock (Converse), Vertex AI Gemini, Anthropic (chat completions), DeepSeek, Gemini (chat completions), General LLM |
+| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, AWS Bedrock (Converse), Vertex AI Gemini, Anthropic Messages, Anthropic Messages on Bedrock, Azure Anthropic Messages, Anthropic (chat completions), DeepSeek, Gemini (chat completions), General LLM |
 | **Anthropic Messages** | `/anthropic_messages/v1/messages` | Anthropic, AWS Bedrock (Anthropic), Azure Anthropic |
 | **Vertex AI** | `/vertex_ai/` | Vertex AI |
 | **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI Responses, Azure OpenAI Responses |

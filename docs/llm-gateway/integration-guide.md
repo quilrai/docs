@@ -39,7 +39,7 @@ Combine a region base URL with the API format path to get your full endpoint. Fo
 https://guardrails-usa-2.quilr.ai/openai_compatible/
 ```
 
-The OpenAI-compatible path works with OpenAI SDKs and OpenAI-compatible client wrappers. It can call OpenAI / Azure OpenAI and other upstreams that already expose an OpenAI-compatible API. It can also call provider-native chat models through translations such as AWS Bedrock `Converse` and Vertex AI Gemini `generateContent`.
+The OpenAI-compatible path works with OpenAI SDKs and OpenAI-compatible client wrappers. It can call OpenAI / Azure OpenAI and other upstreams that already expose an OpenAI-compatible API. It can also call provider-native chat models through translations such as AWS Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages.
 
 ## 2. Code Examples
 
@@ -158,6 +158,28 @@ print(response.choices[0].message.content)
 ```
 
 Use any Gemini model name selected on the key. This translated path is text-only; use the native `/vertex_ai/` endpoint for multimodal Gemini calls.
+
+### Anthropic Messages via OpenAI-compatible chat - Python
+
+Create a QuilrAI key with provider `anthropic_messages`, `anthropic_messages_bedrock`, or `anthropic_messages_azure`, select the Claude models you want to expose, and use the same OpenAI client configuration. The gateway converts the OpenAI-compatible chat request to native Anthropic Messages behind the scenes, so no Anthropic SDK client is needed for this text-chat path.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
+    api_key='sk-quilr-xxx',
+)
+
+response = client.chat.completions.create(
+    model='claude-sonnet-4-5',
+    messages=[{'role': 'user', 'content': 'Hello from an OpenAI client.'}],
+    max_tokens=256,
+)
+print(response.choices[0].message.content)
+```
+
+Use the selected Claude model name for direct or Azure Anthropic Messages, and the selected Bedrock Claude model ID for `anthropic_messages_bedrock`. This translated path is text-only; use the native `/anthropic_messages/` endpoint for provider-native request shapes.
 
 ### Embeddings - Python
 
