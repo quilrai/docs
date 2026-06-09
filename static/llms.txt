@@ -51,6 +51,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Access Control](https://docs.quilrai.dev/mcp-gateway/features/access-control.md): Restrict which AI agents can use each MCP server via User-Agent header matching.
 - [API Tokens](https://docs.quilrai.dev/mcp-gateway/features/api-tokens.md): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access.
 - [OAuth Connect](https://docs.quilrai.dev/mcp-gateway/features/oauth-connect.md): Authorize OAuth-protected MCP servers with one click via Dynamic Client Registration or manual credentials.
+- [OAuth Client Credentials](https://docs.quilrai.dev/mcp-gateway/features/oauth-client-credentials.md): Create Slack and GitHub OAuth apps, enable Slack MCP access and scopes, copy Client IDs and Client Secrets, and use them with manual OAuth MCP setup.
 - [Web Search Policy](https://docs.quilrai.dev/mcp-gateway/features/web-search-policy.md): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).
 
 ## Compliance API Integration

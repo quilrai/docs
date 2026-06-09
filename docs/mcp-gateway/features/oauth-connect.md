@@ -56,7 +56,7 @@ Client ID: your-client-id
 Client Secret: ••••••••••
 ```
 
-The gateway uses these credentials for the authorization flow.
+The gateway uses these credentials for the authorization flow. For provider-specific setup steps, see [OAuth Client Credentials](./oauth-client-credentials).
 
 ## Fetched Capabilities
 
