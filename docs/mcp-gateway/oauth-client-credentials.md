@@ -1,5 +1,5 @@
 ---
-sidebar_position: 8
+sidebar_position: 4
 sidebar_custom_props:
   icon: KeyRound
 ---
@@ -12,7 +12,7 @@ Create provider-owned OAuth apps for MCP servers that need a manual **Client ID*
 
 Use this guide when an MCP server does not support Dynamic Client Registration and the QuilrAI setup flow asks for OAuth credentials.
 
-For DCR-compatible MCP servers, you do not need to create a provider app. Use [OAuth Connect](./oauth-connect) and authorize directly.
+For DCR-compatible MCP servers, you do not need to create a provider app. Use [OAuth Connect](./features/oauth-connect) and authorize directly.
 
 ## Before You Start
 

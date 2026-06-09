@@ -39,7 +39,7 @@ The gateway automatically registers as an OAuth client with the MCP server. No C
 
 ### OAuth - Manual
 
-For MCP servers without DCR support. Provide your **Client ID** and **Client Secret** during MCP setup. The gateway uses these credentials for the authorization flow. See [OAuth Client Credentials](./features/oauth-client-credentials) for Slack and GitHub setup steps.
+For MCP servers without DCR support. Provide your **Client ID** and **Client Secret** during MCP setup. The gateway uses these credentials for the authorization flow. See [OAuth Client Credentials](./oauth-client-credentials) for Slack and GitHub setup steps.
 
 ## Token-Based Connection Example
 
