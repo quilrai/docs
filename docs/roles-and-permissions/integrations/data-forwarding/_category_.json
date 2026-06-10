@@ -1,0 +1,11 @@
+{
+  "label": "Data Forwarding",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Payload contracts and field-level schemas for Quilr's outbound data delivery channels."
+  },
+  "customProps": {
+    "icon": "ClipboardList"
+  }
+}
