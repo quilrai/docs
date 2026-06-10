@@ -93,7 +93,23 @@ your application should branch on:
       }
     }
   ],
-  "categories_detected": ["pii", "ssn"]
+  "categories_detected": ["pii", "ssn"],
+  "placeholder_masking": {
+    "text": "My SSN is [SSN_1].",
+    "messages": [
+      { "role": "user", "content": "My SSN is [SSN_1]." }
+    ],
+    "placeholders": [
+      {
+        "placeholder": "[SSN_1]",
+        "value": "123-45-6789",
+        "sub_category": "SOCIAL SECURITY NUMBER",
+        "category_id": "data_risk_category_pii",
+        "action": "redact",
+        "message_index": 0
+      }
+    ]
+  }
 }
 ```
 
@@ -114,6 +130,7 @@ Use the prediction fields for inspection and audit:
 | `predictions[].sensitive_entities` | Exact entity text that triggered the rule. Treat this as sensitive data. |
 | `predictions[].entity_texts_with_subcategories` | Map of entity text to a human-readable subcategory, such as `SOCIAL SECURITY NUMBER`. |
 | `categories_detected` | Coarse categories detected across the check, such as `pii` or `ssn`. |
+| `placeholder_masking` | Additive placeholder view of the checked content, with bracketed tokens such as `[PASSPORT_1]` and a `placeholders[]` map back to original values. |
 
 ## Redact Before Calling an LLM
 

@@ -96,6 +96,22 @@ the guardrail found.
     }
   ],
   "categories_detected": ["pii", "email", "ssn"],
+  "placeholder_masking": {
+    "text": "My SSN is [SSN_1].",
+    "messages": [
+      { "role": "user", "content": "My SSN is [SSN_1]." }
+    ],
+    "placeholders": [
+      {
+        "placeholder": "[SSN_1]",
+        "value": "123-45-6789",
+        "sub_category": "SOCIAL SECURITY NUMBER",
+        "category_id": "data_risk_category_pii",
+        "action": "redact",
+        "message_index": 0
+      }
+    ]
+  },
   "error": {...}
 }
 ```
@@ -126,6 +142,19 @@ the guardrail found.
     }
   ],
   "categories_detected": ["pii", "phone"],
+  "placeholder_masking": {
+    "text": "Call me at [PHONE_1].",
+    "messages": null,
+    "placeholders": [
+      {
+        "placeholder": "[PHONE_1]",
+        "value": "555-867-5309",
+        "sub_category": "PHONE NUMBER",
+        "category_id": "data_risk_category_pii",
+        "action": "redact"
+      }
+    ]
+  },
   "error": {...}
 }
 ```
@@ -134,6 +163,18 @@ the guardrail found.
 - `predictions` - rule-level details, including exact `sensitive_entities` and
   `entity_texts_with_subcategories`
 - `error` - only present when `status` is `blocked`
+
+### Placeholder masking
+
+Every response also includes `placeholder_masking`. This is an additive view of
+the same content where sensitive values are replaced with bracketed placeholders
+such as `[PASSPORT_1]`, `[EXPIRY_1]`, or `[PASSWORD_1]`.
+
+Use this when your application needs visually distinct, reversible placeholders
+instead of same-length `X` redaction. The placeholder token carries the type and
+per-message index; `placeholders[]` maps each token back to the original value
+and detection metadata. Message checks include `placeholder_masking.messages`;
+raw text checks set `placeholder_masking.messages` to `null`.
 
 ---
 
