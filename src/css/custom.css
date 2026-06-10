@@ -974,6 +974,137 @@ main > .container.padding-top--md.padding-bottom--lg,
   border-color: var(--docs-dark-border);
 }
 
+/* Webhook sample payload accordions */
+.theme-doc-markdown.markdown .webhook-sample-details {
+  --ifm-alert-padding-vertical: 0;
+  --ifm-alert-padding-horizontal: 0;
+  --ifm-alert-background-color: transparent;
+  --ifm-alert-background-color-highlight: transparent;
+  --ifm-alert-foreground-color: var(--docs-light-text);
+  --ifm-alert-border-color: var(--docs-light-border);
+  --ifm-alert-shadow: none;
+  --docusaurus-details-decoration-color: var(--docs-light-border);
+  margin: 0.625rem 0;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid var(--docs-light-border);
+  border-radius: 0.5rem;
+  background: var(--docs-light-surface);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.625rem !important;
+  color: var(--docs-light-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.35;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.theme-doc-markdown.markdown
+  .webhook-sample-details
+  > summary::-webkit-details-marker {
+  display: none;
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details > summary::marker {
+  content: "";
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details > summary::before {
+  content: "";
+  position: static !important;
+  top: auto;
+  left: auto;
+  flex: 0 0 auto;
+  width: 0.4rem;
+  height: 0.4rem;
+  border: 0;
+  border-right: 1.25px solid currentColor;
+  border-bottom: 1.25px solid currentColor;
+  transform: rotate(-45deg);
+  transform-origin: center;
+  opacity: 0.65;
+  transition: transform 0.15s ease;
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details > summary:hover {
+  color: var(--docs-light-text);
+  background: var(--docs-light-surface-raised);
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details > summary:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: -2px;
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details[open] > summary {
+  border-bottom: 1px solid var(--docs-light-border);
+  color: var(--docs-light-text);
+  background: var(--docs-light-surface-raised);
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details[open] > summary::before {
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.theme-doc-markdown.markdown .webhook-sample-details .theme-code-block {
+  border: 0;
+  border-radius: 0;
+}
+
+.theme-doc-markdown.markdown
+  .webhook-sample-details
+  [class*="collapsibleContent"] {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+[data-theme="dark"] .theme-doc-markdown.markdown .webhook-sample-details {
+  --ifm-alert-foreground-color: var(--docs-dark-text);
+  --ifm-alert-border-color: var(--docs-dark-border);
+  --docusaurus-details-decoration-color: var(--docs-dark-border);
+  border-color: var(--docs-dark-border);
+  background: var(--docs-dark-surface);
+}
+
+[data-theme="dark"]
+  .theme-doc-markdown.markdown
+  .webhook-sample-details
+  > summary {
+  color: var(--docs-dark-text-muted);
+}
+
+[data-theme="dark"]
+  .theme-doc-markdown.markdown
+  .webhook-sample-details
+  > summary:hover {
+  color: var(--docs-dark-text);
+  background: var(--docs-dark-surface-raised);
+}
+
+[data-theme="dark"]
+  .theme-doc-markdown.markdown
+  .webhook-sample-details[open]
+  > summary {
+  border-bottom-color: var(--docs-dark-border);
+  color: var(--docs-dark-text);
+  background: var(--docs-dark-surface-raised);
+}
+
 /* ────────────────────────────────── Breadcrumbs ─────────────────────── */
 .theme-doc-breadcrumbs {
   --ifm-breadcrumb-size-multiplier: 0.85;

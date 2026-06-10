@@ -1,0 +1,11 @@
+{
+  "label": "Integrations",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Reference documentation for outbound data delivery contracts, payload schemas, and channel-specific field semantics."
+  },
+  "customProps": {
+    "icon": "Plug"
+  }
+}
