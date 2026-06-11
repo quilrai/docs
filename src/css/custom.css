@@ -279,7 +279,9 @@ main > .container.padding-top--md.padding-bottom--lg,
 
 /* Interactive playgrounds need more horizontal space and hide the right TOC. */
 .docs-doc-id-playground-llm-gateway-sdk .doc-main__panel .row,
-.docs-doc-id-playground-llm-gateway-sdk .doc-page-footer .footer > .container {
+.docs-doc-id-playground-llm-gateway-sdk .doc-page-footer .footer > .container,
+.docs-doc-id-playground-log-export .doc-main__panel .row,
+.docs-doc-id-playground-log-export .doc-page-footer .footer > .container {
   @apply max-w-7xl;
 }
 
