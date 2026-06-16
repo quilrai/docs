@@ -25,6 +25,8 @@ import {
   ClipboardList,
   Handshake,
   BarChart2,
+  UserCog,
+  History,
   Hash,
 } from "lucide-react";
 
@@ -55,6 +57,8 @@ const iconMap = {
   ClipboardList,
   Handshake,
   BarChart2,
+  UserCog,
+  History,
 };
 
 export function getSidebarIcon(name) {
