@@ -9,16 +9,28 @@ sidebar_custom_props:
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# LLM Gateway SDK Playground
+# LLM Gateway Playground
 
-Use this page to test a QuilrAI SDK-mode API key against the standalone guardrails endpoint. This does not proxy to an LLM and does not require provider credentials. It checks the content you send, then tells your application whether to allow, redact, or block it.
+Use this page to test QuilrAI LLM Gateway requests before wiring them into an application. The provider API key mode sends real gateway calls to supported HTTP surfaces. The SDK mode checks standalone guardrail requests and responses with a `quilr_sdk` key.
 
-## SDK Playground
+## Interactive Playground
 
-Test request-side and response-side guardrail checks with a `quilr_sdk` key.
+Use **Provider API key** for normal LLM Gateway keys that proxy to a configured provider. Use **SDK check** for guardrails-only `quilr_sdk` keys.
 
-:::info SDK keys only
-This playground supports only QuilrAI SDK tokens: `sk-quilr-...` keys whose provider is `quilr_sdk`. Regular LLM Gateway provider keys are rejected with `sdk_mode_required`.
+The provider API key mode supports direct browser requests for these HTTP surfaces:
+
+| Surface | Path | Notes |
+|---------|------|-------|
+| Unified chat completions | `/openai_compatible/v1/chat/completions` | Works with OpenAI-compatible chat and gateway translations for Bedrock Converse, Vertex Gemini, Anthropic Messages, and other configured chat providers. |
+| OpenAI text completions | `/openai_compatible/v1/completions` | Classic OpenAI-compatible text completion shape for upstreams that still expose `/v1/completions`. |
+| OpenAI Responses | `/openai_responses/v1/responses` | Requires an OpenAI Responses or Azure OpenAI Responses provider on the key. |
+| Embeddings | `/openai_compatible/v1/embeddings` | Uses the OpenAI embeddings request shape. |
+| Rerank | `/rerank/v2/rerank` | Uses the Cohere-compatible rerank request shape. |
+| Anthropic Messages | `/anthropic_messages/v1/messages` | Sends native Anthropic Messages JSON with `x-api-key` auth. |
+| Text to speech | `/openai_compatible/v1/audio/speech` | Uses the OpenAI-compatible TTS JSON body and shows returned audio metadata plus a browser audio preview. |
+
+:::info Provider-specific SDKs
+Browser mode sends plain HTTP requests with JSON bodies. Bedrock boto3 requires SigV4 signing, OpenAI Realtime requires a websocket session, STT and audio translations require multipart file upload, Copilot Studio is configured as an external webhook, and native Vertex paths depend on provider-specific URL construction. Those flows are documented in the integration guide instead of being executed here.
 :::
 
 :::caution Keep production keys out of public browsers
@@ -27,12 +39,9 @@ The playground sends your key directly from this page to QuilrAI and does not st
 
 <SdkApiKeyTester />
 
-Use the code switcher in the playground to see the exact `POST /sdk/v1/check`
-call for the endpoint, mode, and text you entered. The key is masked in the
-snippet by default; reveal it only when you need to copy a runnable local
-command.
+Use the code switcher in the playground to see the exact request for the selected endpoint, API surface, provider selector, and JSON body. The key is masked in the snippet by default; reveal it only when you need to copy a runnable local command.
 
-## What It Calls
+## SDK Mode
 
 The SDK endpoint is:
 

@@ -165,6 +165,89 @@
   color: #082f49;
 }
 
+.modeSegmented {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hintPanel {
+  border: 1px solid var(--docs-light-border);
+  border-radius: 0.5rem;
+  background: var(--docs-light-surface);
+  padding: 0.7rem;
+  margin: -0.25rem 0 0.875rem;
+}
+
+:global([data-theme="dark"]) .hintPanel {
+  border-color: var(--docs-dark-border);
+  background: var(--docs-dark-surface);
+}
+
+.hintPanel strong {
+  display: block;
+  color: var(--ifm-font-color-base);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.hintPanel p {
+  margin: 0.3rem 0 0.45rem;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.hintPanel code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.selectorGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 0.75rem;
+}
+
+.payloadHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  border: 1px solid var(--docs-light-border-strong);
+  border-radius: 0.375rem;
+  background: var(--docs-light-surface-raised);
+  color: var(--ifm-font-color-base);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
+}
+
+.secondaryButton span {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.secondaryButton:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+:global([data-theme="dark"]) .secondaryButton {
+  border-color: var(--docs-dark-border-strong);
+  background: var(--docs-dark-surface-raised);
+}
+
 .submit {
   display: inline-flex;
   align-items: center;
@@ -209,7 +292,8 @@
 
 .snippetPanel,
 .decisionPanel,
-.entityPanel {
+.entityPanel,
+.audioPanel {
   min-width: 0;
   border: 1px solid var(--docs-light-border);
   border-radius: 0.5rem;
@@ -219,9 +303,16 @@
 
 :global([data-theme="dark"]) .snippetPanel,
 :global([data-theme="dark"]) .decisionPanel,
-:global([data-theme="dark"]) .entityPanel {
+:global([data-theme="dark"]) .entityPanel,
+:global([data-theme="dark"]) .audioPanel {
   border-color: var(--docs-dark-border);
   background: var(--docs-dark-surface);
+}
+
+.audioPanel audio {
+  display: block;
+  width: 100%;
+  min-height: 2.5rem;
 }
 
 .snippetHeader {
@@ -562,6 +653,17 @@
 
   .summaryGrid {
     grid-template-columns: 1fr;
+  }
+
+  .selectorGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .payloadHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.45rem;
   }
 
   .snippetHeader {

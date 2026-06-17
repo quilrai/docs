@@ -33,7 +33,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 ## Playground
 
-- [LLM Gateway SDK Playground](https://docs.quilrai.dev/playground/llm-gateway-sdk.md): Test `quilr_sdk` keys against `POST /sdk/v1/check`, copy live cURL/Python/JavaScript examples, inspect allow/redact/block judgement, and review returned sensitive entities.
+- [LLM Gateway Playground](https://docs.quilrai.dev/playground/llm-gateway-sdk.md): Test normal LLM Gateway provider keys against HTTP API surfaces such as unified chat completions, classic OpenAI text completions, OpenAI Responses, embeddings, rerank, Anthropic Messages, and text to speech, or test `quilr_sdk` guardrail checks against `POST /sdk/v1/check`.
 
 ## MCP Gateway
 

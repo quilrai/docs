@@ -13,7 +13,7 @@ Scan content directly from your application code - no LLM proxy required.
 
 SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages or text for sensitive data and adversarial inputs.
 
-Want to test a key before wiring it into your app? Use the [LLM Gateway SDK Playground](../../playground/llm-gateway-sdk).
+Want to test a key before wiring it into your app? Use the [LLM Gateway Playground](../../playground/llm-gateway-sdk) and switch to **SDK check** mode.
 
 Common uses:
 
