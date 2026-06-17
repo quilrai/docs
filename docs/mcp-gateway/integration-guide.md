@@ -18,11 +18,20 @@ https://mcp.quilr.ai/mcp/<your-mcp-slug>/
 
 ## Authentication Methods
 
-MCP Gateway supports three authentication methods depending on the MCP server's requirements.
+MCP Gateway separates the credential your AI client uses to reach the gateway from the credential the gateway uses to reach the upstream MCP server.
 
-### Token-Based Authentication
+### Client to Gateway
 
-The most common method. Send a Bearer token with a user identifier header for per-user tracking.
+| Method | Use When | Client Sends |
+|--------|----------|--------------|
+| **API token** | Programmatic access to non-OAuth or static-key MCPs. | `Authorization: Bearer <api-token>` plus `mcpuser: user@company.com`. |
+| **Gateway OAuth proxy token** | The AI client supports OAuth with the gateway. | A gateway-issued Bearer token from the MCP OAuth authorize/token flow. |
+| **OAuth passthrough** | The upstream MCP expects the client to perform OAuth directly with the upstream provider. | The upstream provider's Bearer token. |
+| **OneMCP OAuth proxy token** | The client connects to `/quilrone/<tenant-id>/mcp` or `/quilrone/mcp`. | A gateway-issued OneMCP Bearer token. |
+
+#### API Token Authentication
+
+Send a Bearer token with a user identifier header for per-user tracking.
 
 ```
 Authorization: Bearer <token>
@@ -32,14 +41,29 @@ mcpuser: user@company.com
 - Create API tokens in **Settings → API Tokens**
 - Each token is scoped to a specific agent
 - The `mcpuser` header identifies the end user for per-user tracking
+- The `mcpuser` email must belong to an allowed company domain
 
-### OAuth - Dynamic Client Registration (DCR)
+#### Gateway OAuth Proxy Tokens
 
-The gateway automatically registers as an OAuth client with the MCP server. No Client ID or Secret needed - just click **Connect** and authorize.
+OAuth-capable MCP clients can authenticate to the gateway through the gateway's OAuth endpoints. After the user signs in, the token endpoint returns a stable proxy token. The proxy token is scoped to the MCP backend, or to OneMCP for `/quilrone` endpoints.
 
-### OAuth - Manual
+#### OAuth Passthrough
 
-For MCP servers without DCR support. Provide your **Client ID** and **Client Secret** during MCP setup. The gateway uses these credentials for the authorization flow. See [OAuth Client Credentials](./oauth-client-credentials) for Slack and GitHub setup steps.
+In OAuth passthrough mode, the gateway advertises or relays the upstream OAuth metadata and the AI client obtains an upstream access token itself. The gateway accepts that upstream Bearer token on the direct per-MCP endpoint, forwards it to the upstream MCP server, and uses token claims such as `email`, `preferred_username`, `upn`, or `sub` for logging when available.
+
+OAuth passthrough MCPs are not exposed through OneMCP and do not use gateway token storage, refresh, dashboard Connect, or proxy tokens.
+
+### Gateway to Upstream MCP
+
+| Upstream Auth Mode | Description |
+|--------------------|-------------|
+| **No auth** | The upstream MCP does not require authentication. The gateway still authenticates and authorizes clients before forwarding calls. |
+| **OAuth - Dynamic Client Registration (DCR)** | The gateway registers as an OAuth client with the MCP server and manages per-user upstream tokens. |
+| **OAuth - Manual credentials** | An admin provides an OAuth Client ID and Client Secret during setup. Use this for providers that do not support DCR. |
+| **OAuth passthrough** | The client owns upstream OAuth and sends the upstream Bearer token through the gateway. |
+| **Static upstream API key** | An admin stores a fixed upstream credential. The gateway injects it as a Bearer token, custom header, or query parameter when calling the upstream MCP. |
+
+For manual OAuth setup steps, see [OAuth Client Credentials](./oauth-client-credentials). For OneMCP unified access, memory tools, and inline OAuth recovery, see [OneMCP](./onemcp).
 
 ## Token-Based Connection Example
 
@@ -55,6 +79,23 @@ curl -X POST https://mcp.quilr.ai/mcp/your-mcp-slug/ \
     "id": 1
   }'
 ```
+
+## OneMCP Connection Example
+
+```json
+{
+  "mcpServers": {
+    "quilr-onemcp": {
+      "url": "https://mcp.quilr.ai/quilrone/<tenant-id>/mcp",
+      "headers": {
+        "Authorization": "Bearer <onemcp-token>"
+      }
+    }
+  }
+}
+```
+
+With OneMCP, call `list_tool_groups` first, then `find_relevant_tools`, then `call_tool`. If a backend requires user OAuth, the response includes a short-lived connect URL that the user can open and retry.
 
 ## Agent Configuration
 

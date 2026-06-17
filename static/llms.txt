@@ -39,7 +39,8 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 - [Quick Start](https://docs.quilrai.dev/mcp-gateway/quick-start.md): Set up the MCP Gateway in 4 steps - add an MCP, configure tools and guardrails, connect an agent, and monitor.
 - [Architecture](https://docs.quilrai.dev/mcp-gateway/architecture.md): Tool call processing pipeline - Authenticate, Authorize, Scan, Policy, Connect - with auth mediation details.
-- [Integration Guide](https://docs.quilrai.dev/mcp-gateway/integration-guide.md): MCP endpoint URLs, authentication methods (Bearer token, OAuth DCR, OAuth manual), and connection examples.
+- [Integration Guide](https://docs.quilrai.dev/mcp-gateway/integration-guide.md): MCP endpoint URLs, client-to-gateway authentication, gateway-to-upstream auth modes (API token, OAuth DCR/manual, OAuth passthrough, static upstream API keys), and connection examples.
+- [OneMCP](https://docs.quilrai.dev/mcp-gateway/onemcp.md): Unified OneMCP endpoint, smart discovery tools, native memory tools, inline OAuth recovery with connect URLs, and visibility rules.
 - [OAuth Client Credentials](https://docs.quilrai.dev/mcp-gateway/oauth-client-credentials.md): Create Slack and GitHub OAuth apps, enable Slack MCP access and scopes, copy Client IDs and Client Secrets, and use them with manual OAuth MCP setup.
 - [MCP Gateway Log Export API](https://docs.quilrai.dev/mcp-gateway/log-export-api.md): Export backend-scoped or tenant-scoped MCP tool call logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
 
@@ -50,8 +51,8 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Agents Configuration](https://docs.quilrai.dev/mcp-gateway/features/agents-configuration.md): Map AI agents to MCPs, manage per-agent permissions, and monitor usage statistics.
 - [Security Guardrails](https://docs.quilrai.dev/mcp-gateway/features/security-guardrails.md): Detect sensitive data (PII, PHI, PCI) and adversarial attacks in MCP tool call inputs and outputs.
 - [Access Control](https://docs.quilrai.dev/mcp-gateway/features/access-control.md): Restrict which AI agents can use each MCP server via User-Agent header matching.
-- [API Tokens](https://docs.quilrai.dev/mcp-gateway/features/api-tokens.md): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access.
-- [OAuth Connect](https://docs.quilrai.dev/mcp-gateway/features/oauth-connect.md): Authorize OAuth-protected MCP servers with one click via Dynamic Client Registration or manual credentials.
+- [API Tokens](https://docs.quilrai.dev/mcp-gateway/features/api-tokens.md): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access, and understand how static upstream API keys are injected separately.
+- [OAuth Connect](https://docs.quilrai.dev/mcp-gateway/features/oauth-connect.md): Authorize OAuth-protected MCP servers with Dynamic Client Registration, manual credentials, OAuth passthrough, or OneMCP inline OAuth recovery.
 - [Web Search Policy](https://docs.quilrai.dev/mcp-gateway/features/web-search-policy.md): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).
 
 ## Compliance API Integration

@@ -58,6 +58,22 @@ Client Secret: ••••••••••
 
 The gateway uses these credentials for the authorization flow. For provider-specific setup steps, see [OAuth Client Credentials](../oauth-client-credentials).
 
+### OAuth Passthrough
+
+Use OAuth passthrough when the downstream MCP client must perform OAuth directly with the upstream MCP provider. In this mode:
+
+- The gateway relays or advertises upstream OAuth metadata.
+- The client obtains the upstream provider's access token.
+- The gateway accepts that upstream Bearer token on the direct per-MCP endpoint and forwards it upstream.
+- The gateway does not store, refresh, or revoke the upstream token.
+- The MCP is not exposed through OneMCP.
+
+### Inline OAuth in OneMCP
+
+OneMCP can surface OAuth MCPs before a user has connected them. When a selected tool needs upstream authorization, OneMCP returns an `isError: true` tool result containing a short-lived connect URL. The user opens the URL, finishes authorization, returns to the agent, and retries the same request.
+
+For the full OneMCP flow, see [OneMCP](../onemcp).
+
 ## Fetched Capabilities
 
 After authorization, the gateway caches the MCP server's capabilities:

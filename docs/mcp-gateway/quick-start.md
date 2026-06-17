@@ -61,10 +61,13 @@ Open **Settings** on any MCP card to fine-tune its behavior. Sensible defaults a
 | **[Web Search Policy](./features/web-search-policy)** | Domain exclusions via firewall integrations |
 | **[OAuth Connect](./features/oauth-connect)** | One-click OAuth authorization flow |
 | **[Agents Configuration](./features/agents-configuration)** | Define and manage AI agent profiles |
+| **[OneMCP](./onemcp)** | Unified endpoint with tool discovery, memory tools, and inline OAuth recovery |
 
 ## 3. Connect Your Agent
 
 Point your AI agent or client to the **MCP endpoint URL** shown on the card. Use **Authorization: Bearer &lt;token&gt;** and **mcpuser** headers for token-based MCPs. OAuth MCPs use the Connect flow instead.
+
+If your client should access multiple MCPs through one server, connect it to [OneMCP](./onemcp) at `/quilrone/<tenant-id>/mcp`.
 
 ```json
 {

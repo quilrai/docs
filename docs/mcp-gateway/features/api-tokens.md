@@ -12,6 +12,8 @@ Generate and manage Bearer tokens for programmatic MCP access.
 
 API tokens provide programmatic access to MCP servers that don't use OAuth. Each token is scoped to an agent and must be sent as `Authorization: Bearer <token>` along with a `mcpuser: user@email.com` header identifying the end user.
 
+API tokens authenticate the client to the gateway. They are separate from upstream MCP credentials. If the upstream MCP needs a fixed API key, an admin configures static upstream auth on the MCP; the gateway injects that upstream secret when forwarding calls.
+
 ## Key Features
 
 - **Create named API tokens** for non-OAuth MCPs
@@ -33,6 +35,18 @@ mcpuser: user@company.com
 |--------|---------|
 | `Authorization` | Bearer token for authentication |
 | `mcpuser` | Identifies the end user for per-user tracking |
+
+## Static Upstream API Keys
+
+Some MCP servers require a fixed upstream credential instead of per-user OAuth. Configure that credential on the MCP, not in the client. The gateway can inject the upstream secret as:
+
+| Placement | Example |
+|-----------|---------|
+| Bearer token | `Authorization: Bearer <upstream-secret>` |
+| Custom header | `x-api-key: <upstream-secret>` |
+| Query parameter | `?api_key=<upstream-secret>` |
+
+Client requests still use the gateway API token and `mcpuser` header. Gateway/client auth headers are stripped before the request is sent upstream.
 
 ## Security
 
