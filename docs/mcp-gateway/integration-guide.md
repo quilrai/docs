@@ -63,7 +63,7 @@ OAuth passthrough MCPs are not exposed through OneMCP and do not use gateway tok
 | **OAuth passthrough** | The client owns upstream OAuth and sends the upstream Bearer token through the gateway. |
 | **Static upstream API key** | An admin stores a fixed upstream credential. The gateway injects it as a Bearer token, custom header, or query parameter when calling the upstream MCP. |
 
-For manual OAuth setup steps, see [OAuth Client Credentials](./oauth-client-credentials). For OneMCP unified access, memory tools, and inline OAuth recovery, see [OneMCP](./onemcp).
+For manual OAuth setup steps, see [MCP Provider Setup](./mcp-provider-setup/overview). For OneMCP unified access, memory tools, and inline OAuth recovery, see [OneMCP](./onemcp).
 
 ## Token-Based Connection Example
 

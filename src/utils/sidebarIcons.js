@@ -27,6 +27,7 @@ import {
   BarChart2,
   UserCog,
   History,
+  GitBranch,
   Hash,
 } from "lucide-react";
 
@@ -59,6 +60,7 @@ const iconMap = {
   BarChart2,
   UserCog,
   History,
+  GitBranch,
 };
 
 export function getSidebarIcon(name) {

@@ -1,0 +1,11 @@
+{
+  "label": "MCP Provider Setup",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Provider-specific setup for MCP servers that need manual connection - create an OAuth app for a Client ID and Client Secret, or add a provider-generated MCP server URL."
+  },
+  "customProps": {
+    "icon": "KeyRound"
+  }
+}
