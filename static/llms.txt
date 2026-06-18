@@ -30,6 +30,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Identity Aware](https://docs.quilrai.dev/llm-gateway/features/identity-aware.md): Authenticate and track individual users behind each API key via JWT/JWKS or header validation.
 - [SDK Mode](https://docs.quilrai.dev/llm-gateway/features/sdk-mode.md): Scan content directly from your application code with no LLM proxy required.
 - [Copilot Studio](https://docs.quilrai.dev/llm-gateway/features/copilot-studio.md): Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution.
+- [Agent Monitoring](https://docs.quilrai.dev/llm-gateway/features/agent-monitoring.md): Correlate gateway LLM calls with agent runs, traces, workflows, and conversations via W3C/vendor tracing headers, Quilr agent headers, baggage, or provider request-body metadata.
 
 ## Playground
 
