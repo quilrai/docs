@@ -28,6 +28,7 @@ import {
   UserCog,
   History,
   GitBranch,
+  LayoutGrid,
   Hash,
 } from "lucide-react";
 
@@ -61,6 +62,7 @@ const iconMap = {
   UserCog,
   History,
   GitBranch,
+  LayoutGrid,
 };
 
 export function getSidebarIcon(name) {
