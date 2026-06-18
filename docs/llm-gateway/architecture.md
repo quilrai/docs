@@ -42,7 +42,7 @@ client.chat.completions.create(
       {
         label: "Transform",
         stages: [
-          { label: "Prompt Store", items: ["Centralized prompts", "Template variables", "Enforce prompt-only mode"] },
+          { label: "Prompt Store", items: ["Centralized prompts", "Combine refs + inline text", "Template variables", "Require store reference"] },
           { label: "Token Saving", items: ["JSON compression", "HTML/MD stripping", "Input-only, same accuracy"] },
         ],
       },
@@ -72,7 +72,7 @@ Every API request flows through these stages in order. Each stage is independent
 | **Security Guardrails** | Detects PII, PHI, PCI, and financial data. Catches prompt injection, jailbreak, and social engineering. | [Security Guardrails →](./features/security-guardrails) |
 | **Custom Intents** | User-defined detection categories trained with positive and negative examples. | [Custom Intents →](./features/custom-intents) |
 | **Guardian Agent** | Adds dependency-safety guidance, reviews generated dependency output, and keeps agent requests aligned to the system prompt. | [Guardian Agent →](./features/guardian-agent) |
-| **Prompt Store** | Resolves centralized system prompts by ID with template variable substitution. | [Prompt Store →](./features/prompt-store) |
+| **Prompt Store** | Resolves one or more centralized system prompts by ID, allows inline instructions alongside references, and substitutes template variables. | [Prompt Store →](./features/prompt-store) |
 | **Token Saving** | Compresses input tokens - JSON to TOON, HTML/Markdown to plain text. Responses unchanged. | [Token Saving →](./features/token-saving) |
 | **Request Routing** | Routes to the optimal provider using weighted load balancing with automatic failover. | [Request Routing →](./features/request-routing) |
 
