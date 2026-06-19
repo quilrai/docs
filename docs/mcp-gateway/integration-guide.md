@@ -13,7 +13,7 @@ MCP endpoints, authentication methods, and connection examples for integrating A
 Each MCP gets a unique endpoint URL displayed on its card. Point your AI agent to this URL to connect.
 
 ```
-https://mcp.quilr.ai/mcp/<your-mcp-slug>/
+https://mcp.quilr.ai/<your-mcp-slug>/mcp
 ```
 
 ## Authentication Methods
@@ -69,7 +69,7 @@ For manual OAuth setup steps, see [MCP Provider Setup](./mcp-provider-setup/over
 
 ```bash
 # Connect to MCP endpoint with token auth
-curl -X POST https://mcp.quilr.ai/mcp/your-mcp-slug/ \
+curl -X POST https://mcp.quilr.ai/your-mcp-slug/mcp \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-api-token>" \
   -H "mcpuser: user@company.com" \

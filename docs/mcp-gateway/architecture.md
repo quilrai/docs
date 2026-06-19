@@ -15,7 +15,7 @@ How the QuilrAI MCP Gateway processes every tool call - from your AI agent to th
 {
   "mcpServers": {
     "github": {
-      "url": "https://mcp.quilr.ai/mcp/github/"
+      "url": "https://mcp.quilr.ai/<your-mcp-id>/mcp"
     }
   }
 }`,
