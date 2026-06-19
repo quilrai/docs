@@ -80,6 +80,26 @@ const config = {
                         ],
                         to: '/llm-gateway/unified-completions',
                     },
+                    {
+                        from: [
+                            '/playground/llm-gateway-sdk',
+                            '/playground/llm-gateway-sdk.md',
+                            '/docs/playground/llm-gateway-sdk',
+                            '/docs/playground/llm-gateway-sdk.md',
+                        ],
+                        to: '/llm-gateway-playground',
+                    },
+                    {
+                        from: [
+                            '/playground/log-export',
+                            '/playground/log-export.md',
+                            '/docs/playground/log-export',
+                            '/docs/playground/log-export.md',
+                            '/playground',
+                            '/docs/playground',
+                        ],
+                        to: '/llm-gateway-playground',
+                    },
                 ],
                 createRedirects(existingPath) {
                     // Redirect legacy /docs/* URLs to the new / root
@@ -136,6 +156,11 @@ const config = {
                         sidebarId: 'docsSidebar',
                         position: 'left',
                         label: 'Documentation',
+                    },
+                    {
+                        to: '/llm-gateway-playground',
+                        label: 'Playground',
+                        position: 'left',
                     },
                     {
                         href: 'https://www.quilr.ai/resources',

@@ -34,7 +34,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 ## Playground
 
-- [LLM Gateway Playground](https://docs.quilrai.dev/playground/llm-gateway-sdk.md): Test normal LLM Gateway provider keys against HTTP API surfaces such as unified chat completions, classic OpenAI text completions, OpenAI Responses, embeddings, rerank, Anthropic Messages, and text to speech, or test `quilr_sdk` guardrail checks against `POST /sdk/v1/check`.
+- [LLM Gateway Playground](https://docs.quilrai.dev/llm-gateway-playground): Full-page, console-style studio that fires real LLM Gateway requests from the browser against any gateway base URL. Streams chat completions live and runs every surface - chat, OpenAI Responses, Anthropic Messages, classic completions, embeddings, rerank, and text to speech - plus `quilr_sdk` guardrail checks against `POST /sdk/v1/check` and a Log Export surface that pages the LLM or MCP Gateway log export API (with an `sk-export-` key) into an Excel-ready CSV. Generates the exact cURL, Python, and JavaScript for each request.
 
 ## MCP Gateway
 
