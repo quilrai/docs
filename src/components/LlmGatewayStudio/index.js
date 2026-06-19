@@ -173,7 +173,7 @@ const GATEWAY_CATEGORIES = ['Conversation', 'Data'];
 
 const STUDIO_TABS = [
   { id: 'gateway', label: 'Gateway', Icon: Terminal, surface: 'chat' },
-  { id: 'guardrails', label: 'Guardrails', Icon: ShieldCheck, surface: 'sdk' },
+  { id: 'guardrails', label: 'Quilr SDK', Icon: ShieldCheck, surface: 'sdk' },
   { id: 'logs', label: 'Log Export', Icon: Database, surface: 'logs' },
 ];
 
