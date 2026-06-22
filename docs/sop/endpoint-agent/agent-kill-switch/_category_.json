@@ -1,0 +1,11 @@
+{
+  "label": "Agent Kill Switch",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Disable or restore the Sentinel endpoint agent on a single device or entire tenant — without a code deploy or engineering intervention."
+  },
+  "customProps": {
+    "icon": "ShieldCheck"
+  }
+}

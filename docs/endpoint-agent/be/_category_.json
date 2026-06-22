@@ -1,0 +1,11 @@
+{
+  "label": "Backend Integration",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "How the Sentinel endpoint agent connects to the Quilr backend: discovery sync, governance pull, and enforcement reporting."
+  },
+  "customProps": {
+    "icon": "Link"
+  }
+}

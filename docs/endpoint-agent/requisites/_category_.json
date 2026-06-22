@@ -1,0 +1,11 @@
+{
+  "label": "Requisites",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "System requirements and prerequisites for deploying the Sentinel endpoint agent."
+  },
+  "customProps": {
+    "icon": "ShieldCheck"
+  }
+}

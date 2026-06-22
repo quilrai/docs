@@ -1,0 +1,11 @@
+{
+  "label": "Clipboard Monitor",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Intercept OS clipboard copy events, forward content metadata to the browser extension policy engine, and enforce allow, block, or prompt decisions in real time."
+  },
+  "customProps": {
+    "icon": "Clipboard"
+  }
+}
