@@ -47,6 +47,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [MCP Provider Setup: GitHub](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/github.md): Create a GitHub OAuth app, set the callback URL, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Provider Setup: Zoho](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/zoho.md): Connect Zoho Cliq MCP - no OAuth app or Client ID/Secret needed; generate the MCP server URL in the Zoho MCP console and add it manually.
 - [MCP Provider Setup: Google Workspace](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/google-workspace.md): Connect the QuilrAI-built Google Workspace MCP (Gmail and Calendar) - create a Google Cloud OAuth client, enable the Gmail and Calendar APIs, add the required scopes including openid, and copy the Client ID and Client Secret for manual OAuth.
+- [MCP Provider Setup: Figma](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/figma.md): Connect the QuilrAI-built Figma MCP (design context, comments, Code Connect) - create a Figma OAuth app, add the redirect URI and required scopes, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Gateway Log Export API](https://docs.quilrai.dev/mcp-gateway/log-export-api.md): Export backend-scoped or tenant-scoped MCP tool call logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
 
 ### MCP Gateway Features
