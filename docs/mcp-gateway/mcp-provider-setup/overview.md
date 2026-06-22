@@ -34,6 +34,7 @@ Create a separate OAuth app for each QuilrAI tenant or environment if the callba
 - [GitHub](./github) - create a GitHub OAuth app and copy its Client ID and Client Secret.
 - [Zoho](./zoho) - no OAuth app needed; add the Zoho-generated MCP server URL manually.
 - [Google Workspace](./google-workspace) - create a Google Cloud OAuth client for the QuilrAI-built Gmail and Calendar MCP, then copy its Client ID and Client Secret.
+- [Figma](./figma) - create a Figma OAuth app for the QuilrAI-built Figma MCP, then copy its Client ID and Client Secret.
 
 ## Store And Rotate Secrets
 
