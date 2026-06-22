@@ -73,6 +73,21 @@ const SURFACES = [
     blurb: 'Native Anthropic Messages shape with x-api-key auth.',
   },
   {
+    id: 'assistants',
+    group: 'chat',
+    category: 'Conversation',
+    label: 'Assistants',
+    // Representative generative call; the stateful flow also hits /assistants,
+    // /threads, and /threads/{id}/messages under the same prefix.
+    path: '/openai_assistants/v1/threads/{thread_id}/runs',
+    auth: 'bearer',
+    // Provider routing/selector is not available for the Assistants API.
+    selector: false,
+    model: 'gpt-4o-mini',
+    blurb:
+      'OpenAI Assistants API v2 (stateful). The playground creates an assistant and thread, posts your message through input guardrails, then runs the assistant. Needs a key with an openai_assistants or openai_assistants_azure provider.',
+  },
+  {
     id: 'completions',
     group: 'editor',
     category: 'Data',
@@ -585,9 +600,19 @@ function buildResponsesPayload({ model, systemPrompt, messages, maxTokens, tempe
   return payload;
 }
 
+function buildAssistantsRunPayload({ model, systemPrompt, maxTokens, temperature, stream, assistantId }) {
+  const payload = { assistant_id: assistantId || 'asst_… (created automatically)', model };
+  if (systemPrompt.trim()) payload.instructions = systemPrompt;
+  payload.temperature = temperature;
+  payload.max_completion_tokens = maxTokens;
+  payload.stream = Boolean(stream);
+  return payload;
+}
+
 function buildConversationPayload(surface, opts) {
   if (surface.id === 'anthropic') return buildAnthropicPayload(opts);
   if (surface.id === 'responses') return buildResponsesPayload(opts);
+  if (surface.id === 'assistants') return buildAssistantsRunPayload(opts);
   return buildChatPayload({ ...opts, stream: opts.stream });
 }
 
@@ -738,6 +763,199 @@ console.log(data);
 `;
 }
 
+/* Assistants is stateful + multi-call, so its snippets show the whole flow:
+   create assistant -> create thread -> post message -> run (stream or poll). */
+
+function assistantsCreateBody(p) {
+  return p.instructions.trim() ? { model: p.model, instructions: p.instructions } : { model: p.model };
+}
+
+function assistantsMessageBody(p) {
+  return { role: 'user', content: p.userMessage };
+}
+
+function buildAssistantsCurl(base, key, p) {
+  const auth = `Authorization: Bearer ${key}`;
+  const runArgs = ['--arg a "$ASSISTANT_ID"'];
+  const runFields = ['assistant_id: $a', `model: ${JSON.stringify(p.model)}`];
+  if (p.instructions.trim()) {
+    runArgs.push(`--arg i ${shellQuote(p.instructions)}`);
+    runFields.push('instructions: $i');
+  }
+  runFields.push(`temperature: ${p.temperature}`, `max_completion_tokens: ${p.maxTokens}`, `stream: ${p.stream}`);
+  const lines = [
+    '# Assistants is stateful: create an assistant + thread, post a message, then',
+    '# run the assistant. Uses jq to capture the IDs each step returns.',
+    '',
+    '# 1) Create a reusable assistant',
+    `ASSISTANT_ID=$(curl -s --request POST ${shellQuote(`${base}/openai_assistants/v1/assistants`)} \\`,
+    `  --header ${shellQuote(auth)} \\`,
+    "  --header 'Content-Type: application/json' \\",
+    `  --data ${shellQuote(formatJson(assistantsCreateBody(p)))} | jq -r '.id')`,
+    '',
+    '# 2) Create a thread',
+    `THREAD_ID=$(curl -s --request POST ${shellQuote(`${base}/openai_assistants/v1/threads`)} \\`,
+    `  --header ${shellQuote(auth)} \\`,
+    "  --header 'Content-Type: application/json' \\",
+    "  --data '{}' | jq -r '.id')",
+    '',
+    '# 3) Add your message (scanned by Quilr input guardrails)',
+    `curl -s --request POST "${base}/openai_assistants/v1/threads/$THREAD_ID/messages" \\`,
+    `  --header ${shellQuote(auth)} \\`,
+    "  --header 'Content-Type: application/json' \\",
+    `  --data ${shellQuote(formatJson(assistantsMessageBody(p)))}`,
+    '',
+    p.stream ? '# 4) Run the assistant and stream the reply' : '# 4) Run the assistant',
+    `curl ${p.stream ? '-N ' : ''}--request POST "${base}/openai_assistants/v1/threads/$THREAD_ID/runs" \\`,
+    `  --header ${shellQuote(auth)} \\`,
+    "  --header 'Content-Type: application/json' \\",
+    `  --data "$(jq -n ${runArgs.join(' ')} '{ ${runFields.join(', ')} }')"`,
+  ];
+  if (!p.stream) {
+    lines.push(
+      '',
+      '# 5) Poll the run until status is "completed", then read the newest message:',
+      '#    GET  .../threads/$THREAD_ID/runs/$RUN_ID',
+      `#    GET  "${base}/openai_assistants/v1/threads/$THREAD_ID/messages?order=desc&limit=1"`,
+    );
+  }
+  return lines.join('\n');
+}
+
+function pyRunBody(p, assistantExpr) {
+  const fields = [`"assistant_id": ${assistantExpr}`, `"model": ${JSON.stringify(p.model)}`];
+  if (p.instructions.trim()) fields.push(`"instructions": ${JSON.stringify(p.instructions)}`);
+  fields.push(`"temperature": ${p.temperature}`, `"max_completion_tokens": ${p.maxTokens}`, `"stream": ${p.stream ? 'True' : 'False'}`);
+  return `{${fields.join(', ')}}`;
+}
+
+function buildAssistantsPython(base, key, p) {
+  const header = `import json
+
+import requests
+
+base = ${JSON.stringify(base)}
+headers = {"Authorization": ${JSON.stringify(`Bearer ${key}`)}, "Content-Type": "application/json"}
+
+# 1) Create a reusable assistant
+assistant = requests.post(f"{base}/openai_assistants/v1/assistants",
+                          headers=headers, json=${JSON.stringify(assistantsCreateBody(p))}).json()
+
+# 2) Create a thread
+thread = requests.post(f"{base}/openai_assistants/v1/threads", headers=headers, json={}).json()
+
+# 3) Add your message (scanned by Quilr input guardrails)
+requests.post(f"{base}/openai_assistants/v1/threads/{thread['id']}/messages",
+              headers=headers, json=${JSON.stringify(assistantsMessageBody(p))})
+`;
+  if (p.stream) {
+    return `${header}
+# 4) Run the assistant and stream the reply
+with requests.post(f"{base}/openai_assistants/v1/threads/{thread['id']}/runs",
+                   headers=headers, json=${pyRunBody(p, 'assistant["id"]')}, stream=True) as run:
+    for line in run.iter_lines():
+        if line.startswith(b"data: ") and line[6:] != b"[DONE]":
+            event = json.loads(line[6:])
+            if event.get("object") == "thread.message.delta":
+                for part in event["delta"].get("content", []):
+                    print(part.get("text", {}).get("value", ""), end="", flush=True)
+`;
+  }
+  return `${header}
+# 4) Run the assistant, poll until it finishes, then read the reply
+import time
+
+run = requests.post(f"{base}/openai_assistants/v1/threads/{thread['id']}/runs",
+                    headers=headers, json=${pyRunBody(p, 'assistant["id"]')}).json()
+while run["status"] not in ("completed", "failed", "cancelled", "expired"):
+    time.sleep(0.8)
+    run = requests.get(f"{base}/openai_assistants/v1/threads/{thread['id']}/runs/{run['id']}",
+                       headers=headers).json()
+
+messages = requests.get(f"{base}/openai_assistants/v1/threads/{thread['id']}/messages?order=desc&limit=1",
+                        headers=headers).json()
+print(messages["data"][0]["content"][0]["text"]["value"])
+`;
+}
+
+function jsRunBody(p, assistantExpr) {
+  const obj = {
+    assistant_id: '__AID__',
+    model: p.model,
+    ...(p.instructions.trim() ? { instructions: p.instructions } : {}),
+    temperature: p.temperature,
+    max_completion_tokens: p.maxTokens,
+    stream: p.stream,
+  };
+  return JSON.stringify(obj).replace('"__AID__"', assistantExpr);
+}
+
+function buildAssistantsJs(base, key, p) {
+  const header = `const base = ${JSON.stringify(base)};
+const headers = { Authorization: ${JSON.stringify(`Bearer ${key}`)}, "Content-Type": "application/json" };
+
+// 1) Create a reusable assistant
+const assistant = await (await fetch(\`\${base}/openai_assistants/v1/assistants\`, {
+  method: "POST", headers, body: JSON.stringify(${JSON.stringify(assistantsCreateBody(p))}),
+})).json();
+
+// 2) Create a thread
+const thread = await (await fetch(\`\${base}/openai_assistants/v1/threads\`, {
+  method: "POST", headers, body: JSON.stringify({}),
+})).json();
+
+// 3) Add your message (scanned by Quilr input guardrails)
+await fetch(\`\${base}/openai_assistants/v1/threads/\${thread.id}/messages\`, {
+  method: "POST", headers, body: JSON.stringify(${JSON.stringify(assistantsMessageBody(p))}),
+});
+`;
+  if (p.stream) {
+    return `${header}
+// 4) Run the assistant and stream the reply
+const run = await fetch(\`\${base}/openai_assistants/v1/threads/\${thread.id}/runs\`, {
+  method: "POST", headers, body: JSON.stringify(${jsRunBody(p, 'assistant.id')}),
+});
+const reader = run.body.getReader();
+const decoder = new TextDecoder();
+let buffer = "";
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  buffer += decoder.decode(value, { stream: true });
+  const events = buffer.split("\\n\\n");
+  buffer = events.pop() ?? "";
+  for (const event of events) {
+    for (const line of event.split("\\n")) {
+      if (!line.startsWith("data:")) continue;
+      const data = line.slice(5).trim();
+      if (data === "[DONE]") continue;
+      const json = JSON.parse(data);
+      if (json.object === "thread.message.delta") {
+        for (const part of json.delta?.content ?? []) {
+          if (part.text?.value) process.stdout.write(part.text.value);
+        }
+      }
+    }
+  }
+}
+`;
+  }
+  return `${header}
+// 4) Run the assistant, poll until it finishes, then read the reply
+let run = await (await fetch(\`\${base}/openai_assistants/v1/threads/\${thread.id}/runs\`, {
+  method: "POST", headers, body: JSON.stringify(${jsRunBody(p, 'assistant.id')}),
+})).json();
+while (!["completed", "failed", "cancelled", "expired"].includes(run.status)) {
+  await new Promise((r) => setTimeout(r, 800));
+  run = await (await fetch(\`\${base}/openai_assistants/v1/threads/\${thread.id}/runs/\${run.id}\`, { headers })).json();
+}
+const messages = await (await fetch(
+  \`\${base}/openai_assistants/v1/threads/\${thread.id}/messages?order=desc&limit=1\`, { headers },
+)).json();
+console.log(messages.data[0].content[0].text.value);
+`;
+}
+
 function buildSdkCurl(url, payload, key) {
   return [
     `curl --request POST ${shellQuote(url)} \\`,
@@ -817,6 +1035,10 @@ export default function LlmGatewayStudio() {
 
   const [thread, setThread] = useState([]);
   const [composer, setComposer] = useState(STARTER_PROMPTS[0]);
+
+  /* Assistants surface keeps the stateful OpenAI handles across turns. */
+  const [assistantId, setAssistantId] = useState(null);
+  const [threadId, setThreadId] = useState(null);
 
   const [payloadText, setPayloadText] = useState('');
   const [sdkCheckType, setSdkCheckType] = useState('request');
@@ -902,6 +1124,13 @@ export default function LlmGatewayStudio() {
     setLogEndTime(initial.end);
   }, []);
 
+  // The Assistants handles belong to a specific key + endpoint; drop them when
+  // either changes so the next turn recreates them against the new target.
+  useEffect(() => {
+    setAssistantId(null);
+    setThreadId(null);
+  }, [apiKey, normalizedBase]);
+
   /* Connection status for the topbar pill */
   const connection = (() => {
     if (isRunning) return { tone: 'running', text: isLogs ? 'Exporting' : 'Connecting' };
@@ -949,7 +1178,8 @@ export default function LlmGatewayStudio() {
       messages: previewMessages,
       temperature,
       maxTokens,
-      stream: surface.id === 'chat' && streamEnabled,
+      stream: (surface.id === 'chat' || surface.id === 'assistants') && streamEnabled,
+      assistantId,
     });
     return surface.selector ? withSelector(built, selectorType, selectorValue) : built;
   }, [
@@ -967,6 +1197,7 @@ export default function LlmGatewayStudio() {
     temperature,
     maxTokens,
     streamEnabled,
+    assistantId,
   ]);
 
   const snippetKeyValue = isLogs
@@ -983,6 +1214,19 @@ export default function LlmGatewayStudio() {
       if (codeTab === 'javascript') return buildSdkJs(requestUrl, sdkPayload, snippetKeyValue);
       return buildSdkCurl(requestUrl, sdkPayload, snippetKeyValue);
     }
+    if (surface.id === 'assistants') {
+      const p = {
+        model,
+        instructions: systemPrompt,
+        temperature,
+        maxTokens,
+        stream: streamEnabled,
+        userMessage: previewMessages[previewMessages.length - 1]?.content || 'Hello from the QuilrAI gateway playground.',
+      };
+      if (codeTab === 'python') return buildAssistantsPython(normalizedBase, snippetKeyValue, p);
+      if (codeTab === 'javascript') return buildAssistantsJs(normalizedBase, snippetKeyValue, p);
+      return buildAssistantsCurl(normalizedBase, snippetKeyValue, p);
+    }
     if (!effectivePayload) return '// Fix the JSON request body to generate a runnable example.';
     const headers = getHeaders(surface, snippetKeyValue);
     if (codeTab === 'python') return buildPython(requestUrl, effectivePayload, headers, surface);
@@ -997,6 +1241,13 @@ export default function LlmGatewayStudio() {
     snippetKeyValue,
     effectivePayload,
     surface,
+    normalizedBase,
+    model,
+    systemPrompt,
+    temperature,
+    maxTokens,
+    streamEnabled,
+    previewMessages,
     logQueryPreview.start_time,
     logQueryPreview.end_time,
     logQueryPreview.limit,
@@ -1036,6 +1287,8 @@ export default function LlmGatewayStudio() {
   function clearConversation() {
     if (isRunning) return;
     setThread([]);
+    setAssistantId(null);
+    setThreadId(null);
     resetRunState();
   }
 
@@ -1257,6 +1510,28 @@ export default function LlmGatewayStudio() {
     setIsRunning(true);
 
     const startedAt = performance.now();
+
+    // Assistants is a stateful, multi-call flow with its own streaming shape, so
+    // it runs through a dedicated orchestrator instead of the single-POST path.
+    if (surface.id === 'assistants') {
+      try {
+        await runAssistantTurn(assistantMsg.id, draft, startedAt);
+      } catch (err) {
+        const aborted = err.name === 'AbortError';
+        updateAssistant(assistantMsg.id, {
+          status: 'error',
+          error: aborted ? 'Stopped.' : 'Could not reach the gateway. Check the endpoint, network, and CORS.',
+        });
+        if (!aborted) {
+          setError('The browser could not reach the gateway endpoint. Check the endpoint, network access, and CORS policy.');
+        }
+      } finally {
+        abortRef.current = null;
+        setIsRunning(false);
+      }
+      return;
+    }
+
     const reqMessages = nextThread
       .filter((m) => m.content && m.content.trim())
       .map((m) => ({ role: m.role, content: m.content }));
@@ -1314,6 +1589,194 @@ export default function LlmGatewayStudio() {
 
   function withSelectorMaybe(payload) {
     return surface.selector ? withSelector(payload, selectorType, selectorValue) : payload;
+  }
+
+  /* Orchestrate one Assistants turn: ensure an assistant + thread exist, post the
+     user message (input guardrails apply here), then run the assistant — either
+     streaming the reply or polling the run to completion and reading it back. */
+  async function runAssistantTurn(assistantMsgId, draft, startedAt) {
+    const base = normalizedBase;
+    const baseHeaders = getHeaders(surface, apiKey.trim());
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    // One JSON round-trip. Provider routing/selector is not available for the
+    // Assistants API, so requests never carry a provider/provider_label.
+    const call = async (method, path, bodyObj) => {
+      const resp = await fetch(`${base}${path}`, {
+        method,
+        headers: baseHeaders,
+        body: bodyObj !== undefined ? JSON.stringify(bodyObj) : undefined,
+        signal: controller.signal,
+      });
+      const text = await resp.text();
+      return { resp, json: parseJson(text), text };
+    };
+
+    const detailOf = ({ resp, json, text }) =>
+      json?.error?.message || json?.detail || json?.message || text || `HTTP ${resp.status}`;
+    const failHttp = (result) => {
+      const detail = detailOf(result);
+      updateAssistant(assistantMsgId, { content: '', status: 'error', error: detail });
+      setMeta(result.resp, startedAt, false, result.json ?? result.text);
+      setError(detail);
+    };
+
+    // 1) Ensure a reusable assistant exists for this conversation.
+    let aId = assistantId;
+    if (!aId) {
+      const created = await call(
+        'POST',
+        '/openai_assistants/v1/assistants',
+        systemPrompt.trim() ? { model, instructions: systemPrompt } : { model },
+      );
+      if (!created.resp.ok || !created.json?.id) return failHttp(created);
+      aId = created.json.id;
+      setAssistantId(aId);
+    }
+
+    // 2) Ensure a thread exists.
+    let tId = threadId;
+    if (!tId) {
+      const created = await call('POST', '/openai_assistants/v1/threads', {});
+      if (!created.resp.ok || !created.json?.id) return failHttp(created);
+      tId = created.json.id;
+      setThreadId(tId);
+    }
+
+    // 3) Post the user message (input guardrails run here; a block returns 400).
+    const posted = await call('POST', `/openai_assistants/v1/threads/${tId}/messages`, {
+      role: 'user',
+      content: draft,
+    });
+    if (!posted.resp.ok) return failHttp(posted);
+
+    // 4) Run the assistant. model + instructions are sent per-run so editing them
+    //    mid-conversation applies without recreating the assistant handle.
+    const runPayload = { assistant_id: aId, model };
+    if (systemPrompt.trim()) runPayload.instructions = systemPrompt;
+    runPayload.temperature = temperature;
+    runPayload.max_completion_tokens = maxTokens;
+    runPayload.stream = streamEnabled;
+
+    if (streamEnabled) {
+      const response = await fetch(`${base}/openai_assistants/v1/threads/${tId}/runs`, {
+        method: 'POST',
+        headers: baseHeaders,
+        body: JSON.stringify(runPayload),
+        signal: controller.signal,
+      });
+      if (!response.ok || !response.body) {
+        const text = await response.text();
+        return failHttp({ resp: response, json: parseJson(text), text });
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let acc = '';
+      let runId = null;
+      let runError = null;
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        for (const event of events) {
+          for (const line of event.split('\n')) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+            const data = trimmed.slice(5).trim();
+            if (data === '[DONE]') continue;
+            const json = parseJson(data);
+            if (!json) continue;
+            if (json.object === 'thread.message.delta') {
+              const parts = json.delta?.content;
+              if (Array.isArray(parts)) {
+                for (const part of parts) {
+                  const value_ = part?.text?.value;
+                  if (typeof value_ === 'string') {
+                    acc += value_;
+                    updateAssistant(assistantMsgId, { content: acc });
+                  }
+                }
+              }
+            } else if (json.object === 'thread.run') {
+              if (json.id) runId = json.id;
+              if (json.status === 'failed') runError = json.last_error?.message || 'The run failed.';
+              else if (json.status === 'requires_action')
+                runError = 'The run needs tool outputs, which the playground does not provide.';
+              else if (json.status === 'expired') runError = 'The run expired before completing.';
+            }
+          }
+        }
+      }
+
+      if (!acc && runError) {
+        updateAssistant(assistantMsgId, { content: '', status: 'error', error: runError });
+        setMeta(response, startedAt, false, { thread_id: tId, run_id: runId, error: runError });
+        setError(runError);
+        return;
+      }
+      updateAssistant(assistantMsgId, {
+        content: acc,
+        status: acc ? 'done' : 'empty',
+        error: runError || undefined,
+      });
+      setMeta(response, startedAt, true, {
+        assistant_id: aId,
+        thread_id: tId,
+        run_id: runId,
+        output_text: acc || '(no text returned)',
+      });
+      return;
+    }
+
+    // Non-streaming: create the run, poll until it settles, then read the reply.
+    const runResult = await call('POST', `/openai_assistants/v1/threads/${tId}/runs`, runPayload);
+    if (!runResult.resp.ok || !runResult.json?.id) return failHttp(runResult);
+    const runId = runResult.json.id;
+    let status = runResult.json.status;
+    let lastRun = runResult.json;
+    const terminal = new Set(['completed', 'failed', 'cancelled', 'expired', 'requires_action']);
+    let polls = 0;
+    while (!terminal.has(status) && polls < 75) {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
+      const polled = await call('GET', `/openai_assistants/v1/threads/${tId}/runs/${runId}`);
+      if (!polled.resp.ok) return failHttp(polled);
+      status = polled.json?.status;
+      lastRun = polled.json;
+      polls += 1;
+    }
+
+    if (status === 'completed') {
+      const list = await call('GET', `/openai_assistants/v1/threads/${tId}/messages?order=desc&limit=1`);
+      if (!list.resp.ok) return failHttp(list);
+      const parts = list.json?.data?.[0]?.content;
+      const out = Array.isArray(parts) ? parts.map((part) => part?.text?.value).filter(Boolean).join('\n') : '';
+      updateAssistant(assistantMsgId, { content: out || '(no text in response)', status: 'done' });
+      setMeta(list.resp, startedAt, true, {
+        assistant_id: aId,
+        thread_id: tId,
+        run_id: runId,
+        status,
+        output_text: out || '(no text)',
+      });
+      return;
+    }
+
+    const detail =
+      lastRun?.last_error?.message ||
+      (status === 'requires_action'
+        ? 'The run needs tool outputs, which the playground does not provide.'
+        : `Run ${status || 'did not complete'}.`);
+    updateAssistant(assistantMsgId, { content: '', status: 'error', error: detail });
+    setMeta(runResult.resp, startedAt, false, lastRun || { error: detail });
+    setError(detail);
   }
 
   async function runSingle() {
@@ -1576,6 +2039,8 @@ export default function LlmGatewayStudio() {
               setMaxTokens={setMaxTokens}
               streamEnabled={streamEnabled}
               setStreamEnabled={setStreamEnabled}
+              assistantId={assistantId}
+              threadId={threadId}
               thread={thread}
               composer={composer}
               setComposer={setComposer}
@@ -1835,6 +2300,8 @@ function ConversationPane({
   setMaxTokens,
   streamEnabled,
   setStreamEnabled,
+  assistantId,
+  threadId,
   thread,
   composer,
   setComposer,
@@ -1902,13 +2369,29 @@ function ConversationPane({
             onChange={(e) => setMaxTokens(Number(e.target.value) || 1)}
           />
         </label>
-        {surface.id === 'chat' && (
+        {(surface.id === 'chat' || surface.id === 'assistants') && (
           <label className={`${styles.param} ${styles.streamToggle}`}>
             <span>Stream</span>
             <input type="checkbox" checked={streamEnabled} onChange={(e) => setStreamEnabled(e.target.checked)} />
           </label>
         )}
       </div>
+
+      {surface.id === 'assistants' && (assistantId || threadId) && (
+        <p className={styles.subtle}>
+          {assistantId && (
+            <>
+              Assistant <span className={styles.mono}>{assistantId}</span>
+            </>
+          )}
+          {assistantId && threadId && ' · '}
+          {threadId && (
+            <>
+              Thread <span className={styles.mono}>{threadId}</span>
+            </>
+          )}
+        </p>
+      )}
 
       <div className={styles.thread}>
         {thread.length === 0 && (
