@@ -35,6 +35,7 @@ Create a separate OAuth app for each QuilrAI tenant or environment if the callba
 - [Zoho](./zoho) - no OAuth app needed; add the Zoho-generated MCP server URL manually.
 - [Google Workspace](./google-workspace) - create a Google Cloud OAuth client for the QuilrAI-built Gmail and Calendar MCP, then copy its Client ID and Client Secret.
 - [Figma](./figma) - create a Figma OAuth app for the QuilrAI-built Figma MCP, then copy its Client ID and Client Secret.
+- [Datadog](./datadog) - no OAuth app needed; register the QuilrAI callback URL in Datadog Organization Settings, then add your site-specific Datadog MCP endpoint URL manually.
 
 ## Store And Rotate Secrets
 
