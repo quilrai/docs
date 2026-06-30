@@ -479,6 +479,26 @@ function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
+function isOpenAiCurrentChatModel(model) {
+  const id = String(model || '').trim().toLowerCase();
+  return /(?:^|[-_/])(?:gpt-[5-9](?:[._-]|$)|o\d+(?:[._-]|$))/.test(id);
+}
+
+function chatTokenLimitField(model) {
+  return isOpenAiCurrentChatModel(model) ? 'max_completion_tokens' : 'max_tokens';
+}
+
+function chatInstructionRole(model) {
+  return isOpenAiCurrentChatModel(model) ? 'developer' : 'system';
+}
+
+function tokenLimitLabel(surface, model) {
+  if (surface.id === 'responses') return 'Max output';
+  if (surface.id === 'assistants') return 'Max completion';
+  if (surface.id === 'chat' && chatTokenLimitField(model) === 'max_completion_tokens') return 'Max completion';
+  return 'Max tokens';
+}
+
 function withSelector(payload, type, value) {
   const trimmed = value.trim();
   if (!isPlainObject(payload) || type === 'none' || !trimmed) return payload;
@@ -572,15 +592,16 @@ while (true) {
 
 function buildChatPayload({ model, systemPrompt, messages, temperature, maxTokens, stream }) {
   const list = [];
-  if (systemPrompt.trim()) list.push({ role: 'system', content: systemPrompt });
+  if (systemPrompt.trim()) list.push({ role: chatInstructionRole(model), content: systemPrompt });
   list.push(...messages);
-  return {
+  const payload = {
     model,
     messages: list,
     temperature,
-    max_tokens: maxTokens,
     stream,
   };
+  payload[chatTokenLimitField(model)] = maxTokens;
+  return payload;
 }
 
 function buildAnthropicPayload({ model, systemPrompt, messages, maxTokens, temperature }) {
@@ -2037,6 +2058,7 @@ export default function LlmGatewayStudio() {
               setTemperature={setTemperature}
               maxTokens={maxTokens}
               setMaxTokens={setMaxTokens}
+              tokenLimitLabel={tokenLimitLabel(surface, model)}
               streamEnabled={streamEnabled}
               setStreamEnabled={setStreamEnabled}
               assistantId={assistantId}
@@ -2298,6 +2320,7 @@ function ConversationPane({
   setTemperature,
   maxTokens,
   setMaxTokens,
+  tokenLimitLabel,
   streamEnabled,
   setStreamEnabled,
   assistantId,
@@ -2360,7 +2383,7 @@ function ConversationPane({
           />
         </label>
         <label className={styles.param}>
-          <span>Max tokens</span>
+          <span>{tokenLimitLabel}</span>
           <input
             className={styles.paramInput}
             type="number"
