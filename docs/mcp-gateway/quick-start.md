@@ -69,7 +69,7 @@ Point your AI agent or client to the **MCP endpoint URL** shown on the card. The
 
 Use **Authorization: Bearer &lt;token&gt;** and **mcpuser** headers for token-based MCPs. OAuth MCPs use the Connect flow instead.
 
-If your client should access multiple MCPs through one server, connect it to the [OneMCP](./onemcp) URL shown in the dashboard, such as `https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp`.
+If your client should access multiple MCPs through one server, connect it to the [OneMCP](./onemcp) URL shown in the dashboard, such as `https://mcpgateway.quilr.ai/quilrone/mcp`.
 
 ```json
 {

@@ -27,7 +27,7 @@ MCP Gateway separates the credential your AI client uses to reach the gateway fr
 | **API token** | Programmatic access to non-OAuth or static-key MCPs. | `Authorization: Bearer <api-token>` plus `mcpuser: user@company.com`. |
 | **Gateway OAuth proxy token** | The AI client supports OAuth with the gateway. | A gateway-issued Bearer token from the MCP OAuth authorize/token flow. |
 | **OAuth passthrough** | The upstream MCP expects the client to perform OAuth directly with the upstream provider. | The upstream provider's Bearer token. |
-| **OneMCP OAuth proxy token** | The client connects to the dashboard-provided OneMCP URL, such as `https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp` or `https://mcpgateway.quilr.ai/quilrone/mcp`. | A gateway-issued OneMCP Bearer token. |
+| **OneMCP OAuth proxy token** | The client connects to the dashboard-provided OneMCP URL, such as `https://mcpgateway.quilr.ai/quilrone/mcp`. | A gateway-issued OneMCP Bearer token. |
 
 #### API Token Authentication
 
@@ -45,7 +45,7 @@ mcpuser: user@company.com
 
 #### Gateway OAuth Proxy Tokens
 
-OAuth-capable MCP clients can authenticate to the gateway through the gateway's OAuth endpoints. After the user signs in, the token endpoint returns a stable proxy token. The proxy token is scoped to the MCP backend, or to OneMCP for `/quilrone` endpoints.
+OAuth-capable MCP clients can authenticate to the gateway through the gateway's OAuth endpoints. After the user signs in, the token endpoint returns a stable proxy token. The proxy token is scoped to the MCP backend, or to OneMCP for the `/quilrone/mcp` endpoint.
 
 #### OAuth Passthrough
 
@@ -86,7 +86,7 @@ curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
 {
   "mcpServers": {
     "quilr-onemcp": {
-      "url": "https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp",
+      "url": "https://mcpgateway.quilr.ai/quilrone/mcp",
       "headers": {
         "Authorization": "Bearer <onemcp-token>"
       }

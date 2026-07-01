@@ -6,11 +6,11 @@ sidebar_custom_props:
 
 # OneMCP
 
-OneMCP exposes the MCPs a user is allowed to access through one tenant-scoped endpoint. Agents can discover MCP groups, find relevant tools, call tools, and use native memory tools without connecting to each backend separately.
+OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents can discover MCP groups, find relevant tools, call tools, and use native memory tools without connecting to each backend separately.
 
 ## Endpoint
 
-For most tenants, the OneMCP base domain is one of:
+For most environments, the OneMCP base domain is one of:
 
 ```text
 https://mcpgateway.quilr.ai
@@ -19,26 +19,18 @@ https://mcpgateway.quilrai.com
 
 The base domain may vary by environment. Copy the full OneMCP URL from the self-service user dashboard for MCPs before configuring an AI client.
 
-Use the tenant-scoped OneMCP endpoint when the client knows the tenant:
-
 ```text
-https://<base-domain>/quilrone/<tenant-id>/mcp
+https://<base-domain>/quilrone/mcp
 ```
 
 For example:
 
 ```text
-https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp
-https://mcpgateway.quilrai.com/quilrone/<tenant-id>/mcp
+https://mcpgateway.quilr.ai/quilrone/mcp
+https://mcpgateway.quilrai.com/quilrone/mcp
 ```
 
-Tenant-less OneMCP is also available for clients that authenticate first and let the gateway resolve the tenant from the signed-in user:
-
-```text
-https://<base-domain>/quilrone/mcp
-```
-
-OneMCP accepts gateway-issued OneMCP OAuth proxy tokens. It also preserves compatibility with older valid proxy tokens when the resolved user and tenant match.
+OneMCP accepts gateway-issued OneMCP OAuth proxy tokens.
 
 ## Smart Tools
 
@@ -68,11 +60,11 @@ OneMCP includes native memory tools for user-scoped context:
 | `search_memories` | Searches memories visible to the user by query, id, tag, source, or batch query. Returns metadata and snippets by default. |
 | `delete_memories` | Deletes one or more memories owned by the user. Shared memories cannot be deleted by non-owners. |
 
-Memory records are scoped by tenant and user. Each memory can include:
+Memory records are scoped to the current user. Each memory can include:
 
 | Field | Description |
 |-------|-------------|
-| `title` | Required name for the memory. Titles are unique per user within a tenant. |
+| `title` | Required name for the memory. Titles are unique per user. |
 | `content` | Free-form memory text. |
 | `tags` | String labels for filtering. |
 | `source` | Optional source identifier. |
@@ -104,7 +96,7 @@ The user opens the connect URL, completes the upstream provider authorization, r
 
 ## Visibility Rules
 
-OneMCP shows MCPs that are available to the user by tenant policy, user preferences, and agent access controls. It does not include OAuth passthrough MCPs, because passthrough clients must own the upstream OAuth flow and provide the upstream bearer token directly to the per-MCP endpoint.
+OneMCP shows MCPs that are available to the user by organization policy, user preferences, and agent access controls. It does not include OAuth passthrough MCPs, because passthrough clients must own the upstream OAuth flow and provide the upstream bearer token directly to the per-MCP endpoint.
 
 ## Operational Notes
 
