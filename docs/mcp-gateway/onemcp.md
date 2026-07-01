@@ -10,16 +10,32 @@ OneMCP exposes the MCPs a user is allowed to access through one tenant-scoped en
 
 ## Endpoint
 
+For most tenants, the OneMCP base domain is one of:
+
+```text
+https://mcpgateway.quilr.ai
+https://mcpgateway.quilrai.com
+```
+
+The base domain may vary by environment. Copy the full OneMCP URL from the self-service user dashboard for MCPs before configuring an AI client.
+
 Use the tenant-scoped OneMCP endpoint when the client knows the tenant:
 
 ```text
-https://mcp.quilr.ai/quilrone/<tenant-id>/mcp
+https://<base-domain>/quilrone/<tenant-id>/mcp
+```
+
+For example:
+
+```text
+https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp
+https://mcpgateway.quilrai.com/quilrone/<tenant-id>/mcp
 ```
 
 Tenant-less OneMCP is also available for clients that authenticate first and let the gateway resolve the tenant from the signed-in user:
 
 ```text
-https://mcp.quilr.ai/quilrone/mcp
+https://<base-domain>/quilrone/mcp
 ```
 
 OneMCP accepts gateway-issued OneMCP OAuth proxy tokens. It also preserves compatibility with older valid proxy tokens when the resolved user and tenant match.

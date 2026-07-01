@@ -28,7 +28,7 @@ Get up and running with MCP Gateway in 4 steps.
   {
     label: "Connect Agent",
     items: [
-      "url: mcp.quilr.ai/github/mcp",
+      "url: mcpgateway.quilr.ai/github/mcp",
       "auth: Bearer <token>",
       "mcpuser: user@company.com",
     ],
@@ -65,15 +65,17 @@ Open **Settings** on any MCP card to fine-tune its behavior. Sensible defaults a
 
 ## 3. Connect Your Agent
 
-Point your AI agent or client to the **MCP endpoint URL** shown on the card. Use **Authorization: Bearer &lt;token&gt;** and **mcpuser** headers for token-based MCPs. OAuth MCPs use the Connect flow instead.
+Point your AI agent or client to the **MCP endpoint URL** shown on the card. The base domain is typically `https://mcpgateway.quilr.ai` or `https://mcpgateway.quilrai.com`, but it can vary by environment. Copy the full URL from the self-service user dashboard for MCPs.
 
-If your client should access multiple MCPs through one server, connect it to [OneMCP](./onemcp) at `/quilrone/<tenant-id>/mcp`.
+Use **Authorization: Bearer &lt;token&gt;** and **mcpuser** headers for token-based MCPs. OAuth MCPs use the Connect flow instead.
+
+If your client should access multiple MCPs through one server, connect it to the [OneMCP](./onemcp) URL shown in the dashboard, such as `https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp`.
 
 ```json
 {
   "mcpServers": {
     "quilr-mcp": {
-      "url": "https://mcp.quilr.ai/<your-mcp-id>/mcp",
+      "url": "https://mcpgateway.quilr.ai/<your-mcp-id>/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>",
         "mcpuser": "user@company.com"

@@ -10,10 +10,10 @@ MCP endpoints, authentication methods, and connection examples for integrating A
 
 ## MCP Endpoint URL
 
-Each MCP gets a unique endpoint URL displayed on its card. Point your AI agent to this URL to connect.
+Each MCP gets a unique endpoint URL displayed on its card in the self-service user dashboard for MCPs. Point your AI agent to this URL to connect. The base domain is typically `https://mcpgateway.quilr.ai` or `https://mcpgateway.quilrai.com`, but it can vary by environment.
 
 ```
-https://mcp.quilr.ai/<your-mcp-slug>/mcp
+https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp
 ```
 
 ## Authentication Methods
@@ -27,7 +27,7 @@ MCP Gateway separates the credential your AI client uses to reach the gateway fr
 | **API token** | Programmatic access to non-OAuth or static-key MCPs. | `Authorization: Bearer <api-token>` plus `mcpuser: user@company.com`. |
 | **Gateway OAuth proxy token** | The AI client supports OAuth with the gateway. | A gateway-issued Bearer token from the MCP OAuth authorize/token flow. |
 | **OAuth passthrough** | The upstream MCP expects the client to perform OAuth directly with the upstream provider. | The upstream provider's Bearer token. |
-| **OneMCP OAuth proxy token** | The client connects to `/quilrone/<tenant-id>/mcp` or `/quilrone/mcp`. | A gateway-issued OneMCP Bearer token. |
+| **OneMCP OAuth proxy token** | The client connects to the dashboard-provided OneMCP URL, such as `https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp` or `https://mcpgateway.quilr.ai/quilrone/mcp`. | A gateway-issued OneMCP Bearer token. |
 
 #### API Token Authentication
 
@@ -69,7 +69,7 @@ For manual OAuth setup steps, see [MCP Provider Setup](./mcp-provider-setup/over
 
 ```bash
 # Connect to MCP endpoint with token auth
-curl -X POST https://mcp.quilr.ai/your-mcp-slug/mcp \
+curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-api-token>" \
   -H "mcpuser: user@company.com" \
@@ -86,7 +86,7 @@ curl -X POST https://mcp.quilr.ai/your-mcp-slug/mcp \
 {
   "mcpServers": {
     "quilr-onemcp": {
-      "url": "https://mcp.quilr.ai/quilrone/<tenant-id>/mcp",
+      "url": "https://mcpgateway.quilr.ai/quilrone/<tenant-id>/mcp",
       "headers": {
         "Authorization": "Bearer <onemcp-token>"
       }
