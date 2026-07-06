@@ -38,6 +38,7 @@ The example uses US East. Choose the nearest regional base URL for your tenant:
 | USA 1 | US Central West | `https://guardrails-usa-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
 | USA 2 | US East | `https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx` |
 | India | Mumbai | `https://guardrails-india-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
+| Japan | Tokyo | `https://guardrails-jp-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
 
 Treat this URL as a secret. The QuilrAI key is part of the path because Copilot Studio owns the webhook call shape.
 
