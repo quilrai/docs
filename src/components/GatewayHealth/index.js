@@ -51,17 +51,8 @@ const PING_TIMEOUT_MS = 8000;
 const HISTORY_LEN = 24;
 const PROVIDER_HEALTH_URL = 'https://guardrails-india-1.quilr.ai/llmgateway/provider_health/global';
 const PROVIDER_FETCH_TIMEOUT_MS = 60000;
-const HOUR_MS = 60 * 60 * 1000;
 const WINDOW_LABEL = 'All time';
-const DEFAULT_MIN_SAMPLE_COUNT = 20;
-const STATUS_THRESHOLDS = {
-  majorFailureRate: 0.25,
-  degradedFailureRate: 0.05,
-  upstreamP95Ms: 30000,
-  firstResponseP95Ms: 10000,
-  tokensPerSecondP10: 5,
-  msPer100OutputTokensP95: 20000,
-};
+const MAX_HISTORY_SEGMENTS = 160;
 
 const STATUS_META = {
   operational: { label: 'Operational', tone: 'up', rank: 2 },
@@ -126,29 +117,23 @@ function formatHour(timeMs) {
   return `${month} ${day}, ${hour}:00 UTC`;
 }
 
-function formatDate(value) {
-  const timeMs = parseTime(value);
-  if (timeMs == null) return 'unknown';
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(timeMs));
-}
-
 function toNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
-function formatCompactNumber(value) {
+function formatTps(value) {
   const n = toNumber(value);
   if (n == null) return '-';
-  return new Intl.NumberFormat('en-US', {
-    notation: 'compact',
-    maximumFractionDigits: n >= 1000 ? 1 : 0,
-  }).format(n);
+  if (n > 0 && n < 0.01) return '<0.01';
+  if (n >= 100) return Math.round(n).toLocaleString('en-US');
+  if (n >= 10) return n.toFixed(1);
+  return n.toFixed(2);
+}
+
+function positiveNumber(value) {
+  const n = toNumber(value);
+  return n != null && n > 0 ? n : null;
 }
 
 function latestBucket(buckets) {
@@ -177,22 +162,6 @@ function currentStatus(rows) {
   }, null);
 }
 
-function formatRate(value) {
-  const n = toNumber(value);
-  if (n == null) return '-';
-  const pct = n * 100;
-  if (pct > 0 && pct < 0.01) return '<0.01%';
-  return `${pct.toFixed(pct >= 10 ? 1 : 2)}%`;
-}
-
-function formatMs(value) {
-  const n = toNumber(value);
-  if (n == null) return '-';
-  if (n >= 10000) return `${(n / 1000).toFixed(1)}s`;
-  if (n >= 1000) return `${(n / 1000).toFixed(2)}s`;
-  return `${Math.round(n)}ms`;
-}
-
 function formatAge(timeMs) {
   if (!timeMs) return 'never';
   const secs = Math.max(0, Math.round((Date.now() - timeMs) / 1000));
@@ -210,108 +179,94 @@ function orderedBuckets(buckets) {
     .sort((a, b) => parseTime(a.start) - parseTime(b.start));
 }
 
-function deriveBucketReasons(bucket, minSampleCount) {
-  if (!bucket || bucket.empty_bucket) return ['No materialized provider traffic bucket'];
-
-  const reasons = [];
-  const failureRate = toNumber(bucket.failure_rate);
-  const upstreamP95 = toNumber(bucket.latency_ms?.upstream?.p95);
-  const firstResponseP95 = toNumber(bucket.latency_ms?.first_response?.p95);
-  const tokensPerSecondP10 = toNumber(bucket.generation?.tokens_per_second?.p10);
-  const msPer100OutputTokensP95 = toNumber(bucket.generation?.ms_per_100_output_tokens?.p95);
-
-  if (bucket.status === 'insufficient_data' || bucket.insufficient_data) {
-    reasons.push(`Below sample threshold (${minSampleCount} minimum)`);
+function bucketTps(bucket) {
+  const generationTps = positiveNumber(bucket?.generation?.tokens_per_second?.p50);
+  if (generationTps != null) {
+    return { value: generationTps, source: 'Generation p50 TPS' };
   }
 
-  if (failureRate != null && failureRate >= STATUS_THRESHOLDS.majorFailureRate) {
-    reasons.push(
-      `Failure rate ${formatRate(failureRate)} at or above ${formatRate(
-        STATUS_THRESHOLDS.majorFailureRate,
-      )} outage threshold`,
-    );
-  } else if (failureRate != null && failureRate >= STATUS_THRESHOLDS.degradedFailureRate) {
-    reasons.push(
-      `Failure rate ${formatRate(failureRate)} at or above ${formatRate(
-        STATUS_THRESHOLDS.degradedFailureRate,
-      )} degraded threshold`,
-    );
+  const outputTokensPerMinute = positiveNumber(bucket?.throughput?.output_tokens_per_minute);
+  if (outputTokensPerMinute != null) {
+    return { value: outputTokensPerMinute / 60, source: 'Output throughput TPS' };
   }
 
-  if (upstreamP95 != null && upstreamP95 >= STATUS_THRESHOLDS.upstreamP95Ms) {
-    reasons.push(`Upstream p95 ${formatMs(upstreamP95)} at or above ${formatMs(STATUS_THRESHOLDS.upstreamP95Ms)}`);
-  }
-
-  if (firstResponseP95 != null && firstResponseP95 >= STATUS_THRESHOLDS.firstResponseP95Ms) {
-    reasons.push(
-      `First response p95 ${formatMs(firstResponseP95)} at or above ${formatMs(
-        STATUS_THRESHOLDS.firstResponseP95Ms,
-      )}`,
-    );
-  }
-
-  if (tokensPerSecondP10 != null && tokensPerSecondP10 < STATUS_THRESHOLDS.tokensPerSecondP10) {
-    reasons.push(
-      `Generation p10 ${tokensPerSecondP10.toFixed(2)} tokens/s below ${STATUS_THRESHOLDS.tokensPerSecondP10}`,
-    );
-  }
-
-  if (
-    msPer100OutputTokensP95 != null &&
-    msPer100OutputTokensP95 >= STATUS_THRESHOLDS.msPer100OutputTokensP95
-  ) {
-    reasons.push(
-      `p95 generation ${formatMs(msPer100OutputTokensP95)} per 100 output tokens at or above ${formatMs(
-        STATUS_THRESHOLDS.msPer100OutputTokensP95,
-      )}`,
-    );
-  }
-
-  return reasons;
+  return { value: null, source: 'TPS unavailable' };
 }
 
-function bucketSignalText(bucket, minSampleCount) {
-  const reasons = deriveBucketReasons(bucket, minSampleCount);
-  if (reasons.length) return reasons.join('; ');
-  if (bucket?.status === 'operational') return 'No health threshold exceeded';
-  return `Provider health monitor reported ${statusMeta(bucket?.status).label.toLowerCase()}`;
+function historyColorVar(status) {
+  const tone = statusMeta(status).tone;
+  if (tone === 'up') return 'var(--provider-history-up)';
+  if (tone === 'degraded') return 'var(--provider-history-degraded)';
+  if (tone === 'down') return 'var(--provider-history-down)';
+  return 'var(--provider-history-muted)';
 }
 
-function bucketTooltip(bucket, minSampleCount) {
-  if (!bucket) return 'No provider health bucket';
+function sampledHistorySegments(buckets) {
+  if (!buckets.length) return [];
 
-  const start = parseTime(bucket.start);
-  const end = parseTime(bucket.end) ?? (start != null ? start + HOUR_MS : null);
-  const lines = [
-    `${start != null ? formatHour(start) : 'Unknown hour'}${end != null ? ` to ${formatHour(end)}` : ''}`,
-    `Status: ${statusMeta(bucket.status).label}`,
-    `Failure rate: ${formatRate(bucket.failure_rate)}`,
-    `Upstream p95: ${formatMs(bucket.latency_ms?.upstream?.p95)}`,
-    `First response p95: ${formatMs(bucket.latency_ms?.first_response?.p95)}`,
-  ];
+  const segmentCount = Math.min(buckets.length, MAX_HISTORY_SEGMENTS);
+  const segments = [];
 
-  const reasons = deriveBucketReasons(bucket, minSampleCount);
-  lines.push(`Signal: ${reasons.length ? reasons.join('; ') : 'No health threshold exceeded'}`);
-  return lines.join('\n');
+  for (let i = 0; i < segmentCount; i += 1) {
+    const start = Math.floor((i * buckets.length) / segmentCount);
+    const end = Math.max(start + 1, Math.floor(((i + 1) * buckets.length) / segmentCount));
+    let status = buckets[start]?.status || 'no_data';
+    let statusBucket = buckets[start] || null;
+
+    for (let j = start + 1; j < end; j += 1) {
+      const bucketStatus = buckets[j]?.status || 'no_data';
+      if (statusMeta(bucketStatus).rank > statusMeta(status).rank) {
+        status = bucketStatus;
+        statusBucket = buckets[j];
+      }
+    }
+
+    const firstBucket = buckets[start];
+    const lastBucket = buckets[end - 1];
+    segments.push({
+      status,
+      bucketCount: end - start,
+      startTime: parseTime(firstBucket?.start),
+      endTime: parseTime(lastBucket?.end || lastBucket?.start),
+      tps: bucketTps(statusBucket),
+    });
+  }
+
+  return segments;
 }
 
-function summarizeModel(model, minSampleCount) {
+function historyGradient(segments) {
+  if (!segments.length) return undefined;
+
+  const runs = [];
+  for (const segment of segments) {
+    const last = runs[runs.length - 1];
+    if (last?.status === segment.status) {
+      last.count += 1;
+    } else {
+      runs.push({ status: segment.status, count: 1 });
+    }
+  }
+
+  const total = runs.reduce((sum, run) => sum + run.count, 0);
+  let cursor = 0;
+  const stops = runs.map((run) => {
+    const startPct = (cursor / total) * 100;
+    cursor += run.count;
+    const endPct = (cursor / total) * 100;
+    return `${historyColorVar(run.status)} ${startPct.toFixed(3)}% ${endPct.toFixed(3)}%`;
+  });
+
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+}
+
+function summarizeModel(model) {
   const buckets = orderedBuckets(model?.buckets);
   const latest = latestBucket(buckets);
   if (!latest) return null;
 
-  let requests = 0;
-  let failures = 0;
-  let successes = 0;
-  for (const bucket of buckets) {
-    requests += toNumber(bucket.request_count) || 0;
-    failures += toNumber(bucket.failure_count) || 0;
-    successes += toNumber(bucket.success_count) || 0;
-  }
-
   const latestBucketValue = latest.bucket;
   const status = latestBucketValue.status || 'no_data';
-  const statusReasons = deriveBucketReasons(latestBucketValue, minSampleCount);
 
   return {
     model: model.model,
@@ -319,27 +274,17 @@ function summarizeModel(model, minSampleCount) {
     latestEnd: latest.end,
     latestBucket: latestBucketValue,
     buckets,
-    requests,
-    failures,
-    successes,
-    failureRate: requests ? failures / requests : latestBucketValue.failure_rate,
-    latestFailureRate: latestBucketValue.failure_rate,
-    latestRequestCount: latestBucketValue.request_count,
-    upstreamP95: latestBucketValue.latency_ms?.upstream?.p95 ?? null,
-    firstResponseP95: latestBucketValue.latency_ms?.first_response?.p95 ?? null,
-    statusReasons,
-    signalText: bucketSignalText(latestBucketValue, minSampleCount),
+    latestTps: bucketTps(latestBucketValue),
   };
 }
 
 function summarizeProviderHealth(data) {
   const providers = Array.isArray(data?.providers) ? data.providers : [];
-  const minSampleCount = toNumber(data?.source?.min_sample_count) ?? DEFAULT_MIN_SAMPLE_COUNT;
 
   return providers
     .map((provider) => {
       const models = (provider.models || [])
-        .map((model) => summarizeModel(model, minSampleCount))
+        .map((model) => summarizeModel(model))
         .filter(Boolean)
         .sort((a, b) => {
           const statusDelta = statusMeta(b.status).rank - statusMeta(a.status).rank;
@@ -349,38 +294,14 @@ function summarizeProviderHealth(data) {
 
       if (!models.length) return null;
 
-      const requests = models.reduce((sum, model) => sum + model.requests, 0);
-      const failures = models.reduce((sum, model) => sum + model.failures, 0);
       const latestEnd = Math.max(...models.map((model) => model.latestEnd));
-      const latestRequests = models.reduce((sum, model) => sum + (toNumber(model.latestRequestCount) || 0), 0);
-      const latestFailures = models.reduce(
-        (sum, model) => sum + (toNumber(model.latestBucket?.failure_count) || 0),
-        0,
-      );
       const status = currentStatus(models);
-      const currentSignals = models
-        .filter((model) => {
-          if (status === 'insufficient_data') return model.status === 'insufficient_data';
-          return statusMeta(model.status).rank >= statusMeta('degraded').rank;
-        })
-        .slice(0, 4)
-        .map((model) => ({
-          model: model.model,
-          status: model.status,
-          text: bucketSignalText(model.latestBucket, minSampleCount),
-        }));
 
       return {
         id: provider.provider,
         status,
         latestEnd,
         models,
-        requests,
-        failures,
-        latestRequests,
-        latestFailureRate: latestRequests ? latestFailures / latestRequests : null,
-        failureRate: requests ? failures / requests : null,
-        currentSignals,
       };
     })
     .filter(Boolean)
@@ -439,44 +360,70 @@ function StatusPill({ status }) {
   );
 }
 
-function HistoryStrip({ buckets, minSampleCount }) {
+const HistoryStrip = React.memo(function HistoryStrip({ buckets }) {
   const firstBucket = buckets[0];
   const lastBucket = buckets[buckets.length - 1];
+  const segments = useMemo(() => sampledHistorySegments(buckets), [buckets]);
+  const background = useMemo(() => historyGradient(segments), [segments]);
+  const [hover, setHover] = useState(null);
+
+  const handleHistoryHover = useCallback(
+    (event) => {
+      if (!segments.length) return;
+
+      const rect = event.currentTarget.getBoundingClientRect();
+      const rawX = event.clientX - rect.left;
+      const ratio = rect.width ? Math.max(0, Math.min(0.999999, rawX / rect.width)) : 0;
+      const index = Math.min(segments.length - 1, Math.floor(ratio * segments.length));
+      const tooltipWidth = 220;
+      const x =
+        rect.width > tooltipWidth
+          ? Math.max(tooltipWidth / 2, Math.min(rawX, rect.width - tooltipWidth / 2))
+          : rect.width / 2;
+
+      setHover((prev) => {
+        if (prev?.index === index && Math.abs(prev.x - x) < 2) return prev;
+        return { index, x };
+      });
+    },
+    [segments],
+  );
+
+  const segment = hover ? segments[hover.index] : null;
+
   return (
     <div className={styles.modelHistoryWrap}>
-      <div className={styles.modelHistory} aria-label="All-time materialized hourly provider status">
-        {buckets.map((bucket, index) => {
-          const meta = statusMeta(bucket.status);
-          return (
-            <span
-              key={`${bucket.start || index}-${index}`}
-              className={`${styles.historyBar} ${styles[`history_${meta.tone}`]}`}
-              title={bucketTooltip(bucket, minSampleCount)}
-            />
-          );
-        })}
-      </div>
+      <div
+        className={styles.modelHistory}
+        style={background ? { background } : undefined}
+        aria-label="All-time materialized hourly provider status"
+        onMouseMove={handleHistoryHover}
+        onMouseLeave={() => setHover(null)}
+      />
+      {segment ? (
+        <div className={styles.historyTooltip} style={{ left: hover.x }}>
+          <span className={styles.historyTooltipStatus}>{statusMeta(segment.status).label}</span>
+          <span>
+            {formatHour(segment.startTime)} - {formatHour(segment.endTime)}
+          </span>
+          <span title={segment.tps.source}>TPS {formatTps(segment.tps.value)}</span>
+          <span>{segment.bucketCount.toLocaleString('en-US')} buckets</span>
+        </div>
+      ) : null}
       <div className={styles.hourAxis} aria-hidden="true">
         <span>{formatHour(parseTime(firstBucket?.start))}</span>
         <span>{formatHour(parseTime(lastBucket?.start))}</span>
       </div>
     </div>
   );
-}
+});
 
-function SignalText({ text, muted = false }) {
+function TpsValue({ metric }) {
+  const safeMetric = metric || { value: null, source: 'TPS unavailable' };
   return (
-    <span className={`${styles.signalText} ${muted ? styles.signalMuted : ''}`}>
-      {text}
-    </span>
-  );
-}
-
-function LatencyPair({ upstreamP95, firstResponseP95 }) {
-  return (
-    <span className={styles.latencyPair}>
-      <span>up {formatMs(upstreamP95)}</span>
-      <span>first {formatMs(firstResponseP95)}</span>
+    <span className={styles.tpsValue} title={safeMetric.source}>
+      {formatTps(safeMetric.value)}
+      {safeMetric.value != null ? <span> tps</span> : null}
     </span>
   );
 }
@@ -554,15 +501,21 @@ export default function GatewayHealth() {
     mounted.current = true;
     loadProviderHealth();
     runChecks();
-    const poll = setInterval(runChecks, REFRESH_MS);
-    const clock = setInterval(() => setTick((t) => t + 1), 5000);
+    const clock = setInterval(() => setTick((t) => t + 1), 30000);
     return () => {
       mounted.current = false;
       if (providerAbort.current) providerAbort.current.abort();
-      clearInterval(poll);
       clearInterval(clock);
     };
   }, [loadProviderHealth, runChecks]);
+
+  useEffect(() => {
+    if (tab !== 'infra') return undefined;
+
+    runChecks();
+    const poll = setInterval(runChecks, REFRESH_MS);
+    return () => clearInterval(poll);
+  }, [runChecks, tab]);
 
   const serverState = useMemo(() => {
     return OUR_SERVERS.map((s) => {
@@ -579,20 +532,6 @@ export default function GatewayHealth() {
   }, [history]);
 
   const providerState = useMemo(() => summarizeProviderHealth(providerHealth), [providerHealth]);
-  const providerMinSampleCount =
-    toNumber(providerHealth?.source?.min_sample_count) ?? DEFAULT_MIN_SAMPLE_COUNT;
-  const providerRangeLabel = providerHealth?.window
-    ? `${formatDate(providerHealth.window.start)} to ${formatDate(providerHealth.window.end)}`
-    : WINDOW_LABEL;
-  const providerBucketCount =
-    toNumber(providerHealth?.source?.bucket_count) ??
-    providerState.reduce(
-      (sum, provider) => sum + provider.models.reduce((modelSum, model) => modelSum + model.buckets.length, 0),
-      0,
-    );
-  const providerModelCount =
-    toNumber(providerHealth?.source?.provider_model_count) ??
-    providerState.reduce((sum, provider) => sum + provider.models.length, 0);
 
   const overall = useMemo(() => {
     const known = serverState.filter((s) => s.status !== 'checking');
@@ -709,15 +648,6 @@ export default function GatewayHealth() {
                 </div>
               ) : null}
 
-              {providerHealth ? (
-                <div className={styles.providerBanner}>
-                  <strong>{providerRangeLabel}</strong> provider/model health from{' '}
-                  {formatCompactNumber(providerBucketCount)} materialized hourly buckets and{' '}
-                  {formatCompactNumber(providerModelCount)} provider/model pairs. Current status uses each
-                  model's latest bucket; history shows all returned materialized buckets.
-                </div>
-              ) : null}
-
               {providerHealth && providerState.length === 0 && !providerLoading ? (
                 <div className={styles.emptyState}>No provider health buckets are available.</div>
               ) : null}
@@ -737,36 +667,11 @@ export default function GatewayHealth() {
                         </div>
                       </div>
 
-                      <div className={styles.providerMetrics}>
-                        <span>
-                          <strong>{provider.models.length}</strong> models
-                        </span>
-                        <span>
-                          <strong>{formatRate(provider.latestFailureRate)}</strong> latest failure
-                        </span>
-                        <span>
-                          <strong>{formatRate(provider.failureRate)}</strong> all-time failure
-                        </span>
-                      </div>
-
-                      {provider.currentSignals.length ? (
-                        <div className={styles.currentSignals}>
-                          <span className={styles.currentSignalsLabel}>Latest signal</span>
-                          {provider.currentSignals.map((signal) => (
-                            <span key={`${signal.model}-${signal.status}`} className={styles.currentSignal}>
-                              <strong>{signal.model}</strong>: {signal.text}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-
                       <div className={styles.modelTable}>
                         <div className={`${styles.modelRow} ${styles.modelHeader}`}>
-                          <span>Model / all-time history</span>
+                          <span>Model / status history</span>
                           <span>Current</span>
-                          <span>Latest signal</span>
-                          <span>Latest failure</span>
-                          <span>Latest p95</span>
+                          <span>TPS</span>
                           <span>Last seen</span>
                         </div>
 
@@ -774,18 +679,10 @@ export default function GatewayHealth() {
                           <div key={model.model} className={styles.modelRow}>
                             <div className={styles.modelCell}>
                               <span className={styles.modelName}>{model.model}</span>
-                              <HistoryStrip buckets={model.buckets} minSampleCount={providerMinSampleCount} />
+                              <HistoryStrip buckets={model.buckets} />
                             </div>
                             <StatusPill status={model.status} />
-                            <SignalText
-                              text={model.signalText}
-                              muted={!model.statusReasons.length && model.status === 'operational'}
-                            />
-                            <span>{formatRate(model.latestFailureRate)}</span>
-                            <LatencyPair
-                              upstreamP95={model.upstreamP95}
-                              firstResponseP95={model.firstResponseP95}
-                            />
+                            <TpsValue metric={model.latestTps} />
                             <span>{formatAge(model.latestEnd)}</span>
                           </div>
                         ))}
