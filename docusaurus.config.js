@@ -163,6 +163,11 @@ const config = {
                         position: 'left',
                     },
                     {
+                        to: '/health',
+                        label: 'Health',
+                        position: 'left',
+                    },
+                    {
                         href: 'https://www.quilr.ai/resources',
                         label: 'Resources',
                         position: 'right',
