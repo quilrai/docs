@@ -18,6 +18,7 @@ All endpoints are fully interchangeable - same API surface, same features, same 
 | **USA 1** | US Central West | `https://guardrails-usa-1.quilr.ai` |
 | **USA 2** | US East | `https://guardrails-usa-2.quilr.ai` |
 | **India** | Mumbai | `https://guardrails-india-1.quilr.ai` |
+| **Japan** | Tokyo | `https://guardrails-jp-1.quilr.ai` |
 
 Append the API format path to any base URL - for example, `https://guardrails-usa-1.quilr.ai/openai_compatible/`. See the [Integration Guide](./integration-guide) for all supported formats.
 
@@ -38,10 +39,12 @@ flowchart TD
     C -->|"US Central West traffic"| D["guardrails-usa-1.quilr.ai"]
     C -->|"US East traffic"| E["guardrails-usa-2.quilr.ai"]
     C -->|"India traffic"| F["guardrails-india-1.quilr.ai"]
+    C -->|"Japan traffic"| I["guardrails-jp-1.quilr.ai"]
     C -->|"Future regions"| H["..."]
     D --> G["LLM Providers"]
     E --> G
     F --> G
+    I --> G
     H --> G
 ```
 
@@ -74,6 +77,14 @@ Each regional server runs the full QuilrAI pipeline - validation, scanning, tran
       "Geographic redundancy ✓",
     ],
   },
+  {
+    label: "Attempt 4",
+    items: [
+      "→ guardrails-jp-1.quilr.ai",
+      "Direct to Japan server ✓",
+      "Cross-region redundancy ✓",
+    ],
+  },
 ]} />
 
 For production retry logic, use explicit regional endpoints. Start with the location-specific endpoint closest to your application, then fail over to other regional hosts. Do not include the global auto-routed endpoint in the retry chain.
@@ -83,6 +94,7 @@ Example order for a US East deployment:
 1. **First attempt** - `guardrails-usa-2.quilr.ai` - Direct connection to the nearest regional server.
 2. **Second attempt** - `guardrails-usa-1.quilr.ai` - Direct connection to another US server for host-level redundancy.
 3. **Third attempt** - `guardrails-india-1.quilr.ai` - Targets a geographically distinct server for maximum redundancy.
+4. **Fourth attempt** - `guardrails-jp-1.quilr.ai` - Adds a further region for the widest geographic spread.
 
 ### Why retry with regional endpoints?
 
@@ -93,7 +105,7 @@ Explicit regional fallbacks protect against edge cases that auto-routing alone c
 - **Regional propagation delays** - A server that has just recovered may not yet be visible to the auto-router. Hitting it directly avoids propagation lag.
 - **Geographic redundancy** - Retrying across regions ensures your request reaches an entirely independent infrastructure stack, eliminating single points of failure.
 
-The overhead is minimal - two additional fallback URLs in your retry logic - but the resilience improvement is significant.
+The overhead is minimal - three additional fallback URLs in your retry logic - but the resilience improvement is significant.
 
 We recommend **one retry per QuilrAI host**. If a request fails on a given endpoint, move on to the next one rather than retrying the same host. This maximizes the chance of hitting a healthy server quickly.
 
@@ -107,6 +119,7 @@ ENDPOINTS = [
     "https://guardrails-usa-2.quilr.ai",      # primary US East endpoint
     "https://guardrails-usa-1.quilr.ai",      # direct US Central West fallback
     "https://guardrails-india-1.quilr.ai",    # direct India fallback
+    "https://guardrails-jp-1.quilr.ai",       # direct Japan fallback
 ]
 
 def call_llm(payload: dict) -> dict:
@@ -134,6 +147,7 @@ ENDPOINTS = [
     "https://guardrails-usa-2.quilr.ai/openai_compatible/v1",   # primary US East endpoint
     "https://guardrails-usa-1.quilr.ai/openai_compatible/v1",   # direct US Central West fallback
     "https://guardrails-india-1.quilr.ai/openai_compatible/v1", # direct India fallback
+    "https://guardrails-jp-1.quilr.ai/openai_compatible/v1",    # direct Japan fallback
 ]
 
 def call_llm(messages: list) -> str:
@@ -156,6 +170,7 @@ const ENDPOINTS = [
   "https://guardrails-usa-2.quilr.ai",     // primary US East endpoint
   "https://guardrails-usa-1.quilr.ai",     // direct US Central West fallback
   "https://guardrails-india-1.quilr.ai",   // direct India fallback
+  "https://guardrails-jp-1.quilr.ai",      // direct Japan fallback
 ];
 
 async function callLLM(payload) {
