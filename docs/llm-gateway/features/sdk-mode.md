@@ -97,13 +97,13 @@ the guardrail found.
   ],
   "categories_detected": ["pii", "email", "ssn"],
   "placeholder_masking": {
-    "text": "My SSN is [SSN_1].",
+    "text": "My SSN is quilr-placeholder-01a54629efb95228.",
     "messages": [
-      { "role": "user", "content": "My SSN is [SSN_1]." }
+      { "role": "user", "content": "My SSN is quilr-placeholder-01a54629efb95228." }
     ],
     "placeholders": [
       {
-        "placeholder": "[SSN_1]",
+        "placeholder": "quilr-placeholder-01a54629efb95228",
         "value": "123-45-6789",
         "sub_category": "SOCIAL SECURITY NUMBER",
         "category_id": "data_risk_category_pii",
@@ -143,11 +143,11 @@ the guardrail found.
   ],
   "categories_detected": ["pii", "phone"],
   "placeholder_masking": {
-    "text": "Call me at [PHONE_1].",
+    "text": "Call me at quilr-placeholder-59c0b4a6fc3c3b2c.",
     "messages": null,
     "placeholders": [
       {
-        "placeholder": "[PHONE_1]",
+        "placeholder": "quilr-placeholder-59c0b4a6fc3c3b2c",
         "value": "555-867-5309",
         "sub_category": "PHONE NUMBER",
         "category_id": "data_risk_category_pii",
@@ -167,14 +167,17 @@ the guardrail found.
 ### Placeholder masking
 
 Every response also includes `placeholder_masking`. This is an additive view of
-the same content where sensitive values are replaced with bracketed placeholders
-such as `[PASSPORT_1]`, `[EXPIRY_1]`, or `[PASSWORD_1]`.
+the same content where sensitive values are replaced with hash-based placeholders
+such as `quilr-placeholder-358100c210df061d`,
+`quilr-placeholder-4c658021550ddeb2`, or
+`quilr-placeholder-f52fbd32b2b3b86f`.
 
 Use this when your application needs visually distinct, reversible placeholders
-instead of same-length `X` redaction. The placeholder token carries the type and
-per-message index; `placeholders[]` maps each token back to the original value
-and detection metadata. Message checks include `placeholder_masking.messages`;
-raw text checks set `placeholder_masking.messages` to `null`.
+instead of same-length `X` redaction. The placeholder token uses the format
+`quilr-placeholder-<hash>` and stays stable for the exact matched source value;
+`placeholders[]` maps each token back to the original value and detection
+metadata. Message checks include `placeholder_masking.messages`; raw text checks
+set `placeholder_masking.messages` to `null`.
 
 ---
 
