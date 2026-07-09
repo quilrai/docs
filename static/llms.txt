@@ -2,6 +2,10 @@
 
 > QuilrAI provides an LLM Gateway, MCP Gateway, Network monitoring and Process mapping for securing, controlling, and optimizing AI application traffic.
 
+## Platform Features
+
+- [Token Saving](https://docs.quilrai.dev/token-saving.md): Cross-product guide to reducing LLM prompt and MCP agent-context tokens with JSON compression, HTML/Markdown to text, and text compression.
+
 ## LLM Gateway
 
 Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropic, Azure, Bedrock, Vertex AI, and Copilot Studio - through a single API key. QuilrAI can infer providers from the requested model, or route traffic through routing groups for weighted load balancing, model-level routing, and automatic failover with zero code changes in your application.
@@ -20,7 +24,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 ### LLM Gateway Features
 
 - [Request Routing](https://docs.quilrai.dev/llm-gateway/features/request-routing.md): Automatic provider inference from requested models, plus routing groups for weight-based load balancing, model-level routing, and failover across multiple providers and models behind a single API key.
-- [Token Saving](https://docs.quilrai.dev/llm-gateway/features/token-saving.md): Reduce input token usage by compressing JSON and stripping HTML/Markdown automatically.
+- [Token Saving](https://docs.quilrai.dev/llm-gateway/features/token-saving.md): Reduce input token usage with JSON compression, HTML/Markdown to text, and text compression.
 - [Guardian Agent](https://docs.quilrai.dev/llm-gateway/features/guardian-agent.md): Gateway-side policy checks for dependency safety and task adherence.
 - [Security Guardrails](https://docs.quilrai.dev/llm-gateway/features/security-guardrails.md): Detect and act on PII, PHI, PCI, financial data, and adversarial inputs in requests and responses.
 - [Custom Intents](https://docs.quilrai.dev/llm-gateway/features/custom-intents.md): Define your own detection categories trained with positive and negative examples.
@@ -61,6 +65,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [API Tokens](https://docs.quilrai.dev/mcp-gateway/features/api-tokens.md): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access, and understand how static upstream API keys are injected separately.
 - [OAuth Connect](https://docs.quilrai.dev/mcp-gateway/features/oauth-connect.md): Authorize OAuth-protected MCP servers with Dynamic Client Registration, manual credentials, OAuth passthrough, or OneMCP inline OAuth recovery.
 - [Web Search Policy](https://docs.quilrai.dev/mcp-gateway/features/web-search-policy.md): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).
+- [Token Saving](https://docs.quilrai.dev/mcp-gateway/features/token-saving.md): Reduce MCP tool-output token usage per MCP with JSON compression, HTML/Markdown to text, and text compression.
 
 ## Compliance API Integration
 
