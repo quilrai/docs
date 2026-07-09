@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Token Saving
 
-Reduce token usage from MCP tool output before it enters an agent's context.
+Reduce token usage from MCP discovery and tool output before it enters an agent's context.
 
 ## How It Works
 
@@ -41,6 +41,18 @@ Reduce token usage from MCP tool output before it enters an agent's context.
 2. **MCP returns output** - The upstream MCP server returns text content, structured content, or both.
 3. **Gateway optimizes text** - Enabled token-saving transforms run on MCP text content blocks.
 4. **Client receives the result** - The agent gets a shorter response that preserves the useful meaning.
+
+## OneMCP Smart Tool Search
+
+Output transforms are one layer of MCP token saving. [OneMCP](../onemcp) can also reduce discovery and planning tokens when smart mode is enabled.
+
+Instead of exposing every backend tool schema to the agent up front, OneMCP returns a compact set of gateway tools:
+
+- `list_tool_groups` to see available MCP groups
+- `find_relevant_tools` to search within a group for the current task
+- `call_tool` to invoke the selected backend tool
+
+This keeps the agent from loading long tool lists and full schemas until it has narrowed the task to relevant tools. It is especially useful when a user can access many MCPs or a single MCP exposes a large tool surface.
 
 ## Per-MCP Settings
 

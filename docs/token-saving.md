@@ -15,7 +15,7 @@ Token saving lets QuilrAI rewrite high-overhead input text before it is sent int
 | Gateway | What is optimized | Configure it | Details |
 |---------|-------------------|--------------|---------|
 | **LLM Gateway** | Text in request inputs before the provider call. Responses are returned unchanged. | Per API key. | [LLM Gateway Token Saving](./llm-gateway/features/token-saving) |
-| **MCP Gateway** | Text content blocks in MCP `tools/call` output before the result is returned to the client. | Per MCP in that MCP's settings. | [MCP Gateway Token Saving](./mcp-gateway/features/token-saving) |
+| **MCP Gateway** | OneMCP smart tool search reduces discovery/tool-schema tokens, and MCP output transforms reduce `tools/call` text tokens before results return to the client. | Per MCP in that MCP's settings for output transforms. OneMCP smart mode is configured through OneMCP access. | [MCP Gateway Token Saving](./mcp-gateway/features/token-saving) |
 
 ## Shared Methods
 

@@ -4,7 +4,7 @@
 
 ## Platform Features
 
-- [Token Saving](https://docs.quilrai.dev/token-saving.md): Cross-product guide to reducing LLM prompt and MCP agent-context tokens with JSON compression, HTML/Markdown to text, and text compression.
+- [Token Saving](https://docs.quilrai.dev/token-saving.md): Cross-product guide to reducing LLM prompt and MCP agent-context tokens with JSON compression, HTML/Markdown to text, text compression, and OneMCP smart tool search.
 
 ## LLM Gateway
 
@@ -65,7 +65,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [API Tokens](https://docs.quilrai.dev/mcp-gateway/features/api-tokens.md): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access, and understand how static upstream API keys are injected separately.
 - [OAuth Connect](https://docs.quilrai.dev/mcp-gateway/features/oauth-connect.md): Authorize OAuth-protected MCP servers with Dynamic Client Registration, manual credentials, OAuth passthrough, or OneMCP inline OAuth recovery.
 - [Web Search Policy](https://docs.quilrai.dev/mcp-gateway/features/web-search-policy.md): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).
-- [Token Saving](https://docs.quilrai.dev/mcp-gateway/features/token-saving.md): Reduce MCP tool-output token usage per MCP with JSON compression, HTML/Markdown to text, and text compression.
+- [Token Saving](https://docs.quilrai.dev/mcp-gateway/features/token-saving.md): Reduce MCP discovery and tool-output token usage with OneMCP smart tool search plus per-MCP JSON compression, HTML/Markdown to text, and text compression.
 
 ## Compliance API Integration
 
