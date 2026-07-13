@@ -310,7 +310,7 @@ export default function GatewayTimeline() {
           <React.Fragment key={label}>
             <div className={styles.groupHead}>
               <span className={styles.groupLabel}>{label}</span>
-              <span className={styles.groupNote}>Live · zero-cost health checks</span>
+              <span className={styles.groupNote}>Live</span>
             </div>
             {rollupStatus === 'error' ? (
               <div className={styles.groupError}>Couldn't load {label} health right now.</div>

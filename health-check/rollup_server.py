@@ -30,7 +30,7 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "scenario": "direct",
         "label": "MCP Gateway",
         "kind": "Backend",
-        "note": "Synthetic canary call through a live backend connection.",
+        "note": "Live check through a real backend connection.",
     },
     {
         "id": "mcp-onemcp",
@@ -39,7 +39,7 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "scenario": "onemcp",
         "label": "OneMCP Router",
         "kind": "Router",
-        "note": "Synthetic canary call through the OneMCP aggregation router.",
+        "note": "Live check through the OneMCP aggregation router.",
     },
     # Real HTTPS reachability against the actual production regions - the same
     # hosts and the same "skip the global auto-router" choice already used by
@@ -88,7 +88,7 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "scenario": "chat",
         "label": "Chat Completions",
         "kind": "Completions",
-        "note": "Full pipeline incl. guardrails/DLP scanning - zero-cost synthetic provider, never a real model.",
+        "note": "Exercises the full request pipeline, including guardrails/DLP scanning.",
     },
     {
         "id": "llm-streaming",
@@ -97,7 +97,7 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "scenario": "streaming",
         "label": "Streaming",
         "kind": "Completions",
-        "note": "Same pipeline via the SSE code path - zero-cost synthetic provider, never a real model.",
+        "note": "Exercises the same pipeline through the streaming response path.",
     },
     {
         "id": "llm-models",
@@ -106,7 +106,7 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "scenario": "models",
         "label": "Model Listing",
         "kind": "Metadata",
-        "note": "Auth + model registry lookup - zero-cost synthetic provider, never a real model.",
+        "note": "Verifies authentication and the model registry lookup.",
     },
 ]
 
