@@ -264,6 +264,32 @@ async def _probe_onemcp(client, mcp_base_url, tenant_id, bootstrap):
     }
 
 
+# Real production LLM Gateway regions - matching the same set (and the same
+# "skip the global auto-router, it's not meaningful to probe directly" choice)
+# already used by the QuilrAI Infrastructure tab's browser-side ping in
+# src/components/GatewayHealth/index.js. This is a plain HTTPS reachability
+# check against the real hosts, not a completion - it costs nothing and needs
+# no API key, but it's also a shallower signal than the llm/chat|streaming|models
+# probes above: it can't tell a healthy gateway from one serving 500s, only
+# that something answered.
+LLM_REGIONS = [
+    ("usa-1", "https://guardrails-usa-1.quilr.ai"),
+    ("usa-2", "https://guardrails-usa-2.quilr.ai"),
+    ("india-1", "https://guardrails-india-1.quilr.ai"),
+]
+
+
+async def _probe_region(client, region_id, url):
+    start = time.perf_counter()
+    await client.get(url, follow_redirects=True)
+    return {
+        "component": "llm-region",
+        "scenario": region_id,
+        "status": "success",
+        "duration_ms": _now_ms(start),
+    }
+
+
 async def run_once():
     internal_token = os.environ["GATEWAY_HEALTH_INTERNAL_TOKEN"]
     tenant_id = os.environ["GATEWAY_HEALTH_TENANT_ID"]
@@ -286,6 +312,9 @@ async def run_once():
             ("llm", "streaming", lambda: _probe_llm_stream(client, llm_gateway_url, api_key)),
             ("mcp", "direct", lambda: _probe_mcp_direct(client, mcp_base_url, bootstrap)),
             ("mcp", "onemcp", lambda: _probe_onemcp(client, mcp_base_url, tenant_id, bootstrap)),
+        ] + [
+            ("llm-region", region_id, lambda region_id=region_id, url=url: _probe_region(client, region_id, url))
+            for region_id, url in LLM_REGIONS
         ]
         for component, scenario, factory in probes:
             start = time.perf_counter()

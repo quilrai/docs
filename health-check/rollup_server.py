@@ -41,32 +41,40 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "kind": "Router",
         "note": "Synthetic canary call through the OneMCP aggregation router.",
     },
+    # Real HTTPS reachability against the actual production regions - the same
+    # hosts and the same "skip the global auto-router" choice already used by
+    # the QuilrAI Infrastructure tab's browser-side ping (index.js). No API
+    # key, no synthetic provider, no production writes - just an outbound
+    # HTTPS request, exactly like that existing check.
     {
-        "id": "llm-chat",
+        "id": "llm-region-usa-1",
         "group": "llm",
-        "component": "llm",
-        "scenario": "chat",
-        "label": "Chat Completions",
-        "kind": "Completions",
-        "note": "Synthetic canary call - routed to a zero-cost fake provider, never a real model.",
+        "component": "llm-region",
+        "scenario": "usa-1",
+        "label": "US Central West",
+        "kind": "Region",
+        "host": "guardrails-usa-1.quilr.ai",
+        "note": "Live HTTPS reachability against the real production host.",
     },
     {
-        "id": "llm-streaming",
+        "id": "llm-region-usa-2",
         "group": "llm",
-        "component": "llm",
-        "scenario": "streaming",
-        "label": "Streaming",
-        "kind": "Completions",
-        "note": "Synthetic canary call - routed to a zero-cost fake provider, never a real model.",
+        "component": "llm-region",
+        "scenario": "usa-2",
+        "label": "US East",
+        "kind": "Region",
+        "host": "guardrails-usa-2.quilr.ai",
+        "note": "Live HTTPS reachability against the real production host.",
     },
     {
-        "id": "llm-models",
+        "id": "llm-region-india-1",
         "group": "llm",
-        "component": "llm",
-        "scenario": "models",
-        "label": "Model Listing",
-        "kind": "Metadata",
-        "note": "Synthetic canary call - routed to a zero-cost fake provider, never a real model.",
+        "component": "llm-region",
+        "scenario": "india-1",
+        "label": "India · Mumbai",
+        "kind": "Region",
+        "host": "guardrails-india-1.quilr.ai",
+        "note": "Live HTTPS reachability against the real production host.",
     },
 ]
 
@@ -183,6 +191,7 @@ async def get_public_gateway_health_rollup(days: int = Query(default=14, ge=1, l
             "group": comp_def["group"],
             "label": comp_def["label"],
             "kind": comp_def["kind"],
+            "host": comp_def.get("host"),
             "note": comp_def["note"],
             "buckets": _hourly_rollup(rows, comp_def["component"], comp_def["scenario"], window_start_ms, window_end_ms),
         }

@@ -199,7 +199,7 @@ function mapRollup(data) {
   for (const c of data?.components || []) {
     const buckets = c.buckets || [];
     const row = {
-      comp: { id: c.id, kind: c.kind, label: c.label, host: ROW_HOSTS[c.group], note: c.note },
+      comp: { id: c.id, kind: c.kind, label: c.label, host: c.host || ROW_HOSTS[c.group], note: c.note },
       buckets,
       stats: summarize(buckets),
     };
@@ -310,7 +310,7 @@ export default function GatewayTimeline() {
           <React.Fragment key={label}>
             <div className={styles.groupHead}>
               <span className={styles.groupLabel}>{label}</span>
-              <span className={styles.groupNote}>Live · from zero-cost synthetic canary probes</span>
+              <span className={styles.groupNote}>Live · zero-cost health checks</span>
             </div>
             {rollupStatus === 'error' ? (
               <div className={styles.groupError}>Couldn't load {label} health right now.</div>
