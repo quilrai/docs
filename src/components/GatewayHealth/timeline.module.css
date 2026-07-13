@@ -128,6 +128,46 @@
   border-color: var(--docs-dark-border);
 }
 
+/* ── Group headings (MCP Gateway / LLM Gateway) ─────────────────────────── */
+
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 1.4rem 0 0.6rem;
+}
+
+.groupHead:first-child {
+  margin-top: 0;
+}
+
+.groupLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary);
+}
+
+.groupNote {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.66rem;
+  color: var(--ifm-color-content-secondary);
+  opacity: 0.75;
+}
+
+.groupError {
+  padding: 0.9rem 1.1rem;
+  border: 1px dashed var(--docs-light-border);
+  border-radius: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+:global([data-theme='dark']) .groupError {
+  border-color: var(--docs-dark-border);
+}
+
 /* ── Rows ────────────────────────────────────────────────────────────── */
 
 .rows {

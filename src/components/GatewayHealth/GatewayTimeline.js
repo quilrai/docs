@@ -81,6 +81,20 @@ const SEVERITY_RANK = { operational: 0, maintenance: 1, degraded: 2, partial: 3,
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+// MCP Gateway rows below are real: fetched from a live rollup of the
+// synthetic canary probes (see health-check/rollup_server.py in this repo).
+// Unlike the LLM Gateway rows above, this is not mock data - it just may show
+// 'nodata' until the probe worker has been running long enough to fill in
+// history.
+//
+// TODO(deploy): health-check/rollup_server.py needs to run somewhere with a
+// public HTTPS address before this can point at real infrastructure - it is
+// not reachable from GitHub Pages itself (this site has no backend). Update
+// this constant once that's decided.
+const MCP_ROLLUP_URL = 'http://127.0.0.1:8099/api/public/gateway-health/rollup';
+const MCP_ROLLUP_DAYS = 14;
+const MCP_ROLLUP_TIMEOUT_MS = 15000;
+
 /* ────────────────────────────────── Mock generation ────────────────── */
 
 function hashStr(s) {
@@ -271,14 +285,55 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
 
 /* ────────────────────────────────── Component ──────────────────────── */
 
+function mapMcpRollup(data) {
+  return (data?.components || []).map((c) => {
+    const buckets = c.buckets || [];
+    return {
+      comp: { id: c.id, kind: c.kind, label: c.label, host: 'mcpgateway.quilr.ai', note: c.note },
+      buckets,
+      stats: summarize(buckets),
+    };
+  });
+}
+
 export default function GatewayTimeline() {
   // nowHour is client-only (Date.now) to avoid SSR/hydration mismatch.
   const [nowHour, setNowHour] = useState(null);
   const [hover, setHover] = useState(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [mcpRows, setMcpRows] = useState([]);
+  const [mcpStatus, setMcpStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
 
   useEffect(() => {
     setNowHour(Math.floor(Date.now() / HOUR_MS) * HOUR_MS);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), MCP_ROLLUP_TIMEOUT_MS);
+
+    fetch(`${MCP_ROLLUP_URL}?days=${MCP_ROLLUP_DAYS}`, { cache: 'no-store', signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setMcpRows(mapMcpRollup(data));
+        setMcpStatus('ready');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setMcpStatus('error');
+      })
+      .finally(() => clearTimeout(timer));
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -299,22 +354,23 @@ export default function GatewayTimeline() {
   }, [nowHour]);
 
   const overall = useMemo(() => {
-    if (!rows.length) return { state: 'nodata', label: 'Loading…' };
+    const allRows = [...rows, ...mcpRows];
+    if (!allRows.length) return { state: 'nodata', label: 'Loading…' };
     let worst = 'operational';
-    for (const r of rows) {
+    for (const r of allRows) {
       const s = r.stats.current ? r.stats.current.state : 'operational';
       if (SEVERITY_RANK[s] > SEVERITY_RANK[worst]) worst = s;
     }
     const label =
       worst === 'operational' || worst === 'maintenance'
-        ? 'All Regions Operational'
+        ? 'All Systems Operational'
         : worst === 'degraded'
         ? 'Degraded Performance'
         : worst === 'partial'
-        ? 'Partial Region Outage'
-        : 'Major Region Outage';
+        ? 'Partial Outage'
+        : 'Major Outage';
     return { state: worst, label };
-  }, [rows]);
+  }, [rows, mcpRows]);
 
   const handleHover = (e, b, comp) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -352,6 +408,34 @@ export default function GatewayTimeline() {
         <div className={styles.loading}>Loading timeline…</div>
       ) : (
         <>
+          <div className={styles.groupHead}>
+            <span className={styles.groupLabel}>MCP Gateway</span>
+            <span className={styles.groupNote}>Live · from synthetic canary probes</span>
+          </div>
+          {mcpStatus === 'error' ? (
+            <div className={styles.groupError}>Couldn't load MCP Gateway health right now.</div>
+          ) : (
+            <div className={styles.rows}>
+              {mcpRows.map((r) => (
+                <ComponentRow
+                  key={r.comp.id}
+                  comp={r.comp}
+                  buckets={r.buckets}
+                  stats={r.stats}
+                  onHover={handleHover}
+                  onLeave={() => setHover(null)}
+                />
+              ))}
+              {mcpStatus === 'loading' && mcpRows.length === 0 ? (
+                <div className={styles.loading}>Loading MCP Gateway health…</div>
+              ) : null}
+            </div>
+          )}
+
+          <div className={styles.groupHead}>
+            <span className={styles.groupLabel}>LLM Gateway</span>
+            <span className={styles.groupNote}>Design mock · see Provider Health for real data</span>
+          </div>
           <div className={styles.rows}>
             {rows.map((r) => (
               <ComponentRow
