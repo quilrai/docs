@@ -1,7 +1,4 @@
-/*
- * Gateway Health timeline - hourly status buckets per region + global router.
- * Tracks the docs light/dark tokens (--docs-light-* / --docs-dark-*).
- */
+/* Gateway Health timeline - hourly status buckets; tracks docs light/dark tokens. */
 
 .section {
   margin-top: 2rem;

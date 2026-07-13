@@ -1,10 +1,4 @@
-"""
-Public, unauthenticated hourly-rollup API for the docs status page's
-"Gateway Health" tab. Reads the gateway_health_probe_runs table that the MCP
-Gateway (quilr-llm-gateway repo) already writes to - read-only, no changes
-needed in that repo. Returns only aggregate per-hour counts/rates, never raw
-error text, tenant ids, or backend urls, so it is safe to expose publicly.
-"""
+"""Public, unauthenticated hourly-rollup API for the docs status page's Gateway Health tab."""
 
 import math
 import os
@@ -19,9 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 HOUR_MS = 3_600_000
 DB_PATH = os.environ["GATEWAY_HEALTH_DB_PATH"]  # path to the MCP Gateway's gateway.db - not defaulted, this repo is public
 
-# Allowlist of what's exposed publicly - not "every component/scenario in the
-# table" - so new internal probes don't show up without a conscious decision.
-# "group" partitions rows in the frontend (MCP Gateway vs LLM Gateway sections).
+# Allowlist of what's exposed publicly; "group" partitions rows in the frontend.
 PUBLIC_ROLLUP_COMPONENTS = [
     {
         "id": "mcp-direct",
@@ -41,11 +33,7 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "kind": "Router",
         "note": "Live check through the OneMCP aggregation router.",
     },
-    # Real HTTPS reachability against the actual production regions - the same
-    # hosts and the same "skip the global auto-router" choice already used by
-    # the QuilrAI Infrastructure tab's browser-side ping (index.js). No API
-    # key, no synthetic provider, no production writes - just an outbound
-    # HTTPS request, exactly like that existing check.
+    # Real reachability check against production regions, same hosts as the QuilrAI Infrastructure tab's ping.
     {
         "id": "llm-region-usa-1",
         "group": "llm",
@@ -76,11 +64,7 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "host": "guardrails-india-1.quilr.ai",
         "note": "Live HTTPS reachability against the real production host.",
     },
-    # Deep functional checks, distinct from the reachability rows above: these
-    # exercise the full request pipeline - auth, provider routing, and the
-    # real guardrails/DLP risk-detection pass (the synthetic key carries the
-    # default enabled categories, so this isn't a bypass) - through a
-    # zero-cost synthetic provider, never a real, billable model.
+    # Deep functional checks: full request pipeline including real guardrails/DLP scanning.
     {
         "id": "llm-chat",
         "group": "llm",
@@ -150,9 +134,7 @@ def _hour_bucket_ms(created_at):
 
 
 def _hourly_rollup(rows, component, scenario, window_start_ms, window_end_ms):
-    """Bucket raw probe rows for one (component, scenario) into UTC hourly
-    buckets. Hours with no probes come back as 'nodata' rather than being
-    fabricated as healthy."""
+    """Bucket raw probe rows into UTC hourly buckets; empty hours are 'nodata', not fabricated as healthy."""
     by_hour = {}
     for row in rows:
         if row["component"] != component or row["scenario"] != scenario:

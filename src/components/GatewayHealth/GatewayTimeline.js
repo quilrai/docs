@@ -2,32 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { History, ShieldCheck, X } from 'lucide-react';
 import styles from './timeline.module.css';
 
-/*
- * Gateway Health - historical, server-measured status in 1-hour buckets,
- * grouped into an MCP Gateway section and an LLM Gateway section.
- *
- * Both groups are real: fetched from health-check/rollup_server.py in this
- * repo, which rolls up synthetic canary probe results recorded by
- * health-check/worker.py. The LLM Gateway probes are routed to a zero-cost
- * fake provider (health-check/synthetic_llm_provider.py), never a real,
- * billable model - see health-check/worker.py's _ensure_llm_key.
- *
- * Bucket = {
- *   t: number,            // epoch ms, start of the hour (UTC-aligned)
- *   state: 'operational' | 'degraded' | 'partial' | 'major' | 'maintenance' | 'nodata',
- *   p95: number | null,   // gateway overhead p95 in ms (null when no successful traffic)
- *   errorRate: number,    // gateway-attributed 5xx rate, percent
- *   requests: number,     // requests served in the hour
- *   incidentId: string | null,
- * }
- */
+// Gateway Health: MCP Gateway and LLM Gateway sections, both fetched from health-check/rollup_server.py in this repo.
+// Bucket = { t, state: 'operational'|'degraded'|'partial'|'major'|'maintenance'|'nodata', p95, errorRate, requests, incidentId }
 
 /* ────────────────────────────────── Config ─────────────────────────── */
 
-// TODO(deploy): health-check/rollup_server.py needs to run somewhere with a
-// public HTTPS address before this can point at real infrastructure - it is
-// not reachable from GitHub Pages itself (this site has no backend). Update
-// this constant once that's decided.
+// TODO(deploy): needs a public HTTPS address for rollup_server.py before this can point at real infrastructure.
 const GATEWAY_ROLLUP_URL = 'http://127.0.0.1:8099/api/public/gateway-health/rollup';
 const GATEWAY_ROLLUP_DAYS = 14;
 const GATEWAY_ROLLUP_TIMEOUT_MS = 15000;

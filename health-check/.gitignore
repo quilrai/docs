@@ -2,9 +2,6 @@
 __pycache__/
 *.pyc
 
-# Never commit real credentials for this toolkit - GATEWAY_HEALTH_INTERNAL_TOKEN
-# and friends must be passed as env vars at runtime, never hardcoded or dumped
-# to a local file, since this repo is public.
 .env
 .env.*
 *.token

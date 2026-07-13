@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
-# Starts the four gateway-health processes as tmux windows in a "gateway-health"
-# session: the two synthetic test doubles, the probe worker loop, and the
-# public rollup reader that GatewayTimeline.js fetches from.
-#
-# MCP_GATEWAY_BASE_URL must point at a running instance of the quilr-llm-gateway
-# repo's mcpgateway app (health-check-dashboard branch or later) that already
-# has the /internal/gateway-health/bootstrap and /probe-results routes - those
-# are NOT part of this repo, see quilr-llm-gateway commits eb3c174/25abd17/effe567.
+# Starts the four gateway-health processes as tmux windows: two test doubles, the probe worker, and the rollup reader.
+# MCP_GATEWAY_BASE_URL must point at an mcpgateway instance with the /internal/gateway-health routes (quilr-llm-gateway repo).
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

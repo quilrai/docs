@@ -264,14 +264,7 @@ async def _probe_onemcp(client, mcp_base_url, tenant_id, bootstrap):
     }
 
 
-# Real production LLM Gateway regions - matching the same set (and the same
-# "skip the global auto-router, it's not meaningful to probe directly" choice)
-# already used by the QuilrAI Infrastructure tab's browser-side ping in
-# src/components/GatewayHealth/index.js. This is a plain HTTPS reachability
-# check against the real hosts, not a completion - it costs nothing and needs
-# no API key, but it's also a shallower signal than the llm/chat|streaming|models
-# probes above: it can't tell a healthy gateway from one serving 500s, only
-# that something answered.
+# Real LLM Gateway regions, same set as the QuilrAI Infrastructure tab's ping (index.js) - reachability only, not a completion.
 LLM_REGIONS = [
     ("usa-1", "https://guardrails-usa-1.quilr.ai"),
     ("usa-2", "https://guardrails-usa-2.quilr.ai"),
