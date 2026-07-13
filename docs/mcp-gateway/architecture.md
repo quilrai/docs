@@ -80,12 +80,13 @@ Every MCP tool call flows through these stages in order. Each stage is independe
 | **Tool Controls** | Categorizes tools by risk level and lets admins enable or disable each tool individually. | [Tools Management →](./features/tools-management) |
 | **Security Guardrails** | Detects PII, PHI, PCI, and financial data. Catches prompt injection, jailbreak, and social engineering. | [Security Guardrails →](./features/security-guardrails) |
 | **Web Search Policy** | Enforces enterprise domain filtering rules on web search tool calls via connected security gateways. | [Web Search Policy →](./features/web-search-policy) |
+| **Token Saving** | Optimizes MCP text content blocks - JSON to TOON, HTML/Markdown to plain text, and prose compression. | [Token Saving →](./features/token-saving) |
 | **Auth Mediation** | Converts between auth modes - handles OAuth for token-only agents, adds auth to unauthenticated MCPs. | [Integration Guide →](./integration-guide) |
 | **OneMCP Aggregation** | Presents policy-accessible MCPs through one endpoint with tool discovery, native memory tools, and inline OAuth recovery. | [OneMCP →](./onemcp) |
 
 ## Response Path
 
-Responses from MCP servers pass back through the **security guardrails** for output scanning before being returned to your agent. The same detection categories and configurable actions (block, redact, anonymize, monitor) apply to both tool call inputs and outputs.
+Responses from MCP servers pass back through the **security guardrails** for output scanning before being returned to your agent. The same detection categories and configurable actions (block, redact, anonymize, monitor) apply to both tool call inputs and outputs. When [Token Saving](./features/token-saving) is enabled for an MCP, text content blocks are optimized after output safety checks and before the final response is sent to the client.
 
 ## Auth Mediation
 

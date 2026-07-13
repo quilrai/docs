@@ -59,6 +59,7 @@ Open **Settings** on any MCP card to fine-tune its behavior. Sensible defaults a
 | **[Security Guardrails](./features/security-guardrails)** | PII/PHI/PCI detection, adversarial blocking |
 | **[Access Control](./features/access-control)** | Restrict which AI agents can use this MCP |
 | **[Web Search Policy](./features/web-search-policy)** | Domain exclusions via firewall integrations |
+| **[Token Saving](./features/token-saving)** | JSON compression, HTML/Markdown to text, text compression |
 | **[OAuth Connect](./features/oauth-connect)** | One-click OAuth authorization flow |
 | **[Agents Configuration](./features/agents-configuration)** | Define and manage AI agent profiles |
 | **[OneMCP](./onemcp)** | Unified endpoint with tool discovery, memory tools, and inline OAuth recovery |
