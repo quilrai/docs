@@ -3,14 +3,14 @@ import { History, ShieldCheck, X } from 'lucide-react';
 import styles from './timeline.module.css';
 
 /*
- * Gateway Health - historical, server-measured status in 1-hour buckets for
- * each LLM Gateway region plus the global auto-router.
+ * Gateway Health - historical, server-measured status in 1-hour buckets,
+ * grouped into an MCP Gateway section and an LLM Gateway section.
  *
- * NOTE: the data here is DETERMINISTIC MOCK DATA, generated from a fixed window
- * start (1 Jul 2026) with a seeded PRNG so the timeline is stable across
- * refreshes and re-renders. This is a design surface. Replace buildTimeline()
- * with a fetch of the real per-hour rollup API when the backend exists; the
- * expected shape per bucket is documented in the Bucket typedef below.
+ * Both groups are real: fetched from health-check/rollup_server.py in this
+ * repo, which rolls up synthetic canary probe results recorded by
+ * health-check/worker.py. The LLM Gateway probes are routed to a zero-cost
+ * fake provider (health-check/synthetic_llm_provider.py), never a real,
+ * billable model - see health-check/worker.py's _ensure_llm_key.
  *
  * Bucket = {
  *   t: number,            // epoch ms, start of the hour (UTC-aligned)
@@ -24,47 +24,13 @@ import styles from './timeline.module.css';
 
 /* ────────────────────────────────── Config ─────────────────────────── */
 
-const HOUR_MS = 3600000;
-// Fixed design window start: 1 Jul 2026 00:00 UTC.
-const WINDOW_START = Date.UTC(2026, 6, 1, 0, 0, 0);
-
-// Regions + the global auto-router. baseP95 ties to the documented ~40ms
-// gateway overhead; baseReq is a per-hour request volume for realism.
-const COMPONENTS = [
-  {
-    id: 'global',
-    kind: 'Global',
-    label: 'Global Router',
-    host: 'guardrails.quilr.ai',
-    baseP95: 42,
-    baseReq: 240000,
-    note: 'Auto-routes to the nearest healthy region.',
-  },
-  {
-    id: 'usa-1',
-    kind: 'Region',
-    label: 'US Central West',
-    host: 'guardrails-usa-1.quilr.ai',
-    baseP95: 37,
-    baseReq: 96000,
-  },
-  {
-    id: 'usa-2',
-    kind: 'Region',
-    label: 'US East',
-    host: 'guardrails-usa-2.quilr.ai',
-    baseP95: 39,
-    baseReq: 128000,
-  },
-  {
-    id: 'india-1',
-    kind: 'Region',
-    label: 'India · Mumbai',
-    host: 'guardrails-india-1.quilr.ai',
-    baseP95: 45,
-    baseReq: 61000,
-  },
-];
+// TODO(deploy): health-check/rollup_server.py needs to run somewhere with a
+// public HTTPS address before this can point at real infrastructure - it is
+// not reachable from GitHub Pages itself (this site has no backend). Update
+// this constant once that's decided.
+const GATEWAY_ROLLUP_URL = 'http://127.0.0.1:8099/api/public/gateway-health/rollup';
+const GATEWAY_ROLLUP_DAYS = 14;
+const GATEWAY_ROLLUP_TIMEOUT_MS = 15000;
 
 const STATE_META = {
   operational: { label: 'Operational' },
@@ -80,65 +46,6 @@ const DOWN_WEIGHT = { operational: 0, degraded: 0, partial: 0.5, major: 1, maint
 const SEVERITY_RANK = { operational: 0, maintenance: 1, degraded: 2, partial: 3, major: 4, nodata: 0 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-// MCP Gateway rows below are real: fetched from a live rollup of the
-// synthetic canary probes (see health-check/rollup_server.py in this repo).
-// Unlike the LLM Gateway rows above, this is not mock data - it just may show
-// 'nodata' until the probe worker has been running long enough to fill in
-// history.
-//
-// TODO(deploy): health-check/rollup_server.py needs to run somewhere with a
-// public HTTPS address before this can point at real infrastructure - it is
-// not reachable from GitHub Pages itself (this site has no backend). Update
-// this constant once that's decided.
-const MCP_ROLLUP_URL = 'http://127.0.0.1:8099/api/public/gateway-health/rollup';
-const MCP_ROLLUP_DAYS = 14;
-const MCP_ROLLUP_TIMEOUT_MS = 15000;
-
-/* ────────────────────────────────── Mock generation ────────────────── */
-
-function hashStr(s) {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < s.length; i += 1) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-// Deterministic PRNG (mulberry32) - same seed always yields the same sequence.
-function mulberry32(seed) {
-  let a = seed >>> 0;
-  return function next() {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function buildBuckets(comp, nowHour) {
-  const buckets = [];
-  for (let t = WINDOW_START; t <= nowHour; t += HOUR_MS) {
-    const hourIndex = (t - WINDOW_START) / HOUR_MS;
-    const rand = mulberry32(hashStr(`${comp.id}:${hourIndex}`));
-
-    // Diurnal request curve (deterministic), peaking mid-day UTC.
-    const hourOfDay = new Date(t).getUTCHours();
-    const diel = 0.62 + 0.4 * Math.sin(((hourOfDay - 8) / 24) * Math.PI * 2);
-    const requests = Math.round(comp.baseReq * diel * (0.9 + rand() * 0.2));
-
-    // 100% uptime, zero errors: every bucket is operational. p95 keeps a small
-    // deterministic jitter so tooltips read realistically. Swap this whole
-    // function for the real per-hour rollup API when the backend exists.
-    const p95 = Math.round(comp.baseP95 + (rand() * 10 - 3));
-    const errorRate = 0;
-
-    buckets.push({ t, hourIndex, state: 'operational', p95, errorRate, requests, incidentId: null });
-  }
-  return buckets;
-}
 
 function summarize(buckets) {
   let downWeight = 0;
@@ -236,7 +143,7 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
         <div className={styles.rowId}>
           <span className={styles.rowKind}>{comp.kind}</span>
           <span className={styles.rowLabel}>{comp.label}</span>
-          <span className={styles.rowHost}>{comp.host}</span>
+          {comp.host ? <span className={styles.rowHost}>{comp.host}</span> : null}
         </div>
         <div className={styles.rowRight}>
           <span className={styles.rowUptime}>
@@ -285,47 +192,49 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
 
 /* ────────────────────────────────── Component ──────────────────────── */
 
-function mapMcpRollup(data) {
-  return (data?.components || []).map((c) => {
+const ROW_HOSTS = { mcp: 'mcpgateway.quilr.ai' };
+
+function mapRollup(data) {
+  const byGroup = { mcp: [], llm: [] };
+  for (const c of data?.components || []) {
     const buckets = c.buckets || [];
-    return {
-      comp: { id: c.id, kind: c.kind, label: c.label, host: 'mcpgateway.quilr.ai', note: c.note },
+    const row = {
+      comp: { id: c.id, kind: c.kind, label: c.label, host: ROW_HOSTS[c.group], note: c.note },
       buckets,
       stats: summarize(buckets),
     };
-  });
+    (byGroup[c.group] || (byGroup[c.group] = [])).push(row);
+  }
+  return byGroup;
 }
 
 export default function GatewayTimeline() {
-  // nowHour is client-only (Date.now) to avoid SSR/hydration mismatch.
-  const [nowHour, setNowHour] = useState(null);
   const [hover, setHover] = useState(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [mcpRows, setMcpRows] = useState([]);
-  const [mcpStatus, setMcpStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
-
-  useEffect(() => {
-    setNowHour(Math.floor(Date.now() / HOUR_MS) * HOUR_MS);
-  }, []);
+  const [llmRows, setLlmRows] = useState([]);
+  const [rollupStatus, setRollupStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
 
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), MCP_ROLLUP_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), GATEWAY_ROLLUP_TIMEOUT_MS);
 
-    fetch(`${MCP_ROLLUP_URL}?days=${MCP_ROLLUP_DAYS}`, { cache: 'no-store', signal: controller.signal })
+    fetch(`${GATEWAY_ROLLUP_URL}?days=${GATEWAY_ROLLUP_DAYS}`, { cache: 'no-store', signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((data) => {
         if (cancelled) return;
-        setMcpRows(mapMcpRollup(data));
-        setMcpStatus('ready');
+        const byGroup = mapRollup(data);
+        setMcpRows(byGroup.mcp || []);
+        setLlmRows(byGroup.llm || []);
+        setRollupStatus('ready');
       })
       .catch(() => {
         if (cancelled) return;
-        setMcpStatus('error');
+        setRollupStatus('error');
       })
       .finally(() => clearTimeout(timer));
 
@@ -345,16 +254,8 @@ export default function GatewayTimeline() {
     return () => window.removeEventListener('keydown', onKey);
   }, [historyOpen]);
 
-  const rows = useMemo(() => {
-    if (!nowHour) return [];
-    return COMPONENTS.map((comp) => {
-      const buckets = buildBuckets(comp, nowHour);
-      return { comp, buckets, stats: summarize(buckets) };
-    });
-  }, [nowHour]);
-
   const overall = useMemo(() => {
-    const allRows = [...rows, ...mcpRows];
+    const allRows = [...mcpRows, ...llmRows];
     if (!allRows.length) return { state: 'nodata', label: 'Loading…' };
     let worst = 'operational';
     for (const r of allRows) {
@@ -370,7 +271,7 @@ export default function GatewayTimeline() {
         ? 'Partial Outage'
         : 'Major Outage';
     return { state: worst, label };
-  }, [rows, mcpRows]);
+  }, [mcpRows, llmRows]);
 
   const handleHover = (e, b, comp) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -382,7 +283,7 @@ export default function GatewayTimeline() {
       <div className={styles.sectionHead}>
         <History size={15} />
         <h2 className={styles.sectionTitle}>Gateway Health</h2>
-        <span className={styles.sectionNote}>Hourly buckets · since Jul 1, 2026 · UTC</span>
+        <span className={styles.sectionNote}>Hourly buckets · last {GATEWAY_ROLLUP_DAYS} days · UTC</span>
       </div>
 
       <div className={styles.summaryBar}>
@@ -404,62 +305,52 @@ export default function GatewayTimeline() {
         </button>
       </div>
 
-      {rows.length === 0 ? (
-        <div className={styles.loading}>Loading timeline…</div>
-      ) : (
-        <>
-          <div className={styles.groupHead}>
-            <span className={styles.groupLabel}>MCP Gateway</span>
-            <span className={styles.groupNote}>Live · from synthetic canary probes</span>
-          </div>
-          {mcpStatus === 'error' ? (
-            <div className={styles.groupError}>Couldn't load MCP Gateway health right now.</div>
-          ) : (
-            <div className={styles.rows}>
-              {mcpRows.map((r) => (
-                <ComponentRow
-                  key={r.comp.id}
-                  comp={r.comp}
-                  buckets={r.buckets}
-                  stats={r.stats}
-                  onHover={handleHover}
-                  onLeave={() => setHover(null)}
-                />
-              ))}
-              {mcpStatus === 'loading' && mcpRows.length === 0 ? (
-                <div className={styles.loading}>Loading MCP Gateway health…</div>
-              ) : null}
+      {(() => {
+        const renderGroup = (label, groupRows) => (
+          <React.Fragment key={label}>
+            <div className={styles.groupHead}>
+              <span className={styles.groupLabel}>{label}</span>
+              <span className={styles.groupNote}>Live · from zero-cost synthetic canary probes</span>
             </div>
-          )}
+            {rollupStatus === 'error' ? (
+              <div className={styles.groupError}>Couldn't load {label} health right now.</div>
+            ) : (
+              <div className={styles.rows}>
+                {groupRows.map((r) => (
+                  <ComponentRow
+                    key={r.comp.id}
+                    comp={r.comp}
+                    buckets={r.buckets}
+                    stats={r.stats}
+                    onHover={handleHover}
+                    onLeave={() => setHover(null)}
+                  />
+                ))}
+                {rollupStatus === 'loading' && groupRows.length === 0 ? (
+                  <div className={styles.loading}>Loading {label} health…</div>
+                ) : null}
+              </div>
+            )}
+          </React.Fragment>
+        );
 
-          <div className={styles.groupHead}>
-            <span className={styles.groupLabel}>LLM Gateway</span>
-            <span className={styles.groupNote}>Design mock · see Provider Health for real data</span>
-          </div>
-          <div className={styles.rows}>
-            {rows.map((r) => (
-              <ComponentRow
-                key={r.comp.id}
-                comp={r.comp}
-                buckets={r.buckets}
-                stats={r.stats}
-                onHover={handleHover}
-                onLeave={() => setHover(null)}
-              />
-            ))}
-          </div>
+        return (
+          <>
+            {renderGroup('MCP Gateway', mcpRows)}
+            {renderGroup('LLM Gateway', llmRows)}
 
-          <div className={styles.legend}>
-            {['operational', 'degraded', 'partial', 'major', 'maintenance'].map((s) => (
-              <span key={s} className={styles.legendItem}>
-                <span className={`${styles.swatch} ${styles[`s_${s}`]}`} />
-                {STATE_META[s].label}
-              </span>
-            ))}
-            <span className={styles.legendHint}>Each bar = 1 hour · hover for detail</span>
-          </div>
-        </>
-      )}
+            <div className={styles.legend}>
+              {['operational', 'degraded', 'partial', 'major', 'maintenance'].map((s) => (
+                <span key={s} className={styles.legendItem}>
+                  <span className={`${styles.swatch} ${styles[`s_${s}`]}`} />
+                  {STATE_META[s].label}
+                </span>
+              ))}
+              <span className={styles.legendHint}>Each bar = 1 hour · hover for detail</span>
+            </div>
+          </>
+        );
+      })()}
 
       <Tooltip hover={hover} />
 

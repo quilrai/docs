@@ -8,7 +8,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_KEY_NAME = "__quilr_synthetic_health__"
+DEFAULT_KEY_NAME = "__quilr_synthetic_health_v2__"
 DEFAULT_LLM_MODEL = "quilr-synthetic-fast"
 DEFAULT_STREAM_MODEL = "quilr-synthetic-slow"
 MAX_ERROR_SUMMARY_LENGTH = 240
@@ -103,7 +103,7 @@ async def _ensure_llm_key(client, llm_gateway_url, llm_base_url, tenant_id, subs
     for key in listed.json().get("api_keys", []):
         settings = key.get("quilr_api_key_settings") or {}
         if settings.get("key_name") == DEFAULT_KEY_NAME:
-            return key.get("api_key")
+            return key.get("quilr_api_key")
 
     created = await client.post(
         f"{llm_gateway_url}/api-keys/create",

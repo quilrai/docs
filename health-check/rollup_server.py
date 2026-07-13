@@ -21,9 +21,11 @@ DB_PATH = os.environ["GATEWAY_HEALTH_DB_PATH"]  # path to the MCP Gateway's gate
 
 # Allowlist of what's exposed publicly - not "every component/scenario in the
 # table" - so new internal probes don't show up without a conscious decision.
+# "group" partitions rows in the frontend (MCP Gateway vs LLM Gateway sections).
 PUBLIC_ROLLUP_COMPONENTS = [
     {
         "id": "mcp-direct",
+        "group": "mcp",
         "component": "mcp",
         "scenario": "direct",
         "label": "MCP Gateway",
@@ -32,11 +34,39 @@ PUBLIC_ROLLUP_COMPONENTS = [
     },
     {
         "id": "mcp-onemcp",
+        "group": "mcp",
         "component": "mcp",
         "scenario": "onemcp",
         "label": "OneMCP Router",
         "kind": "Router",
         "note": "Synthetic canary call through the OneMCP aggregation router.",
+    },
+    {
+        "id": "llm-chat",
+        "group": "llm",
+        "component": "llm",
+        "scenario": "chat",
+        "label": "Chat Completions",
+        "kind": "Completions",
+        "note": "Synthetic canary call - routed to a zero-cost fake provider, never a real model.",
+    },
+    {
+        "id": "llm-streaming",
+        "group": "llm",
+        "component": "llm",
+        "scenario": "streaming",
+        "label": "Streaming",
+        "kind": "Completions",
+        "note": "Synthetic canary call - routed to a zero-cost fake provider, never a real model.",
+    },
+    {
+        "id": "llm-models",
+        "group": "llm",
+        "component": "llm",
+        "scenario": "models",
+        "label": "Model Listing",
+        "kind": "Metadata",
+        "note": "Synthetic canary call - routed to a zero-cost fake provider, never a real model.",
     },
 ]
 
@@ -150,6 +180,7 @@ async def get_public_gateway_health_rollup(days: int = Query(default=14, ge=1, l
     components_payload = [
         {
             "id": comp_def["id"],
+            "group": comp_def["group"],
             "label": comp_def["label"],
             "kind": comp_def["kind"],
             "note": comp_def["note"],
