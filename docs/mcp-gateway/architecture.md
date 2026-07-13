@@ -97,7 +97,7 @@ The gateway decouples agent authentication from MCP server authentication, suppo
 | **OAuth → Token** | Bearer token | OAuth 2.0 | Holds OAuth credentials, manages token refresh |
 | **Token → Token** | Bearer token | API token | Manages and relays credentials |
 | **OAuth Passthrough** | Upstream OAuth token | OAuth 2.0 | Validates access controls, forwards the client-owned upstream token, and logs best-effort identity |
-| **Static API Key** | Gateway API token or OAuth proxy token | Fixed API key, header, Bearer token, or query parameter | Injects the admin-owned upstream credential and strips client auth headers |
+| **Static API Key** | Gateway API token or OAuth proxy token | Fixed API key, header, Bearer token, or query parameter | Injects the admin-owned upstream credential, strips client auth headers, and can add [gateway-owned user claims](./features/user-claims-forwarding) |
 | **No Auth → OAuth** | OAuth / Bearer token | No authentication | Adds auth layer in front of open MCPs |
 
 ## Observability

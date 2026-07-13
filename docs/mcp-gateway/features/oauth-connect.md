@@ -70,7 +70,9 @@ Use OAuth passthrough when the downstream MCP client must perform OAuth directly
 
 ### Inline OAuth in OneMCP
 
-OneMCP can surface OAuth MCPs before a user has connected them. When a selected tool needs upstream authorization, OneMCP returns an `isError: true` tool result containing a short-lived connect URL. The user opens the URL, finishes authorization, returns to the agent, and retries the same request.
+OneMCP can surface OAuth MCPs before a user has connected them. In MCP Apps-compatible clients such as ChatGPT, `list_mcp_connections` renders an **Available connectors** card in the conversation. The user selects **Connect** or **Reconnect**, finishes provider authorization, returns to the conversation, and retries the original request. The card checks the selected MCP and updates it when the connection succeeds.
+
+Clients that support URL elicitation can present the connection flow in a host-provided prompt. Other clients retain the tool-error flow with a short-lived connect URL.
 
 For the full OneMCP flow, see [OneMCP](../onemcp).
 

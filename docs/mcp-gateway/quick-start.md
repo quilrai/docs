@@ -62,7 +62,8 @@ Open **Settings** on any MCP card to fine-tune its behavior. Sensible defaults a
 | **[Token Saving](./features/token-saving)** | JSON compression, HTML/Markdown to text, text compression |
 | **[OAuth Connect](./features/oauth-connect)** | One-click OAuth authorization flow |
 | **[Agents Configuration](./features/agents-configuration)** | Define and manage AI agent profiles |
-| **[OneMCP](./onemcp)** | Unified endpoint with tool discovery, memory tools, and inline OAuth recovery |
+| **[OneMCP](./onemcp)** | Unified endpoint with tool discovery, memory tools, and in-chat authentication |
+| **[User Claims Forwarding](./features/user-claims-forwarding)** | Send authenticated user identity to trusted non-OAuth MCP backends |
 
 ## 3. Connect Your Agent
 

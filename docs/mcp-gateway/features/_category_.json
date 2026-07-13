@@ -3,7 +3,7 @@
   "position": 5,
   "link": {
     "type": "generated-index",
-    "description": "Detailed documentation for each MCP Gateway capability - MCP Library, Tools Management, Guardrails, Token Saving, Access Control, and more."
+    "description": "Detailed documentation for each MCP Gateway capability - MCP Library, Tools Management, Guardrails, Token Saving, Access Control, user claims, and more."
   },
   "customProps": {
     "badge": "new",

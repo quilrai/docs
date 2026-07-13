@@ -63,7 +63,9 @@ OAuth passthrough MCPs are not exposed through OneMCP and do not use gateway tok
 | **OAuth passthrough** | The client owns upstream OAuth and sends the upstream Bearer token through the gateway. |
 | **Static upstream API key** | An admin stores a fixed upstream credential. The gateway injects it as a Bearer token, custom header, or query parameter when calling the upstream MCP. |
 
-For manual OAuth setup steps, see [MCP Provider Setup](./mcp-provider-setup/overview). For OneMCP unified access, memory tools, and inline OAuth recovery, see [OneMCP](./onemcp).
+For manual OAuth setup steps, see [MCP Provider Setup](./mcp-provider-setup/overview). For OneMCP unified access, memory tools, and inline authentication, see [OneMCP](./onemcp).
+
+Non-OAuth MCPs can also receive the authenticated Quilr user identity in a gateway-owned `X-User-Claims` JSON header. This setting works for direct MCP and OneMCP requests and is disabled by default. See [User Claims Forwarding](./features/user-claims-forwarding) for configuration, schema, and trust requirements.
 
 ## Token-Based Connection Example
 
@@ -95,7 +97,7 @@ curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
 }
 ```
 
-With OneMCP, call `list_tool_groups` first, then `find_relevant_tools`, then `call_tool`. If a backend requires user OAuth, the response includes a short-lived connect URL that the user can open and retry.
+With OneMCP, use `find_relevant_tools` for task-based discovery and `call_tool` to execute the selected tool. Use `list_mcp_connections` for connector inventory, authentication, and reconnection. Compatible clients such as ChatGPT render that result as an in-chat connector card; other clients use URL or text guidance.
 
 ## Agent Configuration
 

@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # OneMCP
 
-OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents can discover MCP groups, find relevant tools, call tools, and use native memory tools without connecting to each backend separately.
+OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents can discover MCP groups, find relevant tools, call tools, manage per-user connections, and use native memory tools without configuring each backend as a separate MCP server.
 
 ## Endpoint
 
@@ -38,17 +38,15 @@ When smart mode is enabled, OneMCP returns a compact set of gateway tools:
 
 | Tool | Purpose |
 |------|---------|
-| `list_tool_groups` | Lists MCP tool groups available to the user and includes connection status metadata. Call this first. |
-| `list_mcp_connections` | Lists all visible MCPs with `connected`, `connect_required`, `auth_status`, and `connect_url` fields. |
-| `find_relevant_tools` | Searches within one tool group and returns matching backend tools. |
+| `list_mcp_connections` | Lists visible MCPs and their connection state. In compatible clients, it renders the in-chat connector card. |
+| `find_relevant_tools` | Searches across available MCP tool groups and returns matching backend tools. A call without a query returns the available groups and their connection state. |
 | `call_tool` | Calls a tool returned by `find_relevant_tools`. |
 
 The usual flow is:
 
-1. Call `list_tool_groups`.
-2. Pick a `tool_group`.
-3. Call `find_relevant_tools` with a short task description.
-4. Call `call_tool` with the selected tool name and arguments.
+1. Call `find_relevant_tools` with a short task description.
+2. Call `call_tool` with the selected tool name and arguments.
+3. If the user asks to view, connect, authenticate, or reconnect MCPs, call `list_mcp_connections`.
 
 ## Native Memory Tools
 
@@ -82,17 +80,56 @@ Example:
 }
 ```
 
-## Inline OAuth Recovery
+## Inline Authentication
 
-OneMCP can show OAuth-protected MCPs before the current user has connected them. Discovery responses include connection metadata so the agent can guide the user through authorization instead of hiding the MCP.
+OneMCP keeps policy-accessible MCPs visible before the current user has connected them. It can guide the user through an upstream OAuth flow or collection of a required per-user API key without making the user leave their AI workflow to find the right MCP settings.
 
-When a user is missing an upstream OAuth connection:
+### In-Chat Connector Card
 
-- `list_tool_groups` and `list_mcp_connections` include `_meta.quilr.oauth_connect_required_mcps`.
-- Each entry includes `backend_id`, `backend_name`, `tool_group`, `auth_status`, `connect_required`, `connect_url`, and `connect_url_expires_at`.
-- `tools/call` returns a tool-visible `isError: true` result with a connect URL when the selected MCP needs authorization.
+MCP Apps-compatible clients, including ChatGPT, can render an **Available connectors** card directly in the conversation. Ask the client to show available connectors, connect an MCP, or reconnect an MCP. OneMCP routes that request to `list_mcp_connections` and attaches the card.
 
-The user opens the connect URL, completes the upstream provider authorization, returns to the AI client, and retries the same request. The gateway stores the upstream token for that user and uses it on later OneMCP calls.
+<StepFlow steps={[
+  {
+    label: "Show Connectors",
+    items: [
+      "Ask which MCPs are available",
+      "OneMCP checks connection state",
+      "Available connectors card opens",
+    ],
+  },
+  {
+    label: "Connect",
+    items: [
+      "Choose Connection needed",
+      "Select Connect or Reconnect",
+      "Complete provider authentication",
+    ],
+  },
+  {
+    label: "Resume",
+    items: [
+      "Return to the conversation",
+      "Card confirms the connection",
+      "Retry the original request",
+    ],
+  },
+]} />
+
+The card provides:
+
+- **Connection needed** and **Connected** tabs.
+- **Connect** or **Reconnect** actions for each MCP that needs user authentication.
+- Connection-status checks after the user returns from the provider flow.
+- A **Manage connectors** action that opens the self-service dashboard for adding or requesting MCPs.
+
+Connection links remain private to the connector card in UI-capable sessions. Other OneMCP tools direct the client to `list_mcp_connections` when authentication is needed.
+
+### Clients Without the Connector Card
+
+- Clients that support URL elicitation can show the connection flow in a host-provided prompt.
+- Other clients receive the existing tool error and short-lived connection-link guidance.
+
+After authorization, retry the original request. For OAuth MCPs, the gateway stores and refreshes the upstream token for that user. Per-user API keys are also stored against that user's upstream connection.
 
 ## Visibility Rules
 
@@ -101,5 +138,6 @@ OneMCP shows MCPs that are available to the user by organization policy, user pr
 ## Operational Notes
 
 - Connect URLs are short-lived and should be treated as sensitive links.
+- If a connect link expires, ask the client to refresh the connector list before trying again.
 - If an OAuth MCP requires manual client credentials and none are configured, the connect flow cannot complete until an admin adds those credentials.
-- OneMCP `GET` streams and `DELETE` session termination are not supported; use `POST` JSON-RPC requests.
+- Basic clients use stateless `POST` JSON-RPC requests. Clients that negotiate the richer OneMCP session capabilities can also use the supported event stream and session termination methods.
