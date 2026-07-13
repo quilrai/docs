@@ -8,6 +8,10 @@ sidebar_custom_props:
 
 OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents can discover MCP groups, find relevant tools, call tools, manage per-user connections, and use native memory tools without configuring each backend as a separate MCP server.
 
+:::tip
+To steer Claude, ChatGPT, or GitHub Copilot to use the discovery flow reliably, see [Agent Custom Instructions](./agent-instructions) for copy-paste text and ready-to-use files.
+:::
+
 ## Endpoint
 
 For most environments, the OneMCP base domain is one of:
