@@ -76,6 +76,38 @@ PUBLIC_ROLLUP_COMPONENTS = [
         "host": "guardrails-india-1.quilr.ai",
         "note": "Live HTTPS reachability against the real production host.",
     },
+    # Deep functional checks, distinct from the reachability rows above: these
+    # exercise the full request pipeline - auth, provider routing, and the
+    # real guardrails/DLP risk-detection pass (the synthetic key carries the
+    # default enabled categories, so this isn't a bypass) - through a
+    # zero-cost synthetic provider, never a real, billable model.
+    {
+        "id": "llm-chat",
+        "group": "llm",
+        "component": "llm",
+        "scenario": "chat",
+        "label": "Chat Completions",
+        "kind": "Completions",
+        "note": "Full pipeline incl. guardrails/DLP scanning - zero-cost synthetic provider, never a real model.",
+    },
+    {
+        "id": "llm-streaming",
+        "group": "llm",
+        "component": "llm",
+        "scenario": "streaming",
+        "label": "Streaming",
+        "kind": "Completions",
+        "note": "Same pipeline via the SSE code path - zero-cost synthetic provider, never a real model.",
+    },
+    {
+        "id": "llm-models",
+        "group": "llm",
+        "component": "llm",
+        "scenario": "models",
+        "label": "Model Listing",
+        "kind": "Metadata",
+        "note": "Auth + model registry lookup - zero-cost synthetic provider, never a real model.",
+    },
 ]
 
 _CACHE_TTL_SECONDS = 30
