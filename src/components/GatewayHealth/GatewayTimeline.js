@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { History, ShieldCheck, X } from 'lucide-react';
 import styles from './timeline.module.css';
 
-// Gateway Health: MCP Gateway and LLM Gateway sections, both fetched from health-check/rollup_server.py in this repo.
+// Gateway Health: MCP Gateway and LLM Gateway sections, both fetched from rollup_server.py, which lives in the
+// macrodata-refinement repo at OTHER_APPS/gateway_health/rollup_server.py (this repo has no backend).
 // Bucket = { t, state: 'operational'|'degraded'|'partial'|'major'|'maintenance'|'nodata', p95, errorRate, requests, incidentId }
 
 /* ────────────────────────────────── Config ─────────────────────────── */
