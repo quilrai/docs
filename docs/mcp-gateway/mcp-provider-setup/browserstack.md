@@ -8,7 +8,9 @@ sidebar_custom_props:
 
 **BrowserStack Advanced** is a QuilrAI-built MCP for BrowserStack account discovery, browser and device inventories, Automate and App Automate sessions, diagnostic data, app uploads, and Test Management workflows. It uses a BrowserStack username and access key instead of an OAuth Client ID and Client Secret.
 
-Use this guide when you add **BrowserStack Advanced** from the MCP library or register its hosted transport URL manually.
+Use this guide when **BrowserStack Advanced** is available in your MCP Store
+and the QuilrAI setup screen asks for BrowserStack credentials. QuilrAI
+administrators handle the MCP server registration.
 
 ## What This MCP Can Do
 
@@ -87,43 +89,22 @@ On PowerShell:
 )
 ```
 
-Paste only the encoded output into the **Upstream API Key** field. Do not set a value prefix.
+Paste only the encoded output when the BrowserStack credential prompt appears.
 
 </details>
 
-## Register BrowserStack Advanced
+## Connect BrowserStack Advanced
 
-If BrowserStack Advanced is already present in the MCP library, install it from there. To register it manually:
+1. Open **BrowserStack Advanced** from the MCP Store.
+2. When prompted for the upstream credential, paste the raw
+   `username:access-key` value. Use the optional Base64 form only when the
+   client cannot submit a colon safely.
+3. Choose **Admin shared** for an approved service account, or **User required**
+   when each user must provide separate BrowserStack credentials.
+4. Complete the setup and start with the read-only capability request below.
 
-1. In QuilrAI, open **MCP Gateway** and click **Add MCP**.
-2. Enter these values:
-
-| Field | Value |
-|-------|-------|
-| Name | `BrowserStack Advanced` |
-| Slug | `browserstack-advanced` |
-| Transport URL | `https://browserstack.mcp.quilr.ai/mcp` |
-| Description | `Advanced BrowserStack automation, diagnostics, device inventory, and Test Management` |
-| Auth mode | **Upstream API Key** |
-
-If **Auto-detect** identifies an upstream API key, continue with the detected option.
-
-3. On the upstream credential screen, configure:
-
-| Field | Value |
-|-------|-------|
-| Upstream API Key | Paste raw `username:access-key` |
-| Credential ownership | **Admin shared** for a service account, or **User required** when each user supplies personal BrowserStack credentials |
-| Credential placement | **Bearer token** |
-| Value prefix | Leave empty |
-| Extra upstream headers | None |
-| Extra upstream query parameters | None |
-
-4. Click **Create**.
-5. Confirm that QuilrAI can list the BrowserStack tools.
-6. Enable read-only tools first. Enable write and destructive tools only for approved users and agents.
-
-The **Bearer token** selection describes how the gateway securely transports the composite secret to the hosted MCP. The MCP then converts it to the HTTP Basic authentication format required by BrowserStack. Do not enter `Basic` or `Bearer` in **Value prefix**.
+If **BrowserStack Advanced** is not available in your MCP Store, contact your
+QuilrAI administrator.
 
 ## Choose Credential Ownership
 
@@ -172,7 +153,7 @@ read-only: <session-id-1>, <session-id-2>.
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| `401 Unauthorized` or QuilrAI cannot list tools | Wrong username, wrong access key, malformed composite value, or a rotated key | Copy both values from BrowserStack again and enter exactly `username:access-key`. Leave **Value prefix** empty. |
+| `401 Unauthorized` or QuilrAI cannot list tools | Wrong username, wrong access key, malformed composite value, or a rotated key | Copy both values from BrowserStack again, update the saved credential with exactly `username:access-key`, and retry. |
 | Raw composite is rejected before reaching the MCP | A client or intermediary does not accept a colon in the credential field | Use the optional Base64 compatibility format above. |
 | `403 Forbidden` while credentials are valid | The account authenticated but lacks the required product, role, team, or API entitlement | Check BrowserStack product access and role assignments. Contact BrowserStack support for restricted APIs. |
 | Some tool groups are missing | The connected account does not have the corresponding BrowserStack product | Enable the product for the user or service account, then refresh MCP tools. |
@@ -185,7 +166,7 @@ read-only: <session-id-1>, <session-id-2>.
 Rotating a BrowserStack access key invalidates the old credential.
 
 1. Rotate or reset the access key in BrowserStack.
-2. Update the composite upstream credential in QuilrAI using the same username and new key.
+2. Update the saved credential for **BrowserStack Advanced** in QuilrAI using the same username and new key.
 3. Re-run the read-only capability test.
 4. Remove any old encoded copies from local notes, shell history, or secret stores.
 

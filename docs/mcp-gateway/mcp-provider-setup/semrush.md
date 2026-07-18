@@ -8,7 +8,9 @@ sidebar_custom_props:
 
 **Semrush Advanced** is a QuilrAI-built MCP for SEO, keyword, backlink, traffic, market, and project research. It uses a Semrush API key instead of a Semrush OAuth Client ID and Client Secret.
 
-Use this guide when you add **Semrush Advanced** from the MCP library or register its hosted transport URL manually.
+Use this guide when **Semrush Advanced** is available in your MCP Store and the
+QuilrAI setup screen asks for a Semrush API key. QuilrAI administrators handle
+the MCP server registration.
 
 ## What This MCP Can Do
 
@@ -44,39 +46,17 @@ You need:
 
 Treat the key as a secret. It can consume the API units associated with the Semrush account.
 
-## Register Semrush Advanced
+## Connect Semrush Advanced
 
-If Semrush Advanced is already present in the MCP library, install it from there. To register it manually:
+1. Open **Semrush Advanced** from the MCP Store.
+2. When prompted for the upstream credential, paste only the Semrush API key.
+   Do not add `Bearer`, quotes, or spaces.
+3. Choose **Admin shared** for one approved company credential, or **User
+   required** when each user must provide a separate Semrush key.
+4. Complete the setup and start with the read-only unit-balance request below.
 
-1. In QuilrAI, open **MCP Gateway** and click **Add MCP**.
-2. Enter these values:
-
-| Field | Value |
-|-------|-------|
-| Name | `Semrush Advanced` |
-| Slug | `semrush-advanced` |
-| Transport URL | `https://semrush.mcp.quilr.ai/mcp` |
-| Description | `Advanced Semrush SEO, keyword, backlink, traffic, market, and project research` |
-| Auth mode | **Upstream API Key** |
-
-If **Auto-detect** identifies an upstream API key, continue with the detected option.
-
-3. On the upstream credential screen, configure:
-
-| Field | Value |
-|-------|-------|
-| Upstream API Key | Paste the Semrush API key |
-| Credential ownership | **Admin shared** for one company account, or **User required** when each user supplies a different Semrush key |
-| Credential placement | **Bearer token** |
-| Value prefix | Leave empty |
-| Extra upstream headers | None |
-| Extra upstream query parameters | None |
-
-4. Click **Create**.
-5. Confirm that QuilrAI can list the Semrush tools.
-6. Enable only the tools that the intended users and agents need.
-
-The gateway stores the credential encrypted and sends it to the hosted MCP only when the MCP is called. The hosted MCP validates the key against Semrush and does not persist it.
+If **Semrush Advanced** is not available in your MCP Store, contact your
+QuilrAI administrator.
 
 ## Choose Credential Ownership
 
@@ -124,7 +104,7 @@ per-domain errors without failing the whole batch.
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| `401 Unauthorized` or QuilrAI cannot list tools | Invalid, revoked, or incorrectly pasted Semrush API key | Copy the key again from **Subscription Info** > **API Units**, leave **Value prefix** empty, and retry. |
+| `401 Unauthorized` or QuilrAI cannot list tools | Invalid, revoked, or incorrectly supplied Semrush API key | Copy the key again from **Subscription Info** > **API Units**, update the saved Semrush credential, and retry. |
 | API unit balance is zero | The account has no remaining API units | Add units or use a different approved Semrush account. |
 | Semrush reports an unavailable report or database | The connected plan does not include that API, report, or regional database | Confirm the Semrush subscription and requested database. |
 | Traffic or audience tools fail while standard SEO tools work | Trends API access is not enabled for the account | Add the required Semrush Trends API entitlement or disable those tools. |
@@ -136,7 +116,7 @@ per-domain errors without failing the whole batch.
 When a key is exposed, rotated, or no longer needed:
 
 1. Rotate or replace it in Semrush.
-2. Update the upstream credential in QuilrAI.
+2. Update the saved credential for **Semrush Advanced** in QuilrAI.
 3. Re-run the read-only unit-balance test.
 4. Revoke or remove the old key according to your organization's credential policy.
 
