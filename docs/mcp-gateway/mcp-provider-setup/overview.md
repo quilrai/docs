@@ -37,6 +37,8 @@ Create a separate OAuth app for each QuilrAI tenant or environment if the callba
 - [Figma](./figma) - create a Figma OAuth app for the QuilrAI-built Figma MCP, then copy its Client ID and Client Secret.
 - [Datadog](./datadog) - no OAuth app needed; register the QuilrAI callback URL in Datadog Organization Settings, then add your site-specific Datadog MCP endpoint URL manually.
 - [Zoom](./zoom) - create a Zoom General (user-managed OAuth) app and copy its Client ID and Client Secret.
+- [Semrush Advanced](./semrush) - connect the QuilrAI-built advanced Semrush MCP with a Semrush API key.
+- [BrowserStack Advanced](./browserstack) - connect the QuilrAI-built advanced BrowserStack MCP with a BrowserStack username and access key.
 
 ## Store And Rotate Secrets
 
