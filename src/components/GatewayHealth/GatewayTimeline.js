@@ -8,8 +8,7 @@ import styles from './timeline.module.css';
 
 /* ────────────────────────────────── Config ─────────────────────────── */
 
-// TODO(deploy): needs a public HTTPS address for rollup_server.py before this can point at real infrastructure.
-const GATEWAY_ROLLUP_URL = 'http://127.0.0.1:8099/api/public/gateway-health/rollup';
+const GATEWAY_ROLLUP_URL = 'https://health-check.mcp.quilr.ai/api/public/gateway-health/rollup';
 const GATEWAY_ROLLUP_DAYS = 14;
 const GATEWAY_ROLLUP_TIMEOUT_MS = 15000;
 
