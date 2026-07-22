@@ -9,7 +9,7 @@ import styles from './timeline.module.css';
 /* ────────────────────────────────── Config ─────────────────────────── */
 
 const GATEWAY_ROLLUP_URL = 'https://health-check.mcp.quilr.ai/api/public/gateway-health/rollup';
-const GATEWAY_ROLLUP_DAYS = 14;
+const GATEWAY_ROLLUP_DAYS = 7;
 const GATEWAY_ROLLUP_TIMEOUT_MS = 15000;
 
 const STATE_META = {
@@ -71,15 +71,6 @@ function groupByDay(buckets) {
   return days;
 }
 
-// Must match .bar's width and .dayCol's gap in timeline.module.css - explicit pixel math
-// (not flex-grow ratios) so the strip and axis rows stay pixel-aligned even once bars stop
-// shrinking below their natural size (see stripScroll in timeline.module.css).
-const BAR_PX = 4;
-const BAR_GAP_PX = 2;
-
-function dayWidthPx(bucketCount) {
-  return bucketCount * BAR_PX + Math.max(0, bucketCount - 1) * BAR_GAP_PX;
-}
 
 /* ────────────────────────────────── Formatting ─────────────────────── */
 
@@ -127,6 +118,7 @@ function Tooltip({ hover }) {
 function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
   const days = useMemo(() => groupByDay(buckets), [buckets]);
   const currentState = stats.current ? stats.current.state : 'nodata';
+
   return (
     <div className={styles.row}>
       <div className={styles.rowHead}>
@@ -146,33 +138,31 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
         </div>
       </div>
 
-      {/* Fixed-width bars/day-columns (not flex-shrunk) so 336 hourly buckets never get
-          silently clipped on a narrow viewport - this scrolls horizontally instead. Both
-          rows share the exact same per-day pixel width so labels stay aligned under bars. */}
-      <div className={styles.stripScroll}>
-        <div className={styles.strip}>
-          {days.map((day) => (
-            <div key={day.key} className={styles.dayCol} style={{ width: dayWidthPx(day.buckets.length) }}>
-              {day.buckets.map((b) => (
-                <button
-                  type="button"
-                  key={b.t}
-                  className={`${styles.bar} ${styles[`s_${b.state}`]}`}
-                  onMouseEnter={(e) => onHover(e, b, comp)}
-                  onMouseLeave={onLeave}
-                  aria-label={`${fmtHour(b.t)}: ${STATE_META[b.state].label}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className={styles.axis}>
-          {days.map((day) => (
-            <span key={day.key} className={styles.axisLabel} style={{ width: dayWidthPx(day.buckets.length) }}>
-              {day.label}
-            </span>
-          ))}
-        </div>
+      {/* 7 days' worth of bars fluidly fills the row width (flex-grow proportional to bucket
+          count per day) - shrinks to fit rather than needing a scrollbar, since a 7-day span
+          is small enough not to need a hard per-bar minimum width. */}
+      <div className={styles.strip}>
+        {days.map((day) => (
+          <div key={day.key} className={styles.dayCol} style={{ flexGrow: day.buckets.length }}>
+            {day.buckets.map((b) => (
+              <button
+                type="button"
+                key={b.t}
+                className={`${styles.bar} ${styles[`s_${b.state}`]}`}
+                onMouseEnter={(e) => onHover(e, b, comp)}
+                onMouseLeave={onLeave}
+                aria-label={`${fmtHour(b.t)}: ${STATE_META[b.state].label}`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className={styles.axis}>
+        {days.map((day) => (
+          <span key={day.key} className={styles.axisLabel} style={{ flexGrow: day.buckets.length }}>
+            {day.label}
+          </span>
+        ))}
       </div>
 
       <div className={styles.rowFooter}>
