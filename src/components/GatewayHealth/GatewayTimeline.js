@@ -9,7 +9,7 @@ import styles from './timeline.module.css';
 /* ────────────────────────────────── Config ─────────────────────────── */
 
 const GATEWAY_ROLLUP_URL = 'https://health-check.mcp.quilr.ai/api/public/gateway-health/rollup';
-const GATEWAY_ROLLUP_DAYS = 14;
+const GATEWAY_ROLLUP_DAYS = 7;
 const GATEWAY_ROLLUP_TIMEOUT_MS = 15000;
 
 const STATE_META = {
@@ -71,6 +71,7 @@ function groupByDay(buckets) {
   return days;
 }
 
+
 /* ────────────────────────────────── Formatting ─────────────────────── */
 
 function fmtHour(t) {
@@ -117,6 +118,7 @@ function Tooltip({ hover }) {
 function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
   const days = useMemo(() => groupByDay(buckets), [buckets]);
   const currentState = stats.current ? stats.current.state : 'nodata';
+
   return (
     <div className={styles.row}>
       <div className={styles.rowHead}>
@@ -136,6 +138,9 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
         </div>
       </div>
 
+      {/* 7 days' worth of bars fluidly fills the row width (flex-grow proportional to bucket
+          count per day) - shrinks to fit rather than needing a scrollbar, since a 7-day span
+          is small enough not to need a hard per-bar minimum width. */}
       <div className={styles.strip}>
         {days.map((day) => (
           <div key={day.key} className={styles.dayCol} style={{ flexGrow: day.buckets.length }}>
