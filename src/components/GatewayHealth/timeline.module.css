@@ -242,24 +242,32 @@
 
 /* ── Bucket strip ────────────────────────────────────────────────────── */
 
+/* Bars never shrink below their natural width (see .bar/.dayCol), so on a narrow viewport
+   the strip legitimately overflows its box - this scrolls it instead of silently clipping
+   the later hours of every day, which is what a plain overflow:visible flex row would do. */
+.stripScroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 .strip {
   display: flex;
   align-items: stretch;
   gap: 3px;
   height: 34px;
+  width: max-content;
 }
 
 .dayCol {
   display: flex;
   align-items: stretch;
   gap: 2px;
-  flex-basis: 0;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .bar {
-  flex: 1 1 0;
-  min-width: 2px;
+  flex: 0 0 auto;
+  width: 4px;
   padding: 0;
   border: none;
   border-radius: 2px;
@@ -276,11 +284,11 @@
   display: flex;
   gap: 3px;
   margin-top: 0.35rem;
+  width: max-content;
 }
 
 .axisLabel {
-  flex-basis: 0;
-  min-width: 0;
+  flex-shrink: 0;
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.6rem;
   color: var(--ifm-color-content-secondary);

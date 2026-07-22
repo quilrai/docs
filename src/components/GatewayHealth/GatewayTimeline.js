@@ -71,6 +71,16 @@ function groupByDay(buckets) {
   return days;
 }
 
+// Must match .bar's width and .dayCol's gap in timeline.module.css - explicit pixel math
+// (not flex-grow ratios) so the strip and axis rows stay pixel-aligned even once bars stop
+// shrinking below their natural size (see stripScroll in timeline.module.css).
+const BAR_PX = 4;
+const BAR_GAP_PX = 2;
+
+function dayWidthPx(bucketCount) {
+  return bucketCount * BAR_PX + Math.max(0, bucketCount - 1) * BAR_GAP_PX;
+}
+
 /* ────────────────────────────────── Formatting ─────────────────────── */
 
 function fmtHour(t) {
@@ -136,28 +146,33 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
         </div>
       </div>
 
-      <div className={styles.strip}>
-        {days.map((day) => (
-          <div key={day.key} className={styles.dayCol} style={{ flexGrow: day.buckets.length }}>
-            {day.buckets.map((b) => (
-              <button
-                type="button"
-                key={b.t}
-                className={`${styles.bar} ${styles[`s_${b.state}`]}`}
-                onMouseEnter={(e) => onHover(e, b, comp)}
-                onMouseLeave={onLeave}
-                aria-label={`${fmtHour(b.t)}: ${STATE_META[b.state].label}`}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-      <div className={styles.axis}>
-        {days.map((day) => (
-          <span key={day.key} className={styles.axisLabel} style={{ flexGrow: day.buckets.length }}>
-            {day.label}
-          </span>
-        ))}
+      {/* Fixed-width bars/day-columns (not flex-shrunk) so 336 hourly buckets never get
+          silently clipped on a narrow viewport - this scrolls horizontally instead. Both
+          rows share the exact same per-day pixel width so labels stay aligned under bars. */}
+      <div className={styles.stripScroll}>
+        <div className={styles.strip}>
+          {days.map((day) => (
+            <div key={day.key} className={styles.dayCol} style={{ width: dayWidthPx(day.buckets.length) }}>
+              {day.buckets.map((b) => (
+                <button
+                  type="button"
+                  key={b.t}
+                  className={`${styles.bar} ${styles[`s_${b.state}`]}`}
+                  onMouseEnter={(e) => onHover(e, b, comp)}
+                  onMouseLeave={onLeave}
+                  aria-label={`${fmtHour(b.t)}: ${STATE_META[b.state].label}`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className={styles.axis}>
+          {days.map((day) => (
+            <span key={day.key} className={styles.axisLabel} style={{ width: dayWidthPx(day.buckets.length) }}>
+              {day.label}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className={styles.rowFooter}>
