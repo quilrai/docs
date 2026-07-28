@@ -4,7 +4,10 @@ import styles from './timeline.module.css';
 
 // Gateway Health: MCP Gateway and LLM Gateway sections, both fetched from rollup_server.py, which lives in the
 // macrodata-refinement repo at OTHER_APPS/gateway_health/rollup_server.py (this repo has no backend).
-// Bucket = { t, state: 'operational'|'degraded'|'partial'|'major'|'maintenance'|'nodata', p95, errorRate, requests, incidentId }
+// Bucket = { t, state: 'operational'|'degraded'|'partial'|'major'|'monitor_disconnected'|'maintenance'|'nodata', p95, errorRate, requests, incidentId }
+// monitor_disconnected = the sustained failures behind this bucket never got a response at all
+// (the monitoring worker/host itself lost outbound connectivity), not the real gateway
+// infrastructure failing - see is_connectivity_error in rollup_server.py.
 
 /* ────────────────────────────────── Config ─────────────────────────── */
 
@@ -17,13 +20,15 @@ const STATE_META = {
   degraded: { label: 'Degraded' },
   partial: { label: 'Partial outage' },
   major: { label: 'Major outage' },
+  monitor_disconnected: { label: 'Monitoring interrupted' },
   maintenance: { label: 'Maintenance' },
   nodata: { label: 'No data' },
 };
 
-// How much each hour counts against uptime (maintenance is excluded entirely).
-const DOWN_WEIGHT = { operational: 0, degraded: 0, partial: 0.5, major: 1, maintenance: 0, nodata: 0 };
-const SEVERITY_RANK = { operational: 0, maintenance: 1, degraded: 2, partial: 3, major: 4, nodata: 0 };
+// How much each hour counts against uptime (maintenance and monitor_disconnected are excluded
+// entirely - neither reflects the real gateway's health, just a monitoring gap).
+const DOWN_WEIGHT = { operational: 0, degraded: 0, partial: 0.5, major: 1, monitor_disconnected: 0, maintenance: 0, nodata: 0 };
+const SEVERITY_RANK = { operational: 0, maintenance: 1, monitor_disconnected: 1, degraded: 2, partial: 3, major: 4, nodata: 0 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -35,7 +40,7 @@ function summarize(buckets) {
   let errSum = 0;
   let reqTotal = 0;
   for (const b of buckets) {
-    if (b.state !== 'maintenance') {
+    if (b.state !== 'maintenance' && b.state !== 'monitor_disconnected') {
       denom += 1;
       downWeight += DOWN_WEIGHT[b.state];
     }
@@ -250,6 +255,8 @@ export default function GatewayTimeline() {
     const label =
       worst === 'operational' || worst === 'maintenance'
         ? 'All Systems Operational'
+        : worst === 'monitor_disconnected'
+        ? 'Monitoring Interrupted'
         : worst === 'degraded'
         ? 'Degraded Performance'
         : worst === 'partial'
@@ -325,7 +332,7 @@ export default function GatewayTimeline() {
             {renderGroup('LLM Gateway', llmRows)}
 
             <div className={styles.legend}>
-              {['operational', 'degraded', 'partial', 'major', 'maintenance'].map((s) => (
+              {['operational', 'degraded', 'partial', 'major', 'monitor_disconnected', 'maintenance'].map((s) => (
                 <span key={s} className={styles.legendItem}>
                   <span className={`${styles.swatch} ${styles[`s_${s}`]}`} />
                   {STATE_META[s].label}

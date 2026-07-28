@@ -109,6 +109,11 @@
   background: rgba(37, 99, 235, 0.1);
   border-color: rgba(37, 99, 235, 0.3);
 }
+.p_monitor_disconnected {
+  color: #6d28d9;
+  background: rgba(124, 58, 237, 0.1);
+  border-color: rgba(124, 58, 237, 0.3);
+}
 .p_nodata {
   color: var(--ifm-color-content-secondary);
   background: var(--docs-light-surface-raised);
@@ -120,6 +125,7 @@
 :global([data-theme='dark']) .p_partial { color: #fdba74; }
 :global([data-theme='dark']) .p_major { color: #fca5a5; }
 :global([data-theme='dark']) .p_maintenance { color: #93c5fd; }
+:global([data-theme='dark']) .p_monitor_disconnected { color: #c4b5fd; }
 :global([data-theme='dark']) .p_nodata {
   background: var(--docs-dark-surface-raised);
   border-color: var(--docs-dark-border);
@@ -323,6 +329,7 @@
 .s_partial { background: rgba(234, 88, 12, 0.9); }
 .s_major { background: rgba(220, 38, 38, 0.92); }
 .s_maintenance { background: rgba(37, 99, 235, 0.65); }
+.s_monitor_disconnected { background: rgba(124, 58, 237, 0.65); }
 .s_nodata { background: var(--docs-light-border-strong); }
 
 :global([data-theme='dark']) .s_operational { background: rgba(52, 211, 153, 0.5); }
@@ -330,6 +337,7 @@
 :global([data-theme='dark']) .s_partial { background: rgba(251, 146, 60, 0.85); }
 :global([data-theme='dark']) .s_major { background: rgba(248, 113, 113, 0.9); }
 :global([data-theme='dark']) .s_maintenance { background: rgba(96, 165, 250, 0.7); }
+:global([data-theme='dark']) .s_monitor_disconnected { background: rgba(167, 139, 250, 0.75); }
 :global([data-theme='dark']) .s_nodata { background: var(--docs-dark-border-strong); }
 
 /* ── Legend ──────────────────────────────────────────────────────────── */
