@@ -30,6 +30,22 @@ const STATE_META = {
 const DOWN_WEIGHT = { operational: 0, degraded: 0, partial: 0.5, major: 1, monitor_disconnected: 0, maintenance: 0, nodata: 0 };
 const SEVERITY_RANK = { operational: 0, maintenance: 1, monitor_disconnected: 1, degraded: 2, partial: 3, major: 4, nodata: 0 };
 
+// The backend (systemd restart) and this frontend (merge-to-main + Pages build) deploy on
+// different cadences, so a bucket state this build has never heard of is a matter of when, not
+// if. Every lookup below falls back to 'nodata' rather than letting an unrecognized state throw.
+function stateMeta(state) {
+  return STATE_META[state] || STATE_META.nodata;
+}
+function downWeightOf(state) {
+  return DOWN_WEIGHT[state] ?? 0;
+}
+function severityOf(state) {
+  return SEVERITY_RANK[state] ?? 0;
+}
+function stateClass(prefix, state) {
+  return styles[`${prefix}_${state}`] || styles[`${prefix}_nodata`];
+}
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function summarize(buckets) {
@@ -42,7 +58,7 @@ function summarize(buckets) {
   for (const b of buckets) {
     if (b.state !== 'maintenance' && b.state !== 'monitor_disconnected') {
       denom += 1;
-      downWeight += DOWN_WEIGHT[b.state];
+      downWeight += downWeightOf(b.state);
     }
     if (b.p95 != null) {
       p95Sum += b.p95;
@@ -102,8 +118,8 @@ function Tooltip({ hover }) {
   return (
     <div className={styles.tooltip} style={{ left: `${x}px`, top: `${y}px` }}>
       <div className={styles.ttHead}>
-        <span className={`${styles.ttDot} ${styles[`s_${b.state}`]}`} />
-        {STATE_META[b.state].label}
+        <span className={`${styles.ttDot} ${stateClass('s', b.state)}`} />
+        {stateMeta(b.state).label}
         <span className={styles.ttComp}>· {comp.label}</span>
       </div>
       <div className={styles.ttTime}>{fmtHour(b.t)}</div>
@@ -136,9 +152,9 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
           <span className={styles.rowUptime}>
             <strong>{fmtPct(stats.uptime)}</strong> uptime
           </span>
-          <span className={`${styles.statusPill} ${styles[`p_${currentState}`]}`}>
+          <span className={`${styles.statusPill} ${stateClass('p', currentState)}`}>
             <span className={styles.pillDot} />
-            {STATE_META[currentState].label}
+            {stateMeta(currentState).label}
           </span>
         </div>
       </div>
@@ -153,10 +169,10 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
               <button
                 type="button"
                 key={b.t}
-                className={`${styles.bar} ${styles[`s_${b.state}`]}`}
+                className={`${styles.bar} ${stateClass('s', b.state)}`}
                 onMouseEnter={(e) => onHover(e, b, comp)}
                 onMouseLeave={onLeave}
-                aria-label={`${fmtHour(b.t)}: ${STATE_META[b.state].label}`}
+                aria-label={`${fmtHour(b.t)}: ${stateMeta(b.state).label}`}
               />
             ))}
           </div>
@@ -250,7 +266,7 @@ export default function GatewayTimeline() {
     let worst = 'operational';
     for (const r of allRows) {
       const s = r.stats.current ? r.stats.current.state : 'operational';
-      if (SEVERITY_RANK[s] > SEVERITY_RANK[worst]) worst = s;
+      if (severityOf(s) > severityOf(worst)) worst = s;
     }
     const label =
       worst === 'operational' || worst === 'maintenance'
@@ -279,7 +295,7 @@ export default function GatewayTimeline() {
       </div>
 
       <div className={styles.summaryBar}>
-        <span className={`${styles.overallPill} ${styles[`p_${overall.state}`]}`}>
+        <span className={`${styles.overallPill} ${stateClass('p', overall.state)}`}>
           <span className={styles.pillDot} />
           {overall.label}
         </span>
@@ -334,8 +350,8 @@ export default function GatewayTimeline() {
             <div className={styles.legend}>
               {['operational', 'degraded', 'partial', 'major', 'monitor_disconnected', 'maintenance'].map((s) => (
                 <span key={s} className={styles.legendItem}>
-                  <span className={`${styles.swatch} ${styles[`s_${s}`]}`} />
-                  {STATE_META[s].label}
+                  <span className={`${styles.swatch} ${stateClass('s', s)}`} />
+                  {stateMeta(s).label}
                 </span>
               ))}
               <span className={styles.legendHint}>Each bar = 1 hour · hover for detail</span>
