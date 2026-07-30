@@ -33,6 +33,7 @@ import {
   LayoutGrid,
   Video,
   CalendarDays,
+  Workflow,
   Hash,
 } from "lucide-react";
 
@@ -71,6 +72,7 @@ const iconMap = {
   LayoutGrid,
   Video,
   CalendarDays,
+  Workflow,
 };
 
 export function getSidebarIcon(name) {
