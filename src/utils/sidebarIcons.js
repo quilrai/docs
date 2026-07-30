@@ -32,6 +32,7 @@ import {
   GitBranch,
   LayoutGrid,
   Video,
+  CalendarDays,
   Hash,
 } from "lucide-react";
 
@@ -69,6 +70,7 @@ const iconMap = {
   GitBranch,
   LayoutGrid,
   Video,
+  CalendarDays,
 };
 
 export function getSidebarIcon(name) {
