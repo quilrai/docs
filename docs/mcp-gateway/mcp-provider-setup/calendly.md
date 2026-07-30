@@ -82,14 +82,10 @@ The complete custom integration currently requests this union:
 
 ```text
 users:read
-organizations:read
 organizations:write
-event_types:read
 event_types:write
-availability:read
 availability:write
 locations:read
-scheduled_events:read
 scheduled_events:write
 scheduling_links:write
 shares:write
@@ -97,10 +93,13 @@ routing_forms:read
 ```
 
 Calendly write scopes include the matching read permission within the same
-domain, but keeping the intended read and write capabilities explicit makes
-reviews easier. Some tools also depend on the Calendly plan and authorizing
-user's role. For example, routing forms require a qualifying Teams plan, and
-direct scheduling requires a paid plan.
+domain. Do not add the redundant read scope unless it is also enabled on the
+customer's Calendly OAuth application. The gateway requests every scope
+advertised by the custom MCP, and Calendly rejects the complete authorization
+request if even one advertised scope is not enabled for that application. Some
+tools also depend on the Calendly plan and authorizing user's role. For example,
+routing forms require a qualifying Teams plan, and direct scheduling requires a
+paid plan.
 
 ## Add The Custom MCP To QuilrAI
 
@@ -193,6 +192,7 @@ Confirm that:
 | Error or symptom | Likely cause | Fix |
 |------------------|--------------|-----|
 | `invalid_client` or authentication fails before consent | Incorrect Client ID or Client Secret, or the secret belongs to another Calendly application. | Re-enter the matching credentials from the correct Calendly application. If the secret was not saved when the app was created, issue replacement credentials according to the Calendly developer portal flow. |
+| `invalid_scope` or “request scope is invalid, unknown, or malformed” | The custom MCP advertises a scope that is not enabled on the customer-owned Calendly OAuth application. | Make the enabled application scopes and the MCP's advertised scopes identical, then reconnect. Do not add a redundant read scope when the corresponding write scope already provides read access. |
 | Redirect URI error | Calendly and QuilrAI have different callback values, environments, schemes, paths, or trailing slashes. | Copy the callback from QuilrAI, paste it into the Calendly application exactly, save, and reconnect. |
 | `403` or missing-scope error | The OAuth application or existing user grant lacks a scope required by the selected tool. | Add the minimum missing scope, then reconnect so the user can approve it. |
 | Connected account is unexpected | The browser authorized a different signed-in Calendly account. | Disconnect the gateway connection, sign out of the unintended Calendly account, and reconnect with the correct account. |
