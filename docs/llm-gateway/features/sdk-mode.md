@@ -363,15 +363,22 @@ curl -X POST https://guardrails-usa-2.quilr.ai/sdk/v1/check \
 
 If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can plug Quilr guardrails in as a native guardrail plugin. The plugin calls `/sdk/v1/check` automatically on every request and/or response - no changes needed in your application code.
 
-### Installation
+### Prerequisites
 
-```bash
-pip install quilr-litellm-guardrails
-```
+- A Quilr guardrails API key, from either Quilr-hosted guardrails or a self-hosted Quilr guardrails deployment
+- Download [quilr_litellm_guardrails.py](https://github.com/quilrbusiness/quilr-sdks/blob/main/python-sdks/litellm_guardrails/quilr_litellm_guardrails.py) and place it in the same directory as your LiteLLM `config.yaml`
 
-Or copy `quilr_litellm_guardrails.py` into your project.
+:::note
+LiteLLM resolves custom guardrails by module path relative to the proxy working directory, so the plugin ships as a single file you drop next to `config.yaml`. There is no package to install.
+:::
 
 ### Environment variables
+
+```bash
+QUILR_GUARDRAILS_KEY=sk-quilr-XXXXXXXXX
+QUILR_GUARDRAILS_BASE_URL=<QUILR GUARDRAILS BASE URL>
+QUILR_GUARDRAILS_TIMEOUT=3  # Optional: timeout in seconds (default: 3). On timeout or API error, the request passes through.
+```
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -381,34 +388,90 @@ Or copy `quilr_litellm_guardrails.py` into your project.
 | `APPLY_QUILR_GUARDRAILS_FOR_MODELS` | No | (all) | Comma-separated list of models to restrict guardrails to |
 | `APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES` | No | (all) | Comma-separated list of LiteLLM key names to restrict guardrails to |
 
+### Choosing a mode
+
+Add guardrails to your LiteLLM `config.yaml` using the modes you need:
+
+| Mode | When it runs | What it checks | Pros | Cons |
+|------|-------------|----------------|------|------|
+| `pre_call` | Before the LLM call (sequential) | Input | Can block malicious requests before they reach the LLM, prevents data leakage | Adds minimal latency |
+| `during_call` | In parallel with the LLM call | Input | No added latency | Cannot prevent data leakage or attacks, since the LLM processes the request before the guardrail completes |
+| `post_call` | After the LLM call | Output | Can check LLM responses for policy violations | Adds guardrail latency. Only needed if the response has to be checked |
+
+**When to use `during_call` vs `pre_call`:**
+
+- Use `during_call` for better latency, since the guardrail runs concurrently with the LLM
+- Use `pre_call` if you want to avoid wasting LLM compute on blocked requests
+
 ### LiteLLM `config.yaml`
+
+**Input guardrail only (`pre_call`)**
 
 ```yaml
 guardrails:
-  # Check input before the LLM call (adds latency equal to check time)
   - guardrail_name: "quilr-input"
     litellm_params:
       guardrail: quilr_litellm_guardrails.QuilrGuardrail
       mode: "pre_call"
+    default_on: true
+```
 
-  # Check input in parallel with the LLM call (zero added latency)
-  - guardrail_name: "quilr-input-async"
+**Input guardrail with lower latency (`during_call`)**
+
+```yaml
+guardrails:
+  - guardrail_name: "quilr-input-duringcall"
     litellm_params:
       guardrail: quilr_litellm_guardrails.QuilrGuardrail
       mode: "during_call"
+    default_on: true
+```
 
-  # Check output before returning it to the caller
+**Output guardrail only (`post_call`)**
+
+```yaml
+guardrails:
   - guardrail_name: "quilr-output"
     litellm_params:
       guardrail: quilr_litellm_guardrails.QuilrGuardrail
       mode: "post_call"
+    default_on: true
 ```
 
-You can configure all three, or only the modes you need. `during_call` is the recommended input mode when latency matters - the guardrail check runs concurrently with the LLM and does not add to total response time unless it detects a problem.
+**Both input and output guardrails**
+
+```yaml
+guardrails:
+  - guardrail_name: "quilr-input"
+    litellm_params:
+      guardrail: quilr_litellm_guardrails.QuilrGuardrail
+      mode: "pre_call"
+    default_on: true
+
+  - guardrail_name: "quilr-output"
+    litellm_params:
+      guardrail: quilr_litellm_guardrails.QuilrGuardrail
+      mode: "post_call"
+    default_on: true
+```
+
+### Optional filtering
+
+You can limit which requests have guardrails applied using these environment variables:
+
+```bash
+# Only apply guardrails to specific models (comma-separated)
+APPLY_QUILR_GUARDRAILS_FOR_MODELS=gpt-4,gpt-4o,claude-3-opus
+
+# Only apply guardrails to specific API key names (comma-separated)
+APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES=production-key,user-facing-key
+```
+
+If neither variable is set, guardrails apply to all requests. If both are set, a request must match both filters (AND logic) for guardrails to be applied.
 
 ### Enabling guardrails per request
 
-Pass the guardrail names in the request body:
+With `default_on: true`, guardrails run on every request. If you set `default_on: false`, pass the guardrail names in the request body instead:
 
 ```bash
 curl -X POST http://localhost:4000/v1/chat/completions \
@@ -417,7 +480,7 @@ curl -X POST http://localhost:4000/v1/chat/completions \
   -d '{
     "model": "gpt-4o-mini",
     "messages": [{"role": "user", "content": "Hello"}],
-    "guardrails": ["quilr-input-async", "quilr-output"]
+    "guardrails": ["quilr-input-duringcall", "quilr-output"]
   }'
 ```
 
