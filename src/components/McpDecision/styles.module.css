@@ -167,16 +167,16 @@
 
 .signalGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
   margin: 1.25rem 0 2rem;
 }
 
 .signalCard {
   position: relative;
   overflow: hidden;
-  min-height: 9.5rem;
-  padding: 1rem;
+  min-height: 10.5rem;
+  padding: 1.2rem;
   border: 1px solid var(--ifm-color-emphasis-300);
   border-radius: 16px;
   background: var(--ifm-background-surface-color);
@@ -205,8 +205,12 @@
   display: block;
   margin: 0.35rem 0;
   color: var(--ifm-font-color-base);
-  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
-  line-height: 1.1;
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  line-height: 1.12;
+  overflow-wrap: normal;
+  text-wrap: balance;
+  word-break: normal;
+  hyphens: none;
 }
 
 .signalCard p {
@@ -216,15 +220,13 @@
   line-height: 1.45;
 }
 
-@media (max-width: 900px) { .signalGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
 @media (max-width: 700px) {
   .choiceGrid { grid-template-columns: 1fr; }
   .choiceCard { min-height: auto; }
   .verdict { align-items: flex-start; flex-direction: column; gap: 0.35rem; }
+  .signalGrid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 480px) { .signalGrid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .choiceCard { transition: none; } }
 
 :global([data-theme='dark']) .official .iconWrap,

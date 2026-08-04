@@ -813,6 +813,88 @@ main > .container.padding-top--md.padding-bottom--lg,
   border-radius: 8px;
 }
 
+/* Quilr-provided MCP matrices: richer presentation scoped to MCP product pages. */
+.theme-doc-markdown:has(.mcp-product-hero) .expandable-table {
+  margin-block: 1.5rem 2rem;
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) .expandable-table__toolbar {
+  position: relative;
+  z-index: 2;
+  margin: 0 0 -2.25rem;
+  padding: 0.45rem 0.5rem 0;
+  pointer-events: none;
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) .expandable-table__button {
+  border-color: color-mix(in srgb, var(--ifm-color-primary) 24%, var(--ifm-color-emphasis-300));
+  background: color-mix(in srgb, var(--ifm-background-surface-color) 88%, transparent);
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) .table-scroll-wrapper {
+  border-color: color-mix(in srgb, var(--ifm-color-primary) 22%, var(--ifm-color-emphasis-300));
+  border-radius: 16px;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table {
+  font-size: 0.9rem;
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table thead {
+  background:
+    linear-gradient(110deg, color-mix(in srgb, var(--ifm-color-primary) 16%, transparent), transparent 62%),
+    var(--ifm-background-surface-color);
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table th {
+  padding: 1rem 1.1rem;
+  color: var(--ifm-color-emphasis-800);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table td {
+  padding: 0.9rem 1.1rem;
+  border-color: color-mix(in srgb, var(--ifm-color-emphasis-300) 68%, transparent);
+  vertical-align: middle;
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--ifm-color-primary) 3.5%, transparent);
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table tbody tr {
+  transition: background-color 150ms ease;
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table tbody tr:hover {
+  background: color-mix(in srgb, var(--ifm-color-primary) 8%, transparent);
+}
+
+.theme-doc-markdown:has(.mcp-product-hero) table td:first-child {
+  color: var(--ifm-color-emphasis-900);
+  font-weight: 650;
+}
+
+[data-theme="dark"] .theme-doc-markdown:has(.mcp-product-hero) .table-scroll-wrapper {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+}
+
+@media (max-width: 700px) {
+  .theme-doc-markdown:has(.mcp-product-hero) table th,
+  .theme-doc-markdown:has(.mcp-product-hero) table td {
+    padding: 0.8rem 0.9rem;
+  }
+}
+
 .theme-doc-markdown.markdown table {
   display: table;
   width: 100%;
