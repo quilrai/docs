@@ -46,7 +46,26 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 - [Quilr-Provided MCPs](https://docs.quilrai.dev/quilr-provided-mcps/overview.md): Compare Quilr-built and operated MCP integrations by use case, capabilities, connection method, and whether their tool surface can change provider data.
 - [Official MCP Comparison](https://docs.quilrai.dev/quilr-provided-mcps/official-comparison.md): Provider-by-provider comparison of official MCP or API coverage with Quilr's custom tool surface, operating model, safety controls, compound tools, and known limits.
-- [Quilr-Provided MCP Integration Reference](https://docs.quilrai.dev/quilr-provided-mcps/integration-reference.md): Capability, authentication, and safety notes for Microsoft 365 Outlook, SharePoint, Excel, Tasks and Planner, Jira, Confluence, Athenahealth, Avoma, HubSpot, Writer, Optimizely, Tavily, Cycode, and Quilr Web Search.
+- [Microsoft 365 v3](https://docs.quilrai.dev/quilr-provided-mcps/microsoft-365-v3.md): Flagship unified Microsoft 365 MCP for Outlook mail and calendar, OneDrive, SharePoint, Teams, directory, OneNote, cross-workload search, batch operations, and delta sync, including a capability comparison with ChatGPT Outlook and SharePoint connectors.
+- [SharePoint](https://docs.quilrai.dev/quilr-provided-mcps/sharepoint.md): Six consolidated tools for SharePoint sites, drives, files, folders, lists, list items, URL resolution, controlled writes, and confirmed deletes.
+- [Excel](https://docs.quilrai.dev/quilr-provided-mcps/excel.md): Eight workbook dispatchers covering worksheets, ranges, formulas, formatting, tables, named ranges, charts, pivots, and function evaluation.
+- [Microsoft Tasks & Planner](https://docs.quilrai.dev/quilr-provided-mcps/microsoft-tasks-planner.md): Focused Microsoft To Do and Planner tools for personal tasks, plans, buckets, and team tasks.
+- [Azure DevOps Advanced](https://docs.quilrai.dev/quilr-provided-mcps/azure-devops.md): Centrally hosted Azure DevOps MCP with compatibility dispatchers, direct tools, compound engineering intelligence, multi-organization selection, and confirmed destructive operations.
+- [Jira](https://docs.quilrai.dev/quilr-provided-mcps/jira.md): Compact ten-tool Jira surface for projects, issue retrieval and search, creation, assignment, transitions, and comments.
+- [Confluence](https://docs.quilrai.dev/quilr-provided-mcps/confluence.md): Nine-tool Confluence surface for spaces, pages, CQL search, page creation and updates, and comments with no destructive tools.
+- [Google Workspace](https://docs.quilrai.dev/quilr-provided-mcps/google-workspace.md): Combined Gmail, Calendar, and Drive MCP with thirteen tools, customer-owned OAuth, shared-drive discovery, and file export.
+- [Figma](https://docs.quilrai.dev/quilr-provided-mcps/figma.md): Nineteen API-oriented Figma tools for design context, variables, screenshots, libraries, comments, assets, and Code Connect administration.
+- [Calendly](https://docs.quilrai.dev/quilr-provided-mcps/calendly.md): Forty scheduling tools with a customer-owned, pre-registered OAuth application alternative to Calendly's DCR-only official MCP.
+- [HubSpot CRM](https://docs.quilrai.dev/quilr-provided-mcps/hubspot.md): Nine consolidated tools for CRM search, batch reads, associations, schemas, owners, records, notes, tasks, and controlled archive.
+- [Avoma](https://docs.quilrai.dev/quilr-provided-mcps/avoma.md): Four read-only meeting-intelligence tools for meeting details, transcripts, and structured notes.
+- [Writer](https://docs.quilrai.dev/quilr-provided-mcps/writer.md): Hosted ten-tool Writer surface for chat, applications, Knowledge Graphs, files, translation, vision, and web search.
+- [Optimizely Experimentation](https://docs.quilrai.dev/quilr-provided-mcps/optimizely.md): Quilr-built experimentation MCP for schema-guided queries, reporting, entity lifecycle, exports, audit history, collaborators, and datafiles.
+- [Semrush Advanced](https://docs.quilrai.dev/quilr-provided-mcps/semrush.md): Twenty-three explicit SEO and market-intelligence tools with compound domain and keyword briefs, comparisons, gaps, projects, and quota visibility.
+- [BrowserStack Advanced](https://docs.quilrai.dev/quilr-provided-mcps/browserstack.md): Forty-eight tools for Automate, App Automate, diagnostics, screenshots, deep Test Management, and controlled bulk operations.
+- [Athenahealth](https://docs.quilrai.dev/quilr-provided-mcps/athenahealth.md): Safety-first athenaOne and FHIR MCP with capability packs, allowlists, idempotent confirmed writes, separately enabled deletes, bulk exports, and PHI-safe telemetry.
+- [Tavily](https://docs.quilrai.dev/quilr-provided-mcps/tavily.md): Eight read-only tools for search, extraction, site mapping, crawling, asynchronous research, usage, and key information.
+- [Cycode](https://docs.quilrai.dev/quilr-provided-mcps/cycode.md): Remotely operated Cycode CLI MCP wrapper for service status and secret scanning without general shell access.
+- [Quilr Web Search](https://docs.quilrai.dev/quilr-provided-mcps/web-search.md): Minimal two-tool web search and webpage retrieval integration with optional gateway domain policy.
 
 ## MCP Gateway
 

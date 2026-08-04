@@ -77,6 +77,129 @@
   --docusaurus-highlighted-code-line-bg: rgba(5, 150, 105, 0.08);
 }
 
+/* Quilr-provided MCP product showcase */
+.mcp-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.mcp-showcase-card {
+  position: relative;
+  display: flex;
+  min-height: 132px;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 25%, var(--ifm-color-emphasis-300));
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--ifm-color-primary) 24%, transparent), transparent 48%),
+    var(--ifm-background-surface-color);
+  box-shadow: 0 14px 35px rgb(15 23 42 / 8%);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.mcp-showcase-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 18px 45px rgb(15 23 42 / 15%);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+}
+
+.mcp-showcase-card.featured {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ifm-color-primary) 22%, transparent), transparent 65%),
+    var(--ifm-background-surface-color);
+}
+
+.mcp-showcase-card span,
+.mcp-product-kicker {
+  color: var(--ifm-color-primary);
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.mcp-showcase-card strong {
+  margin-top: 0.35rem;
+  font-size: 1.15rem;
+}
+
+.mcp-showcase-card small {
+  margin-top: 0.2rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.mcp-product-hero {
+  margin: 1rem 0 2rem;
+  padding: 2rem;
+  border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 28%, var(--ifm-color-emphasis-300));
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 95% 10%, color-mix(in srgb, var(--ifm-color-primary) 28%, transparent), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--ifm-color-primary) 10%, var(--ifm-background-surface-color)), var(--ifm-background-surface-color));
+  box-shadow: 0 18px 50px rgb(15 23 42 / 10%);
+}
+
+.mcp-product-hero.compact {
+  padding: 1.5rem 1.75rem;
+}
+
+.mcp-product-hero h2 {
+  max-width: 720px;
+  margin: 0.45rem 0 0.55rem;
+  border: 0;
+  font-size: clamp(1.45rem, 3vw, 2.25rem);
+  line-height: 1.12;
+}
+
+.mcp-product-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--ifm-color-emphasis-800);
+  font-size: 1.04rem;
+}
+
+.mcp-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.35rem;
+}
+
+.mcp-stat-row span {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ifm-background-color) 75%, transparent);
+  font-size: 0.82rem;
+}
+
+.mcp-verdict {
+  margin: 1.25rem 0;
+  padding: 1rem 1.15rem;
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 0 12px 12px 0;
+  background: color-mix(in srgb, var(--ifm-color-primary) 9%, var(--ifm-background-surface-color));
+}
+
+@media (max-width: 700px) {
+  .mcp-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mcp-product-hero {
+    padding: 1.35rem;
+    border-radius: 16px;
+  }
+}
+
 /* ────────────────────────────────── Dark mode variables ──────────────── */
 [data-theme="dark"] {
   --docs-dark-bg: #111315;
