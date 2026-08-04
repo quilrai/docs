@@ -8,6 +8,16 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">WORKBOOK AUTOMATION</span><h2>From raw ranges to finished charts.</h2><p>A focused Microsoft Graph workbook MCP for calculations, structure, formatting, and reporting.</p></div>
 
+<McpDecision
+  officialTitle="Build on Graph workbook APIs"
+  official="Use Microsoft Graph directly when your application team needs the raw workbook API and will design its own agent schema and controls."
+  officialPoints={['Direct provider API contract', 'Maximum implementation freedom']}
+  quilrTitle="Choose a workbook-only agent surface"
+  quilr="Use Quilr when an agent needs eight predictable dispatchers for ranges, formulas, tables, charts, pivots, and workbook structure."
+  quilrPoints={['Bounded Microsoft scope', 'Explore and change operations grouped by task']}
+  verdict="Choose Excel for workbook automation. Use Microsoft 365 v3 only when the workflow must cross into mail, files, calendars, or Teams."
+/>
+
 ## Tool Surface
 
 | Dispatcher | Explore | Change |

@@ -1,0 +1,235 @@
+.decisionBlock {
+  margin: 1.35rem 0 2rem;
+}
+
+.choiceGrid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.choiceGrid::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 50%;
+  background: var(--ifm-background-color);
+  color: var(--ifm-color-emphasis-600);
+  content: 'OR';
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  place-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.choiceCard {
+  position: relative;
+  overflow: hidden;
+  min-height: 13.5rem;
+  padding: 1.35rem 1.4rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 20px;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 14px 35px rgb(15 23 42 / 7%);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.choiceCard::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  content: '';
+}
+
+.choiceCard::after {
+  position: absolute;
+  top: -5rem;
+  right: -4rem;
+  width: 11rem;
+  height: 11rem;
+  border-radius: 50%;
+  content: '';
+  filter: blur(2px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.choiceCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 45px rgb(15 23 42 / 12%);
+}
+
+.official::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+.official::after { background: color-mix(in srgb, #8b5cf6 13%, transparent); }
+.official:hover { border-color: color-mix(in srgb, #8b5cf6 48%, var(--ifm-color-emphasis-300)); }
+.quilr::before { background: linear-gradient(90deg, var(--ifm-color-primary), #14b8a6); }
+.quilr::after { background: color-mix(in srgb, var(--ifm-color-primary) 15%, transparent); }
+.quilr:hover { border-color: color-mix(in srgb, var(--ifm-color-primary) 50%, var(--ifm-color-emphasis-300)); }
+
+.cardHeader {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.iconWrap {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ifm-background-color) 82%, transparent);
+  place-items: center;
+}
+
+.official .iconWrap, .official .eyebrow { color: #7c3aed; }
+.quilr .iconWrap, .quilr .eyebrow { color: var(--ifm-color-primary-dark); }
+
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.choiceCard h3 {
+  position: relative;
+  z-index: 1;
+  margin: 1rem 0 0.45rem;
+  font-size: clamp(1.08rem, 2vw, 1.35rem);
+}
+
+.choiceCard p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+}
+
+.choiceCard ul {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.45rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choiceCard li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  color: var(--ifm-color-emphasis-800);
+  font-size: 0.86rem;
+}
+
+.choiceCard li svg {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  color: currentColor;
+}
+
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.85rem 0 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 32%, var(--ifm-color-emphasis-300));
+  border-radius: 14px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--ifm-color-primary) 10%, transparent), transparent 70%), var(--ifm-background-surface-color);
+}
+
+.verdict span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ifm-color-primary-dark);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.verdict strong { font-size: 0.9rem; line-height: 1.45; }
+
+.signalGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.25rem 0 2rem;
+}
+
+.signalCard {
+  position: relative;
+  overflow: hidden;
+  min-height: 9.5rem;
+  padding: 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 16px;
+  background: var(--ifm-background-surface-color);
+}
+
+.signalCard::after {
+  position: absolute;
+  right: -1.25rem;
+  bottom: -1.75rem;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  content: '';
+}
+
+.signalCard span {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.signalCard strong {
+  display: block;
+  margin: 0.35rem 0;
+  color: var(--ifm-font-color-base);
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  line-height: 1.1;
+}
+
+.signalCard p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) { .signalGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+@media (max-width: 700px) {
+  .choiceGrid { grid-template-columns: 1fr; }
+  .choiceCard { min-height: auto; }
+  .verdict { align-items: flex-start; flex-direction: column; gap: 0.35rem; }
+}
+
+@media (max-width: 480px) { .signalGrid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .choiceCard { transition: none; } }
+
+:global([data-theme='dark']) .official .iconWrap,
+:global([data-theme='dark']) .official .eyebrow { color: #c4b5fd; }
+
+:global([data-theme='dark']) .quilr .iconWrap,
+:global([data-theme='dark']) .quilr .eyebrow,
+:global([data-theme='dark']) .verdict span { color: var(--ifm-color-primary-light); }

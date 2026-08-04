@@ -9,6 +9,16 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">ENGINEERING INTELLIGENCE</span><h2>Delivery context, not just API calls.</h2><p>Repositories, pull requests, boards, pipelines, tests, wiki, and security with compound engineering insights.</p></div>
 
+<McpDecision
+  officialTitle="Choose official for local IDE work"
+  official="Use Microsoft's server when developers need first-party Azure DevOps operations directly inside a supported local coding environment."
+  officialPoints={['Excellent IDE-native workflow', 'First-party core domain coverage']}
+  quilrTitle="Choose Quilr for organization-wide access"
+  quilr="Use Quilr when teams need one hosted endpoint with delegated OAuth, gateway policy, compound delivery intelligence, and controlled destructive actions."
+  quilrPoints={['Remote multi-tenant operation', 'Briefs, dashboards, and confirmed deletes']}
+  verdict="Local developer assistance favors the official server; centrally governed engineering agents favor Quilr Advanced."
+/>
+
 ## Quilr Additions
 
 | Capability | Official Azure DevOps MCP | Quilr Advanced |

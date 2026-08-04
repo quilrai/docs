@@ -6,162 +6,121 @@ sidebar_custom_props:
 
 # Official MCP Comparison
 
-This page compares the implemented Quilr tool surfaces with current provider-hosted MCP servers or, when a provider does not publish an MCP server, the provider's official APIs. It was reviewed against the custom MCP implementations, production runtime inventory, and provider documentation in August 2026.
+<div className="mcp-product-hero comparison">
+  <span className="mcp-product-kicker">THE MCP DECISION GUIDE</span>
+  <h2>Provider-native breadth or a governed Quilr surface?</h2>
+  <p>Compare what each option is designed to optimize—not just how many tools it exposes. Start with the operating model, scan the portfolio, then open any integration for the detailed capability matrix.</p>
+  <div className="mcp-stat-row"><span>20 integration surfaces</span><span>4 decision patterns</span><span>Reviewed August 2026</span></div>
+</div>
 
-“Additional” means a Quilr-specific capability or operating model. It does not mean the Quilr integration contains every tool in the official server. Provider MCPs change frequently, and availability can depend on product plan or preview enrollment.
+<McpSignalGrid items={[
+  {label: 'Fastest signal', value: 'Operating model', detail: 'Local vs hosted, provider OAuth vs customer-owned credentials, and how policy is enforced.'},
+  {label: 'Official advantage', value: 'Native breadth', detail: 'Provider servers usually receive new product features and deep native context first.'},
+  {label: 'Quilr advantage', value: 'Control', detail: 'Curated schemas, remote operation, confirmations, compound tools, and gateway governance.'},
+  {label: 'Do not compare by', value: 'Tool count', detail: 'One dispatcher can contain many operations; one official tool can span a large workflow.'},
+]} />
 
-## At A Glance
+This is a decision page, not a leaderboard. **Additional** means Quilr adds a capability, workflow, or operating model; it does not mean the Quilr integration contains every tool available from the provider. Availability can also depend on plan, OAuth scope, tenant configuration, or preview enrollment.
 
-| Integration | Official option | Quilr difference | Best fit for Quilr |
+<McpDecision
+  officialTitle="Choose the official option for native depth"
+  official="Use the provider-hosted or provider-maintained server when you need the newest product features, native client context, or the broadest first-party coverage."
+  officialPoints={['Latest provider capabilities', 'Deep product-native workflows', 'Best fit for local or approved clients']}
+  quilrTitle="Choose Quilr for a controlled operating layer"
+  quilr="Use Quilr when remote access, centralized OAuth, predictable schemas, compound workflows, confirmations, and auditable gateway policy matter more than maximum raw breadth."
+  quilrPoints={['Central policy and audit', 'Curated agent-facing schemas', 'Bounded write and destructive actions']}
+  verdict="Default to the narrowest surface that completes the workflow. Expand only when a real use case needs more breadth."
+/>
+
+## Portfolio Map
+
+The table is the fast scan. The sections below explain the decisions that are easy to misread from checkmarks alone.
+
+| Integration | Official option is strongest at | Quilr is strongest at | Decision cue |
 |---|---|---|---|
-| Microsoft 365 Outlook | Microsoft Graph APIs; no equivalent single broad Microsoft-hosted MCP identified | One remote MCP spanning mail, calendar, OneDrive, SharePoint, Teams, directory, OneNote, search, batch, and delta sync | Cross-workload Microsoft 365 agents |
-| SharePoint | Microsoft Graph APIs | Six consolidated tools, URL resolution, list and drive operations, confirmed deletes | A smaller SharePoint-only permission surface |
-| Excel | Microsoft Graph workbook APIs | Eight dispatchers group workbook, range, table, chart, named-range, pivot, and function operations | Structured workbook automation without unrelated Microsoft tools |
-| Microsoft Tasks & Planner | Microsoft Graph To Do and Planner APIs | One focused ten-tool surface across personal and team tasks | Task agents with a limited Graph scope |
-| Azure DevOps Advanced | Microsoft publishes an official local MCP | Remote multi-tenant OAuth, compatibility dispatchers, compound intelligence, organization selection, and separately confirmed deletes | Centrally governed Azure DevOps access through Quilr |
-| Jira and Confluence | Atlassian Rovo MCP is a broad hosted server | Separate, compact Jira and Confluence surfaces with predictable tools and independent gateway policy | Organizations wanting narrower per-product exposure |
-| Google Workspace | Google offers separate Gmail, Drive, Calendar, Chat, and People MCPs in Developer Preview | One combined Gmail, Calendar, and Drive connection with shared-drive discovery and file export | A stable combined surface without separate preview connectors |
-| Figma | Figma offers remote and desktop MCPs | API-oriented defaults, comments, assets, design-system search, and Code Connect mapping management | Design review and integration administration |
-| Calendly | Calendly hosts a DCR-only OAuth 2.1 MCP | Customer-owned OAuth app flow for clients and gateways that require pre-registered credentials | Managed enterprise OAuth when DCR is not suitable |
-| HubSpot CRM | HubSpot hosts a GA remote CRM MCP | Nine consolidated tools with batch record reads, property/owner discovery, and controlled archive | Compact, gateway-governed CRM workflows |
-| Avoma | Avoma publishes an MCP connector | Deliberately read-only four-tool surface for meetings, transcripts, and notes | Least-privilege meeting research |
-| Writer | Writer publishes a local SDK MCP package | Hosted streamable HTTP, API-key validation, and a curated ten-tool surface | Centrally operated Writer access for remote agents |
-| Optimizely Experimentation | No official Optimizely MCP was identified | Schema-guided querying, compound reporting, lifecycle controls, exports, audit history, collaborators, and datafiles | Full experimentation operations through MCP |
-| Semrush Advanced | Semrush hosts a public schema-driven MCP | 23 explicit tools, compound opportunity/research briefs, native comparisons, batch project reads, and quota visibility | Predictable SEO workflows with agent-friendly schemas |
-| BrowserStack Advanced | BrowserStack offers local and remote MCP options | 48 explicit API tools with bulk Test Management operations, bounded logs, screenshots, and diagnostic briefs | Auditable test operations with controlled bulk actions |
-| Athenahealth | Athenahealth publishes athenaOne and FHIR APIs, not an official MCP | Capability packs, allowlists, PHI-safe logging, idempotent writes, explicit confirmations, and bulk-export jobs | Governed clinical-system agents |
-| Tavily | Tavily's public MCP emphasizes search and extract | Adds crawl, map, asynchronous research, usage, and key inspection behind a managed authorization flow | Full Tavily API coverage without API keys in MCP URLs |
-| Cycode | The deployed server packages Cycode's CLI MCP capability; no Cycode-hosted remote MCP was identified | Quilr-operated remote container and gateway policy around the provider package | Centralized secret scanning from remote agents |
-| Quilr Web Search | No separate provider MCP | Minimal managed search and page retrieval with gateway domain policy | Lightweight web access with the smallest tool surface |
+| Microsoft 365 Outlook | Microsoft Graph's full native API breadth | One remote surface across mail, calendar, files, sites, Teams, directory, OneNote, search, batch, and delta sync | Choose by required Microsoft workload breadth |
+| SharePoint | Graph APIs inside a broader Microsoft strategy | Six focused tools, URL resolution, list/drive workflows, confirmed deletes | Prefer Quilr for a SharePoint-only boundary |
+| Excel | Direct Graph workbook APIs | Eight predictable workbook dispatchers | Prefer Quilr for bounded workbook automation |
+| Microsoft Tasks & Planner | Direct To Do and Planner APIs | One ten-tool personal + team task surface | Prefer Quilr for least-privilege task agents |
+| Azure DevOps Advanced | Local IDE-first official MCP | Remote OAuth, compound intelligence, compatibility operations, confirmed deletes | Official for local; Quilr for organization-wide control |
+| Jira and Confluence | Rovo's cross-product Atlassian breadth | Separate, compact product surfaces | Rovo for breadth; Quilr for independent policy |
+| Google Workspace | Separate official preview servers, including Chat and People | One Gmail + Calendar + Drive connection | Official for product separation; Quilr for one governed connection |
+| Figma | Native design context and canvas workflows | API-oriented review, comments, assets, defaults, and mapping administration | Official for canvas; Quilr for integration operations |
+| Calendly | Hosted DCR-based OAuth 2.1 MCP | Customer-owned, pre-registered OAuth | Choose by client registration model |
+| HubSpot CRM | Maximum native CRM breadth | Nine consolidated tools and a controlled archive boundary | Official for breadth; Quilr for a compact schema |
+| Avoma | Coaching, usage, outcomes, teams, and updates | Four strictly read-only research tools | Quilr for analysis-only agents |
+| Writer | Latest local SDK package breadth | Hosted HTTP and ten curated tools | Official for local SDK; Quilr for centralized access |
+| Optimizely | No provider MCP identified | Full MCP control plane over Experimentation APIs | Quilr fills the MCP layer |
+| Semrush Advanced | Generic schema discovery and newest reports | Explicit schemas, comparisons, compound briefs, and quota visibility | Official for raw reports; Quilr for composed research |
+| BrowserStack Advanced | Broad product coverage, AI agents, Percy, accessibility | Explicit APIs, bounded diagnostics, and controlled bulk Test Management | Choose breadth vs predictable operations |
+| Athenahealth | athenaOne and FHIR APIs | Safety-first MCP boundary with capability packs and PHI-safe controls | Quilr adds the governed agent layer |
+| Tavily | Straightforward provider search/extract MCP | Search, extract, map, crawl, research, and usage behind managed auth | Quilr for the full research lifecycle |
+| Cycode | Provider CLI MCP capability | Remote container operation and gateway policy | Quilr centralizes the provider package |
+| Quilr Web Search | No separate provider MCP | Two-tool managed search and retrieval | Choose for the smallest web surface |
 
-## Microsoft
+## Read The Landscape Through Three Lenses
 
-### Microsoft 365 Outlook
+<div className="mcp-lens-grid">
+  <article><span>01</span><h3>Coverage</h3><p>Does the agent need one product, an entire suite, or a compound workflow that crosses APIs?</p></article>
+  <article><span>02</span><h3>Connection</h3><p>Can the client use DCR or local execution, or does the organization require pre-registered OAuth and hosted HTTP?</p></article>
+  <article><span>03</span><h3>Control</h3><p>Which writes, deletes, bulk operations, logs, and audit guarantees must remain centrally governed?</p></article>
+</div>
 
-Microsoft documents the underlying mail, calendar, files, sites, Teams, directory, notes, Excel, To Do, and Planner capabilities through Microsoft Graph. The Quilr implementation turns those APIs into a single remote MCP and adds agent-oriented operations such as cross-workload search, URL resolution, batch reads and updates, delta synchronization, upload sessions, bounded attachment downloads, and explicit destructive labels.
+## Microsoft: Scope Is The Product
 
-The same codebase also contains focused SharePoint, Excel, and Tasks & Planner MCPs. Choose those when broad Microsoft 365 access would give an agent more tools or scopes than it needs.
+Microsoft Graph exposes a huge connected surface. The practical question is not whether an operation exists—it is how much Microsoft 365 context the agent should receive.
 
-### Azure DevOps Advanced
-
-Microsoft's [official Azure DevOps MCP](https://github.com/microsoft/azure-devops-mcp) is a strong local server with domain-filtered tools for core, work, work items, repositories, search, pipelines, test plans, wiki, and Advanced Security.
-
-Quilr does not simply mirror it. The custom server provides:
-
-- A remotely operated, streamable-HTTP service with Microsoft Entra delegated OAuth.
-- 21 compatibility dispatchers that preserve 93 established operations.
-- Direct tools for common project, repository, pull-request, work-item, file, query, and pipeline calls.
-- Compound intelligence for project overviews, sprint health, pull-request readiness, pipeline failures, traceability, and security dashboards.
-- Explicit organization discovery and selection for users who belong to multiple Azure DevOps organizations.
-- Separately labeled and confirmed deletes for branches, builds, iterations, pipelines, repositories, test plans, wiki pages, and work items.
-
-Use the official server for a local IDE-first setup. Use Quilr when access must run through central OAuth, gateway policy, guardrails, tool controls, and audit logs.
-
-## Atlassian
-
-Atlassian's [Rovo MCP Server](https://developer.atlassian.com/cloud/rovo-mcp/) is broader than the two Quilr integrations. It covers Jira, Confluence, Compass, Jira Service Management, Bitbucket, Rovo search, and Teamwork Graph through one hosted endpoint. Its [supported tools](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/supported-tools/) include deeper Jira metadata and linking, Confluence descendants and inline comments, and additional Atlassian products.
-
-Quilr's Jira and Confluence servers are intentionally separate:
-
-| Quilr MCP | Current surface | Difference from Rovo MCP |
+| Surface | Shape | Best use |
 |---|---|---|
-| Jira | Identity, projects, issue get/search/create/assign, transitions, comments | Smaller Jira-only surface with ten predictable tools and independent policy. It does not claim Rovo's JSM, Compass, Bitbucket, or graph breadth. |
-| Confluence | Identity, spaces, pages, CQL search, create/update pages, comments | Compact nine-tool knowledge-base surface. Rovo adds descendants, inline-comment workflows, and cross-product context. |
+| Microsoft 365 Outlook | Broad, cross-workload remote MCP | Agents coordinating mail, meetings, files, Teams, people, notes, and search |
+| SharePoint | Six consolidated content tools | Site, library, file, folder, list, and list-item workflows only |
+| Excel | Eight workbook dispatchers | Structured range, table, chart, pivot, name, and calculation automation |
+| Tasks & Planner | Ten focused tools | Personal To Do and team Planner without mail or file access |
+| Azure DevOps Advanced | Hosted engineering control plane | Organization-wide repositories, boards, pipelines, testing, wiki, and security |
 
-Choose Rovo for the widest Atlassian-native coverage. Choose the Quilr integrations when Jira and Confluence need separate authorization, tool allowlists, or release control.
+The [official Azure DevOps MCP](https://github.com/microsoft/azure-devops-mcp) is a strong local server. Quilr's distinction is the centrally operated model: delegated Entra OAuth, organization selection, compound sprint and delivery intelligence, compatibility dispatchers, and separately confirmed destructive operations.
 
-## Google Workspace
+## Work Suites: Combined Context Or Product Boundaries
 
-Google now provides [official remote Workspace MCP servers](https://developers.google.com/workspace/guides/configure-mcp-servers) for Gmail, Drive, Calendar, Chat, and People. They are in Developer Preview and each product has its own endpoint.
+Atlassian and Google make the architectural trade-off especially visible.
 
-Quilr combines Gmail, Calendar, and Drive into one 13-tool connection. It includes shared-drive discovery and Google Workspace file export, supports drafts and direct send, and uses a customer-owned Google OAuth client. It does not currently include the official preview's Google Chat or People servers. The [Google Workspace setup guide](../mcp-gateway/mcp-provider-setup/google-workspace) lists all eight scopes requested by the implemented server.
+| Ecosystem | Official approach | Quilr approach |
+|---|---|---|
+| Atlassian | [Rovo MCP](https://developer.atlassian.com/cloud/rovo-mcp/) spans Jira, Confluence, Compass, JSM, Bitbucket, search, and Teamwork Graph | Jira and Confluence remain separate, compact, independently governed surfaces |
+| Google Workspace | Separate Gmail, Drive, Calendar, Chat, and People preview endpoints | One 13-tool Gmail, Calendar, and Drive connection with shared-drive discovery and file export |
 
-Choose Google's servers when preview access, per-product separation, Chat, or People are required. Choose Quilr when one governed connection for Gmail, Calendar, and Drive is preferable.
+Choose suite breadth when cross-product context is the workflow. Choose product boundaries when authorization, release control, and tool allowlists must remain independent.
 
-## Design And Scheduling
+## Design, Scheduling, CRM, And Meetings
 
-### Figma
+These comparisons are less about “more” and more about **where the integration should live**.
 
-Figma's [official MCP server](https://developers.figma.com/docs/figma-mcp-server/) is optimized for extracting design context, generating code from frames, Code Connect-aware output, and writing native content back to the canvas. The remote server has the broadest official feature set, but only approved MCP clients can currently connect.
+| Integration | Provider-native choice | Quilr-managed choice |
+|---|---|---|
+| Figma | Canvas-native creation and approved-client design context | Review, comments, assets, defaults, design-system search, and Code Connect administration |
+| Calendly | DCR-compatible hosted scheduling | Customer-owned OAuth for clients requiring static registration |
+| HubSpot | Broad first-party CRM objects and activity | Compact record, association, schema, owner, note, task, and archive workflows |
+| Avoma | Coaching and meeting-administration breadth | Least-privilege transcript and note research |
+| Writer | Local SDK package and newest API breadth | Centrally hosted Writer access with a curated tool surface |
 
-Quilr's 19-tool server is API-oriented. In addition to design context, metadata, screenshots, variables, libraries, and FigJam reads, it manages defaults, comments, asset uploads, design-system search, and Code Connect mappings and suggestions. These administrative API workflows are the main Quilr distinction. For native canvas creation and modification, prefer Figma's official server.
+## Specialized And Safety-Critical Surfaces
 
-### Calendly
+<div className="mcp-editorial-note"><strong>Where Quilr is most differentiated</strong><p>Quilr adds the most value when the provider has no hosted MCP, when an API needs an agent-safe operating layer, or when raw endpoints need to become bounded compound workflows.</p></div>
 
-Calendly's [official hosted MCP](https://developer.calendly.com/calendly-mcp-server) uses OAuth 2.1, PKCE, and Dynamic Client Registration. Its [supported tool catalog](https://developer.calendly.com/supported-tools) provides broad scheduling coverage without a customer-created OAuth application.
-
-The Quilr custom server exists for a different connection model: a customer-owned, pre-registered Calendly OAuth application. Its 40 tools cover event types, schedules and availability, meetings and invitees, routing, organizations and users, memberships, webhooks, shares, and data-compliance operations. Use it when enterprise ownership, explicit scopes, or a non-DCR client requires static OAuth credentials. New DCR-compatible deployments should also evaluate Calendly's hosted server.
-
-## CRM, Meetings, And Enterprise AI
-
-### HubSpot CRM
-
-HubSpot's [remote MCP server](https://developers.hubspot.com/docs/apps/developer-platform/build-apps/integrate-with-the-remote-hubspot-mcp-server) is generally available and now has broad CRM read and write capabilities. It can cover more objects and activity history than Quilr's compact integration.
-
-Quilr exposes nine consolidated tools for object search, batch reads, associations, properties, owners, record create/update/archive, and note/task creation. Its advantage is a small stable schema and gateway-managed exposure, not wider HubSpot coverage. Choose the official server for maximum native breadth and Quilr for a bounded CRM toolset.
-
-### Avoma
-
-Avoma's [official MCP connector](https://help.avoma.com/getting-started-with-avoma-mcp-connector) has expanded beyond meeting retrieval to scorecard evaluations, team usage, meeting outcomes and types, deal stages, teams, and selected meeting updates.
-
-Quilr intentionally exposes only four read tools: list meetings, batch-read meeting details, fetch transcripts, and fetch notes. This is safer for analysis-only agents but narrower than Avoma's official connector.
-
-### Writer
-
-Writer's [official MCP package](https://dev.writer.com/home/mcp-server) runs locally through `writer-sdk-mcp` and can orchestrate Writer APIs such as file upload, generation, Knowledge Graph research, and image analysis.
-
-Quilr operates a remote streamable-HTTP server and validates each user's Writer API key. Its ten curated tools cover chat and models, applications, Knowledge Graphs, files, translation, vision, and web search. Choose the official package for the latest SDK breadth and local execution; choose Quilr for a centrally hosted, policy-controlled surface.
-
-## Experimentation, Marketing, And Testing
-
-### Optimizely Experimentation
-
-No Optimizely-hosted MCP server was identified in Optimizely's official developer documentation during this review. The Quilr server therefore provides the MCP layer over Optimizely Experimentation APIs.
-
-Unlike a thin endpoint wrapper, it adds schema and entity templates, compound experiment summaries, top-experiment reporting, curated Feature Experimentation SDK documentation search, CSV exports, change history, collaborator management, and environment datafiles. Its lifecycle dispatcher supports creation, update, archive, enablement, reset, and deletion across supported entities. Customer-owned OAuth credentials keep the Optimizely application under tenant control.
-
-### Semrush Advanced
-
-Semrush now offers an [official hosted MCP](https://developer.semrush.com/api/v3/introduction/semrush-mcp/) with schema discovery and report execution across SEO, Trends, and read-only Projects APIs. It is the best option for the newest raw Semrush report coverage.
-
-Quilr's 23 tools trade some of that generic breadth for explicit schemas and agent-oriented compositions: domain and keyword opportunity briefs, native backlink and audience comparisons, keyword and backlink gaps, traffic content and channel analysis, batch project reads, and separate Standard/Trends quota visibility. Both consume Semrush API units.
-
-### BrowserStack Advanced
-
-BrowserStack's [official MCP](https://www.browserstack.com/docs/browserstack-mcp-server/overview) covers manual and automated testing, accessibility, Test Management, reporting, Percy, and BrowserStack AI agents. Its overall product breadth is greater than the Quilr server.
-
-Quilr exposes 48 explicit API tools focused on account capabilities, browser/device inventories, Automate and App Automate builds and sessions, bounded diagnostic logs and screenshots, and deep Test Management CRUD. Quilr-specific conveniences include bulk case edit/move/archive, ordered case assignment, bulk result submission, session diagnostic briefs, and destructive-tool labeling. Choose it for predictable automation APIs and controlled bulk operations.
-
-## Healthcare, Web Research, And Security
-
-### Athenahealth
-
-Athenahealth documents official [athenaOne and FHIR APIs](https://docs.athenahealth.com/), but no official MCP server was identified. Quilr adds the agent-facing security layer:
-
-- Operator allowlists and disabled-by-default capability packs.
-- Separate athenaOne and FHIR batch reads and writes.
-- Confirmation, unique idempotency keys, and no automatic retry for writes.
-- Separately enabled deletes with stronger confirmation.
-- FHIR bulk-export start and status tools that do not download PHI into the MCP runtime.
-- PHI-free logs, traces, application state, and persistent audit records.
-
-### Tavily
-
-Tavily's [official MCP](https://docs.tavily.com/documentation/mcp) prominently documents search and extraction. Tavily's broader [API](https://docs.tavily.com/documentation/api-reference/introduction) also includes crawl, map, and research.
-
-Quilr brings that full API family into eight read-only tools: search, extract, map, crawl, start/check research, usage, and key information. It also collects the API key through an authorization flow instead of placing it in a remote MCP URL. This is the clearest addition over the basic official MCP configuration.
-
-### Cycode
-
-The deployed Cycode integration packages the provider's CLI MCP functionality into a remotely operated container. Quilr adds HTTPS hosting, health monitoring, deployment controls, and gateway policy. Its deliberately small surface is service status and secret scanning; it is not a general-purpose shell or repository-management server.
-
-### Quilr Web Search
-
-Quilr Web Search is a two-tool managed alternative for search and selected webpage retrieval. It is intentionally smaller than Tavily and is useful when an agent only needs bounded results, location/search-type options, and optional domain filters. MCP Gateway [Web Search Policy](../mcp-gateway/features/web-search-policy) can further constrain destinations.
+| Integration | What changes through Quilr |
+|---|---|
+| Optimizely | Schema guidance, compound reporting, lifecycle controls, exports, audit history, collaborators, and datafiles |
+| Semrush | Explicit schemas, opportunity briefs, native comparisons, gap analysis, batch project reads, and quota visibility |
+| BrowserStack | Bounded logs/screenshots, diagnostic briefs, explicit API tools, and controlled bulk Test Management |
+| Athenahealth | Disabled-by-default capability packs, PHI-safe observability, idempotent writes, confirmations, and bulk-export jobs |
+| Tavily | The full search-to-research lifecycle behind managed authorization |
+| Cycode | Remote hosting, health, deployment control, and gateway policy around the provider package |
+| Quilr Web Search | A deliberately minimal two-tool web surface with optional domain policy |
 
 ## Comparison Limits
 
-- Tool counts are snapshots of implemented public tools, not counts of underlying provider API endpoints.
-- Provider plan, OAuth scopes, tenant configuration, preview enrollment, and gateway policy can hide otherwise implemented operations.
-- A provider-hosted MCP may release capabilities after this review. Re-evaluate the official option before a new deployment, especially for Google Workspace, Figma, Calendly, HubSpot, Semrush, BrowserStack, and Avoma.
-- Production health confirms that a server process is running; it does not prove a particular customer has provider authorization or access to every tool.
+- Tool counts are snapshots of public tools, not counts of underlying provider API operations.
+- Provider plan, scope, tenant configuration, and preview enrollment can change visible capabilities.
+- Provider MCPs evolve quickly. Re-evaluate the official option before every material deployment.
+- Production health proves that a server is running—not that a customer has authorization for every tool.
+- For regulated or destructive workflows, validate the exact runtime policy instead of relying on a comparison row.

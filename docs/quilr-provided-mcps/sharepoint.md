@@ -8,6 +8,16 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">MICROSOFT CONTENT</span><h2>Six tools. The complete SharePoint workflow.</h2><p>Sites, document libraries, folders, files, lists, and list items without exposing the rest of Microsoft 365.</p></div>
 
+<McpDecision
+  officialTitle="Choose a broad Microsoft surface"
+  official="Use Microsoft Graph directly or Microsoft 365 v3 when the workflow must move beyond SharePoint into mail, Teams, OneDrive, OneNote, or directory data."
+  officialPoints={['Cross-workload Microsoft context', 'Broader Graph capability']}
+  quilrTitle="Choose a SharePoint-only boundary"
+  quilr="Use this MCP when agents need complete site, library, folder, file, list, and list-item workflows through six consolidated tools."
+  quilrPoints={['Human URL resolution', 'Explicit confirmation before deletion']}
+  verdict="If the task starts and ends in SharePoint, the smaller surface is easier to reason about and govern."
+/>
+
 ## Capability Matrix
 
 | Capability | Read | Write | Destructive |

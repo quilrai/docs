@@ -18,6 +18,16 @@ sidebar_custom_props:
   </div>
 </div>
 
+<McpDecision
+  officialTitle="Choose native connectors for retrieval"
+  official="Use first-party Microsoft APIs or approved product connectors when the job is primarily searching and reading one workload inside a supported client."
+  officialPoints={['Focused retrieval context', 'Provider-native authorization model']}
+  quilrTitle="Choose one operational Microsoft surface"
+  quilr="Use Quilr when an agent must safely move from search to action across mail, calendars, files, SharePoint, Teams, people, OneNote, and sync."
+  quilrPoints={['Nine workloads through one connection', 'Writes, batch, sync, and destructive controls']}
+  verdict="Retrieval-only use cases can stay native. Cross-workload operational agents benefit from the unified Quilr surface."
+/>
+
 ## Quilr vs ChatGPT Microsoft Connectors
 
 | Capability | **Quilr Microsoft 365 v3** | **ChatGPT Outlook** | **ChatGPT SharePoint** |

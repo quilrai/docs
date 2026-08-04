@@ -8,6 +8,16 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">DESIGN SYSTEM OPERATIONS</span><h2>Design context with the integration controls included.</h2><p>Nineteen tools spanning context, variables, screenshots, comments, assets, libraries, and Code Connect.</p></div>
 
+<McpDecision
+  officialTitle="Choose official for canvas creation"
+  official="Use Figma's server when the agent should create or modify designs natively on the canvas with first-party product context."
+  officialPoints={['Canvas-native creation', 'Deep design context and variables']}
+  quilrTitle="Choose Quilr for API operations"
+  quilr="Use Quilr for governed review, asset upload, comments, library search, and Code Connect mapping administration."
+  quilrPoints={['Nineteen explicit tools', 'Saved defaults and gateway policy']}
+  verdict="Creative canvas work favors Figma's official MCP; repeatable design-system and review operations favor Quilr."
+/>
+
 | Capability | Figma Official MCP | Quilr Figma |
 |---|:---:|:---:|
 | Design context and metadata | ✅ | ✅ |

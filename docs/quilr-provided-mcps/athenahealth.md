@@ -9,6 +9,16 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">CLINICAL SYSTEM SAFETY</span><h2>An MCP designed around what must never leak.</h2><p>Nine tools over athenaOne and FHIR with capability packs, confirmation, idempotency, and PHI-safe operations.</p></div>
 
+<McpDecision
+  officialTitle="Build directly on Athena APIs"
+  official="Use athenaOne and FHIR APIs directly when your integration team wants full control of the application, workflow, and clinical safeguards."
+  officialPoints={['Maximum implementation flexibility', 'Your team owns every safety control']}
+  quilrTitle="Add a clinical safety boundary"
+  quilr="Use Quilr when an agent needs a deliberately constrained surface with PHI-safe telemetry, gated writes, and idempotent operations."
+  quilrPoints={['Capability packs disabled by default', 'Confirmed writes with no automatic retry']}
+  verdict="For agent access, the safety model is the product: start with the narrowest capability pack and enable writes only for a validated workflow."
+/>
+
 | Safety control | Quilr Athenahealth |
 |---|:---:|
 | Customer-owned Athena system application | ✅ |
