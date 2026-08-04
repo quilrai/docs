@@ -1,0 +1,11 @@
+{
+  "label": "Quilr-Provided MCPs",
+  "position": 2.5,
+  "link": {
+    "type": "doc",
+    "id": "quilr-provided-mcps/overview"
+  },
+  "customProps": {
+    "icon": "Sparkles"
+  }
+}

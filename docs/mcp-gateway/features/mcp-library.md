@@ -44,15 +44,9 @@ One-click install pre-built MCP integrations from the catalog.
 
 ## Pre-Built Integrations
 
-The catalog includes ready-to-use MCP servers across categories:
+The catalog includes provider-native integrations and MCPs built by Quilr across productivity, developer tools, data, communication, cloud, security, and web search.
 
-- Productivity
-- Developer Tools
-- Data & Analytics
-- Communication
-- Cloud Services
-- Security
-- Web Search
+For a capability and connection comparison of integrations such as Microsoft 365 Outlook, Azure DevOps, Figma, Semrush, BrowserStack, and Athenahealth, see [Quilr-Provided MCPs](../../quilr-provided-mcps/overview).
 
 ## Authentication
 
@@ -64,9 +58,11 @@ Click **Connect** to authorize. The gateway handles client registration and capa
 
 Ready immediately after install. Create API tokens in **Settings** for programmatic access.
 
-## Custom MCP Servers
+## Add Your Own MCP Server
 
-Don't see what you need? Click **"Add MCP"** to register any MCP server by providing its transport URL (ending in `/sse` or `/mcp`). The gateway auto-detects auth requirements and probes capabilities.
+Don't see what you need? Click **"Add MCP"** to register an MCP server operated by your organization or another provider. Supply its transport URL ending in `/sse` or `/mcp`; the gateway probes its capabilities and detects supported authentication metadata.
+
+This bring-your-own workflow is separate from the catalog of [Quilr-provided integrations](../../quilr-provided-mcps/overview).
 
 ## Internal MCPs
 

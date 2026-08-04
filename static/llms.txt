@@ -42,6 +42,14 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 ## MCP Gateway
 
+## Quilr-Provided MCPs
+
+- [Quilr-Provided MCPs](https://docs.quilrai.dev/quilr-provided-mcps/overview.md): Compare Quilr-built and operated MCP integrations by use case, capabilities, connection method, and whether their tool surface can change provider data.
+- [Official MCP Comparison](https://docs.quilrai.dev/quilr-provided-mcps/official-comparison.md): Provider-by-provider comparison of official MCP or API coverage with Quilr's custom tool surface, operating model, safety controls, compound tools, and known limits.
+- [Quilr-Provided MCP Integration Reference](https://docs.quilrai.dev/quilr-provided-mcps/integration-reference.md): Capability, authentication, and safety notes for Microsoft 365 Outlook, SharePoint, Excel, Tasks and Planner, Jira, Confluence, Athenahealth, Avoma, HubSpot, Writer, Optimizely, Tavily, Cycode, and Quilr Web Search.
+
+## MCP Gateway
+
 - [Quick Start](https://docs.quilrai.dev/mcp-gateway/quick-start.md): Set up the MCP Gateway in 4 steps - add an MCP, configure tools and guardrails, connect an agent, and monitor.
 - [Architecture](https://docs.quilrai.dev/mcp-gateway/architecture.md): Tool call processing pipeline - Authenticate, Authorize, Scan, Policy, Connect - with auth mediation details.
 - [Integration Guide](https://docs.quilrai.dev/mcp-gateway/integration-guide.md): MCP endpoint URLs, client-to-gateway authentication, gateway-to-upstream auth modes, user claims forwarding, and connection examples.
@@ -51,7 +59,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [MCP Provider Setup: Slack](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/slack.md): Create a Slack app, enable Model Context Protocol, add the redirect URL and user-token scopes, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Provider Setup: GitHub](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/github.md): Create a GitHub OAuth app, set the callback URL, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Provider Setup: Zoho](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/zoho.md): Connect Zoho Cliq MCP - no OAuth app or Client ID/Secret needed; generate the MCP server URL in the Zoho MCP console and add it manually.
-- [MCP Provider Setup: Google Workspace](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/google-workspace.md): Connect the QuilrAI-built Google Workspace MCP (Gmail and Calendar) - create a Google Cloud OAuth client, enable the Gmail and Calendar APIs, add the required scopes including openid, and copy the Client ID and Client Secret for manual OAuth.
+- [MCP Provider Setup: Google Workspace](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/google-workspace.md): Connect the QuilrAI-built Google Workspace MCP for Gmail, Calendar, and Drive - create a Google Cloud OAuth client, enable all three APIs, add the required scopes including openid and Drive read access, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Provider Setup: Figma](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/figma.md): Connect the QuilrAI-built Figma MCP (design context, comments, Code Connect) - create a Figma OAuth app, add the redirect URI and required scopes, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Provider Setup: Datadog](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/datadog.md): Connect Datadog MCP - no OAuth app or Client ID/Secret needed; register the QuilrAI callback URL in Datadog Organization Settings under MCP OAuth Redirect URLs, enable MCP Access and the separate MCP Write Access opt-in, pick the core or toolsets=all endpoint for your Datadog site, and add that endpoint URL manually.
 - [MCP Provider Setup: Calendly Custom](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/calendly.md): Create a customer-owned Calendly OAuth app, configure the QuilrAI callback URL and least-privilege scopes, add the QuilrAI-built custom Calendly MCP with its Client ID and Client Secret, connect users, test tools, and handle rotation or reconnection.

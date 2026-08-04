@@ -8,6 +8,8 @@ sidebar_custom_props:
 
 Set up the provider side of an MCP connection. Most providers need a provider-owned OAuth app with a manual **Client ID** and **Client Secret**; a few only need their MCP server URL added manually.
 
+Looking for a capabilities comparison rather than connection steps? Start with [Quilr-Provided MCPs](../../quilr-provided-mcps/overview).
+
 ## When You Need This
 
 Use these guides when an MCP server does not support Dynamic Client Registration and the QuilrAI setup flow asks for OAuth credentials.
