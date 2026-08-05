@@ -16,14 +16,27 @@ This setup supports:
 
 ## What QuilrAI gives you
 
-Use these public OCIDs in your OCI policy:
+Copy these public OCIDs - you will paste them into your OCI policy in step 2.
 
-| Resource | OCID |
-|----------|------|
-| QuilrAI tenancy | `ocid1.tenancy.oc1..aaaaaaaabcp64qggjkgspajuc3o5a66t6isnz5rudglu5vnmft3apun4mevq` |
-| QuilrAI gateway IAM group | `ocid1.group.oc1..aaaaaaaajwg3vbuahquqywu46gx6xv23a6yiyb4lf3bbedxnguvvncq3tnlq` |
-
-These OCIDs identify QuilrAI to Oracle. They are not credentials and cannot be used to sign requests.
+<CopyFieldGroup
+  tone="oracle"
+  title="QuilrAI OCIDs for your Admit policy"
+  note="These OCIDs identify QuilrAI to Oracle. They are not credentials and cannot be used to sign requests."
+  fields={[
+    {
+      label: 'QuilrAI tenancy OCID',
+      icon: 'tenancy',
+      value: 'ocid1.tenancy.oc1..aaaaaaaabcp64qggjkgspajuc3o5a66t6isnz5rudglu5vnmft3apun4mevq',
+      hint: 'Used in the Define tenancy QuilrAI statement.',
+    },
+    {
+      label: 'QuilrAI gateway IAM group OCID',
+      icon: 'group',
+      value: 'ocid1.group.oc1..aaaaaaaajwg3vbuahquqywu46gx6xv23a6yiyb4lf3bbedxnguvvncq3tnlq',
+      hint: 'Used in the Define group QuilrGateway statement.',
+    },
+  ]}
+/>
 
 ## 1. Choose the access scope
 
@@ -42,7 +55,23 @@ Tenancy-wide access is supported, but it grants the QuilrAI gateway group access
 
 ## 2. Create the cross-tenancy policy
 
-In the OCI Console, go to **Identity & Security → Policies**, select the **root compartment**, and create a policy such as `quilr-generative-ai-access`.
+<ConsolePath
+  tone="oracle"
+  console="OCI Console"
+  href="https://cloud.oracle.com"
+  path={['Identity & Security', 'Policies']}
+  action="Create Policy"
+  note="Before clicking Create Policy, set the Compartment picker on the left to your root compartment (it carries the tenancy name). Cross-tenancy Admit statements are only valid in the root compartment."
+/>
+
+Exact steps in the Create Policy dialog:
+
+1. **Name**: `quilr-generative-ai-access`
+2. **Description**: `Cross-tenancy access for the QuilrAI LLM Gateway`
+3. **Compartment**: your root compartment (already selected if you set the picker above)
+4. Toggle **Show manual editor** on
+5. Paste one of the policy blocks below, replacing the compartment placeholder
+6. Click **Create**
 
 ### Recommended: one compartment
 
@@ -74,20 +103,73 @@ If you will use only Chat Completions, omit the `generative-ai-response` stateme
 
 ## 3. Collect your Oracle target values
 
-You need these non-secret values from OCI:
+You need four non-secret values from OCI. Keep them handy - you paste them into QuilrAI in step 4.
 
-| QuilrAI field | Where to find it | Required |
-|---------------|------------------|----------|
-| OCI region | Region containing your Generative AI project, for example `us-chicago-1` | Always |
-| Project OCID | Generative AI → Projects → your project | Always |
-| Compartment OCID | Identity & Security → Compartments → your compartment | Chat Completions; recommended for Responses |
+| QuilrAI field | Example | Required |
+|---------------|---------|----------|
+| OCI region | `us-chicago-1` | Always |
+| Project OCID | `ocid1.generativeaiproject.oc1...` | Always |
+| Compartment OCID | `ocid1.compartment.oc1...` | Chat Completions; recommended for Responses |
 | Model ID | The Oracle model you want to call | Always |
 
-Oracle model discovery is manual in QuilrAI, so copy the exact model ID that is available in the selected region.
+### OCI region
+
+<ConsolePath
+  tone="oracle"
+  label="Look at"
+  console="OCI Console"
+  path={['Region menu (top right)']}
+  note="Use the region identifier such as us-chicago-1, not the display name such as US Midwest (Chicago). This must be the region that hosts your Generative AI project."
+/>
+
+### Project OCID
+
+<ConsolePath
+  tone="oracle"
+  console="OCI Console"
+  href="https://cloud.oracle.com"
+  path={['Analytics & AI', 'AI Services', 'Generative AI', 'Projects', 'your project']}
+  action="Copy the project OCID"
+  note="On the project details page, hover the OCID value and click Copy. Confirm the compartment shown on that page is the one you covered in your Admit policy."
+/>
+
+### Compartment OCID
+
+<ConsolePath
+  tone="oracle"
+  console="OCI Console"
+  href="https://cloud.oracle.com"
+  path={['Identity & Security', 'Compartments', 'your compartment']}
+  action="Copy the OCID"
+/>
+
+### Model ID
+
+<ConsolePath
+  tone="oracle"
+  console="OCI Console"
+  href="https://cloud.oracle.com"
+  path={['Analytics & AI', 'AI Services', 'Generative AI', 'Playground']}
+  action="Copy the exact model name"
+  note="Oracle model discovery is manual in QuilrAI, so copy the model ID exactly as Oracle spells it, and only from the region you selected above."
+/>
 
 ## 4. Configure the provider in QuilrAI
 
-Create or update the LLM Gateway API key and add an Oracle provider.
+<ConsolePath
+  console="QuilrAI dashboard"
+  path={['LLM Gateway']}
+  action="Create New Key"
+  note="Editing an existing key works too - open it and add Oracle as an additional provider."
+/>
+
+In the provider form:
+
+1. Set **Provider** to `Oracle` (Chat Completions) or `Oracle Responses` (Responses API)
+2. Set **Authentication** to **Gateway sign-in** (`gateway_user_principal`)
+3. Paste the region, project OCID, and compartment OCID from step 3
+4. Add the model IDs you want to expose
+5. Click **Save**
 
 ### Chat Completions
 
@@ -115,7 +197,13 @@ Do not enter an Oracle API key, user OCID, tenancy OCID, fingerprint, private ke
 
 ## 5. Verify the connection
 
-Save the provider and run its model validation in the QuilrAI dashboard. A successful validation confirms all of the following:
+<ConsolePath
+  console="QuilrAI dashboard"
+  path={['LLM Gateway', 'your key', 'Oracle provider']}
+  note="Save the provider, then run its model validation."
+/>
+
+A successful validation confirms all of the following:
 
 - The project and compartment IDs are correct
 - The model is available in the selected region
@@ -126,7 +214,15 @@ Policy changes can take a few minutes to propagate. If the first validation fail
 
 ## Revoke access
 
-Delete the Admit policy, or remove its two Admit statements, to revoke QuilrAI's access. No credential rotation is required because no customer signing key was shared.
+<ConsolePath
+  tone="oracle"
+  console="OCI Console"
+  href="https://cloud.oracle.com"
+  path={['Identity & Security', 'Policies', 'root compartment', 'quilr-generative-ai-access']}
+  action="Delete"
+/>
+
+Deleting the policy, or removing its two Admit statements, revokes QuilrAI's access immediately. No credential rotation is required because no customer signing key was shared.
 
 ## Troubleshooting
 

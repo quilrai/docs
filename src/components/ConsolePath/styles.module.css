@@ -1,0 +1,93 @@
+.wrap {
+  margin: 1rem 0 1.25rem;
+  padding: 0.75rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--ifm-color-primary)) 26%, var(--ifm-color-emphasis-300));
+  border-left: 3px solid var(--accent, var(--ifm-color-primary));
+  border-radius: 12px;
+  background: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--accent, var(--ifm-color-primary)) 9%, transparent),
+      transparent 65%
+    ),
+    var(--ifm-background-surface-color);
+}
+
+.quilr { --accent: var(--ifm-color-primary); }
+.oracle { --accent: #dc2626; }
+.aws { --accent: #f59e0b; }
+
+.trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.4rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-right: 0.15rem;
+  color: var(--accent, var(--ifm-color-primary));
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.crumb {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 7px;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.console {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  text-decoration: none;
+}
+
+a.console:hover {
+  border-color: var(--accent, var(--ifm-color-primary));
+  color: var(--accent, var(--ifm-color-primary));
+  text-decoration: none;
+}
+
+.sep {
+  flex: 0 0 auto;
+  color: var(--ifm-color-emphasis-500);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--accent, var(--ifm-color-primary));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--accent, var(--ifm-color-primary)) 14%, var(--ifm-background-color));
+  color: var(--accent, var(--ifm-color-primary));
+  font-size: 0.8rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.note {
+  margin: 0.55rem 0 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .crumb, .action { font-size: 0.75rem; }
+}
+
+:global([data-theme='dark']) .oracle { --accent: #f87171; }
+:global([data-theme='dark']) .aws { --accent: #fbbf24; }

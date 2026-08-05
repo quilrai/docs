@@ -18,13 +18,25 @@ ExternalId is required. AWS recommends it for any cross-account role assumption 
 
 ## What QuilrAI gives you
 
-QuilrAI's gateway runs under a dedicated IAM user whose only permission is `sts:AssumeRole`. Its ARN is:
+QuilrAI's gateway runs under a dedicated IAM user whose only permission is `sts:AssumeRole`. Copy its ARN - you will paste it into the trust policy of the IAM role you create in step 2.
 
-```
-arn:aws:iam::975050335771:user/quilr-gateway
-```
-
-You'll reference this ARN in the trust policy of the IAM role you create below.
+<CopyFieldGroup
+  tone="aws"
+  fields={[
+    {
+      label: 'QuilrAI gateway IAM user ARN',
+      icon: 'user',
+      value: 'arn:aws:iam::975050335771:user/quilr-gateway',
+      hint: 'Goes in Principal.AWS of your role trust policy.',
+    },
+    {
+      label: 'QuilrAI AWS account ID',
+      icon: 'account',
+      value: '975050335771',
+      hint: 'Same account as the ARN above. Useful if your review process asks for the account ID on its own.',
+    },
+  ]}
+/>
 
 ## 1. Pick an ExternalId
 
@@ -40,7 +52,22 @@ Save it - you'll paste it in two places: the role's trust policy (step 2) and th
 
 ## 2. Create the IAM role in your AWS account
 
-AWS Console → IAM → Roles → **Create role** → **Custom trust policy**. Paste the following, substituting your ExternalId from step 1:
+<ConsolePath
+  tone="aws"
+  console="AWS Console"
+  href="https://console.aws.amazon.com/iam/home#/roles"
+  path={['IAM', 'Roles']}
+  action="Create role"
+  note="IAM is global, so the region selector does not matter here. You need iam:CreateRole and iam:PutRolePolicy permissions."
+/>
+
+Exact steps in the Create role wizard:
+
+1. **Select trusted entity**: choose **Custom trust policy**
+2. Replace the editor contents with the JSON below, substituting your ExternalId from step 1
+3. Click **Next** (skip permissions for now - you attach the Bedrock policy in step 3)
+4. **Role name**: `quilr-gateway-bedrock`
+5. Click **Create role**
 
 ```json
 {
@@ -64,7 +91,21 @@ AWS Console → IAM → Roles → **Create role** → **Custom trust policy**. P
 
 ## 3. Attach a Bedrock permissions policy
 
-On the same role, attach a permissions policy granting the Bedrock actions you need. Minimum for chat:
+<ConsolePath
+  tone="aws"
+  console="AWS Console"
+  href="https://console.aws.amazon.com/iam/home#/roles"
+  path={['IAM', 'Roles', 'quilr-gateway-bedrock', 'Permissions tab', 'Add permissions']}
+  action="Create inline policy"
+/>
+
+Exact steps:
+
+1. In the policy editor, switch to the **JSON** tab
+2. Replace the contents with the policy below
+3. Click **Next**, name it `quilr-gateway-bedrock-invoke`, then click **Create policy**
+
+Minimum for chat:
 
 ```json
 {
@@ -92,15 +133,35 @@ The `arn:aws:bedrock:*::foundation-model/*` resource only covers on-demand found
 - **Custom models**: `arn:aws:bedrock:*:<YOUR-ACCOUNT-ID>:custom-model/*`
 :::
 
-Name the role (e.g. `quilr-gateway-bedrock`), save, and copy the **role ARN** - it looks like:
+Then copy the role ARN from the role's **Summary** panel - the copy icon sits next to the ARN at the top of the page.
 
-```
-arn:aws:iam::<YOUR-ACCOUNT-ID>:role/quilr-gateway-bedrock
-```
+<ConsolePath
+  tone="aws"
+  console="AWS Console"
+  href="https://console.aws.amazon.com/iam/home#/roles"
+  path={['IAM', 'Roles', 'quilr-gateway-bedrock', 'Summary']}
+  action="Copy ARN"
+  note="The ARN follows the shape below, with your own 12-digit AWS account ID."
+/>
+
+<CopyField
+  tone="aws"
+  icon="arn"
+  label="Role ARN shape"
+  value="arn:aws:iam::<YOUR-ACCOUNT-ID>:role/quilr-gateway-bedrock"
+  hint="Copy your real ARN from the console rather than editing this template by hand."
+/>
 
 ## 4. Enter these values in the QuilrAI dashboard
 
-When creating or updating the Bedrock API key, select **Assume Role** and provide:
+<ConsolePath
+  console="QuilrAI dashboard"
+  path={['LLM Gateway']}
+  action="Create New Key"
+  note="Editing an existing Bedrock key works too - open it and switch its authentication mode to Assume Role."
+/>
+
+Select the Bedrock provider, set **Authentication** to **Assume Role**, and provide:
 
 ### Required
 
@@ -127,7 +188,14 @@ These belong to the static-key path and will be rejected:
 
 ## 5. Verify before going live
 
-The fastest way to verify is to save the key in the QuilrAI dashboard and send a test request - if the role, ExternalId, and permissions are correct, it will succeed; otherwise the error surfaces directly in the dashboard and maps to the [troubleshooting table below](#troubleshooting).
+<ConsolePath
+  console="QuilrAI dashboard"
+  path={['LLM Gateway', 'your key']}
+  action="Save"
+  note="Then send a test request through the key."
+/>
+
+If the role, ExternalId, and permissions are correct, the request succeeds; otherwise the error surfaces directly in the dashboard and maps to the [troubleshooting table below](#troubleshooting).
 
 ### Optional: local CLI check
 
