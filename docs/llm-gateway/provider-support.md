@@ -11,7 +11,7 @@ Supported providers, API formats, and configuration details.
 
 ## Overview
 
-Your app authenticates to the gateway using a QuilrAI API key. Provider credentials are configured in the dashboard and never exposed to clients.
+Your app authenticates to the gateway using a QuilrAI API key. Provider credentials are configured in the dashboard and never exposed to clients. Oracle OCI customers can instead grant QuilrAI cross-tenancy access without sharing an Oracle API key or signing key.
 
 ## Capability Matrix
 
@@ -29,6 +29,8 @@ Your app authenticates to the gateway using a QuilrAI API key. Provider credenti
 | AWS Bedrock Runtime (boto3) | ✓ | - | - | - | - | - | - | ✓ | - |
 | Azure (Anthropic Messages) | ✓ | - | - | - | - | - | - | ✓ | - |
 | Vertex AI | ✓ | - | - | - | - | - | - | ✓ | - |
+| Oracle OCI Generative AI (Chat) | ✓ | - | - | - | - | - | - | Manual | - |
+| Oracle OCI Generative AI (Responses) | - | - | - | - | - | ✓ | - | Manual | - |
 | AWS Bedrock (Embeddings) | - | ✓ | - | - | - | - | - | ✓ | - |
 | Cohere Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
 | AWS Bedrock Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
@@ -63,10 +65,13 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | Vertex AI Gemini (via OpenAI-compatible) | API Key | `api_key`, `gcp_project_id` | `gcp_region` |
 | Vertex AI Gemini (via OpenAI-compatible) | Service Account | `service_account_json` | `gcp_project_id`, `gcp_region` |
 | Vertex AI Gemini (via OpenAI-compatible) | ADC | `gcp_project_id` | `gcp_region` |
+| Oracle OCI Generative AI | Gateway sign-in | `oci_region`, `oci_project_id`, `oci_compartment_id` | - |
 
 The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI can translate provider-native chat models into this surface. Create a `bedrock` provider key and use a selected Bedrock model ID to call Bedrock `Converse`; create a `vertex_ai` provider key and use a selected Gemini model name to call Vertex AI `generateContent`; or create an Anthropic Messages provider key and use a selected Claude model to call native Anthropic Messages. For exact parameter, message, tool, structured-output, and streaming coverage, see [Unified Completions](./unified-completions.md).
 
 AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
+
+For Oracle setup, including the customer-side Admit policy and both tenancy-wide and compartment-scoped access, see [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy.md).
 
 ## Anthropic Messages
 
@@ -169,16 +174,19 @@ Request-side DLP scans the `query` and `documents` fields. Response-side DLP is 
 **Endpoint:** `/openai_responses/v1/responses`
 **Auth:** `Authorization: Bearer sk-quilr-xxx`
 
-Native passthrough for OpenAI's Responses API. Create / retrieve / cancel / delete / list-input-items are all supported.
+Native passthrough for supported Responses providers. Create / retrieve / cancel / delete / list-input-items are all supported.
 
 | Provider | Auth Mode | Required Fields | Optional Fields |
 |----------|-----------|-----------------|-----------------|
 | OpenAI (Responses) | API Key | `api_key` | `base_url` |
 | Azure OpenAI (Responses) | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
+| Oracle OCI Generative AI (Responses) | Gateway sign-in | `oci_region`, `oci_project_id` | `oci_compartment_id` |
 
 Azure-deployment-style aliases are also accepted: `/openai_responses/openai/deployments/{deployment}/responses[/{response_id}[/cancel|/input_items]]`. The deployment name goes in `body.model` regardless of which URL shape is used.
 
 Request-side DLP scans free-form user text inside `input_text` parts of `input` plus the top-level `instructions`. `previous_response_id` and built-in tools (`web_search`, `file_search`, `computer_use`, `code_interpreter`) are passthrough. Response-side DLP scans `output_text` parts on non-streaming responses; streaming responses bypass response-side DLP by design (request-side DLP still runs).
+
+Oracle Responses uses the same customer Admit policy and gateway-owned OCI signing identity as Oracle Chat Completions. See [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy.md).
 
 ## Realtime API
 
