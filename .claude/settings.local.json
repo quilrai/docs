@@ -8,7 +8,8 @@
       "Bash(npm run *)",
       "Bash(zip -j -X quilr-onemcp-skill.zip SKILL.md)",
       "Bash(unzip -l quilr-onemcp-skill.zip)",
-      "Bash(node -e \"const l=require\\('lucide-react'\\);['Copy','Check','ExternalLink','ChevronRight','MousePointerClick','Building2','Users','Fingerprint','KeyRound','Globe2','Box','Layers','Hash','MapPin','Cpu','ShieldCheck','IdCard','FolderTree','UserCircle2','Landmark','Braces','Server'].forEach\\(n=>console.log\\(n, !!l[n]\\)\\)\")"
+      "Bash(node -e \"const l=require\\('lucide-react'\\);['Copy','Check','ExternalLink','ChevronRight','MousePointerClick','Building2','Users','Fingerprint','KeyRound','Globe2','Box','Layers','Hash','MapPin','Cpu','ShieldCheck','IdCard','FolderTree','UserCircle2','Landmark','Braces','Server'].forEach\\(n=>console.log\\(n, !!l[n]\\)\\)\")",
+      "Bash(npm start *)"
     ]
   }
 }

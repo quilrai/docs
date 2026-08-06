@@ -488,13 +488,122 @@ main > .container.padding-top--md.padding-bottom--lg,
   --ifm-footer-background-color: var(--docs-dark-surface);
 }
 
-.doc-page-footer .footer > .container {
-  @apply max-w-4xl mx-auto w-full;
+/* ────────────────────────────────── Doc measure + TOC gutter ────────────
+   The TOC is NOT billed out of the reading measure. The row is a 3-track grid:
+
+     [ flexible ][ --doc-measure ][ at least --doc-gutter ]
+                     content            TOC rail
+
+   Both outer tracks are `1fr`, so while there is room they resolve equal and
+   the content sits optically centered with the rail floating in the right
+   gutter. Once space runs short the right track hits its `--doc-gutter` floor
+   and the left track gives way, sliding content left instead of squeezing it.
+   That handoff needs no breakpoint, and the measure is identical on pages with
+   and without a TOC, so the eye lands in the same place moving between them. */
+/* Container, not viewport: the space that matters is the panel's own width,
+   which also changes when the doc sidebar is collapsed. */
+.doc-main {
+  container-type: inline-size;
+  container-name: docpanel;
 }
 
-/* Infima `.row` uses negative side margins; with panel padding: 0 that overflows */
+.doc-main__panel {
+  /* Static fallback first. A browser without `cqi` drops the clamp() below as
+     invalid and keeps these, landing on the sensible mid-size layout. */
+  --doc-measure: 52rem; /* 832px of prose */
+  --doc-rail: 12.5rem; /* 200px TOC */
+  --doc-rail-gap: 3rem;
+
+  /* Fluid above ~1400px of panel. Below that every clamp sits on its floor, so
+     laptops keep the layout unchanged; only genuinely wide panels grow. The
+     measure stops at 66rem because prose stops being readable long before the
+     screen runs out - past that point the gutters keep widening instead, which
+     drifts the rail toward the panel edge rather than stretching the text. */
+  --doc-measure: clamp(52rem, 58cqi - 4rem, 66rem);
+  --doc-rail: clamp(12.5rem, 9cqi + 1rem, 16rem);
+  --doc-rail-gap: clamp(3rem, 8cqi - 5rem, 9rem);
+
+  --doc-gutter: calc(var(--doc-rail) + var(--doc-rail-gap));
+  --doc-pad: 1.5rem;
+  --doc-row-max: calc(
+    var(--doc-measure) + 2 * var(--doc-gutter) + 2 * var(--doc-pad)
+  );
+}
+
+/* Narrow panels (small windows, or a wide window with the browser docked): the
+   rail's floor would otherwise cost more than the 25% column it replaced. Tighten
+   the gutter so these widths come out ahead of the old layout, not behind it. */
+@container docpanel (max-width: 1020px) {
+  .doc-main__panel {
+    --doc-rail: 10.75rem;
+    --doc-rail-gap: 1.5rem;
+    --doc-pad: 1rem;
+  }
+}
+
 .doc-main__panel .row {
-  @apply w-full max-w-4xl mx-auto mb-6;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, var(--doc-measure))
+    minmax(var(--doc-gutter), 1fr);
+  width: 100%;
+  max-width: var(--doc-row-max);
+  /* Infima `.row` uses negative side margins; with panel padding: 0 that overflows */
+  margin: 0 auto 1.5rem;
+  padding-inline: var(--doc-pad);
+}
+
+/* `.col` is a flex-basis unit in Infima; inside the grid it is placed, not sized */
+.doc-main__panel .row > .col {
+  grid-column: 2;
+  max-width: none;
+  width: auto;
+  flex: none;
+  min-width: 0;
+  padding: 0;
+}
+
+/* Carried over from theme-classic's DocItem/Layout styles.module.css */
+.doc-item__container header + *,
+.doc-item__container article > *:first-child {
+  margin-top: 0;
+}
+
+.doc-main__panel .row > .col.col--3 {
+  grid-column: 3;
+  justify-self: start;
+  width: var(--doc-rail);
+  margin-left: var(--doc-rail-gap);
+}
+
+/* Below this a permanent rail costs more width than it returns, so the TOC
+   falls back to the collapsible that already ships for mobile. Both are in the
+   DOM at desktop viewports (the mobile one is server-rendered and hidden by
+   theme CSS), so this is a pure CSS swap. Must follow the rules above: a
+   container query adds no specificity, so it wins on source order alone. */
+@container docpanel (max-width: 900px) {
+  .doc-main__panel .row {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, var(--doc-measure))
+      minmax(0, 1fr);
+  }
+
+  .doc-main__panel .row > .col.col--3 {
+    display: none;
+  }
+
+  .doc-main__panel .theme-doc-toc-mobile {
+    display: block;
+  }
+}
+
+.doc-page-footer .footer > .container {
+  width: 100%;
+  max-width: var(--doc-row-max, 64rem);
+  margin-inline: auto;
+  padding-inline: var(--doc-pad, 1.5rem);
 }
 
 .doc-main__panel .theme-doc-markdown.markdown,
@@ -503,11 +612,23 @@ main > .container.padding-top--md.padding-bottom--lg,
   overflow-wrap: break-word;
 }
 
-/* Landing/intro doc page: widen content + footer for the AskAiBanner to breathe.
+/* Landing/intro doc page: widen the measure for the AskAiBanner to breathe.
    Scoped to the intro page only - prose-heavy doc articles keep their readable cap. */
-.docs-doc-id-intro .doc-main__panel .row,
-.docs-doc-id-intro .doc-page-footer .footer > .container {
-  @apply max-w-6xl;
+.docs-doc-id-intro .doc-main__panel {
+  --doc-measure: 60rem;
+  --doc-measure: clamp(56rem, 34cqi + 22rem, 74rem);
+}
+
+@media (max-width: 996px) {
+  .doc-main__panel .row {
+    display: block;
+    max-width: 100%;
+    padding-inline: 0;
+  }
+
+  .doc-main__panel .row > .col {
+    width: 100%;
+  }
 }
 
 /* DocCardList: 2 columns desktop, 1 column mobile (matches Infima 997px breakpoint) */
@@ -1510,6 +1631,129 @@ main > .container.padding-top--md.padding-bottom--lg,
 [data-theme="dark"] .table-of-contents__link:hover,
 [data-theme="dark"] .table-of-contents__link--active {
   color: var(--color-emerald-400);
+}
+
+/* ── Gutter rail ──
+   The rail is a continuous hairline with one segment per heading. The active
+   segment thickens and takes the accent, so the rail reads as "where you are
+   in the page" rather than as decoration. Every tick sits on the same line at
+   any depth - only the label indents - which keeps the rail a single stroke. */
+/* Sticky moves up to the rail so the eyebrow travels with its list. The inner
+   TOC div (`.theme-doc-toc-desktop`, which also carries the theme's
+   `.tableOfContents` module class) hands its sticky + max-height over and keeps
+   only the overflow, so a long TOC scrolls inside a pinned rail. */
+.doc-toc-rail {
+  position: sticky;
+  top: calc(var(--ifm-navbar-height) + 1.75rem);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--ifm-navbar-height) - 3.5rem);
+}
+
+.doc-toc-rail .theme-doc-toc-desktop {
+  position: static;
+  top: auto;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+@media (max-width: 996px) {
+  .doc-toc-rail {
+    display: none;
+  }
+}
+
+.doc-toc-rail__eyebrow {
+  margin: 0 0 0.875rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--docs-light-text-muted);
+  opacity: 0.7;
+}
+
+[data-theme="dark"] .doc-toc-rail__eyebrow {
+  color: var(--color-neutral-500);
+  opacity: 1;
+}
+
+.theme-doc-toc-desktop .table-of-contents,
+.theme-doc-toc-desktop .table-of-contents ul {
+  padding-left: 0;
+}
+
+/* The per-heading ticks are the rail now, so drop Infima's continuous border */
+.theme-doc-toc-desktop .table-of-contents.table-of-contents__left-border {
+  border-left: 0;
+  padding-block: 0;
+}
+
+.theme-doc-toc-desktop .table-of-contents li {
+  margin: 0;
+}
+
+.theme-doc-toc-desktop .table-of-contents__link {
+  position: relative;
+  padding: 0.3125rem 0 0.3125rem 0.875rem;
+  line-height: 1.45;
+}
+
+/* The tick. Inactive ticks form the hairline; the active one is the indicator. */
+.theme-doc-toc-desktop .table-of-contents__link::before {
+  content: "";
+  position: absolute;
+  inset-block: 1px;
+  left: 0;
+  width: 2px;
+  border-radius: 1px;
+  background-color: var(--docs-light-border);
+  transition:
+    background-color var(--ifm-transition-fast)
+      var(--ifm-transition-timing-default),
+    transform var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+  transform-origin: left center;
+}
+
+.theme-doc-toc-desktop .table-of-contents__link:hover::before {
+  background-color: var(--docs-light-text-muted);
+}
+
+.theme-doc-toc-desktop .table-of-contents__link--active::before {
+  background-color: var(--color-emerald-600);
+  transform: scaleX(1.5);
+}
+
+.theme-doc-toc-desktop .table-of-contents__link--active {
+  font-weight: 500;
+}
+
+/* Depth is carried by label indent and weight, not by moving the tick */
+.theme-doc-toc-desktop .table-of-contents ul .table-of-contents__link {
+  padding-left: 1.75rem;
+  font-size: 0.78125rem;
+}
+
+[data-theme="dark"] .theme-doc-toc-desktop .table-of-contents__link::before {
+  background-color: var(--docs-dark-border);
+}
+[data-theme="dark"]
+  .theme-doc-toc-desktop
+  .table-of-contents__link:hover::before {
+  background-color: var(--color-neutral-500);
+}
+[data-theme="dark"]
+  .theme-doc-toc-desktop
+  .table-of-contents__link--active::before {
+  background-color: var(--color-emerald-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-doc-toc-desktop .table-of-contents__link::before {
+    transition: none;
+  }
 }
 
 /* ────────────────────────────────── Mobile TOC ──────────────────────── */
