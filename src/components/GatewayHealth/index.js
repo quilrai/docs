@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, Boxes, Gauge, Loader2, RefreshCw, Server, Wifi } from 'lucide-react';
+import { Activity, Boxes, ChevronRight, Gauge, Loader2, RefreshCw, Server, Wifi } from 'lucide-react';
 import GatewayTimeline from './GatewayTimeline';
+import { summarizeGateways, toneOf, useGatewayRollup } from './gatewayRollup';
 import styles from './styles.module.css';
 
 /* ────────────────────────────────── Config ─────────────────────────── */
@@ -62,12 +63,41 @@ const STATUS_META = {
   no_data: { label: 'No data', tone: 'noData', rank: 0 },
 };
 
-// Horizontal view switcher. Order matches the tab bar left-to-right.
+// Horizontal view switcher. Order matches the tab bar left-to-right, and it is deliberate:
+// Gateway Health is what QuilrAI is accountable for, so it leads and it is the landing view.
+// Provider Health is upstream third-party context. Infrastructure is a per-visitor probe.
 const TABS = [
-  { id: 'provider', label: 'Provider Health', Icon: Boxes },
   { id: 'gateway', label: 'Gateway Health', Icon: Gauge },
+  { id: 'provider', label: 'Provider Health', Icon: Boxes },
   { id: 'infra', label: 'QuilrAI Infrastructure', Icon: Server },
 ];
+
+const DOT_TONE_CLASS = {
+  up: 'dotUp',
+  degraded: 'dotDegraded',
+  down: 'dotDown',
+  checking: 'dotNeutral',
+  noData: 'dotNeutral',
+};
+
+// Roll every provider's worst state into one short clause for the header. This is
+// reported, never blamed: it sits in a subordinate row and cannot recolour the gateway pill.
+function summarizeUpstream(providers, { loading, error }) {
+  if (error) return { tone: 'noData', label: 'Provider data unavailable' };
+  if (!providers.length) return { tone: 'checking', label: loading ? 'Checking providers...' : 'No provider data' };
+
+  const outage = providers.filter((p) => p.status === 'major_outage').length;
+  const degraded = providers.filter((p) => p.status === 'degraded').length;
+
+  if (outage) {
+    const base = `${outage} provider${outage > 1 ? 's' : ''} down`;
+    return { tone: 'down', label: degraded ? `${base}, ${degraded} degraded` : base };
+  }
+  if (degraded) {
+    return { tone: 'degraded', label: `${degraded} provider${degraded > 1 ? 's' : ''} degraded` };
+  }
+  return { tone: 'up', label: `All ${providers.length} providers nominal` };
+}
 
 /* ────────────────────────────────── Helpers ────────────────────────── */
 
@@ -440,11 +470,21 @@ export default function GatewayHealth() {
   const [providerLoading, setProviderLoading] = useState(false);
   const [providerError, setProviderError] = useState(null);
   const [providerLoadedAt, setProviderLoadedAt] = useState(null);
-  const [tab, setTab] = useState('provider');
+  const [tab, setTab] = useState('gateway');
   const [tick, setTick] = useState(0); // re-render for relative timestamps
   const mounted = useRef(true);
   const providerAbort = useRef(null);
   const providerRequestId = useRef(0);
+
+  // Fetched here rather than inside GatewayTimeline so the headline pill and the timeline
+  // share one request and can never contradict each other.
+  const {
+    mcpRows,
+    llmRows,
+    status: gatewayStatus,
+    loadedAt: gatewayLoadedAt,
+    reload: reloadGateway,
+  } = useGatewayRollup();
 
   const runChecks = useCallback(async () => {
     setChecking(true);
@@ -533,28 +573,28 @@ export default function GatewayHealth() {
 
   const providerState = useMemo(() => summarizeProviderHealth(providerHealth), [providerHealth]);
 
-  const overall = useMemo(() => {
-    const known = serverState.filter((s) => s.status !== 'checking');
-    const providerStatuses = providerState.map((provider) => provider.status);
-    const knownCount = known.length + providerStatuses.length;
-    if (!knownCount) {
-      return { tone: 'checking', label: 'Checking systems…' };
-    }
-    const down =
-      known.filter((s) => s.status === 'down').length +
-      providerStatuses.filter((status) => status === 'major_outage').length;
-    const degraded = providerStatuses.filter((status) => status === 'degraded').length;
-    if (down === 0 && degraded === 0) return { tone: 'up', label: 'All Systems Operational' };
-    if (down === knownCount) return { tone: 'down', label: 'Major Outage' };
-    return { tone: 'degraded', label: 'Partial Degradation' };
-  }, [providerState, serverState]);
+  // The headline is QuilrAI's own gateways and nothing else. Upstream provider degradation
+  // and browser-side probe failures used to feed this pill, which meant an OpenAI incident -
+  // or a visitor behind a captive portal - could paint QuilrAI as degraded while the gateway
+  // was healthy and failing over exactly as designed. Both now report separately.
+  const overall = useMemo(
+    () => summarizeGateways([...mcpRows, ...llmRows], gatewayStatus),
+    [gatewayStatus, llmRows, mcpRows],
+  );
+
+  const upstream = useMemo(
+    () => summarizeUpstream(providerState, { loading: providerLoading, error: providerError }),
+    [providerError, providerLoading, providerState],
+  );
 
   const refreshAll = useCallback(() => {
     runChecks();
     loadProviderHealth();
-  }, [loadProviderHealth, runChecks]);
+    reloadGateway();
+  }, [loadProviderHealth, reloadGateway, runChecks]);
 
-  const updatedAt = Math.max(lastChecked || 0, providerLoadedAt || 0) || null;
+  const updatedAt =
+    Math.max(lastChecked || 0, providerLoadedAt || 0, gatewayLoadedAt || 0) || null;
 
   // tick is only used to refresh relative timestamps
   void tick;
@@ -568,15 +608,31 @@ export default function GatewayHealth() {
             <span className={styles.kicker}>QuilrAI Status</span>
             <h1 className={styles.title}>System Health</h1>
             <p className={styles.subtitle}>
-              Live reachability and latency from your browser to QuilrAI, plus
-              upstream provider availability.
+              Availability of the QuilrAI gateways, reported separately from the upstream
+              model providers they route to.
             </p>
           </div>
           <div className={styles.headRight}>
-            <span className={`${styles.overallPill} ${styles[`tone_${overall.tone}`]}`}>
-              <span className={styles.dot} />
-              {overall.label}
-            </span>
+            <div className={styles.statusStack}>
+              <span className={styles.pillCaption}>QuilrAI Gateways</span>
+              <span className={`${styles.overallPill} ${styles[`tone_${toneOf(overall.state)}`]}`}>
+                <span className={styles.dot} />
+                {overall.label}
+              </span>
+            </div>
+            <button
+              type="button"
+              className={styles.upstreamPill}
+              onClick={() => setTab('provider')}
+              aria-label={`Upstream providers: ${upstream.label}. View Provider Health.`}
+            >
+              <span className={styles.upstreamCaption}>Upstream</span>
+              <span
+                className={`${styles.upstreamDot} ${styles[DOT_TONE_CLASS[upstream.tone] || 'dotNeutral']}`}
+              />
+              <span className={styles.upstreamLabel}>{upstream.label}</span>
+              <ChevronRight size={12} />
+            </button>
             <div className={styles.metaRow}>
               <span className={styles.metaText}>Updated {formatRelative(updatedAt)}</span>
               <button
@@ -631,6 +687,17 @@ export default function GatewayHealth() {
                   )}
                 </span>
               </div>
+
+              <p className={styles.scopeNote}>
+                Third-party model endpoints QuilrAI routes to. Degradation here is upstream, not
+                a QuilrAI incident, and does not count against gateway uptime - where you have
+                fallbacks configured, the gateway routes around it. QuilrAI's own status is
+                under{' '}
+                <button type="button" className={styles.linkBtn} onClick={() => setTab('gateway')}>
+                  Gateway Health
+                </button>
+                .
+              </p>
 
               {providerLoading && !providerHealth ? (
                 <div className={styles.loadingBlock}>
@@ -695,7 +762,14 @@ export default function GatewayHealth() {
           )}
 
         {/* Gateway Health - historical hourly buckets per region + global router */}
-        {tab === 'gateway' && <GatewayTimeline />}
+        {tab === 'gateway' && (
+          <GatewayTimeline
+            mcpRows={mcpRows}
+            llmRows={llmRows}
+            status={gatewayStatus}
+            onViewProviders={() => setTab('provider')}
+          />
+        )}
 
         {/* QuilrAI Infrastructure - live browser probes */}
         {tab === 'infra' && (
@@ -743,7 +817,9 @@ export default function GatewayHealth() {
           <p className={styles.finePrint}>
             Latency is the HTTPS round-trip from your browser to each host (not an
             ICMP ping). Global auto-routing (<code>guardrails.quilr.ai</code>) is
-            omitted; probe regional hosts directly.
+            omitted; probe regional hosts directly. These readings measure the path between
+            you and QuilrAI, so a proxy, VPN or captive portal shows up here as unreachable -
+            that is why they do not feed the headline status.
           </p>
         </section>
         )}

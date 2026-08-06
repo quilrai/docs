@@ -36,12 +36,52 @@
   margin-bottom: 1.1rem;
 }
 
+.uptimeStat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.uptimeStatValue {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ifm-font-color-base);
+}
+
+.uptimeStatLabel {
+  font-size: 0.72rem;
+  color: var(--ifm-color-content-secondary);
+}
+
 .slaNote {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   font-size: 0.75rem;
   color: var(--ifm-color-content-secondary);
+}
+
+/* Attribution line: states plainly whose fault a red bar in this section would be. */
+.scopeNote {
+  margin: -0.35rem 0 1.3rem;
+  max-width: 62ch;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ifm-color-content-secondary);
+}
+
+.linkBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 650;
+  color: var(--ifm-color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .loading {

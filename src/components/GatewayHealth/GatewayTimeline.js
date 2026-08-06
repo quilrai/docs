@@ -1,79 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { History, ShieldCheck, X } from 'lucide-react';
+import { GATEWAY_ROLLUP_DAYS, stateMeta, summarizeGateways } from './gatewayRollup';
 import styles from './timeline.module.css';
 
-// Gateway Health: MCP Gateway and LLM Gateway sections, both fetched from rollup_server.py, which lives in the
-// macrodata-refinement repo at OTHER_APPS/gateway_health/rollup_server.py (this repo has no backend).
-// Bucket = { t, state: 'operational'|'degraded'|'partial'|'major'|'monitor_disconnected'|'maintenance'|'nodata', p95, errorRate, requests, incidentId }
-// monitor_disconnected = the sustained failures behind this bucket never got a response at all
-// (the monitoring worker/host itself lost outbound connectivity), not the real gateway
-// infrastructure failing - see is_connectivity_error in rollup_server.py.
-
-/* ────────────────────────────────── Config ─────────────────────────── */
-
-const GATEWAY_ROLLUP_URL = 'https://health-check.mcp.quilr.ai/api/public/gateway-health/rollup';
-const GATEWAY_ROLLUP_DAYS = 7;
-const GATEWAY_ROLLUP_TIMEOUT_MS = 15000;
-
-const STATE_META = {
-  operational: { label: 'Operational' },
-  degraded: { label: 'Degraded' },
-  partial: { label: 'Partial outage' },
-  major: { label: 'Major outage' },
-  monitor_disconnected: { label: 'Monitoring interrupted' },
-  maintenance: { label: 'Maintenance' },
-  nodata: { label: 'No data' },
-};
-
-// How much each hour counts against uptime (maintenance and monitor_disconnected are excluded
-// entirely - neither reflects the real gateway's health, just a monitoring gap).
-const DOWN_WEIGHT = { operational: 0, degraded: 0, partial: 0.5, major: 1, monitor_disconnected: 0, maintenance: 0, nodata: 0 };
-const SEVERITY_RANK = { operational: 0, maintenance: 1, monitor_disconnected: 1, degraded: 2, partial: 3, major: 4, nodata: 0 };
-
-// The backend (systemd restart) and this frontend (merge-to-main + Pages build) deploy on
-// different cadences, so a bucket state this build has never heard of is a matter of when, not
-// if. Every lookup below falls back to 'nodata' rather than letting an unrecognized state throw.
-function stateMeta(state) {
-  return STATE_META[state] || STATE_META.nodata;
-}
-function downWeightOf(state) {
-  return DOWN_WEIGHT[state] ?? 0;
-}
-function severityOf(state) {
-  return SEVERITY_RANK[state] ?? 0;
-}
-function stateClass(prefix, state) {
-  return styles[`${prefix}_${state}`] || styles[`${prefix}_nodata`];
-}
+// Gateway Health: MCP Gateway and LLM Gateway sections. All data (fetch, bucket shape,
+// uptime weighting) lives in ./gatewayRollup.js so this view and the page header cannot
+// drift apart; this file is the rendering only.
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-function summarize(buckets) {
-  let downWeight = 0;
-  let denom = 0;
-  let p95Sum = 0;
-  let p95N = 0;
-  let errSum = 0;
-  let reqTotal = 0;
-  for (const b of buckets) {
-    if (b.state !== 'maintenance' && b.state !== 'monitor_disconnected') {
-      denom += 1;
-      downWeight += downWeightOf(b.state);
-    }
-    if (b.p95 != null) {
-      p95Sum += b.p95;
-      p95N += 1;
-    }
-    errSum += b.errorRate;
-    reqTotal += b.requests;
-  }
-  return {
-    uptime: denom ? (1 - downWeight / denom) * 100 : 100,
-    p95: p95N ? Math.round(p95Sum / p95N) : null,
-    errorRate: buckets.length ? errSum / buckets.length : 0,
-    requests: reqTotal,
-    current: buckets[buckets.length - 1] || null,
-  };
+function stateClass(prefix, state) {
+  return styles[`${prefix}_${state}`] || styles[`${prefix}_nodata`];
 }
 
 // Group a component's buckets into UTC-day columns for the strip + axis.
@@ -92,7 +29,6 @@ function groupByDay(buckets) {
   return days;
 }
 
-
 /* ────────────────────────────────── Formatting ─────────────────────── */
 
 function fmtHour(t) {
@@ -107,7 +43,7 @@ function fmtCount(n) {
 }
 
 function fmtPct(n) {
-  return `${n.toFixed(n >= 99.995 ? 2 : 2)}%`;
+  return `${n.toFixed(2)}%`;
 }
 
 /* ────────────────────────────────── Subviews ───────────────────────── */
@@ -198,58 +134,9 @@ function ComponentRow({ comp, buckets, stats, onHover, onLeave }) {
 
 /* ────────────────────────────────── Component ──────────────────────── */
 
-const ROW_HOSTS = { mcp: 'mcpgateway.quilr.ai' };
-
-function mapRollup(data) {
-  const byGroup = { mcp: [], llm: [] };
-  for (const c of data?.components || []) {
-    const buckets = c.buckets || [];
-    const row = {
-      comp: { id: c.id, kind: c.kind, label: c.label, host: c.host || ROW_HOSTS[c.group], note: c.note },
-      buckets,
-      stats: summarize(buckets),
-    };
-    (byGroup[c.group] || (byGroup[c.group] = [])).push(row);
-  }
-  return byGroup;
-}
-
-export default function GatewayTimeline() {
+export default function GatewayTimeline({ mcpRows, llmRows, status, onViewProviders }) {
   const [hover, setHover] = useState(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [mcpRows, setMcpRows] = useState([]);
-  const [llmRows, setLlmRows] = useState([]);
-  const [rollupStatus, setRollupStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
-
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), GATEWAY_ROLLUP_TIMEOUT_MS);
-
-    fetch(`${GATEWAY_ROLLUP_URL}?days=${GATEWAY_ROLLUP_DAYS}`, { cache: 'no-store', signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const byGroup = mapRollup(data);
-        setMcpRows(byGroup.mcp || []);
-        setLlmRows(byGroup.llm || []);
-        setRollupStatus('ready');
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setRollupStatus('error');
-      })
-      .finally(() => clearTimeout(timer));
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-      clearTimeout(timer);
-    };
-  }, []);
 
   useEffect(() => {
     if (!historyOpen) return undefined;
@@ -260,31 +147,45 @@ export default function GatewayTimeline() {
     return () => window.removeEventListener('keydown', onKey);
   }, [historyOpen]);
 
-  const overall = useMemo(() => {
-    const allRows = [...mcpRows, ...llmRows];
-    if (!allRows.length) return { state: 'nodata', label: 'Loading…' };
-    let worst = 'operational';
-    for (const r of allRows) {
-      const s = r.stats.current ? r.stats.current.state : 'operational';
-      if (severityOf(s) > severityOf(worst)) worst = s;
-    }
-    const label =
-      worst === 'operational' || worst === 'maintenance'
-        ? 'All Systems Operational'
-        : worst === 'monitor_disconnected'
-        ? 'Monitoring Interrupted'
-        : worst === 'degraded'
-        ? 'Degraded Performance'
-        : worst === 'partial'
-        ? 'Partial Outage'
-        : 'Major Outage';
-    return { state: worst, label };
-  }, [mcpRows, llmRows]);
+  // Same computation the page header runs, so the aggregate uptime here always matches the
+  // headline pill above it.
+  const overall = useMemo(
+    () => summarizeGateways([...mcpRows, ...llmRows], status),
+    [mcpRows, llmRows, status],
+  );
 
   const handleHover = (e, b, comp) => {
     const r = e.currentTarget.getBoundingClientRect();
     setHover({ b, comp, x: r.left + r.width / 2, y: r.top - 10 });
   };
+
+  const renderGroup = (label, groupRows) => (
+    <React.Fragment key={label}>
+      <div className={styles.groupHead}>
+        <span className={styles.groupLabel}>{label}</span>
+        <span className={styles.groupNote}>Live</span>
+      </div>
+      {status === 'error' ? (
+        <div className={styles.groupError}>Couldn't load {label} health right now.</div>
+      ) : (
+        <div className={styles.rows}>
+          {groupRows.map((r) => (
+            <ComponentRow
+              key={r.comp.id}
+              comp={r.comp}
+              buckets={r.buckets}
+              stats={r.stats}
+              onHover={handleHover}
+              onLeave={() => setHover(null)}
+            />
+          ))}
+          {status === 'loading' && groupRows.length === 0 ? (
+            <div className={styles.loading}>Loading {label} health...</div>
+          ) : null}
+        </div>
+      )}
+    </React.Fragment>
+  );
 
   return (
     <section className={styles.section}>
@@ -294,10 +195,14 @@ export default function GatewayTimeline() {
         <span className={styles.sectionNote}>Hourly buckets · last {GATEWAY_ROLLUP_DAYS} days · UTC</span>
       </div>
 
+      {/* The current-state pill lives in the page header now; this bar carries the number the
+          SLA is actually written against. */}
       <div className={styles.summaryBar}>
-        <span className={`${styles.overallPill} ${stateClass('p', overall.state)}`}>
-          <span className={styles.pillDot} />
-          {overall.label}
+        <span className={styles.uptimeStat}>
+          <span className={styles.uptimeStatValue}>
+            {overall.uptime != null ? fmtPct(overall.uptime) : '-'}
+          </span>
+          <span className={styles.uptimeStatLabel}>{GATEWAY_ROLLUP_DAYS}-day uptime, all components</span>
         </span>
         <span className={styles.slaNote}>
           <ShieldCheck size={13} />
@@ -313,52 +218,28 @@ export default function GatewayTimeline() {
         </button>
       </div>
 
-      {(() => {
-        const renderGroup = (label, groupRows) => (
-          <React.Fragment key={label}>
-            <div className={styles.groupHead}>
-              <span className={styles.groupLabel}>{label}</span>
-              <span className={styles.groupNote}>Live</span>
-            </div>
-            {rollupStatus === 'error' ? (
-              <div className={styles.groupError}>Couldn't load {label} health right now.</div>
-            ) : (
-              <div className={styles.rows}>
-                {groupRows.map((r) => (
-                  <ComponentRow
-                    key={r.comp.id}
-                    comp={r.comp}
-                    buckets={r.buckets}
-                    stats={r.stats}
-                    onHover={handleHover}
-                    onLeave={() => setHover(null)}
-                  />
-                ))}
-                {rollupStatus === 'loading' && groupRows.length === 0 ? (
-                  <div className={styles.loading}>Loading {label} health…</div>
-                ) : null}
-              </div>
-            )}
-          </React.Fragment>
-        );
+      <p className={styles.scopeNote}>
+        Degradation here is ours: these bars count request handling, policy evaluation and
+        routing overhead inside the gateway. A slow or failing upstream model does not move
+        them - that is tracked separately under{' '}
+        <button type="button" className={styles.linkBtn} onClick={onViewProviders}>
+          Provider Health
+        </button>
+        .
+      </p>
 
-        return (
-          <>
-            {renderGroup('MCP Gateway', mcpRows)}
-            {renderGroup('LLM Gateway', llmRows)}
+      {renderGroup('MCP Gateway', mcpRows)}
+      {renderGroup('LLM Gateway', llmRows)}
 
-            <div className={styles.legend}>
-              {['operational', 'degraded', 'partial', 'major', 'monitor_disconnected', 'maintenance'].map((s) => (
-                <span key={s} className={styles.legendItem}>
-                  <span className={`${styles.swatch} ${stateClass('s', s)}`} />
-                  {stateMeta(s).label}
-                </span>
-              ))}
-              <span className={styles.legendHint}>Each bar = 1 hour · hover for detail</span>
-            </div>
-          </>
-        );
-      })()}
+      <div className={styles.legend}>
+        {['operational', 'degraded', 'partial', 'major', 'monitor_disconnected', 'maintenance'].map((s) => (
+          <span key={s} className={styles.legendItem}>
+            <span className={`${styles.swatch} ${stateClass('s', s)}`} />
+            {stateMeta(s).label}
+          </span>
+        ))}
+        <span className={styles.legendHint}>Each bar = 1 hour · hover for detail</span>
+      </div>
 
       <Tooltip hover={hover} />
 

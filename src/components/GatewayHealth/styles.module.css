@@ -82,6 +82,96 @@
   gap: 0.6rem;
 }
 
+.statusStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
+.pillCaption {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary);
+}
+
+/* Upstream provider status is context, not a verdict on QuilrAI - so it reads as a quiet
+   neutral chip with a coloured dot, never as a second headline pill competing with the
+   gateway status above it. */
+.upstreamPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--docs-light-border);
+  background: transparent;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.upstreamPill:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+:global([data-theme='dark']) .upstreamPill {
+  border-color: var(--docs-dark-border);
+}
+
+.upstreamCaption {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.upstreamLabel {
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+}
+
+.upstreamPill:hover .upstreamLabel {
+  color: inherit;
+}
+
+.upstreamDot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotUp {
+  background: #16a34a;
+}
+.dotDegraded {
+  background: #f59e0b;
+}
+.dotDown {
+  background: #dc2626;
+}
+.dotNeutral {
+  background: var(--ifm-color-content-secondary);
+}
+
+:global([data-theme='dark']) .dotUp {
+  background: #34d399;
+}
+:global([data-theme='dark']) .dotDegraded {
+  background: #fbbf24;
+}
+:global([data-theme='dark']) .dotDown {
+  background: #f87171;
+}
+
 .metaRow {
   display: flex;
   align-items: center;
@@ -172,6 +262,26 @@
   border-color: rgba(220, 38, 38, 0.3);
 }
 
+/* Gateway rollup states the provider view never produces, kept in step with the equivalent
+   p_* tones in timeline.module.css so the header pill matches the section below it. */
+.tone_partial {
+  color: #c2410c;
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(234, 88, 12, 0.34);
+}
+
+.tone_maintenance {
+  color: #1d4ed8;
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.tone_monitor {
+  color: #6d28d9;
+  background: rgba(124, 58, 237, 0.1);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
 .tone_checking {
   color: var(--ifm-color-content-secondary);
   background: var(--docs-light-surface-raised);
@@ -190,6 +300,15 @@
   animation: healthPulse 1.1s ease-in-out infinite;
 }
 
+:global([data-theme='dark']) .tone_partial {
+  color: #fdba74;
+}
+:global([data-theme='dark']) .tone_maintenance {
+  color: #93c5fd;
+}
+:global([data-theme='dark']) .tone_monitor {
+  color: #c4b5fd;
+}
 :global([data-theme='dark']) .tone_up {
   color: #86efac;
 }
@@ -299,6 +418,27 @@
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.7rem;
   color: var(--ifm-color-content-secondary);
+}
+
+/* Attribution line: states plainly whose fault a red bar in this section would be. */
+.scopeNote {
+  margin: -0.25rem 0 1.1rem;
+  max-width: 62ch;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ifm-color-content-secondary);
+}
+
+.linkBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 650;
+  color: var(--ifm-color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ── Cards ───────────────────────────────────────────────────────────── */
@@ -720,6 +860,9 @@
     flex-direction: column;
   }
   .headRight {
+    align-items: flex-start;
+  }
+  .statusStack {
     align-items: flex-start;
   }
   .providerTop {
