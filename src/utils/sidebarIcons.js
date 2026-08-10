@@ -35,6 +35,7 @@ import {
   CalendarDays,
   Workflow,
   PenTool,
+  ListChecks,
   Hash,
 } from "lucide-react";
 
@@ -75,6 +76,7 @@ const iconMap = {
   CalendarDays,
   Workflow,
   PenTool,
+  ListChecks,
 };
 
 export function getSidebarIcon(name) {
