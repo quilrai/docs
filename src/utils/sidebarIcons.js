@@ -34,6 +34,7 @@ import {
   Video,
   CalendarDays,
   Workflow,
+  PenTool,
   Hash,
 } from "lucide-react";
 
@@ -73,6 +74,7 @@ const iconMap = {
   Video,
   CalendarDays,
   Workflow,
+  PenTool,
 };
 
 export function getSidebarIcon(name) {

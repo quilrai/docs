@@ -43,6 +43,7 @@ Create a separate OAuth app for each QuilrAI tenant or environment if the callba
 - [Azure DevOps Advanced](./azure-devops) - create or approve a Microsoft Entra application, connect Azure DevOps organizations, and review all 47 custom MCP tools.
 - [Semrush Advanced](./semrush) - connect the QuilrAI-built advanced Semrush MCP with a Semrush API key.
 - [BrowserStack Advanced](./browserstack) - connect the QuilrAI-built advanced BrowserStack MCP with a BrowserStack username and access key.
+- [Excalidraw](./excalidraw) - no OAuth app needed; self-host the community Excalidraw MCP server, bridge it to streamable HTTP, and add its `/mcp` URL manually.
 
 ## Store And Rotate Secrets
 
