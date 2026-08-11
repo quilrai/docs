@@ -8,7 +8,7 @@ sidebar_custom_props:
 
 For developers who have been granted self-service access. This page covers signing in, getting a key, reading your own logs and findings, and requesting settings changes.
 
-Want the concepts first? See the [Overview](./overview). Setting self-service up for your org? See the [Admin Guide](./admin-guide).
+Want the concepts first? See the [Overview](./overview). Setting self-service up for your org? See the [Admin Guide](./admin-guide). New to the gateway itself? The [Quick Start](../../quick-start) and the [Integration Guide](../../integration-guide) cover endpoints, base URLs, and SDK examples.
 
 ## Signing In
 
@@ -45,13 +45,19 @@ Open an app to get to its tabs:
 
 Shows the credential mode and app details: provider, models, routing groups, and estimated cost. In **Named User API Keys** mode this is also where you manage your keys. If you have Settings Request Access, a **Request settings change** action appears here.
 
+The routing groups listed here are the names you can pass as a model to load balance or fail over across providers - see [Request Routing](../request-routing). Which providers, endpoints, and API shapes the app can reach is covered in [Provider Support](../../provider-support).
+
 ### Logs
 
 The app's request logs. You see your own activity only, unless an admin granted you **All Logs Visibility** for this app.
 
+Logs get considerably more useful when your requests carry context. Pass a conversation ID to group a multi-turn exchange into one thread ([Conversation Grouping](../conversation-grouping)), or send standard tracing or agent headers so each call is tied to the agent run that produced it ([Agent Monitoring](../agent-monitoring)). To pull the same records into your own tooling, ask an admin for a log export key and use the [Log Export API](../../log-export-api).
+
 ### Findings
 
 Guardrail activity for the app - blocked, monitored, anonymized, and normal requests - with per-request detail. Scoped to your own activity under the same rule as Logs.
+
+This is where you check why a request was blocked or came back redacted: the finding names the category that fired and the action that was applied. [Security Guardrails](../security-guardrails) explains the categories, risk levels, and actions behind those results.
 
 ## Getting Your Key
 
@@ -91,15 +97,41 @@ You create your own key:
 
 You can hold several keys for the same app - one per machine or environment is a good habit, since you can then revoke one without breaking the others. Your active keys are listed with their created and last-used times, and you can revoke any of them yourself.
 
-Every request made with your key is attributed to you, so your logs, usage, and findings are your own.
+Every request made with your key is attributed to you, so your logs, usage, and findings are your own. That attribution is the same per-user identity described in [Identity Aware](../identity-aware).
 
 :::warning A bare parent key will not work
 In Named User API Keys mode the gateway only accepts a valid named self-service key. The parent `sk-quilr-…` key on its own, a JWT, or an `X-User-Email` header alone are rejected.
 :::
 
+### Using the Key
+
+The key is an ordinary gateway credential, so everything in the main gateway docs applies:
+
+| You want to | Read |
+|-------------|------|
+| Find your base URL and see examples for other SDKs and languages | [Integration Guide](../../integration-guide) |
+| Know which providers, endpoints, and API shapes the app supports | [Provider Support](../../provider-support) |
+| Call OpenAI, Anthropic, Bedrock, and Vertex through one request format | [Unified Completions](../../unified-completions) |
+| Target a routing group or pick a provider on a multi-provider key | [Request Routing](../request-routing) |
+| Scan content from your code without proxying an LLM call | [SDK Mode](../sdk-mode) |
+
 ## Requesting a Settings Change
 
-If you have **Settings Request Access**, use **Request settings change** on the Settings tab. You get the app's settings editor - providers and models, tags, security guardrails, additional guardrails, Guardian Agent, custom detections, rate limits, token saving, routing configurations, alerts, identity settings, and the prompt store - and submit your edits as a request.
+If you have **Settings Request Access**, use **Request settings change** on the Settings tab. You get the app's full settings editor and submit your edits as a request:
+
+| Section in the editor | What you are changing | Feature page |
+|-----------------------|-----------------------|--------------|
+| LLM Providers, Models | Which providers and models the app may call | [Provider Support](../../provider-support) |
+| Security Guardrails | Category actions for sensitive data and adversarial input | [Security Guardrails](../security-guardrails) |
+| Additional Guardrails | Named detectors on top of the broad categories | [Security Guardrails](../security-guardrails#per-category-risk-level) |
+| Guardian Agent | Dependency checks, task adherence, custom policy prompt | [Guardian Agent](../guardian-agent) |
+| Custom Detections | Your own detection categories, trained from examples | [Custom Intents](../custom-intents) |
+| Rate Limits | Request rates, token budgets, key expiry, response timeout | [Rate Limits](../rate-limits) |
+| Token Saving | Input compression transforms | [Token Saving](../token-saving) |
+| Routing Configurations | Routing groups, load balancing, failover | [Request Routing](../request-routing) |
+| Identity Settings | Per-user identity, JWT claims, domain controls | [Identity Aware](../identity-aware) |
+| Prompt Store | Versioned system prompts referenced at request time | [Prompt Store](../prompt-store) |
+| Alerts, Tags | Notification rules and app labels, configured in the editor | - |
 
 ![The self-service settings editor with the LLM Providers section open and a footer reading "Submitted changes require admin approval before they apply" next to a Submit Request button](/img/self-service-change-request.png)
 
@@ -115,7 +147,7 @@ Track your submissions under **My Change Requests** in the portal. Each request 
 | `failed` | The change was approved but could not be applied. |
 | `stale` | The app's config moved on since you submitted. Re-submit against the current settings. |
 
-Admins review requests from the app's **Audit Log** tab - see [Audit Log](../audit-log#change-requests).
+Admins review requests from the app's **Audit Log** tab - see [Audit Log](../audit-log#change-requests). A `stale` status means the app's config changed after you submitted; approval re-checks against the config your request was based on, so open the editor again and resubmit.
 
 :::note You cannot change self-service access
 The self-service configuration itself, including credential mode and who has access, is admin-only and does not appear in the portal's settings editor.
@@ -123,7 +155,7 @@ The self-service configuration itself, including credential mode and who has acc
 
 ### If you have Direct Settings Update
 
-Some users are granted **Direct Settings Update** instead. In that case your saves apply to the live app immediately, with no approval step. There is no undo in the portal, but every change is versioned in the app's config history and an admin can roll it back.
+Some users are granted **Direct Settings Update** instead. In that case your saves apply to the live app immediately, with no approval step. There is no undo in the portal, but every change is versioned in the app's config history and an admin can roll it back - see [Audit Log](../audit-log#config-history).
 
 ## Inside the Settings Editor
 
@@ -177,7 +209,47 @@ Rewrites eligible input so fewer tokens reach the provider, with the meaning int
 
 ![Token Saving section listing Smart JSON Compression, HTML to Text, Markdown to Text, and Text Compression with their toggles](/img/self-service-token-saving.png)
 
-Full details: [Token Saving](../token-saving).
+Transforms apply to input only, so responses come back untouched. Full details, including what each transform does and does not rewrite: [Token Saving](../token-saving).
+
+### Custom Detections
+
+When the built-in categories do not describe what you need caught - a competitor name, an internal project codename, a domain-specific phrase - define your own intent from a name, a description, and example prompts that should and should not match. It then runs alongside the built-in guardrails with its own block, monitor, or redact action.
+
+Full details: [Custom Intents](../custom-intents).
+
+### Rate Limits
+
+Requests per minute, hour, and day; maximum input and output tokens; a token budget over a window; key expiry; and a response timeout. All of it is enforced at the gateway before your request reaches the provider, so raising a limit here is what fixes a `429` from Quilr rather than from the provider.
+
+Full details: [Rate Limits](../rate-limits).
+
+### Routing Configurations
+
+Routing groups let one model name spread across several models, providers, or accounts - weighted by request count or by tokens, with context tiers for small versus large prompts, and automatic failover. Your code keeps calling the group name.
+
+Full details: [Request Routing](../request-routing).
+
+### Identity Settings
+
+Controls how the gateway identifies the end user behind a call: the `X-User-Email` header for trusted backends, or JWT validation via JWKS or a PEM public key, plus enforced identity and allowed domains. Named self-service keys already carry your identity, so these settings are about the users of the app you are building.
+
+Full details: [Identity Aware](../identity-aware).
+
+### Prompt Store
+
+Keeps system prompts versioned centrally so you reference them by ID (`quilrai-prompt-store-<id>`) instead of pasting prompt text into your code. One system message can reference several stored prompts, mix in your own inline instructions, and fill in template variables.
+
+Full details: [Prompt Store](../prompt-store).
+
+## Checking a Change Worked
+
+Once a request is approved (or saved directly), the change is live on the next request. To confirm it:
+
+1. Send a request with your key.
+2. Open the **Findings** tab to see which guardrails fired and what action was applied - the categories and actions are explained in [Security Guardrails](../security-guardrails).
+3. Open the **Logs** tab for the request itself, including token counts, which show the effect of [Token Saving](../token-saving) and of the model your [routing group](../request-routing) picked.
+
+If your admin runs [Red Team Testing](../red-team-testing) against the app, those results are a broader check on the same guardrail configuration.
 
 ## Troubleshooting
 
@@ -189,13 +261,41 @@ Full details: [Token Saving](../token-saving).
 | An app disappeared | Your access was removed, or you were removed from a smart group that granted it. Keys you already copied are not automatically revoked, but you can no longer create new ones. |
 | Your key is rejected by the gateway | The key was revoked, or you are sending the bare parent key to an app that requires named user keys. |
 | Logs look emptier than expected | Logs and findings are scoped to your own activity unless you have All Logs Visibility. |
+| A request was blocked or came back redacted | A guardrail fired. Check the **Findings** tab for the category and action - see [Security Guardrails](../security-guardrails). |
+| Rate limit or token limit errors from the gateway | The app's [Rate Limits](../rate-limits) are being hit. Request a change if the limit is too tight for your workload. |
+| The model is not the one you asked for | The app routes that model name through a routing group - see [Request Routing](../request-routing). |
+| The model does not accept your request shape | Check what the provider and endpoint support in [Provider Support](../../provider-support) and [Unified Completions](../../unified-completions). |
+| A change request sits at `stale` | The app's config moved after you submitted. Reopen the editor and resubmit - see [Audit Log](../audit-log#change-requests). |
 
 ## Related
 
+**Self-service**
+
 - [Overview](./overview) - concepts, credential modes, and the key format.
 - [Admin Guide](./admin-guide) - how access is configured on the admin side.
-- [Integration Guide](../../integration-guide) - endpoint URLs and code examples for calling the gateway.
-- [Audit Log](../audit-log) - how change requests are reviewed.
+- [Audit Log](../audit-log) - how change requests are reviewed and rolled back.
+
+**Calling the gateway**
+
+- [Quick Start](../../quick-start) - the four steps to a working call.
+- [Integration Guide](../../integration-guide) - endpoint URLs and code examples per SDK.
+- [Provider Support](../../provider-support) - providers, endpoints, and API formats.
+- [Unified Completions](../../unified-completions) - one request format across providers.
+- [SDK Mode](../sdk-mode) - scan content from your code without proxying an LLM call.
+
+**Settings you can request**
+
 - [Security Guardrails](../security-guardrails) - categories, risk levels, and actions.
+- [Custom Intents](../custom-intents) - your own detection categories.
 - [Guardian Agent](../guardian-agent) - dependency checks and task adherence.
 - [Token Saving](../token-saving) - the compression transforms and what they save.
+- [Rate Limits](../rate-limits) - request rates, token budgets, and key expiry.
+- [Request Routing](../request-routing) - routing groups, load balancing, and failover.
+- [Prompt Store](../prompt-store) - versioned system prompts referenced by ID.
+- [Identity Aware](../identity-aware) - identifying the users of the app you build.
+
+**Logs and monitoring**
+
+- [Conversation Grouping](../conversation-grouping) - group multi-turn requests into one thread.
+- [Agent Monitoring](../agent-monitoring) - tie calls to the agent run that produced them.
+- [Log Export API](../../log-export-api) - read request logs from your own tooling.
