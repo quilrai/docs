@@ -99,7 +99,7 @@ In Named User API Keys mode the gateway only accepts a valid named self-service 
 
 ## Requesting a Settings Change
 
-If you have **Settings Request Access**, use **Request settings change** on the Settings tab. You get the app's settings editor - providers and models, tags, guardrails, custom detections, rate limits, token saving, routing configurations, alerts, identity settings, and the prompt store - and submit your edits as a request.
+If you have **Settings Request Access**, use **Request settings change** on the Settings tab. You get the app's settings editor - providers and models, tags, security guardrails, additional guardrails, Guardian Agent, custom detections, rate limits, token saving, routing configurations, alerts, identity settings, and the prompt store - and submit your edits as a request.
 
 ![The self-service settings editor with the LLM Providers section open and a footer reading "Submitted changes require admin approval before they apply" next to a Submit Request button](/img/self-service-change-request.png)
 
@@ -125,6 +125,60 @@ The self-service configuration itself, including credential mode and who has acc
 
 Some users are granted **Direct Settings Update** instead. In that case your saves apply to the live app immediately, with no approval step. There is no undo in the portal, but every change is versioned in the app's config history and an admin can roll it back.
 
+## Inside the Settings Editor
+
+The sections you are most likely to open, and what each one does. Each links to its full feature page.
+
+### Security Guardrails
+
+Detection of sensitive data and adversarial input on the way to and back from the model. Set a **Default Action** for anything you have not configured explicitly - Redact, Partial redact, Block, or Monitor - then tune each category under **Data Risks** (PII, PHI, PFI, PCI, Insurance, Auth & Secrets) and **Adversarial Risks** (prompt injection, jailbreak, and similar).
+
+Per category you choose a **Risk Level** (how wide a net it casts), **Applies to** (request only, response only, or both), and the **Action**. Individual sub-categories such as Passport Number or National ID can be raised on their own without changing the rest.
+
+![Security Guardrails section of the self-service settings editor, showing the Default Action row, the Data Risks category tabs, and the PII sub-category list with per-item risk levels](/img/self-service-security-guardrails.png)
+
+Full details: [Security Guardrails](../security-guardrails).
+
+### Additional Guardrails
+
+A catalogue of named detectors on top of the broad categories above, grouped as PII, PHI, PFI, PCI, Auth & Secrets, Device / Network & Online Identifiers, Telecom Subscriber Data, and Employee / HR Data. Each detector - Social Security Number, Aadhar Number, PAN Card Number, Driver's License Number, and so on - is enabled individually and carries its own **Applies to**, **Risk Level**, and **Action**.
+
+Reach for this when you need one specific value caught or ignored rather than a whole category.
+
+![Additional Guardrails section listing the additional category groups with per-detector Applies to, Risk Level, and Action controls](/img/self-service-additional-guardrails.png)
+
+These are configured alongside the category actions described in [Security Guardrails](../security-guardrails).
+
+### Guardian Agent
+
+Marked **EXPERIMENTAL** in the portal.
+
+Guardian Agent is a policy check the gateway runs on your traffic, not a separate agent or a different model endpoint. It can add instructions to a request before it reaches the model, retry an unsafe answer once with corrective guidance, append an advisory, or block the request. Two groups:
+
+- **Coding Helpers** - reads install commands and manifests, and nudges the model away from packages with known vulnerabilities (**Dependency Security Check**) or outdated pinned versions (**Latest Version Suggestions**).
+- **Task Adherence** - compares the latest user message against the app's system prompt and either nudges the model back on purpose or blocks the request when the conversation drifts. Sensitivity is adjustable.
+
+A **Custom Guardian Prompt** lets you state the app's policy in plain language, and it is judged against the recent conversation.
+
+![Guardian Agent section showing the status flow diagram, the Coding Helpers and Task Adherence category toggles, and the Custom Guardian Prompt box](/img/self-service-guardian-agent.png)
+
+Full details: [Guardian Agent](../guardian-agent).
+
+### Token Saving
+
+Rewrites eligible input so fewer tokens reach the provider, with the meaning intact. No SDK changes on your side. Four transforms, each toggled on its own:
+
+| Transform | What it does |
+|-----------|--------------|
+| **Smart JSON Compression** | Converts JSON in the input to TOON format. Up to 20% savings when requests carry tool call responses or other JSON. |
+| **HTML to Text** | Strips HTML tags and keeps the text, cutting the cost of markup-heavy input. |
+| **Markdown to Text** | Drops Markdown syntax characters that consume tokens without adding meaning. |
+| **Text Compression** | Shortens verbose plain text while preserving the original meaning. |
+
+![Token Saving section listing Smart JSON Compression, HTML to Text, Markdown to Text, and Text Compression with their toggles](/img/self-service-token-saving.png)
+
+Full details: [Token Saving](../token-saving).
+
 ## Troubleshooting
 
 | What you see | What it means |
@@ -142,3 +196,6 @@ Some users are granted **Direct Settings Update** instead. In that case your sav
 - [Admin Guide](./admin-guide) - how access is configured on the admin side.
 - [Integration Guide](../../integration-guide) - endpoint URLs and code examples for calling the gateway.
 - [Audit Log](../audit-log) - how change requests are reviewed.
+- [Security Guardrails](../security-guardrails) - categories, risk levels, and actions.
+- [Guardian Agent](../guardian-agent) - dependency checks and task adherence.
+- [Token Saving](../token-saving) - the compression transforms and what they save.

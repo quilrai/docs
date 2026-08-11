@@ -11,7 +11,8 @@
       "Bash(node -e \"const l=require\\('lucide-react'\\);['Copy','Check','ExternalLink','ChevronRight','MousePointerClick','Building2','Users','Fingerprint','KeyRound','Globe2','Box','Layers','Hash','MapPin','Cpu','ShieldCheck','IdCard','FolderTree','UserCircle2','Landmark','Braces','Server'].forEach\\(n=>console.log\\(n, !!l[n]\\)\\)\")",
       "Bash(npm start *)",
       "Read(//Users/praneeth/Desktop/**)",
-      "Bash(sips -g pixelWidth -g pixelHeight /Users/praneeth/Quilr/docs/self_service_screenshots/*.png)"
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/praneeth/Quilr/docs/self_service_screenshots/*.png)",
+      "Bash(git -C /Users/praneeth/Quilr/docs log --oneline -3 --stat)"
     ]
   }
 }
