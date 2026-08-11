@@ -100,6 +100,15 @@ const config = {
                         ],
                         to: '/llm-gateway-playground',
                     },
+                    {
+                        from: [
+                            '/llm-gateway/features/self-service',
+                            '/llm-gateway/features/self-service.md',
+                            '/docs/llm-gateway/features/self-service',
+                            '/docs/llm-gateway/features/self-service.md',
+                        ],
+                        to: '/llm-gateway/features/self-service/overview',
+                    },
                 ],
                 createRedirects(existingPath) {
                     // Redirect legacy /docs/* URLs to the new / root

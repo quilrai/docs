@@ -1,0 +1,11 @@
+{
+  "label": "Self-Service",
+  "position": 12,
+  "link": {
+    "type": "generated-index",
+    "description": "Let developers get gateway access and manage their own API keys, without an admin minting a key for every person. Start with the overview, then follow the guide for your role - platform admin or developer."
+  },
+  "customProps": {
+    "icon": "UserCog"
+  }
+}

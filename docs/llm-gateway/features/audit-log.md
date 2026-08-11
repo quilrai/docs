@@ -35,7 +35,7 @@ A complete, versioned history of every configuration change to an LLM Gateway ap
   },
 ]} />
 
-Every configuration change to an app is captured as an immutable version. From the app's **Audit Log** settings tab you can browse that history, inspect exactly what changed, roll back to a previous version, and review change requests submitted by [self-service](./self-service) users.
+Every configuration change to an app is captured as an immutable version. From the app's **Audit Log** settings tab you can browse that history, inspect exactly what changed, roll back to a previous version, and review change requests submitted by [self-service](./self-service/overview) users.
 
 ## Config History
 
@@ -75,7 +75,7 @@ Rollback fails if the target version no longer exists, or if the app or the targ
 
 ## Change Requests
 
-When [self-service](./self-service) users with Settings Request Access submit a change, it lands here as a change request for an admin to review. The **Audit Log** tab lists requests for the current app, filterable by status.
+When [self-service](./self-service/developer-guide) users with Settings Request Access submit a change, it lands here as a change request for an admin to review. The **Audit Log** tab lists requests for the current app, filterable by status.
 
 | Status | Meaning |
 |--------|---------|
@@ -103,6 +103,7 @@ Viewing the audit log, approving or rejecting change requests, and rolling back 
 
 ## Related
 
-- [Self-Service](./self-service) - how users submit the change requests reviewed here.
+- [Self-Service](./self-service/overview) - how users submit the change requests reviewed here.
+- [Self-Service Admin Guide](./self-service/admin-guide) - grant Settings Request Access or Direct Settings Update.
 - [Identity Aware](./identity-aware) - the per-user identity that powers actor attribution.
 - [Security Guardrails](./security-guardrails) - the guardrail configuration whose changes are versioned here.

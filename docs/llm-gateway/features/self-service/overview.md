@@ -1,12 +1,19 @@
 ---
-sidebar_position: 12
+sidebar_position: 1
 sidebar_custom_props:
   icon: UserCog
 ---
 
-# Self-Service
+# Overview
 
 Let your developers get gateway access and manage their own API keys, without an admin minting a key for every person.
+
+Self-service has two sides. A **platform admin** decides which apps are exposed, what kind of credential users receive, and what they are allowed to do. A **developer** signs in to the Self-Service portal, picks up or creates a key, and starts calling the gateway.
+
+| If you are a... | Read |
+|-----------------|------|
+| Platform admin turning self-service on for an app | [Admin Guide](./admin-guide) |
+| Developer who was granted access to an app | [Developer Guide](./developer-guide) |
 
 ## How It Works
 
@@ -43,7 +50,7 @@ Let your developers get gateway access and manage their own API keys, without an
 
 ## Credential Modes
 
-Each app runs in one of two credential modes. The mode decides which kind of key allowed users receive - it does **not** decide who has access. Access is always controlled separately (see [Access Control](#access-control)).
+Each app runs in one of two credential modes. The mode decides which kind of key allowed users receive - it does **not** decide who has access. Access is always controlled separately (see [Capabilities](#capabilities)).
 
 | Mode | What the user gets | Runtime behavior |
 |------|--------------------|------------------|
@@ -72,59 +79,37 @@ response = client.chat.completions.create(
 )
 ```
 
-Per-user identity is recorded on every request, so usage, logs, and findings are automatically attributed to the user behind the key - the same per-user view you get with [Identity Aware](./identity-aware).
+Per-user identity is recorded on every request, so usage, logs, and findings are automatically attributed to the user behind the key - the same per-user view you get with [Identity Aware](../identity-aware).
 
-## Access Control
+## Capabilities
 
-Access is granted per capability, so you can let a wide group view an app while only a few people can request changes or see raw credentials.
-
-### Capabilities
+Access is granted per capability, so you can let a wide group view an app while only a few people can change settings or see raw credentials.
 
 | Capability | What it grants |
 |------------|----------------|
 | **Viewer Access** | See the app in the Self-Service portal. |
 | **Settings Request Access** | Submit settings changes for admin approval. Implies viewer access unless viewer rules explicitly deny the user. |
+| **Direct Settings Update** | Update the app's settings from the portal immediately, with no admin approval step. |
 | **API Key Visibility** | View and copy the credential values shown in the portal. When off, users manage key metadata but the key value stays hidden. |
 | **All Logs Visibility** | See all logs and app-wide usage for the app, not just the user's own activity. |
 
-### Access Modes
-
-Each capability is set independently to one of three modes:
-
-| Mode | Who gets it |
-|------|-------------|
-| **Disabled** | No one. |
-| **Everyone** | Every signed-in self-service user, minus any exceptions you list. |
-| **Specific** | Only the people and [smart groups](#smart-groups) you add. |
-
-In both **Everyone** and **Specific** mode you can add **exceptions** - specific people or smart groups to block. Exceptions always win: a denied user is blocked even if they also match an allow rule or "Everyone".
+Each capability is granted independently, and each one is scoped to nobody, everyone, or a specific set of people and groups. See [Set the Scope of Each Capability](./admin-guide#step-3-set-the-scope-of-each-capability) in the Admin Guide for how to configure them.
 
 :::note Deny by default
 If an app has no self-service access configured, self-service is denied for everyone until an admin grants a capability. Turning a capability **Disabled** is also a deny - it does not fall back to "anyone".
 :::
 
-### Smart Groups
-
-Smart groups are reusable, named groups of users managed for your tenant. Instead of pasting individual emails into every app, add a smart group (for example, `engineering`) to an allow or deny list and manage membership in one place. Removing someone from the group removes their self-service access across every app that references it.
-
 ## The Self-Service Portal
 
 Users with self-service access sign in to a dedicated portal instead of the full admin dashboard. For each app they can view, the portal has three tabs:
 
-- **Settings** - Shows the credential mode and app details (provider, models, routing groups, estimated cost). In **Named User API Keys** mode, users create named keys, see their active keys (with created / last-used times), and revoke keys they no longer need. A **Request settings change** action appears here for users with Settings Request Access.
+- **Settings** - Credential mode and app details (provider, models, routing groups, estimated cost), plus key management in **Named User API Keys** mode.
 - **Logs** - The app's request logs. Scoped to the user's own activity unless they have All Logs Visibility.
 - **Findings** - Guardrail activity (blocked, monitored, anonymized, normal) with per-request detail. Also scoped to the user unless they have All Logs Visibility.
 
-## Settings Change Requests
+![Self-Service portal listing the apps a developer can access, each card showing its credential mode, enabled capabilities, models, routes, and request, key, and model counts](/img/self-service-portal-apps.png)
 
-Self-service users with **Settings Request Access** never edit live config directly. Instead, they submit a change request that an admin reviews and approves. Supported requests include configuration updates, tag changes, identity/JWT settings, custom categories, and prompt-store changes.
-
-Requesters track their own submissions under **My Change Requests** in the portal, where each request shows a status of `pending`, `approved`, `rejected`, `failed`, or `stale`. Admins review and decide on these requests from the **Audit Log** tab - see [Audit Log](./audit-log#change-requests) for the approval workflow.
-
-## Setup & Permissions
-
-- Configuring self-service (credential mode and access control) requires the **LLM Gateway – Update** permission, set on the app's **Self-Service** settings tab.
-- Approving or rejecting change requests also requires **LLM Gateway – Update**. See [Audit Log](./audit-log).
+For a walkthrough of each tab, see the [Developer Guide](./developer-guide).
 
 ## Limitations
 
@@ -133,6 +118,8 @@ Requesters track their own submissions under **My Change Requests** in the porta
 
 ## Related
 
-- [Identity Aware](./identity-aware) - per-user identity, tracking, and domain controls.
-- [Audit Log](./audit-log) - approve change requests, review config history, and roll back changes.
-- [Request Routing](./request-routing) - the routing groups shown in an app's self-service details.
+- [Admin Guide](./admin-guide) - configure credential mode, capabilities, and smart groups.
+- [Developer Guide](./developer-guide) - use the portal, create keys, and request settings changes.
+- [Identity Aware](../identity-aware) - per-user identity, tracking, and domain controls.
+- [Audit Log](../audit-log) - approve change requests, review config history, and roll back changes.
+- [Request Routing](../request-routing) - the routing groups shown in an app's self-service details.
