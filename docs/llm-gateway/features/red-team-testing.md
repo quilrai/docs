@@ -584,6 +584,8 @@ A run moves through pending, processing, and then completed or failed.
 
 Any adaptation the runner had to make to fit the provider is recorded on the case, so a difference in results is never unexplained.
 
+Each of those numbers answers a different question, and several of them are easy to misread on their own. [Reading the Report](./red-team-report) walks through what the headline pass rate actually counts, how to triage Guardian residual failures, and what makes two runs comparable.
+
 ## Reliability
 
 Long runs against third-party providers fail in predictable ways, and the runner handles each of them explicitly rather than letting them corrupt the score.
