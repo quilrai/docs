@@ -43,6 +43,7 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 | [Tavily](./tavily) | Agent web research | Search, extract, map, crawl, research, usage | API key | No |
 | [Cycode](./cycode) | Code security | Service status and secret scanning | Optional provider auth | No |
 | [Quilr Web Search](./web-search) | Lightweight search and page retrieval | Web search and webpage extraction | Managed | No |
+| [SketchIt](./sketchit) | Diagrams and charts from a description | Flowcharts, hierarchy/architecture diagrams, charts, presentation layouts | None - enabled, not connected | No |
 
 :::note
 “Changes data?” describes the integration's available tool surface, not what every user can do. Administrators can disable write or destructive tools in [Tools Management](../mcp-gateway/features/tools-management) and restrict agent access through [Access Control](../mcp-gateway/features/access-control).

@@ -45,6 +45,7 @@ Create a separate OAuth app for each QuilrAI tenant or environment if the callba
 - [BrowserStack Advanced](./browserstack) - connect the QuilrAI-built advanced BrowserStack MCP with a BrowserStack username and access key.
 - [Excalidraw](./excalidraw) - no OAuth app needed; self-host the community Excalidraw MCP server, bridge it to streamable HTTP, and add its `/mcp` URL manually.
 - [Asana](./asana) - create an Asana **MCP app** in the developer console, set the redirect URL and workspace distribution, then copy its Client ID and Client Secret.
+- [SketchIt](./sketchit) - no OAuth app or credential needed; enable the QuilrAI-built diagram and chart renderer directly from the MCP Store.
 
 ## Store And Rotate Secrets
 
