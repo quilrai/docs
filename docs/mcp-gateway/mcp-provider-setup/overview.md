@@ -47,6 +47,7 @@ Create a separate OAuth app for each QuilrAI tenant or environment if the callba
 - [Asana](./asana) - create an Asana **MCP app** in the developer console, set the redirect URL and workspace distribution, then copy its Client ID and Client Secret.
 - [SketchIt](./sketchit) - no OAuth app or credential needed; enable the QuilrAI-built diagram and chart renderer directly from the MCP Store.
 - [dbt Labs](./dbt-labs) - no OAuth app needed; copy the account-specific MCP Endpoint URL from dbt **Account settings** > **Access URLs** and add it manually, then authorize through dbt sign-in and MFA.
+- [Netskope](./netskope) - no OAuth app needed; a technology preview requiring a Netskope-issued access code in the URL path plus a REST API v2 bearer token, and allowlisting the MCP server's egress IPs.
 
 ## Store And Rotate Secrets
 
