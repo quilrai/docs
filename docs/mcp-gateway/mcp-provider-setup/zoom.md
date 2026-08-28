@@ -18,10 +18,47 @@ See [Overview](./overview) for prerequisites and secret-handling guidance.
 4. Select **General App** and click **Create**. A General App uses user-managed OAuth 2.0, which is the authorization model Zoom's remote MCP servers use.
 5. Open **Basic Information**. Under **App Credentials**, locate the **Client ID** and **Client Secret**. Zoom provides separate Development and Production credentials, so use the set that matches your environment.
 6. Under **OAuth Information**, paste the QuilrAI callback URL into the **OAuth Redirect URL** field, then add the same URL to the **OAuth Allow List**. Copy the callback URL from the QuilrAI MCP setup screen and match it exactly.
-7. Open **Scopes** and add the granular scopes the Zoom MCP integration requests, for example meeting, cloud recording, and chat scopes. Start with the least privileged scopes that support the tools you plan to enable. The main Zoom MCP server, the Docs server, and the Whiteboard server each expose a different scope set, so add scopes for the specific server you are enabling.
+7. Open **Scopes** and add the scopes listed in [Required Scopes For The Main Zoom MCP Server](#required-scopes-for-the-main-zoom-mcp-server). The main Zoom MCP server, the Docs server, and the Whiteboard server can expose different scope sets, so use the list for the specific server you are enabling.
 8. Activate the app. Zoom cannot issue tokens for an app that is not activated.
 9. Copy the **Client ID** and **Client Secret** from **App Credentials**.
 10. Paste the Client ID and Client Secret into the QuilrAI manual OAuth setup screen, then click **Connect** and authorize Zoom. Zoom completes the OAuth 2.1 authorization-code flow with PKCE, and access is scoped to the authorizing user's own Zoom permissions.
+
+## Required Scopes For The Main Zoom MCP Server
+
+For the complete tool set exposed by Zoom's main remote MCP server at
+`https://mcp.zoom.us/mcp/zoom/streamable`, add all of the following granular
+scopes to the Zoom General App.
+
+Read scopes:
+
+- `my_notes:read:content`
+- `meeting:read:assets`
+- `meeting:read:search`
+- `agentic_search:read:ask`
+- `agentic_search:read:search`
+- `cloud_recording:read:list_user_recordings`
+- `cloud_recording:read:content`
+- `docs:read:export`
+- `hub:read:content`
+
+Write scopes:
+
+- `docs:write:import`
+- `hub:write:content`
+
+Zoom publishes the current list in its
+[OAuth protected-resource metadata](https://mcp.zoom.us/.well-known/oauth-protected-resource/mcp/zoom/streamable).
+If Zoom changes that metadata, update the General App to match before enabling
+new tools.
+
+Older `ai_companion:read:ask` and `ai_companion:read:search` grants do not
+replace `agentic_search:read:ask` and `agentic_search:read:search`. Similarly,
+`cloud_recording:read:meeting_transcript` does not grant permission to list or
+read cloud recordings.
+
+After adding or changing scopes, each user must reconnect Zoom and approve the
+updated consent request. Refreshing an existing token does not add newly
+configured scopes.
 
 ## Keep In Mind
 
