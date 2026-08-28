@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # PDF Editor
 
-**PDF Editor** is a QuilrAI-built MCP that reads, searches, OCRs, and edits PDF documents, then hands back a finished file. Like [SketchIt](./sketchit), there is no OAuth app, Client ID, Client Secret, or API key to create - PDF Editor is enabled, not connected. It has no upstream service and no credential to configure.
+**PDF Editor** is a QuilrAI-built MCP that reads, searches, and edits PDF documents, including scanned ones, then hands back a finished file. Like [SketchIt](./sketchit), there is no OAuth app, Client ID, Client Secret, or API key to create - PDF Editor is enabled, not connected. There is no account to link and no credential to configure.
 
 Documents reach the server through its own upload page rather than through the chat attachment, because the Model Context Protocol has no mechanism for a client to hand file bytes to a remote MCP server. See [Getting A Document In](#getting-a-document-in) below.
 

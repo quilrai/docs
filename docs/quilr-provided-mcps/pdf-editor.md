@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # PDF Editor
 
-<div className="mcp-product-hero compact"><span className="mcp-product-kicker">READ AND EDIT PDFS</span><h2>A document in, a finished PDF back.</h2><p>Twenty tools for inspecting, searching, OCRing, and editing PDFs - no server, no credential, no upstream call.</p></div>
+<div className="mcp-product-hero compact"><span className="mcp-product-kicker">READ AND EDIT PDFS</span><h2>Change a PDF without it looking changed.</h2><p>Replace text in the document's own font and position, fill forms, stamp watermarks, and read scans - then get the file back. Nothing to authorize.</p></div>
 
 <McpDecision
   officialTitle="Use built-in PDF reading to answer questions"
