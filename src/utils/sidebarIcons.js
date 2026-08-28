@@ -36,6 +36,7 @@ import {
   Workflow,
   PenTool,
   ListChecks,
+  FileText,
   Hash,
 } from "lucide-react";
 
@@ -77,6 +78,7 @@ const iconMap = {
   Workflow,
   PenTool,
   ListChecks,
+  FileText,
 };
 
 export function getSidebarIcon(name) {

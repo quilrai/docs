@@ -44,6 +44,7 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 | [Cycode](./cycode) | Code security | Service status and secret scanning | Optional provider auth | No |
 | [Quilr Web Search](./web-search) | Lightweight search and page retrieval | Web search and webpage extraction | Managed | No |
 | [SketchIt](./sketchit) | Diagrams and charts from a description | Flowcharts, hierarchy/architecture diagrams, charts, presentation layouts | None - enabled, not connected | No |
+| [PDF Editor](./pdf-editor) | Reading and editing PDF documents | Inspect, search, OCR, edit text, watermark, forms, metadata, export | None - enabled, not connected | Yes |
 
 :::note
 “Changes data?” describes the integration's available tool surface, not what every user can do. Administrators can disable write or destructive tools in [Tools Management](../mcp-gateway/features/tools-management) and restrict agent access through [Access Control](../mcp-gateway/features/access-control).
