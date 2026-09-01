@@ -37,6 +37,10 @@ import {
   PenTool,
   ListChecks,
   FileText,
+  FileType,
+  Building2,
+  Presentation,
+  TrendingUp,
   Hash,
 } from "lucide-react";
 
@@ -79,6 +83,10 @@ const iconMap = {
   PenTool,
   ListChecks,
   FileText,
+  FileType,
+  Building2,
+  Presentation,
+  TrendingUp,
 };
 
 export function getSidebarIcon(name) {
