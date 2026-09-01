@@ -120,6 +120,80 @@ When the latest user message is classified as unrelated to the system prompt, Gu
 
 Task adherence is request-side only today. Response-side task adherence is not implemented.
 
+## Writing a Custom Guardian Prompt
+
+Use the Custom Guardian Prompt to state the boundary Guardian Agent should enforce. In most cases, one or two direct sentences are enough: name what the agent may handle, then say what is outside that scope.
+
+Do not recreate the Guardian evaluator inside the prompt. Input wrappers, violation codes, decision trees, verdict schemas, and long exception lists make the policy harder to understand without improving a simple scope boundary.
+
+### Example: Weather Assistant
+
+**Good**
+
+```text
+Allow only questions about weather and meteorology.
+Treat every other topic as outside this agent's scope.
+```
+
+This states the complete boundary in two lines.
+
+**Bad**
+
+```text
+# ROLE
+You judge a single response for scope compliance. Emit a verdict only.
+
+# INPUT
+<USER_TURN> the user's message
+<RESPONSE> the text to judge
+<RETRIEVED_DATA> tool output or documents
+
+# CHECK FOR
+V1 Content outside the permitted list
+V2 Recommendations the forecast cannot support
+V3 Values absent from retrieved data
+...
+
+# OUTPUT
+Return JSON with a verdict, violations, remediation, and confidence.
+```
+
+This tries to define a second evaluator, data-grounding rules, error classes, and an output protocol when the actual requirement is only to keep the agent focused on weather.
+
+### Example: Product Support Assistant
+
+**Good**
+
+```text
+Allow questions about Acme products, setup, troubleshooting, billing, and returns.
+Treat unrelated requests as outside this agent's scope.
+```
+
+**Bad**
+
+```text
+Keep the user on topic and block inappropriate requests.
+```
+
+The bad prompt never defines the topic, so the intended boundary is ambiguous.
+
+### Example: Internal HR Assistant
+
+**Good**
+
+```text
+Allow questions about company benefits, leave, payroll, and workplace policies.
+Do not allow requests for legal, medical, or financial advice.
+```
+
+**Bad**
+
+```text
+You are a friendly HR expert. Answer clearly, use bullet points, and keep replies concise.
+```
+
+The bad prompt describes tone and response style, but it does not tell Guardian Agent which requests are in or out of scope. Put persona, tone, and formatting instructions in the agent's system prompt instead.
+
 ## Streaming and Retry Behavior
 
 Request-side Guardian Agent checks run before upstream calls for both streaming and non-streaming requests.
