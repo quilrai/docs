@@ -15,7 +15,7 @@ sidebar_custom_props:
   quilrTitle="Choose Quilr for owned credentials"
   quilr="Use Quilr when the enterprise must own the OAuth application or the client depends on pre-registered credentials."
   quilrPoints={['Customer-owned OAuth app', 'Forty lifecycle tools behind gateway policy']}
-  verdict="The deciding factor is credential ownership and client compatibility—not scheduling feature coverage."
+  verdict="The deciding factor is credential ownership and client compatibility-not scheduling feature coverage."
 />
 
 | Capability | Calendly Official MCP | Quilr Calendly |

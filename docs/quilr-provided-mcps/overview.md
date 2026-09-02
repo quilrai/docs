@@ -58,6 +58,8 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 | **Provider-native MCP** | The provider's official MCP already covers the workflows you need. | The provider operates the upstream server; Quilr secures and governs access. | Follow the provider's connection model. See [Provider Setup](../mcp-gateway/mcp-provider-setup/overview). |
 | **Organization custom MCP** | You have an internal system or your own MCP implementation. | Your organization operates the server; Quilr proxies and governs it. | Register its reachable `/mcp` or `/sse` URL in the library. |
 
+Provider-native MCPs in the library that need a setup guide, including Slack, GitHub, Zoho, Datadog, Zoom, Asana, Excalidraw, dbt Labs, Netskope, and PitchBook, are documented under [MCP Provider Setup](../mcp-gateway/mcp-provider-setup/overview). They are operated by the provider, not by Quilr, so they do not appear in the table above.
+
 ## Common Safety Model
 
 - Read, write, and destructive tools are labeled so administrators can apply least privilege.

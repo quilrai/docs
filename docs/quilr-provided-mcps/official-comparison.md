@@ -9,7 +9,7 @@ sidebar_custom_props:
 <div className="mcp-product-hero comparison">
   <span className="mcp-product-kicker">THE MCP DECISION GUIDE</span>
   <h2>Provider-native breadth or a governed Quilr surface?</h2>
-  <p>Compare what each option is designed to optimize—not just how many tools it exposes. Start with the operating model, scan the portfolio, then open any integration for the detailed capability matrix.</p>
+  <p>Compare what each option is designed to optimize-not just how many tools it exposes. Start with the operating model, scan the portfolio, then open any integration for the detailed capability matrix.</p>
   <div className="mcp-stat-row"><span>20 integration surfaces</span><span>4 decision patterns</span><span>Reviewed August 2026</span></div>
 </div>
 
@@ -68,7 +68,7 @@ The table is the fast scan. The sections below explain the decisions that are ea
 
 ## Microsoft: Scope Is The Product
 
-Microsoft Graph exposes a huge connected surface. The practical question is not whether an operation exists—it is how much Microsoft 365 context the agent should receive.
+Microsoft Graph exposes a huge connected surface. The practical question is not whether an operation exists-it is how much Microsoft 365 context the agent should receive.
 
 | Surface | Shape | Best use |
 |---|---|---|
@@ -122,5 +122,5 @@ These comparisons are less about “more” and more about **where the integrati
 - Tool counts are snapshots of public tools, not counts of underlying provider API operations.
 - Provider plan, scope, tenant configuration, and preview enrollment can change visible capabilities.
 - Provider MCPs evolve quickly. Re-evaluate the official option before every material deployment.
-- Production health proves that a server is running—not that a customer has authorization for every tool.
+- Production health proves that a server is running-not that a customer has authorization for every tool.
 - For regulated or destructive workflows, validate the exact runtime policy instead of relying on a comparison row.

@@ -10,6 +10,21 @@ Use a Zoom OAuth app when a Zoom MCP integration asks for a Zoom Client ID and C
 
 See [Overview](./overview) for prerequisites and secret-handling guidance.
 
+## What You Need To Know First
+
+Zoom operates the MCP server. QuilrAI proxies and governs the connection; it does not host the tools. Install **Zoom** from the MCP Library, then supply the credentials from the app you create below.
+
+| Property | Value |
+|---|---|
+| MCP endpoint | `https://mcp.zoom.us/mcp/zoom/streamable` |
+| Transport | Streamable HTTP |
+| Authorization server | `https://zoom.us` |
+| Grants | `authorization_code`, `refresh_token` |
+| PKCE | Required, `S256` |
+| Dynamic Client Registration | Not supported - create a Marketplace app |
+
+Zoom publishes additional MCP servers on the same host. The Docs server is at `https://mcp.zoom.us/mcp/docs/streamable` and the Whiteboard server at `https://mcp.zoom.us/mcp/whiteboard/streamable`. Each exposes a different scope set, so register the scopes for the specific server you are enabling. The scopes for the main server are listed in [Required Scopes For The Main Zoom MCP Server](#required-scopes-for-the-main-zoom-mcp-server).
+
 ## Create The Zoom OAuth App
 
 1. Decide which Zoom account should own the integration. You need developer or admin authorization on that account to create and activate the app.
