@@ -20,6 +20,10 @@ Response content type:
 Content-Type: application/x-ndjson
 ```
 
+The endpoint also serves an aggregated executive dashboard view. Add `view=metrics`
+to receive a single summary JSON document instead of the per-request NDJSON stream.
+See [Metrics View](#metrics-view).
+
 ## Authentication
 
 Pass a log export key from the QuilrAI LLM Gateway UI:
@@ -49,6 +53,7 @@ All query parameters are optional.
 | `end_time` | ISO 8601 upper bound for exported logs. Naive timestamps are treated as UTC. |
 | `cursor` | Opaque cursor from the previous `checkpoint.next_cursor`. When provided, it wins over `start_time`. |
 | `limit` | Maximum request rows to export in this response. Default `1000`. Values above `5000` are silently clamped to `5000`. Values below `1` or non-integer values return `400`. |
+| `view` | Response shape. `logs` (default) streams per-request NDJSON events. `metrics` returns one aggregated JSON document — see [Metrics View](#metrics-view). Any other value returns `400`. |
 
 Logs are available for a maximum of 15 days. Choose `start_time` within that retention window when backfilling. Requests with an effective `start_time`, `end_time`, or cursor timestamp before the retention window fail with `400`.
 
@@ -378,6 +383,264 @@ The final line on a successful response is a checkpoint.
 | `has_more` | boolean | `true` when another page is available for the same effective export window. |
 | `effective_end_time` | string | Effective upper bound used for this export response. |
 | `max_exportable_time` | string | Newest timestamp eligible for export after the 15-minute lag. |
+
+## Metrics View
+
+Add `view=metrics` to aggregate the whole export window server-side and return one
+JSON document shaped for executive, security, and governance dashboards. Use this
+when you want headline numbers rather than a copy of every request row.
+
+```http
+GET https://guardrails.quilr.ai/llmgateway/logs/export?view=metrics
+```
+
+```http
+Content-Type: application/json
+```
+
+This view uses the same endpoint, the same export key, and the same window rules as
+the default logs view: the 15-minute export lag, the 15-day retention limit, and
+`start_time` / `end_time` clamping all behave identically. Two differences:
+
+- The response is **one JSON object**, not an NDJSON stream. There are no
+  `export_started`, `llmgateway.request`, or `checkpoint` events, and no pagination.
+- `cursor` and `limit` are accepted but ignored, because the whole window is
+  aggregated in a single response.
+
+```bash
+curl -H "X-Quilr-Log-Export-Key: sk-export-..." \
+  "https://guardrails.quilr.ai/llmgateway/logs/export?view=metrics&start_time=2026-05-07T00:00:00Z"
+```
+
+### Counting Model
+
+Every count is **request-level**: one request contributes at most one to a given
+metric, no matter how many findings of that kind it carried. A single request that
+trips four separate PII rules counts once toward `pii_phi_pci_violations.total`.
+
+Findings are classified by matching the category identifiers recorded on each
+request, so tenant-defined custom categories roll up into the standard buckets when
+their identifiers contain the relevant marker (for example a custom category whose
+id contains `jailbreak` counts toward `jailbreak_attempts`).
+
+### Example Response
+
+```json
+{
+  "type": "llmgateway.executive_metrics",
+  "schema_version": "v1",
+  "scope": "all_apps",
+  "window": {
+    "effective_start_time": "2026-05-07T00:00:00.000Z",
+    "effective_end_time": "2026-05-14T10:45:00.000Z",
+    "max_exportable_time": "2026-05-14T10:45:00.000Z",
+    "end_time_clamped": false
+  },
+  "security_metrics": {
+    "prompt_injection_attempts": 40,
+    "jailbreak_attempts": 18,
+    "secrets_exposure_events": 9,
+    "pii_phi_pci_violations": {
+      "total": 88,
+      "pii": 28,
+      "phi": 0,
+      "pci": 60,
+      "pfi": 0
+    },
+    "blocked_requests": 67,
+    "high_severity_incidents": 67
+  },
+  "risk_metrics": {
+    "top_applications_by_violations": [
+      {
+        "name": "internal-assistant",
+        "count": 87
+      },
+      {
+        "name": "support-bot",
+        "count": 68
+      }
+    ],
+    "users_with_repeated_violations": [
+      {
+        "name": "a@corp.com",
+        "count": 100
+      },
+      {
+        "name": "b@corp.com",
+        "count": 46
+      },
+      {
+        "name": "c@corp.com",
+        "count": 9
+      }
+    ],
+    "top_violation_categories": [
+      {
+        "name": "Protected Card Information (PCI)",
+        "count": 60
+      },
+      {
+        "name": "prompt_injection_direct",
+        "count": 40
+      },
+      {
+        "name": "Personally Identifiable Information (PII)",
+        "count": 28
+      },
+      {
+        "name": "jailbreak_roleplay",
+        "count": 18
+      },
+      {
+        "name": "auth_secrets_api_key",
+        "count": 9
+      }
+    ],
+    "client_data_exposure_attempts": 88
+  },
+  "governance_metrics": {
+    "total_requests": 1245,
+    "traffic_share_by_app": [
+      {
+        "name": "support-bot",
+        "requests": 768,
+        "percent": 61.69
+      },
+      {
+        "name": "internal-assistant",
+        "requests": 387,
+        "percent": 31.08
+      },
+      {
+        "name": "batch-summarizer",
+        "requests": 90,
+        "percent": 7.23
+      }
+    ],
+    "integrated_applications": {
+      "count": 4,
+      "names": [
+        "batch-summarizer",
+        "internal-assistant",
+        "legacy-classifier",
+        "support-bot"
+      ],
+      "active_in_window": [
+        "batch-summarizer",
+        "internal-assistant",
+        "support-bot"
+      ]
+    },
+    "applications_without_traffic_in_window": [
+      "legacy-classifier"
+    ],
+    "guardrail_effectiveness": {
+      "detections_total": 155,
+      "blocked": 67,
+      "anonymized": 28,
+      "monitored_only": 60,
+      "prevented_percent": 61.29
+    }
+  },
+  "executive_kpis": {
+    "critical_events_prevented": 67,
+    "secrets_blocked": 9,
+    "prompt_injection_attempts_blocked": 40,
+    "jailbreak_attempts_blocked": 18,
+    "sensitive_records_protected": 28
+  },
+  "coverage": {
+    "scanned_requests": 1245,
+    "complete": true,
+    "max_scan_rows": 250000
+  }
+}
+```
+
+### `security_metrics`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `prompt_injection_attempts` | number | Requests where a prompt-injection category was detected. |
+| `jailbreak_attempts` | number | Requests where a jailbreak category was detected. |
+| `secrets_exposure_events` | number | Requests where a secret or credential category was detected. |
+| `pii_phi_pci_violations.total` | number | Requests with any data-risk detection. Less than or equal to the sum of the breakdown, since one request can carry several data types. |
+| `pii_phi_pci_violations.pii` | number | Requests with a PII detection. |
+| `pii_phi_pci_violations.phi` | number | Requests with a PHI detection. |
+| `pii_phi_pci_violations.pci` | number | Requests with a PCI detection. |
+| `pii_phi_pci_violations.pfi` | number | Requests with a PFI detection. |
+| `blocked_requests` | number | Requests the gateway blocked outright. |
+| `high_severity_incidents` | number | Requests carrying prompt-injection, jailbreak, security-exploit, or secrets detections. |
+
+### `risk_metrics`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `top_applications_by_violations` | array | Up to 10 `{name, count}` entries, highest first, for apps with at least one violation. |
+| `users_with_repeated_violations` | array | Up to 10 `{name, count}` entries for users with 2 or more violations, taken from `extra_data.user_email`. Empty when identity headers are not in use. |
+| `top_violation_categories` | array | Up to 10 `{name, count}` entries by category display name. |
+| `client_data_exposure_attempts` | number | Requests with any data-risk detection. |
+
+### `governance_metrics`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_requests` | number | Every request that reached the gateway in the window. |
+| `traffic_share_by_app` | array | `{name, requests, percent}` per application, highest first, ties broken by name. |
+| `integrated_applications.count` | number | Number of apps configured under this export scope. |
+| `integrated_applications.names` | array | All configured app names. |
+| `integrated_applications.active_in_window` | array | Configured apps that served at least one request in the window. |
+| `applications_without_traffic_in_window` | array | Configured apps that served no traffic in the window. |
+| `guardrail_effectiveness.detections_total` | number | Requests that were blocked, anonymized, or flagged by a monitoring rule. |
+| `guardrail_effectiveness.blocked` | number | Requests blocked. |
+| `guardrail_effectiveness.anonymized` | number | Requests anonymized. |
+| `guardrail_effectiveness.monitored_only` | number | Requests flagged but allowed through. |
+| `guardrail_effectiveness.prevented_percent` | number \| null | Blocked plus anonymized, as a percentage of `detections_total`. `null` when there were no detections. |
+
+`percent` in `traffic_share_by_app` is each app's share of `total_requests`, so the
+values describe how gateway traffic is distributed across your applications and sum
+to approximately 100 (individual values are rounded to two decimals). Applications
+with no traffic are omitted from this array and listed in
+`applications_without_traffic_in_window` instead.
+
+This is deliberately a share of traffic that reached the gateway, not a share of all
+AI usage in your organisation. The gateway can only observe requests routed through
+it, so it cannot measure traffic that bypasses it.
+
+### `executive_kpis`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `critical_events_prevented` | number | Blocked requests carrying prompt-injection, jailbreak, security-exploit, or secrets detections. |
+| `secrets_blocked` | number | Blocked requests carrying a secrets detection. |
+| `prompt_injection_attempts_blocked` | number | Blocked requests carrying a prompt-injection detection. |
+| `jailbreak_attempts_blocked` | number | Blocked requests carrying a jailbreak detection. |
+| `sensitive_records_protected` | number | Requests where data-risk content was blocked or anonymized. |
+
+### `coverage`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `scanned_requests` | number | Requests aggregated for this response. |
+| `complete` | boolean | `false` when the window exceeded the scan cap and the numbers are therefore partial. Narrow the window and retry. |
+| `max_scan_rows` | number | Maximum rows a single metrics response will scan. |
+
+Always check `coverage.complete`. When it is `false`, the figures cover only the
+first `max_scan_rows` requests in the window and should not be reported as totals.
+
+### Metrics View Errors
+
+Unlike the logs view, metrics errors are returned as a plain JSON object rather
+than NDJSON, because no stream has started.
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `invalid_view` | `view` was neither `logs` nor `metrics`. |
+| `500` | `metrics_failed` | Aggregation failed. Retry, and narrow the window if it persists. |
+
+All authentication and time-window errors behave exactly as they do for the logs
+view.
 
 ## Redaction
 
