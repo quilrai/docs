@@ -44,9 +44,58 @@ Use [Access Control](../features/access-control) to restrict the server to the s
 
 ## Prerequisites
 
-- An active PitchBook subscription.
-- The Premium Connector entitlement. The MCP endpoint sits behind it, and it is not included with every PitchBook seat. Confirm entitlement before you register the server.
+- A PitchBook licence that includes the Premium Connector. PitchBook offers it on seat-based, unlimited, and trial licences. Confirm with your account representative before you plan a rollout, because the MCP endpoint sits behind this entitlement and it is not included with every seat.
+- Single sign-on enabled on your PitchBook account. The Premium Connector authenticates every user through your identity provider. Accounts that sign in with a PitchBook username and password cannot use it.
+- MCP service access switched on for your account. PitchBook enables this per customer. It is not on by default.
 - A QuilrAI administrator to register the server, restrict access, and set tool scope before rollout.
+
+## Get OAuth Credentials From PitchBook
+
+PitchBook does not have a developer console where you create an OAuth application yourself. The AI tools it lists as partners, such as Claude, ChatGPT, Microsoft 365 Copilot, and Perplexity, are pre-registered by PitchBook. For QuilrAI, you ask PitchBook to register the QuilrAI callback for your account. Plan for a support-ticket turnaround rather than a same-day setup.
+
+1. **Confirm your entitlement.** Ask your PitchBook account representative to confirm the three items above: licence type, SSO, and MCP service access. If you do not know who your representative is, write to [support@pitchbook.com](mailto:support@pitchbook.com).
+
+2. **Get the QuilrAI callback URL.** In QuilrAI, go to **Settings** > **AI Gateway** > **MCP Gateway**, click **Add MCP**, enter the PitchBook transport URL, and copy the callback URL the setup screen displays. It follows this pattern, where the host is your gateway and the last segment is the slug you chose:
+
+   ```text
+   https://mcpgateway.quilr.ai/pitchbook/oauth/callback
+   ```
+
+3. **Send PitchBook a registration request.** Include everything PitchBook needs to register a confidential OAuth client. You can paste the following into the ticket and fill in the two placeholders:
+
+   ```text
+   Subject: Register an OAuth client for the PitchBook Premium Connector (MCP)
+
+   We use the QuilrAI MCP Gateway to connect our AI agents to the PitchBook
+   Premium Connector at https://premium.mcp.pitchbook.com/mcp. Dynamic client
+   registration rejects our callback with invalid_redirect_uri, so please
+   register the following client for our account, or add the redirect URI to
+   your registration allowlist.
+
+   Account:                    <your PitchBook account or company name>
+   Client name:                QuilrAI MCP Gateway
+   Redirect URI:               <the callback URL copied from QuilrAI>
+   Application type:           web (confidential client)
+   Grant types:                authorization_code, refresh_token
+   PKCE:                       S256
+   Token endpoint auth method: client_secret_post
+   Scopes:                     openid offline_access
+
+   Please return the Client ID and Client Secret through a secure channel.
+   ```
+
+4. **Receive the outcome.** PitchBook answers in one of two ways, and QuilrAI supports both:
+
+   | PitchBook response | What to do in QuilrAI |
+   |--------------------|-----------------------|
+   | Issues a Client ID and Client Secret | Set **Auth mode** to **OAuth credentials** and paste both values. This is the flow described below. |
+   | Adds your callback URL to its registration allowlist instead | Use **Auto-detect** and leave Client ID and Client Secret empty. The gateway registers itself through Dynamic Client Registration, which now succeeds for your callback. |
+
+5. **Store the secret properly.** Put the Client Secret in your approved secret manager and in QuilrAI only. Do not keep it in the support ticket, email, or chat once QuilrAI has it.
+
+:::tip Skip credentials if your users already work in a partner tool
+If your users reach PitchBook from Claude, ChatGPT, Microsoft 365 Copilot, or Perplexity, you can register PitchBook in QuilrAI with **Auth mode** set to **OAuth passthrough** instead. The client signs in to PitchBook through your SSO using the partner's own registration, and QuilrAI forwards that token, applies access control, and logs the call. You still need the licence, SSO, and MCP service access above. In this mode the gateway does not store or refresh tokens, and the server is not available through OneMCP.
+:::
 
 ## Add PitchBook To QuilrAI
 
@@ -56,11 +105,11 @@ PitchBook is listed in the [MCP Library](../features/mcp-library) as a credentia
 
 2. Open the **MCP Library** and select **PitchBook**. Because the entry is credential-gated, QuilrAI asks for OAuth credentials before it installs anything.
 
-3. Copy the callback URL that QuilrAI displays on this screen and send it to your PitchBook account team so they can register it against an OAuth application for your organization.
+3. Confirm that the callback URL QuilrAI displays on this screen is the one PitchBook registered for you. See [Get OAuth Credentials From PitchBook](#get-oauth-credentials-from-pitchbook).
 
-4. Paste the **Client ID** and **Client Secret** that PitchBook issues, then install the MCP.
+4. Paste the **Client ID** and **Client Secret** that PitchBook issued, then install the MCP.
 
-   Do not switch the entry to Dynamic Client Registration even if the probe offers it. See the allowlist note above.
+   Do not switch the entry to Dynamic Client Registration unless PitchBook confirmed that it allowlisted your callback. See the allowlist note above.
 
 5. Click **Connect**, sign in to PitchBook, review the requested permissions, and approve access.
 
@@ -90,10 +139,10 @@ PitchBook advertises a `registration_endpoint`, so **Auto-detect** reports that 
 
 ## The Callback URL
 
-The QuilrAI callback URL is issued per MCP server, not once per tenant, and it is displayed on that server's own setup screen. Copy the value QuilrAI shows you. Do not reuse a callback from another provider page or another server in the same tenant.
+The QuilrAI callback URL is issued per MCP server, not once per tenant, and it is displayed on that server's own setup screen. It is built from your gateway host and the server's slug, for example `https://mcpgateway.quilr.ai/pitchbook/oauth/callback`. Copy the value QuilrAI shows you rather than typing it, and do not reuse a callback from another provider page or another server in the same tenant.
 
-:::warning The callback contains a query parameter
-Some identity providers reject a redirect URI with a query string. If PitchBook's OAuth application form refuses the callback for that reason, raise it with your PitchBook account team rather than trimming the parameter. A truncated callback will not route back to the correct server.
+:::warning The slug is part of the registered redirect URI
+If you delete the server and recreate it with a different slug, the callback URL changes and PitchBook's registration no longer matches. Reuse the original slug, or ask PitchBook to update the redirect URI.
 :::
 
 ## Tools
@@ -142,7 +191,7 @@ Confirm that:
 |------------------|--------------|-----|
 | Probe cannot reach the endpoint | Outbound access to `premium.mcp.pitchbook.com` is not allowed from the gateway | Allow the host outbound, then probe again |
 | Sign-in succeeds but every tool returns forbidden | The account holds a PitchBook seat but not the Premium Connector entitlement | Confirm the add-on with your PitchBook account team |
-| Redirect URI rejected by PitchBook | The application form does not accept a query string in the callback | Raise it with PitchBook. Do not remove the query parameter |
+| `invalid_redirect_uri` during Connect or auto-registration | PitchBook has not registered the QuilrAI callback, or the slug changed since it was registered | Send PitchBook the current callback URL from the setup screen and wait for confirmation before retrying |
 | Connected but zero tools | OAuth was not completed, or capabilities were never refreshed | Complete **Connect**, refresh capabilities, then restart or toggle the entry in the client |
 | Results differ between two users | Expected. Each token carries its own PitchBook entitlements | No action needed. Use Group and User Rules to normalize the surface |
 | An unlicensed colleague receives PitchBook data through an agent | Access Control is not restricted to the licensed smart group | Restrict the server immediately, then review the audit log for prior exposure |
@@ -159,6 +208,7 @@ Confirm that:
 
 - [PitchBook: Getting started with the Premium Connector](https://pitchbook.com/help/getting-started-with-pitchbook-premium-connector)
 - [PitchBook: LLM data connectors for enterprise AI tools](https://pitchbook.com/products/premium-connectors)
+- PitchBook support: [support@pitchbook.com](mailto:support@pitchbook.com)
 - [QuilrAI: OAuth Connect](../features/oauth-connect)
 - [QuilrAI: Access Control](../features/access-control)
 - [QuilrAI: Tools Management](../features/tools-management)
