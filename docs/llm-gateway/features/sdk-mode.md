@@ -11,9 +11,9 @@ Scan content directly from your application code - no LLM proxy required.
 
 ## Overview
 
-SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages or text for sensitive data and adversarial inputs.
+SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages, text, or structured JSON for sensitive data and adversarial inputs.
 
-Want to test a key before wiring it into your app? Open the [LLM Gateway Playground](/llm-gateway-playground) and switch to the **Guardrail check** surface.
+Want to test a key before wiring it into your app? Open the [LLM Gateway Playground](/llm-gateway-playground) and select **Quilr SDK**. Choose **Text**, **Messages**, or **JSON**, select the request/response check type and hashing mode, then run the check. The playground shows processed content, placeholder mappings, detected JSON paths, and similar names, and generates matching cURL, Python, and JavaScript.
 
 Common uses:
 
@@ -40,11 +40,11 @@ You can optionally include an `X-User-Email` header for identity-aware enforceme
 
 `POST /sdk/v1/check`
 
-Two input formats are supported:
+Three input formats are supported. Send one content field: `messages`, `text`, or `json`.
 
 ### Messages (conversation)
 
-Use this to check a full conversation. The `type` field is optional.
+Send an OpenAI-style conversation. Request checks select recent user messages according to your key settings. A final assistant message, or `type: "response"`, checks the last message as response text and returns the text response shape. The `type` field is optional.
 
 ```json
 {
@@ -59,7 +59,7 @@ Use this to check a full conversation. The `type` field is optional.
 
 ### Text (raw string)
 
-Use this to check a single piece of text. The `type` field is optional.
+Use this to check a single piece of text. Set `type: "request"` for input checks; omitting `type` checks raw text as a response.
 
 ```json
 {
@@ -68,11 +68,48 @@ Use this to check a single piece of text. The `type` field is optional.
 }
 ```
 
-`type` is `"request"` or `"response"`.
+### JSON (structured content)
+
+Put the value to scan in `json`. Pass an actual JSON value, rather than a serialized object inside `text`.
+
+```json
+{
+  "type": "request",
+  "json": {
+    "customer": {
+      "firstName": "Praneeth",
+      "fullName": "Praneeth Bedapudi",
+      "name": "PRANEETH"
+    },
+    "contacts": [{"email": "praneeth@example.com"}],
+    "active": true,
+    "notes": null
+  },
+  "hashing_mode": "case_insensitive",
+  "metadata": {"source": "customer-profile"}
+}
+```
+
+`json` accepts objects, arrays, and scalar roots, including strings, numbers, booleans, and `null`. JSON checks default to `type: "request"`; use `"response"` to apply response-side scopes. JSON-looking content in `text` stays in text mode.
+
+String and number values are scanned together as one document. Field and parent names provide context, including readable camelCase and snake_case labels. Keys are preserved and entity detections found only in keys are discarded. Key names do not force detection: your configured categories, sensitivities, scopes, and actions still apply. For example, the SDK's labeled-name fallback requires the `NAME` subcategory sensitivity to be `high`.
+
+A detected entity can match occurrences in multiple values, including under different keys. This is document-wide entity detection, not independent classification of each field.
+
+### Request parameters
+
+| Field | Type | Behavior |
+|-------|------|----------|
+| `messages` | Array of messages | Conversation input. Use one content field per request. |
+| `text` | String | Raw text input. |
+| `json` | Any JSON value | Structured input. Cannot be combined with `text` or `messages`, even if those fields are `null`. |
+| `type` | `"request"` or `"response"` | Selects check scopes. JSON defaults to request; raw text defaults to response. Messages ending in an assistant message use response checks. Set this explicitly in integrations. |
+| `hashing_mode` | `"case_sensitive"` or `"case_insensitive"` | Optional; defaults to `"case_sensitive"`. Controls placeholder hashes in every input format. |
+| `metadata` | JSON metadata | Optional caller metadata stored with the SDK check. |
 
 ## Response
 
-The endpoint always returns HTTP 200. The response shape depends on which input format you used.
+Completed checks return HTTP 200, including content blocked by guardrails. Authentication, validation, and policy-access errors use non-2xx responses. The response shape depends on the input and check type.
 Use `action` for application control flow, and use `predictions` to inspect what
 the guardrail found.
 
@@ -96,7 +133,10 @@ the guardrail found.
     }
   ],
   "categories_detected": ["pii", "email", "ssn"],
+  "similar_entities": [],
+  "similar_entities_truncated": false,
   "placeholder_masking": {
+    "hashing_mode": "case_sensitive",
     "text": "My SSN is <qe-01a54629efb95228>.",
     "messages": [
       { "role": "user", "content": "My SSN is <qe-01a54629efb95228>." }
@@ -142,7 +182,10 @@ the guardrail found.
     }
   ],
   "categories_detected": ["pii", "phone"],
+  "similar_entities": [],
+  "similar_entities_truncated": false,
   "placeholder_masking": {
+    "hashing_mode": "case_sensitive",
     "text": "Call me at <qe-59c0b4a6fc3c3b2c>.",
     "messages": null,
     "placeholders": [
@@ -164,23 +207,195 @@ the guardrail found.
   `entity_texts_with_subcategories`
 - `error` - only present when `status` is `blocked`
 
-### Placeholder masking
+### JSON response
 
-Every response also includes `placeholder_masking`. This is an additive view of
-the same content where sensitive values are replaced with hash-based placeholders
-such as `<qe-358100c210df061d>`, `<qe-4c658021550ddeb2>`, or
-`<qe-f52fbd32b2b3b86f>`.
+This example assumes `NAME` is detected and its configured action is `redact`:
 
-Use this when your application needs visually distinct, reversible placeholders
-instead of same-length `X` redaction. The placeholder token uses the format
-`<qe-{16-char-hash}>` and stays stable for the exact matched source value;
-`placeholders[]` maps each token back to the original value and detection
-metadata. Message checks include `placeholder_masking.messages`; raw text checks
-set `placeholder_masking.messages` to `null`.
+```json
+{
+  "status": "redacted",
+  "action": "redact",
+  "original_json": {"name": "praneeth", "active": true, "notes": null},
+  "processed_json": {"name": "XXXXXXXX", "active": true, "notes": null},
+  "original_text": "{\"name\": \"praneeth\", \"active\": true, \"notes\": null}",
+  "processed_text": "{\"name\": \"XXXXXXXX\", \"active\": true, \"notes\": null}",
+  "predictions": [
+    {
+      "id": "data_risk_category_pii",
+      "type": "redact",
+      "sensitive_entities": ["praneeth"],
+      "entity_texts_with_subcategories": {"praneeth": "NAME"},
+      "entity_json_paths": {"praneeth": ["/name"]}
+    }
+  ],
+  "categories_detected": ["pii"],
+  "placeholder_masking": {
+    "hashing_mode": "case_sensitive",
+    "json": {"name": "<qe-3eec439a42808ba8>", "active": true, "notes": null},
+    "text": "{\"name\": \"<qe-3eec439a42808ba8>\", \"active\": true, \"notes\": null}",
+    "messages": null,
+    "placeholders": [
+      {
+        "placeholder": "<qe-3eec439a42808ba8>",
+        "value": "praneeth",
+        "sub_category": "NAME",
+        "category_id": "data_risk_category_pii",
+        "action": "redact",
+        "json_paths": ["/name"]
+      }
+    ]
+  },
+  "similar_entities": [],
+  "similar_entities_truncated": false
+}
+```
+
+- `original_json`, `processed_json`, and `placeholder_masking.json` are actual JSON values. The corresponding `*_text` fields contain serialized JSON for compatibility.
+- `processed_json` follows the configured redact or partial-redact action. Safe and monitor-only values stay unchanged. Keys, nesting, array order, empty containers, booleans, and `null` are preserved. A masked number becomes a string; unchanged numbers keep their numeric type.
+- Blocked results have `action: "block"`, `processed_json: null`, `processed_text: null`, and `error` details. Placeholder output remains available for inspection and does not override the block. Check `action` before consuming content; `null` can also be a valid safe JSON root.
+- `entity_json_paths` maps each detected entity to matching value locations. Placeholder entries include `json_paths` for replaced locations. These are JSON Pointers: `/contacts/0/email` addresses an array item, `~` is escaped as `~0`, `/` as `~1`, and `""` means the root.
+
+### Placeholder masking and hashing mode
+
+Every completed check includes `placeholder_masking`, an additional view with full placeholders for entities whose effective action is redact, partial-redact, or block. Monitor-only values remain unchanged. Use `placeholder_masking.messages` for request messages, `.text` for raw text, or `.json` for JSON input. Text and JSON checks set `.messages` to `null`.
+
+Tokens have the format `<qe-{16-char-hash}>`: the first 16 hexadecimal characters of an unsalted SHA-256 hash of the UTF-8 value. `placeholders[]` retains original values and detection metadata so your application can restore values using the mapping; the hash itself is not reversible.
+
+| `hashing_mode` | Hash input | Example |
+|----------------|------------|---------|
+| `case_sensitive` (default) | Exact matched source value | `Praneeth` and `praneeth` have different hashes. |
+| `case_insensitive` | Source value after Unicode case folding | `Praneeth`, `praneeth`, and `PRANEETH` all produce `<qe-3eec439a42808ba8>`. |
+
+The selected mode is echoed in `placeholder_masking.hashing_mode`. It applies to all placeholder entity types and changes hashing only; detection, ordinary redaction, and policy actions are unaffected. Whitespace, punctuation, and accents remain part of the hash input.
+
+Repeated identical JSON values share a placeholder entry with every replaced path. In case-insensitive mode, different source spellings can share a token but retain separate mapping entries with their exact `value` and `json_paths` or `message_index`. Preserve the location and source spelling if you need to restore exact capitalization: the shared token alone cannot distinguish it.
+
+### Similar entities
+
+Every completed check also includes `similar_entities` and `similar_entities_truncated`. These are response fields, not request parameters. When both names in `{"first": "Praneeth", "full": "Praneeth Bedapudi"}` are detected, a case-insensitive check can return:
+
+```json
+{
+  "similar_entities": [
+    {
+      "relationship": "possible_name_match",
+      "reason": "name_contains",
+      "entities": [
+        {
+          "value": "Praneeth",
+          "hash": "3eec439a42808ba8",
+          "placeholder": "<qe-3eec439a42808ba8>",
+          "category_id": "data_risk_category_pii",
+          "sub_category": "NAME",
+          "json_paths": ["/first", "/full"]
+        },
+        {
+          "value": "Praneeth Bedapudi",
+          "hash": "e22c3df7649a8ca6",
+          "placeholder": "<qe-e22c3df7649a8ca6>",
+          "category_id": "data_risk_category_pii",
+          "sub_category": "NAME",
+          "json_paths": ["/full"]
+        }
+      ]
+    }
+  ],
+  "similar_entities_truncated": false
+}
+```
+
+Pairs are advisory textual similarities, not verified identity matches, and do not merge hashes or change detection or masking. Only detected person-name subcategories within the same category are compared; passwords, identifiers, emails, and usernames are excluded. Names that were not detected are not inferred.
+
+| `reason` | Meaning |
+|----------|---------|
+| `case_variant` | Same value after case folding. |
+| `normalized_name_match` | Same name tokens after Unicode, spacing, and punctuation normalization. |
+| `name_contains` | One detected name is a contiguous sequence of whole name tokens in the other, including a surname. |
+
+Matching does not use fuzzy spelling, initials, or partial-word matches such as Ann/Anna. Pairs do not imply transitive identity groups. Similarity normalization does not change the hash input: hashes always follow `hashing_mode`, and short and full names keep separate hashes.
+
+Entities retain actual source spellings and `json_paths` for JSON or `message_indices` for messages. JSON keys are excluded. Monitor-only or overlapping name detections may appear, so a reported hash need not appear in the masked output. With no matching names the list is `[]`.
+
+Candidate values and returned pairs are capped at 256 each. `similar_entities_truncated: true` signals either limit; this limit affects only these advisory results, not detection or masking.
+
+### Validation errors
+
+Check the HTTP status before reading a check result. Validation errors use an `error` object with `message`, `type: "invalid_request_error"`, and `code`.
+
+| HTTP status | `error.code` | Cause |
+|-------------|--------------|-------|
+| 400 | `invalid_json` | Malformed request JSON or a request envelope that is not an object. |
+| 400 | `missing_content` | Missing or invalid text/messages content. |
+| 400 | `invalid_json_input` | `json` combined with another content field, invalid JSON-mode `type`, invalid Unicode, NaN/Infinity, or nesting beyond 64 levels. |
+| 400 | `invalid_hashing_mode` | Any hashing mode other than the two supported strings, including `null` or booleans. |
+
 
 ---
 
 ## Code Examples
+
+### Structured JSON - Python
+
+Send the JSON value without stringifying it. Check the action first and read `processed_json` directly, including when the safe result is `null`, `false`, `0`, or an empty value.
+
+```python
+import requests
+
+response = requests.post(
+    "https://guardrails-usa-2.quilr.ai/sdk/v1/check",
+    headers={"Authorization": "Bearer sk-quilr-xxx"},
+    json={
+        "type": "request",
+        "json": {"name": "Praneeth", "active": True, "notes": None},
+        "hashing_mode": "case_insensitive",
+        "metadata": {"source": "customer-profile"},
+    },
+    timeout=15,
+)
+response.raise_for_status()
+result = response.json()
+if result["action"] == "block":
+    raise ValueError(f"Blocked: {result['categories_detected']}")
+safe_json = result["processed_json"]
+placeholder_json = result["placeholder_masking"]["json"]
+possible_name_matches = result["similar_entities"]
+```
+
+### Structured JSON - JavaScript
+
+```javascript
+const response = await fetch("https://guardrails-usa-2.quilr.ai/sdk/v1/check", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer sk-quilr-xxx",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    type: "request",
+    json: { name: "Praneeth", active: true, notes: null },
+    hashing_mode: "case_insensitive",
+  }),
+});
+if (!response.ok) throw new Error(`Check failed: ${response.status}`);
+const result = await response.json();
+if (result.action === "block") throw new Error("Content blocked");
+const safeJson = result.processed_json;
+const placeholderJson = result.placeholder_masking.json;
+const possibleNameMatches = result.similar_entities;
+```
+
+### Structured JSON - cURL
+
+```bash
+curl -X POST https://guardrails-usa-2.quilr.ai/sdk/v1/check \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "response",
+    "json": {"name": "Praneeth", "active": true, "notes": null},
+    "hashing_mode": "case_insensitive"
+  }'
+```
 
 ### Python - `httpx` (async)
 

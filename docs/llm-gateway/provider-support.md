@@ -233,7 +233,7 @@ Match by either the provider type (`bedrock`, `openai_responses_azure`, `openai_
 **API Endpoint:** `/sdk/v1/check`
 **Auth:** `Authorization: Bearer sk-quilr-xxx`
 
-The SDK provides guardrails-only scanning - no upstream LLM provider needed. Check text for PII, PHI, adversarial prompts, and custom intents without forwarding to any model.
+The SDK provides guardrails-only scanning - no upstream LLM provider needed. Check text, messages, or structured JSON for PII, PHI, adversarial prompts, and custom intents. JSON mode preserves keys and structure while scanning values. Choose `hashing_mode` for stable placeholders and inspect advisory `similar_entities` in the response. See [SDK Mode](./features/sdk-mode) for request parameters and examples, or try **Quilr SDK** in the [LLM Gateway Playground](/llm-gateway-playground).
 
 ### Python
 

@@ -681,17 +681,55 @@ function getDetectedEntities(result) {
       entity,
       subcategory: subcategories[entity] ?? 'detected',
       ruleName: prediction.name ?? prediction.id ?? 'prediction',
+      jsonPaths: prediction.entity_json_paths?.[entity] ?? [],
     }));
   });
 }
 
-function getSdkSafeText(result, checkType) {
-  if (!result) return null;
-  if (checkType === 'response') return result.processed_text ?? null;
-  if (Array.isArray(result.messages)) {
-    return result.messages.map((m) => `${m.role}: ${m.content}`).join('\n');
+function parseSdkContent(content, inputFormat) {
+  if (inputFormat === 'text') {
+    return { value: content, error: content.trim() ? null : 'Enter text to check.' };
   }
-  return null;
+  const parsed = parseJsonWithError(content);
+  if (parsed.error) return parsed;
+  if (inputFormat === 'messages') {
+    if (!Array.isArray(parsed.value) || !parsed.value.length || parsed.value.some(
+      (message) => !isPlainObject(message) || typeof message.role !== 'string' ||
+        !(typeof message.content === 'string' || Array.isArray(message.content)),
+    )) {
+      return { value: null, error: 'Enter a non-empty messages array with a role and content for each message.' };
+    }
+    return parsed;
+  }
+  function validate(value, depth = 0) {
+    if (depth > 64) throw new Error('JSON content exceeds the maximum nesting depth of 64.');
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+      throw new Error('JSON content must contain only finite numbers.');
+    }
+    if (typeof value === 'string') {
+      // encodeURIComponent rejects unpaired UTF-16 surrogates, like the API's UTF-8 validation.
+      try { encodeURIComponent(value); } catch { throw new Error('JSON content must contain valid Unicode.'); }
+    }
+    if (value && typeof value === 'object') {
+      for (const [key, child] of Object.entries(value)) {
+        if (!Array.isArray(value)) validate(key, 0);
+        validate(child, depth + 1);
+      }
+    }
+  }
+  try {
+    validate(parsed.value);
+    return parsed;
+  } catch (error) {
+    return { value: null, error: error.message };
+  }
+}
+
+function getSdkSafeText(result) {
+  if (!result || result.action === 'block' || result.status === 'blocked') return null;
+  if (Object.prototype.hasOwnProperty.call(result, 'processed_json')) return formatJson(result.processed_json);
+  if (Array.isArray(result.messages)) return formatJson(result.messages);
+  return result.processed_text ?? null;
 }
 
 function getSdkVerdict(result) {
@@ -988,11 +1026,12 @@ function buildSdkCurl(url, payload, key) {
 }
 
 function buildSdkPython(url, payload, key) {
-  return `import requests
+  return `import json
+import requests
 
 url = ${JSON.stringify(url)}
 sdk_key = ${JSON.stringify(key)}
-payload = ${formatJson(payload)}
+payload = json.loads(${JSON.stringify(JSON.stringify(payload))})
 
 response = requests.post(
     url,
@@ -1005,8 +1044,12 @@ judgement = response.json()
 
 if judgement.get("action") == "block":
     raise ValueError(f"Blocked: {judgement.get('categories_detected', [])}")
-if judgement.get("action") == "redact":
-    safe = judgement.get("messages") or judgement.get("processed_text")
+if "processed_json" in judgement:
+    safe = judgement["processed_json"]
+elif "messages" in judgement:
+    safe = judgement["messages"]
+else:
+    safe = judgement["processed_text"]
 `;
 }
 
@@ -1026,7 +1069,9 @@ const judgement = await response.json();
 if (judgement.action === "block") {
   throw new Error(\`Blocked: \${(judgement.categories_detected ?? []).join(", ")}\`);
 }
-const safe = judgement.messages ?? judgement.processed_text;
+const safe = Object.prototype.hasOwnProperty.call(judgement, "processed_json")
+  ? judgement.processed_json
+  : (judgement.messages ?? judgement.processed_text);
 `;
 }
 
@@ -1064,9 +1109,19 @@ export default function LlmGatewayStudio() {
 
   const [payloadText, setPayloadText] = useState('');
   const [sdkCheckType, setSdkCheckType] = useState('request');
-  const [sdkContent, setSdkContent] = useState(
-    'My SSN is 219-09-4823. Please help me update my profile.',
-  );
+  const [sdkInputFormat, setSdkInputFormat] = useState('text');
+  const [sdkHashingMode, setSdkHashingMode] = useState('case_sensitive');
+  const [sdkContents, setSdkContents] = useState(() => ({
+    text: 'My SSN is 219-09-4823. Please help me update my profile.',
+    messages: formatJson([{ role: 'user', content: 'My SSN is 219-09-4823. Please help me update my profile.' }]),
+    json: formatJson({
+      customer: { firstName: 'Praneeth', fullName: 'Praneeth Bedapudi', name: 'PRANEETH' },
+      contacts: [{ email: 'praneeth@example.com' }],
+      active: true,
+      notes: null,
+    }),
+  }));
+  const sdkContent = sdkContents[sdkInputFormat];
 
   /* Log export surface */
   const [logGateway, setLogGateway] = useState('llm');
@@ -1179,14 +1234,13 @@ export default function LlmGatewayStudio() {
   const editorError =
     isEditor && (editorParse.error || (!isPlainObject(editorParse.value) ? 'Request body must be a JSON object.' : null));
 
-  const sdkPayload = useMemo(() => {
-    if (sdkCheckType === 'response') return { type: 'response', text: sdkContent };
-    return {
-      type: 'request',
-      messages: [{ role: 'user', content: sdkContent }],
-      metadata: { caller: 'docs-playground', team_id: 'sales' },
-    };
-  }, [sdkCheckType, sdkContent]);
+  const sdkParse = useMemo(() => parseSdkContent(sdkContent, sdkInputFormat), [sdkContent, sdkInputFormat]);
+  const sdkPayload = useMemo(() => sdkParse.error ? null : ({
+    type: sdkCheckType,
+    [sdkInputFormat]: sdkParse.value,
+    hashing_mode: sdkHashingMode,
+    metadata: { caller: 'docs-playground' },
+  }), [sdkCheckType, sdkInputFormat, sdkParse, sdkHashingMode]);
 
   const effectivePayload = useMemo(() => {
     if (isSdk) return sdkPayload;
@@ -1232,6 +1286,7 @@ export default function LlmGatewayStudio() {
       return buildLogCurl(requestUrl, snippetKeyValue, logQueryPreview);
     }
     if (isSdk) {
+      if (!sdkPayload) return 'Enter valid content to generate a request example.';
       if (codeTab === 'python') return buildSdkPython(requestUrl, sdkPayload, snippetKeyValue);
       if (codeTab === 'javascript') return buildSdkJs(requestUrl, sdkPayload, snippetKeyValue);
       return buildSdkCurl(requestUrl, sdkPayload, snippetKeyValue);
@@ -1804,6 +1859,7 @@ export default function LlmGatewayStudio() {
   async function runSingle() {
     if (isRunning) return;
     if (isEditor && editorError) return;
+    if (isSdk && !sdkPayload) return;
 
     setError(null);
     resetRunState();
@@ -2103,8 +2159,22 @@ export default function LlmGatewayStudio() {
                 setSdkCheckType(t);
                 resetRunState();
               }}
+              inputFormat={sdkInputFormat}
+              setInputFormat={(format) => {
+                setSdkInputFormat(format);
+                resetRunState();
+              }}
+              hashingMode={sdkHashingMode}
+              setHashingMode={(mode) => {
+                setSdkHashingMode(mode);
+                resetRunState();
+              }}
               content={sdkContent}
-              setContent={setSdkContent}
+              setContent={(value) => {
+                setSdkContents((contents) => ({ ...contents, [sdkInputFormat]: value }));
+                resetRunState();
+              }}
+              validationError={sdkParse.error}
               onRun={runSingle}
               isRunning={isRunning}
               canRun={canRun}
@@ -2586,11 +2656,19 @@ function buildEditorResult(surface, body) {
 
 /* ────────────────────────────────── SDK pane ───────────────────────── */
 
-function SdkPane({ styles, checkType, setCheckType, content, setContent, onRun, isRunning, canRun, lastResponse, error }) {
+function SdkPane({
+  styles, checkType, setCheckType, inputFormat, setInputFormat, hashingMode, setHashingMode,
+  content, setContent, validationError, onRun, isRunning, canRun, lastResponse, error,
+}) {
   const result = lastResponse?.ok ? lastResponse.body : null;
   const verdict = result ? getSdkVerdict(result) : null;
   const entities = getDetectedEntities(result);
-  const safeText = getSdkSafeText(result, checkType);
+  const safeText = getSdkSafeText(result);
+  const masking = result?.placeholder_masking;
+  const maskedContent = masking && (Object.prototype.hasOwnProperty.call(masking, 'json')
+    ? formatJson(masking.json)
+    : Array.isArray(masking.messages) ? formatJson(masking.messages) : masking.text);
+  const similarEntities = result?.similar_entities ?? [];
 
   return (
     <>
@@ -2604,6 +2682,8 @@ function SdkPane({ styles, checkType, setCheckType, content, setContent, onRun, 
             type="button"
             className={checkType === 'request' ? styles.sdkToggleActive : ''}
             onClick={() => setCheckType('request')}
+            disabled={isRunning}
+            aria-pressed={checkType === 'request'}
           >
             Request
           </button>
@@ -2611,21 +2691,60 @@ function SdkPane({ styles, checkType, setCheckType, content, setContent, onRun, 
             type="button"
             className={checkType === 'response' ? styles.sdkToggleActive : ''}
             onClick={() => setCheckType('response')}
+            disabled={isRunning}
+            aria-pressed={checkType === 'response'}
           >
             Response
           </button>
         </div>
       </div>
 
+      <div className={styles.sdkOptions}>
+        <label>
+          <span className={styles.fieldLabel}>Input format</span>
+          <select className={styles.input} value={inputFormat} onChange={(e) => setInputFormat(e.target.value)} disabled={isRunning}>
+            <option value="text">Text</option>
+            <option value="messages">Messages</option>
+            <option value="json">JSON</option>
+          </select>
+        </label>
+        <label>
+          <span className={styles.fieldLabel}>Hashing mode</span>
+          <select className={styles.input} value={hashingMode} onChange={(e) => setHashingMode(e.target.value)} disabled={isRunning}>
+            <option value="case_sensitive">Case sensitive (default)</option>
+            <option value="case_insensitive">Case insensitive</option>
+          </select>
+        </label>
+      </div>
+      <p className={styles.sdkHint}>
+        {hashingMode === 'case_insensitive'
+          ? 'Case variants share a hash. Original spellings stay in the placeholder mappings.'
+          : 'Hashes use the exact matched value, including its capitalization.'}
+        {' '}Hashing mode only changes placeholders; detection and policy actions stay the same.
+      </p>
       <label className={styles.sdkField}>
-        <span className={styles.fieldLabel}>{checkType === 'request' ? 'User message' : 'Model output'}</span>
+        <span className={styles.fieldLabel}>
+          {inputFormat === 'json' ? 'JSON content' : inputFormat === 'messages' ? 'Messages array' : checkType === 'request' ? 'User input' : 'Model output'}
+        </span>
         <textarea
-          className={styles.sdkText}
+          className={`${styles.sdkText} ${inputFormat !== 'text' ? styles.mono : ''}`}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          rows={5}
+          rows={inputFormat === 'text' ? 5 : 10}
+          spellCheck={false}
+          disabled={isRunning}
+          aria-invalid={Boolean(validationError)}
+          aria-describedby={validationError ? 'sdk-validation-error' : 'sdk-input-hint'}
         />
       </label>
+      <p id="sdk-input-hint" className={styles.sdkHint}>
+        {inputFormat === 'json'
+          ? 'Enter the JSON value to scan, without a request wrapper. Objects, arrays, strings, numbers, booleans, and null are supported. Keys and structure are preserved.'
+          : inputFormat === 'messages'
+            ? 'Enter an OpenAI-style messages array. Request checks select recent user messages; a final assistant message or Response type checks the last message as text.'
+            : 'Checks this string as text. Choose JSON to scan structured values.'}
+      </p>
+      {validationError && <div id="sdk-validation-error" className={styles.composerError} role="alert">{validationError}</div>}
 
       {verdict && (
         <div className={`${styles.verdict} ${styles[`tone_${verdict.tone}`]}`}>
@@ -2653,6 +2772,7 @@ function SdkPane({ styles, checkType, setCheckType, content, setContent, onRun, 
                 <div>
                   <strong>{item.subcategory}</strong>
                   <span>{item.ruleName}</span>
+                  {item.jsonPaths.length > 0 && <span>JSON paths: {item.jsonPaths.map((path) => path === '' ? '(root)' : path).join(', ')}</span>}
                 </div>
               </div>
             ))}
@@ -2660,16 +2780,43 @@ function SdkPane({ styles, checkType, setCheckType, content, setContent, onRun, 
         </div>
       )}
 
-      {safeText && (
+      {safeText !== null && (
         <div className={styles.resultCard}>
-          <div className={styles.previewLabel}>Caller-safe content</div>
+          <div className={styles.previewLabel}>{Object.prototype.hasOwnProperty.call(result, 'processed_json') ? 'Processed JSON' : 'Caller-safe content'}</div>
           <pre className={styles.resultBody}>{safeText}</pre>
+        </div>
+      )}
+
+      {masking && (
+        <div className={styles.resultCard}>
+          <div className={styles.previewLabel}>Placeholder masking</div>
+          <p className={styles.subtle}>
+            Hashing mode: <code>{masking.hashing_mode ?? 'case_sensitive'}</code>.
+            {(result.action === 'block' || result.status === 'blocked') && ' Inspection only: this content is blocked. Do not forward it.'}
+          </p>
+          <pre className={styles.resultBody}>{maskedContent}</pre>
+          <details>
+            <summary>Placeholder mappings ({masking.placeholders?.length ?? 0})</summary>
+            <pre className={styles.resultBody}>{formatJson(masking.placeholders ?? [])}</pre>
+          </details>
+        </div>
+      )}
+      {result && (
+        <div className={styles.resultCard}>
+          <div className={styles.previewLabel}>Similar entities ({similarEntities.length})</div>
+          <p className={styles.subtle}>Possible name matches are advisory. They do not verify identity or change masking.</p>
+          {similarEntities.length > 0 ? (
+            <pre className={styles.resultBody}>{formatJson(similarEntities)}</pre>
+          ) : <p className={styles.subtle}>No similar detected names returned.</p>}
+          {result.similar_entities_truncated && (
+            <p className={styles.warn}>Similar entities truncated: the 256 candidate or pair limit was reached. Detection and masking are unaffected.</p>
+          )}
         </div>
       )}
 
       <div className={styles.composer}>
         <div className={styles.editorRunNote}>Needs a quilr_sdk key. Returns allow / redact / block.</div>
-        <button type="button" className={styles.sendBtn} onClick={onRun} disabled={!canRun || !content.trim()}>
+        <button type="button" className={styles.sendBtn} onClick={onRun} disabled={!canRun || Boolean(validationError)}>
           {isRunning ? <Loader2 size={15} className={styles.spin} aria-hidden /> : <ShieldCheck size={15} aria-hidden />} Run
           check
         </button>
