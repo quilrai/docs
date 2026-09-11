@@ -219,8 +219,13 @@ The QuilrAI gateway adds **~40 ms** of processing latency for a typical 12,000-t
 | **Gateway overhead** | ~40 ms per 12,000 tokens |
 | **Overhead source** | Auth + guardrails + routing + logging |
 | **LLM response time** | Improved by 2-5% due to server-side connection optimizations |
+| **Guardian Agent overhead** | ~700 ms per request when enabled, scenario dependent |
 
 Gateway latency scales with token count. Shorter requests are faster; longer requests proportionally slower.
+
+:::note Guardian Agent adds to this
+The ~40 ms figure covers the standard pipeline. When [Guardian Agent](./features/guardian-agent) is enabled on a key, expect roughly **~700 ms** of additional latency per request. The real number depends on the scenario and complexity: which Guardian feature groups are on, request size, OSV and package registry lookups, and whether a dependency finding triggers a corrective retry. See [Latency Impact](./features/guardian-agent#latency-impact).
+:::
 
 ### Connection Pooling & Performance Under Load
 

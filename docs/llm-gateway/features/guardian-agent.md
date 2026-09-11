@@ -204,6 +204,22 @@ For streaming requests with dependency checks enabled, the gateway first sends a
 
 Other response-side Guardian Agent checks are skipped for normal streaming passthrough.
 
+## Latency Impact
+
+Guardian Agent runs additional checks inside the request and response path, so it adds latency on top of the [normal gateway overhead](../ha-and-sla#gateway-latency).
+
+As a planning figure, expect Guardian Agent to add **~700 ms** per request when it is enabled. The real number varies with the scenario and the complexity of the request:
+
+- **Which feature groups are enabled.** Running coding helpers and task adherence together costs more than running one of them.
+- **Request size and complexity.** Longer conversations and larger dependency manifests take longer to evaluate.
+- **Dependency lookups.** OSV vulnerability checks and registry latest-version lookups are network calls, and their cost grows with the number of packages extracted from the response.
+- **Retries.** A dependency finding triggers one corrective retry, which adds a second upstream model call to the request.
+- **Streaming with dependency checks.** The gateway first issues a hidden non-streaming draft request, so time to first token reflects the full draft rather than the first upstream token.
+
+:::note
+~700 ms is a guideline, not a guarantee. Requests that need no retry and no registry lookups land well below it, and requests that trigger a retry or many package lookups can go above it.
+:::
+
 ## Endpoint Coverage
 
 Guardian Agent is implemented on these LLM Gateway surfaces:
