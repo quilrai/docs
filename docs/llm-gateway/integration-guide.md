@@ -19,6 +19,7 @@ Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
 | **USA (US East)** | `https://guardrails-usa-2.quilr.ai` |
 | **India** | `https://guardrails-india-1.quilr.ai` |
 | **Japan** | `https://guardrails-jp-1.quilr.ai` |
+| **Europe** | `https://guardrails-europe-1.quilr.ai` |
 
 For production traffic, use the location-specific endpoint closest to your application. The examples below use the US East endpoint; replace it with your nearest regional endpoint if needed. Use `https://guardrails.quilr.ai` only when you explicitly want global auto-routing.
 
