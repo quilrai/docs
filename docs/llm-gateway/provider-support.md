@@ -31,6 +31,7 @@ Your app authenticates to the gateway using a QuilrAI API key. Provider credenti
 | Vertex AI | ✓ | - | - | - | - | - | - | ✓ | - |
 | Oracle OCI Generative AI (Chat) | ✓ | - | - | - | - | - | - | Manual | - |
 | Oracle OCI Generative AI (Responses) | - | - | - | - | - | ✓ | - | Manual | - |
+| Sarvam | ✓ | - | - | ✓ | ✓ | - | - | ✓ | - |
 | AWS Bedrock (Embeddings) | - | ✓ | - | - | - | - | - | ✓ | - |
 | Cohere Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
 | AWS Bedrock Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
@@ -41,6 +42,8 @@ Your app authenticates to the gateway using a QuilrAI API key. Provider credenti
 | Microsoft Copilot Studio | - | - | - | - | - | - | - | - | ✓ |
 
 Responses and Realtime are supported on dedicated provider types (`openai_responses`, `openai_responses_azure`, `openai_realtime`, `openai_realtime_azure`). A key configured for any other primary provider must add one of these as an additional provider on the key to access the Responses or Realtime endpoints.
+
+Sarvam also serves translation, transliteration, and language detection, which have no column above. See [Sarvam Speech and Text](#sarvam-speech-and-text) for those endpoints, the native `/sarvam/` routes, and the model catalog.
 
 ## Chat Completions
 
@@ -55,6 +58,7 @@ Responses and Realtime are supported on dedicated provider types (`openai_respon
 | DeepSeek | API Key | `api_key` | - |
 | Gemini (OpenAI-compatible) | API Key | `api_key` | - |
 | General LLM (vLLM, Ollama, etc.) | API Key | `api_key`, `base_url` | - |
+| Sarvam | API Key | `api_key` | - |
 | Anthropic Messages (via OpenAI-compatible) | API Key | `api_key` | `anthropic_version` |
 | Anthropic Messages on Bedrock (via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
 | Anthropic Messages on Bedrock (via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
@@ -72,6 +76,8 @@ The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In a
 AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
 
 For Oracle setup, including the customer-side Admit policy and both tenancy-wide and compartment-scoped access, see [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy.md).
+
+Sarvam keys serve chat here as well, but only with Sarvam chat models. Its speech and text models are rejected on this endpoint and have dedicated routes instead - see [Sarvam Speech and Text](#sarvam-speech-and-text).
 
 ## Anthropic Messages
 
@@ -134,8 +140,44 @@ Request-side DLP scans text parts of the request. Non-text parts (image / audio 
 |----------|:---:|:---:|-----------|-----------------|
 | OpenAI | ✓ | ✓ | API Key | `api_key` |
 | Azure OpenAI | ✓ | ✓ | API Key | `api_key`, `azure_endpoint` |
+| Sarvam | ✓ | ✓ | API Key | `api_key` |
 
 STT also supports `/v1/audio/translations`. Azure deployments use the `/openai/deployments/{deployment}/` path prefix.
+
+On a Sarvam key these compatible routes are adapters over Sarvam's own APIs. QuilrAI maps `input`, `voice`, `speed`, and `response_format` to Sarvam's `text`, `speaker`, `pace`, and `output_audio_codec`; the default compatible audio format is MP3 and `pcm` maps to raw linear16. Transcriptions accept `response_format` of `json`, `verbose_json`, or `text`, and `timestamp_granularities[]=segment`. `model` is required on the compatible routes. Sarvam also exposes native request and response shapes on `/sarvam/` - see below.
+
+## Sarvam Speech and Text
+
+**Endpoints:** `/sarvam/text-to-speech`, `/sarvam/speech-to-text`, `/sarvam/speech-to-text-translate`, `/sarvam/translate`, `/sarvam/transliterate`, `/sarvam/text-lid`
+**Auth:** `Authorization: Bearer sk-quilr-xxx`, `api-key: sk-quilr-xxx`, or `api-subscription-key: sk-quilr-xxx`
+
+Sarvam is configured as provider `sarvam` with an `api_key`, as a primary or an additional provider, and covers Indic speech and text alongside chat. The native `/sarvam/` routes take and return Sarvam's own request and response shapes; the OpenAI-compatible audio routes above cover the same speech models for apps that already speak OpenAI. Every upstream call uses the stored provider credential, so callers never send a Sarvam key. Requests are synchronous.
+
+| Endpoint | Purpose | Models | Notes |
+|----------|---------|--------|-------|
+| `/sarvam/text-to-speech` | Speech synthesis | `bulbul:v3` (default), `bulbul:v2` | Returns Sarvam JSON `{request_id, audios[]}`; join the `audios` fragments and base64-decode them |
+| `/sarvam/speech-to-text` | Transcription | `saaras:v3` (default), `saaras:v4` | `multipart/form-data` with one non-empty `file` field |
+| `/sarvam/speech-to-text-translate` | Speech translation | `saaras:v3`, `saaras:v4`, `saaras:v2.5` (legacy) | v3 and v4 require `mode=translate`; v2.5 is translation-only, takes no `mode`, and uses the legacy upstream route |
+| `/sarvam/translate` | Text translation | `mayura:v1` (default), `sarvam-translate:v1` | Returns `translated_text` |
+| `/sarvam/transliterate` | Transliteration | `sarvam-transliterate` | Gateway alias, no upstream model parameter |
+| `/sarvam/text-lid` | Language detection | `sarvam-text-lid` | Returns `language_code` and `script_code` |
+
+Chat runs on the standard OpenAI-compatible chat endpoint rather than a `/sarvam/` route:
+
+| Model | Upstream | Notes |
+|-------|----------|-------|
+| `sarvam-105b`, `sarvam-105b-conversations` | Sarvam `/v1` | JSON and `stream=true` SSE, through the usual chat policy, DLP, tool, and quota pipeline |
+| `glm5.2`, `gemma4`, `deepseekv4-flash` | Sarvam `/v2` | Beta, and gated on your Sarvam account. `extra_body` is preserved as a nested wire field |
+
+### Notes and limits
+
+- **Model selection.** Every model and gateway alias you intend to call, including `sarvam-transliterate` and `sarvam-text-lid`, must be enabled in the key's selected models. `transliterate` and `text-lid` default to their alias automatically, and the gateway strips aliases and provider selectors before forwarding.
+- **Discovery.** Model listing returns the Sarvam catalog without calling the provider. Optional validation makes one small request per selected API type, and only validation confirms which models the supplied Sarvam key can actually reach.
+- **Synthesis.** `language_code` is required on both synthesis routes; the older `target_language_code` alias is accepted, and conflicting values are rejected. `bulbul:v3` accepts 2500 characters and defaults to speaker `shubh` at 24000 Hz; `bulbul:v2` accepts 1500 and defaults to `anushka` at 22050 Hz. Optional parameters are `speech_sample_rate` plus `temperature` and `dict_id` on v3, or `pitch`, `loudness`, `enable_preprocessing`, and `enable_cached_responses` on v2.
+- **Speech recognition.** Modern modes are `transcribe`, `translate`, `verbatim`, `translit`, and `codemix`. Only segment timestamps are supported. `keyterms` on Saaras v4 is a JSON-encoded list of at most 50 strings of 1 to 64 characters; legacy v2.5 takes `prompt` instead. Use recordings under 30 seconds; the gateway caps Sarvam multipart bodies at 25 MB.
+- **Text processing.** `mayura:v1` covers 11 languages, accepts `auto` as the source language, and caps input at 1000 characters. `sarvam-translate:v1` covers 23 languages, requires an explicit source language, and caps input at 2000 characters.
+- **Guardrails.** Request and response DLP run on synthesized text, transcripts, text hints such as `prompt` and `keyterms`, and translated or transliterated output. Uploaded audio is forwarded unchanged and is never written to gateway logs, and timestamp text is dropped when a transcript is redacted. App and model rate limits, request quotas, identity checks, and source IP rules apply as they do elsewhere.
+- **Not covered.** Sarvam has no embeddings, rerank, Responses, or Realtime surface on the gateway, and calling the embeddings endpoint with a Sarvam key or model is rejected. Document and batch workflows, speech websockets, and streaming speech are outside this integration. Chat routing groups accept Sarvam chat models only.
 
 ## Embeddings
 
@@ -223,10 +265,11 @@ A key can have one primary provider plus any number of additional providers of t
 | Endpoint | Body field | Header | Query param |
 |----------|-----------|--------|-------------|
 | Chat Completions / Anthropic Messages / Vertex / Embeddings / Rerank | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
+| Sarvam speech and text (`/sarvam/`) | `provider` or `provider_label`, sent as a form field on the multipart speech routes | `X-Provider-Name` / `X-Provider-Label` | - |
 | Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Realtime (websocket) | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
 
-Match by either the provider type (`bedrock`, `openai_responses_azure`, `openai_realtime`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `cohere_rerank`, `bedrock_rerank`, `jina_rerank`, `voyage_rerank`, `general_rerank`, etc.) or the `label` you assigned to the additional provider when you added it in the dashboard.
+Match by either the provider type (`bedrock`, `openai_responses_azure`, `openai_realtime`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `cohere_rerank`, `bedrock_rerank`, `jina_rerank`, `voyage_rerank`, `general_rerank`, `sarvam`, etc.) or the `label` you assigned to the additional provider when you added it in the dashboard.
 
 ## SDK
 

@@ -607,7 +607,7 @@ Testing runs against generative chat and completion providers configured on your
 | Vertex generateContent | Google Vertex AI, with API key, express, service account, or default credentials |
 | OpenAI Responses | OpenAI Responses, Azure Responses, Oracle Responses |
 
-Non-generative endpoints such as embeddings, rerank, speech-to-text, text-to-speech, Assistants, and Realtime are not testable targets and are rejected before a run is queued.
+Non-generative endpoints such as embeddings, rerank, speech-to-text, text-to-speech, Sarvam translation, transliteration, and language detection, Assistants, and Realtime are not testable targets and are rejected before a run is queued. Sarvam chat is not a supported target yet either.
 
 ## Practical Use
 
