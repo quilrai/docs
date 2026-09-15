@@ -6,6 +6,7 @@ import ExpandableTable from '@site/src/components/ExpandableTable';
 import McpDecision, {McpSignalGrid} from '@site/src/components/McpDecision';
 import CopyField, {CopyFieldGroup} from '@site/src/components/CopyField';
 import ConsolePath from '@site/src/components/ConsolePath';
+import PolicyCard from '@site/src/components/PolicyCard';
 
 export default {
   ...MDXComponents,
@@ -17,4 +18,5 @@ export default {
   CopyField,
   CopyFieldGroup,
   ConsolePath,
+  PolicyCard,
 };

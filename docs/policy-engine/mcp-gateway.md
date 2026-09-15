@@ -17,33 +17,35 @@ The MCP Gateway evaluates its document at four stages, in pipeline order.
   {
     label: "session",
     items: [
-      "MCP server access",
-      "OneMCP dynamic tools and memory",
-      "Identity and managed auth",
-      "Capability cache mode",
+      "Server access",
+      "OneMCP",
+      "Identity",
+      "Cache mode",
     ],
   },
   {
     label: "discovery",
     items: [
-      "Tool, resource and prompt visibility",
+      "Tool visibility",
+      "Resources",
+      "Prompts",
     ],
   },
   {
     label: "request",
     items: [
-      "Tool, resource and prompt invocation",
+      "Invocation",
       "Human approval",
-      "Sensitive data inspection",
-      "Quotas and concurrency",
+      "Data scan",
+      "Quotas",
     ],
   },
   {
     label: "response",
     items: [
-      "Sensitive data inspection",
+      "Data scan",
       "Token savings",
-      "Web search security",
+      "Web search",
     ],
   },
 ]} />
@@ -86,30 +88,40 @@ Quota and concurrency dimensions are keyed by `tenant`, `user`, `agent`, `mcp`,
 
 ## Blocking a server
 
-```
-policy  block_unapproved_servers      priority 900      runs on session
-
-When  MCP name       is any of  Unapproved Notes, Legacy CRM
-Then  MCP access     →          deny
-```
+<PolicyCard
+  name="block_unapproved_servers"
+  stage="session"
+  priority={900}
+  when={[{ field: "MCP name", op: "is any of", values: ["Unapproved Notes", "Legacy CRM"] }]}
+  then={[{ effect: "MCP access", value: "deny" }]}
+/>
 
 Denied at session, so the agent never sees the server's tools at all.
 
 ## Hiding and denying a tool
 
-```
-policy  hide_destructive_github_tools    priority 850
-
-Rule 1  runs on discovery
-  When  MCP name                  is    GitHub
-  and   Tool is destructive       is    true
-  Then  Tool call access          →     deny
-
-Rule 2  runs on request
-  When  MCP name                  is    GitHub
-  and   Tool is destructive       is    true
-  Then  Tool call access          →     deny
-```
+<PolicyCard
+  name="hide_destructive_github_tools"
+  priority={850}
+  rules={[
+    {
+      label: "Rule 1 - runs on discovery",
+      when: [
+        { field: "MCP name", op: "is", value: "GitHub" },
+        { field: "Tool is destructive", op: "is", value: "true" },
+      ],
+      then: [{ effect: "Tool call access", value: "deny" }],
+    },
+    {
+      label: "Rule 2 - runs on request",
+      when: [
+        { field: "MCP name", op: "is", value: "GitHub" },
+        { field: "Tool is destructive", op: "is", value: "true" },
+      ],
+      then: [{ effect: "Tool call access", value: "deny" }],
+    },
+  ]}
+/>
 
 Denying at `discovery` removes the tool from the list the agent is offered.
 Denying at `request` refuses it if the agent calls it anyway. Use both: an
@@ -117,12 +129,13 @@ agent that cached an earlier tool list can still attempt a call.
 
 ## Requiring a human
 
-```
-policy  confirm_write_tools      priority 700      runs on request
-
-When  Tool tags            has entry  write
-Then  tool confirmation    →          required
-```
+<PolicyCard
+  name="confirm_write_tools"
+  stage="request"
+  priority={700}
+  when={[{ field: "Tool tags", op: "has entry", value: "write" }]}
+  then={[{ effect: "tool confirmation", value: "required" }]}
+/>
 
 The call pauses until a person approves it.
 
@@ -131,15 +144,24 @@ The call pauses until a person approves it.
 The MCP target carries an explicit map effect for this, so one rule can assign
 a different action to each data type.
 
-```
-policy  crm_data_actions      priority 700      runs on request
-
-When  MCP name                        is  Customer CRM
-Then  Actions per sensitive data type →   Auth & Secrets   block
-                                          Aadhaar Number / VID  redact
-                                          Name             monitor
-      Default sensitive data action   →   monitor
-```
+<PolicyCard
+  name="crm_data_actions"
+  stage="request"
+  priority={700}
+  when={[{ field: "MCP name", op: "is", value: "Customer CRM" }]}
+  then={[
+    {
+      effect: "Actions per sensitive data type",
+      value: "3 data types",
+      detail: [
+        { label: "Auth & Secrets", value: "block" },
+        { label: "Aadhaar Number / VID", value: "redact" },
+        { label: "Name", value: "monitor" },
+      ],
+    },
+    { effect: "Default sensitive data action", value: "monitor" },
+  ]}
+/>
 
 Each key resolves independently, so a rule that changes one data type never
 erases another rule's opinion on a different one. `Default sensitive data
@@ -154,16 +176,19 @@ condition in a separate rule.
 
 ## Quotas and concurrency
 
-```
-policy  per_user_tool_budget      priority 500      runs on request
-
-When  Route kind            is  direct
-Then  requests per minute   →   60
-      requests per day      →   5,000
-      quota window          →   rolling
-      quota dimensions      →   user, mcp
-      concurrent requests   →   4
-```
+<PolicyCard
+  name="per_user_tool_budget"
+  stage="request"
+  priority={500}
+  when={[{ field: "Route kind", op: "is", value: "direct" }]}
+  then={[
+    { effect: "requests per minute", value: "60" },
+    { effect: "requests per day", value: "5,000" },
+    { effect: "quota window", value: "rolling" },
+    { effect: "quota dimensions", values: ["user", "mcp"], tone: "info" },
+    { effect: "concurrent requests", value: "4" },
+  ]}
+/>
 
 Dimensions decide what the counter is keyed by. `user, mcp` gives each person a
 separate allowance on each MCP server. Quotas are reserved all or nothing, so a
@@ -171,27 +196,33 @@ call that would cross any limit is refused rather than partially served.
 
 ## Session shape
 
-```
-policy  contractor_session_posture      priority 800      runs on session
-
-When  Smart groups            includes (ignoring case)  Contractors
-Then  OneMCP dynamic tools    →  false
-      OneMCP memory           →  deny
-      forward user claims     →  false
-      cache mode              →  private
-```
+<PolicyCard
+  name="contractor_session_posture"
+  stage="session"
+  priority={800}
+  when={[{ field: "Smart groups", op: "includes (ignoring case)", value: "Contractors" }]}
+  then={[
+    { effect: "OneMCP dynamic tools", value: "false" },
+    { effect: "OneMCP memory", value: "deny" },
+    { effect: "forward user claims", value: "false" },
+    { effect: "cache mode", value: "private" },
+  ]}
+/>
 
 ## Response handling
 
-```
-policy  compress_and_fence_search     priority 400     runs on response
-
-When  MCP name                    is  Web Search
-Then  smart JSON compression      →   true
-      HTML to text                →   true
-      excluded domains            →   pastebin.com, raw.githubusercontent.com
-      result domain action        →   block
-```
+<PolicyCard
+  name="compress_and_fence_search"
+  stage="response"
+  priority={400}
+  when={[{ field: "MCP name", op: "is", value: "Web Search" }]}
+  then={[
+    { effect: "smart JSON compression", value: "true" },
+    { effect: "HTML to text", value: "true" },
+    { effect: "excluded domains", values: ["pastebin.com", "raw.githubusercontent.com"], tone: "info" },
+    { effect: "result domain action", value: "block" },
+  ]}
+/>
 
 ## Differences from the LLM Gateway target
 

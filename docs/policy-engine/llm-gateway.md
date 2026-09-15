@@ -22,13 +22,15 @@ The document is evaluated twice for a single model call.
   {
     label: "on request",
     items: [
-      "Gateway access, identity, network",
-      "Tool controls",
-      "Allowed models, routing",
-      "Rate, token, timeout limits",
-      "Budgets and usage quotas",
-      "Token savings, Prompt Store",
-      "Sensitive data inspection",
+      "Access",
+      "Identity",
+      "Tools",
+      "Models",
+      "Routing",
+      "Limits",
+      "Budgets",
+      "Token savings",
+      "Data scan",
     ],
   },
   {
@@ -40,8 +42,8 @@ The document is evaluated twice for a single model call.
   {
     label: "on response",
     items: [
-      "Sensitive data inspection",
-      "Hallucination checks",
+      "Data scan",
+      "Hallucination",
     ],
   },
 ]} />
@@ -88,55 +90,72 @@ cards.
 
 ### Block secrets everywhere
 
-```
-policy  block_request_secrets      priority 900      runs on request
-
-When  data found            is any of  Auth & Secrets
-Then  Sensitive data action →          block
-      Risk level            →          critical
-```
+<PolicyCard
+  name="block_request_secrets"
+  stage="request"
+  priority={900}
+  when={[{ field: "data found", op: "is any of", values: ["Auth & Secrets"] }]}
+  then={[
+    { effect: "Sensitive data action", value: "block" },
+    { effect: "Risk level", value: "critical" },
+  ]}
+/>
 
 No scope condition, so it covers every request the gateway sees. A high
 priority keeps it above narrower, more permissive rules.
 
 ### Redact personal data in responses
 
-```
-policy  redact_response_personal_data   priority 750   runs on response
-
-When  Application method type  is any of  chat, responses, assistants, +4
-and   data found               is any of  Personally Identifiable Information (PII)
-Then  Sensitive data action    →          redact
-      Risk level               →          high
-```
+<PolicyCard
+  name="redact_response_personal_data"
+  stage="response"
+  priority={750}
+  when={[
+    { field: "Application method type", op: "is any of", values: ["chat", "responses", "assistants", "+4"] },
+    { field: "data found", op: "is any of", values: ["Personally Identifiable Information (PII)"] },
+  ]}
+  then={[
+    { effect: "Sensitive data action", value: "redact" },
+    { effect: "Risk level", value: "high" },
+  ]}
+/>
 
 Use `partial-redact` instead to mask only part of a value, the usual choice for
 financial data where the last four digits still need to be readable.
 
 ### Introduce a detection safely
 
-```
-policy  monitor_selected_request_data   priority 200   runs on request
-
-When  Application method type  is any of  chat, responses, assistants, sdk_check
-and   data found               is any of  Email Address, Phone Number
-Then  Sensitive data action    →          monitor
-      Risk level               →          low
-```
+<PolicyCard
+  name="monitor_selected_request_data"
+  stage="request"
+  priority={200}
+  when={[
+    { field: "Application method type", op: "is any of", values: ["chat", "responses", "assistants", "sdk_check"] },
+    { field: "data found", op: "is any of", values: ["Email Address", "Phone Number"] },
+  ]}
+  then={[
+    { effect: "Sensitive data action", value: "monitor" },
+    { effect: "Risk level", value: "low" },
+  ]}
+/>
 
 Publish on `monitor`, read a week of activity, then raise it. A low priority
 keeps it clear of real enforcement rules.
 
 ### Stop prompt attacks at ingress
 
-```
-policy  block_prompt_attacks_at_ingress   priority 1000   runs on request
-
-When  data found            is any of  Prompt Injection Techniques,
-                                       Jailbreak Techniques
-Then  Sensitive data action →          block
-      Risk level            →          very_critical
-```
+<PolicyCard
+  name="block_prompt_attacks_at_ingress"
+  stage="request"
+  priority={1000}
+  when={[
+    { field: "data found", op: "is any of", values: ["Prompt Injection Techniques", "Jailbreak Techniques"] },
+  ]}
+  then={[
+    { effect: "Sensitive data action", value: "block" },
+    { effect: "Risk level", value: "very_critical" },
+  ]}
+/>
 
 Adversarial detections are ordinary data types, so prompt-attack defence has
 the same shape as secrets defence.
@@ -148,26 +167,40 @@ rules** as you need. Each rule picks its own data types and its own action;
 they all share the configuration's scope and priority. **Add data rule** adds
 another.
 
-```
-policy  support_copilot_data_actions   priority 700   runs on request
-
-Data rule 1
-  When  Application           is         Support Copilot
-  and   data found            is any of  Aadhaar Number / VID
-  Then  Sensitive data action →          redact
-        Risk level            →          high
-
-Data rule 2
-  When  Application           is         Support Copilot
-  and   data found            is any of  Name
-  Then  Sensitive data action →          monitor
-
-Data rule 3
-  When  Application           is         Support Copilot
-  and   data found            is any of  Auth & Secrets
-  Then  Sensitive data action →          block
-        Risk level            →          critical
-```
+<PolicyCard
+  name="support_copilot_data_actions"
+  stage="request"
+  priority={700}
+  rules={[
+    {
+      when: [
+        { field: "Application", op: "is", value: "Support Copilot" },
+        { field: "data found", op: "is any of", value: "Aadhaar Number / VID" },
+      ],
+      then: [
+        { effect: "Sensitive data action", value: "redact" },
+        { effect: "Risk level", value: "high" },
+      ],
+    },
+    {
+      when: [
+        { field: "Application", op: "is", value: "Support Copilot" },
+        { field: "data found", op: "is any of", value: "Name" },
+      ],
+      then: [{ effect: "Sensitive data action", value: "monitor" }],
+    },
+    {
+      when: [
+        { field: "Application", op: "is", value: "Support Copilot" },
+        { field: "data found", op: "is any of", value: "Auth & Secrets" },
+      ],
+      then: [
+        { effect: "Sensitive data action", value: "block" },
+        { effect: "Risk level", value: "critical" },
+      ],
+    },
+  ]}
+/>
 
 One request carrying an Aadhaar number, a customer name and an API key has the
 Aadhaar redacted, the name left alone but recorded, and the whole call refused
@@ -201,27 +234,41 @@ Tool Controls decides whether a call may proceed at all, separately from what
 data it carries, so an agent keeps its read tools while losing its dangerous
 ones.
 
-```
-policy  deny_public_repository_creation   priority 950   runs on request
+<PolicyCard
+  name="deny_public_repository_creation"
+  stage="request"
+  priority={950}
+  when={[
+    { field: "Tool name", op: "is", value: "create_repository" },
+    { field: "Tool arguments . visibility", op: "is", value: "public" },
+    {
+      group: "any",
+      rows: [
+        { field: "Tool arguments . owner_type", op: "is", value: "organization" },
+        { field: "Tool tags", op: "has entry", value: "write" },
+      ],
+    },
+  ]}
+  then={[
+    { effect: "Tool call access", value: "deny" },
+    { effect: "Risk level", value: "high" },
+  ]}
+/>
 
-When  Tool name                       is  create_repository
-and   Tool arguments . visibility     is  public
-and   any of the following
-        Tool arguments . owner_type   is        organization
-        or Tool tags                  has entry write
-Then  Tool call access                →         deny
-      Risk level                      →         high
-```
-
-```
-policy  block_secrets_in_tool_arguments   priority 925   runs on request
-
-When  Application method type  is any of  chat, responses
-and   Tool name                is set
-and   data found               is any of  Auth & Secrets
-Then  Sensitive data action    →          block
-      Risk level               →          critical
-```
+<PolicyCard
+  name="block_secrets_in_tool_arguments"
+  stage="request"
+  priority={925}
+  when={[
+    { field: "Application method type", op: "is any of", values: ["chat", "responses"] },
+    { field: "Tool name", op: "is set" },
+    { field: "data found", op: "is any of", value: "Auth & Secrets" },
+  ]}
+  then={[
+    { effect: "Sensitive data action", value: "block" },
+    { effect: "Risk level", value: "critical" },
+  ]}
+/>
 
 `is set` is a presence test needing no value. It narrows the rule to calls
 carrying a tool invocation, leaving ordinary chat traffic alone.
@@ -234,13 +281,16 @@ never proceeds.
 
 ### Deny a person completely
 
-```
-policy  deny_offboarded_users     priority 1000   runs on request
-
-When  User email       is any of  j.doe@acme.com, r.patel@acme.com
-Then  Request access   →          deny
-      Risk level       →          critical
-```
+<PolicyCard
+  name="deny_offboarded_users"
+  stage="request"
+  priority={1000}
+  when={[{ field: "User email", op: "is any of", values: ["j.doe@acme.com", "r.patel@acme.com"] }]}
+  then={[
+    { effect: "Request access", value: "deny" },
+    { effect: "Risk level", value: "critical" },
+  ]}
+/>
 
 One condition, no application scope, so these people are refused on every
 gateway application, every model and every method. Use this shape while a
@@ -248,14 +298,19 @@ leaver's credentials are still being revoked upstream.
 
 ### Deny a group for particular models
 
-```
-policy  deny_frontier_models_to_interns   priority 800   runs on request
-
-When  Smart groups      includes (ignoring case)  Interns
-and   Requested model   is any of                 claude-opus-4, gpt-4.1, o3
-Then  Request access    →                         deny
-      Risk level        →                         medium
-```
+<PolicyCard
+  name="deny_frontier_models_to_interns"
+  stage="request"
+  priority={800}
+  when={[
+    { field: "Smart groups", op: "includes (ignoring case)", value: "Interns" },
+    { field: "Requested model", op: "is any of", values: ["claude-opus-4", "gpt-4.1", "o3"] },
+  ]}
+  then={[
+    { effect: "Request access", value: "deny" },
+    { effect: "Risk level", value: "medium" },
+  ]}
+/>
 
 Interns keep full gateway access and are refused only when they reach for an
 expensive frontier model. Swap the group row for `User email is any of` to do
@@ -263,12 +318,13 @@ the same for one person.
 
 ### The allow-list alternative
 
-```
-policy  restrict_interns_to_small_models   priority 700   runs on request
-
-When  Smart groups     includes (ignoring case)  Interns
-Then  Allowed models   →                         gpt-4.1-mini, claude-haiku-4.5
-```
+<PolicyCard
+  name="restrict_interns_to_small_models"
+  stage="request"
+  priority={700}
+  when={[{ field: "Smart groups", op: "includes (ignoring case)", value: "Interns" }]}
+  then={[{ effect: "Allowed models", values: ["gpt-4.1-mini", "claude-haiku-4.5"], tone: "info" }]}
+/>
 
 Same intent, opposite construction. The card above denies three named models
 and must be edited every time a new frontier model appears; this one names the
@@ -277,14 +333,19 @@ shape unless you specifically need the denial recorded as a blocked call.
 
 ### Everyone except
 
-```
-policy  finance_copilot_platform_team_only   priority 850   runs on request
-
-When  Application     is                            Finance Copilot
-and   Smart groups    does not include (ignoring case)  Finance Platform
-Then  Request access  →                             deny
-      Risk level      →                             high
-```
+<PolicyCard
+  name="finance_copilot_platform_team_only"
+  stage="request"
+  priority={850}
+  when={[
+    { field: "Application", op: "is", value: "Finance Copilot" },
+    { field: "Smart groups", op: "does not include (ignoring case)", value: "Finance Platform" },
+  ]}
+  then={[
+    { effect: "Request access", value: "deny" },
+    { effect: "Risk level", value: "high" },
+  ]}
+/>
 
 A negated membership test turns one rule into a default-deny for an
 application. Anybody outside Finance Platform is refused, and new joiners are
@@ -304,39 +365,56 @@ covered the moment they are added to the group.
 Several cards can contribute to one configuration, giving a whole operating
 profile in a single sentence.
 
-```
-policy  secure_coding_routes      priority 700      runs on request
-
-When  Application method type      is any of        chat, responses
-and   Requested model              matches pattern  *code*
-Then  Guardian                     →  true
-      Dependency security check    →  true
-      Latest version suggestions   →  true
-      Task adherence sensitivity   →  high
-      Task adherence action        →  block
-      Allowed models               →  quilr-code-large, quilr-code-fast
-      Concurrency limit            →  20
-      Tokens per request           →  100,000
-      Timeout                      →  90s
-```
+<PolicyCard
+  name="secure_coding_routes"
+  stage="request"
+  priority={700}
+  when={[
+    { field: "Application method type", op: "is any of", values: ["chat", "responses"] },
+    { field: "Requested model", op: "matches pattern", value: "*code*" },
+  ]}
+  then={[
+    { effect: "Guardian", value: "true" },
+    { effect: "Dependency security check", value: "true" },
+    { effect: "Latest version suggestions", value: "true" },
+    { effect: "Task adherence sensitivity", value: "high" },
+    { effect: "Task adherence action", value: "block" },
+    { effect: "Allowed models", values: ["quilr-code-large", "quilr-code-fast"], tone: "info" },
+    { effect: "Concurrency limit", value: "20" },
+    { effect: "Tokens per request", value: "100,000" },
+    { effect: "Timeout", value: "90s" },
+  ]}
+/>
 
 `matches pattern` with `*code*` covers any model whose name contains "code", so
 a newly released coding model inherits the whole profile with no policy change.
 
-```
-policy  govern_production_gateway_access   priority 850   runs on request
-
-When  Request metadata . environment  is         production
-and   Application method type         is any of  chat, responses, embeddings, +4
-Then  Require identity                →  true
-      Require conversation ID         →  true
-      Allowed source IP ranges        →  10.0.0.0/8, 2001:db8:1200::/48
-      Allowed models                  →  gpt-4.1, claude-sonnet-4
-      Routing group                   →  production-safe
-      Rate limit                      →  600 per minute
-      Input token limit               →  2,000,000 per hour
-      Per-model limits                →  2 models
-```
+<PolicyCard
+  name="govern_production_gateway_access"
+  stage="request"
+  priority={850}
+  when={[
+    { field: "Request metadata . environment", op: "is", value: "production" },
+    { field: "Application method type", op: "is any of", values: ["chat", "responses", "embeddings", "+4"] },
+  ]}
+  then={[
+    { effect: "Require identity", value: "true" },
+    { effect: "Require conversation ID", value: "true" },
+    { effect: "Allowed source IP ranges", values: ["10.0.0.0/8", "2001:db8:1200::/48"], tone: "info" },
+    { effect: "Allowed models", values: ["gpt-4.1", "claude-sonnet-4"], tone: "info" },
+    { effect: "Routing group", value: "production-safe", tone: "info" },
+    { effect: "Rate limit", value: "600 per minute" },
+    { effect: "Input token limit", value: "2,000,000 per hour" },
+    {
+      effect: "Per-model limits",
+      value: "2 models",
+      detail: [
+        { label: "gpt-4.1", value: "concurrency 20, 300 per minute, total tokens 128,000, timeout 90s" },
+        { label: "claude-sonnet-4", value: "concurrency 20, 300 per minute, total tokens 128,000, timeout 90s" },
+      ],
+    },
+  ]}
+/>
 
 Keyed on your own request metadata, so production gets a perimeter that
 development never sees: no separate application, no duplicated settings.
@@ -355,20 +433,30 @@ value. Each budget in the list applies independently.
 | Separate budget for each | Empty for one shared budget, or per User email, application or model. Multiple fields create an allowance per combination. |
 | Budget ID | The key usage is tracked against |
 
-```
-policy  support_copilot_budgets      priority 500      runs on request
-
-When  Application         is  Support Copilot
-Then  Named usage quotas  →   2 budgets
-
-      Budget 1   Spend (USD), 500, Calendar month, Asia/Kolkata,
-                 separate for each User email,  id support_user_monthly_usd
-      Budget 2   Total tokens, 10,000,000, Rolling week,
-                 shared across matching traffic, id support_team_weekly_tokens
-
-      Token pricing       →   gpt-4.1          input $2.50 / 1M, output $10.00 / 1M
-                              claude-sonnet-4  input $3.00 / 1M, output $15.00 / 1M
-```
+<PolicyCard
+  name="support_copilot_budgets"
+  stage="request"
+  priority={500}
+  when={[{ field: "Application", op: "is", value: "Support Copilot" }]}
+  then={[
+    {
+      effect: "Named usage quotas",
+      value: "2 budgets",
+      detail: [
+        { label: "Budget 1", value: "Spend (USD), 500, Calendar month, Asia/Kolkata, separate for each User email, id support_user_monthly_usd" },
+        { label: "Budget 2", value: "Total tokens, 10,000,000, Rolling week, shared across matching traffic, id support_team_weekly_tokens" },
+      ],
+    },
+    {
+      effect: "Token pricing",
+      value: "2 models",
+      detail: [
+        { label: "gpt-4.1", value: "input $2.50 per 1M tokens, output $10.00 per 1M tokens" },
+        { label: "claude-sonnet-4", value: "input $3.00 per 1M tokens, output $15.00 per 1M tokens" },
+      ],
+    },
+  ]}
+/>
 
 Budget 1 gives every person their own 500 USD monthly allowance; Budget 2 caps
 the whole application at 10M tokens a rolling week. Both must hold, so an
@@ -388,28 +476,36 @@ blocked. Set prices once under Settings, Models.
 
 ## Token savings and Prompt Store
 
-```
-policy  compress_document_ingestion   priority 300   runs on request
-
-When  Application             is         Doc Ingestion Pipeline
-and   Application method type is any of  chat, responses
-Then  JSON compression        →  true
-      HTML to text            →  true
-      Markdown to text        →  true
-      Text compression        →  true
-```
+<PolicyCard
+  name="compress_document_ingestion"
+  stage="request"
+  priority={300}
+  when={[
+    { field: "Application", op: "is", value: "Doc Ingestion Pipeline" },
+    { field: "Application method type", op: "is any of", values: ["chat", "responses"] },
+  ]}
+  then={[
+    { effect: "JSON compression", value: "true" },
+    { effect: "HTML to text", value: "true" },
+    { effect: "Markdown to text", value: "true" },
+    { effect: "Text compression", value: "true" },
+  ]}
+/>
 
 Savings show up as tokens saved in the activity view, so you can prove the
 reduction rather than assume it. See
 [Token Saving](../token-saving) for the cross-product guide.
 
-```
-policy  require_approved_system_prompts   priority 600   runs on request
-
-When  Request metadata . environment  is         production
-and   Application method type         is any of  chat, responses
-Then  Require Prompt Store system prompt  →  true
-```
+<PolicyCard
+  name="require_approved_system_prompts"
+  stage="request"
+  priority={600}
+  when={[
+    { field: "Request metadata . environment", op: "is", value: "production" },
+    { field: "Application method type", op: "is any of", values: ["chat", "responses"] },
+  ]}
+  then={[{ effect: "Require Prompt Store system prompt", value: "true" }]}
+/>
 
 Production traffic must use a reviewed system prompt while development traffic
 stays free to experiment. See
@@ -417,15 +513,20 @@ stays free to experiment. See
 
 ## Response quality
 
-```
-policy  monitor_high_confidence_hallucinations   priority 500   runs on response
-
-When  Application method type   is any of  chat, responses, bedrock, vertex
-Then  Hallucination check       →  true
-      Hallucination threshold   →  0.82
-      Hallucination risk level  →  high
-      Hallucination action      →  monitor
-```
+<PolicyCard
+  name="monitor_high_confidence_hallucinations"
+  stage="response"
+  priority={500}
+  when={[
+    { field: "Application method type", op: "is any of", values: ["chat", "responses", "bedrock", "vertex"] },
+  ]}
+  then={[
+    { effect: "Hallucination check", value: "true" },
+    { effect: "Hallucination threshold", value: "0.82" },
+    { effect: "Hallucination risk level", value: "high" },
+    { effect: "Hallucination action", value: "monitor" },
+  ]}
+/>
 
 The threshold is the confidence at which a response counts as a hallucination.
 Start at `monitor`, then move either the action or the threshold.
@@ -444,15 +545,20 @@ the priority so the narrower scope wins automatically.
 No conditions means everyone. An individual exception therefore outranks a
 group rule without you choosing numbers.
 
-```
-policy  support_team_pii_exception   priority 800   runs on request
-
-When  Application           is                        Support Copilot
-and   Smart groups          includes (ignoring case)  Support Tier 2
-and   data found            is any of                 Personally Identifiable Information (PII)
-Then  Sensitive data action →                         monitor
-      Risk level            →                         medium
-```
+<PolicyCard
+  name="support_team_pii_exception"
+  stage="request"
+  priority={800}
+  when={[
+    { field: "Application", op: "is", value: "Support Copilot" },
+    { field: "Smart groups", op: "includes (ignoring case)", value: "Support Tier 2" },
+    { field: "data found", op: "is any of", value: "Personally Identifiable Information (PII)" },
+  ]}
+  then={[
+    { effect: "Sensitive data action", value: "monitor" },
+    { effect: "Risk level", value: "medium" },
+  ]}
+/>
 
 An exception layered above a stricter default. If the tenant-wide PII rule
 redacts at priority 750, this monitors at 800, so Support Tier 2 sees

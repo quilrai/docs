@@ -30,13 +30,16 @@ Policies are authored as sentences, not code. The sentence you see in the
 console **is** the policy, not a description of it, and every underlined word
 is a control you click to change.
 
-```
-policy  block_request_secrets      priority 900      runs on request
-
-When  data found            is any of  Auth & Secrets
-Then  Sensitive data action →          block
-      Risk level            →          critical
-```
+<PolicyCard
+  name="block_request_secrets"
+  stage="request"
+  priority={900}
+  when={[{ field: "data found", op: "is any of", value: "Auth & Secrets" }]}
+  then={[
+    { effect: "Sensitive data action", value: "block" },
+    { effect: "Risk level", value: "critical" },
+  ]}
+/>
 
 Each policy has five parts:
 

@@ -12,10 +12,10 @@ Draft, prove and publish a policy revision.
 
 <StepFlow steps={[
   { label: "Draft", items: ["Sentence editor", "Scope shortcuts", "Source view"] },
-  { label: "Validate", items: ["Compile diagnostics", "Errors and warnings"] },
-  { label: "Simulate", items: ["Up to 100 synthetic cases", "Decision evidence"] },
-  { label: "Replay", items: ["Recorded traffic", "Up to 90 days, 5,000 requests"] },
-  { label: "Publish", items: ["One immutable revision", "Concurrency guarded"] },
+  { label: "Validate", items: ["Diagnostics", "Errors", "Warnings"] },
+  { label: "Simulate", items: ["100 cases", "Decision evidence"] },
+  { label: "Replay", items: ["Recorded traffic", "90 days", "5,000 requests"] },
+  { label: "Publish", items: ["One revision", "Immutable", "Guarded"] },
 ]} />
 
 ### 1. Open the workspace
