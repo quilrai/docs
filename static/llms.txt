@@ -42,6 +42,24 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Self-Service Admin Guide](https://docs.quilrai.dev/llm-gateway/features/self-service/admin-guide.md): For QuilrAI platform admins - choose a credential mode, grant Viewer Access, Settings Request Access, Direct Settings Update, API Key Visibility, and All Logs Visibility, scope each with Everyone/Specific rules, smart groups, and exceptions, review change requests, and revoke access.
 - [Self-Service Developer Guide](https://docs.quilrai.dev/llm-gateway/features/self-service/developer-guide.md): For developers - sign in to the Self-Service portal, read the app cards, create and revoke named user API keys, call the gateway with them, view your own logs and findings, submit settings change requests for admin approval, and a tour of the settings editor sections (security guardrails, additional guardrails, Guardian Agent, token saving).
 
+## Policy Engine
+
+One versioned policy document per enforcement target, authored as sentences and published as immutable revisions. Governs the LLM Gateway and MCP Gateway targets, replacing the per-application and per-server settings screens once enabled.
+
+- [Policy Engine Overview](https://docs.quilrai.dev/policy-engine/overview.md): What the engine is, the sentence model, conditions and operators, how overlapping policies resolve, and the QuilrQL source view.
+- [LLM Gateway Policies](https://docs.quilrai.dev/policy-engine/llm-gateway.md): Request and response stages, condition fields, the twelve control surfaces, and worked examples for data protection, per-data-type actions, tool governance, denying access, routing, budgets, token savings and hallucination checks.
+- [MCP Gateway Policies](https://docs.quilrai.dev/policy-engine/mcp-gateway.md): Session, discovery, request and response stages, condition fields, the ten control surfaces, and worked examples for server access, tool visibility, human approval, per-data-type actions, quotas and response handling.
+- [Switching from Settings](https://docs.quilrai.dev/policy-engine/switching-from-settings.md): The conversion review, what each target's conversion compares, activation, which settings freeze, and a recommended first rollout.
+- [Authoring and Publishing](https://docs.quilrai.dev/policy-engine/authoring-and-publishing.md): The draft, validate, simulate, replay, publish and roll back loop, plus permissions and engine limits.
+
+## Console V2
+
+The new console organised by what you manage rather than by sensor, and the phased plan for moving governance across from V1.
+
+- [What Changed in Console V2](https://docs.quilrai.dev/console-v2/overview.md): Sensors as evidence rather than navigation, the three sidebar groups, and the shared-data guarantee between V1 and V2.
+- [Console Sections](https://docs.quilrai.dev/console-v2/console-sections.md): What is on each page of the V2 console across Observe, Govern, Settings and Red Teaming.
+- [Transition Plan](https://docs.quilrai.dev/console-v2/transition-plan.md): Ground rules, the three transition phases, and where to do what while both consoles run in parallel.
+
 ## Playground
 
 - [LLM Gateway Playground](https://docs.quilrai.dev/llm-gateway-playground): Full-page, console-style studio that fires real LLM Gateway requests from the browser against any gateway base URL. Streams chat completions live and runs every surface - chat, OpenAI Responses, Anthropic Messages, classic completions, embeddings, rerank, and text to speech - plus `quilr_sdk` guardrail checks for text, messages, or JSON against `POST /sdk/v1/check`, with hashing-mode controls, processed content, placeholder mappings, and similar-entity results and a Log Export surface that pages the LLM or MCP Gateway log export API (with an `sk-export-` key) into an Excel-ready CSV. Generates the exact cURL, Python, and JavaScript for each request.
