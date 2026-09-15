@@ -115,6 +115,8 @@ The export covers LLM Gateway traffic for the selected export scope, including:
 | OpenAI Realtime session logs | Yes |
 | OpenAI speech-to-text | Yes |
 | OpenAI text-to-speech | Yes |
+| Sarvam speech-to-text and text-to-speech | Yes |
+| Sarvam translation, transliteration, and language detection | Yes |
 | Embeddings | Yes |
 | Rerank | Yes |
 | AWS Bedrock Runtime boto3 | Yes |

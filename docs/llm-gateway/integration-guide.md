@@ -33,6 +33,7 @@ For production traffic, use the location-specific endpoint closest to your appli
 | **Vertex AI** | `/vertex_ai/` | `Authorization: Bearer sk-quilr-xxx` |
 | **OpenAI Responses** | `/openai_responses/` | `Authorization: Bearer sk-quilr-xxx` |
 | **OpenAI Realtime** (wss) | `/openai_realtime/` | `Authorization: Bearer sk-quilr-xxx` |
+| **Sarvam** (speech & text) | `/sarvam/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | QuilrAI key in endpoint path |
 
 Combine a region base URL with the API format path to get your full endpoint. For example:
@@ -666,6 +667,78 @@ rt.send({ type: "response.create" });
 ```
 
 Realtime sessions are a raw websocket passthrough. Voice I/O (PCM16 `input_audio_buffer.append` / `response.output_audio.delta`) works end-to-end. Live-event DLP is not yet applied to Realtime sessions - see [Provider Support](./provider-support#realtime-api).
+
+### Sarvam speech and text
+
+Create a QuilrAI key with provider `sarvam` and select the models and API aliases you want to expose. Sarvam chat models go through the same OpenAI-compatible client as everything else:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
+    api_key='sk-quilr-xxx'
+)
+
+resp = client.chat.completions.create(
+    model='sarvam-105b',
+    messages=[{'role': 'user', 'content': 'Hello!'}]
+)
+```
+
+Speech synthesis and transcription work through the OpenAI audio methods too. QuilrAI maps the OpenAI fields onto Sarvam's, so `voice` is a Sarvam speaker and `language_code` is required:
+
+```python
+speech = client.audio.speech.create(
+    model='bulbul:v3',
+    input='Hello world',
+    voice='shubh',
+    response_format='wav',
+    extra_body={'language_code': 'en-IN'}
+)
+with open('hello.wav', 'wb') as out:
+    out.write(speech.content)
+
+with open('audio.wav', 'rb') as audio:
+    transcript = client.audio.transcriptions.create(model='saaras:v4', file=audio)
+```
+
+The native `/sarvam/` routes take Sarvam's own field names and return its own response shape. Translation, transliteration, and language detection are only available here:
+
+```bash
+# Speech synthesis - returns {"request_id": "...", "audios": ["<base64>"]}
+curl https://guardrails-usa-2.quilr.ai/sarvam/text-to-speech \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello world",
+    "model": "bulbul:v3",
+    "speaker": "shubh",
+    "language_code": "en-IN",
+    "output_audio_codec": "wav"
+  }'
+
+# Transcription - multipart, one file field
+curl https://guardrails-usa-2.quilr.ai/sarvam/speech-to-text \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -F file=@audio.wav \
+  -F model=saaras:v4 \
+  -F mode=transcribe \
+  -F language_code=hi-IN
+
+# Text translation
+curl https://guardrails-usa-2.quilr.ai/sarvam/translate \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "mayura:v1",
+    "input": "Hello",
+    "source_language_code": "en-IN",
+    "target_language_code": "hi-IN"
+  }'
+```
+
+The native routes also accept the QuilrAI key in `api-key` or `api-subscription-key`, which lets an existing Sarvam client point at the gateway without changing how it authenticates. See [Provider Support](./provider-support#sarvam-speech-and-text) for the full endpoint list, model catalog, and limits.
 
 ### Microsoft Copilot Studio
 
