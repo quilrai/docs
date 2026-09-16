@@ -1,0 +1,12 @@
+{
+  "label": "Local MCP",
+  "position": 7,
+  "link": {
+    "type": "generated-index",
+    "description": "Run approved Python and Node MCP servers on your own computer, with every tool call still checked by the Quilr MCP Gateway. No endpoint agent required."
+  },
+  "customProps": {
+    "badge": "new",
+    "icon": "Plug"
+  }
+}

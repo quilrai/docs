@@ -12,6 +12,18 @@ OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents
 To steer Claude, ChatGPT, or GitHub Copilot to use the discovery flow reliably, see [Agent Custom Instructions](./agent-instructions) for copy-paste text and ready-to-use files.
 :::
 
+:::note Running an MCP on your own computer
+OneMCP handles remote services and does not choose a computer automatically. To run an administrator-approved Python or Node MCP on a user's own machine, with the same gateway access checks, see [Local MCP](./local-mcp/overview).
+:::
+
+<VideoEmbed
+  src="https://www.youtube.com/embed/GHVeqDy2IPc"
+  poster="/img/mcp-gateway/video/user-dashboard.jpg"
+  title="MCP Gateway: user dashboard"
+  duration="3:33"
+  description="What a user does with this endpoint: copy it, add it to Claude, ChatGPT or Cursor, and check which tools they are allowed to call."
+/>
+
 ## Endpoint
 
 For most environments, the OneMCP base domain is one of:

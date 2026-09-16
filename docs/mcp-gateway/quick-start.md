@@ -43,6 +43,18 @@ Get up and running with MCP Gateway in 4 steps.
   },
 ]} />
 
+## Video walkthrough
+
+<VideoEmbed
+  src="https://www.youtube.com/embed/QxDvZjOwF9o"
+  poster="/img/mcp-gateway/video/admin-overview.jpg"
+  title="MCP Gateway: administrator overview"
+  duration="4:59"
+  description="Registering servers, governing which tools agents can call, reading the audit trail, and handing the gateway to your users. Recorded in the live console."
+/>
+
+The rest of the series: the [user dashboard](./onemcp) for the people who will use the MCPs, and local (STDIO) setup for [administrators](./local-mcp/admin-setup) and for [users](./local-mcp/connect-your-ai-app).
+
 ## 1. Add an MCP Server
 
 Go to the **MCP Gateway** tab and install from the **MCP Library** for one-click pre-built integrations, or click **Add MCP** to register any server by its transport URL (ending in `/sse` or `/mcp`).
