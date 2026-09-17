@@ -1,0 +1,121 @@
+---
+title: "Quick start"
+sidebar_position: 2
+sidebar_custom_props:
+  icon: Rocket
+  badge: Draft
+description: "Proposed LLM Gateway Management API v1: quick start, with typed inputs and examples."
+---
+
+import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+
+# Quick start
+<DraftNotice />
+
+This workflow creates a shared provider, creates an app, reads it, then disables it without losing configuration. All URLs below are **proposed**. Replace the placeholder origin with the central management origin only after the API is implemented and enabled.
+
+## 1. Prepare access
+
+An operator enables `LLMGATEWAY_MANAGEMENT_API_ENABLED=true` on the central service. A verified tenant administrator or authorized Quilr operator opts the tenant in and issues a management key. See [authentication](./authentication).
+
+For this workflow, the key needs `read`, `providers:write`, `config:write` and `credentials:write`.
+
+```bash
+export MANAGEMENT_ORIGIN='https://management.example.com'
+export MANAGEMENT_KEY='<management-key>'
+export PROVIDER_API_KEY='<provider-api-key>'
+```
+
+Keep secrets in your automation secret store. These example values are placeholders, not live credentials.
+
+## 2. Create a shared provider
+
+```bash
+curl --request POST \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/providers" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --header 'Idempotency-Key: support-provider-001' \
+  --data "{\"label\":\"Production OpenAI\",\"provider_name\":\"openai\",\"provider_settings\":{\"api_key\":\"$PROVIDER_API_KEY\"},\"selected_models\":[\"gpt-4.1-mini\"]}"
+```
+
+A `201` response returns provider metadata and credential-presence flags. **Saving does not contact the provider.** Use [explicit testing](./providers#Test_connection_or_model) when you want to verify connectivity or model access.
+
+## 3. Create an app
+
+```bash
+curl --request POST \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --header 'Idempotency-Key: support-app-001' \
+  --data '{
+    "name": "Support Bot",
+    "provider_labels": ["Production OpenAI"],
+    "tags": ["production", "support"]
+  }'
+```
+
+```json
+{
+  "app": {
+    "name": "Support Bot",
+    "mode": "gateway",
+    "enabled": true,
+    "version": "app-v1",
+    "provider_labels": ["Production OpenAI"],
+    "tags": ["production", "support"],
+    "policy_authority": {"enabled": false, "active_revision": null}
+  },
+  "key": {
+    "key_id": "key_example",
+    "name": "Default",
+    "secret": "<new-gateway-key>",
+    "status": "active",
+    "expires_at": null
+  },
+  "warnings": [],
+  "request_id": "req_example"
+}
+```
+
+The initial key is issued even when `initial_key` is omitted. Use the gateway credential for runtime calls. Keep using the management credential for configuration.
+
+:::note New apps under QuilrQL
+App creation does not create matching policy rules. If tenant-wide authority is enabled, matching rules govern traffic and a healthy no-match result is neutral. Review [policy authority](./policy) before sending production traffic.
+:::
+
+## 4. Read the current version
+
+```bash
+curl --include \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps/Support%20Bot" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY"
+```
+
+Use the returned `ETag` in updates. The example below assumes it is `"app-v1"`; use the actual value from your read.
+
+## 5. Disable and re-enable
+
+```bash
+curl --request PATCH \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps/Support%20Bot" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --header 'If-Match: "app-v1"' \
+  --data '{"enabled":false}'
+```
+
+This preserves the app, prompts, provider references and keys. After a gateway observes the change, newly admitted traffic is rejected for all app authentication modes. Existing requests are proposed to finish normally.
+
+To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expired or were revoked while the app was disabled remain invalid. Propagation is asynchronous; the API does not promise an instantaneous global kill switch.
+
+## Next steps
+
+| Task | Reference |
+| --- | --- |
+| Add another shared provider | [Attach a provider](./apps#Attach_a_shared_provider) |
+| Configure guardrails, routing or limits | [Full configuration input](./configuration) |
+| Issue a separate automation key | [Gateway credentials](./credentials) |
+| Publish a policy revision | [QuilrQL lifecycle](./policy) |
+| Add a system prompt | [Prompt Store](./prompts) |

@@ -1,0 +1,58 @@
+---
+title: "Shared providers & model tests"
+sidebar_position: 6
+sidebar_custom_props:
+  icon: Plug
+  badge: Draft
+description: "Proposed LLM Gateway Management API v1: shared providers & model tests, with typed inputs and examples."
+---
+
+import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+
+# Shared providers & model tests
+<DraftNotice />
+
+A shared provider is a reusable tenant-owned connection. Apps hold references to its label, so credential/model changes can affect every linked app after synchronization. Provider **label and type are immutable**.
+
+## Provider inputs
+
+Every creation body has `label`, `provider_name` and `provider_settings`. Optional `selected_models`, `model_costs` and `enabled` configure availability. Select the provider variant in the full body schema for the complete credential fields and conditional requirements.
+
+| Family | Provider types | Credential choices |
+| --- | --- | --- |
+| API key | OpenAI, Anthropic/native Messages, DeepSeek, Gemini Chat Completions, Responses, Assistants, Realtime, Cohere/Jina/Voyage rerank, Sarvam. | `api_key`; optional compatible base URL/version where supported. |
+| Azure | `azureopenai`, `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure`. | `api_key`, `azure_endpoint`, API version. |
+| Custom endpoint | `general`, `general_rerank`, `anthropic_messages_azure`. | `api_key` and `base_url`. |
+| AWS | `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `bedrock_rerank`. | Static keys or assume-role; fields from different modes cannot be mixed. |
+| Vertex AI | `vertex_ai`. | API key, express, service-account JSON or ADC. |
+| Oracle OCI | `oracle`, `oracle_responses`. | API key, gateway user principal, user/session principal, instance/resource principal. |
+| QuilrAI managed | `quilr_ai`. | Deployment-owned identity; no customer secret or endpoint. |
+
+SDK and Copilot Studio are app modes, not shared-provider types. Provider/protocol support remains deployment-dependent. See [provider support](../provider-support).
+
+## Models and rates
+
+`selected_models` is a full replacement list, with at most 1,000 names of up to 512 characters each. An empty list follows the existing unrestricted-provider convention where supported; it does not necessarily mean zero models are allowed. Use explicit model lists for finite allowlists.
+
+`model_costs` is keyed by a selected model. Values are nullable, non-negative USD rates per million input/output/cache tokens. Null removes a rate override. These values are configuration, not a quotation of provider pricing.
+
+## Rotation and disabling
+
+Omitted credentials remain unchanged on PATCH. Submit a new secret to rotate it. Do not send redacted placeholder values back. Changing authentication mode must supply required new-mode fields and removes incompatible old-mode credentials.
+
+PATCH `enabled:false` to disable a shared provider. Its record and app attachments remain; re-enabling restores normal availability. There is **no provider-delete endpoint**. [Detaching](./apps#Detach_an_app_provider) removes a reference from one app only.
+
+## Explicit connection/model tests
+
+Saving configuration never contacts the upstream provider. Use a separate test request when you want to:
+
+- Check the stored connection without generation, when the provider supports that test.
+- Run a minimal configured-model check, which may incur usage.
+
+Tests use stored credentials and endpoints; they accept no arbitrary payload, URL or credential overrides. Testing a disabled provider does not enable it. A private endpoint unreachable from the central service returns a diagnostic, not a failed configuration save.
+
+Completed tests report `passed`, `failed` or `unsupported`. A connection test never silently becomes a model call. Model tests are unavailable in a deployment with `COMPLETELY_NO_GPU`; there are no automatic billable retries.
+
+## Endpoint reference
+
+<ApiReference tags={['Providers']} />

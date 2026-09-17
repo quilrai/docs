@@ -1,0 +1,65 @@
+---
+title: "Management APIs"
+sidebar_position: 1
+sidebar_custom_props:
+  icon: Wrench
+  badge: Draft
+description: "Proposed LLM Gateway Management API v1: management apis, with typed inputs and examples."
+---
+
+import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+
+# Management APIs
+<ManagementHero />
+
+<DraftNotice />
+
+Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
+
+This section describes the agreed product behavior and a **proposed v1 HTTP contract**. It is not a claim that the endpoints are available. The input schemas expand the design into concrete reviewable fields; examples and the OpenAPI download share the same source.
+
+## Choose a resource
+
+<ResourceCards />
+
+## The management model
+
+<StepFlow steps={[
+  {label: 'Enable', items: ['Deployment switch', 'Tenant opt-in']},
+  {label: 'Authorize', items: ['One tenant per key', 'Explicit scopes']},
+  {label: 'Configure', items: ['Central management API', 'Validated changes']},
+  {label: 'Apply', items: ['Gateway configuration sync', 'Policy-aware runtime']},
+]} />
+
+| Resource | What you can do | What stays separate |
+| --- | --- | --- |
+| Apps | Create, read, configure, disable and enable; address by app name. | No app deletion or rename. |
+| Shared providers | Create, read, rotate credentials, configure models, disable, enable and explicitly test. | No provider deletion. Detaching affects one app only. |
+| Gateway keys | Issue, list metadata, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
+| QuilrQL | Discover, preview, validate, simulate, draft, publish, enable, disable and roll back. | App settings do not automatically publish policy. |
+| Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
+| Smart groups and custom definitions | Read and use existing resources in app or policy configuration. | No definition or membership editing. |
+| History | Read redacted config versions and audit, restore eligible app settings. | Traffic logs, usage, health and red-team jobs are outside v1. |
+
+## Defaults you can rely on in the design
+
+- Management keys have **no expiry by default**. An administrator can supply one.
+- Creating an app issues one gateway key, named **Default** unless specified.
+- Disabling tenant management suspends its keys. Unexpired, unrevoked keys work again when the tenant is re-enabled.
+- Disabling an app preserves its keys, settings and history. Disabling a shared provider preserves its attachments.
+- Provider saves validate locally. A **connection/model test is a separate explicit request**.
+- Configuration writes go to the **central management service**. Customer gateway nodes receive synchronized changes.
+
+:::info Policy authority
+When QuilrQL is enabled, updates to governed app settings still save. The response identifies the fields that remain inactive until QuilrQL authority is disabled. Use policy simulation to evaluate request-specific behavior.
+:::
+
+## Find an endpoint
+
+Search by resource, path, action or HTTP method. Open an endpoint to see its scopes, parameters, complete body schema and examples.
+
+<EndpointDirectory />
+
+## Continue
+
+Start with the [end-to-end example](./quick-start), inspect the [full app configuration schema](./configuration), or review [errors, concurrency and retry semantics](./conventions). Download the [OpenAPI 3.1 draft](/openapi/llm-gateway-management-v1.json) for all operations and input schemas.

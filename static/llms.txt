@@ -22,6 +22,23 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [HA & SLA](https://docs.quilrai.dev/llm-gateway/ha-and-sla.md): Regional endpoints, recommended retry strategy, connection pooling, and 99.6% uptime SLA.
 - [UX Changelog](https://docs.quilrai.dev/llm-gateway/ux-changelog.md): Recent interface improvements - tagging, filtering, and quality-of-life updates.
 
+### LLM Gateway Management APIs (proposed v1)
+
+These routes are a design draft, not a released API. Typed request specifications and examples use a placeholder central origin.
+
+- [Management APIs](https://docs.quilrai.dev/llm-gateway/management-apis/overview.md): Proposed management v1 management apis; tenant-scoped permissions, typed request inputs and examples.
+- [Quick start](https://docs.quilrai.dev/llm-gateway/management-apis/quick-start.md): Proposed management v1 quick start; tenant-scoped permissions, typed request inputs and examples.
+- [Authentication & management keys](https://docs.quilrai.dev/llm-gateway/management-apis/authentication.md): Proposed management v1 authentication & management keys; tenant-scoped permissions, typed request inputs and examples.
+- [Apps & provider attachments](https://docs.quilrai.dev/llm-gateway/management-apis/apps.md): Proposed management v1 apps & provider attachments; tenant-scoped permissions, typed request inputs and examples.
+- [Full app configuration input](https://docs.quilrai.dev/llm-gateway/management-apis/configuration.md): Proposed management v1 full app configuration input; tenant-scoped permissions, typed request inputs and examples.
+- [Shared providers & model tests](https://docs.quilrai.dev/llm-gateway/management-apis/providers.md): Proposed management v1 shared providers & model tests; tenant-scoped permissions, typed request inputs and examples.
+- [Gateway app credentials](https://docs.quilrai.dev/llm-gateway/management-apis/credentials.md): Proposed management v1 gateway app credentials; tenant-scoped permissions, typed request inputs and examples.
+- [QuilrQL lifecycle](https://docs.quilrai.dev/llm-gateway/management-apis/policy.md): Proposed management v1 quilrql lifecycle; tenant-scoped permissions, typed request inputs and examples.
+- [Prompt Store](https://docs.quilrai.dev/llm-gateway/management-apis/prompts.md): Proposed management v1 prompt store; tenant-scoped permissions, typed request inputs and examples.
+- [Catalogs & configuration history](https://docs.quilrai.dev/llm-gateway/management-apis/catalogs-and-history.md): Proposed management v1 catalogs & configuration history; tenant-scoped permissions, typed request inputs and examples.
+- [API conventions & errors](https://docs.quilrai.dev/llm-gateway/management-apis/conventions.md): Proposed management v1 api conventions & errors; tenant-scoped permissions, typed request inputs and examples.
+- [OpenAPI 3.1 draft](https://docs.quilrai.dev/openapi/llm-gateway-management-v1.json): Machine-readable proposed contract for all management and administrative operations.
+
 ### LLM Gateway Features
 
 - [Request Routing](https://docs.quilrai.dev/llm-gateway/features/request-routing.md): Automatic provider inference from requested models, plus routing groups for weight-based load balancing, model-level routing, and failover across multiple providers and models behind a single API key.

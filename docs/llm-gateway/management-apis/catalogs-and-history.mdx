@@ -1,0 +1,42 @@
+---
+title: "Catalogs & configuration history"
+sidebar_position: 10
+sidebar_custom_props:
+  icon: History
+  badge: Draft
+description: "Proposed LLM Gateway Management API v1: catalogs & configuration history, with typed inputs and examples."
+---
+
+import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+
+# Catalogs & configuration history
+<DraftNotice />
+
+Read existing tenant resources to build valid configuration, and inspect the history of configuration changes. These APIs do not expose inference traffic logs or operational reporting.
+
+## Existing resources only
+
+Smart groups are read/reference-only. Use an existing `group_name` in self-service access rules, group-specific app controls or QuilrQL. Management callers cannot create groups, change their members or delete them.
+
+Custom definitions are also read/reference-only. Resolve a `definition_id` before selecting it in app controls. Actions, selection and request/response scope can be configured for existing definitions; regex bodies, EDM data, intent examples and semantic definitions cannot be authored here.
+
+New group/definition content must be created through its existing authorized administration flow. A nested app update, provider conversion or rollback cannot be used to bypass this boundary.
+
+## App versions versus policy revisions
+
+| History | Restores | Does not restore |
+| --- | --- | --- |
+| App configuration version | Eligible settings for one canonical app, as a new version. | Shared provider state, gateway key lifecycle, tenant groups/definitions or policy authority. |
+| Policy revision | A validated historical policy document, republished as a new revision. | Provider secrets or the app's independent lifecycle state. |
+
+App rollback applies current rules, references and permissions. It must reject changes that would author a definition, edit group membership, change inline provider credentials or convert a shared-provider app back to inline storage. Rollback requires the current **app ETag**, not the historical version's ETag.
+
+## Audit reads
+
+The audit feed records configuration operations and management-principal identity with redacted diffs. Optional filters cover app name, operation, management-key ID and time range. Times use RFC 3339 with an explicit timezone; `from` must not be after `to`.
+
+Pagination uses an opaque cursor bound to the current collection and filters. Detailed [pagination and error rules](./conventions) apply to all list endpoints.
+
+## Endpoint reference
+
+<ApiReference tags={['Catalogs', 'History']} />

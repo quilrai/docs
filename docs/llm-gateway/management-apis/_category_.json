@@ -1,0 +1,12 @@
+{
+  "label": "Management APIs",
+  "position": 11,
+  "link": {
+    "type": "doc",
+    "id": "llm-gateway/management-apis/overview"
+  },
+  "customProps": {
+    "icon": "Wrench",
+    "badge": "Draft"
+  }
+}

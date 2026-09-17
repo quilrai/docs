@@ -1,0 +1,61 @@
+---
+title: "QuilrQL lifecycle"
+sidebar_position: 8
+sidebar_custom_props:
+  icon: Workflow
+  badge: Draft
+description: "Proposed LLM Gateway Management API v1: quilrql lifecycle, with typed inputs and examples."
+---
+
+import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+
+# QuilrQL lifecycle
+<DraftNotice />
+
+QuilrQL governs policy at the **tenant level**. Keep source authoring, draft storage and runtime publication as separate operations. These management endpoints preserve the gateway policy engine's authority boundaries.
+
+## The publication workflow
+
+<StepFlow steps={[
+  {label:'Discover',items:['Schema and tenant catalogs']},
+  {label:'Prepare',items:['Preview conversion or author source']},
+  {label:'Verify',items:['Validate and simulate']},
+  {label:'Publish',items:['Check revisions', 'Activate immutable source']},
+]} />
+
+| Action | Permission | Runtime effect |
+| --- | --- | --- |
+| Schema/catalog, preview, validate, simulate | `read` | None. |
+| Create/update a draft | `policy:write` | None. |
+| Publish/rollback a revision | `policy:publish` | Changes the active tenant-wide policy revision. |
+| Enable/disable authority | `policy:publish` | Switches which controls govern runtime. |
+
+## Source and input boundaries
+
+`source` is QuilrQL text. The request schema accepts at most 400,000 characters and the service must additionally enforce **400,000 UTF-8 bytes**. The authoring schema supplies valid fields, effects, stages, value sources and conditional shapes. Tenant catalogs supply valid app/provider/group/definition references.
+
+Simulation accepts 1-100 synthetic cases. The proposed case input includes an app name, direction, user/group identity, model/provider, method type, detected data types and scalar metadata. It performs policy evaluation; it does not invoke a model or read production request logs.
+
+For policy language and supported controls, see [LLM Gateway policies](../../policy-engine/llm-gateway) and [authoring and publishing](../../policy-engine/authoring-and-publishing). Source strings shown as `<source ...>` in reference examples are placeholders: use source returned by preview, a saved revision, a suggested policy or the editor.
+
+## Concurrency and activation
+
+- Draft replacement and publication require the **draft ETag** in `If-Match`.
+- Publication also provides `expected_active_revision`, including explicit `null` before the first revision. This protects against a competing publication.
+- Authority enable/disable and policy rollback require the **authority ETag** from status.
+- Enable references the reviewed conversion-preview checksum. A changed live snapshot requires a fresh preview.
+- Rollback republishes eligible historical source as a new revision after validating current references. It does not erase history.
+
+The checksum/active-revision preconditions are proposed management contract additions and require implementation review. They are not a claim that the existing console endpoints enforce exactly these inputs.
+
+## What happens to app settings
+
+While authority is enabled, governed app settings may still save but are inactive during healthy policy evaluation. Disabling authority makes saved values live again. A healthy no-match policy result is neutral; new apps do not automatically receive matching rules.
+
+Provider secrets/availability and prompt contents remain live dependencies. Whole-app disable remains effective independently of policy. App configuration history is distinct from policy revision history.
+
+Historical production replay, usage reporting and per-policy traffic reporting are outside the management v1 scope. Existing groups and custom definitions can be referenced; this API cannot modify their content or membership.
+
+## Endpoint reference
+
+<ApiReference tags={['Policy']} />

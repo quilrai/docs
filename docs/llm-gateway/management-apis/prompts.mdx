@@ -1,0 +1,41 @@
+---
+title: "Prompt Store"
+sidebar_position: 9
+sidebar_custom_props:
+  icon: MessageSquareText
+  badge: Draft
+description: "Proposed LLM Gateway Management API v1: prompt store, with typed inputs and examples."
+---
+
+import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+
+# Prompt Store
+<DraftNotice />
+
+Manage app-scoped prompt templates without changing gateway credentials or provider connections. Prompt content remains a live app dependency; `prompt_store.require_system_from_store` controls enforcement and can be governed by QuilrQL.
+
+## Input contract
+
+| Input | Rule |
+| --- | --- |
+| `app_name` | Tenant-scoped app display name, encoded as one path segment. |
+| `prompt_id` | 1-200 characters in this draft; letters, numbers, hyphens and underscores only. |
+| `content` | Required nonempty template string, up to 400,000 characters in this draft. PUT replaces the full content. |
+| Create precondition | `If-None-Match: *`; fail if a prompt already exists. |
+| Replace/delete precondition | Current prompt ETag in `If-Match`. |
+
+Do not send both precondition headers. Prompt deletion is supported even though app/provider deletion is not. Removing a prompt can affect runtime requests that reference it; the operation does not silently rewrite those requests or disable prompt enforcement.
+
+## Example content
+
+```json
+{
+  "content": "You help customers with support questions. Use the supplied account context and do not invent account details."
+}
+```
+
+A prompt is configuration content and is visible to keys with `read`. It should not be used as a credential store. For runtime template references and variables, see [Prompt Store](../features/prompt-store).
+
+## Endpoint reference
+
+<ApiReference tags={['Prompts']} />

@@ -1,0 +1,113 @@
+---
+title: "API conventions & errors"
+sidebar_position: 11
+sidebar_custom_props:
+  icon: BookOpen
+  badge: Draft
+description: "Proposed LLM Gateway Management API v1: api conventions & errors, with typed inputs and examples."
+---
+
+import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+
+# API conventions & errors
+<DraftNotice />
+
+These shared rules apply to every proposed management endpoint. The downloadable [OpenAPI 3.1 document](/openapi/llm-gateway-management-v1.json) contains every operation and request schema shown in this section.
+
+## Origins, authentication and content types
+
+| Item | Contract |
+| --- | --- |
+| Origin | Designated central management origin. `https://management.example.com` is a non-production placeholder. |
+| Resource prefix | `/llmgateway/management/v1` |
+| Administrator prefix | `/llmgateway/management-admin/v1` |
+| Resource authentication | `Authorization: Bearer <management-key>` |
+| Body encoding | UTF-8 JSON; send `Content-Type: application/json` for bodies. |
+| Dates | RFC 3339 with an explicit timezone; examples use UTC `Z`. |
+| Names | URL-encode app names and provider labels as one segment. |
+| Bodyless operations | Send no JSON body unless the operation defines one. |
+
+Schema bounds and exact normalized field names are draft design choices. Unknown fields are rejected. Boolean, numeric, array and object types are strict; the API does not silently coerce strings into booleans or numbers.
+
+## Pagination
+
+Collection requests accept `limit` (default 50, range 1-200) and an optional `cursor`. Preserve other filters while following a cursor. Values outside bounds return `400`.
+
+```json
+{
+  "items": [],
+  "next_cursor": null,
+  "has_more": false,
+  "request_id": "req_example"
+}
+```
+
+Treat the cursor as opaque and bind it to the same collection/filter set. The exact stable sort keys and snapshot behavior remain implementation-review items; clients must not decode cursors or assume they encode timestamps.
+
+## Version preconditions
+
+Read a resource and retain its quoted `ETag`. Endpoints marked with required `If-Match` reject missing preconditions with `428` and stale values with `412`. Re-read and deliberately reconcile a conflict; do not blindly retry with a newer ETag.
+
+Prompt creation instead uses `If-None-Match: *`. Policy publication uses its draft ETag plus `expected_active_revision`. Authority changes and policy rollback use the status ETag. App rollback and attachment operations use the app ETag.
+
+These guards must include changes from existing console writers and synchronization. Enforcing conflicts only between new management clients would be insufficient.
+
+## Idempotency and partial outcomes
+
+Operations marked with required `Idempotency-Key` need a stable unique key per intended operation. Reuse it only with the same tenant, operation and payload. A different payload returns `409`.
+
+:::warning Retry contract pending implementation review
+Secret-bearing creation needs a defined replay/recovery mechanism, and current storage writes do not form one cross-table transaction. This draft does not promise a replay retention duration or globally atomic writes. Do not implement automated timeout retries or assume a timeout proves no change until that contract is finalized.
+:::
+
+## Secrets and scope
+
+Ordinary reads and history are redacted. Upstream provider secrets are write-only. Management secrets are available only at issuance; gateway secrets have a separate explicit reveal endpoint. Secret-bearing responses use `Cache-Control: no-store`; secret values are excluded from audit and error messages.
+
+Management scopes are independent. All scopes listed on an operation are required. Foreign-tenant resource lookups return `404`; tenant headers cannot override the management principal.
+
+## Status and errors
+
+```json
+{
+  "error": {
+    "code": "version_conflict",
+    "message": "The resource changed after your last read.",
+    "fields": []
+  },
+  "request_id": "req_example"
+}
+```
+
+| Status | Meaning |
+| --- | --- |
+| `200` | Read/update/validation/reveal completed. Warnings or `valid:false` can describe a semantic result. |
+| `201` | A new app, provider, key, prompt, draft or revision was created. |
+| `204` | A supported detach, prompt deletion or credential revocation completed. |
+| `400` | Malformed/unknown fields, invalid types, pagination or conditional requirements. |
+| `401` | Missing, invalid, expired or revoked management credential. |
+| `403` | Tenant management suspended, insufficient scope or unauthorized administrator. |
+| `404` | Deployment gate off, resource missing or resource outside the tenant. |
+| `409` | Ambiguous/duplicate name, dependency conflict, inline-provider migration required, terminal key state or idempotency mismatch. |
+| `412` | Stale version precondition. |
+| `428` | Required precondition missing. |
+| `429` | Management request/concurrency limit exceeded; honor `Retry-After` when present. |
+| `503` | Central storage/service unavailable. An uncertain outcome needs recovery, not a false success. |
+
+Completed upstream tests return an outcome of `passed`, `failed` or `unsupported` in a `200` result. Unauthorized/malformed test requests still use HTTP errors. The response must identify exactly which stored configuration version was tested.
+
+## Configuration propagation
+
+Committed configuration synchronizes to gateway nodes. A successful central write does not promise immediate worldwide enforcement or revocation. Gateway quota counters retain their existing node-local consistency; management does not turn them into a distributed ledger.
+
+Whole-app disable covers newly admitted requests after a gateway observes the change. Existing requests/streams are proposed to finish. Customer nodes do not accept management writes.
+
+## Review boundary
+
+The product scope is agreed. Before implementation, verify administrator identity binding, unusual app-name encoding, all field-to-validator mappings, legacy duplicate remediation, cross-writer ETags, secret issuance recovery and central replica revocation/propagation bounds. This section does not describe those unresolved operational guarantees as already delivered.
+
+## Capabilities endpoint
+
+Use capabilities and policy catalogs to discover deployment-specific support. The response examples are abbreviated metadata, not hardcoded provider/model inventories.
+
+<ApiReference tags={['Reference']} />
