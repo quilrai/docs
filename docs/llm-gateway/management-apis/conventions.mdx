@@ -3,16 +3,14 @@ title: "API conventions & errors"
 sidebar_position: 11
 sidebar_custom_props:
   icon: BookOpen
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: api conventions & errors, with typed inputs and examples."
+description: "LLM Gateway Management API v1: api conventions & errors, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # API conventions & errors
-<DraftNotice />
 
-These shared rules apply to every proposed management endpoint. The downloadable [OpenAPI 3.1 document](/openapi/llm-gateway-management-v1.json) contains every operation and request schema shown in this section.
+These shared rules apply to every management endpoint. The downloadable [OpenAPI 3.1 document](/openapi/llm-gateway-management-v1.json) contains every operation and request schema shown in this section.
 
 ## Origins, authentication and content types
 
@@ -27,7 +25,7 @@ These shared rules apply to every proposed management endpoint. The downloadable
 | Names | URL-encode app names and provider labels as one segment. |
 | Bodyless operations | Send no JSON body unless the operation defines one. |
 
-Schema bounds and exact normalized field names are draft design choices. Unknown fields are rejected. Boolean, numeric, array and object types are strict; the API does not silently coerce strings into booleans or numbers.
+Unknown fields are rejected. Boolean, numeric, array and object types are strict; the API does not silently coerce strings into booleans or numbers.
 
 ## Pagination
 
@@ -42,7 +40,7 @@ Collection requests accept `limit` (default 50, range 1-200) and an optional `cu
 }
 ```
 
-Treat the cursor as opaque and bind it to the same collection/filter set. The exact stable sort keys and snapshot behavior remain implementation-review items; clients must not decode cursors or assume they encode timestamps.
+Treat the cursor as opaque and bind it to the same collection/filter set. Do not decode cursors or assume they encode timestamps.
 
 ## Version preconditions
 
@@ -50,15 +48,13 @@ Read a resource and retain its quoted `ETag`. Endpoints marked with required `If
 
 Prompt creation instead uses `If-None-Match: *`. Policy publication uses its draft ETag plus `expected_active_revision`. Authority changes and policy rollback use the status ETag. App rollback and attachment operations use the app ETag.
 
-These guards must include changes from existing console writers and synchronization. Enforcing conflicts only between new management clients would be insufficient.
+Changes made through the console or synchronization can also affect a resource version. Re-read the resource before reconciling a conflict.
 
 ## Idempotency and partial outcomes
 
 Operations marked with required `Idempotency-Key` need a stable unique key per intended operation. Reuse it only with the same tenant, operation and payload. A different payload returns `409`.
 
-:::warning Retry contract pending implementation review
-Secret-bearing creation needs a defined replay/recovery mechanism, and current storage writes do not form one cross-table transaction. This draft does not promise a replay retention duration or globally atomic writes. Do not implement automated timeout retries or assume a timeout proves no change until that contract is finalized.
-:::
+A timeout does not prove that no change occurred. Read the affected resource before retrying, retain the original idempotency key, and reconcile uncertain outcomes. Do not assume globally atomic writes or indefinite replay retention, especially for operations that issue secrets.
 
 ## Secrets and scope
 
@@ -100,11 +96,7 @@ Completed upstream tests return an outcome of `passed`, `failed` or `unsupported
 
 Committed configuration synchronizes to gateway nodes. A successful central write does not promise immediate worldwide enforcement or revocation. Gateway quota counters retain their existing node-local consistency; management does not turn them into a distributed ledger.
 
-Whole-app disable covers newly admitted requests after a gateway observes the change. Existing requests/streams are proposed to finish. Customer nodes do not accept management writes.
-
-## Review boundary
-
-The product scope is agreed. Before implementation, verify administrator identity binding, unusual app-name encoding, all field-to-validator mappings, legacy duplicate remediation, cross-writer ETags, secret issuance recovery and central replica revocation/propagation bounds. This section does not describe those unresolved operational guarantees as already delivered.
+Whole-app disable covers newly admitted requests after a gateway observes the change. Existing requests and streams finish normally. Customer nodes do not accept management writes.
 
 ## Capabilities endpoint
 

@@ -3,14 +3,12 @@ title: "Authentication & management keys"
 sidebar_position: 3
 sidebar_custom_props:
   icon: ShieldCheck
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: authentication & management keys, with typed inputs and examples."
+description: "LLM Gateway Management API v1: authentication & management keys, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # Authentication & management keys
-<DraftNotice />
 
 Two gates enable access: the deployment switch and tenant opt-in. Every management key belongs to exactly one tenant; one tenant can have multiple keys for independent automation clients.
 
@@ -37,7 +35,7 @@ The key establishes the tenant. Caller-supplied tenant headers cannot expand tha
 
 Disabling tenant management **suspends** its keys. Re-enabling restores keys that remain unexpired and unrevoked. This does not enable/disable gateway apps. Tenant admins may continue to inspect enablement and revoke keys while tenant management is suspended, provided the deployment gate is enabled.
 
-Management keys do not expire by default. `expires_at` is a future RFC 3339 timestamp or `null`. On PATCH, omission preserves the current expiry and `null` clears it. This draft treats expired and revoked keys as terminal: issue a new key instead of resurrecting one.
+Management keys do not expire by default. `expires_at` is a future RFC 3339 timestamp or `null`. On PATCH, omission preserves the current expiry and `null` clears it. Expired and revoked keys are terminal: issue a new key instead of resurrecting one.
 
 ## Scopes
 
@@ -59,8 +57,6 @@ App creation requires **both** `config:write` and `credentials:write` because it
 
 The following routes use the separate `/llmgateway/management-admin/v1` prefix. They require a **verified tenant administrator for that tenant** or an **authorized Quilr operator**. A management key cannot grant itself more permissions or enable its tenant.
 
-:::note Authentication adapter under review
-The exact administrator issuer, audience, tenant-role binding and operator-session transport remain an engineering integration decision. The bearer admin header in examples is illustrative; it is not permission to reuse a generic JWT or legacy tenant-header bypass.
-:::
+Administrator credentials must identify a verified tenant administrator or authorized Quilr operator. Use the administration identity provider configured for your deployment; tenant headers alone do not authorize administrative access.
 
 <ApiReference tags={['Administration']} />

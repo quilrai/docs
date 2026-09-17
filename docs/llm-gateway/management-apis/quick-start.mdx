@@ -3,16 +3,14 @@ title: "Quick start"
 sidebar_position: 2
 sidebar_custom_props:
   icon: Rocket
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: quick start, with typed inputs and examples."
+description: "LLM Gateway Management API v1: quick start, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # Quick start
-<DraftNotice />
 
-This workflow creates a shared provider, creates an app, reads it, then disables it without losing configuration. All URLs below are **proposed**. Replace the placeholder origin with the central management origin only after the API is implemented and enabled.
+This workflow creates a shared provider, creates an app, reads it, then disables it without losing configuration. Replace the placeholder origin with your central management origin and enable management access before making requests.
 
 ## 1. Prepare access
 
@@ -106,7 +104,7 @@ curl --request PATCH \
   --data '{"enabled":false}'
 ```
 
-This preserves the app, prompts, provider references and keys. After a gateway observes the change, newly admitted traffic is rejected for all app authentication modes. Existing requests are proposed to finish normally.
+This preserves the app, prompts, provider references and keys. After a gateway observes the change, newly admitted traffic is rejected for all app authentication modes. Existing requests finish normally.
 
 To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expired or were revoked while the app was disabled remain invalid. Propagation is asynchronous; the API does not promise an instantaneous global kill switch.
 

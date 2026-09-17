@@ -3,20 +3,18 @@ title: "Management APIs"
 sidebar_position: 1
 sidebar_custom_props:
   icon: Wrench
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: management apis, with typed inputs and examples."
+description: "LLM Gateway Management API v1: management apis, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # Management APIs
 <ManagementHero />
 
-<DraftNotice />
 
 Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
 
-This section describes the agreed product behavior and a **proposed v1 HTTP contract**. It is not a claim that the endpoints are available. The input schemas expand the design into concrete reviewable fields; examples and the OpenAPI download share the same source.
+Use the Management API to configure LLM Gateway apps, shared providers, credentials and policy. Explore complete input specifications and examples, or download the OpenAPI reference.
 
 ## Choose a resource
 
@@ -41,7 +39,7 @@ This section describes the agreed product behavior and a **proposed v1 HTTP cont
 | Smart groups and custom definitions | Read and use existing resources in app or policy configuration. | No definition or membership editing. |
 | History | Read redacted config versions and audit, restore eligible app settings. | Traffic logs, usage, health and red-team jobs are outside v1. |
 
-## Defaults you can rely on in the design
+## Defaults
 
 - Management keys have **no expiry by default**. An administrator can supply one.
 - Creating an app issues one gateway key, named **Default** unless specified.
@@ -62,4 +60,4 @@ Search by resource, path, action or HTTP method. Open an endpoint to see its sco
 
 ## Continue
 
-Start with the [end-to-end example](./quick-start), inspect the [full app configuration schema](./configuration), or review [errors, concurrency and retry semantics](./conventions). Download the [OpenAPI 3.1 draft](/openapi/llm-gateway-management-v1.json) for all operations and input schemas.
+Start with the [end-to-end example](./quick-start), inspect the [full app configuration schema](./configuration), or review [errors, concurrency and retry semantics](./conventions). Download the [OpenAPI 3.1 reference](/openapi/llm-gateway-management-v1.json) for all operations and input schemas.

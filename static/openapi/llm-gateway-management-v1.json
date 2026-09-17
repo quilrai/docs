@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "QuilrAI LLM Gateway Management API",
-    "version": "1.0.0-draft",
-    "description": "PROPOSED CONTRACT - not an implemented or released API. Product behavior is agreed; field normalization, schema limits, administrative authentication, encoding, consistency and recovery details are draft design choices. Examples use a non-production hostname. No live requests are made by this documentation."
+    "version": "1.0.0",
+    "description": "LLM Gateway Management API v1. Manage tenant-scoped apps, shared providers, credentials, configuration, QuilrQL policy and prompts. Examples use a placeholder hostname; replace it with your central management origin."
   },
   "servers": [
     {
@@ -68,7 +68,7 @@
                 },
                 "example": {
                   "capabilities": {
-                    "contract": "v1-draft",
+                    "contract": "v1",
                     "management_writes": true,
                     "policy_authority": {
                       "enabled": true,
@@ -113,8 +113,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps": {
@@ -250,8 +249,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "post": {
         "operationId": "Create_an_app",
@@ -349,7 +347,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -457,8 +454,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "patch": {
         "operationId": "Update_or_disable_an_app",
@@ -556,7 +552,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -680,8 +675,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/providers/{label}": {
@@ -794,7 +788,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -883,8 +876,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/provider-conversion": {
@@ -996,7 +988,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -1134,8 +1125,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "post": {
         "operationId": "Create_a_shared_provider",
@@ -1218,7 +1208,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -1416,8 +1405,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "patch": {
         "operationId": "Update_or_disable_a_provider",
@@ -1511,7 +1499,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -1634,7 +1621,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -1768,8 +1754,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "post": {
         "operationId": "Issue_a_gateway_credential",
@@ -1862,7 +1847,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -1979,7 +1963,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -2066,15 +2049,14 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/keys/{key_id}/reveal": {
       "post": {
         "operationId": "Reveal_a_gateway_credential",
         "summary": "Reveal a gateway credential",
-        "description": "Explicitly reveal an active or expired retained gateway credential; revoked keys return terminal_key_state in this draft. Response is no-store and reveal is audited without the secret.",
+        "description": "Explicitly reveal an active or expired retained gateway credential; revoked keys return terminal_key_state. Response is no-store and reveal is audited without the secret.",
         "tags": [
           "Credentials"
         ],
@@ -2160,8 +2142,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/prompts": {
@@ -2266,8 +2247,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/prompts/{prompt_id}": {
@@ -2358,8 +2338,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "put": {
         "operationId": "Create_or_replace_a_prompt",
@@ -2467,7 +2446,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -2556,8 +2534,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/smart-groups": {
@@ -2661,8 +2638,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/smart-groups/{group_name}": {
@@ -2739,8 +2715,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/custom-definitions": {
@@ -2844,8 +2819,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/custom-definitions/{definition_id}": {
@@ -2922,8 +2896,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/versions": {
@@ -3029,8 +3002,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/versions/{version_id}": {
@@ -3133,8 +3105,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/apps/{app_name}/versions/{version_id}/rollback": {
@@ -3257,7 +3228,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -3416,8 +3386,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/status": {
@@ -3481,8 +3450,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/metadata": {
@@ -3546,8 +3514,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/authoring-schema": {
@@ -3611,8 +3578,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/authoring-catalog": {
@@ -3682,8 +3648,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/suggested-policies": {
@@ -3750,8 +3715,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/authoring-catalog/search": {
@@ -3875,8 +3839,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/conversion-preview": {
@@ -3940,8 +3903,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/validate": {
@@ -4007,7 +3969,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -4091,7 +4052,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -4208,8 +4168,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "post": {
         "operationId": "Create_a_policy_draft",
@@ -4285,7 +4244,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -4375,8 +4333,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "put": {
         "operationId": "Replace_a_policy_draft",
@@ -4460,7 +4417,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -4573,7 +4529,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -4680,8 +4635,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/revisions/{revision}": {
@@ -4757,8 +4711,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/revisions/{revision}/source": {
@@ -4834,8 +4787,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     },
     "/llmgateway/management/v1/policy/revisions/{revision}/rollback": {
@@ -4935,7 +4887,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -5036,7 +4987,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -5137,7 +5087,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -5224,8 +5173,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "patch": {
         "operationId": "Enable_or_suspend_tenant_management",
@@ -5308,7 +5256,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -5429,8 +5376,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       },
       "post": {
         "operationId": "Issue_a_management_key",
@@ -5523,7 +5469,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -5643,7 +5588,6 @@
             }
           }
         },
-        "x-contract-status": "proposed",
         "requestBody": {
           "required": true,
           "content": {
@@ -5730,8 +5674,7 @@
               }
             }
           }
-        },
-        "x-contract-status": "proposed"
+        }
       }
     }
   },
@@ -7142,7 +7085,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Draft defaults: enabled true; mode gateway; initial key named Default with no expiry. New omitted guardrail/control sections begin unset, and capability/schema metadata supplies runtime defaults. QuilrQL can independently govern requests.",
+        "description": "Defaults: enabled true; mode gateway; initial key named Default with no expiry. New omitted guardrail/control sections begin unset, and capability/schema metadata supplies runtime defaults. QuilrQL can independently govern requests.",
         "required": [
           "name"
         ],
@@ -11836,13 +11779,5 @@
         ]
       }
     }
-  },
-  "x-release-status": "design-draft",
-  "x-review-items": [
-    "Verify administrative claim/role and operator-session integration.",
-    "Verify percent-encoded app names, slashes and Unicode through the deployed proxy/router.",
-    "Coordinate normalized configuration fields with existing validators.",
-    "Specify cross-writer ETags, secret-bearing idempotency replay and partial-write recovery before implementation.",
-    "Define central replica revocation and gateway configuration propagation bounds."
-  ]
+  }
 }

@@ -3,18 +3,16 @@ title: "Full app configuration input"
 sidebar_position: 5
 sidebar_custom_props:
   icon: Wrench
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: full app configuration input, with typed inputs and examples."
+description: "LLM Gateway Management API v1: full app configuration input, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # Full app configuration input
-<DraftNotice />
 
 Use `PATCH /llmgateway/management/v1/apps/{app_name}` to update stored controls. The complete input schema below covers routing, detection, limits, identity, self-service, existing group/definition references, alerts and transformations.
 
-The normalized grouping shown here is a **proposed public schema**, not a pass-through of the existing console payload. All nested fields are typed. Unknown fields are rejected.
+The public schema groups app configuration by function. All nested fields are typed. Unknown fields are rejected.
 
 ## How partial updates work
 

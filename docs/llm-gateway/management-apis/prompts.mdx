@@ -3,14 +3,12 @@ title: "Prompt Store"
 sidebar_position: 9
 sidebar_custom_props:
   icon: MessageSquareText
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: prompt store, with typed inputs and examples."
+description: "LLM Gateway Management API v1: prompt store, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # Prompt Store
-<DraftNotice />
 
 Manage app-scoped prompt templates without changing gateway credentials or provider connections. Prompt content remains a live app dependency; `prompt_store.require_system_from_store` controls enforcement and can be governed by QuilrQL.
 
@@ -19,8 +17,8 @@ Manage app-scoped prompt templates without changing gateway credentials or provi
 | Input | Rule |
 | --- | --- |
 | `app_name` | Tenant-scoped app display name, encoded as one path segment. |
-| `prompt_id` | 1-200 characters in this draft; letters, numbers, hyphens and underscores only. |
-| `content` | Required nonempty template string, up to 400,000 characters in this draft. PUT replaces the full content. |
+| `prompt_id` | 1-200 characters; letters, numbers, hyphens and underscores only. |
+| `content` | Required nonempty template string, up to 400,000 characters. PUT replaces the full content. |
 | Create precondition | `If-None-Match: *`; fail if a prompt already exists. |
 | Replace/delete precondition | Current prompt ETag in `If-Match`. |
 

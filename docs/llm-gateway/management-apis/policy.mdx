@@ -3,14 +3,12 @@ title: "QuilrQL lifecycle"
 sidebar_position: 8
 sidebar_custom_props:
   icon: Workflow
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: quilrql lifecycle, with typed inputs and examples."
+description: "LLM Gateway Management API v1: quilrql lifecycle, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # QuilrQL lifecycle
-<DraftNotice />
 
 QuilrQL governs policy at the **tenant level**. Keep source authoring, draft storage and runtime publication as separate operations. These management endpoints preserve the gateway policy engine's authority boundaries.
 
@@ -34,7 +32,7 @@ QuilrQL governs policy at the **tenant level**. Keep source authoring, draft sto
 
 `source` is QuilrQL text. The request schema accepts at most 400,000 characters and the service must additionally enforce **400,000 UTF-8 bytes**. The authoring schema supplies valid fields, effects, stages, value sources and conditional shapes. Tenant catalogs supply valid app/provider/group/definition references.
 
-Simulation accepts 1-100 synthetic cases. The proposed case input includes an app name, direction, user/group identity, model/provider, method type, detected data types and scalar metadata. It performs policy evaluation; it does not invoke a model or read production request logs.
+Simulation accepts 1-100 synthetic cases. The case input includes an app name, direction, user/group identity, model/provider, method type, detected data types and scalar metadata. It performs policy evaluation; it does not invoke a model or read production request logs.
 
 For policy language and supported controls, see [LLM Gateway policies](../../policy-engine/llm-gateway) and [authoring and publishing](../../policy-engine/authoring-and-publishing). Source strings shown as `<source ...>` in reference examples are placeholders: use source returned by preview, a saved revision, a suggested policy or the editor.
 
@@ -45,8 +43,6 @@ For policy language and supported controls, see [LLM Gateway policies](../../pol
 - Authority enable/disable and policy rollback require the **authority ETag** from status.
 - Enable references the reviewed conversion-preview checksum. A changed live snapshot requires a fresh preview.
 - Rollback republishes eligible historical source as a new revision after validating current references. It does not erase history.
-
-The checksum/active-revision preconditions are proposed management contract additions and require implementation review. They are not a claim that the existing console endpoints enforce exactly these inputs.
 
 ## What happens to app settings
 

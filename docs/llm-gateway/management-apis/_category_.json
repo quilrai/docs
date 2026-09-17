@@ -6,7 +6,6 @@
     "id": "llm-gateway/management-apis/overview"
   },
   "customProps": {
-    "icon": "Wrench",
-    "badge": "Draft"
+    "icon": "Wrench"
   }
 }

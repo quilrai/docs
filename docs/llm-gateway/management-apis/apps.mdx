@@ -3,20 +3,18 @@ title: "Apps & provider attachments"
 sidebar_position: 4
 sidebar_custom_props:
   icon: Layers
-  badge: Draft
-description: "Proposed LLM Gateway Management API v1: apps & provider attachments, with typed inputs and examples."
+description: "LLM Gateway Management API v1: apps & provider attachments, with typed inputs and examples."
 ---
 
-import {DraftNotice, ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
 # Apps & provider attachments
-<DraftNotice />
 
 An app owns its gateway credentials, stored controls, routing, prompts and configuration history. Manage it by **app name within the key's tenant**. There is no app-delete API.
 
 ## Naming and identity
 
-Names are trimmed and compared case-insensitively. New names must be unique among enabled and disabled apps. A disabled app continues to reserve its name. If multiple legacy apps match a name, the proposed API returns `409 ambiguous_app_name` instead of choosing one silently.
+Names are trimmed and compared case-insensitively. New names must be unique among enabled and disabled apps. A disabled app continues to reserve its name. If multiple legacy apps match a name, the API returns `409 ambiguous_app_name` instead of choosing one silently.
 
 Encode names as one URL path segment: `Support Bot` becomes `Support%20Bot`. Handling existing names containing slashes and Unicode still needs proxy/router verification before release. Renaming is not part of v1. Changing an individual credential does not change the canonical app or log attribution.
 
@@ -24,11 +22,11 @@ Encode names as one URL path segment: `Support Bot` becomes `Support%20Bot`. Han
 
 | Input | Rule |
 | --- | --- |
-| `name` | Required display name, 1-200 characters in the draft schema. |
+| `name` | Required display name, 1-200 characters. |
 | `mode` | `gateway` by default; `sdk` and `copilot_studio` preserve their existing providerless app modes. |
 | `provider_labels` | Required, ordered, nonempty list for gateway apps. First is primary. Omit for providerless modes. |
 | `initial_key` | Optional. Omission still issues one key named `Default`. Optional expiry applies to the gateway key, not the management key. |
-| Configuration sections | See [full configuration input](./configuration). Omitted controls begin unset in this normalized draft, with runtime defaults advertised by capabilities. |
+| Configuration sections | See [full configuration input](./configuration). Omitted controls begin unset, with runtime defaults advertised by capabilities. |
 
 App creation validates configuration without contacting an upstream model. It does not publish QuilrQL or imply that a model is reachable.
 
