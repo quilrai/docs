@@ -61,7 +61,7 @@ Setup splits cleanly into two jobs, documented on their own pages:
 | Who | Required |
 |---|---|
 | Administrator | Existing MCP create permission, then update permission on the created MCP to configure tools, access, rules and revocation |
-| User | An eligible organization account, macOS or Linux, Node 24+ for npm or Python 3.12+ with uv/uvx for PyPI, and network access to the gateway |
+| User | An eligible organization account, macOS, Linux or Windows, Node 24+ for npm or Python 3.12+ with uv/uvx for PyPI, and network access to the gateway |
 | Python MCP user | Python 3.12+. Use an absolute interpreter path when multiple Python versions exist |
 | Browser MCP user | A browser installed separately for the approved package |
 
@@ -71,7 +71,7 @@ If **Local package (CLI MCP)** does not appear when adding an MCP server, the ca
 
 Know these before you plan a rollout:
 
-- **macOS and Linux only.** There is no Windows support.
+- **The connector runs as one user.** On macOS and Linux its private state is enforced with file ownership and permissions; on Windows it must live inside your user profile, whose default ACL closes it to other standard users. Claude Desktop ships for macOS and Windows only.
 - **The connector is not an OS sandbox.** A selected workspace limits where the MCP works by convention, not by kernel enforcement.
 - **No offline execution.** If the gateway is unreachable, calls stop. Local execution does not continue on its own.
 - **Updates are per computer.** There is no automatic upgrade across every computer at once.
