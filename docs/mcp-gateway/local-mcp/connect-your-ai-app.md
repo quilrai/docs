@@ -98,12 +98,14 @@ Or step through it below.
 
 ## Before you start
 
-- macOS or Linux
+- macOS, Linux or Windows
 - **Node 24+** for the npm connector, or **Python 3.12+ with uvx** for the PyPI connector
 - Network access to your gateway
 - An eligible organization account
 
 Python MCPs can run through the Python connector without Node. Each MCP still needs its own native runtime. VS Code users also need the `code` command available in the terminal.
+
+On Windows the connector keeps its state inside your user profile, so run the command as yourself rather than from an administrator shell that belongs to another account.
 
 ## 1. Open the connection dialog
 
@@ -113,12 +115,14 @@ Under **Your AI app**, choose your client:
 
 | Client | Notes |
 |---|---|
-| **Cursor** | macOS and Linux |
-| **Claude Desktop** | macOS |
-| **Claude Code** | macOS and Linux |
-| **VS Code** | Requires the `code` command in your terminal |
+| **Cursor** | macOS, Linux and Windows |
+| **Claude Desktop** | macOS and Windows |
+| **Claude Code** | macOS, Linux and Windows |
+| **VS Code** | Requires the `code` command in your terminal (`code.cmd` on Windows) |
 
 Under **Install with**, choose **Node.js · npm** (npx, Node.js 24 or newer) or **Python · PyPI** (uvx, Python 3.12 or newer). Python tools need no Node.js. The Python option appears when your operator has enabled a published Python release.
+
+Under **Your terminal**, choose **macOS or Linux**, **Windows PowerShell** or **Windows Command Prompt**. Only the quoting differs; the connection is the same. Command Prompt has no single-quoted string, so a command copied from the macOS option would reach the connector with quotes inside the gateway address.
 
 ## 2. Run the single command
 
