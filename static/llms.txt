@@ -69,6 +69,31 @@ One versioned policy document per enforcement target, authored as sentences and 
 - [Switching from Settings](https://docs.quilrai.dev/policy-engine/switching-from-settings.md): The conversion review, what each target's conversion compares, activation, which settings freeze, and a recommended first rollout.
 - [Authoring and Publishing](https://docs.quilrai.dev/policy-engine/authoring-and-publishing.md): The draft, validate, simulate, replay, publish and roll back loop, plus permissions and engine limits.
 
+## Console V1
+
+Administrator guide for Console V1, covering sensor deployment, organization settings, access control, policies, detections, investigations, reporting, and operational validation.
+
+- [Console V1 Administrator Guide](https://docs.quilrai.dev/console-v1/overview.md): Reading paths for deployment, administration, governance, investigations, and reporting in Console V1.
+- [Deployment Prerequisites](https://docs.quilrai.dev/console-v1/deployment/overview.md): Tenant configuration, enterprise prerequisites, deployment choices, and the Endpoint Agent package boundary.
+- [Deploy with Group Policy](https://docs.quilrai.dev/console-v1/deployment/group-policy.md): Force-install the Browser Extension and deploy its native Browser Agent through a computer-linked Windows GPO.
+- [Deploy with Microsoft Intune](https://docs.quilrai.dev/console-v1/deployment/microsoft-intune.md): Deploy Windows and macOS Browser Agent packages and tenant-specific browser extension profiles with Intune.
+- [Deploy with Jamf Pro](https://docs.quilrai.dev/console-v1/deployment/jamf-pro.md): Deploy the macOS Browser Agent, Full Disk Access profile, tenant configuration, and browser extension with Jamf Pro.
+- [Validate Deployment](https://docs.quilrai.dev/console-v1/deployment/validation.md): Verify management assignment, browser policy, native processes, console registration, and synthetic telemetry independently.
+- [Settings Overview](https://docs.quilrai.dev/console-v1/administration/settings.md): Console V1 settings areas, save behavior, responsibilities, and audit verification.
+- [Organizational Context](https://docs.quilrai.dev/console-v1/administration/organizational-context.md): Configure organization identity, corporate domains, timezone, acceptable-use policies, profile, and unmanaged-browser behavior.
+- [Console Access Control](https://docs.quilrai.dev/console-v1/administration/access-control.md): Manage console invitations, groups, and the six console roles through Manage Users.
+- [User Interaction Hub](https://docs.quilrai.dev/console-v1/administration/user-interaction-hub.md): Customize prompt branding, message templates, justification options, and policy links for end users.
+- [Policy Configuration and Lifecycle](https://docs.quilrai.dev/console-v1/policies-and-detections/policy-lifecycle.md): Create, scope, test, promote, maintain, duplicate, and disable browser and endpoint controls.
+- [Detection Models](https://docs.quilrai.dev/console-v1/policies-and-detections/detection-models.md): Review contextual and pattern-based models, test synthetic samples, and validate custom detections.
+- [AI Assets](https://docs.quilrai.dev/console-v1/investigations/ai-assets.md): Inspect endpoint and SaaS AI inventory, asset fields, usage, guardrails, and investigation pivots.
+- [Users and Accounts](https://docs.quilrai.dev/console-v1/investigations/users-and-accounts.md): Distinguish people from application accounts and correlate identity, login context, and findings.
+- [Findings and Investigations](https://docs.quilrai.dev/console-v1/investigations/findings.md): Triage browser and endpoint findings, interpret outcomes, correlate evidence, and manage disposition.
+- [End-to-End Investigation Workflow](https://docs.quilrai.dev/console-v1/investigations/end-to-end-workflow.md): Trace a sensitive-data signal through findings, identities, AI assets, controls, audit history, and exports.
+- [Dashboards and Exports](https://docs.quilrai.dev/console-v1/reporting/dashboards-and-exports.md): Interpret time-bounded dashboards, export filtered CSV evidence, and manage the central export queue.
+- [Audit Logging Console](https://docs.quilrai.dev/console-v1/reporting/audit-log.md): Attribute administrative changes, filter audit events, configure columns, and export audit evidence.
+- [Insights and Governance Reports](https://docs.quilrai.dev/console-v1/reporting/insights-and-governance-reports.md): Review adoption, sensitive-data trends, governance incidents, and executive summaries with evidence drill-downs.
+- [Troubleshooting and Completion Checklist](https://docs.quilrai.dev/console-v1/troubleshooting.md): Diagnose deployment, telemetry, policy, and export issues; locate logs and confirm operational readiness.
+
 ## Console V2
 
 The new console organised by what you manage rather than by sensor, and the phased plan for moving governance across from V1.

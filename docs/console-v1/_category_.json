@@ -1,0 +1,12 @@
+{
+  "label": "Console V1",
+  "position": 5.4,
+  "link": {
+    "type": "generated-index",
+    "slug": "/console-v1",
+    "description": "Administrator guide for deploying sensors, configuring governance, investigating findings, and reporting in Console V1."
+  },
+  "customProps": {
+    "icon": "LayoutGrid"
+  }
+}

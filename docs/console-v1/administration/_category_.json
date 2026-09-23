@@ -1,0 +1,12 @@
+{
+  "label": "Administration",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "slug": "/console-v1/administration",
+    "description": "Configure organization context, console access, and end-user messaging."
+  },
+  "customProps": {
+    "icon": "UserCog"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "label": "Inventory and Investigations",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "slug": "/console-v1/investigations",
+    "description": "Connect AI assets, users, accounts, and findings in a repeatable investigation."
+  },
+  "customProps": {
+    "icon": "Fingerprint"
+  }
+}

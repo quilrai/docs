@@ -1,0 +1,12 @@
+{
+  "label": "Deployment and Validation",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "slug": "/console-v1/deployment",
+    "description": "Deploy the Browser Extension and native Browser Agent, then verify coverage and telemetry."
+  },
+  "customProps": {
+    "icon": "Rocket"
+  }
+}
