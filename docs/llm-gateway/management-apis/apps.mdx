@@ -10,13 +10,13 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaRe
 
 # Apps & provider attachments
 
-An app owns its gateway credentials, stored controls, routing, prompts and configuration history. Manage it by **app name within the key's tenant**. There is no app-delete API.
+An app owns its gateway credentials, stored controls, routing, prompts and configuration history. Manage it by **app name within the key's tenant**. App deletion is **Not Generally Available**.
 
 ## Naming and identity
 
 Names are trimmed and compared case-insensitively. New names must be unique among enabled and disabled apps. A disabled app continues to reserve its name. If multiple legacy apps match a name, the API returns `409 ambiguous_app_name` instead of choosing one silently.
 
-Encode names as one URL path segment: `Support Bot` becomes `Support%20Bot`. Handling existing names containing slashes and Unicode still needs proxy/router verification before release. Renaming is not part of v1. Changing an individual credential does not change the canonical app or log attribution.
+For simple names, encode one URL path segment: `Support Bot` becomes `Support%20Bot`. For names containing `/`, `%` or other proxy-sensitive characters, use `/app?app_name=<URL-encoded name>`. Every app subresource has this query alias, for example `/app/keys?app_name=Team%20%2F%20Support`. Encode the query value once. App renaming is **Not Generally Available**. Changing an individual credential does not change the canonical app or log attribution.
 
 ## Creating an app
 
@@ -26,9 +26,9 @@ Encode names as one URL path segment: `Support Bot` becomes `Support%20Bot`. Han
 | `mode` | `gateway` by default; `sdk` and `copilot_studio` preserve their existing providerless app modes. |
 | `provider_labels` | Required, ordered, nonempty list for gateway apps. First is primary. Omit for providerless modes. |
 | `initial_key` | Optional. Omission still issues one key named `Default`. Optional expiry applies to the gateway key, not the management key. |
-| Configuration sections | See [full configuration input](./configuration). Omitted controls begin unset, with runtime defaults advertised by capabilities. |
+| Configuration sections | See [full configuration input](./configuration). Omitted controls use existing gateway defaults. Capabilities lists supported fields and modes; it does not return every effective runtime default. |
 
-App creation validates configuration without contacting an upstream model. It does not publish QuilrQL or imply that a model is reachable.
+App creation validates configuration without contacting an upstream model. When QuilrQL is already enabled, creation captures an app baseline and can publish an app-scoped allowed-models default for all users. This does not enable authority or edit drafts, and matching tenant policies still apply. See [QuilrQL behavior](./policy). Model reachability requires an explicit supported model test.
 
 ## Disable means the whole app
 
@@ -40,9 +40,9 @@ Whole-app availability is independent of QuilrQL. Disabling an app does not beco
 
 - Attach an **existing enabled shared provider** by label. `primary:false` preserves the current primary; `primary:true` deliberately promotes the attachment.
 - `provider_labels` on an app PATCH replaces the **entire ordered selection**. Omission preserves it.
-- A detach is app-local. Reject unresolved routing/policy references and invalid primary/last-provider removal. Replace selection and routing together when needed.
+- A detach is app-local and validates remaining routing references and provider selection. While QuilrQL is enabled, provider removal conservatively returns `409 policy_dependency`; adding a provider remains supported. Provider-backed apps must keep at least one provider.
 - Legacy inline-provider apps can be read and receive non-provider edits. Provider changes require the explicit conversion endpoint first.
-- Conversion supplies the complete shared-provider selection. It preserves the canonical app and its keys; it does not silently create shared providers or publish policy.
+- Conversion supplies the complete shared-provider selection and optional routing, using the current app ETag. It preserves the app and its keys. It does not create shared providers or publish policy, and it has no idempotent-replay contract.
 
 ## Endpoint reference
 

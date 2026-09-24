@@ -27,7 +27,7 @@ export function ManagementHero() {
   return <section className={styles.hero}>
     <div className={styles.eyebrow}><span className={styles.dot} /> LLM GATEWAY / MANAGEMENT V1</div>
     <h2>Configure your gateway.<br/><span>Keep every change intentional.</span></h2>
-    <p>Manage apps, shared providers, access keys and policy from one tenant-scoped API. Start with a workflow, then explore every request field.</p>
+    <p>Manage apps, shared providers, access keys and configuration from one tenant-scoped API. Start with a workflow, then explore every request field.</p>
     <div className={styles.heroActions}><Link className={styles.primaryLink} to="./quick-start">Start with an example <ArrowUpRight size={16}/></Link><a className={styles.downloadLink} href={download} download><Download size={16}/> OpenAPI reference</a></div>
     <div className={styles.heroFacts}><span><ShieldCheck size={16}/> Tenant-bound keys</span><span><SlidersHorizontal size={16}/> Explicit scopes</span><span><Workflow size={16}/> Central configuration</span></div>
   </section>;
@@ -36,10 +36,10 @@ export function ManagementHero() {
 export function ResourceCards() {
   const cards = [
     ['Apps','Create, read, configure and pause applications.','apps',Layers],
-    ['Providers','Share credentials, attach models and test connections.','providers',SlidersHorizontal],
+    ['Providers','Configure shared credentials and explicitly test models.','providers',SlidersHorizontal],
     ['Authentication','Enable access and issue scoped management keys.','authentication',ShieldCheck],
     ['Gateway credentials','Issue, reveal, expire and revoke app keys.','credentials',KeyRound],
-    ['QuilrQL policy','Preview, validate, simulate and publish revisions.','policy',Workflow],
+    ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy',Workflow],
     ['Prompts & catalogs','Manage prompt content and use existing definitions.','prompts',BookOpen],
   ];
   return <nav className={styles.cards} aria-label="Management API resources">{cards.map(([title,desc,page,Icon])=><Link to={'./'+page} className={styles.card} key={page}><div className={styles.cardTop}><Icon size={21}/><ArrowUpRight size={17}/></div><strong>{title}</strong><p>{desc}</p><span>Explore reference</span></Link>)}</nav>;
@@ -106,7 +106,7 @@ function curlFor(op,body) {
   op.parameters.filter(p=>p.in==='path').forEach(p=>{path=path.replace('{'+p.name+'}',encodeURIComponent(p.example ?? 'example'));});
   const queries=op.parameters.filter(p=>p.in==='query'&&(p.required || p.name==='limit')).map(p=>`${p.name}=${encodeURIComponent(p.example ?? 'example')}`);
   const lines=[`curl --request ${op.method} \\`, `  'https://management.example.com${path}${queries.length?'?'+queries.join('&'):''}' \\`, `  --header 'Authorization: Bearer ${op.tags.includes('Administration')?'<verified-admin-token>':'<management-key>'}'`];
-  op.parameters.filter(p=>p.in==='header'&&(p.required||p.name==='If-Match')).forEach(p=>{lines[lines.length-1]+=' \\';lines.push(`  --header '${p.name}: ${p.example ?? '*'}'`);});
+  op.parameters.filter(p=>p.in==='header'&&(p.required||p.name==='If-Match')).forEach(p=>{lines[lines.length-1]+=' \\';lines.push(`  --header '${p.name}: ${p.example ?? '<value>'}'`);});
   if(body !== undefined){lines[lines.length-1]+=' \\';lines.push("  --header 'Content-Type: application/json' \\");lines.push("  --data '"+print(body).replace(/'/g,"'\\''")+"'");}
   return lines.join('\n');
 }
@@ -123,12 +123,12 @@ function Operation({op}) {
   const tabs=['cURL',...(content?['JSON body']:[]),'Response'];
   const parameterSchema=objFromParameters(op.parameters);
   return <article className={styles.operation} id={op.operationId}>
-    <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{op.path.replace(adminBase,'/admin').replace(base,'')}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p><div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope}>{scope}</code>) : <code>Verified tenant admin / Quilr operator</code>}</div></header>
+    <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{op.path.replace(adminBase,'/admin').replace(base,'')}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p><div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope}>{scope}</code>) : <code>Verified tenant administrator</code>}</div></header>
     <div className={styles.operationBody}>
       {op.parameters.length>0&&<details className={styles.parameterPanel}><summary>Path, query &amp; header parameters <span>{op.parameters.length}</span></summary><SchemaFields schema={parameterSchema}/></details>}
       {content ? <details className={styles.parameterPanel}><summary>Full request body specification <span>application/json</span></summary><p className={styles.schemaIntro}>{resolve(content.schema).description}</p><SchemaFields schema={content.schema}/></details> : <p className={styles.noBody}>No request body.</p>}
       <div className={styles.exampleBar}><div className={styles.tabs} aria-label="Example format">{tabs.map(t=><button type="button" aria-pressed={tab===t} className={tab===t?styles.activeTab:''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>{examples.length>1&&<label><span className={styles.srOnly}>Request example for {op.summary}</span><select value={selected} onChange={e=>setSelected(e.target.value)}>{examples.map(([name])=><option key={name}>{name}</option>)}</select></label>}</div>
-      <div className={styles.codeExample}><CodeBlock language={tab==='cURL'?'bash':'json'} title={tab==='Response'?`${success[0]} response example`:undefined}>{tab==='cURL'?curlFor(op,chosen):tab==='JSON body'?print(chosen):response?print(response):'// 204 No Content'}</CodeBlock></div>
+      <div className={styles.codeExample}><CodeBlock language={tab==='cURL'?'bash':'json'} title={tab==='Response'?`${success[0]} response example`:undefined}>{tab==='cURL'?curlFor(op,chosen):tab==='JSON body'?print(chosen):response?print(response):'// See the response schema for this operation.'}</CodeBlock></div>
       <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./conventions">Authentication, errors &amp; retry rules</Link></p>
     </div>
   </article>;

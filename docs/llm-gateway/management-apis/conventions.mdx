@@ -6,70 +6,60 @@ sidebar_custom_props:
 description: "LLM Gateway Management API v1: api conventions & errors, with typed inputs and examples."
 ---
 
-import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ApiReference} from '@site/src/components/ManagementApi';
 
 # API conventions & errors
 
-These shared rules apply to every management endpoint. The downloadable [OpenAPI 3.1 document](/openapi/llm-gateway-management-v1.json) contains every operation and request schema shown in this section.
+## Enablement and authentication
 
-## Origins, authentication and content types
+Management v1 runs on the central service with `LLMGATEWAY_MANAGEMENT_API_ENABLED=true`; it defaults off. Both route families return `404` when disabled. Deployments using `CLICKHOUSE_MASTER_URL` reject management with `503 central_service_required`.
 
-| Item | Contract |
-| --- | --- |
-| Origin | Designated central management origin. `https://management.example.com` is a non-production placeholder. |
-| Resource prefix | `/llmgateway/management/v1` |
-| Administrator prefix | `/llmgateway/management-admin/v1` |
-| Resource authentication | `Authorization: Bearer <management-key>` |
-| Body encoding | UTF-8 JSON; send `Content-Type: application/json` for bodies. |
-| Dates | RFC 3339 with an explicit timezone; examples use UTC `Z`. |
-| Names | URL-encode app names and provider labels as one segment. |
-| Bodyless operations | Send no JSON body unless the operation defines one. |
+Resource routes use `/llmgateway/management/v1` and `Authorization: Bearer <qlmgmt_...>`. The key establishes the tenant. Administrator routes use `/llmgateway/management-admin/v1` and a verified tenant-admin JWT; see [authentication](./authentication).
 
-Unknown fields are rejected. Boolean, numeric, array and object types are strict; the API does not silently coerce strings into booleans or numbers.
+Send JSON bodies with `Content-Type: application/json`. Requests are capped at 1 MiB, with a 10-second body-read timeout and 32 admitted management requests per HTTP worker. Model probes have a 20-second timeout. Secret-bearing values are omitted from ordinary reads. Responses use `Cache-Control: no-store` and `X-Request-ID`.
 
-## Pagination
+## Names and pagination
 
-Collection requests accept `limit` (default 50, range 1-200) and an optional `cursor`. Preserve other filters while following a cursor. Values outside bounds return `400`.
+Use URL-encoded paths for simple names. For app names containing `/`, `%` or other proxy-sensitive characters, use the `/app` query aliases and encode `app_name` once. Every app subresource supports the same alias.
+
+Paginated lists accept `limit` (1-200, default 50) and `cursor`:
 
 ```json
-{
-  "items": [],
-  "next_cursor": null,
-  "has_more": false,
-  "request_id": "req_example"
-}
+{"items": [], "next_cursor": null, "request_id": "req_example"}
 ```
 
-Treat the cursor as opaque and bind it to the same collection/filter set. Do not decode cursors or assume they encode timestamps.
+There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider/group/definition/audit lists support no additional filters. App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
 
-## Version preconditions
+## Versions and preconditions
 
-Read a resource and retain its quoted `ETag`. Endpoints marked with required `If-Match` reject missing preconditions with `428` and stale values with `412`. Re-read and deliberately reconcile a conflict; do not blindly retry with a newer ETag.
+Read the current resource version, then send its quoted value in `If-Match`. Missing preconditions return `428`; stale versions return `412`. Re-read and reconcile the intended change.
 
-Prompt creation instead uses `If-None-Match: *`. Policy publication uses its draft ETag plus `expected_active_revision`. Authority changes and policy rollback use the status ETag. App rollback and attachment operations use the app ETag.
+App updates, provider attachments/conversion, all prompt mutations and configuration rollback use the app ETag. Provider changes use the provider ETag. Gateway credential changes use the individual credential GET version. Management-key changes use `key.version` from the admin list. Tenant enablement changes use the settings version.
 
-Changes made through the console or synchronization can also affect a resource version. Re-read the resource before reconciling a conflict.
+Prompt creation also requires the app ETag; `If-None-Match` has no create-only semantics. Lists do not return a collection ETag for editing their members.
 
-## Idempotency and partial outcomes
+## Idempotency and recovery
 
-Operations marked with required `Idempotency-Key` need a stable unique key per intended operation. Reuse it only with the same tenant, operation and payload. A different payload returns `409`.
+App/provider/gateway-key/management-key creation and app rollback require a distinct `Idempotency-Key` per intended operation. Reusing it with different input returns `409`. Completed responses are encrypted and replayable for 24 hours to the same principal. Expiry does not permit duplicate issuance using that token.
 
-A timeout does not prove that no change occurred. Read the affected resource before retrying, retain the original idempotency key, and reconcile uncertain outcomes. Do not assume globally atomic writes or indefinite replay retention, especially for operations that issue secrets.
+A timeout or `503` does not prove that nothing changed. `503 operation_pending` includes `error.operation_id` when a configuration/creation operation remains incomplete. Configuration recovery uses `/operations/{operation_id}` and `/operations/{operation_id}/recover` with the initiating key. Creation recovery retries the original POST and token. See [operation recovery](./catalogs-and-history#operation-recovery).
 
-## Secrets and scope
+Provider/credential PATCH and revocation, and provider conversion, have no idempotent replay contract. After a transport/storage error, read current state/version before deciding whether another mutation is needed.
 
-Ordinary reads and history are redacted. Upstream provider secrets are write-only. Management secrets are available only at issuance; gateway secrets have a separate explicit reveal endpoint. Secret-bearing responses use `Cache-Control: no-store`; secret values are excluded from audit and error messages.
+## Dates and response formats
 
-Management scopes are independent. All scopes listed on an operation are required. Foreign-tenant resource lookups return `404`; tenant headers cannot override the management principal.
+Request `expires_at` values are future RFC 3339 timestamps with a timezone, or null. Gateway credential expiry responses also use RFC 3339. Management-key metadata, management audit, operation creation and provider-test completion times use Unix seconds, potentially fractional. Treat opaque IDs, versions and fingerprints as strings.
 
-## Status and errors
+Capabilities fields are at the response root, including `schema_version`, `scopes`, `app_fields`, `writes_available`, `policy_updates`, `policy_authority` and model-test support. There is no wrapping `capabilities` object. Configuration history detail uses `version_record`. All ordinary JSON responses include `request_id`; `/openapi.json` returns an OpenAPI document directly.
+
+## Errors
 
 ```json
 {
   "error": {
-    "code": "version_conflict",
-    "message": "The resource changed after your last read.",
-    "fields": []
+    "code": "operation_pending",
+    "message": "Creation is incomplete; retry the same Idempotency-Key to recover",
+    "operation_id": "operation_example"
   },
   "request_id": "req_example"
 }
@@ -77,29 +67,30 @@ Management scopes are independent. All scopes listed on an operation are require
 
 | Status | Meaning |
 | --- | --- |
-| `200` | Read/update/validation/reveal completed. Warnings or `valid:false` can describe a semantic result. |
-| `201` | A new app, provider, key, prompt, draft or revision was created. |
-| `204` | A supported detach, prompt deletion or credential revocation completed. |
-| `400` | Malformed/unknown fields, invalid types, pagination or conditional requirements. |
-| `401` | Missing, invalid, expired or revoked management credential. |
-| `403` | Tenant management suspended, insufficient scope or unauthorized administrator. |
-| `404` | Deployment gate off, resource missing or resource outside the tenant. |
-| `409` | Ambiguous/duplicate name, dependency conflict, inline-provider migration required, terminal key state or idempotency mismatch. |
-| `412` | Stale version precondition. |
-| `428` | Required precondition missing. |
-| `429` | Management request/concurrency limit exceeded; honor `Retry-After` when present. |
-| `503` | Central storage/service unavailable. An uncertain outcome needs recovery, not a false success. |
+| `200` | Read/update/reveal, revocation, detach, prompt deletion or recovery completed. |
+| `201` | App/provider/key or a previously missing prompt created. |
+| `400` | Invalid fields, values or pagination. |
+| `401` | Invalid, expired or revoked credential. |
+| `403` | Tenant suspended or insufficient permission. |
+| `404` | Deployment disabled or resource missing/outside tenant. |
+| `408` | Request body read timed out. |
+| `409` | Identity/dependency/idempotency conflict, changed collection or terminal key state. |
+| `412` | Stale version. |
+| `413` | Request exceeds 1 MiB. |
+| `428` | Required `If-Match` missing. |
+| `429` | Management concurrency limit reached. |
+| `503` | Central service/storage unavailable or operation pending. |
 
-Completed upstream tests return an outcome of `passed`, `failed` or `unsupported` in a `200` result. Unauthorized/malformed test requests still use HTTP errors. The response must identify exactly which stored configuration version was tested.
+Deletes return JSON with `200`, not `204`. Provider tests return `200` with an explicit `passed`, `failed` or `unsupported` outcome; inspect `test.code` and `test.configuration_version`. Connection tests currently return `unsupported_test_kind`.
 
-## Configuration propagation
+## Propagation and deployment
 
-Committed configuration synchronizes to gateway nodes. A successful central write does not promise immediate worldwide enforcement or revocation. Gateway quota counters retain their existing node-local consistency; management does not turn them into a distributed ledger.
+Central writes synchronize asynchronously to gateway nodes. Whole-app disable rejects new admissions after each node observes the change; existing requests and streams finish. Management-key revocation and tenant suspension are checked against central authority on each admitted management request.
 
-Whole-app disable covers newly admitted requests after a gateway observes the change. Existing requests and streams finish normally. Customer nodes do not accept management writes.
+Central HTTP workers and the tenant watcher share persistent `DLP_SERVER_DATA_DIR`. Management authority, keys, audit and encrypted replay data are central-only; back up `DATABASES/llmgateway_management.db` and `llmgateway_management.replay.key` together. Independent replicas with independent data directories are unsupported.
 
-## Capabilities endpoint
+## Capability and schema reference
 
-Use capabilities and policy catalogs to discover deployment-specific support. The response examples are abbreviated metadata, not hardcoded provider/model inventories.
+Features marked **Not Generally Available** in the [availability table](./overview#availability) are not currently supported. The static downloadable reference adds examples to the current implemented routes. The authenticated `/openapi.json` endpoint returns the backend-generated contract. Use `/capabilities` for deployed fields/provider types and test support.
 
 <ApiReference tags={['Reference']} />

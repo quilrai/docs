@@ -43,20 +43,24 @@ All scopes listed for an operation are required. No scope implies another.
 
 | Scope | Grants |
 | --- | --- |
-| `read` | Configuration, catalogs, prompts, key metadata, config history, policy reads, offline validation/simulation. |
-| `config:write` | App create/update/enable/disable, provider attachments/conversion, app controls, prompt changes and eligible app rollback. |
+| `read` | Capabilities/OpenAPI, app/provider/key metadata, prompts, configuration history, management audit, existing groups/definitions and operation status. |
+| `config:write` | App create/update/enable/disable, provider attachments/conversion, app controls, prompt changes eligible app rollback and configuration recovery. |
 | `providers:write` | Shared-provider create/update/enable/disable, credential rotation and explicit upstream tests. |
-| `policy:write` | Create and edit policy drafts. |
-| `policy:publish` | Publish and roll back policy revisions; enable/disable tenant-wide authority. |
 | `credentials:write` | Issue/revoke gateway app keys and change supported expiry. |
 | `credentials:read` | Explicitly reveal a retained gateway app credential. |
 
 App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`.
 
+Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The five scopes above are the accepted scopes and apply tenant-wide.
+
 ## Administration boundary
 
-The following routes use the separate `/llmgateway/management-admin/v1` prefix. They require a **verified tenant administrator for that tenant** or an **authorized Quilr operator**. A management key cannot grant itself more permissions or enable its tenant.
+The `/llmgateway/management-admin/v1` routes require `Authorization: Bearer <Quilr tenant-admin JWT>`. The verified JWT must include the selected tenant in `tenantIds`, an `Admin` or `Super Admin` role, and an identifying `sub`, `userId` or `email`. Tenant headers alone do not authorize access. A management key cannot grant itself permissions or enable its tenant.
 
-Administrator credentials must identify a verified tenant administrator or authorized Quilr operator. Use the administration identity provider configured for your deployment; tenant headers alone do not authorize administrative access.
+GET/PATCH tenant settings controls `{ "enabled": true }`. GET/POST tenant keys lists metadata or creates a management key. PATCH/DELETE a key changes its name/scopes/expiry or revokes it. Dedicated rotation and per-key pause/resume are **Not Generally Available**; issue a replacement and then revoke the old key.
+
+Lists return each key's `version`, status, creator, creation/expiry/revocation times and `last_used_at`. Use the quoted `version` as `If-Match` for editing or revoking that key. Management-key timestamps are Unix seconds, potentially fractional; request `expires_at` values use RFC 3339. List responses never include the secret. Later management-secret retrieval is **Not Generally Available**; retain the issuance response.
+
+Key creation requires `Idempotency-Key`. The same administrator can replay the completed issuance response, including its secret, for 24 hours using the same key and payload. After that window, the token cannot create another key. See [retry and recovery](./conventions#idempotency-and-recovery).
 
 <ApiReference tags={['Administration']} />

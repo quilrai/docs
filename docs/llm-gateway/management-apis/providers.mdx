@@ -14,12 +14,12 @@ A shared provider is a reusable tenant-owned connection. Apps hold references to
 
 ## Provider inputs
 
-Every creation body has `label`, `provider_name` and `provider_settings`. Optional `selected_models`, `model_costs` and `enabled` configure availability. Select the provider variant in the full body schema for the complete credential fields and conditional requirements.
+Creation requires `label`, `provider_name` and credentials for the selected provider type in `provider_settings`. Optional `selected_models`, `model_costs` and `enabled` configure availability. Use the provider-settings field reference below and the credential requirements for your provider family. Managed QuilrAI providers do not require customer credentials.
 
 | Family | Provider types | Credential choices |
 | --- | --- | --- |
 | API key | OpenAI, Anthropic/native Messages, DeepSeek, Gemini Chat Completions, Responses, Assistants, Realtime, Cohere/Jina/Voyage rerank, Sarvam. | `api_key`; optional compatible base URL/version where supported. |
-| Azure | `azureopenai`, `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure`. | `api_key`, `azure_endpoint`, API version. |
+| Azure | `azureopenai`, `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure`. | `api_key`, `azure_endpoint`, optional `azure_api_version`. |
 | Custom endpoint | `general`, `general_rerank`, `anthropic_messages_azure`. | `api_key` and `base_url`. |
 | AWS | `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `bedrock_rerank`. | Static keys or assume-role; fields from different modes cannot be mixed. |
 | Vertex AI | `vertex_ai`. | API key, express, service-account JSON or ADC. |
@@ -38,18 +38,20 @@ SDK and Copilot Studio are app modes, not shared-provider types. Provider/protoc
 
 Omitted credentials remain unchanged on PATCH. Submit a new secret to rotate it. Do not send redacted placeholder values back. Changing authentication mode must supply required new-mode fields and removes incompatible old-mode credentials.
 
-PATCH `enabled:false` to disable a shared provider. Its record and app attachments remain; re-enabling restores normal availability. There is **no provider-delete endpoint**. [Detaching](./apps#Detach_an_app_provider) removes a reference from one app only.
+PATCH `enabled:false` to disable a shared provider. Its record and app attachments remain; re-enabling restores normal availability. Shared-provider deletion is **Not Generally Available**. [Detaching](./apps#Detach_an_app_provider) removes a reference from one app only.
 
 ## Explicit connection/model tests
 
 Saving configuration never contacts the upstream provider. Use a separate test request when you want to:
 
-- Check the stored connection without generation, when the provider supports that test.
-- Run a minimal configured-model check, which may incur usage.
+- Run a minimal configured-model check for a provider type listed in `capabilities.model_test_provider_types`; it may incur usage.
+- Connection-only tests are **Not Generally Available**. A `kind:"connection"` request is recognized but returns `outcome:"unsupported"` and `code:"unsupported_test_kind"` for every provider.
 
 Tests use stored credentials and endpoints; they accept no arbitrary payload, URL or credential overrides. Testing a disabled provider does not enable it. A private endpoint unreachable from the central service returns a diagnostic, not a failed configuration save.
 
-Completed tests report `passed`, `failed` or `unsupported`. A connection test never silently becomes a model call. Model tests are unavailable in a deployment with `COMPLETELY_NO_GPU`; there are no automatic billable retries.
+Completed tests return `test.configuration_version`, `kind`, `model`, `outcome`, `code` and `completed_at` (Unix seconds). `latency_ms` is present when a supported model probe runs. Outcomes are `passed`, `failed` or `unsupported`. A connection test never becomes a model call. Model tests are unavailable in a deployment with `COMPLETELY_NO_GPU`; there are no automatic billable retries.
+
+Provider lists support `limit` and `cursor`; filtering by `enabled` or `provider_name` is **Not Generally Available**. Saves and reads return `{ "provider": { ... }, "request_id": "..." }`; ordinary responses omit upstream secrets.
 
 ## Endpoint reference
 

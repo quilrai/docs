@@ -14,7 +14,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaRe
 
 Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
 
-Use the Management API to configure LLM Gateway apps, shared providers, credentials and policy. Explore complete input specifications and examples, or download the OpenAPI reference.
+Use the Management API to configure LLM Gateway apps, shared providers, credentials, prompts and stored configuration. Explore complete input specifications and examples, or download the OpenAPI reference.
 
 ## Choose a resource
 
@@ -31,13 +31,29 @@ Use the Management API to configure LLM Gateway apps, shared providers, credenti
 
 | Resource | What you can do | What stays separate |
 | --- | --- | --- |
-| Apps | Create, read, configure, disable and enable; address by app name. | No app deletion or rename. |
-| Shared providers | Create, read, rotate credentials, configure models, disable, enable and explicitly test. | No provider deletion. Detaching affects one app only. |
+| Apps | Create, read, configure, disable and enable; address by app name. | App deletion/rename: **Not Generally Available**. |
+| Shared providers | Create, read, rotate credentials, configure models, disable, enable and explicitly test. | Provider deletion: **Not Generally Available**. Detaching affects one app only. |
 | Gateway keys | Issue, list metadata, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
-| QuilrQL | Discover, preview, validate, simulate, draft, publish, enable, disable and roll back. | App settings do not automatically publish policy. |
+| QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | Policy lifecycle endpoints/scopes: **Not Generally Available**. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
-| Smart groups and custom definitions | Read and use existing resources in app or policy configuration. | No definition or membership editing. |
-| History | Read redacted config versions and audit, restore eligible app settings. | Traffic logs, usage, health and red-team jobs are outside v1. |
+| Smart groups and custom definitions | Read and use existing resources in app configuration. | Definition/membership editing: **Not Generally Available**. |
+| History | Read redacted config versions and audit, restore eligible app settings. | Traffic logs, usage, health and red-team jobs: **Not Generally Available** through management v1. |
+
+## Availability
+
+**Not Generally Available** means the feature is not currently supported by management v1. The label does not promise preview access or a release date. The endpoint reference and OpenAPI `paths` contain only implemented operations.
+
+| Feature | Availability | Current behavior |
+| --- | --- | --- |
+| Policy schema/catalog, preview, validation, simulation, drafts, publication, policy rollback and authority changes | **Not Generally Available** | Use the existing policy workflow. Management keys cannot use policy scopes or policy lifecycle endpoints. |
+| App rename/deletion and shared-provider deletion | **Not Generally Available** | Enable/disable existing resources; app-local provider detachment is supported. |
+| Custom-definition authoring and smart-group/membership writes | **Not Generally Available** | Read and reference existing resources. |
+| Dedicated key rotation and individual management-key pause/resume | **Not Generally Available** | Issue a replacement and revoke the old key; tenant-wide suspension is supported. |
+| Later management-key secret retrieval and expired/revoked gateway-key reveal | **Not Generally Available** | Management secrets are returned on issuance/replay; explicit gateway-key reveal requires an active key. |
+| Connection-only provider tests | **Not Generally Available** | Requests return `unsupported_test_kind`. Model tests support the provider types advertised by capabilities. |
+| Create-only prompt preconditions | **Not Generally Available** | PUT uses the current app ETag and creates or replaces. |
+| Provider filters, catalog search and audit app/key/time filters | **Not Generally Available** | Use documented pagination; app list name/tag/enabled filters are supported. |
+| App-restricted management-key scopes, traffic/usage/health reporting and red-team job APIs | **Not Generally Available** | Management scopes apply tenant-wide; these reporting/job operations are outside this API. |
 
 ## Defaults
 
@@ -45,11 +61,11 @@ Use the Management API to configure LLM Gateway apps, shared providers, credenti
 - Creating an app issues one gateway key, named **Default** unless specified.
 - Disabling tenant management suspends its keys. Unexpired, unrevoked keys work again when the tenant is re-enabled.
 - Disabling an app preserves its keys, settings and history. Disabling a shared provider preserves its attachments.
-- Provider saves validate locally. A **connection/model test is a separate explicit request**.
+- Provider saves validate locally. Supported **model tests are separate explicit requests**; connection tests currently return unsupported.
 - Configuration writes go to the **central management service**. Customer gateway nodes receive synchronized changes.
 
 :::info Policy authority
-When QuilrQL is enabled, updates to governed app settings still save. The response identifies the fields that remain inactive until QuilrQL authority is disabled. Use policy simulation to evaluate request-specific behavior.
+When QuilrQL is enabled, updates to governed app settings still save. The response identifies the fields that remain inactive until QuilrQL authority is disabled. Creating an eligible app under existing authority can publish an app-specific allowed-models default. See [QuilrQL behavior](./policy).
 :::
 
 ## Find an endpoint

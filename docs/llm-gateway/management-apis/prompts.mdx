@@ -6,34 +6,29 @@ sidebar_custom_props:
 description: "LLM Gateway Management API v1: prompt store, with typed inputs and examples."
 ---
 
-import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {ApiReference} from '@site/src/components/ManagementApi';
 
 # Prompt Store
 
-Manage app-scoped prompt templates without changing gateway credentials or provider connections. Prompt content remains a live app dependency; `prompt_store.require_system_from_store` controls enforcement and can be governed by QuilrQL.
+Manage app-scoped templates. Prompt content remains live independently of QuilrQL; `prompts.require_system_from_store` controls enforcement in app configuration.
 
-## Input contract
-
-| Input | Rule |
+| Input | Contract |
 | --- | --- |
-| `app_name` | Tenant-scoped app display name, encoded as one path segment. |
-| `prompt_id` | 1-200 characters; letters, numbers, hyphens and underscores only. |
-| `content` | Required nonempty template string, up to 400,000 characters. PUT replaces the full content. |
-| Create precondition | `If-None-Match: *`; fail if a prompt already exists. |
-| Replace/delete precondition | Current prompt ETag in `If-Match`. |
+| App locator | Encoded app-name path, or `/app/prompts?...` with `app_name` in the query. |
+| `prompt_id` | 1-200 characters: letters, digits, hyphens and underscores. |
+| `content` | Nonempty template string. The complete JSON body must fit within 1 MiB. |
+| Every mutation | Current **app** ETag in `If-Match`, including creation. |
 
-Do not send both precondition headers. Prompt deletion is supported even though app/provider deletion is not. Removing a prompt can affect runtime requests that reference it; the operation does not silently rewrite those requests or disable prompt enforcement.
+PUT creates a missing prompt (`201`) or replaces an existing prompt (`200`). It preserves other prompts/settings. Create-only prompt preconditions are **Not Generally Available**; `If-None-Match` is not implemented as a create-only guard. DELETE returns `200` with `prompt:null`, `prompt_id`, the updated app `version` and `request_id`.
 
-## Example content
+Reads return prompt content and the current app version. A change to any versioned app setting can invalidate a prompt-write precondition. Re-read before reconciling `412` conflicts.
 
 ```json
 {
-  "content": "You help customers with support questions. Use the supplied account context and do not invent account details."
+  "content": "You help customers with support questions. Use supplied account context and do not invent account details."
 }
 ```
 
-A prompt is configuration content and is visible to keys with `read`. It should not be used as a credential store. For runtime template references and variables, see [Prompt Store](../features/prompt-store).
-
-## Endpoint reference
+Prompt content is visible to keys with `read`. For runtime references and variables, see [Prompt Store](../features/prompt-store).
 
 <ApiReference tags={['Prompts']} />

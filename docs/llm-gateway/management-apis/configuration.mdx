@@ -6,61 +6,44 @@ sidebar_custom_props:
 description: "LLM Gateway Management API v1: full app configuration input, with typed inputs and examples."
 ---
 
-import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
+import {SchemaReference} from '@site/src/components/ManagementApi';
 
 # Full app configuration input
 
-Use `PATCH /llmgateway/management/v1/apps/{app_name}` to update stored controls. The complete input schema below covers routing, detection, limits, identity, self-service, existing group/definition references, alerts and transformations.
+Use `PATCH /llmgateway/management/v1/apps/{app_name}` with the current app ETag. The same settings sections are accepted during app creation. The reference below uses the implemented wire names.
 
-The public schema groups app configuration by function. All nested fields are typed. Unknown fields are rejected.
+## Partial updates
 
-## How partial updates work
+Omitted fields preserve stored values. Unknown top-level and section fields are rejected. Nested maps such as category actions and sensitivities use the existing gateway merge semantics; an empty map is not a global reset. Lists such as tags, routing groups and custom-definition selections replace the list. `[]` clears a list where an empty list is supported; a provider-backed app must retain providers.
 
-| Input | Meaning |
-| --- | --- |
-| Omit a field | Preserve its current value. |
-| Send an object | Merge only the supplied declared fields; required nested shapes must be valid after merge. |
-| Send an array | Replace the entire collection. `[]` clears it only where an empty collection is permitted. |
-| Send `null` | Clear only an explicitly nullable field. It is not a universal reset instruction. |
-| Send `false` | Disable that boolean control. |
-| Send a new provider selection | Validate the complete selection and all retained routes together. |
+Only `timeout`, `concurrency_per_minute`, `rate_limit`, `allowed_source_ips`, `jwt_auth` and `alerting` accept a null reset at the public field level. Other fields, including `token_limits`, reject null. App-level `timeout` is a nonnegative integer in seconds.
 
-## Stored settings and policy authority
-
-With QuilrQL enabled, governed changes save and return an `inactive_under_quilrql` warning. Disabling authority activates those stored values. Shared-provider credentials/availability and prompt contents remain live dependencies; whole-app availability is always enforced independently.
-
-```json
-{
-  "warnings": [{
-    "code": "inactive_under_quilrql",
-    "fields": ["detection.data_risk_action"],
-    "message": "Saved settings take effect when QuilrQL authority is disabled."
-  }],
-  "request_id": "req_example"
-}
-```
-
-This is a partial response example showing warnings. A successful update also returns the updated resource/version. There is no single effective configuration for every user/model/content combination: use [simulation](./policy#Simulate_policy_source) for a specific request.
+When updating `alerting`, send its complete configuration, including the HTTPS URL for every submitted webhook. Omit the entire field to preserve it. Redacted webhook URLs from a read cannot be reused as credentials.
 
 ## Configuration map
 
-| Section | Includes | Behavior to understand |
-| --- | --- | --- |
-| `detection` | Category selection, category/subcategory actions, sensitivity, request/response scope and existing custom definitions. | Catalogs validate selectors and action compatibility. No definition authoring. |
-| `routing` | Request/token weighted groups, low-context routes and thresholds. | Shared-provider labels only; weights sum to 100; supported protocol surfaces only. |
-| `limits` | Timeouts, request rates, token budgets and per-model limits. | App and model limits both apply. Quotas/pricing can also be authored through QuilrQL. |
-| `identity` | JWT/JWKS, identity headers, email/domain restrictions, conversation requirement and source IPs. | Runtime identity configuration is separate from management authentication. |
-| `guardian_agent` | Coding checks and task adherence. | Deployment model availability still applies. |
-| `hallucination` | Enablement, action and score threshold. | Threshold is 0-1. Stored risk level is compatibility metadata, not an independent worker switch. |
-| `self_service` | Credential mode and the five access roles. | Does not add personal-key or approval-workflow administration to this API. |
-| `smart_group_policies` | App overrides for existing smart groups. | Cannot edit membership. |
-| `token_saving` | JSON, HTML, Markdown and text transformations. | Request-side support varies by protocol surface. |
-| `prompt_store` | System-prompt enforcement. | Prompt content uses the separate prompt endpoints. |
-| `alerting` | App/provider failure thresholds and delivery channels. | Configuration only; no alert test/reporting API. Webhook URLs are secrets. |
+| Section | Accepted controls |
+| --- | --- |
+| `detection` | Categories, actions, scopes, sensitivities, existing custom definitions, Guardian Agent, hallucination settings, image OCR and encoded-image OCR. |
+| `routing` | `routing_groups`, `token_based_routing_groups`, `custom_routing`, `routing_thresholds`. |
+| `limits` | Timeout, concurrency, request rates, token limits and per-model limits. |
+| `access` | Source IPs, email/domain restrictions, identity/conversation requirements, identity headers and JWT settings. |
+| `self_service` | `enable_self_service` plus the stored `self_service` object containing `access_control`. |
+| `transformations` | `token_saving`. |
+| `prompts` | `require_system_from_store`. Prompt content uses separate endpoints. |
+| Top-level fields | `enabled`, `provider_labels`, `tags`, `alerting`, `smart_group_policies`. |
+
+`detection.enabled_categories` maps existing built-in category IDs, or already-selected custom IDs, to booleans. Use `detection.custom_definitions` to select existing tenant definitions by ID; new regex/EDM/semantic/intent content is not accepted.
+
+## JWT authentication
+
+Use `access.jwt_auth` with `allowed_issuers`, `allowed_client_ids`, an RSA `public_key_pem`, optional `kid` and optional `enabled`. Enabled configuration requires nonempty issuer/client-ID lists. Saves do not fetch JWKS URLs. `null`, `{}` or `{ "enabled": false }` disables JWT authentication.
+
+## Settings under QuilrQL
+
+Policy-governed changes can save and return `inactive_under_quilrql`, including affected `fields` and `active_revision`. Shared-provider credentials/availability, prompt contents and whole-app availability have independent runtime effects. See [QuilrQL behavior](./policy), including the allowed-models default for eligible new apps.
 
 ## Complete PATCH schema
-
-Expand any object, array item or map value to inspect its complete nested specification. Dynamic maps have typed values and must use IDs from the appropriate catalog.
 
 <SchemaReference name="AppPatch" />
 
@@ -76,7 +59,9 @@ Expand any object, array item or map value to inspect its complete nested specif
       "enabled": true,
       "action": "block",
       "scope": "request"
-    }]
+    }],
+    "scan_images": true,
+    "scan_images_scope": "request"
   },
   "limits": {
     "timeout": 60,
@@ -86,33 +71,32 @@ Expand any object, array item or map value to inspect its complete nested specif
   "smart_group_policies": [{
     "group_name": "engineering",
     "enabled": true,
-    "detection": {"data_risk_action": "monitor"}
+    "actions": {"data_risk_action": "monitor"}
   }],
-  "token_saving": {"smart_json_compression": true},
-  "prompt_store": {"require_system_from_store": true}
+  "transformations": {"token_saving": {"smart_json_compression": true}},
+  "prompts": {"require_system_from_store": true}
 }
 ```
 
-The example assumes `employee_id` and `engineering` already exist in the tenant. Query the [catalogs](./catalogs-and-history) before using their names/IDs.
+This assumes `employee_id` and `engineering` exist in the authenticated tenant. Query the [catalogs](./catalogs-and-history) first. OCR availability follows the deployment's model capability.
 
 ## Example: weighted routing
 
 ```json
 {
   "routing": {
-    "groups": [{
-      "name": "support-chat",
-      "kind": "chat_completion",
-      "mode": "requests",
-      "members": [
-        {"provider_label": "Production OpenAI", "model": "gpt-4.1-mini", "weight": 80},
-        {"provider_label": "Backup OpenAI", "model": "gpt-4.1-mini", "weight": 20}
+    "routing_groups": [{
+      "group_name": "support-chat",
+      "group_kind": "chat_completion",
+      "models": [
+        {"provider_name": "openai", "credential_source": "Production OpenAI", "model_name": "gpt-4.1-mini", "weight": 80},
+        {"provider_name": "openai", "credential_source": "Backup OpenAI", "model_name": "gpt-4.1-mini", "weight": 20}
       ]
     }],
-    "context_routes": [],
-    "context_thresholds": {"low_max_words": 200, "medium_max_words": 1000}
+    "custom_routing": [],
+    "routing_thresholds": {"low_max_words": 200, "medium_max_words": 1000}
   }
 }
 ```
 
-Both providers must already be attached with compatible models. The `groups` array replaces all request/token routing groups; include every group you intend to retain. Policies may govern which routes actually run.
+Both providers must already be attached with compatible models. Weights sum to 100. `routing_groups` and `token_based_routing_groups` are separate lists; omission preserves the other list. Use shared-provider references rather than inline credentials.

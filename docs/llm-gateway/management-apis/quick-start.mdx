@@ -14,7 +14,7 @@ This workflow creates a shared provider, creates an app, reads it, then disables
 
 ## 1. Prepare access
 
-An operator enables `LLMGATEWAY_MANAGEMENT_API_ENABLED=true` on the central service. A verified tenant administrator or authorized Quilr operator opts the tenant in and issues a management key. See [authentication](./authentication).
+Enable `LLMGATEWAY_MANAGEMENT_API_ENABLED=true` on the central service. A verified tenant administrator opts the tenant in and issues a management key. See [authentication](./authentication).
 
 For this workflow, the key needs `read`, `providers:write`, `config:write` and `credentials:write`.
 
@@ -37,7 +37,7 @@ curl --request POST \
   --data "{\"label\":\"Production OpenAI\",\"provider_name\":\"openai\",\"provider_settings\":{\"api_key\":\"$PROVIDER_API_KEY\"},\"selected_models\":[\"gpt-4.1-mini\"]}"
 ```
 
-A `201` response returns provider metadata and credential-presence flags. **Saving does not contact the provider.** Use [explicit testing](./providers#Test_connection_or_model) when you want to verify connectivity or model access.
+A `201` response returns `provider` metadata with `credential_configured` and an opaque `version`. **Saving does not contact the provider.** Use [explicit testing](./providers#Test_connection_or_model) when you want to verify connectivity or model access.
 
 ## 3. Create an app
 
@@ -54,6 +54,8 @@ curl --request POST \
   }'
 ```
 
+Abbreviated creation response; additional stored-setting sections and metadata may be present:
+
 ```json
 {
   "app": {
@@ -63,7 +65,7 @@ curl --request POST \
     "version": "app-v1",
     "provider_labels": ["Production OpenAI"],
     "tags": ["production", "support"],
-    "policy_authority": {"enabled": false, "active_revision": null}
+    "policy_authority": {"enabled": false, "active_revision": null, "active_checksum": null}
   },
   "key": {
     "key_id": "key_example",
@@ -73,6 +75,7 @@ curl --request POST \
     "expires_at": null
   },
   "warnings": [],
+  "operation_id": "operation_example",
   "request_id": "req_example"
 }
 ```
@@ -80,7 +83,7 @@ curl --request POST \
 The initial key is issued even when `initial_key` is omitted. Use the gateway credential for runtime calls. Keep using the management credential for configuration.
 
 :::note New apps under QuilrQL
-App creation does not create matching policy rules. If tenant-wide authority is enabled, matching rules govern traffic and a healthy no-match result is neutral. Review [policy authority](./policy) before sending production traffic.
+When tenant-wide QuilrQL authority is already enabled, app creation captures the app baseline and can publish an app-specific allowed-models default for all app users. Finite configured model lists receive this default; unrestricted providers and SDK/Copilot Studio apps do not get a finite model list. Matching tenant policies, including explicit model denials, still apply. Creation does not enable authority or change existing drafts. See [QuilrQL behavior](./policy).
 :::
 
 ## 4. Read the current version
@@ -115,5 +118,5 @@ To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expir
 | Add another shared provider | [Attach a provider](./apps#Attach_a_shared_provider) |
 | Configure guardrails, routing or limits | [Full configuration input](./configuration) |
 | Issue a separate automation key | [Gateway credentials](./credentials) |
-| Publish a policy revision | [QuilrQL lifecycle](./policy) |
+| Understand new-app policy defaults | [QuilrQL behavior](./policy) |
 | Add a system prompt | [Prompt Store](./prompts) |

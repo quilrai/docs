@@ -33,7 +33,7 @@ Management API reference with typed request specifications, tenant-scoped permis
 - [Full app configuration input](https://docs.quilrai.dev/llm-gateway/management-apis/configuration.md): Management v1 full app configuration input; tenant-scoped permissions, typed request inputs and examples.
 - [Shared providers & model tests](https://docs.quilrai.dev/llm-gateway/management-apis/providers.md): Management v1 shared providers & model tests; tenant-scoped permissions, typed request inputs and examples.
 - [Gateway app credentials](https://docs.quilrai.dev/llm-gateway/management-apis/credentials.md): Management v1 gateway app credentials; tenant-scoped permissions, typed request inputs and examples.
-- [QuilrQL lifecycle](https://docs.quilrai.dev/llm-gateway/management-apis/policy.md): Management v1 quilrql lifecycle; tenant-scoped permissions, typed request inputs and examples.
+- [QuilrQL behavior](https://docs.quilrai.dev/llm-gateway/management-apis/policy.md): Management v1 QuilrQL behavior; new-app model defaults, stored settings and authority boundaries.
 - [Prompt Store](https://docs.quilrai.dev/llm-gateway/management-apis/prompts.md): Management v1 prompt store; tenant-scoped permissions, typed request inputs and examples.
 - [Catalogs & configuration history](https://docs.quilrai.dev/llm-gateway/management-apis/catalogs-and-history.md): Management v1 catalogs & configuration history; tenant-scoped permissions, typed request inputs and examples.
 - [API conventions & errors](https://docs.quilrai.dev/llm-gateway/management-apis/conventions.md): Management v1 api conventions & errors; tenant-scoped permissions, typed request inputs and examples.
