@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Quick Start
 
-Get the Sentinel agent connected to the Quilr backend in 4 steps.
+Get the Quilr endpoint agent connected to the Quilr backend in 4 steps.
 
 <StepFlow steps={[
   {

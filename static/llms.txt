@@ -190,7 +190,7 @@ The new console organised by what you manage rather than by sensor, and the phas
 
 ## Endpoint Agent
 
-- [Network Monitoring Quick Start](https://docs.quilrai.dev/endpoint-agent/network-monitoring/quick-start.md): Set up Network Monitoring in 4 steps - install the Sentinel agent, enable traffic interception, configure DLP policies, and monitor activity.
+- [Network Monitoring Quick Start](https://docs.quilrai.dev/endpoint-agent/network-monitoring/quick-start.md): Set up Network Monitoring in 4 steps - install the Quilr endpoint agent, enable traffic interception, configure DLP policies, and monitor activity.
 - [Network Monitoring Architecture](https://docs.quilrai.dev/endpoint-agent/network-monitoring/architecture.md): Request processing pipeline - Intercept, Inspect, Scan, Enforce - with TLS MITM, DLP engine, and health monitoring.
 - [Process Mapping Quick Start](https://docs.quilrai.dev/endpoint-agent/process-mapping/quick-start.md): Set up Process Mapping in 4 steps - deploy the System Monitor, review discovered applications, configure policies, and monitor activity.
 - [Process Mapping Architecture](https://docs.quilrai.dev/endpoint-agent/process-mapping/architecture.md): Discovery and enforcement pipeline - Discover, Correlate, Sync, Enforce - covering process monitoring, Lua-based AI agent scanning, and governance.
