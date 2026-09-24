@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Quick Start
 
-Disable and re-enable the Sentinel endpoint agent from the browser extension in 4 steps.
+Disable and re-enable the Quilr endpoint agent from the browser extension in 4 steps.
 
 <StepFlow steps={[
   {
@@ -45,7 +45,7 @@ Disable and re-enable the Sentinel endpoint agent from the browser extension in 
 
 ## 1. Disable the Agent
 
-Open the browser extension, navigate to **Agent Settings**, and toggle **Disable Agent**. The extension sends the disable signal to the Sentinel agent over the Native Messaging pipe.
+Open the browser extension, navigate to **Agent Settings**, and toggle **Disable Agent**. The extension sends the disable signal to the Quilr endpoint agent over the Native Messaging pipe.
 
 The agent responds immediately — no process restart is required.
 

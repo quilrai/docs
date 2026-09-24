@@ -60,7 +60,7 @@ Network shares, UNC paths, and macOS disk images are excluded automatically — 
 
 A scan is triggered automatically when:
 - A configuration update is pushed from the dashboard
-- The Sentinel agent starts or restarts
+- The Quilr endpoint agent starts or restarts
 
 The scan runs at reduced OS priority so it does not affect endpoint performance. Navigate to **File Index Status** to track progress.
 
