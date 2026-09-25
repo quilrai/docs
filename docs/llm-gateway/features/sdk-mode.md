@@ -574,6 +574,12 @@ curl -X POST https://guardrails-usa-2.quilr.ai/sdk/v1/check \
 
 ---
 
+## TrueFoundry Integration
+
+Use QuilrAI directly as a TrueFoundry custom guardrail for LLM inputs and outputs. Configure **Mutate**, **Custom Bearer Auth** with a `quilr_sdk` key, and the dedicated `POST /sdk/v1/check/truefoundry` endpoint. TrueFoundry sends its own request/response envelope and consumes the returned `verdict`, `transformed`, and `result` fields.
+
+See [TrueFoundry Integration](./truefoundry) for dashboard setup, selecting input/output rails, complete request examples, streaming requirements, and error handling.
+
 ## LiteLLM Guardrails Integration
 
 If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can plug Quilr guardrails in as a native guardrail plugin. The plugin calls `/sdk/v1/check` automatically on every request and/or response - no changes needed in your application code.

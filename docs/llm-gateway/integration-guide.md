@@ -35,6 +35,7 @@ For production traffic, use the location-specific endpoint closest to your appli
 | **OpenAI Realtime** (wss) | `/openai_realtime/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Sarvam** (speech & text) | `/sarvam/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | QuilrAI key in endpoint path |
+| **TrueFoundry custom guardrail** | `/sdk/v1/check/truefoundry` | `Authorization: Bearer sk-quilr-xxx` using a `quilr_sdk` key |
 
 Combine a region base URL with the API format path to get your full endpoint. For example:
 
@@ -751,6 +752,12 @@ https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx
 Power Platform appends `/validate` during setup and `/analyze-tool-execution` at runtime. QuilrAI scans Copilot user context and proposed tool inputs, then returns Copilot's expected allow/block response.
 
 See [Copilot Studio](./features/copilot-studio.md) for Power Platform configuration steps.
+
+### TrueFoundry custom guardrails
+
+Keep your application connected to TrueFoundry and add QuilrAI as a custom input/output guardrail. Set the guardrail URL to your regional base plus `/sdk/v1/check/truefoundry`, choose **Mutate**, and configure **Custom Bearer Auth** with a QuilrAI `quilr_sdk` key. Your application continues using its TrueFoundry credential for model requests.
+
+See [TrueFoundry Integration](./features/truefoundry) for configuration, rail selectors, verification examples, and output streaming requirements.
 
 ## 3. Optional Headers
 
