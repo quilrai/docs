@@ -36,6 +36,7 @@ import {
   Workflow,
   PenTool,
   ListChecks,
+  Cloud,
   Hash,
 } from "lucide-react";
 
@@ -77,6 +78,7 @@ const iconMap = {
   Workflow,
   PenTool,
   ListChecks,
+  Cloud,
 };
 
 export function getSidebarIcon(name) {
