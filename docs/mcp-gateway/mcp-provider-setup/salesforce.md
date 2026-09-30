@@ -79,7 +79,7 @@ Connect **SObject Reads** or **SObject Mutations** rather than **SObject All** u
 1. In **Setup**, search for **External Client App Manager** and open it.
 2. Click **New External Client App**.
 3. Enter the basic information:
-   - **External Client App Name**: `Quilr Salesforce MCP`
+   - **External Client App Name**: any name you choose, for example `Quilr Salesforce MCP`
    - **API Name**: fills in automatically
    - **Contact Email**: an admin mailbox for your team
    - **Distribution State**: **Local**
@@ -120,7 +120,7 @@ Click **Create**. Salesforce can take a few minutes to roll out a new External C
 
 ### 5. Copy The Consumer Key
 
-1. In **External Client App Manager**, open **Quilr Salesforce MCP**.
+1. In **External Client App Manager**, open the app you created.
 2. Open the **Settings** tab and expand **OAuth Settings**.
 3. Click **Consumer Key and Secret**. Salesforce may send a verification code to your email first.
 4. Copy the **Consumer Key**. You only need the **Consumer Secret** if you left a secret requirement turned on in step 4.
