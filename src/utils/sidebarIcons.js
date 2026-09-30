@@ -38,6 +38,7 @@ import {
   PenTool,
   ListChecks,
   FileText,
+  Cloud,
   Hash,
   TrendingUp,
 } from "lucide-react";
@@ -83,6 +84,7 @@ const iconMap = {
   ListChecks,
   FileText,
   TrendingUp,
+  Cloud,
 };
 
 export function getSidebarIcon(name) {

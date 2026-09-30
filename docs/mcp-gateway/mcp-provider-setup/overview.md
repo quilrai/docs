@@ -50,6 +50,7 @@ Create a separate OAuth app for each QuilrAI tenant or environment if the callba
 - [Netskope](./netskope) - no OAuth app needed; a technology preview requiring a Netskope-issued access code in the URL path plus a REST API v2 bearer token, and allowlisting the MCP server's egress IPs.
 - [PDF Editor](./pdf-editor) - no OAuth app or credential needed; enable the QuilrAI-built PDF reading and editing MCP directly from the MCP Store, then upload documents through its own upload page.
 - [PitchBook](./pitchbook) - connect the PitchBook Premium remote MCP; its DCR is allowlisted, so ask your PitchBook account team for a Client ID and Client Secret.
+- [Salesforce](./salesforce) - two options: create a Salesforce External Client App (PKCE, JWT access tokens, `mcp_api` scope) for the Salesforce Hosted MCP servers, or install the third-party Cirra (Salesforce MCP) admin server from the MCP Library and sign in with your Salesforce account.
 
 ## Store And Rotate Secrets
 
