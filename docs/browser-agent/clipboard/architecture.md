@@ -75,7 +75,7 @@ Policy decisions from the browser extension flow back through the **enforcement 
 | **macOS** | NSPasteboard change-count polling | Native Cocoa dialog |
 | **Windows** | WinAPI clipboard-change notification | Windows message-based dialog |
 
-macOS requires **Accessibility permission** for the Sentinel process.
+macOS requires **Accessibility permission** for the Quilr endpoint agent process.
 
 ## Observability
 

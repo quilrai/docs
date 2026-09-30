@@ -1,0 +1,112 @@
+.wrap {
+  border: 1px solid var(--docs-light-border);
+  border-radius: 0.75rem;
+  background: var(--docs-light-surface);
+  margin: 1.5rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #86efac, #34d399, #059669);
+  z-index: 2;
+}
+
+:global([data-theme="dark"]) .wrap {
+  background: var(--docs-dark-surface);
+  border-color: var(--docs-dark-border);
+}
+
+:global([data-theme="dark"]) .wrap::before {
+  background: linear-gradient(90deg, #059669, #10b981, #34d399);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.125rem 1.125rem 0.75rem;
+}
+
+.title {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--ifm-heading-color);
+}
+
+.duration {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* 16:9 stage */
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #080c14;
+}
+
+.player {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background-color: #080c14;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.18s ease;
+}
+
+.poster:hover {
+  filter: brightness(1.06);
+}
+
+.playBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.95);
+  color: #04231a;
+  padding-left: 3px; /* optically centre the triangle */
+  box-shadow: 0 6px 26px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s ease;
+}
+
+.poster:hover .playBadge {
+  transform: scale(1.07);
+}
+
+.description {
+  margin: 0;
+  padding: 0.875rem 1.125rem 1.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ifm-color-emphasis-700);
+}

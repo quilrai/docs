@@ -1,0 +1,11 @@
+{
+  "label": "Console V2",
+  "position": 5.5,
+  "link": {
+    "type": "generated-index",
+    "description": "What the new console contains, how each section relates to what you use today, and the order in which to move your governance across."
+  },
+  "customProps": {
+    "icon": "LayoutGrid"
+  }
+}

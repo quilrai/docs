@@ -8,19 +8,36 @@
 
 ## LLM Gateway
 
-Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, and Copilot Studio - through a single API key. QuilrAI can infer providers from the requested model, or route traffic through routing groups for weighted load balancing, model-level routing, and automatic failover with zero code changes in your application.
+Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, Sarvam, and Copilot Studio - through a single API key. QuilrAI can infer providers from the requested model, or route traffic through routing groups for weighted load balancing, model-level routing, and automatic failover with zero code changes in your application.
 
 - [Quick Start](https://docs.quilrai.dev/llm-gateway/quick-start.md): Set up the LLM Gateway in 4 steps - create an app, add a provider key, configure guardrails, and connect your application.
 - [Architecture](https://docs.quilrai.dev/llm-gateway/architecture.md): Request processing pipeline - Validate, Scan, Transform, Route - with a visual diagram of every stage.
-- [Integration Guide](https://docs.quilrai.dev/llm-gateway/integration-guide.md): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway, including OpenAI-compatible access to Bedrock Converse, Vertex AI Gemini, and Anthropic Messages models, boto3 Bedrock Runtime, and Copilot Studio.
+- [Integration Guide](https://docs.quilrai.dev/llm-gateway/integration-guide.md): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway, including OpenAI-compatible access to Bedrock Converse, Vertex AI Gemini, and Anthropic Messages models, boto3 Bedrock Runtime, Sarvam speech and text, and Copilot Studio.
 - [LLM Gateway Log Export API](https://docs.quilrai.dev/llm-gateway/log-export-api.md): Export single-key or all-apps LLM Gateway request logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
-- [Provider Support](https://docs.quilrai.dev/llm-gateway/provider-support.md): Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, Copilot Studio) and their capability matrix, including Oracle gateway sign-in and provider-native models through OpenAI-compatible endpoints.
+- [Provider Support](https://docs.quilrai.dev/llm-gateway/provider-support.md): Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix, including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs.
 - [Unified Completions](https://docs.quilrai.dev/llm-gateway/unified-completions.md): Compatibility details for OpenAI Chat Completions requests translated to provider-native APIs such as Bedrock Converse, Vertex AI Gemini generateContent, and Anthropic Messages, including parameters, messages, tools, structured output, streaming, and unsupported features.
 - [AWS Bedrock boto3 Runtime](https://docs.quilrai.dev/llm-gateway/bedrock-boto3.md): Use boto3 Bedrock Runtime with QuilrAI by setting endpoint_url, with Converse, ConverseStream, and InvokeModel coverage.
 - [AWS Bedrock Assume Role Setup](https://docs.quilrai.dev/llm-gateway/bedrock-assume-role.md): Configure Bedrock provider keys with cross-account IAM role assumption instead of long-lived AWS credentials.
 - [Oracle OCI Gateway Sign-In Setup](https://docs.quilrai.dev/llm-gateway/oracle-cross-tenancy.md): Grant QuilrAI cross-tenancy access to OCI Generative AI for Chat Completions and Responses without sharing an Oracle API key or signing key.
 - [HA & SLA](https://docs.quilrai.dev/llm-gateway/ha-and-sla.md): Regional endpoints, recommended retry strategy, connection pooling, and 99.6% uptime SLA.
 - [UX Changelog](https://docs.quilrai.dev/llm-gateway/ux-changelog.md): Recent interface improvements - tagging, filtering, and quality-of-life updates.
+
+### LLM Gateway Management APIs (v1)
+
+Management API reference with typed request specifications, tenant-scoped permissions and examples. Replace the example origin with your central management origin.
+
+- [Management APIs](https://docs.quilrai.dev/llm-gateway/management-apis/overview.md): Management v1 management apis; tenant-scoped permissions, typed request inputs and examples.
+- [Quick start](https://docs.quilrai.dev/llm-gateway/management-apis/quick-start.md): Management v1 quick start; tenant-scoped permissions, typed request inputs and examples.
+- [Authentication & management keys](https://docs.quilrai.dev/llm-gateway/management-apis/authentication.md): Management v1 authentication & management keys; tenant-scoped permissions, typed request inputs and examples.
+- [Apps & provider attachments](https://docs.quilrai.dev/llm-gateway/management-apis/apps.md): Management v1 apps & provider attachments; tenant-scoped permissions, typed request inputs and examples.
+- [Full app configuration input](https://docs.quilrai.dev/llm-gateway/management-apis/configuration.md): Management v1 full app configuration input; tenant-scoped permissions, typed request inputs and examples.
+- [Shared providers & model tests](https://docs.quilrai.dev/llm-gateway/management-apis/providers.md): Management v1 shared providers & model tests; tenant-scoped permissions, typed request inputs and examples.
+- [Gateway app credentials](https://docs.quilrai.dev/llm-gateway/management-apis/credentials.md): Management v1 gateway app credentials; tenant-scoped permissions, typed request inputs and examples.
+- [QuilrQL behavior](https://docs.quilrai.dev/llm-gateway/management-apis/policy.md): Management v1 QuilrQL behavior; new-app model defaults, stored settings and authority boundaries.
+- [Prompt Store](https://docs.quilrai.dev/llm-gateway/management-apis/prompts.md): Management v1 prompt store; tenant-scoped permissions, typed request inputs and examples.
+- [Catalogs & configuration history](https://docs.quilrai.dev/llm-gateway/management-apis/catalogs-and-history.md): Management v1 catalogs & configuration history; tenant-scoped permissions, typed request inputs and examples.
+- [API conventions & errors](https://docs.quilrai.dev/llm-gateway/management-apis/conventions.md): Management v1 api conventions & errors; tenant-scoped permissions, typed request inputs and examples.
+- [OpenAPI 3.1 reference](https://docs.quilrai.dev/openapi/llm-gateway-management-v1.json): Machine-readable API contract for all management and administrative operations.
 
 ### LLM Gateway Features
 
@@ -35,16 +52,60 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Reading the Report](https://docs.quilrai.dev/llm-gateway/features/red-team-report.md): Interpret a completed red team run. What the headline pass rate counts and excludes, automated versus reviewed verdicts, per-suite results, Guardian residual failures and over-blocks, framework rollups, the knowledge horizon, and what makes two runs comparable.
 - [Agentic Red Teaming](https://docs.quilrai.dev/llm-gateway/features/agentic-red-teaming.md): Multi-turn adversarial assessment of a live AI agent; connect an HTTP/API agent or a model provider (OpenAI/Azure/Anthropic/Gemini/Bedrock), with the API integration contract and remediation output.
 - [Identity Aware](https://docs.quilrai.dev/llm-gateway/features/identity-aware.md): Authenticate and track individual users behind each API key via JWT/JWKS or header validation.
-- [SDK Mode](https://docs.quilrai.dev/llm-gateway/features/sdk-mode.md): Scan content directly from your application code with no LLM proxy required.
+- [SDK Mode](https://docs.quilrai.dev/llm-gateway/features/sdk-mode.md): Scan text, messages, or structured JSON directly from application code. Documents hashing_mode, processed_json, JSON Pointer locations, placeholder mappings, and advisory similar_entities.
+- [TrueFoundry Integration](https://docs.quilrai.dev/llm-gateway/features/truefoundry.md): Use QuilrAI SDK checks as TrueFoundry custom input/output guardrails, including Mutate and Bearer setup, rail selectors, full request/response examples, streaming requirements, verification, identity, and fail-open behavior.
 - [Copilot Studio](https://docs.quilrai.dev/llm-gateway/features/copilot-studio.md): Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution.
 - [Agent Monitoring](https://docs.quilrai.dev/llm-gateway/features/agent-monitoring.md): Correlate gateway LLM calls with agent runs, traces, workflows, and conversations via W3C/vendor tracing headers, Quilr agent headers, baggage, or provider request-body metadata.
 - [Self-Service Overview](https://docs.quilrai.dev/llm-gateway/features/self-service/overview.md): How self-service gives developers gateway access without an admin minting each key - shared parent key vs named user API keys, the `sk-quilr-…:ss1.…` key format, the five access capabilities, and the portal's Settings, Logs, and Findings tabs.
 - [Self-Service Admin Guide](https://docs.quilrai.dev/llm-gateway/features/self-service/admin-guide.md): For QuilrAI platform admins - choose a credential mode, grant Viewer Access, Settings Request Access, Direct Settings Update, API Key Visibility, and All Logs Visibility, scope each with Everyone/Specific rules, smart groups, and exceptions, review change requests, and revoke access.
 - [Self-Service Developer Guide](https://docs.quilrai.dev/llm-gateway/features/self-service/developer-guide.md): For developers - sign in to the Self-Service portal, read the app cards, create and revoke named user API keys, call the gateway with them, view your own logs and findings, submit settings change requests for admin approval, and a tour of the settings editor sections (security guardrails, additional guardrails, Guardian Agent, token saving).
 
+## Policy Engine
+
+One versioned policy document per enforcement target, authored as sentences and published as immutable revisions. Governs the LLM Gateway and MCP Gateway targets, replacing the per-application and per-server settings screens once enabled.
+
+- [Policy Engine Overview](https://docs.quilrai.dev/policy-engine/overview.md): What the engine is, the sentence model, conditions and operators, how overlapping policies resolve, and the QuilrQL source view.
+- [LLM Gateway Policies](https://docs.quilrai.dev/policy-engine/llm-gateway.md): Request and response stages, condition fields, the twelve control surfaces, and worked examples for data protection, per-data-type actions, tool governance, denying access, routing, budgets, token savings and hallucination checks.
+- [MCP Gateway Policies](https://docs.quilrai.dev/policy-engine/mcp-gateway.md): Session, discovery, request and response stages, condition fields, the ten control surfaces, and worked examples for server access, tool visibility, human approval, per-data-type actions, quotas and response handling.
+- [Switching from Settings](https://docs.quilrai.dev/policy-engine/switching-from-settings.md): The conversion review, what each target's conversion compares, activation, which settings freeze, and a recommended first rollout.
+- [Authoring and Publishing](https://docs.quilrai.dev/policy-engine/authoring-and-publishing.md): The draft, validate, simulate, replay, publish and roll back loop, plus permissions and engine limits.
+
+## Console V1
+
+Administrator guide for Console V1, covering sensor deployment, organization settings, access control, policies, detections, investigations, reporting, and operational validation.
+
+- [Console V1 Administrator Guide](https://docs.quilrai.dev/console-v1/overview.md): Reading paths for deployment, administration, governance, investigations, and reporting in Console V1.
+- [Deployment Prerequisites](https://docs.quilrai.dev/console-v1/deployment/overview.md): Tenant configuration, enterprise prerequisites, deployment choices, and the Endpoint Agent package boundary.
+- [Deploy with Group Policy](https://docs.quilrai.dev/console-v1/deployment/group-policy.md): Force-install the Browser Extension and deploy its native Browser Agent through a computer-linked Windows GPO.
+- [Deploy with Microsoft Intune](https://docs.quilrai.dev/console-v1/deployment/microsoft-intune.md): Deploy Windows and macOS Browser Agent packages and tenant-specific browser extension profiles with Intune.
+- [Deploy with Jamf Pro](https://docs.quilrai.dev/console-v1/deployment/jamf-pro.md): Deploy the macOS Browser Agent, Full Disk Access profile, tenant configuration, and browser extension with Jamf Pro.
+- [Validate Deployment](https://docs.quilrai.dev/console-v1/deployment/validation.md): Verify management assignment, browser policy, native processes, console registration, and synthetic telemetry independently.
+- [Settings Overview](https://docs.quilrai.dev/console-v1/administration/settings.md): Console V1 settings areas, save behavior, responsibilities, and audit verification.
+- [Organizational Context](https://docs.quilrai.dev/console-v1/administration/organizational-context.md): Configure organization identity, corporate domains, timezone, acceptable-use policies, profile, and unmanaged-browser behavior.
+- [Console Access Control](https://docs.quilrai.dev/console-v1/administration/access-control.md): Manage console invitations, groups, and the six console roles through Manage Users.
+- [User Interaction Hub](https://docs.quilrai.dev/console-v1/administration/user-interaction-hub.md): Customize prompt branding, message templates, justification options, and policy links for end users.
+- [Policy Configuration and Lifecycle](https://docs.quilrai.dev/console-v1/policies-and-detections/policy-lifecycle.md): Create, scope, test, promote, maintain, duplicate, and disable browser and endpoint controls.
+- [Detection Models](https://docs.quilrai.dev/console-v1/policies-and-detections/detection-models.md): Review contextual and pattern-based models, test synthetic samples, and validate custom detections.
+- [AI Assets](https://docs.quilrai.dev/console-v1/investigations/ai-assets.md): Inspect endpoint and SaaS AI inventory, asset fields, usage, guardrails, and investigation pivots.
+- [Users and Accounts](https://docs.quilrai.dev/console-v1/investigations/users-and-accounts.md): Distinguish people from application accounts and correlate identity, login context, and findings.
+- [Findings and Investigations](https://docs.quilrai.dev/console-v1/investigations/findings.md): Triage browser and endpoint findings, interpret outcomes, correlate evidence, and manage disposition.
+- [End-to-End Investigation Workflow](https://docs.quilrai.dev/console-v1/investigations/end-to-end-workflow.md): Trace a sensitive-data signal through findings, identities, AI assets, controls, audit history, and exports.
+- [Dashboards and Exports](https://docs.quilrai.dev/console-v1/reporting/dashboards-and-exports.md): Interpret time-bounded dashboards, export filtered CSV evidence, and manage the central export queue.
+- [Audit Logging Console](https://docs.quilrai.dev/console-v1/reporting/audit-log.md): Attribute administrative changes, filter audit events, configure columns, and export audit evidence.
+- [Insights and Governance Reports](https://docs.quilrai.dev/console-v1/reporting/insights-and-governance-reports.md): Review adoption, sensitive-data trends, governance incidents, and executive summaries with evidence drill-downs.
+- [Troubleshooting and Completion Checklist](https://docs.quilrai.dev/console-v1/troubleshooting.md): Diagnose deployment, telemetry, policy, and export issues; locate logs and confirm operational readiness.
+
+## Console V2
+
+The new console organised by what you manage rather than by sensor, and the phased plan for moving governance across from V1.
+
+- [What Changed in Console V2](https://docs.quilrai.dev/console-v2/overview.md): Sensors as evidence rather than navigation, the three sidebar groups, and the shared-data guarantee between V1 and V2.
+- [Console Sections](https://docs.quilrai.dev/console-v2/console-sections.md): What is on each page of the V2 console across Observe, Govern, Settings and Red Teaming.
+- [Transition Plan](https://docs.quilrai.dev/console-v2/transition-plan.md): Ground rules, the three transition phases, and where to do what while both consoles run in parallel.
+
 ## Playground
 
-- [LLM Gateway Playground](https://docs.quilrai.dev/llm-gateway-playground): Full-page, console-style studio that fires real LLM Gateway requests from the browser against any gateway base URL. Streams chat completions live and runs every surface - chat, OpenAI Responses, Anthropic Messages, classic completions, embeddings, rerank, and text to speech - plus `quilr_sdk` guardrail checks against `POST /sdk/v1/check` and a Log Export surface that pages the LLM or MCP Gateway log export API (with an `sk-export-` key) into an Excel-ready CSV. Generates the exact cURL, Python, and JavaScript for each request.
+- [LLM Gateway Playground](https://docs.quilrai.dev/llm-gateway-playground): Full-page, console-style studio that fires real LLM Gateway requests from the browser against any gateway base URL. Streams chat completions live and runs every surface - chat, OpenAI Responses, Anthropic Messages, classic completions, embeddings, rerank, and text to speech - plus `quilr_sdk` guardrail checks for text, messages, or JSON against `POST /sdk/v1/check`, with hashing-mode controls, processed content, placeholder mappings, and similar-entity results and a Log Export surface that pages the LLM or MCP Gateway log export API (with an `sk-export-` key) into an Excel-ready CSV. Generates the exact cURL, Python, and JavaScript for each request.
 
 ## MCP Gateway
 
@@ -73,6 +134,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Cycode](https://docs.quilrai.dev/quilr-provided-mcps/cycode.md): Remotely operated Cycode CLI MCP wrapper for service status and secret scanning without general shell access.
 - [Quilr Web Search](https://docs.quilrai.dev/quilr-provided-mcps/web-search.md): Minimal two-tool web search and webpage retrieval integration with optional gateway domain policy.
 - [SketchIt](https://docs.quilrai.dev/quilr-provided-mcps/sketchit.md): Decision guide comparing the credential-free SketchIt diagram and chart renderer to the self-hosted, editable Excalidraw canvas.
+- [PDF Editor](https://docs.quilrai.dev/quilr-provided-mcps/pdf-editor.md): Decision guide for when to use the credential-free PDF Editor MCP to return a modified PDF instead of relying on an assistant's built-in PDF reading.
 
 ## MCP Gateway
 
@@ -81,6 +143,11 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [Integration Guide](https://docs.quilrai.dev/mcp-gateway/integration-guide.md): MCP endpoint URLs, client-to-gateway authentication, gateway-to-upstream auth modes, user claims forwarding, and connection examples.
 - [OneMCP](https://docs.quilrai.dev/mcp-gateway/onemcp.md): Unified OneMCP endpoint, smart discovery tools, native memory tools, and inline authentication through an in-chat connector card or connection-link fallback.
 - [Agent Custom Instructions](https://docs.quilrai.dev/mcp-gateway/agent-instructions.md): Copy-paste custom-instruction text that steers Claude, ChatGPT, and GitHub Copilot to use the OneMCP discovery flow (find_relevant_tools, call_tool, list_mcp_connections), with per-client placement and org-level admin push options and scope caveats.
+- [Local MCP Overview](https://docs.quilrai.dev/mcp-gateway/local-mcp/overview.md): Run administrator-approved Python and Node MCP servers on a user's own computer with every tool call still checked by the gateway - what runs on the user's computer versus the gateway, how it differs from remote OneMCP, prerequisites, and current boundaries (macOS/Linux only, not an OS sandbox, no offline execution).
+- [Local MCP: Administrator Setup](https://docs.quilrai.dev/mcp-gateway/local-mcp/admin-setup.md): Add a local package (CLI MCP), review its source, runtime, tool schemas and dependency lock, approve the version, then enable tools and configure access, guardrails and group/user rules - including Policy Engine mode, verification before rollout, revoking an installation, and reading Activity tool calls.
+- [Local MCP: Connect Your AI App](https://docs.quilrai.dev/mcp-gateway/local-mcp/connect-your-ai-app.md): The one-command user flow for Cursor, Claude Desktop, Claude Code and VS Code - run the version-pinned npm or PyPI connection command, approve the computer in the browser, restart the client, and call a tool. Covers connection states, quilr_connect sign-in, workspace and interpreter flags, and disconnecting.
+- [Local MCP: Build Your Own Package](https://docs.quilrai.dev/mcp-gateway/local-mcp/build-a-package.md): Package definition schema for bundled MCP source, package rules and limits (source, tools, Python requirements.lock, Node lockfile v3, environment names, immutable versioning), environment variable handling, Playwright and CLI-wrapper guidance, and designing for serialized execution.
+- [Local MCP: Troubleshooting](https://docs.quilrai.dev/mcp-gateway/local-mcp/troubleshooting.md): Symptom table for local packages unavailable, pairing rejection, gateway 401/403, Python version and dependency failures, missing tools and integrity mismatch - plus diagnosing a specific connection with --state, the Preparing response, response-policy blocks, and starting over cleanly.
 - [MCP Provider Setup](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/overview.md): Provider-specific setup for MCP servers that need manual connection - when to create an OAuth app vs. add a provider-generated URL, prerequisites, and secret handling.
 - [MCP Provider Setup: Slack](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/slack.md): Create a Slack app, enable Model Context Protocol, add the redirect URL and user-token scopes, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Provider Setup: GitHub](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/github.md): Create a GitHub OAuth app, set the callback URL, and copy the Client ID and Client Secret for manual OAuth.
@@ -95,6 +162,11 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 - [MCP Provider Setup: Excalidraw](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/excalidraw.md): Connect Excalidraw - no OAuth app or Client ID/Secret needed; self-host the community Excalidraw MCP server with its live canvas, bridge stdio to streamable HTTP with Supergateway, and add the resulting /mcp URL manually. Covers all 26 tools, environment variables, and network-security guidance.
 - [MCP Provider Setup: Asana](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/asana.md): Connect the Asana V2 MCP server (https://mcp.asana.com/v2/mcp) - create an Asana MCP app in the developer console, add the QuilrAI redirect URL, configure workspace distribution, and paste the Client ID and Client Secret into QuilrAI with Auto-detect auth mode. Covers the retired V1 /sse endpoint and workspace-distribution errors.
 - [MCP Provider Setup: SketchIt](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/sketchit.md): Enable the credential-free SketchIt diagram and chart renderer, verify rendering and the inline design/variation flow, use it effectively, and troubleshoot validation, capacity, and icon-assignment errors.
+- [MCP Provider Setup: PDF Editor](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/pdf-editor.md): Enable the credential-free PDF Editor MCP, get documents in through its upload page and claim code, verify inspection and editing, and troubleshoot document IDs, claim codes, block IDs, fonts, OCR, and size limits.
+- [MCP Provider Setup: dbt Labs](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/dbt-labs.md): Connect the dbt platform remote MCP server - no OAuth app or Client ID/Secret needed; copy the account-specific MCP Endpoint URL from dbt Account settings > Access URLs, add it manually, and authorize through dbt sign-in plus MFA enrollment. Covers the token-based alternative with Authorization and x-dbt-* headers, PAT vs service token limits, toolset restriction headers, and the remote toolsets (Semantic Layer, Discovery, SQL, Administrative API, Fusion, Product Docs).
+- [MCP Provider Setup: Netskope](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/netskope.md): Connect the Netskope-hosted MCP server (technology preview, requires a signed Test Evaluation Agreement) - no OAuth app or Client ID/Secret; combine a Netskope-issued 6-character access code in the URL path with a REST API v2 bearer token, format the tenant identifier for multi-region tenants, and allowlist the MCP server egress IPs 184.32.255.197/32 and 52.89.242.156/32. Covers the ~77 tools across events, incidents, policy, users, IPsec, and DNS security, and the write tools that change enforcement configuration.
+- [MCP Provider Setup: Zoom](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/zoom.md): Connect Zoom's remote MCP server - create a Zoom Marketplace General App with user-managed OAuth, add the QuilrAI callback to the redirect URL and allow list, register the granular scopes for the Zoom, Docs, or Whiteboard server, and copy the Client ID and Client Secret for manual OAuth.
+- [MCP Provider Setup: PitchBook](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/pitchbook.md): Connect the PitchBook Premium Connector remote MCP - its Dynamic Client Registration is allowlisted, so confirm licence, SSO, and MCP service access, ask PitchBook to register the QuilrAI callback and return a Client ID and Client Secret (or allowlist the callback for DCR), install from the MCP Library with OAuth credentials or use OAuth passthrough for partner clients, restrict the server to licensed seats with Access Control, and roll out read-only.
 - [MCP Provider Setup: Salesforce](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/salesforce.md): Connect Salesforce two ways - the Salesforce Hosted MCP servers (activate SObject Reads/Mutations/Deletes/All, create an External Client App with the QuilrAI callback URL, mcp_api and refresh_token scopes, PKCE, refresh token rotation, and JWT-based access tokens, then use the Consumer Key as the Client ID with no secret), or the third-party Cirra (Salesforce MCP) admin server (https://mcp.cirra.ai/mcp) installed from the MCP Library with optional Client ID/Secret left empty, authorized by signing in with a Salesforce account. Covers sandbox URLs and troubleshooting.
 - [MCP Gateway Log Export API](https://docs.quilrai.dev/mcp-gateway/log-export-api.md): Export backend-scoped or tenant-scoped MCP tool call logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
 
@@ -120,7 +192,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 ## Endpoint Agent
 
-- [Network Monitoring Quick Start](https://docs.quilrai.dev/endpoint-agent/network-monitoring/quick-start.md): Set up Network Monitoring in 4 steps - install the Sentinel agent, enable traffic interception, configure DLP policies, and monitor activity.
+- [Network Monitoring Quick Start](https://docs.quilrai.dev/endpoint-agent/network-monitoring/quick-start.md): Set up Network Monitoring in 4 steps - install the Quilr endpoint agent, enable traffic interception, configure DLP policies, and monitor activity.
 - [Network Monitoring Architecture](https://docs.quilrai.dev/endpoint-agent/network-monitoring/architecture.md): Request processing pipeline - Intercept, Inspect, Scan, Enforce - with TLS MITM, DLP engine, and health monitoring.
 - [Process Mapping Quick Start](https://docs.quilrai.dev/endpoint-agent/process-mapping/quick-start.md): Set up Process Mapping in 4 steps - deploy the System Monitor, review discovered applications, configure policies, and monitor activity.
 - [Process Mapping Architecture](https://docs.quilrai.dev/endpoint-agent/process-mapping/architecture.md): Discovery and enforcement pipeline - Discover, Correlate, Sync, Enforce - covering process monitoring, Lua-based AI agent scanning, and governance.

@@ -32,6 +32,20 @@ const OUR_SERVERS = [
     url: 'https://guardrails-india-1.quilr.ai',
   },
   {
+    id: 'jp-1',
+    group: 'LLM Gateway',
+    label: 'Japan · Tokyo',
+    host: 'guardrails-jp-1.quilr.ai',
+    url: 'https://guardrails-jp-1.quilr.ai',
+  },
+  {
+    id: 'europe-1',
+    group: 'LLM Gateway',
+    label: 'Europe',
+    host: 'guardrails-europe-1.quilr.ai',
+    url: 'https://guardrails-europe-1.quilr.ai',
+  },
+  {
     id: 'mcp',
     group: 'MCP Gateway',
     label: 'quilr.ai',

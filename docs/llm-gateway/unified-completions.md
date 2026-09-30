@@ -33,7 +33,7 @@ This page covers translated providers on:
 
 This page does not cover:
 
-- OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini public API, or custom providers that already expose an OpenAI-compatible upstream API
+- OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini public API, Sarvam, or custom providers that already expose an OpenAI-compatible upstream API
 - Native Vertex AI `/vertex_ai/` routes
 - Native Anthropic Messages `/anthropic_messages/` routes
 - AWS Bedrock Runtime boto3 routes such as `/bedrock-runtime/model/{model_id}/converse`

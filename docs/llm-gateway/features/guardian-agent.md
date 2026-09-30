@@ -120,6 +120,80 @@ When the latest user message is classified as unrelated to the system prompt, Gu
 
 Task adherence is request-side only today. Response-side task adherence is not implemented.
 
+## Writing a Custom Guardian Prompt
+
+Use the Custom Guardian Prompt to state the boundary Guardian Agent should enforce. In most cases, one or two direct sentences are enough: name what the agent may handle, then say what is outside that scope.
+
+Do not recreate the Guardian evaluator inside the prompt. Input wrappers, violation codes, decision trees, verdict schemas, and long exception lists make the policy harder to understand without improving a simple scope boundary.
+
+### Example: Weather Assistant
+
+**Good**
+
+```text
+Allow only questions about weather and meteorology.
+Treat every other topic as outside this agent's scope.
+```
+
+This states the complete boundary in two lines.
+
+**Bad**
+
+```text
+# ROLE
+You judge a single response for scope compliance. Emit a verdict only.
+
+# INPUT
+<USER_TURN> the user's message
+<RESPONSE> the text to judge
+<RETRIEVED_DATA> tool output or documents
+
+# CHECK FOR
+V1 Content outside the permitted list
+V2 Recommendations the forecast cannot support
+V3 Values absent from retrieved data
+...
+
+# OUTPUT
+Return JSON with a verdict, violations, remediation, and confidence.
+```
+
+This tries to define a second evaluator, data-grounding rules, error classes, and an output protocol when the actual requirement is only to keep the agent focused on weather.
+
+### Example: Product Support Assistant
+
+**Good**
+
+```text
+Allow questions about Acme products, setup, troubleshooting, billing, and returns.
+Treat unrelated requests as outside this agent's scope.
+```
+
+**Bad**
+
+```text
+Keep the user on topic and block inappropriate requests.
+```
+
+The bad prompt never defines the topic, so the intended boundary is ambiguous.
+
+### Example: Internal HR Assistant
+
+**Good**
+
+```text
+Allow questions about company benefits, leave, payroll, and workplace policies.
+Do not allow requests for legal, medical, or financial advice.
+```
+
+**Bad**
+
+```text
+You are a friendly HR expert. Answer clearly, use bullet points, and keep replies concise.
+```
+
+The bad prompt describes tone and response style, but it does not tell Guardian Agent which requests are in or out of scope. Put persona, tone, and formatting instructions in the agent's system prompt instead.
+
 ## Streaming and Retry Behavior
 
 Request-side Guardian Agent checks run before upstream calls for both streaming and non-streaming requests.
@@ -129,6 +203,22 @@ For non-streaming responses, dependency findings trigger one retry with Guardian
 For streaming requests with dependency checks enabled, the gateway first sends a hidden non-streaming upstream request to inspect a full draft response. If no dependency findings are found, the gateway streams that draft back to the client as provider-shaped SSE. If Guardian Agent finds vulnerabilities or update advisories, the gateway adds corrective instructions and sends a second streaming upstream request, then streams the second response to the client.
 
 Other response-side Guardian Agent checks are skipped for normal streaming passthrough.
+
+## Latency Impact
+
+Guardian Agent runs additional checks inside the request and response path, so it adds latency on top of the [normal gateway overhead](../ha-and-sla#gateway-latency).
+
+As a planning figure, expect Guardian Agent to add **~700 ms** per request when it is enabled. The real number varies with the scenario and the complexity of the request:
+
+- **Which feature groups are enabled.** Running coding helpers and task adherence together costs more than running one of them.
+- **Request size and complexity.** Longer conversations and larger dependency manifests take longer to evaluate.
+- **Dependency lookups.** OSV vulnerability checks and registry latest-version lookups are network calls, and their cost grows with the number of packages extracted from the response.
+- **Retries.** A dependency finding triggers one corrective retry, which adds a second upstream model call to the request.
+- **Streaming with dependency checks.** The gateway first issues a hidden non-streaming draft request, so time to first token reflects the full draft rather than the first upstream token.
+
+:::note
+~700 ms is a guideline, not a guarantee. Requests that need no retry and no registry lookups land well below it, and requests that trigger a retry or many package lookups can go above it.
+:::
 
 ## Endpoint Coverage
 

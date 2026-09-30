@@ -6,11 +6,11 @@ sidebar_custom_props:
 
 # Architecture
 
-How the Sentinel agent communicates with the Quilr backend: what it sends, what it receives, and when.
+How the Quilr endpoint agent communicates with the Quilr backend: what it sends, what it receives, and when.
 
 <ArchitectureDiagram
   source={{
-    label: "Sentinel Agent",
+    label: "Quilr Endpoint Agent",
     code: `[backend]
 base_url   = "https://api.quilr.ai"
 tenant_id  = "<uuid>"

@@ -44,6 +44,7 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 | [Cycode](./cycode) | Code security | Service status and secret scanning | Optional provider auth | No |
 | [Quilr Web Search](./web-search) | Lightweight search and page retrieval | Web search and webpage extraction | Managed | No |
 | [SketchIt](./sketchit) | Diagrams and charts from a description | Flowcharts, hierarchy/architecture diagrams, charts, presentation layouts | None - enabled, not connected | No |
+| [PDF Editor](./pdf-editor) | Reading and editing PDF documents | Inspect, search, OCR, edit text, watermark, forms, metadata, export | None - enabled, not connected | Yes |
 
 :::note
 “Changes data?” describes the integration's available tool surface, not what every user can do. Administrators can disable write or destructive tools in [Tools Management](../mcp-gateway/features/tools-management) and restrict agent access through [Access Control](../mcp-gateway/features/access-control).
@@ -56,6 +57,8 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 | **Quilr-provided MCP** | You want a curated tool surface with gateway-aware safety and enterprise workflows. | Quilr operates the MCP; your admin controls exposure through the gateway. | Quilr maintains the server. Users or admins still supply provider authorization where required. |
 | **Provider-native MCP** | The provider's official MCP already covers the workflows you need. | The provider operates the upstream server; Quilr secures and governs access. | Follow the provider's connection model. See [Provider Setup](../mcp-gateway/mcp-provider-setup/overview). |
 | **Organization custom MCP** | You have an internal system or your own MCP implementation. | Your organization operates the server; Quilr proxies and governs it. | Register its reachable `/mcp` or `/sse` URL in the library. |
+
+Provider-native MCPs in the library that need a setup guide, including Slack, GitHub, Zoho, Datadog, Zoom, Asana, Excalidraw, dbt Labs, Netskope, and PitchBook, are documented under [MCP Provider Setup](../mcp-gateway/mcp-provider-setup/overview). They are operated by the provider, not by Quilr, so they do not appear in the table above.
 
 ## Common Safety Model
 

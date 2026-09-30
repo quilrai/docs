@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Architecture
 
-How the Sentinel endpoint agent enforces the kill switch — persisting state, stopping all DLP services, and restoring them on demand, without a process restart.
+How the Quilr endpoint agent enforces the kill switch — persisting state, stopping all DLP services, and restoring them on demand, without a process restart.
 
 <ArchitectureDiagram
   source={{
@@ -23,7 +23,7 @@ tenantEndpointAgentEnabled = false // tenant-level (wins)
 sudo launchctl bootout "system/com.sentinel.agent"`,
   }}
   gateway={{
-    label: "QuilrAI Sentinel Agent",
+    label: "Quilr Endpoint Agent",
     phases: [
       {
         label: "Receive & Persist",

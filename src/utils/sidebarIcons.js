@@ -17,6 +17,7 @@ import {
   Clipboard,
   Database,
   Route,
+  Scale,
   Coins,
   Target,
   Gauge,
@@ -36,8 +37,10 @@ import {
   Workflow,
   PenTool,
   ListChecks,
+  FileText,
   Cloud,
   Hash,
+  TrendingUp,
 } from "lucide-react";
 
 const iconMap = {
@@ -59,6 +62,7 @@ const iconMap = {
   Clipboard,
   Database,
   Route,
+  Scale,
   Coins,
   Target,
   Gauge,
@@ -78,6 +82,8 @@ const iconMap = {
   Workflow,
   PenTool,
   ListChecks,
+  FileText,
+  TrendingUp,
   Cloud,
 };
 

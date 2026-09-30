@@ -192,6 +192,8 @@ Guardian Agent is a policy check the gateway runs on your traffic, not a separat
 
 A **Custom Guardian Prompt** lets you state the app's policy in plain language, and it is judged against the recent conversation.
 
+Guardian Agent runs extra checks in the request and response path, so it adds latency. Expect roughly **~700 ms** per request when it is enabled, varying with the scenario and the complexity of the request. See [Latency Impact](../guardian-agent#latency-impact).
+
 ![Guardian Agent section showing the status flow diagram, the Coding Helpers and Task Adherence category toggles, and the Custom Guardian Prompt box](/img/self-service-guardian-agent.png)
 
 Full details: [Guardian Agent](../guardian-agent).

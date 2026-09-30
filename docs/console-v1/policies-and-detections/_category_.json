@@ -1,0 +1,12 @@
+{
+  "label": "Policies and Detections",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "slug": "/console-v1/policies-and-detections",
+    "description": "Build staged controls, test detection models, and manage their lifecycle."
+  },
+  "customProps": {
+    "icon": "ShieldCheck"
+  }
+}

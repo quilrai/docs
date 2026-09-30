@@ -43,9 +43,9 @@ Get up and running with Network Monitoring in 4 steps.
   },
 ]} />
 
-## 1. Install the Sentinel Agent
+## 1. Install the Quilr Endpoint Agent
 
-Deploy the Sentinel endpoint agent to your fleet. Installs automatically and runs as a background service.
+Deploy the Quilr endpoint agent to your fleet. Installs automatically and runs as a background service.
 
 | Platform | Agent Binary | Service |
 |----------|-------------|---------|

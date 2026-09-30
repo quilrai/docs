@@ -13,7 +13,7 @@ sidebar_custom_props:
   official="Use the official connector when the workflow needs scorecards, team usage, deal stages, organization metadata, or meeting updates."
   officialPoints={['Broader coaching context', 'Meeting and organization updates']}
   quilrTitle="Choose Quilr for least privilege"
-  quilr="Use Quilr when the agent only needs reliable meeting, transcript, and note retrieval—with no mutation path at all."
+  quilr="Use Quilr when the agent only needs reliable meeting, transcript, and note retrieval-with no mutation path at all."
   quilrPoints={['Four predictable read tools', 'Batch retrieval for up to 50 meetings']}
   verdict="Analysis-only agents should default to Quilr. Move to the official connector when coaching or administrative workflows require the extra surface."
 />

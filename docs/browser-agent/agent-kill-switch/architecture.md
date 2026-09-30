@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Architecture
 
-How the browser extension disables and re-enables the Sentinel endpoint agent at runtime — without a process restart, with state persisted across reboots.
+How the browser extension disables and re-enables the Quilr endpoint agent at runtime — without a process restart, with state persisted across reboots.
 
 <ArchitectureDiagram
   source={{
@@ -52,7 +52,7 @@ Every kill switch transition flows through these stages in order.
 
 | Stage | Description |
 |-------|-------------|
-| **Native Messaging** | The extension sends `{ "disable_agent": true }` or `{ "disable_agent": false }` over the Native Messaging pipe to the Sentinel agent. |
+| **Native Messaging** | The extension sends `{ "disable_agent": true }` or `{ "disable_agent": false }` over the Native Messaging pipe to the Quilr endpoint agent. |
 | **State Storage** | The agent persists the flag to its local database immediately. The state is restored on every subsequent startup — no re-disable needed after a reboot. |
 | **Kill** | All DLP event chains are removed from the event broker and all services (clipboard monitor, file indexer) are stopped. The re-enable chain remains active. |
 | **Revive** | All DLP event chains are restored and all services are restarted. The agent resumes full operation without a process restart. |
@@ -67,7 +67,7 @@ This guarantees the extension can always reach the agent to restore it, even aft
 
 ## Startup Enforcement
 
-When the Sentinel agent starts with the disabled flag set:
+When the Quilr endpoint agent starts with the disabled flag set:
 
 | Flag | Startup Behaviour |
 |------|------------------|

@@ -52,7 +52,7 @@ Runs as a background service on each endpoint. Starts discovery immediately on f
 | **macOS** | Installed apps, Homebrew, npm/pip/go globals, standalone binaries |
 | **Windows** | Installed programs, Chocolatey, npm/pip/go globals, standalone binaries |
 
-Deployed alongside the Sentinel endpoint agent.
+Deployed alongside the Quilr endpoint agent.
 
 ## 2. Review Discovered Applications
 

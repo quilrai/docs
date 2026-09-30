@@ -1,0 +1,47 @@
+---
+title: "QuilrQL behavior"
+sidebar_position: 8
+sidebar_custom_props:
+  icon: Workflow
+description: "Implemented LLM Gateway management v1: quilrql behavior."
+---
+
+# QuilrQL behavior
+
+Management APIs can configure apps while tenant-wide QuilrQL authority is enabled. The response distinguishes stored app settings from the policy that governs runtime behavior.
+
+## New apps under QuilrQL
+
+When authority is already enabled, creating an app captures its baseline and can publish an **app-specific allowed-models default for all users of that app**. Finite configured provider model lists receive this default. Unrestricted providers and providerless SDK/Copilot Studio apps do not get a finite allowed-model list.
+
+Allowed-model lists combine additively with matching policy rules. Explicit model denials and other tenant policies still apply. The response includes a `quilrql_governs_app` warning. Creation preserves existing drafts and never enables QuilrQL authority itself. Retrying the same completed creation with its idempotency key replays the original result instead of issuing another key or policy default.
+
+## Stored settings and effective behavior
+
+Changes to policy-governed app settings still save, but return `inactive_under_quilrql` with affected field paths and the active revision. These stored values take effect when authority is disabled. Shared-provider credentials/availability and Prompt Store content remain live dependencies. Whole-app disable is always enforced independently of QuilrQL.
+
+App creation freezes the new app's degraded fallback baseline. Later stored-setting updates do not silently replace that baseline or publish arbitrary policies.
+
+## Available management controls
+
+- Read `policy_authority` in an app or capabilities response: `enabled`, `active_revision` and `active_checksum`.
+- Create apps and configure their stored settings using the normal app endpoints.
+- Add shared-provider attachments. Removing providers while authority is enabled returns `409 policy_dependency` and requires separate policy dependency review.
+- Roll back eligible app configuration. This does not roll back policy revisions.
+
+## Not Generally Available
+
+The following policy lifecycle features are **Not Generally Available** through management v1. They are not implemented management endpoints and are excluded from the callable OpenAPI reference.
+
+| Feature | Availability |
+| --- | --- |
+| Policy status/metadata endpoints, authoring schema/catalog/search and suggested policies | **Not Generally Available** |
+| Conversion preview, source validation and simulation | **Not Generally Available** |
+| List/read/create/update drafts | **Not Generally Available** |
+| Publish drafts, list/read revision metadata/source and roll back policy revisions | **Not Generally Available** |
+| Enable/disable tenant-wide policy authority | **Not Generally Available** |
+| `policy:write` and `policy:publish` management scopes | **Not Generally Available**; issuing a key with these scopes is rejected |
+
+The supported authority metadata is embedded in app/capabilities responses. The new-app allowed-models behavior described above is implemented and does not grant general policy-editing access.
+
+Use the existing [policy authoring and publishing workflow](../../policy-engine/authoring-and-publishing) for policy lifecycle operations, and the [LLM Gateway policy guide](../../policy-engine/llm-gateway) for language behavior.

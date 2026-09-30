@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Quick Start
 
-Disable or restore the Sentinel endpoint agent without a code deploy. Pick the action that matches your scenario.
+Disable or restore the Quilr endpoint agent without a code deploy. Pick the action that matches your scenario.
 
 <StepFlow steps={[
   {

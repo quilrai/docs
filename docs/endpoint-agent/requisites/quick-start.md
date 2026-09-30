@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Quick Start
 
-Verify your endpoints meet the requirements before deploying the Sentinel agent.
+Verify your endpoints meet the requirements before deploying the Quilr endpoint agent.
 
 <StepFlow steps={[
   {

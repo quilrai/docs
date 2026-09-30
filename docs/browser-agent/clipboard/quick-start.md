@@ -45,14 +45,14 @@ Get up and running with Clipboard Monitoring in 4 steps.
 
 ## 1. Enable the Monitor
 
-The clipboard monitor runs as part of the Sentinel endpoint agent and starts automatically on deployment.
+The clipboard monitor runs as part of the Quilr endpoint agent and starts automatically on deployment.
 
 | Platform | Requirement |
 |----------|------------|
-| **macOS** | Grant **Accessibility permission** to the Sentinel process in System Settings → Privacy & Security |
+| **macOS** | Grant **Accessibility permission** to the Quilr endpoint agent process in System Settings → Privacy & Security |
 | **Windows** | No additional permissions required |
 
-Deploy the Sentinel agent via MDM or GPO. The clipboard monitor activates immediately.
+Deploy the Quilr endpoint agent via MDM or GPO. The clipboard monitor activates immediately.
 
 ## 2. Choose Content Types
 

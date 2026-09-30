@@ -53,7 +53,7 @@ Do not request `projects:read`. It requires Figma's approval and is not availabl
 
 ## Keep In Mind
 
-- **`projects:read` is not available to third-party OAuth apps.** Figma restricts this scope — the assistant cannot browse projects or list files. Users must paste a Figma file URL directly; the assistant extracts the file key from the URL automatically.
+- **`projects:read` is not available to third-party OAuth apps.** Figma restricts this scope - the assistant cannot browse projects or list files. Users must paste a Figma file URL directly; the assistant extracts the file key from the URL automatically.
 - **Design variables require an Enterprise workspace.** `get_variable_defs` returns design tokens only when the Figma workspace is on the Enterprise plan. On Free and Professional workspaces the tool returns an empty result.
 - **Node IDs use `:` not `-`.** Figma URLs encode node IDs with hyphens (for example `?node-id=1-23`). When passing a node ID to `get_design_context` or `get_screenshot`, replace `-` with `:` (for example `1:23`).
 - **FigJam boards use a different tool.** For FigJam files, use `get_figjam` instead of `get_design_context`. The design context tools do not work on FigJam boards.
