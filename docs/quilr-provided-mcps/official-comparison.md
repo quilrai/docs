@@ -44,7 +44,7 @@ The table is the fast scan. The sections below explain the decisions that are ea
 | Microsoft Tasks & Planner | Direct To Do and Planner APIs | One ten-tool personal + team task surface | Prefer Quilr for least-privilege task agents |
 | Azure DevOps Advanced | Local IDE-first official MCP | Remote OAuth, compound intelligence, compatibility operations, confirmed deletes | Official for local; Quilr for organization-wide control |
 | Jira and Confluence | Rovo's cross-product Atlassian breadth | Separate, compact product surfaces | Rovo for breadth; Quilr for independent policy |
-| Google Workspace | Separate official preview servers, including Chat and People | One Gmail + Calendar + Drive connection | Official for product separation; Quilr for one governed connection |
+| Google Workspace | Separate official preview servers, including Chat | One Gmail + Calendar + Drive + directory connection | Official for product separation; Quilr for one governed connection |
 | Figma | Native design context and canvas workflows | API-oriented review, comments, assets, defaults, and mapping administration | Official for canvas; Quilr for integration operations |
 | Calendly | Hosted DCR-based OAuth 2.1 MCP | Customer-owned, pre-registered OAuth | Choose by client registration model |
 | HubSpot CRM | Maximum native CRM breadth | Nine consolidated tools and a controlled archive boundary | Official for breadth; Quilr for a compact schema |
@@ -87,7 +87,7 @@ Atlassian and Google make the architectural trade-off especially visible.
 | Ecosystem | Official approach | Quilr approach |
 |---|---|---|
 | Atlassian | [Rovo MCP](https://developer.atlassian.com/cloud/rovo-mcp/) spans Jira, Confluence, Compass, JSM, Bitbucket, search, and Teamwork Graph | Jira and Confluence remain separate, compact, independently governed surfaces |
-| Google Workspace | Separate Gmail, Drive, Calendar, Chat, and People preview endpoints | One 13-tool Gmail, Calendar, and Drive connection with shared-drive discovery and file export |
+| Google Workspace | Separate Gmail, Drive, Calendar, Chat, and People preview endpoints | One 42-tool Gmail, Calendar, Drive, and directory connection with shared-drive discovery, file export, writes, and incremental sync |
 
 Choose suite breadth when cross-product context is the workflow. Choose product boundaries when authorization, release control, and tool allowlists must remain independent.
 

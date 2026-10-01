@@ -30,7 +30,7 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 | [Azure DevOps Advanced](./azure-devops) | Engineering delivery | Repos, pull requests, boards, pipelines, tests, wiki, security | Microsoft OAuth | Yes |
 | [Jira](./jira) | Issue and project workflows | Issue, project, search, comment, and workflow operations | Atlassian OAuth | Yes |
 | [Confluence](./confluence) | Knowledge bases | Spaces, pages, search, comments | Atlassian OAuth | Yes |
-| [Google Workspace](./google-workspace) | Gmail, Calendar, and Drive | Search/read mail, drafts/send, events, Drive discovery/export | Google OAuth | Yes |
+| [Google Workspace](./google-workspace) | Gmail, Calendar, Drive, and directory | Search/read mail, drafts/send, labels, events, calendars, availability, Drive discovery/export/writes, sync, people lookups | Google OAuth | Yes |
 | [Figma](./figma) | Design-to-code and review | Design context, screenshots, variables, comments, Code Connect | Figma OAuth | Yes |
 | [Calendly](./calendly) | Scheduling operations | Event types, invitees, routing, webhooks, availability | Calendly OAuth | Yes |
 | [HubSpot CRM](./hubspot) | CRM records | Search, batch read, associations, create, update, archive | HubSpot OAuth | Yes |
