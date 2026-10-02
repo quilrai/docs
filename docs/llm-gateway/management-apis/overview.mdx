@@ -16,6 +16,28 @@ Use a dedicated management key to configure the LLM Gateway from deployment pipe
 
 Use the Management API to configure LLM Gateway apps, shared providers, credentials, prompts and stored configuration. Explore complete input specifications and examples, or download the OpenAPI reference.
 
+## Enable in the console
+
+1. Go to **Settings > LLM Gateway** and open the **Management API** tab.
+2. Turn on **Allow management keys for this organization**. Turning it off later suspends every management key until you turn it back on.
+
+![Management API tab with the Allow management keys for this organization switch turned on](/img/llm-gateway/ui/management-api-overview.png)
+
+3. Under **Issue a management key**, enter a **Key name**, an optional **Expiry**, and the **Scopes** it needs.
+4. Click **Issue key** and store the value. It is shown only once.
+
+![Issue a management key form with Key name, Expiry and the five scope checkboxes](/img/llm-gateway/ui/management-api-issue-key.png)
+
+| Console scope | API scope | Grants |
+| --- | --- | --- |
+| **Read** | `read` | App, provider and key metadata, prompts, history, audit and reference lists |
+| **Configure apps** | `config:write` | Create apps and change their settings, availability, providers and prompts |
+| **Manage providers** | `providers:write` | Create, update, rotate, enable, disable and test shared providers |
+| **Issue app keys** | `credentials:write` | Issue, extend and revoke Quilr keys for apps |
+| **Reveal app keys** | `credentials:read` | Read the value of an active app key. Every reveal is audited. |
+
+A key acts for the whole organization within its scopes and cannot be limited to one app. Revoke a key from the keys table on the same tab. See [Authentication & management keys](./authentication) for details.
+
 ## Choose a resource
 
 <ResourceCards />

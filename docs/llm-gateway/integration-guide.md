@@ -1,12 +1,15 @@
 ---
-sidebar_position: 4
+sidebar_position: 1.5
 sidebar_custom_props:
   icon: Plug
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Integration Guide
 
-Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
+Connect to the QuilrAI gateway with your existing SDK. Change the base URL and the API key; keep everything else.
 
 ## 1. Choose Your Endpoint
 
@@ -21,33 +24,39 @@ Connect to the QuilrAI gateway in minutes - same SDK, one-line change.
 | **Japan** | `https://guardrails-jp-1.quilr.ai` |
 | **Europe** | `https://guardrails-europe-1.quilr.ai` |
 
-For production traffic, use the location-specific endpoint closest to your application. The examples below use the US East endpoint; replace it with your nearest regional endpoint if needed. Use `https://guardrails.quilr.ai` only when you explicitly want global auto-routing.
+Use the regional endpoint closest to your application for production traffic. Use `https://guardrails.quilr.ai` only when you want global auto-routing. The examples below use US East.
 
 ### API Format
 
-| Format | Path | Auth Header |
+| Format | Path | Auth header |
 |--------|------|-------------|
 | **OpenAI-compatible** | `/openai_compatible/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Anthropic** | `/anthropic_messages/` | `x-api-key: sk-quilr-xxx` |
 | **AWS Bedrock Runtime** (boto3) | `/bedrock-runtime/` | AWS SigV4 using `sk-quilr-xxx` |
 | **Vertex AI** | `/vertex_ai/` | `Authorization: Bearer sk-quilr-xxx` |
 | **OpenAI Responses** | `/openai_responses/` | `Authorization: Bearer sk-quilr-xxx` |
+| **OpenAI Assistants** | `/openai_assistants/` | `Authorization: Bearer sk-quilr-xxx` |
 | **OpenAI Realtime** (wss) | `/openai_realtime/` | `Authorization: Bearer sk-quilr-xxx` |
-| **Sarvam** (speech & text) | `/sarvam/` | `Authorization: Bearer sk-quilr-xxx` |
-| **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | QuilrAI key in endpoint path |
-| **TrueFoundry custom guardrail** | `/sdk/v1/check/truefoundry` | `Authorization: Bearer sk-quilr-xxx` using a `quilr_sdk` key |
+| **Sarvam** (speech and text) | `/sarvam/` | `Authorization: Bearer sk-quilr-xxx` |
+| **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | Quilr key in the path |
+| **TrueFoundry custom guardrail** | `/sdk/v1/check/truefoundry` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
 
-Combine a region base URL with the API format path to get your full endpoint. For example:
+Combine a region with a path, for example:
 
 ```
 https://guardrails-usa-2.quilr.ai/openai_compatible/
 ```
 
-The OpenAI-compatible path works with OpenAI SDKs and OpenAI-compatible client wrappers. It can call OpenAI / Azure OpenAI and other upstreams that already expose an OpenAI-compatible API. It can also call provider-native chat models through translations such as AWS Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages.
+Each path is served only by matching provider types on the app. For example, an `openai` provider cannot serve `/openai_responses/`; add an `openai_responses` provider. See the [capability matrix](./provider-support#capability-matrix).
+
+`sk-quilr-xxx` stands for your Quilr key. Copy it from the app's **API Integration** section (see [Applications and Keys](./applications-and-keys#api-integration)). The `model` you send must be enabled on the app.
 
 ## 2. Code Examples
 
-### OpenAI-compatible chat - Python
+### OpenAI-compatible chat
+
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
 
 ```python
 from openai import OpenAI
@@ -77,7 +86,8 @@ embedding = client.embeddings.create(
 print(embedding.data[0].embedding[:5])
 ```
 
-### OpenAI-compatible chat - JavaScript
+</TabItem>
+<TabItem value="js" label="JavaScript">
 
 ```javascript
 import OpenAI from "openai";
@@ -100,7 +110,8 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
-### OpenAI-compatible chat - cURL
+</TabItem>
+<TabItem value="curl" label="cURL">
 
 ```bash
 # Point the request to QuilrAI's gateway
@@ -119,9 +130,17 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
   }'
 ```
 
-### AWS Bedrock via OpenAI-compatible chat - Python
+</TabItem>
+</Tabs>
 
-Create a QuilrAI key with provider `bedrock`, select the Bedrock models you want to expose, and use the same OpenAI client configuration. The gateway converts the OpenAI-compatible chat request to Bedrock `Converse` behind the scenes, so no boto3 client is needed.
+### Bedrock, Vertex AI and Anthropic through OpenAI-compatible chat
+
+Keep the OpenAI client and send a provider-native model name. The gateway translates the request to Bedrock `Converse`, Vertex AI `generateContent` or Anthropic Messages. This path is text-only; see [Unified Completions](./unified-completions) for supported parameters, tools and streaming.
+
+<Tabs>
+<TabItem value="bedrock" label="AWS Bedrock">
+
+App provider: `bedrock`. Send any selected Bedrock model ID or inference profile ID that supports Converse.
 
 ```python
 from openai import OpenAI
@@ -139,11 +158,10 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-Use any Bedrock model ID selected on the key that supports Bedrock `Converse`, including inference profile IDs. The same base URL and key work with OpenAI-compatible wrappers such as LangChain `ChatOpenAI`; set the wrapper's model to the Bedrock model ID. See [Unified Completions](./unified-completions.md) for supported request parameters, message formats, tools, streaming, and expected failures.
+</TabItem>
+<TabItem value="vertex" label="Vertex AI">
 
-### Vertex AI via OpenAI-compatible chat - Python
-
-Create a QuilrAI key with provider `vertex_ai`, select the Gemini models you want to expose, and use the same OpenAI client configuration. The gateway converts the OpenAI-compatible chat request to Vertex AI `generateContent` behind the scenes, so no Google SDK client is needed for text chat.
+App provider: `vertex_ai`. Send a selected Gemini model name. Use the native `/vertex_ai/` endpoint for multimodal calls.
 
 ```python
 from openai import OpenAI
@@ -161,11 +179,10 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-Use any Gemini model name selected on the key. This translated path is text-only; use the native `/vertex_ai/` endpoint for multimodal Gemini calls.
+</TabItem>
+<TabItem value="anthropic" label="Anthropic Messages">
 
-### Anthropic Messages via OpenAI-compatible chat - Python
-
-Create a QuilrAI key with provider `anthropic_messages`, `anthropic_messages_bedrock`, or `anthropic_messages_azure`, select the Claude models you want to expose, and use the same OpenAI client configuration. The gateway converts the OpenAI-compatible chat request to native Anthropic Messages behind the scenes, so no Anthropic SDK client is needed for this text-chat path.
+App provider: `anthropic_messages`, `anthropic_messages_bedrock` or `anthropic_messages_azure`. Send the Claude model name, or the Bedrock Claude model ID for `anthropic_messages_bedrock`.
 
 ```python
 from openai import OpenAI
@@ -183,11 +200,15 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-Use the selected Claude model name for direct or Azure Anthropic Messages, and the selected Bedrock Claude model ID for `anthropic_messages_bedrock`. This translated path is text-only; use the native `/anthropic_messages/` endpoint for provider-native request shapes.
+</TabItem>
+</Tabs>
 
-### Embeddings - Python
+### Embeddings
 
-Embeddings use the OpenAI embeddings shape for every supported provider - OpenAI, Azure OpenAI, and AWS Bedrock (Titan / Cohere Embed). The gateway translates to the underlying provider based on how the key is configured, so client code never changes.
+Every embeddings provider (`openai`, `azureopenai`, `bedrock_embeddings`) takes the OpenAI embeddings shape. For Bedrock, the AWS credentials stay on the app's provider and the gateway makes the Bedrock call.
+
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
 
 ```python
 from openai import OpenAI
@@ -199,8 +220,8 @@ client = OpenAI(
     api_key='sk-quilr-xxx',
 )
 
-# Same call for OpenAI, Azure OpenAI, or AWS Bedrock keys.
-# Just use the model name configured on your key
+# Same call for OpenAI, Azure OpenAI, or AWS Bedrock embeddings providers.
+# Use a model name enabled on your app
 # (e.g. 'text-embedding-3-small', 'amazon.titan-embed-text-v2:0',
 # 'cohere.embed-english-v3').
 embedding = client.embeddings.create(
@@ -210,7 +231,8 @@ embedding = client.embeddings.create(
 print(embedding.data[0].embedding[:5])
 ```
 
-### Embeddings - cURL
+</TabItem>
+<TabItem value="curl" label="cURL">
 
 ```bash
 curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/embeddings \
@@ -222,13 +244,15 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/embeddings \
   }'
 ```
 
-:::info AWS Bedrock embeddings
-No boto3 / `invoke_model` call on the client side - AWS credentials live on the key in the QuilrAI dashboard, and the gateway performs the Bedrock `invoke_model` call for you. Titan uses `{inputText}` and Cohere uses `{texts, input_type}` upstream; the OpenAI shape is what you send and receive.
-:::
+</TabItem>
+</Tabs>
 
-### Rerank - Python
+### Rerank
 
-Rerank uses the Cohere-compatible shape for every supported provider - Cohere, AWS Bedrock (Cohere Rerank 3.5 / Amazon Rerank), Jina, Voyage, and self-hosted (ColBERT / TEI / Infinity). Point the Cohere SDK at the gateway, or just POST JSON.
+Every rerank provider takes the Cohere-compatible shape. Point the Cohere SDK at `https://guardrails-usa-2.quilr.ai/rerank`; `/rerank/rerank`, `/rerank/v1/rerank` and `/rerank/v2/rerank` all work.
+
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
 
 ```python
 import cohere
@@ -257,7 +281,8 @@ for r in result.results:
     print(r.index, r.relevance_score)
 ```
 
-### Rerank - cURL
+</TabItem>
+<TabItem value="curl" label="cURL">
 
 ```bash
 curl https://guardrails-usa-2.quilr.ai/rerank/v2/rerank \
@@ -275,13 +300,13 @@ curl https://guardrails-usa-2.quilr.ai/rerank/v2/rerank \
   }'
 ```
 
-The gateway mirrors Cohere's upstream paths, so `/rerank/rerank`, `/rerank/v1/rerank`, and `/rerank/v2/rerank` all work - point your SDK at `base_url='https://guardrails-usa-2.quilr.ai/rerank'` and it'll append whichever version it uses.
+</TabItem>
+</Tabs>
 
-:::info AWS Bedrock rerank
-Same pattern as Bedrock embeddings - AWS credentials live on the key, the gateway performs the Bedrock `invoke_model` call, and your client speaks the Cohere rerank shape. Request-side DLP scans the `query` and `documents` fields; the response (scores + indices) is passed through.
-:::
+### Anthropic
 
-### Anthropic - Python
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
 
 ```python
 import anthropic
@@ -307,7 +332,8 @@ message = client.messages.create(
 print(message.content[0].text)
 ```
 
-### Anthropic - JavaScript
+</TabItem>
+<TabItem value="js" label="JavaScript">
 
 ```javascript
 import Anthropic from "@anthropic-ai/sdk";
@@ -333,7 +359,8 @@ const message = await client.messages.create({
 console.log(message.content[0].text);
 ```
 
-### Anthropic - cURL
+</TabItem>
+<TabItem value="curl" label="cURL">
 
 ```bash
 # Point the request to QuilrAI's gateway
@@ -354,7 +381,15 @@ curl https://guardrails-usa-2.quilr.ai/anthropic_messages/v1/messages \
   }'
 ```
 
-### Vertex AI - Google GenAI SDK
+</TabItem>
+</Tabs>
+
+### Vertex AI
+
+Pass the Quilr key as a Bearer token. `project` and `location` should match the GCP project ID and region on the app's `vertex_ai` provider.
+
+<Tabs>
+<TabItem value="genai" label="Google GenAI SDK">
 
 ```python
 from google import genai
@@ -425,7 +460,8 @@ response = client.models.generate_content(
 print(response.text)
 ```
 
-### Vertex AI - LangChain
+</TabItem>
+<TabItem value="langchain" label="LangChain">
 
 ```python
 # diff-remove
@@ -487,11 +523,12 @@ response = llm.invoke('Hello!')
 print(response.content)
 ```
 
-Replace `sk-quilr-xxx` with the API key you created in the dashboard. The model parameter uses the same model names as your provider. For Vertex AI, the `project` and `location` should match the values configured when creating the key.
+</TabItem>
+</Tabs>
 
 ### AWS Bedrock Runtime - boto3
 
-Use this mode when your app already calls Bedrock Runtime through boto3. Create a QuilrAI key with provider `bedrock`, then point the Bedrock Runtime client at QuilrAI.
+App provider: `bedrock`. Point the Bedrock Runtime client at the gateway and sign with the Quilr key.
 
 ```python
 import boto3
@@ -529,13 +566,14 @@ response = bedrock.converse(
 print(response["output"]["message"]["content"][0]["text"])
 ```
 
-`converse`, `converse_stream`, and `invoke_model` are supported. `invoke_model_with_response_stream` is not enabled yet and returns `ValidationException`. See [AWS Bedrock - boto3 Runtime](./bedrock-boto3.md) for operation coverage, guardrail behavior, and troubleshooting.
+`converse`, `converse_stream` and `invoke_model` are supported. See [AWS Bedrock - boto3 Runtime](./bedrock-boto3) for coverage and troubleshooting.
 
-:::info Provider configuration required
-The Responses and Realtime endpoints are only served for keys whose primary provider is `openai_responses` / `openai_responses_azure` / `openai_realtime` / `openai_realtime_azure`, or that have one of those added as an additional provider. A plain "OpenAI" or "Azure OpenAI" chat-completions key cannot hit `/openai_responses/` or `/openai_realtime/` by just swapping the URL - add the Responses or Realtime provider to the key first. See [Provider Support](./provider-support#responses-api) for the full matrix.
-:::
+### OpenAI Responses
 
-### OpenAI Responses - Python
+App provider: `openai_responses` or `openai_responses_azure`. For Azure, send the deployment name as `model`.
+
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
 
 ```python
 from openai import OpenAI
@@ -559,7 +597,8 @@ response = client.responses.create(
 print(response.output_text)
 ```
 
-### OpenAI Responses - JavaScript
+</TabItem>
+<TabItem value="js" label="JavaScript">
 
 ```javascript
 import OpenAI from "openai";
@@ -583,7 +622,8 @@ const response = await client.responses.create({
 console.log(response.output_text);
 ```
 
-### OpenAI Responses - cURL
+</TabItem>
+<TabItem value="curl" label="cURL">
 
 ```bash
 # Point the request to QuilrAI's gateway
@@ -602,9 +642,15 @@ curl https://guardrails-usa-2.quilr.ai/openai_responses/v1/responses \
   }'
 ```
 
-For Azure OpenAI Responses, the deployment name goes in `model` and Quilr resolves it against the `azure_endpoint` configured on the key. The Azure-style deployment alias `/openai_responses/openai/deployments/{deployment}/responses` is also supported.
+</TabItem>
+</Tabs>
 
-### OpenAI Realtime - Python
+### OpenAI Realtime
+
+App provider: `openai_realtime` or `openai_realtime_azure`. Sessions are a websocket passthrough; guardrails are not yet applied to live events (see [Realtime API](./provider-support#realtime-api)).
+
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
 
 ```python
 import asyncio
@@ -640,7 +686,8 @@ async def main():
 asyncio.run(main())
 ```
 
-### OpenAI Realtime - JavaScript
+</TabItem>
+<TabItem value="js" label="JavaScript">
 
 ```javascript
 import { OpenAIRealtimeWebSocket } from "openai/realtime/websocket";
@@ -667,11 +714,12 @@ rt.send({
 rt.send({ type: "response.create" });
 ```
 
-Realtime sessions are a raw websocket passthrough. Voice I/O (PCM16 `input_audio_buffer.append` / `response.output_audio.delta`) works end-to-end. Live-event DLP is not yet applied to Realtime sessions - see [Provider Support](./provider-support#realtime-api).
+</TabItem>
+</Tabs>
 
 ### Sarvam speech and text
 
-Create a QuilrAI key with provider `sarvam` and select the models and API aliases you want to expose. Sarvam chat models go through the same OpenAI-compatible client as everything else:
+App provider: `sarvam`. Chat goes through the OpenAI-compatible client:
 
 ```python
 from openai import OpenAI
@@ -687,7 +735,7 @@ resp = client.chat.completions.create(
 )
 ```
 
-Speech synthesis and transcription work through the OpenAI audio methods too. QuilrAI maps the OpenAI fields onto Sarvam's, so `voice` is a Sarvam speaker and `language_code` is required:
+Speech uses the OpenAI audio methods. `voice` is a Sarvam speaker and `language_code` is required:
 
 ```python
 speech = client.audio.speech.create(
@@ -704,7 +752,7 @@ with open('audio.wav', 'rb') as audio:
     transcript = client.audio.transcriptions.create(model='saaras:v4', file=audio)
 ```
 
-The native `/sarvam/` routes take Sarvam's own field names and return its own response shape. Translation, transliteration, and language detection are only available here:
+The native `/sarvam/` routes take Sarvam's own fields. Translation, transliteration and language detection are only here:
 
 ```bash
 # Speech synthesis - returns {"request_id": "...", "audios": ["<base64>"]}
@@ -739,38 +787,34 @@ curl https://guardrails-usa-2.quilr.ai/sarvam/translate \
   }'
 ```
 
-The native routes also accept the QuilrAI key in `api-key` or `api-subscription-key`, which lets an existing Sarvam client point at the gateway without changing how it authenticates. See [Provider Support](./provider-support#sarvam-speech-and-text) for the full endpoint list, model catalog, and limits.
+See [Sarvam Speech and Text](./provider-support#sarvam-speech-and-text) for every endpoint, model and limit.
 
 ### Microsoft Copilot Studio
 
-Create a QuilrAI key with provider `copilot_studio`, then use the full endpoint base in Power Platform admin center:
+App provider: `copilot_studio`. Register this endpoint base in Power Platform admin center:
 
 ```text
 https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx
 ```
 
-Power Platform appends `/validate` during setup and `/analyze-tool-execution` at runtime. QuilrAI scans Copilot user context and proposed tool inputs, then returns Copilot's expected allow/block response.
-
-See [Copilot Studio](./features/copilot-studio.md) for Power Platform configuration steps.
+See [Copilot Studio](./features/copilot-studio) for setup.
 
 ### TrueFoundry custom guardrails
 
-Keep your application connected to TrueFoundry and add QuilrAI as a custom input/output guardrail. Set the guardrail URL to your regional base plus `/sdk/v1/check/truefoundry`, choose **Mutate**, and configure **Custom Bearer Auth** with a QuilrAI `quilr_sdk` key. Your application continues using its TrueFoundry credential for model requests.
-
-See [TrueFoundry Integration](./features/truefoundry) for configuration, rail selectors, verification examples, and output streaming requirements.
+Add QuilrAI as a TrueFoundry custom input/output guardrail: URL = your regional base plus `/sdk/v1/check/truefoundry`, mode **Mutate**, **Custom Bearer Auth** with a Quilr key from a `quilr_sdk` app. See [TrueFoundry Integration](./features/truefoundry).
 
 ## 3. Optional Headers
 
 | Header | Purpose |
 |--------|---------|
 | `X-User-Email` | Identifies the end user behind the request. See [Identity Aware](./features/identity-aware). |
-| `X-Conversation-Id` | Groups related requests into a single conversation in logs and analytics. See [Conversation Grouping](./features/conversation-grouping). |
-| `X-Provider-Name` / `X-Provider-Label` | Selects a specific provider on multi-provider keys (see section 5 below). |
+| `X-Conversation-Id` | Groups related requests into one conversation. See [Conversation Grouping](./features/conversation-grouping). |
+| `X-Provider-Name` / `X-Provider-Label` | Selects a provider on apps with several (see section 5). |
 | `X-Prompt-Variables` | Supplies `{{variable}}` values for stored prompts. See [Prompt Store](./features/prompt-store). |
 
 ## 4. Using Routing Groups
 
-If you've configured a [Routing Group](./features/request-routing), pass the group name as the `model` parameter. The gateway automatically load-balances and fails over across providers in that group.
+Send a [routing group](./features/request-routing) name as `model`. The gateway load-balances and fails over across the group's models.
 
 ```python
 response = client.chat.completions.create(
@@ -779,19 +823,9 @@ response = client.chat.completions.create(
 )
 ```
 
-See [Request Routing](./features/request-routing) for full details on setting up groups.
+## 5. Selecting a Provider
 
-## 5. Selecting a Provider on Multi-Provider Keys
-
-A single QuilrAI key can have one primary provider plus any number of additional providers. When more than one compatible provider is configured, you can pick which provider handles a specific request. If you omit a selector, QuilrAI can still infer a provider from the requested model: when exactly one enabled provider has that model enabled on the key, that provider is used; when multiple enabled providers have the same model enabled, QuilrAI chooses one of those providers at random for that request. Use a provider selector when provider choice must be deterministic.
-
-| Endpoint | Body field | Header | Query param |
-|----------|-----------|--------|-------------|
-| Chat Completions / Anthropic Messages / Vertex / Embeddings / Rerank | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
-| Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
-| Realtime (websocket) | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
-
-Match by either the provider type (e.g. `bedrock`, `openai_responses_azure`, `anthropic_messages_bedrock`) or the `label` you set on the additional provider in the dashboard.
+On an app with several providers, pick one per request by provider type or label. The fields for each endpoint are in [Selecting a Provider on Multi-Provider Apps](./provider-support#selecting-a-provider-on-multi-provider-apps).
 
 ```python
 # Responses: pick a specific additional provider
@@ -810,3 +844,4 @@ async with client.realtime.connect(
 ) as conn:
     ...
 ```
+

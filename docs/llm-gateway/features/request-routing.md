@@ -6,136 +6,94 @@ sidebar_custom_props:
 
 # Request Routing
 
-Multi-provider load balancing and failover behind a single API key.
+Spread one model name across several models, providers or accounts, fail over when a provider is down, and send small requests to cheaper models.
 
-## How It Works
+Open the app's **Settings > Routing** (under **Providers & routing**). Routing draws on the models of the app's enabled providers, so add providers first under **LLM Providers**.
 
-<StepFlow steps={[
-  {
-    label: "API Request",
-    items: [
-      'model: "Group1"',
-      'content: "Hello!"',
-    ],
-  },
-  {
-    label: "QuilrAI Routes",
-    items: [
-      "Group1 found ✓",
-      "gpt-4o → 60% weight",
-      "claude-sonnet → 40% weight",
-    ],
-  },
-  {
-    label: "Provider Selected",
-    items: [
-      "→ gpt-4o (weighted)",
-      "Response returned ✓",
-    ],
-  },
-]} />
+![Routing section with an example group splitting gpt-4.1 traffic 40/30/20/10 across OpenAI, Azure OpenAI and Anthropic models, and the app's available providers below](/img/llm-gateway/ui/app-routing-overview.png)
 
-1. **Create Group** - Define a named routing group (e.g., `Group1`)
-2. **Add Models** - Add providers with traffic weights (e.g., `gpt-4o 60%`, `claude 40%`)
-3. **Use as Model** - Pass the group name as the `model` parameter in your API call
+:::note Policy Engine
+When the Policy Engine is on, routing policies (the **Routing Groups & Fallbacks** card) apply instead. See [App settings under the Policy Engine](../../policy-engine/llm-gateway#app-settings-under-the-policy-engine).
+:::
 
-## Routing Modes
+## Three ways to route
 
-A routing group runs in one of two modes. Both route by weight - they just measure "share" differently.
+| Type | Splits traffic by | Clients use it by |
+|------|-------------------|-------------------|
+| **Routing groups** (weighted) | Share of requests | Sending the group name as `model` |
+| **Token-based routing groups** | Share of total tokens (input + output) | Sending the group name as `model` |
+| **Custom routing** | Request size: low, medium or high complexity | Calling the API surface as usual |
 
-| Mode | Share measured in | Best for |
-|------|-------------------|----------|
-| **Request count** (default) | Cumulative requests per model | Even request distribution, simple round-robin-like behavior |
-| **Token based** | Cumulative input + output tokens per model | Cost/capacity balancing where request sizes vary widely |
+Group names must be unique across weighted and token-based groups.
 
-Pick the mode when you create the group. Your app just uses the group name - the gateway handles the rest.
+## Routing groups
 
-### Weight-Based Routing
+1. Under **Routing groups**, add a group and give it a name, for example `Group1`.
+2. Add models from the app's providers and set a weight for each. Weights total 100%. **Distribute** splits them evenly.
+3. Save settings, then send the group name as the `model`.
 
-Assign weights to distribute traffic across models. Weights must total 100%.
+| Model | Provider | Weight |
+|-------|----------|--------|
+| `gpt-4.1` | OpenAI | 60% |
+| `gpt-4.1` | Azure OpenAI | 40% |
 
-| Model | Weight |
-|-------|--------|
-| `gpt-4o` | 60% |
-| `claude-sonnet` | 40% |
+When a provider in the group fails, traffic shifts to the remaining models. No code change is needed.
 
-Use the **distribute** button to split weights evenly across all models in a group.
+A group name can match a real model name. If a group named `gpt-4.1` routes to `gpt-4.1-mini` and `gpt-4.1-nano`, existing code that sends `model="gpt-4.1"` is rerouted without a deploy.
 
-### Token-Based Routing
+Because the group picks from models the app's providers already serve, you never re-enter credentials. Common patterns:
 
-In token mode, a model's share is the fraction of cumulative tokens (input + output) it has served, not the fraction of requests. This is useful when requests differ in size by an order of magnitude - for example, one 200-token chat and one 20k-token RAG call should not count equally against a provider's capacity.
+- **Cross-provider split:** the same model on OpenAI and Azure OpenAI.
+- **Extra capacity:** two accounts for the same provider, added as two providers.
+- **Region pinning:** a US and an EU Azure deployment of the same model.
 
-Weights still sum to 100% and work the same way - only the accounting unit changes.
+## Token-based routing groups
 
-| Model | Weight | Example after 100k tokens |
-|-------|--------|---------------------------|
-| `gpt-4o` | 70% | ~70k tokens routed |
-| `claude-sonnet` | 30% | ~30k tokens routed |
+The same as a routing group, but each model's weight is its target share of **total tokens**, not request count. Use it when request sizes vary widely, for example when one 200-token chat and one 20k-token RAG call should not count equally against a provider's TPM quota.
 
-Pick token mode when you're balancing against TPM quotas or per-token cost. Pick request-count mode when providers are roughly interchangeable per call.
+| Model | Weight | After 100k tokens |
+|-------|--------|-------------------|
+| `gpt-4.1` | 70% | about 70k tokens routed |
+| `claude-sonnet-4-5` | 30% | about 30k tokens routed |
 
-## Context-Tiered Routing
+## Custom routing
 
-On top of weighted routing, a group can override model selection based on the size of the request. Short prompts can be sent to a small, cheap model (e.g. `gpt-4o-mini`) while larger prompts fall through to the weighted routing for the group.
+Route by request size within one API surface. Pick a surface tab, then fill the three tiers with an ordered list of models, cheapest first. Each tier has its own **Published** switch, and only published tiers route traffic.
 
-Configure Low / Medium / High context tiers on the group and pick which models serve each tier. Available for Chat Completions, Anthropic Messages, Vertex AI, and OpenAI Responses groups. Realtime sessions always use the group's weighted routing.
+![Custom routing on the Anthropic Messages tab with Low, Medium and High Complexity Request tiers, each with a Published switch](/img/llm-gateway/ui/app-routing-custom-complexity.png)
 
-## Routing Without a Routing Group
+| Surface tab | Notes |
+|-------------|-------|
+| Chat Completion | |
+| Anthropic Messages | |
+| OpenAI Responses | |
+| Vertex AI | |
+| Bedrock Runtime | Converse and ConverseStream only. InvokeModel stays direct. |
 
-A routing group is not required for QuilrAI to choose among providers. If a request names a real model and you don't pass a provider selector, the gateway checks the enabled providers attached to the key. When exactly one enabled provider has that model enabled on the key, the request uses that provider. When multiple enabled providers have the same model enabled, the gateway chooses one of those providers at random for that request.
+Request size is measured in words. Under the Policy Engine the thresholds are set on the **Routing Groups & Fallbacks** card. OpenAI Realtime sessions always use weighted routing.
 
-Use `provider`, `provider_label`, `X-Provider-Name`, or `X-Provider-Label` when you need deterministic provider selection.
+## Which surfaces a group can mix
 
-## Routing Groups for Model-Level Routing
+A group belongs to one API family. Providers in the same family can be mixed; providers from different families cannot, because their request and response formats differ.
 
-Routing groups are for explicit model-level routing: weighted load balancing, token-based distribution, context-tiered model selection, failover, and routing a single model name to one or more target models. A single API key can carry credentials for several providers - your OpenAI account, an Azure OpenAI deployment, a second OpenAI account for extra TPM, etc. When you build a routing group, you don't re-enter credentials: you pick from the models already available on the providers attached to the key, and the gateway uses that provider's credentials at request time.
-
-Typical patterns this enables:
-
-- **Cross-provider load split** - e.g. `gpt-4o` on OpenAI (50%) and `gpt-4o` on Azure OpenAI (50%) in one group, transparent to your app.
-- **Same-model / different-account split** - two OpenAI accounts running `gpt-4o` to double effective TPM.
-- **Region-tied routing** - a US and an EU Azure OpenAI deployment for the same model.
-
-Models available to a group are driven by the providers on the key - you won't see a model in the group config that isn't backed by a provider you've already added.
-
-## Automatic Failover
-
-### Provider Available
-
-Requests are routed based on configured weights across all models in the group.
-
-### Provider Down
-
-Traffic automatically shifts to remaining models. No code changes needed.
-
-## Multi-Provider Support
-
-A routing group is tied to one API family. Providers within the same family can be mixed freely; providers from different families can't share a group because their request/response formats differ.
-
-| Group type | Used by | Providers you can combine |
-|------------|---------|---------------------------|
-| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, AWS Bedrock (Converse), Vertex AI Gemini, Anthropic Messages, Anthropic Messages on Bedrock, Azure Anthropic Messages, Anthropic (chat completions), DeepSeek, Gemini (chat completions), General LLM, Sarvam (chat models only) |
-| **Anthropic Messages** | `/anthropic_messages/v1/messages` | Anthropic, AWS Bedrock (Anthropic), Azure Anthropic |
+| Group type | Endpoint | Providers you can combine |
+|------------|----------|---------------------------|
+| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock (Converse), Vertex AI Gemini, Anthropic Messages (direct, Bedrock, Azure), Anthropic (chat completions), DeepSeek, Gemini (chat completions), General LLM, Sarvam chat models |
+| **Anthropic Messages** | `/anthropic_messages/v1/messages` | Anthropic, Bedrock (Anthropic), Azure Anthropic |
 | **Vertex AI** | `/vertex_ai/` | Vertex AI |
 | **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI Responses, Azure OpenAI Responses |
 | **OpenAI Realtime** | `/openai_realtime/v1/realtime` (wss) | OpenAI Realtime, Azure OpenAI Realtime |
 
+## Without a routing group
 
-## Group Naming
+You do not need a group for the gateway to choose a provider. When a request names a real model and no provider selector:
 
-Group names can match actual model names. Your application keeps sending requests to the same model name, but the gateway silently routes them based on your group config.
+- If exactly one enabled provider serves that model, the gateway uses it.
+- If several enabled providers serve it, the gateway picks one at random for each request.
 
-### Example
+For deterministic selection, send `provider`, `provider_label`, `X-Provider-Name` or `X-Provider-Label`.
 
-| Group Name | Routes To |
-|-----------|-----------|
-| `gpt-4.1` | `gpt-4.1-nano` (70%), `gpt-4.1-mini` (30%) |
-
-Your code still sends `model="gpt-4.1"` - zero code changes, but requests get routed to cheaper or faster models behind the scenes.
-
-## Code Examples
-
-### Python
+## Example
 
 ```python
 from openai import OpenAI
@@ -145,22 +103,16 @@ client = OpenAI(
     api_key='sk-quilr-xxx'
 )
 
-# Pass the routing group name as the model parameter
+# The routing group name goes in the model field
 response = client.chat.completions.create(
     model='Group1',
     messages=[{'role': 'user', 'content': 'Hello!'}]
 )
-print(response.choices[0].message.content)
 ```
-
-### cURL
 
 ```bash
 curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-quilr-xxx" \
-  -d '{
-    "model": "Group1",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
+  -d '{"model": "Group1", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```

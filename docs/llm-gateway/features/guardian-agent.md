@@ -1,19 +1,33 @@
 ---
 sidebar_position: 3
 sidebar_custom_props:
-  badge: new
+  badge: experimental
   icon: ShieldCheck
 ---
 
 # Guardian Agent
 
-Guide model behavior with gateway-side policy checks for dependency safety and task adherence.
+Guide model behavior with gateway-side checks for dependency safety and task adherence.
 
-## Overview
+Guardian Agent runs inside the gateway's request and response flow. It is not a separate agent or model endpoint. When enabled, the gateway can add instructions before a request reaches the model, retry unsafe dependency output once with corrective guidance, append an advisory, or block off-task requests.
 
-Guardian Agent runs inside the LLM Gateway request and response flow. It is not a separate autonomous agent or a new model endpoint. When enabled on an API key, the gateway can add policy instructions before a request reaches the upstream model, retry unsafe dependency output once with corrective guidance, append an advisory when needed, or block off-task requests before they reach the provider.
+Open the app's **Settings > Guardian Agent** (under **Protection**). It is marked **EXPERIMENTAL** in the console and is **off** for new apps. The three switches on step 2 of Create App (dependency security check, latest-version suggestions, task adherence) turn on the same settings.
 
-Use Guardian Agent when you want coding assistants to avoid risky dependency recommendations, or when an agent should stay aligned to the purpose defined by its system prompt.
+![Guardian Agent section with Coding helpers switches, and Task adherence with Action, Sensitivity, Agent purpose and Guardian prompt](/img/llm-gateway/ui/app-guardian-agent.png)
+
+| Setting | Options | Default when turned on |
+|---------|---------|------------------------|
+| Dependency security check | On / off | Off |
+| Latest version suggestions | On / off | Off |
+| Task adherence | On / off | Off |
+| Task adherence action | Nudge, Block | Nudge |
+| Task adherence sensitivity | Low, Medium, High. Higher flags smaller deviations. | Medium |
+| Agent purpose | One sentence describing what the agent is for | Empty |
+| Guardian prompt | The boundary to enforce, in plain language | Empty |
+
+:::note Policy Engine
+When the Policy Engine is on, Guardian Agent policies (the **Guardian Agent** card) apply instead. See [App settings under the Policy Engine](../../policy-engine/llm-gateway#app-settings-under-the-policy-engine).
+:::
 
 ## How It Works
 
@@ -109,90 +123,26 @@ Latest-version suggestions are supported for exact pins on PyPI, npm, crates.io,
 
 ### Task Adherence
 
-Task adherence compares the latest user message against the request system prompt. The system prompt is treated as the agent's purpose. If there is no system prompt, the check is skipped and the request is allowed.
+Task adherence checks whether the latest user message stays within the agent's purpose. Set **Agent purpose** to one sentence describing what the agent is for, and use **Guardian prompt** to state the boundary. The request's system prompt also describes the purpose; if a request has no system prompt, the check is skipped and the request is allowed.
 
-When the latest user message is classified as unrelated to the system prompt, Guardian Agent records a `guardian_task_adherence` finding and applies the configured action:
+When the latest user message is classified as off-task, Guardian Agent records a `guardian_task_adherence` finding and applies the action:
 
 | Action | Behavior |
 |--------|----------|
-| `nudge` | Adds an upstream instruction telling the model to redirect back to the configured purpose. |
-| `block` | Blocks the request before it reaches the upstream model. |
+| **Nudge** | Adds an upstream instruction telling the model to steer back to its purpose. |
+| **Block** | Blocks the request before it reaches the model. |
 
-Task adherence is request-side only today. Response-side task adherence is not implemented.
+Task adherence runs on the request side only.
 
-## Writing a Custom Guardian Prompt
+## Writing a Guardian Prompt
 
-Use the Custom Guardian Prompt to state the boundary Guardian Agent should enforce. In most cases, one or two direct sentences are enough: name what the agent may handle, then say what is outside that scope.
+One or two direct sentences are usually enough: name what the agent may handle, then say what is outside its scope. Do not rebuild an evaluator inside the prompt (input wrappers, violation codes, verdict schemas), and keep persona, tone and formatting in the agent's own system prompt.
 
-Do not recreate the Guardian evaluator inside the prompt. Input wrappers, violation codes, decision trees, verdict schemas, and long exception lists make the policy harder to understand without improving a simple scope boundary.
-
-### Example: Weather Assistant
-
-**Good**
-
-```text
-Allow only questions about weather and meteorology.
-Treat every other topic as outside this agent's scope.
-```
-
-This states the complete boundary in two lines.
-
-**Bad**
-
-```text
-# ROLE
-You judge a single response for scope compliance. Emit a verdict only.
-
-# INPUT
-<USER_TURN> the user's message
-<RESPONSE> the text to judge
-<RETRIEVED_DATA> tool output or documents
-
-# CHECK FOR
-V1 Content outside the permitted list
-V2 Recommendations the forecast cannot support
-V3 Values absent from retrieved data
-...
-
-# OUTPUT
-Return JSON with a verdict, violations, remediation, and confidence.
-```
-
-This tries to define a second evaluator, data-grounding rules, error classes, and an output protocol when the actual requirement is only to keep the agent focused on weather.
-
-### Example: Product Support Assistant
-
-**Good**
-
-```text
-Allow questions about Acme products, setup, troubleshooting, billing, and returns.
-Treat unrelated requests as outside this agent's scope.
-```
-
-**Bad**
-
-```text
-Keep the user on topic and block inappropriate requests.
-```
-
-The bad prompt never defines the topic, so the intended boundary is ambiguous.
-
-### Example: Internal HR Assistant
-
-**Good**
-
-```text
-Allow questions about company benefits, leave, payroll, and workplace policies.
-Do not allow requests for legal, medical, or financial advice.
-```
-
-**Bad**
-
-```text
-You are a friendly HR expert. Answer clearly, use bullet points, and keep replies concise.
-```
-
-The bad prompt describes tone and response style, but it does not tell Guardian Agent which requests are in or out of scope. Put persona, tone, and formatting instructions in the agent's system prompt instead.
+| Agent | Good | Bad, and why |
+|-------|------|--------------|
+| Weather assistant | `Allow only questions about weather and meteorology. Treat every other topic as outside this agent's scope.` | A long "ROLE / INPUT / CHECK FOR / OUTPUT" evaluator spec. It defines a second judge when the need is only a topic boundary. |
+| Product support | `Allow questions about Acme products, setup, troubleshooting, billing, and returns. Treat unrelated requests as outside this agent's scope.` | `Keep the user on topic and block inappropriate requests.` The topic is never defined. |
+| Internal HR | `Allow questions about company benefits, leave, payroll, and workplace policies. Do not allow requests for legal, medical, or financial advice.` | `You are a friendly HR expert. Answer clearly, use bullet points.` Describes tone, not scope. |
 
 ## Streaming and Retry Behavior
 
@@ -233,9 +183,9 @@ Guardian Agent is implemented on these LLM Gateway surfaces:
 
 OpenAI-compatible chat includes provider-native chat models reached through gateway translations, including Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages.
 
-## Configuration
+## Configuration Keys
 
-Guardian Agent is configured per LLM Gateway API key under `guardian_agent`:
+For the [Management APIs](../management-apis/overview), Guardian Agent is the `guardian_agent` object in the app configuration:
 
 ```json
 {
@@ -248,7 +198,7 @@ Guardian Agent is configured per LLM Gateway API key under `guardian_agent`:
     },
     "task_adherence": {
       "enabled": true,
-      "sensitivity": "low",
+      "sensitivity": "medium",
       "action": "nudge"
     }
   }
@@ -257,17 +207,13 @@ Guardian Agent is configured per LLM Gateway API key under `guardian_agent`:
 
 | Field | Description |
 |-------|-------------|
-| `guardian_agent.enabled` | Enables or disables Guardian Agent for the key. |
-| `coding_helpers.enabled` | Enables dependency-related request instructions and response review. |
-| `coding_helpers.dependency_security_check` | Checks exact dependency pins and resolved bare installs for known OSV vulnerabilities. |
-| `coding_helpers.latest_version_suggestions` | Suggests newer versions for exact pins where registry latest-version checks are supported. |
-| `task_adherence.enabled` | Enables relevance checks between the latest user message and the system prompt. |
-| `task_adherence.sensitivity` | Must be `low`, `medium`, or `high`. |
-| `task_adherence.action` | Must be `nudge` or `block`. If omitted, the action defaults to `nudge`. |
+| `guardian_agent.enabled` | Turns Guardian Agent on or off for the app. |
+| `coding_helpers.dependency_security_check` | Checks exact pins and resolved bare installs for known OSV vulnerabilities. |
+| `coding_helpers.latest_version_suggestions` | Suggests newer versions for exact pins where the registry supports it. |
+| `task_adherence.sensitivity` | `low`, `medium` or `high`. |
+| `task_adherence.action` | `nudge` (default) or `block`. |
 
-`task_adherence.agent_purpose` may still appear in older configurations, but the live task-adherence check uses the request system prompt.
-
-On API key create or update, pass `guardian_agent` as a top-level config field. On key create, it can also be nested inside `quilr_api_key_settings`. Setting `guardian_agent` to `null` on update removes the Guardian Agent configuration from that key.
+Setting `guardian_agent` to `null` on update removes the Guardian Agent configuration.
 
 ## Logging
 
@@ -283,11 +229,7 @@ If Guardian Agent finds something and nothing was blocked or anonymized, the req
 
 ## Current Limits
 
-- Dependency extraction is best-effort and can miss unusual manifest shapes.
-- Range specs are not checked for OSV vulnerabilities or latest-version suggestions.
-- Vulnerable dependency output is not hard-blocked today. The current behavior is monitor plus retry, with an appended advisory as fallback.
-- Task adherence checks only the latest user message.
-- Task adherence requires a system prompt. No system prompt means no task-adherence check.
+- Dependency extraction is best-effort, and range specs are not checked.
+- Vulnerable dependency output is not hard-blocked: the gateway retries once and then appends an advisory.
+- Task adherence checks only the latest user message, on the request side.
 - Dependency and task-adherence network checks fail open on transient errors.
-- Response-side task adherence is not implemented.
-- Streaming response-side checks are only implemented for dependency security and latest-version coding helpers.

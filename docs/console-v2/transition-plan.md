@@ -75,7 +75,7 @@ yet. Quilr will confirm when they are settled.
 | Look at activity, findings, users, assets, cost | Either console, V2 recommended | Either console, V2 recommended |
 | Create LLM apps, issue keys, add providers | Either console | Either console |
 | Register MCP servers, connections, OneMCP | Either console | Either console |
-| LLM guardrails, limits, routing, identity, token saving | V1 or V2 settings | Govern, Policy Engine, LLM Gateway only |
+| LLM guardrails, Guardian Agent, limits, routing, identity, token saving, Prompt Store enforcement | V1 or V2 settings | Govern, Policy Engine, LLM Gateway only |
 | MCP tools, guardrails, token saving, group and user rules | V1 or V2 settings | Govern, Policy Engine, MCP Gateway only |
 | Endpoint Agent and Browser Extension controls | Where you do today | Where you do today, until Phase 2 |
 | Detection models | Either console | Either console, builder in V2 |

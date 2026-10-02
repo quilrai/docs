@@ -6,75 +6,30 @@ sidebar_custom_props:
 
 # Token Saving
 
-Reduce token usage by optimizing input content before it reaches the model.
+Rewrite request content into fewer tokens before it reaches the provider. Responses are returned untouched, and your code does not change.
 
-## How It Works
+Open the app's **Settings > Token Saving** (under **Optimization & policy**). Turn on each strategy that matches the traffic the app sends.
 
-<StepFlow steps={[
-  {
-    label: "Request Arrives",
-    items: [
-      "JSON, HTML, Markdown, or text",
-      "Original input tokens",
-    ],
-  },
-  {
-    label: "QuilrAI Compresses",
-    items: [
-      "JSON -> TOON",
-      "Markup -> clean text",
-    ],
-  },
-  {
-    label: "Sent to LLM",
-    items: [
-      "Fewer prompt tokens",
-      "Meaning preserved ✓",
-    ],
-  },
-]} />
+![Token Saving strategies with Smart JSON compression, HTML to text, Markdown to text and Text compression, each with a before and after example](/img/llm-gateway/ui/app-token-saving-strategies.png)
 
-1. **Request Arrives** - Your app sends a normal API call
-2. **Gateway Optimizes** - Enabled transforms rewrite eligible text fields to use fewer tokens
-3. **Forwarded to LLM** - Optimized input is sent to the provider with no SDK changes
+:::note Policy Engine
+When the Policy Engine is on, token saving policies (the **Token Savings** card) apply instead. See [App settings under the Policy Engine](../../policy-engine/llm-gateway#app-settings-under-the-policy-engine).
+:::
 
-## Compression Methods
+## Strategies
 
-### Smart JSON Compression - Up to 20% savings
+| Strategy | What it does | Before | After |
+|----------|--------------|--------|-------|
+| **Smart JSON compression** | Compacts eligible JSON objects and arrays, converting to TOON where that saves more. Best for tool results and structured data. Up to about 20% savings. | `{"name": "John", "age": 30}` | `name:John\|age:30` |
+| **HTML to text** | Strips HTML markup down to readable text. | `<p><b>Hello</b> world</p>` | `Hello world` |
+| **Markdown to text** | Strips Markdown syntax that costs tokens without adding meaning. | `## Hello **world**` | `Hello world` |
+| **Text compression** | Removes low-value prose and separator noise from long text while keeping its meaning. Structured-looking lines are left alone. | `Please review the following statement and the context which was actually very repetitive.` | `Review statement and context.` |
 
-Converts eligible JSON objects or arrays in LLM inputs to TOON format - ideal for tool call responses and structured data.
+A transform only applies when it reduces token usage. Savings appear as **Tokens saved** in the app's Analytics tab and per request in **Activity > Requests**.
 
-| Before | After |
-|--------|-------|
-| `{"name": "John", "age": 30}` | `name:John\|age:30` |
+## Configuration keys
 
-### HTML to Text
-
-Strips HTML tags and extracts clean text - removes markup overhead from scraped pages or rich content.
-
-| Before | After |
-|--------|-------|
-| `<p class="intro"><b>Hello</b> world</p>` | `Hello world` |
-
-### Markdown to Text
-
-Removes Markdown syntax characters that consume tokens without adding meaning for the LLM.
-
-| Before | After |
-|--------|-------|
-| `## Hello **world**` | `Hello world` |
-
-### Text Compression
-
-Compresses verbose plain text while preserving the original meaning. It removes low-value prose noise and separator noise while avoiding structured-looking lines.
-
-| Before | After |
-|--------|-------|
-| `Please review the following statement and the context which was actually very repetitive.` | `Review statement and context.` |
-
-## Configuration Keys
-
-Token saving is configured per API key. Enable only the transforms that match the traffic sent through that key.
+For the [Management APIs](../management-apis/overview), the same switches are:
 
 ```json
 {
@@ -84,14 +39,3 @@ Token saving is configured per API key. Enable only the transforms that match th
   "text_compression": false
 }
 ```
-
-| Setting | Behavior |
-|---------|----------|
-| `smart_json_compression` | Converts eligible JSON objects or arrays to TOON when it reduces token usage. |
-| `html_to_text` | Extracts clean text from HTML-heavy inputs. |
-| `markdown_to_text` | Converts Markdown formatting to plain text and removes syntax-only tokens. |
-| `text_compression` | Compresses verbose plain text while preserving meaning. |
-
-## Input-Only Behavior
-
-Compression is applied **only to input tokens** before they reach the LLM. Responses are returned untouched. Your application code stays exactly the same - no SDK changes, no prompt rewrites, just lower costs.

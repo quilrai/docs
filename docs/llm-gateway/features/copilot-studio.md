@@ -82,7 +82,7 @@ Use this same Microsoft Entra App ID when Power Platform asks for the Azure Entr
 
 ## Power Platform setup
 
-1. In QuilrAI, create an LLM Gateway API key with provider `copilot_studio`.
+1. In QuilrAI, open **Settings > LLM Gateway > Create App**, choose **App-specific credentials** and pick the **copilot studio** provider (guardrails only, no models).
 2. Copy the full endpoint base URL, including the `sk-quilr-...` key.
 3. Have a Microsoft 365 or Power Platform admin grant tenant-wide consent for the QuilrAI Copilot Studio integration.
 4. Open Power Platform admin center.
@@ -114,7 +114,7 @@ If Copilot includes a bearer token, QuilrAI uses available claims such as `email
 |----------------|------------------|
 | Allowed or monitored | `{"blockAction": false}` |
 | Blocked | `{"blockAction": true, "reasonCode": 112, ...}` |
-| Redacted, anonymized, or partial-redacted | Blocked |
+| Redacted or partial-redacted | Blocked |
 | No user input/tool values found | Allowed with `reason: "no_user_input"` |
 | DLP timeout/internal error | Allowed with fail-open diagnostics |
 

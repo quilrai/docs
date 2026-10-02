@@ -1,0 +1,11 @@
+{
+  "label": "LLM Gateway Controls",
+  "position": 2.5,
+  "link": {
+    "type": "generated-index",
+    "description": "Each Policy Engine control card for LLM Gateway traffic: what it governs, its settings, and defaults."
+  },
+  "customProps": {
+    "icon": "Scale"
+  }
+}

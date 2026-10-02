@@ -35,7 +35,9 @@ A complete, versioned history of every configuration change to an LLM Gateway ap
   },
 ]} />
 
-Every configuration change to an app is captured as an immutable version. From the app's **Audit Log** settings tab you can browse that history, inspect exactly what changed, roll back to a previous version, and review change requests submitted by [self-service](./self-service/overview) users.
+Every configuration change to an app is captured as an immutable version. Open the app's **Settings > Audit Log** (under **Operations**) to browse that history, inspect what changed, roll back to a previous version, and review change requests submitted by [self-service](./self-service/overview) users.
+
+![Audit Log section with the Change requests table and the Configuration versions list](/img/llm-gateway/ui/app-audit-log.png)
 
 ## Config History
 
@@ -67,7 +69,7 @@ When a change causes a problem, an admin can restore a previous version. Rollbac
 
 **Rollback restores** the app's provider settings, enabled guardrail categories, and API-key settings (including that app's custom categories).
 
-**Rollback does not touch** tenant-wide settings such as cross-app permissions, the shared custom-category definition registry, or smart groups - these are managed separately and are intentionally out of scope.
+**Rollback does not touch** tenant-wide settings such as cross-app permissions, the shared custom-category definition registry, smart groups, or [Policy Engine](../../policy-engine/overview) revisions. Policies have their own revision history and rollback.
 
 :::note When rollback is blocked
 Rollback fails if the target version no longer exists, or if the app or the target version has been revoked or made inactive. The confirmation surfaces the reason so nothing is half-applied.
@@ -75,7 +77,7 @@ Rollback fails if the target version no longer exists, or if the app or the targ
 
 ## Change Requests
 
-When [self-service](./self-service/developer-guide) users with Settings Request Access submit a change, it lands here as a change request for an admin to review. The **Audit Log** tab lists requests for the current app, filterable by status.
+When [self-service](./self-service/developer-guide) users with Settings Request Access submit a change, it lands here as a change request for an admin to review. The **Audit Log** section lists requests for the current app, filterable by status.
 
 | Status | Meaning |
 |--------|---------|
@@ -95,7 +97,7 @@ Approvals only govern self-service requests. An admin editing an app's settings 
 
 ## Tenant-Wide Audit Log
 
-Beyond a single app, an **Audit Log · all apps** view rolls up activity across every LLM Gateway app in your tenant. It combines two streams - committed config-history events and change-request workflow events - with status filters and a count of everything still pending approval, so admins can monitor governance across all apps from one place.
+Beyond a single app, the **Audit log** button on the **Settings > LLM Gateway** page opens a tenant-wide view of activity across every app, with the application, operation, actor, status and time of each event. It combines two streams - committed config-history events and change-request workflow events - with status filters and a count of everything still pending approval, so admins can monitor governance across all apps from one place.
 
 ## Permissions
 

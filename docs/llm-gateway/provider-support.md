@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 1.4
 sidebar_custom_props:
   badge: new
   icon: Handshake
@@ -7,301 +7,231 @@ sidebar_custom_props:
 
 # Provider Support
 
-Supported providers, API formats, and configuration details.
+Every provider type, the gateway endpoints it serves, and the credentials it needs. Provider support is the same in the V1 and V2 consoles.
 
-## Overview
+You add a provider to an app in **Create App** or in the app's **LLM Providers** section. In the V2 console you can also add it once in **Settings > Models** and link it to many apps (see [Providers and Models](./providers-and-models)). Your code always authenticates with a Quilr key; provider credentials never leave the gateway.
 
-Your app authenticates to the gateway using a QuilrAI API key. Provider credentials are configured in the dashboard and never exposed to clients. Oracle OCI customers can instead grant QuilrAI cross-tenancy access without sharing an Oracle API key or signing key.
+## Capability matrix
 
-## Capability Matrix
+One row per provider type. The type is what you pick in the console and what you pass as `X-Provider-Name`.
 
-| Provider | Chat | Embeddings | Rerank | TTS | STT | Responses | Realtime | Models | SDK / Webhook |
-|----------|:----:|:----------:|:------:|:---:|:---:|:---------:|:--------:|:------:|:-------------:|
-| OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ | - |
-| Azure OpenAI | ✓ | ✓ | - | ✓ | ✓ | ✓ | ✓ | ✓ | - |
-| Anthropic (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ | - |
-| DeepSeek | ✓ | - | - | - | - | - | - | ✓ | - |
-| Gemini (Chat Completions) | ✓ | - | - | - | - | - | - | ✓ | - |
-| General LLM | ✓ | - | - | - | - | - | - | ✓ | - |
-| Anthropic (Messages) | ✓ | - | - | - | - | - | - | ✓ | - |
-| AWS Bedrock (OpenAI-compatible via Converse) | ✓ | - | - | - | - | - | - | ✓ | - |
-| AWS Bedrock (Anthropic) | ✓ | - | - | - | - | - | - | ✓ | - |
-| AWS Bedrock Runtime (boto3) | ✓ | - | - | - | - | - | - | ✓ | - |
-| Azure (Anthropic Messages) | ✓ | - | - | - | - | - | - | ✓ | - |
-| Vertex AI | ✓ | - | - | - | - | - | - | ✓ | - |
-| Oracle OCI Generative AI (Chat) | ✓ | - | - | - | - | - | - | Manual | - |
-| Oracle OCI Generative AI (Responses) | - | - | - | - | - | ✓ | - | Manual | - |
-| Sarvam | ✓ | - | - | ✓ | ✓ | - | - | ✓ | - |
-| AWS Bedrock (Embeddings) | - | ✓ | - | - | - | - | - | ✓ | - |
-| Cohere Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
-| AWS Bedrock Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
-| Jina Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
-| Voyage Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
-| General Rerank | - | - | ✓ | - | - | - | - | ✓ | - |
-| QuilrAI SDK | - | - | - | - | - | - | - | - | ✓ |
-| Microsoft Copilot Studio | - | - | - | - | - | - | - | - | ✓ |
+| Provider type | Provider | Chat | Messages | Responses | Assistants | Realtime | Embeddings | Rerank | Speech | List models |
+|---------------|----------|:----:|:--------:|:---------:|:----------:|:--------:|:----------:|:------:|:------:|:-----------:|
+| `openai` | OpenAI | ✓ | - | - | - | - | ✓ | - | ✓ | ✓ |
+| `openai_responses` | OpenAI | - | - | ✓ | - | - | - | - | - | ✓ |
+| `openai_assistants` | OpenAI | - | - | - | ✓ | - | - | - | - | ✓ |
+| `openai_realtime` | OpenAI | - | - | - | - | ✓ | - | - | - | ✓ |
+| `azureopenai` | Azure OpenAI | ✓ | - | - | - | - | ✓ | - | ✓ | ✓ |
+| `openai_responses_azure` | Azure OpenAI | - | - | ✓ | - | - | - | - | - | ✓ |
+| `openai_assistants_azure` | Azure OpenAI | - | - | - | ✓ | - | - | - | - | ✓ |
+| `openai_realtime_azure` | Azure OpenAI | - | - | - | - | ✓ | - | - | - | ✓ |
+| `anthropic` | Anthropic (OpenAI-compatible) | ✓ | - | - | - | - | - | - | - | ✓ |
+| `anthropic_messages` | Anthropic | ✓ | ✓ | - | - | - | - | - | - | ✓ |
+| `anthropic_messages_bedrock` | Anthropic on AWS Bedrock | ✓ | ✓ | - | - | - | - | - | - | ✓ |
+| `anthropic_messages_azure` | Anthropic on Azure AI Foundry | ✓ | ✓ | - | - | - | - | - | - | ✓ |
+| `bedrock` | AWS Bedrock (Converse, boto3 runtime) | ✓ | - | - | - | - | - | - | - | ✓ |
+| `bedrock_embeddings` | AWS Bedrock | - | - | - | - | - | ✓ | - | - | ✓ |
+| `bedrock_rerank` | AWS Bedrock | - | - | - | - | - | - | ✓ | - | ✓ |
+| `vertex_ai` | Google Vertex AI | ✓ | - | - | - | - | - | - | - | ✓ |
+| `gemini_chatcompletions` | Google Gemini API (OpenAI-compatible) | ✓ | - | - | - | - | - | - | - | ✓ |
+| `deepseek` | DeepSeek | ✓ | - | - | - | - | - | - | - | ✓ |
+| `oracle` | Oracle OCI Generative AI | ✓ | - | - | - | - | - | - | - | Manual |
+| `oracle_responses` | Oracle OCI Generative AI | - | - | ✓ | - | - | - | - | - | Manual |
+| `sarvam` | Sarvam | ✓ | - | - | - | - | - | - | ✓ | ✓ |
+| `cohere_rerank` | Cohere | - | - | - | - | - | - | ✓ | - | ✓ |
+| `jina_rerank` | Jina | - | - | - | - | - | - | ✓ | - | ✓ |
+| `voyage_rerank` | Voyage | - | - | - | - | - | - | ✓ | - | ✓ |
+| `general` | Custom endpoint (vLLM, Ollama, LiteLLM, any OpenAI-compatible URL) | ✓ | - | - | - | - | - | - | - | ✓ |
+| `general_rerank` | Custom endpoint with a Cohere-shaped `/rerank` | - | - | - | - | - | - | ✓ | - | ✓ |
+| `quilr_sdk` | QuilrAI SDK (guardrails only, no upstream) | - | - | - | - | - | - | - | - | - |
+| `copilot_studio` | Microsoft Copilot Studio (guardrails only) | - | - | - | - | - | - | - | - | - |
 
-Responses and Realtime are supported on dedicated provider types (`openai_responses`, `openai_responses_azure`, `openai_realtime`, `openai_realtime_azure`). A key configured for any other primary provider must add one of these as an additional provider on the key to access the Responses or Realtime endpoints.
+- **Chat** on `bedrock`, `vertex_ai` and the `anthropic_messages*` types is translated from OpenAI Chat Completions. See [Unified Completions](./unified-completions).
+- `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
+- **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
+- **Manual**: enter Oracle model IDs yourself.
+- [QuilrAI-provided models](./quilr-provided-models) can back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon.
 
-Sarvam also serves translation, transliteration, and language detection, which have no column above. See [Sarvam Speech and Text](#sarvam-speech-and-text) for those endpoints, the native `/sarvam/` routes, and the model catalog.
+## Endpoints
+
+Combine a [regional base URL](./integration-guide#region) with a path below.
+
+| Surface | Path | Auth |
+|---------|------|------|
+| Chat Completions | `/openai_compatible/v1/chat/completions` | `Authorization: Bearer <Quilr key>` |
+| Embeddings | `/openai_compatible/v1/embeddings` | `Authorization: Bearer <Quilr key>` |
+| Speech | `/openai_compatible/v1/audio/speech`, `/audio/transcriptions`, `/audio/translations` | `Authorization: Bearer <Quilr key>` |
+| Anthropic Messages | `/anthropic_messages/v1/messages` | `x-api-key: <Quilr key>` |
+| Responses | `/openai_responses/v1/responses` | `Authorization: Bearer <Quilr key>` |
+| Assistants | `/openai_assistants/` | `Authorization: Bearer <Quilr key>` |
+| Realtime | `wss://<base>/openai_realtime/v1/realtime` | `Authorization: Bearer <Quilr key>` |
+| Bedrock Runtime (boto3) | `/bedrock-runtime/model/{model_id}/converse` and friends | AWS SigV4 with the Quilr key |
+| Vertex AI | `/vertex_ai/` | `Authorization: Bearer <Quilr key>` |
+| Rerank | `/rerank/v2/rerank`, `/rerank/v1/rerank`, `/rerank/rerank` | `Authorization: Bearer <Quilr key>` |
+| Sarvam native | `/sarvam/...` | `Authorization: Bearer <Quilr key>` |
+| QuilrAI SDK | `/sdk/v1/check` | `Authorization: Bearer <Quilr key>` |
+| Copilot Studio | `/copilot_studio/{Quilr key}` | Quilr key in the path |
+
+## Credentials by provider
+
+Every provider also has a **Provider label** and a **Models** list. Field names in code font are the API names used by the [Management APIs](./management-apis/providers).
+
+| Provider type | Auth option | Required | Optional |
+|---------------|-------------|----------|----------|
+| `openai`, `openai_responses`, `openai_assistants`, `openai_realtime` | API key | API key (`api_key`) | - |
+| `anthropic`, `anthropic_messages` | API key | API key | - |
+| `gemini_chatcompletions`, `deepseek` | API key | API key | - |
+| `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | - |
+| `sarvam` | API key | Sarvam API key | - |
+| `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`), Azure API version (`azure_api_version`) | - |
+| `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure` | API key | API key, Azure endpoint | - |
+| `anthropic_messages_azure` | API key | API key, Base URL (`base_url`, the Azure AI Foundry base URL) | - |
+| `general`, `general_rerank` | API key | API key, Base URL | - |
+| `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `bedrock_rerank` | Static credentials | AWS access key, AWS secret key | AWS region (default `us-east-1`), AWS session token |
+| same | Assume role | Role ARN (`aws_role_arn`), External ID (`aws_external_id`) | AWS region, Role session name, Session duration (900 to 43200 seconds) |
+| `vertex_ai` | API key | API key, GCP project ID | GCP region (default `us-central1`) |
+| `vertex_ai` | Service account | Service account JSON, GCP project ID | GCP region |
+| `oracle`, `oracle_responses` | API key | API key | - |
+| same | Gateway user principal | No secret. See [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy). | - |
+| same | User principal | Tenancy OCID, User OCID, Key fingerprint, Private key | Private key passphrase |
+| same | Session principal | Session token, Private key | Private key passphrase |
+| same | Instance principal, Resource principal | No secret | - |
+| `quilr_sdk`, `copilot_studio` | None | Label only | - |
+
+Rules that apply to every app:
+
+- Every Oracle provider also needs the **OCI region** (`oci_region`) and **Generative AI project OCID** (`oci_project_id`). `oracle` also needs the **compartment OCID** (`oci_compartment_id`); it is optional for `oracle_responses`.
+- Every model-serving provider needs at least one model. For Azure, the model ID is the deployment name.
+- Labels may use letters, numbers, spaces, `_`, `.` and `-`. `primary` is reserved.
+- Each provider type can appear only once per app.
+- `quilr_sdk` and `copilot_studio` apps cannot add other providers.
+- Anthropic and Azure Anthropic send `anthropic_version` `2023-06-01` by default.
+- For a Bedrock IAM role, see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role).
+
+### What the forms look like
+
+![Azure OpenAI provider form with API key, Azure endpoint and Azure API version](/img/llm-gateway/ui/create-app-provider-azureopenai.png)
+
+![Bedrock provider form with AWS authentication set to Static credentials and the Assume role option shown](/img/llm-gateway/ui/create-app-provider-bedrock-static.png)
+
+![Bedrock credentials with AWS authentication set to Assume role: Role ARN, External ID, Role session name and Session duration](/img/llm-gateway/ui/create-app-provider-bedrock-assume-role.png)
+
+![Google Vertex AI form with Vertex authentication set to Service account, GCP project ID, GCP region and Service account JSON](/img/llm-gateway/ui/models-add-provider-google-vertex-service-account.png)
+
+![Custom endpoint form for the Rerank API with API key and Base URL](/img/llm-gateway/ui/models-add-provider-custom-endpoint.png)
 
 ## Chat Completions
 
-**Endpoint:** `/openai_compatible/v1/chat/completions`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`
+`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. It reaches providers that already speak OpenAI (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, Oracle, Sarvam, custom endpoints) and translates for `bedrock` (Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types. Translation details: [Unified Completions](./unified-completions).
 
-| Provider | Auth Mode | Required Fields | Optional Fields |
-|----------|-----------|-----------------|-----------------|
-| OpenAI | API Key | `api_key` | - |
-| Azure OpenAI | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
-| Anthropic (OpenAI-compatible) | API Key | `api_key` | - |
-| DeepSeek | API Key | `api_key` | - |
-| Gemini (OpenAI-compatible) | API Key | `api_key` | - |
-| General LLM (vLLM, Ollama, etc.) | API Key | `api_key`, `base_url` | - |
-| Sarvam | API Key | `api_key` | - |
-| Anthropic Messages (via OpenAI-compatible) | API Key | `api_key` | `anthropic_version` |
-| Anthropic Messages on Bedrock (via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
-| Anthropic Messages on Bedrock (via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
-| Azure Anthropic Messages (via OpenAI-compatible) | API Key | `api_key`, `base_url` | `anthropic_version` |
-| AWS Bedrock (Converse via OpenAI-compatible) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
-| AWS Bedrock (Converse via OpenAI-compatible) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
-| Vertex AI Gemini (via OpenAI-compatible) | Express | `api_key` | - |
-| Vertex AI Gemini (via OpenAI-compatible) | API Key | `api_key`, `gcp_project_id` | `gcp_region` |
-| Vertex AI Gemini (via OpenAI-compatible) | Service Account | `service_account_json` | `gcp_project_id`, `gcp_region` |
-| Vertex AI Gemini (via OpenAI-compatible) | ADC | `gcp_project_id` | `gcp_region` |
-| Oracle OCI Generative AI | Gateway sign-in | `oci_region`, `oci_project_id`, `oci_compartment_id` | - |
-
-The OpenAI-compatible chat endpoint is not limited to OpenAI-hosted models. In addition to providers that already expose an OpenAI-compatible upstream API, QuilrAI can translate provider-native chat models into this surface. Create a `bedrock` provider key and use a selected Bedrock model ID to call Bedrock `Converse`; create a `vertex_ai` provider key and use a selected Gemini model name to call Vertex AI `generateContent`; or create an Anthropic Messages provider key and use a selected Claude model to call native Anthropic Messages. For exact parameter, message, tool, structured-output, and streaming coverage, see [Unified Completions](./unified-completions.md).
-
-AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
-
-For Oracle setup, including the customer-side Admit policy and both tenancy-wide and compartment-scoped access, see [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy.md).
-
-Sarvam keys serve chat here as well, but only with Sarvam chat models. Its speech and text models are rejected on this endpoint and have dedicated routes instead - see [Sarvam Speech and Text](#sarvam-speech-and-text).
+Sarvam serves only its chat models here. Its speech and text models use the [Sarvam routes](#sarvam-speech-and-text).
 
 ## Anthropic Messages
 
-**Endpoint:** `/anthropic_messages/v1/messages`
-**Auth:** `x-api-key: sk-quilr-xxx`
-
-| Provider | Auth Mode | Required Fields | Optional Fields |
-|----------|-----------|-----------------|-----------------|
-| Anthropic (Native Messages API) | API Key | `api_key` | - |
-| AWS Bedrock (Anthropic via Bedrock) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
-| AWS Bedrock (Anthropic via Bedrock) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
-| Azure (Anthropic Messages) | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
-
-AWS Bedrock default region: `us-east-1`. For assume-role setup (trust policy, ExternalId, permissions), see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
+`/anthropic_messages/v1/messages` takes the native Anthropic request shape. Use it with the Anthropic SDKs and Claude Code. Served by `anthropic_messages`, `anthropic_messages_bedrock` and `anthropic_messages_azure`.
 
 ## AWS Bedrock Runtime (boto3)
 
-**Endpoints:** `/model/{model_id}/converse`, `/model/{model_id}/converse-stream`, `/model/{model_id}/invoke`
-**Alternate prefix:** `/bedrock-runtime/model/{model_id}/...`
-**Auth:** AWS SigV4 signed request using the QuilrAI key as both access key ID and secret access key
+Point a boto3 `bedrock-runtime` client at `https://guardrails-usa-2.quilr.ai/bedrock-runtime` (or your [region](./integration-guide#region)) and sign with the Quilr key as both access key ID and secret. Paths: `/model/{model_id}/converse`, `/converse-stream` and `/invoke` (also under `/bedrock-runtime/`).
 
-Use this surface when your application already calls Bedrock Runtime through boto3 or another AWS SDK. Configure a `bedrock` provider key in QuilrAI, then set the SDK `endpoint_url` to the closest regional endpoint, such as `https://guardrails-usa-2.quilr.ai/bedrock-runtime`.
+| Operation | Coverage |
+|-----------|----------|
+| `converse` | Any selected model that supports Converse. Request and response guardrails. |
+| `converse_stream` | Request guardrails; the event stream passes through unchanged. |
+| `invoke_model` | Amazon Nova, Anthropic and OpenAI-style Bedrock models. Request and response guardrails. |
+| `invoke_model_with_response_stream` | Returns `ValidationException`. |
 
-If your application uses OpenAI-compatible clients instead, the same `bedrock` provider key can be called through `/openai_compatible/v1/chat/completions`; QuilrAI converts the OpenAI chat request to Bedrock `Converse` for you.
-
-| Provider | Auth Mode | Required Fields | Optional Fields |
-|----------|-----------|-----------------|-----------------|
-| AWS Bedrock Runtime (boto3) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
-| AWS Bedrock Runtime (boto3) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
-
-`converse` supports any selected Bedrock model that supports the Bedrock `Converse` API. `invoke_model` schema coverage is limited to Amazon Nova, Anthropic, and OpenAI-style Bedrock models. Non-streaming `converse` and supported `invoke_model` calls run request and response DLP. `converse_stream` runs request-side DLP, then passes the AWS EventStream response through unchanged. `invoke_model_with_response_stream` is registered but returns `ValidationException`.
-
-Only Bedrock Runtime is proxied. Bedrock control-plane APIs and Bedrock Agent Runtime APIs are not proxied. For setup and boto3 examples, see [AWS Bedrock - boto3 Runtime](./bedrock-boto3.md).
+Only Bedrock Runtime is proxied, not the Bedrock control plane or Agent Runtime. See [AWS Bedrock - boto3 Runtime](./bedrock-boto3).
 
 ## Vertex AI
 
-**Endpoint:** `/vertex_ai/`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`
-
-Vertex AI supports multiple authentication modes. Select the mode when creating the key.
-
-| Auth Mode | Required Fields | Optional Fields | Notes |
-|-----------|-----------------|-----------------|-------|
-| API Key | `api_key`, `gcp_project_id` | `gcp_region` | Default region: `us-central1` |
-| Express | `api_key` | - | No project ID needed |
-| Service Account | `service_account_json` | `gcp_project_id`, `gcp_region` | Project ID derived from JSON if omitted |
-| ADC | `gcp_project_id` | `gcp_region` | Application Default Credentials from environment |
-
-### Multimodal & image-capable Gemini models
-
-Vertex is a native passthrough to `generateContent`, so any Gemini model configured on the key works - including multimodal models that accept image / audio / video inputs and image-output models like `gemini-2.5-flash-image-preview`. Add the model name to the key's `selected_models` list and call it the same way you would upstream.
-
-Request-side DLP scans text parts of the request. Non-text parts (image / audio / video bytes) and image / audio outputs pass through without response-side DLP - the guardrails pipeline is text-focused today.
-
-## TTS & STT
-
-**Endpoints:** `/openai_compatible/v1/audio/speech` and `/openai_compatible/v1/audio/transcriptions`
-
-| Provider | TTS | STT | Auth Mode | Required Fields |
-|----------|:---:|:---:|-----------|-----------------|
-| OpenAI | ✓ | ✓ | API Key | `api_key` |
-| Azure OpenAI | ✓ | ✓ | API Key | `api_key`, `azure_endpoint` |
-| Sarvam | ✓ | ✓ | API Key | `api_key` |
-
-STT also supports `/v1/audio/translations`. Azure deployments use the `/openai/deployments/{deployment}/` path prefix.
-
-On a Sarvam key these compatible routes are adapters over Sarvam's own APIs. QuilrAI maps `input`, `voice`, `speed`, and `response_format` to Sarvam's `text`, `speaker`, `pace`, and `output_audio_codec`; the default compatible audio format is MP3 and `pcm` maps to raw linear16. Transcriptions accept `response_format` of `json`, `verbose_json`, or `text`, and `timestamp_granularities[]=segment`. `model` is required on the compatible routes. Sarvam also exposes native request and response shapes on `/sarvam/` - see below.
-
-## Sarvam Speech and Text
-
-**Endpoints:** `/sarvam/text-to-speech`, `/sarvam/speech-to-text`, `/sarvam/speech-to-text-translate`, `/sarvam/translate`, `/sarvam/transliterate`, `/sarvam/text-lid`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`, `api-key: sk-quilr-xxx`, or `api-subscription-key: sk-quilr-xxx`
-
-Sarvam is configured as provider `sarvam` with an `api_key`, as a primary or an additional provider, and covers Indic speech and text alongside chat. The native `/sarvam/` routes take and return Sarvam's own request and response shapes; the OpenAI-compatible audio routes above cover the same speech models for apps that already speak OpenAI. Every upstream call uses the stored provider credential, so callers never send a Sarvam key. Requests are synchronous.
-
-| Endpoint | Purpose | Models | Notes |
-|----------|---------|--------|-------|
-| `/sarvam/text-to-speech` | Speech synthesis | `bulbul:v3` (default), `bulbul:v2` | Returns Sarvam JSON `{request_id, audios[]}`; join the `audios` fragments and base64-decode them |
-| `/sarvam/speech-to-text` | Transcription | `saaras:v3` (default), `saaras:v4` | `multipart/form-data` with one non-empty `file` field |
-| `/sarvam/speech-to-text-translate` | Speech translation | `saaras:v3`, `saaras:v4`, `saaras:v2.5` (legacy) | v3 and v4 require `mode=translate`; v2.5 is translation-only, takes no `mode`, and uses the legacy upstream route |
-| `/sarvam/translate` | Text translation | `mayura:v1` (default), `sarvam-translate:v1` | Returns `translated_text` |
-| `/sarvam/transliterate` | Transliteration | `sarvam-transliterate` | Gateway alias, no upstream model parameter |
-| `/sarvam/text-lid` | Language detection | `sarvam-text-lid` | Returns `language_code` and `script_code` |
-
-Chat runs on the standard OpenAI-compatible chat endpoint rather than a `/sarvam/` route:
-
-| Model | Upstream | Notes |
-|-------|----------|-------|
-| `sarvam-105b`, `sarvam-105b-conversations` | Sarvam `/v1` | JSON and `stream=true` SSE, through the usual chat policy, DLP, tool, and quota pipeline |
-| `glm5.2`, `gemma4`, `deepseekv4-flash` | Sarvam `/v2` | Beta, and gated on your Sarvam account. `extra_body` is preserved as a nested wire field |
-
-### Notes and limits
-
-- **Model selection.** Every model and gateway alias you intend to call, including `sarvam-transliterate` and `sarvam-text-lid`, must be enabled in the key's selected models. `transliterate` and `text-lid` default to their alias automatically, and the gateway strips aliases and provider selectors before forwarding.
-- **Discovery.** Model listing returns the Sarvam catalog without calling the provider. Optional validation makes one small request per selected API type, and only validation confirms which models the supplied Sarvam key can actually reach.
-- **Synthesis.** `language_code` is required on both synthesis routes; the older `target_language_code` alias is accepted, and conflicting values are rejected. `bulbul:v3` accepts 2500 characters and defaults to speaker `shubh` at 24000 Hz; `bulbul:v2` accepts 1500 and defaults to `anushka` at 22050 Hz. Optional parameters are `speech_sample_rate` plus `temperature` and `dict_id` on v3, or `pitch`, `loudness`, `enable_preprocessing`, and `enable_cached_responses` on v2.
-- **Speech recognition.** Modern modes are `transcribe`, `translate`, `verbatim`, `translit`, and `codemix`. Only segment timestamps are supported. `keyterms` on Saaras v4 is a JSON-encoded list of at most 50 strings of 1 to 64 characters; legacy v2.5 takes `prompt` instead. Use recordings under 30 seconds; the gateway caps Sarvam multipart bodies at 25 MB.
-- **Text processing.** `mayura:v1` covers 11 languages, accepts `auto` as the source language, and caps input at 1000 characters. `sarvam-translate:v1` covers 23 languages, requires an explicit source language, and caps input at 2000 characters.
-- **Guardrails.** Request and response DLP run on synthesized text, transcripts, text hints such as `prompt` and `keyterms`, and translated or transliterated output. Uploaded audio is forwarded unchanged and is never written to gateway logs, and timestamp text is dropped when a transcript is redacted. App and model rate limits, request quotas, identity checks, and source IP rules apply as they do elsewhere.
-- **Not covered.** Sarvam has no embeddings, rerank, Responses, or Realtime surface on the gateway, and calling the embeddings endpoint with a Sarvam key or model is rejected. Document and batch workflows, speech websockets, and streaming speech are outside this integration. Chat routing groups accept Sarvam chat models only.
+`/vertex_ai/` is a native passthrough to `generateContent`, so any Gemini model on the app works, including multimodal and image-output models. Guardrails scan the text parts of the request. Image, audio and video parts, and non-text outputs, pass through unscanned.
 
 ## Embeddings
 
-**Endpoint:** `/openai_compatible/v1/embeddings`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`
-
-| Provider | Auth Mode | Required Fields | Optional Fields |
-|----------|-----------|-----------------|-----------------|
-| OpenAI | API Key | `api_key` | - |
-| Azure OpenAI | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
-| AWS Bedrock (Embeddings) | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
-| AWS Bedrock (Embeddings) | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
-
-AWS Bedrock default region: `us-east-1`. Supports Titan and Cohere Embed families on Bedrock; requests and responses follow the OpenAI embeddings shape. For assume-role setup, see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
+`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
 
 ## Rerank
 
-**Endpoints:** `/rerank/v2/rerank`, `/rerank/v1/rerank`, `/rerank/rerank`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`
+All three rerank paths take a Cohere-compatible body (`model`, `query`, `documents`, optional `top_n`, `return_documents`) and return a Cohere-shaped response. Guardrails scan `query` and `documents`. Responses are scores and indices, so they are not scanned. `bedrock_rerank` serves Cohere Rerank 3.5 and Amazon Rerank and uses the `bedrock:InvokeModel` permission.
 
-All three paths are registered to match Cohere's upstream routes (v2, v1, and legacy). Accepts a Cohere-compatible body (`model`, `query`, `documents`, optional `top_n`, `return_documents`) and returns a Cohere-shaped response (`id`, `model`, `results[]`, `usage`).
+## TTS & STT
 
-| Provider | Auth Mode | Required Fields | Optional Fields | Notes |
-|----------|-----------|-----------------|-----------------|-------|
-| Cohere Rerank | API Key | `api_key` | - | - |
-| AWS Bedrock Rerank | Static AWS Keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` | Cohere Rerank 3.5 and Amazon Rerank families; reuses `bedrock:InvokeModel` IAM permission |
-| AWS Bedrock Rerank | Assume Role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` | See [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md) |
-| Jina Rerank | API Key | `api_key` | - | - |
-| Voyage Rerank | API Key | `api_key` | - | - |
-| General Rerank | API Key | `api_key`, `base_url` | - | Self-hosted ColBERT / TEI / Infinity exposing a Cohere-shaped `/rerank` endpoint |
+`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai` and `sarvam`. Azure deployments use the `/openai/deployments/{deployment}/` prefix.
 
-Request-side DLP scans the `query` and `documents` fields. Response-side DLP is not applied - responses are scores and indices only.
+On a Sarvam provider these routes adapt to Sarvam's APIs:
+
+| OpenAI field | Sarvam field |
+|--------------|--------------|
+| `input` | `text` |
+| `voice` | `speaker` |
+| `speed` | `pace` |
+| `response_format` | `output_audio_codec` (default MP3; `pcm` is raw linear16) |
+
+Transcriptions accept `response_format` of `json`, `verbose_json` or `text`, and `timestamp_granularities[]=segment`. `model` is required.
+
+## Sarvam Speech and Text
+
+Native routes take and return Sarvam's own shapes. Auth: `Authorization: Bearer`, `api-key` or `api-subscription-key`, each with the Quilr key.
+
+| Endpoint | Purpose | Models |
+|----------|---------|--------|
+| `/sarvam/text-to-speech` | Speech synthesis | `bulbul:v3` (default), `bulbul:v2` |
+| `/sarvam/speech-to-text` | Transcription (`multipart/form-data`, one `file`) | `saaras:v3` (default), `saaras:v4` |
+| `/sarvam/speech-to-text-translate` | Speech translation | `saaras:v3`, `saaras:v4` (both need `mode=translate`), `saaras:v2.5` |
+| `/sarvam/translate` | Text translation | `mayura:v1` (default), `sarvam-translate:v1` |
+| `/sarvam/transliterate` | Transliteration | `sarvam-transliterate` |
+| `/sarvam/text-lid` | Language detection | `sarvam-text-lid` |
+
+Chat models (`sarvam-105b`, `sarvam-105b-conversations`, and the beta `glm5.2`, `gemma4`, `deepseekv4-flash`) use the standard Chat Completions endpoint.
+
+| Topic | Limit or behavior |
+|-------|-------------------|
+| Models | Enable every model and alias you call, including `sarvam-transliterate` and `sarvam-text-lid`. |
+| Synthesis | `language_code` is required. `bulbul:v3`: 2500 characters, speaker `shubh`, 24000 Hz. `bulbul:v2`: 1500 characters, speaker `anushka`, 22050 Hz. |
+| Recognition | Modes `transcribe`, `translate`, `verbatim`, `translit`, `codemix`. Segment timestamps only. Keep recordings under 30 seconds; bodies are capped at 25 MB. |
+| Translation | `mayura:v1`: 11 languages, `auto` source, 1000 characters. `sarvam-translate:v1`: 23 languages, explicit source, 2000 characters. |
+| Guardrails | Scan synthesized text, transcripts, text hints and translated output. Uploaded audio is forwarded unchanged and never logged. |
+| Not covered | Embeddings, rerank, Responses, Realtime, batch and streaming speech. |
 
 ## Responses API
 
-**Endpoint:** `/openai_responses/v1/responses`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`
+`/openai_responses/v1/responses` is a native passthrough served by `openai_responses`, `openai_responses_azure` and `oracle_responses`. Create, retrieve, cancel, delete and list input items are supported. Azure-style paths work too: `/openai_responses/openai/deployments/{deployment}/responses`. The deployment goes in `body.model`.
 
-Native passthrough for supported Responses providers. Create / retrieve / cancel / delete / list-input-items are all supported.
+Guardrails scan `input_text` parts and `instructions` on the request, and `output_text` on non-streaming responses. `previous_response_id` and built-in tools pass through.
 
-| Provider | Auth Mode | Required Fields | Optional Fields |
-|----------|-----------|-----------------|-----------------|
-| OpenAI (Responses) | API Key | `api_key` | `base_url` |
-| Azure OpenAI (Responses) | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
-| Oracle OCI Generative AI (Responses) | Gateway sign-in | `oci_region`, `oci_project_id` | `oci_compartment_id` |
+An `openai` or `azureopenai` provider cannot serve this endpoint. Add a Responses provider type to the app.
 
-Azure-deployment-style aliases are also accepted: `/openai_responses/openai/deployments/{deployment}/responses[/{response_id}[/cancel|/input_items]]`. The deployment name goes in `body.model` regardless of which URL shape is used.
+## Assistants API
 
-Request-side DLP scans free-form user text inside `input_text` parts of `input` plus the top-level `instructions`. `previous_response_id` and built-in tools (`web_search`, `file_search`, `computer_use`, `code_interpreter`) are passthrough. Response-side DLP scans `output_text` parts on non-streaming responses; streaming responses bypass response-side DLP by design (request-side DLP still runs).
-
-Oracle Responses uses the same customer Admit policy and gateway-owned OCI signing identity as Oracle Chat Completions. See [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy.md).
+`/openai_assistants/` serves the OpenAI Assistants API (threads, runs, file search) through `openai_assistants` and `openai_assistants_azure`. Use it only for apps already built on Assistants.
 
 ## Realtime API
 
-**Endpoint:** `wss://<base>/openai_realtime/v1/realtime`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`
+`wss://<base>/openai_realtime/v1/realtime` is a websocket passthrough for OpenAI Realtime voice and text, served by `openai_realtime` and `openai_realtime_azure`. Aliases: `/openai/v1/realtime`, `/openai/realtime`, `/openai_realtime/openai/v1/realtime`, `/openai_realtime/openai/realtime`.
 
-Native passthrough for OpenAI's Realtime websocket API (voice and text).
-
-| Provider | Auth Mode | Required Fields | Optional Fields |
-|----------|-----------|-----------------|-----------------|
-| OpenAI (Realtime) | API Key | `api_key` | `base_url` |
-| Azure OpenAI (Realtime) | API Key | `api_key`, `azure_endpoint` | `azure_api_version` |
-
-Compatibility aliases for SDK and browser clients are registered at `/openai/v1/realtime`, `/openai/realtime`, `/openai_realtime/openai/v1/realtime`, and `/openai_realtime/openai/realtime`.
-
-Quilr accepts the API key in any of the following forms (in priority order) to cover both server and browser clients:
-
-1. `Authorization: Bearer sk-quilr-xxx` header
-2. `api-key: sk-quilr-xxx` header
-3. `api-key` / `api_key` query parameter
-4. `authorization` query parameter
-5. WebSocket subprotocol `openai-insecure-api-key.sk-quilr-xxx`
-
-The `openai-insecure-api-key.*` subprotocol is stripped before forwarding and is never sent upstream.
+The Quilr key is accepted, in priority order, as an `Authorization: Bearer` header, an `api-key` header, an `api-key` or `api_key` query parameter, an `authorization` query parameter, or the `openai-insecure-api-key.<key>` subprotocol (stripped before forwarding).
 
 :::note Guardrails coverage
-Realtime sessions are passthrough today - DLP is not yet applied to live Realtime events in either direction. Request-side and response-side guardrails on Realtime are planned; until then use Realtime for voice/text flows that do not require in-session redaction. Session-level logging (handshake status, byte counters, usage summary) is still written.
+Guardrails are not yet applied to live Realtime events. Session logging (handshake status, byte counts, usage) still runs.
 :::
 
-## Selecting a Provider on Multi-Provider Keys
+## Selecting a Provider on Multi-Provider Apps
 
-A key can have one primary provider plus any number of additional providers of the same or different kind. When more than one compatible provider is configured, you can pick which one handles a request. If you don't pick, QuilrAI can still infer a provider from the requested model: when exactly one enabled provider has that model enabled on the key, that provider is used; when multiple enabled providers have the same model enabled, QuilrAI chooses one of those providers at random for that request. Use a provider selector when provider choice must be deterministic.
+When an app has several providers that can serve a request, choose one by provider type or label. Without a selector, the gateway uses the one enabled provider that has the requested model; if several have it, one is picked at random.
 
-| Endpoint | Body field | Header | Query param |
-|----------|-----------|--------|-------------|
-| Chat Completions / Anthropic Messages / Vertex / Embeddings / Rerank | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
-| Sarvam speech and text (`/sarvam/`) | `provider` or `provider_label`, sent as a form field on the multipart speech routes | `X-Provider-Name` / `X-Provider-Label` | - |
-| Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
-| Realtime (websocket) | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
+| Endpoint | Body field | Header | Query parameter |
+|----------|-----------|--------|-----------------|
+| Chat Completions, Anthropic Messages, Vertex AI, Embeddings, Rerank, Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
+| Sarvam native (multipart routes: as a form field) | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
+| Realtime | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
 
-Match by either the provider type (`bedrock`, `openai_responses_azure`, `openai_realtime`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `cohere_rerank`, `bedrock_rerank`, `jina_rerank`, `voyage_rerank`, `general_rerank`, `sarvam`, etc.) or the `label` you assigned to the additional provider when you added it in the dashboard.
+For apps linked to [global providers](./providers-and-models), the label is the global provider's label.
 
 ## SDK
 
-**API Endpoint:** `/sdk/v1/check`
-**Auth:** `Authorization: Bearer sk-quilr-xxx`
-
-The SDK provides guardrails-only scanning - no upstream LLM provider needed. Check text, messages, or structured JSON for PII, PHI, adversarial prompts, and custom intents. JSON mode preserves keys and structure while scanning values. Choose `hashing_mode` for stable placeholders and inspect advisory `similar_entities` in the response. See [SDK Mode](./features/sdk-mode) for request parameters and examples, or try **Quilr SDK** in the [LLM Gateway Playground](/llm-gateway-playground).
-
-### Python
-
-```bash
-pip install quilrai
-```
-
-### JavaScript
-
-```bash
-npm install quilrai
-```
-
-### LiteLLM Proxy Plugin
-
-QuilrAI integrates as a plugin for [LiteLLM's](https://docs.litellm.ai) proxy gateway. Configure it in your LiteLLM proxy config to add guardrails to all LLM traffic.
+`/sdk/v1/check` scans text, messages or JSON for guardrail findings without calling any LLM. Create an app with the `quilr_sdk` provider. Install with `pip install quilrai` or `npm install quilrai`. See [SDK Mode](./features/sdk-mode), or try it in the [LLM Gateway Playground](/llm-gateway-playground).
 
 ## Microsoft Copilot Studio
 
-**Endpoint base:** `/copilot_studio/{sk-quilr-xxx}`
-**Routes:** `/validate`, `/analyze-tool-execution`
-**Auth:** QuilrAI key in the endpoint path
-
-Copilot Studio support is SDK-style external threat detection, not LLM proxying. Create a key with provider `copilot_studio`, configure the endpoint base in Power Platform admin center, and Copilot Studio calls QuilrAI before tool execution.
-
-QuilrAI scans recent user prompt context and tool `inputValues`. It returns `blockAction: true` for block/redact/partial-redact outcomes because Copilot Studio cannot accept rewritten tool input. DLP timeout or internal DLP errors fail open with `blockAction: false` so transient service issues do not break the agent flow.
-
-For setup steps, see [Copilot Studio](./features/copilot-studio.md).
+Create an app with the `copilot_studio` provider and register `https://guardrails-usa-2.quilr.ai/copilot_studio/<Quilr key>` (or your region) in Power Platform. Copilot Studio calls `/validate` and `/analyze-tool-execution` before tool execution. Block, redact and partial-redact outcomes return `blockAction: true`; scanning errors fail open. See [Copilot Studio](./features/copilot-studio).

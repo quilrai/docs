@@ -26,7 +26,7 @@ Common uses:
 
 SDK mode requires a dedicated **SDK key** - regular LLM proxy keys are rejected with `403`.
 
-When creating an API key in the dashboard, set the provider to `quilr_sdk`. Then use it as a Bearer token:
+Create an app in **Settings > LLM Gateway > Create App**, choose **App-specific credentials** and pick the **quilr sdk** provider. It is a guardrails-only provider: it has no models and cannot be combined with other providers. Use the app's Quilr key as a Bearer token:
 
 ```
 Authorization: Bearer sk-quilr-xxx
@@ -34,7 +34,7 @@ Authorization: Bearer sk-quilr-xxx
 
 `Api-Key: sk-quilr-xxx` is also accepted.
 
-You can optionally include an `X-User-Email` header for identity-aware enforcement if that is configured on your key.
+You can optionally include an `X-User-Email` header for identity-aware enforcement if that is configured on the app.
 
 ## Request Format
 

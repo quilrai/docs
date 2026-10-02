@@ -86,8 +86,10 @@ rejected.
 
 | Target | Frozen once the engine is on | Still managed in Settings |
 |---|---|---|
-| LLM Gateway | Security guardrails, Guardian Agent, rate and token limits, token saving, routing, identity aware, prompt-store enforcement | Applications, keys, providers and credentials, alerts, self-service, audit |
+| LLM Gateway | Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving, Routing, Identity Aware (identity and conversation ID requirements), Prompt Store (store-prompt enforcement) | Applications, keys, providers and credentials, custom detections, alerts, self-service, audit |
 | MCP Gateway | Tools, Guardrails, Token saving, Group & User Rules per server | Server register, connections, OneMCP operation, API tokens |
+
+The seven LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./llm-gateway#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../llm-gateway/features/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card.
 
 :::warning Disabling is a rollback, not an undo
 Disabling the engine restores the frozen snapshot exactly as it was at
@@ -101,8 +103,9 @@ engine's own rollback for everything after.
 
 1. **Tidy first.** Resolve duplicate application names and disable providers
    you no longer use. Attention items are far easier to fix before the review.
-2. **Set model prices.** Under Settings, Models, confirm input and output
-   prices for every model you route to. Spend budgets refuse requests without a
+2. **Plan model prices.** Once the engine is on, spend budgets use the
+   **Model pricing** section of the Budgets & Usage Limits card, so plan input
+   and output prices for every model you route to. Spend budgets refuse requests without a
    price.
 3. **Review, do not activate.** Read every attention item and both review
    views.

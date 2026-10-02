@@ -4,7 +4,7 @@ sidebar_custom_props:
   icon: ClipboardList
 ---
 
-# Reading the Report
+# LLM Intelligence Assessment Report
 
 <div className="rt-hero">
   <span className="rt-kicker">LLM Gateway</span>
@@ -18,7 +18,11 @@ sidebar_custom_props:
   </div>
 </div>
 
-This page is about interpreting a finished run. For how the test is executed, what each suite contains, and how to configure a run, see [Red Team Testing](./red-team-testing).
+:::note Scope
+This page covers reports from the **LLM Intelligence Assessment** tab only. For Agentic Red Teaming and Model Red Teaming reports (letter grade, risk score, breached / partial / held findings, remediation), see [Reading Red Team Results](./red-team-results).
+:::
+
+This page is about interpreting a finished run. For how the test is executed, what each suite contains, and how to configure a run, see [LLM Intelligence Assessment](./red-team-testing).
 
 ## What the Report Is
 
@@ -263,7 +267,7 @@ That last point is the one that trips people up. A capped smoke run produces a f
 
 ## 7. Knowledge Horizon
 
-Alongside the selected suites, the run measures where the target model's factual recall actually stops. Questions anchored to dated public events are grouped by calendar quarter, and the report shows a pass rate for each quarter plus the most recent quarter the model answers reliably.
+The Temporal Knowledge suite measures where the target model's factual recall actually stops. Questions anchored to dated public events are grouped by calendar quarter, and the report shows a pass rate for each quarter plus the most recent quarter the model answers reliably.
 
 How to read it:
 
@@ -271,7 +275,7 @@ How to read it:
 - **A horizon earlier than the provider claims** is the useful finding. It tells you the app needs retrieval or web tooling to answer anything current, regardless of what the model card says.
 - **A horizon that moves between runs on the same model name** is worth investigating on its own. It is one of the few signals that a provider has quietly changed the model behind a stable name.
 
-This measurement runs on every test. It is not a suite you select, and it does not contribute to the headline pass rate.
+It comes from the Temporal Knowledge suite, which is selected by default. If you deselect that suite, the run has no horizon. The horizon does not contribute to the headline pass rate.
 
 ## 8. Review State
 
@@ -292,7 +296,7 @@ Human decisions never overwrite the grader. Both verdicts are kept, changing a d
 
 The corpus is fixed, so runs are comparable, but only when everything else is held still. For a difference between two runs to be attributable:
 
-- **The same suites, with the same case limits.** Case limits take cases from the front of each suite, so two limited runs are comparable to each other but never to a full run.
+- **The same suites, with the same Max Cases.** The cap is divided evenly across the selected suites and takes cases from the front of each suite, so two runs are comparable only when both the suite selection and Max Cases match.
 - **The same system prompt and the same tool schemas.** These are the entire simulation of your application. Changing either changes what is being measured.
 - **The same generation options.** Temperature and the rest are part of the target's behavior.
 - **One variable changed at a time.** A new model and a reworded system prompt in the same run leave you unable to attribute the movement to either.

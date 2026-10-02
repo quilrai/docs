@@ -6,102 +6,186 @@ sidebar_custom_props:
 
 # Security Guardrails
 
-Detect and act on sensitive data and adversarial inputs.
+Detect sensitive data and adversarial input in prompts and responses, then monitor, redact or block it.
 
-## Overview
+Open **Settings > LLM Gateway**, choose an app, then **Settings > Security Guardrails** (under **Protection**). The section has six parts:
 
-Security guardrails inspect requests and responses passing through the gateway. Each detection category can be independently enabled and assigned an action.
+| Part | What it does |
+|------|--------------|
+| [Default action](#actions) | The action used where a category does not set its own. |
+| [Data risks](#data-risks) | Sensitive data such as PII, PHI, card data and secrets. |
+| [Adversarial risks](#adversarial-risks) | Prompt injection, jailbreaks and harmful content. |
+| [Precision detections](#precision-detections) | Exact-match identifiers such as SSN, Aadhaar or IBAN. |
+| [Hallucination check](#hallucination-check) | Flags responses that score as likely fabricated. |
+| [Source IP restrictions](#source-ip-restrictions) | Accepts calls only from listed networks. |
 
-## Data Risk Detection
+:::note Policy Engine
+When the tenant-wide Policy Engine is on, guardrail policies decide what happens on live requests, and this section shows legacy values that are not enforced. See [App settings under the Policy Engine](../../policy-engine/llm-gateway#app-settings-under-the-policy-engine).
+:::
 
-Contextual detection identifies sensitive data categories and applies the configured action.
+## Defaults for a new app
 
-### Supported Categories
+Step 2 of **Create App** sets the starting guardrails. Unless you change them, a new app gets:
 
-- **PII** - Personally Identifiable Information
-- **PHI** - Protected Health Information
-- **PCI** - Payment Card Industry data
-- **Financial data** - Financial records and account information
+| Setting | Default |
+|---------|---------|
+| Default action | **Monitor** |
+| Data risks | All 6 on: PII, PHI, PFI, PCI, Insurance data, Authentication secrets |
+| Adversarial risks | 12 of 13 on. **Malicious scripts** is off (opt-in). |
+| Data risk scope | Request and response |
+| Precision detections, hallucination check, source IP restrictions | Off |
+| Guardian Agent (dependency security check, latest-version suggestions, task adherence) | Off. See [Guardian Agent](./guardian-agent). |
 
-## Adversarial Risk Detection
+![Create App step 2 with the data risk and adversarial risk toggles, Malicious scripts switched off, and the Guardian Agent toggles below](/img/llm-gateway/ui/create-app-step2-guardrail-categories.jpg)
 
-Catches adversarial attack patterns in requests:
+Because the default action is Monitor, a new app records detections without changing traffic. Review findings in the app's **Activity > Findings** view before you raise any category to Redact or Block.
 
-- **Prompt injection** - Attempts to override system instructions
-- **Jailbreak** - Attempts to bypass safety controls
-- **Social engineering** - Manipulation attempts targeting the AI model
+## Actions
 
-## Endpoint Coverage
+![Action mix panel counting categories per action, next to the Default action selector set to Monitor](/img/llm-gateway/ui/app-guardrails-action-mix-default-action.png)
 
-Guardrails run on chat completions, including provider-native models reached through OpenAI-compatible translations such as Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages, embeddings (input), TTS (input), STT (output), native Anthropic Messages, AWS Bedrock Runtime boto3 calls, native Vertex/Gemini `generateContent`, the OpenAI Responses API, Sarvam speech synthesis (input), Sarvam transcription (output), Sarvam translation, transliteration, and language detection (input and output), and Copilot Studio external threat detection. For **streaming** responses (SSE), request-side scanning runs as normal but response-side scanning is skipped so chunks stream through unmodified.
+| Action | What happens | Available on |
+|--------|--------------|--------------|
+| **Monitor** | The request passes unchanged and the detection is logged. | All categories |
+| **Partial redact** | Masks part of each detected value and forwards the rest. | Data risks, precision detections |
+| **Redact** | Replaces each detected value and forwards the request. | Data risks, precision detections |
+| **Block** | Rejects the whole request. | All categories |
 
-**AWS Bedrock Runtime** `converse_stream` runs request-side DLP and then passes the AWS EventStream response through unchanged. **OpenAI Realtime** websocket sessions are passthrough today - DLP does not yet run on live Realtime events in either direction. Session-level logs (handshake status, byte counters, usage summary) are still recorded. Use [SDK Mode](./sdk-mode) if you need to scan Realtime transcripts out-of-band.
+- **Adversarial risks and the hallucination check support Block or Monitor only.** There is no value to redact.
+- **Action resolution:** the category's own action wins, then the app's default action, then Monitor.
+- **Set everything to default** clears per-category actions so every category follows the default action.
+- The **Action mix** panel counts how many of the 20 categories (7 data + 13 adversarial) sit at each action or are off.
 
-**Copilot Studio** runs request-side checks on user context and proposed tool input values before tool execution. Redaction-style outcomes become blocks because Copilot Studio cannot accept rewritten tool input.
+## Data risks
 
-## Configurable Actions
+![PII category detail with Risk level High, Applies to Request and response, Action Monitor, and the sub-category list with per-item sensitivity](/img/llm-gateway/ui/app-guardrails-data-risks-pii.png)
 
-Each detection category supports per-category actions:
+| Category | Sub-categories |
+|----------|----------------|
+| Personally Identifiable Information (PII) | Date of birth, driver's license number, email address, employee ID, home address, name, national ID, passport number, phone number, social security number, other PII |
+| Protected Health Information (PHI) | Medical appointment, condition, facility, record number, treatment, prescription, other PHI |
+| Payment and Financial Information (PFI) | Bank account number, bank identification code, customer ID or account number, financial amount, invoice number, PAN card, payment processor detail, tax information, transaction ID, other PFI |
+| Protected Card Information (PCI) | Credit/debit card |
+| Insurance Data | Health insurance, insurance policy |
+| Auth & Secrets | Username, username or alias, access token, API key, AWS credentials, password, other secret |
+| Code Scripts and Queries (off by default) | Shell, database queries, YAML/config, Python, JavaScript/TypeScript, Java/Kotlin/Scala, Go, Rust, C/C++/C#, PHP/Ruby, Swift, other code |
 
-| Action | Behavior |
-|--------|----------|
-| **Block** | Reject the request entirely |
-| **Redact** | Remove the sensitive data and allow the request |
-| **Anonymize** | Replace sensitive data with anonymized placeholders |
-| **Monitor** | Allow the request and log the detection for review |
+Each category has these settings:
 
-Adversarial categories only support `block` and `monitor` - redact/anonymize fall back to `block` since there's no entity to redact.
+| Setting | Options | Default |
+|---------|---------|---------|
+| Enabled | On / off | On (Code Scripts and Queries off) |
+| Risk level | None, Low, Medium, High | High |
+| Applies to | Request only, Request & response, Response only | Request & response |
+| Action | Redact, Partial redact, Block, Monitor | App default action |
+| Sub-category sensitivity | Low, Medium, High per sub-category | Set per sub-category |
 
-## Per-Category Risk Level
+### Risk level and sub-category sensitivity
 
-Each data-risk category has a configurable **Risk Level** that controls how wide a net the category casts. Raise it to catch more sub-categories; lower it to limit detections to only the most unambiguous values.
+Every sub-category carries a sensitivity. The category's risk level decides which sensitivities fire: a low risk level catches only clearly sensitive values, and a high risk level also catches weaker, contextual ones.
 
-| Risk Level | What fires |
-|------------|------------|
-| **Low** | Only the most unambiguous sub-categories - clearly sensitive values like unique identifiers or structured credentials. |
-| **High** | Everything Low catches, plus weaker, contextual sub-categories like names, emails, and amounts. |
+| Risk level | Fires on sub-categories marked |
+|------------|--------------------------------|
+| Low | High |
+| Medium | High, Medium |
+| High | High, Medium, Low |
 
-### Which sub-categories fire at which Risk Level
+Example for PII, where passport is a high-sensitivity sub-category and name, home address and email are low-sensitivity:
 
-| Category | Fires at Risk = Low | Also fires at Risk = High |
-|---|---|---|
-| **PII** | SSN, Passport, Driver's License, National ID | Name, Email, Phone, Date of Birth, Home Address, Employee ID |
-| **PHI** | Medical Appointment, Medical Record Number, Prescription | Medical Facility, Medical Condition, Medical Treatment |
-| **PFI** | Bank Account, Bank Identification Code, PAN Card, Tax Information | Financial Amount, Invoice, Payment Processor, Transaction ID, Customer ID |
-| **PCI** | Credit/Debit Card | - |
-| **Auth & Secrets** | Access Token, API Key, AWS Credentials, Password | Username, Username or Alias |
+| Request | Risk level Low | Risk level High |
+|---------|----------------|-----------------|
+| `My name is Jane Doe and I live in Bengaluru` | Allowed | Detected (`NAME`, `HOME ADDRESS`) |
+| `Reach me at jane@example.com` | Allowed | Detected (`EMAIL ADDRESS`) |
+| `My passport number is M1234567` | Detected | Detected |
 
-### Examples (PII)
+Change one sub-category's sensitivity to tune that value without moving the whole category.
 
-How the same input is evaluated at different Risk Levels:
+## Adversarial risks
 
-| Request body | Risk = Low | Risk = High |
-|---|---|---|
-| `My name is Praneeth Bedapudi and I live in Bengaluru` | Allowed | Detected (`NAME`, `HOME ADDRESS`) |
-| `Reach me at praneeth@example.com or +91-98765-43210` | Allowed | Detected (`EMAIL ADDRESS`, `PHONE NUMBER`) |
-| `My passport number is M1234567` | Detected (`PASSPORT NUMBER`) | Detected (`PASSPORT NUMBER`) |
-| `SSN 123-45-6789` | Detected (`SOCIAL SECURITY NUMBER`) | Detected (`SOCIAL SECURITY NUMBER`) |
+![Adversarial risk list with an on/off switch and a Block or Monitor choice for each category](/img/llm-gateway/ui/app-guardrails-adversarial-risks.png)
 
-And a mixed example across categories, both at **Risk = Low**:
+Each category has an on/off switch and a **Block | Monitor** action. Its scope is fixed to the side of the conversation it targets.
 
-| Request body | PII | PFI |
-|---|---|---|
-| `Praneeth Bedapudi, PAN ABCDE1234F` | Allowed (Name only fires at Risk = High) | Detected (`PAN CARD`) |
+| Category | Checked on | Default |
+|----------|-----------|---------|
+| Prompt Injection Techniques | Request | On |
+| Jailbreak Techniques | Request | On |
+| Prompt Context Corruption | Request | On |
+| Semantic Adversarial Prompts | Request | On |
+| Social Engineering Prompts | Request | On |
+| System, Guardrail & Security Disclosure | Request | On |
+| Security Exploit & Payload Enablement | Request | On |
+| Cybersecurity Frameworks & Standards Mention | Request | On |
+| Response Risks | Response | On |
+| Hateful or Offensive Content | Both | On |
+| Violence & Harmful Content | Both | On |
+| Fraudulent or Illegal Activity Content | Both | On |
+| Malicious Scripts | Request | **Off** (opt-in) |
 
-### Sub-category Risk Level
+**Enable all** turns every adversarial category on.
 
-Within a category, each sub-category can be pinned to its own Risk Level to override the category-level setting.
+## Precision detections
 
-Raise the Risk Level to catch more. Lower it to cut noise on categories you only want alerts on when confidence is very high.
+Exact-match patterns for structured identifiers. Use them when you need one specific identifier caught, on top of the contextual data risk categories. Each detection has its own switch and action (Redact, Partial redact, Block or Monitor; default Monitor), and all are off until you turn them on. A red dot marks a high-sensitivity identifier.
 
-## Action Scope
+![Precision detections list with a switch, Reset to default, and an action selector for each identifier](/img/llm-gateway/ui/app-guardrails-precision-detections.png)
 
-Each category can be scoped to run on the **request** side, the **response** side, or **both**. Scope controls which direction a detection runs in - it does not change the configured action.
+The built-in catalog has more than 80 identifiers:
 
-| Scope | Runs on | Use when |
-|-------|---------|----------|
-| **Request** | User input only | You only want to gate what users send (e.g. PII leaving your app) |
-| **Response** | Model output only | You only want to gate what the model returns (e.g. leaked secrets, unsafe generation) |
-| **Both** (default) | Both directions | Full bidirectional coverage |
+| Group | Identifiers |
+|-------|-------------|
+| Personal identity | SSN, Aadhaar, PAN card, driver's license, passport, national ID, phone, email, CA social insurance number, UK national insurance number, pensioner/student/senior citizen ID, vehicle number, VIN, vehicle registration certificate, customer signature, photographic image, age, nationality, language, gender orientation, marital status, father's, mother's and maiden names, mother's maiden name, anniversary date, current location, latitude/longitude, local reference |
+| Health | Medical record number, medical registration number, patient ID, Medicare number, health insurance, insurance policy, CA health number, UK NHS number, blood group |
+| Financial | Bank account number, account holder's name and signature, routing number, bank identification code, SWIFT code, IBAN, UPI ID, customer ID or account number, credit score, tax information, UK unique taxpayer reference, monthly/annual income |
+| Card | Card number, expiry date, CVV, cardholder name |
+| Secrets | PIN |
+| Device and network | IP address, MAC address, SIM number, IMEI, IMSI, handset make/model, ADID/IDFA, cookies |
+| Telecom subscriber | Call data records, SMS, roaming, voice and VAS pattern records, PUK code, unique portability code, SIM contacts, credit history and limit, last billed and unbilled amounts, previous payments, usage details, services subscribed, talk plan |
+| Employee and HR | Salary details and components, CTC, PF account number, investment details, education, designation, department, employee type, date of joining, work experience, biometric information |
 
-Adversarial categories are scoped automatically - Response Risks runs on assistant output, all other adversarial categories run on user input.
+To match your own identifiers with a regex, create a [Custom Detection](./custom-intents) instead.
+
+## Hallucination check
+
+Flags responses the gateway scores as likely fabricated, using a fixed threshold of **0.8**.
+
+| Setting | Options | Default |
+|---------|---------|---------|
+| Enabled | On / off | Off |
+| Action | Block, Monitor | Monitor |
+| Risk level | Low, Medium, High | Medium |
+
+It runs on non-streaming responses only, because a streamed response cannot be blocked once it has started. To set a different threshold per app or group, use the Policy Engine's **Hallucination Protection** card.
+
+## Source IP restrictions
+
+Accept gateway calls only from listed networks. Turn on **Enabled** and enter **Allowed source IPs** as comma-separated IPv4, IPv6 or CIDR values, for example `203.0.113.10, 10.0.0.0/8`. Calls from other addresses are rejected.
+
+![Hallucination check with Action and Risk level, and Source IP restrictions, both switched off](/img/llm-gateway/ui/app-guardrails-hallucination-source-ip.png)
+
+## Endpoint coverage
+
+| Surface | Request | Response |
+|---------|---------|----------|
+| Chat completions, including Bedrock Converse, Vertex Gemini and Anthropic models reached through translation | Yes | Yes |
+| Native Anthropic Messages | Yes | Yes |
+| OpenAI Responses | Yes | Yes |
+| Bedrock Runtime (boto3) | Yes | Yes. `converse_stream` is request only. |
+| Native Vertex / Gemini `generateContent` | Yes | Yes |
+| Embeddings, text-to-speech | Input | - |
+| Speech-to-text | - | Output |
+| Sarvam speech synthesis | Input | - |
+| Sarvam transcription | - | Output |
+| Sarvam translation, transliteration, language detection | Yes | Yes |
+| Copilot Studio | User context and tool inputs | - |
+| OpenAI Realtime (websocket) | Not scanned | Not scanned |
+
+- **Streaming:** request-side checks run as normal. Response-side redaction and blocking apply only when the gateway holds the full response, so streamed chunks pass through unmodified.
+- **Copilot Studio** cannot accept rewritten tool input, so Redact and Partial redact become Block. See [Copilot Studio](./copilot-studio).
+- **Realtime** sessions log the handshake, byte counters and usage, but do not run DLP. Use [SDK Mode](./sdk-mode) to scan Realtime transcripts out of band.
+
+## Related
+
+- [Custom Detections](./custom-intents) - your own regex and intent detections.
+- [Guardian Agent](./guardian-agent) - dependency checks and task adherence.
+- [LLM Gateway Policies](../../policy-engine/llm-gateway) - the same controls as tenant-wide policies.

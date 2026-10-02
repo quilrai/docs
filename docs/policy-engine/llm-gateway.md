@@ -8,6 +8,10 @@ sidebar_custom_props:
 
 Govern data, tools, models, identity, spend and quality on every model call.
 
+Open **Policy Engine > LLM Gateway**. The workspace shows twelve control cards. Edits from every card collect in one shared draft until you review and publish them as a single revision. **Describe a request** collapses every card to the value that would win for one request you describe.
+
+![Policy Engine LLM Gateway workspace with the Engine on and Revision badges, the Gateway controls header, Describe a request, and the Data & Adversarial Risks and Guardian Agent cards](/img/llm-gateway/ui/policy-llm-gateway-controls-overview.png)
+
 ## Two decision points per call
 
 The document is evaluated twice for a single model call.
@@ -57,7 +61,7 @@ catches what your users send, on response it catches what the model returns.
 | Condition | Matches |
 |---|---|
 | Application | The gateway application. This is how a policy is scoped to one app, and the condition the automatic conversion always writes. |
-| Application method type | API surface in use: `chat`, `responses`, `assistants`, `embeddings`, `rerank`, `tts`, `stt`, `bedrock`, `vertex`, `sdk_check`. |
+| Application method type | API surface in use: `chat`, `responses`, `assistants`, `embeddings`, `rerank`, `tts`, `stt`, `text`, `bedrock`, `vertex`, `copilot`, `sdk_check`. |
 | User email | The identified caller. |
 | Smart groups | The caller's Quilr Smart Groups, the gateway's own runtime groups. These are distinct from console access-control groups and are matched ignoring case. |
 | Requested model | The model the caller asked for. |
@@ -69,22 +73,57 @@ catches what your users send, on response it catches what the model returns.
 
 Every setting belongs to exactly one card, and the workspace is those twelve
 cards. Monitor, redact and block are settings inside a card, never separate
-cards.
+cards. Each card has its own page with screenshots and every setting; see also
+[Workspace Tools](./llm-controls/workspace-tools) for Describe a request,
+History and Advanced policies.
 
 | Surface | Stage | What it controls |
 |---|---|---|
-| Data & Adversarial Risks | request, response | PII, PHI, financial data, secrets, prompt injection, jailbreaks, custom detections. Actions: `monitor`, `partial-redact`, `redact`, `block`. |
-| Guardian Agent | request | Dependency security checks, latest-version suggestions, task-adherence enforcement with a sensitivity and a nudge or block action. |
-| Hallucination Protection | response | Scores responses and enforces above a confidence threshold between 0 and 1. |
-| Gateway Access | request | Allow or deny the whole model request by application, person, group, model or metadata. |
-| Identity & Network Trust | request | Require an identified caller and a conversation ID; restrict traffic to approved CIDR ranges. |
-| Tool Controls | request | Allow or deny tool calls on name, type, tags, risk or annotations, independently of data handling. |
-| Allowed Models | request | The models matching traffic may use. |
-| Routing Groups & Fallbacks | request | Weighted routing groups and ordered provider fallback chains. |
-| Budgets & Usage Limits | request | Spend and usage allowances by metric, grouped per user, application or model, over calendar, rolling or lifetime periods. |
-| Rate, Token & Timeout Limits | request | Concurrency, request rate, token ceilings and timeouts, application-wide and per model. |
-| Token Savings | request | JSON compression, HTML and Markdown to text, text compression before the provider call. |
-| Prompt Store Enforcement | request | Require matching requests to use an approved system prompt. |
+| [Data & Adversarial Risks](./llm-controls/data-and-adversarial-risks) | request, response | PII, PHI, financial data, secrets, prompt injection, jailbreaks, custom detections. Actions: `monitor`, `partial-redact`, `redact`, `block`. |
+| [Guardian Agent](./llm-controls/guardian-agent) | request | Dependency security checks, latest-version suggestions, task-adherence enforcement with a sensitivity and a nudge or block action. |
+| [Hallucination Protection](./llm-controls/hallucination-protection) | response | Scores non-streaming responses and enforces above a confidence threshold between 0 and 1. The lowest matching threshold applies. |
+| [Gateway Access](./llm-controls/gateway-access) | request | Allow or deny the whole model request by application, person, group, model or metadata. |
+| [Identity & Network Trust](./llm-controls/identity-and-network-trust) | request | Require an identified caller and a conversation ID; restrict traffic to approved CIDR ranges. |
+| [Tool Controls](./llm-controls/tool-controls) | request | Allow or deny tool calls on name, type, tags, risk or annotations, independently of data handling. |
+| [Allowed Models](./llm-controls/allowed-models) | request | The models matching traffic may use. |
+| [Routing Groups & Fallbacks](./llm-controls/routing-groups-and-fallbacks) | request | Weighted routing groups and ordered provider fallback chains. |
+| [Budgets & Usage Limits](./llm-controls/budgets-and-usage-limits) | request | Spend and usage allowances by metric, grouped per user, application or model, over calendar, rolling or lifetime periods. |
+| [Rate, Token & Timeout Limits](./llm-controls/rate-token-timeout-limits) | request | Concurrency, request rate, token ceilings and timeouts, application-wide and per model. |
+| [Token Savings](./llm-controls/token-savings) | request | JSON compression, HTML and Markdown to text, text compression before the provider call. |
+| [Prompt Store and Enforcement](./llm-controls/prompt-store-enforcement) | request | Require matching requests to use an approved system prompt. Also opens the Global Prompt Store. |
+
+## App settings under the Policy Engine
+
+The Policy Engine switch is tenant-wide, not per app. While it is on, seven sections of every app's settings follow published policies instead of their own values. Those sections carry the Policy Engine icon, and the app settings show which revision is live.
+
+![App settings with the Policy Engine active, Revision 54 pill, a banner explaining that marked sections follow published policies, and the Policy Engine icon on Routing, Security Guardrails and Guardian Agent](/img/llm-gateway/ui/app-settings-policy-engine-banner.png)
+
+| App settings section | Followed instead | Policy Engine card |
+|----------------------|------------------|--------------------|
+| Security Guardrails (data risks, adversarial risks, precision detections) | Guardrail policies | Data & Adversarial Risks |
+| Security Guardrails > Hallucination check | Guardrail policies | Hallucination Protection |
+| Security Guardrails > Source IP restrictions | Guardrail policies | Identity & Network Trust |
+| Guardian Agent | Guardian Agent policies | Guardian Agent |
+| Rate and Token Limits | Rate and token limit policies | Rate, Token & Timeout Limits |
+| Token Saving | Token saving policies | Token Savings |
+| Routing | Routing policies | Routing Groups & Fallbacks |
+| Identity Aware (Enforce identity, Enforce conversation ID) | Identity policies | Identity & Network Trust |
+| Prompt Store (Require system prompt from store) | Prompt Store policies | Prompt Store and Enforcement |
+
+Each governed section shows: "**Controlled by Policy Engine.** Live requests follow the published policies. These are the legacy settings saved when the Policy Engine was turned on; they apply again only if it is turned off." It offers two buttons:
+
+| Button | What it does |
+|--------|--------------|
+| **View policies** | Opens the matching card in the Policy Engine. Change live behavior here. |
+| **Edit anyway** | Unlocks the legacy values for editing. Saved values are **not enforced** and are not copied into policies. They take effect only if the Policy Engine is turned off. |
+
+**Still managed in app settings:** LLM Providers, Custom Detections, Self-Service, Alerts, API Keys, API Integration and Audit Log. Identity sources (identity header mode, allowed user domains, JWT verification) and each app's own prompts are also still set in the app.
+
+**Policy-only controls** with no app settings section: Gateway Access, Tool Controls and Budgets & Usage Limits. **Allowed Models** narrows the models an app's providers already serve.
+
+**Global Prompt Store:** the **Prompt Store** button on the **Prompt Store and Enforcement** card opens one prompt library for the whole organization, reusable by every app. Edits apply immediately, outside the draft and publish cycle. See [Global Prompt Store](../llm-gateway/features/prompt-store#global-prompt-store-v2-console) and [Identity Aware in the Policy Engine](../llm-gateway/features/identity-aware#identity-aware-in-the-policy-engine-v2-console).
+
+Turning the engine on converts the current app settings into revision 1, and turning it off restores the settings exactly as they were at that moment. See [Switching from Settings](./switching-from-settings).
 
 ## Protecting data
 
@@ -159,6 +198,55 @@ keeps it clear of real enforcement rules.
 
 Adversarial detections are ordinary data types, so prompt-attack defence has
 the same shape as secrets defence.
+
+## New data rule
+
+On the **Data & Adversarial Risks** card, **Add rule** opens the New data rule dialog.
+
+![New data rule dialog with a detection line set to at least 1 finding, Monitor action, Request stage, the Choose types picker, and the Scan tool-call arguments option](/img/llm-gateway/ui/policy-new-data-rule-detection-lines.png)
+
+| Part | Options |
+|------|---------|
+| **Applies to** | Everyone, People, Smart group, Application, App tag, Requested model, Provider, API surface, Environment, Prompt complexity, Prompt text, Tool, Source network, or Except. Every chip must match; values accept `*` and `?`. For "A or B", add a second configuration or an any-of group. |
+| **Detection lines** | Each line picks data types, a findings threshold (**at least** N, default 1), an action and a stage. Add more lines with **+ Add line**. |
+| **Action** | **Monitor** (default), **Partial redact**, **Redact**, **Block**. |
+| **Stage** | **Request** (default), **Response**, **Both**. |
+| **Tool boundary** | **Scan tool-call arguments** judges each tool call's arguments on their own. Only Monitor and Block apply. |
+| **Severity** | Not set, Very low, Low, Medium, High, Critical, Very critical. Reported for ranking in dashboards, exports and alerts; it never changes the action. |
+| **More options** | Priority, extra rules, metadata and content conditions, raw QuilrQL. |
+
+A configuration scoped to **Everyone** has priority 500. Narrower scopes such as People, Smart group or Application win over it. Highest priority wins per data type, and **Block** on any line stops the whole request. Response redaction and blocking apply only where the gateway holds the full response; streamed responses are scanned and tagged, not changed.
+
+### Choosing data types
+
+**Choose types…** lists every category. A line can name a whole category, individual types, or custom detections; several on one line match any of them.
+
+![Data type picker with a search box and the PII category expanded to its individual types](/img/llm-gateway/ui/policy-data-type-picker.png)
+
+| Category | Types |
+|----------|-------|
+| Personally Identifiable Information (PII) | 34 |
+| Protected Health Information (PHI) | 15 |
+| Payment and Financial Information (PFI) | 18 |
+| Protected Card Information (PCI) | 4 |
+| Insurance Data | 2 |
+| Auth & Secrets | 8 |
+| Code Scripts and Queries | 12 |
+| Device, Network & Online Identifiers | 8 |
+| Telecom Subscriber Data | 16 |
+| Employee / HR Data | 12 |
+| Adversarial categories (Prompt Injection Techniques, Jailbreak Techniques, Response Risks and the other 10) | Whole category only |
+| Custom | Your tenant's [custom detections](../llm-gateway/features/custom-intents) |
+
+The category list and descriptions match the app-level [Security Guardrails](../llm-gateway/features/security-guardrails).
+
+### Detection models
+
+**Policy Engine > Detection Models** sets the tenant's default risk level for each data category and turns adversarial categories on or off. **Detection library** and **Detection Model builder** add custom models.
+
+![Detection Models Data Risks tab listing each category with its subcategory count, risk level and View and test action](/img/llm-gateway/ui/policy-detection-models-data-risks.png)
+
+![Detection Models AI Adversarial Risks tab with cards for each category showing technique count and default risk](/img/llm-gateway/ui/policy-detection-models-adversarial-risks.png)
 
 ## Several data types, several actions
 
@@ -471,7 +559,8 @@ publishing needs a new unique ID and starts a fresh count.
 :::note Spend budgets need model prices
 Spend budgets require input and output prices in USD per 1 million tokens for
 every matching provider and model. Requests without a matching price are
-blocked. Set prices once under Settings, Models.
+blocked. With the Policy Engine on, prices come from the **Model pricing**
+section of the [Budgets & Usage Limits](./llm-controls/budgets-and-usage-limits) card.
 :::
 
 ## Token savings and Prompt Store

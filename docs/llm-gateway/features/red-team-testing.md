@@ -4,14 +4,14 @@ sidebar_custom_props:
   icon: FlaskConical
 ---
 
-# Red Team Testing
+# LLM Intelligence Assessment
 
 <div className="rt-hero">
   <span className="rt-kicker">LLM Gateway</span>
   <strong>Measure what your model actually does when it is attacked.</strong>
-  <p>Red team testing runs a fixed, version-controlled corpus of adversarial and capability tests against the model behind any gateway app. Every case is executed and graded automatically, and the run produces a scored report broken down by test suite, risk area, and compliance framework.</p>
+  <p>LLM Intelligence Assessment runs a fixed, version-controlled corpus of adversarial and capability tests against the model behind any gateway app. Every case is executed and graded automatically, and the run produces a scored report broken down by test suite, risk area, and compliance framework.</p>
   <div className="rt-stats">
-    <div><strong>6</strong><span>Selectable test suites</span></div>
+    <div><strong>7</strong><span>Selectable test suites</span></div>
     <div><strong>10</strong><span>Security risk areas</span></div>
     <div><strong>8</strong><span>Compliance frameworks</span></div>
     <div><strong>4</strong><span>Verdict states per case</span></div>
@@ -19,6 +19,12 @@ sidebar_custom_props:
 </div>
 
 ## Overview
+
+LLM Intelligence Assessment is the first tab on **Assessments → Red Teaming** (it was previously called Red Team Testing). It executes adversarial and benchmark suites against configured LLM Gateway applications, compares runs, and lets you review individual cases. The tab has two views: **Run red team** and **Results**.
+
+:::tip Looking for adaptive attacks on a live agent or model?
+This page covers the fixed-corpus assessment. For adaptive, multi-turn attacks against a live HTTP or voice agent, see [Agentic Red Teaming](./agentic-red-teaming). To attack a model directly or compare models, see [Model Red Teaming](./model-red-teaming).
+:::
 
 The test calls the selected provider **directly**, using the app's own provider credentials, system prompt, and tool definitions. Gateway guardrails are deliberately not in the path. That means a run measures what the underlying model does when attacked or stressed, which is the number you need in order to decide how much protection the gateway has to add on top.
 
@@ -326,6 +332,11 @@ Generation settings such as temperature, `top_p`, and `tool_choice` are part of 
   </div>
   <div className="rt-card" data-accent="info">
     <span>Answer key</span>
+    <strong>Temporal Knowledge</strong>
+    <p>Quarter-tagged checks used to estimate the model knowledge horizon.</p>
+  </div>
+  <div className="rt-card" data-accent="info">
+    <span>Answer key</span>
     <strong>Logic &amp; Reasoning</strong>
     <p>Practical reasoning, planning, tradeoffs, and constraint handling.</p>
   </div>
@@ -401,6 +412,10 @@ This suite is not a security test. It exists so that a security or grounding reg
 
 Scoring is exact match on the expected answer IDs.
 
+### Temporal Knowledge
+
+Quarter-tagged factual checks used to estimate the model's knowledge horizon. See [Knowledge Cutoff Horizon](#knowledge-cutoff-horizon) for how the result is reported.
+
 ### Logic & Reasoning
 
 Tests practical reasoning rather than recall. Questions describe an everyday situation with real constraints and ask for the sensible action: planning and sequencing, scheduling, cost and tradeoff evaluation, physical and time reasoning, probability and expected value, diagnosis, risk assessment, irreversibility, verification before acting, and goal alignment.
@@ -409,9 +424,9 @@ Questions are deliberately answerable from the facts stated in the prompt, so a 
 
 ## Knowledge Cutoff Horizon
 
-Every run also produces an empirical knowledge horizon for the target model.
+A run that includes the Temporal Knowledge suite produces an empirical knowledge horizon for the target model.
 
-A quarter-tagged set of factual questions runs alongside the selected suites. Each item is anchored to an event with a verifiable date and public source, and is bucketed into the calendar quarter in which its answer first became public. The run reports a pass rate per quarter and identifies the most recent quarter the model answers reliably, above a fixed threshold.
+It comes from the **Temporal Knowledge** suite: a quarter-tagged set of factual questions. Each item is anchored to an event with a verifiable date and public source, and is bucketed into the calendar quarter in which its answer first became public. The run reports a pass rate per quarter and identifies the most recent quarter the model answers reliably, above a fixed threshold.
 
 That gives you a measured cutoff rather than a claimed one. It is useful when:
 
@@ -419,7 +434,7 @@ That gives you a measured cutoff rather than a claimed one. It is useful when:
 - You are deciding whether an app needs retrieval or web tooling to stay current.
 - You want to detect that a provider silently changed the model behind a stable model name.
 
-This measurement runs automatically and is reported in the run summary. It is not a suite you select or deselect.
+The horizon is reported in the run summary. Temporal Knowledge is selected by default with the other suites; deselect it if you do not need a horizon estimate.
 
 ## Guardian Agent Counterfactual
 
@@ -516,33 +531,46 @@ This matters most on Prompt Attacks, where a rubric judgment can be genuinely ar
 
 ## Configuring a Run
 
-### Required
+Open **Assessments → Red Teaming → LLM Intelligence Assessment** and choose **Run red team**. The form has three parts.
 
-| Setting | Notes |
-|---|---|
-| **App** | The gateway app whose model configuration you want to test. |
-| **Test name** | A human-readable name for the run, up to 200 characters. Names must be unique within your tenant, so runs stay distinguishable in the history list. |
+<StepFlow steps={[
+  { label: "01 Target", items: ["Application", "Provider instance", "Model"] },
+  { label: "02 Coverage", items: ["Test Name + Max Cases", "Pick suites"] },
+  { label: "Start", items: ["Start red-team run"] },
+  { label: "03 History", items: ["Six most recent runs", "Pass rate per run"] },
+]} />
 
-### Target selection
+### 01 Target
 
 | Setting | Default | Notes |
 |---|---|---|
-| **Provider** | The app's primary provider | Choose the app's primary provider or any enabled additional provider configured on it. Disabled providers cannot be selected. |
+| **Application** | - | Required. The gateway app whose model configuration you want to test. |
+| **Provider instance** | The app's primary provider | Required. Choose the app's primary provider or any enabled additional provider configured on it. Disabled providers cannot be selected. |
 | **Model** | The provider's selected model | Optional override. Changing the provider refreshes the available models. |
+
+:::warning Requires an active Quilr key
+The application must have an active Quilr API key. If it has none, the form reports that the app "has no active Quilr key and cannot run". See [Applications and Keys](../applications-and-keys).
+:::
 
 Provider resolution happens before the run is queued. If the selected provider or model is not usable, you get a configuration error immediately and no run is created.
 
-### Suite selection
+### 02 Coverage
+
+![Coverage step with Test Name, Max Cases set to 1000, the All, Prompt Attacks, and Benchmarks quick-picks, all seven suites checked, and Show advanced target settings](/img/red-teaming/llm-intelligence-assessment-suites.png)
 
 | Setting | Default | Notes |
 |---|---|---|
-| **Suites** | All suites | Choose which suites to include. |
-| **Per-suite case limits** | No limit | Cap the number of cases taken from a specific suite. Useful for a fast smoke run on Prompt Attacks before committing to the full corpus. |
-| **Total case limit** | No limit | An overall cap applied after suite selection and per-suite limits. |
+| **Test Name** | - | Required. Up to 200 characters, unique within your tenant. **Use suggested name** fills one in. |
+| **Max Cases** | 1000 | Total case cap for the run. The cap is divided evenly across the selected suites. |
+| **Suites** | All seven | Prompt Attacks, Grounded Answering, Hallucination, Instruction Following, Knowledge, Temporal Knowledge, Logic & Reasoning. Quick-picks: **All**, **Prompt Attacks**, **Benchmarks**. |
 
 :::note
-Case limits take cases from the front of each suite, so a limited run is a consistent subset rather than a random sample. Two limited runs are comparable to each other, but a limited run is not comparable to a full run.
+Caps take cases from the front of each suite, so a capped run is a consistent subset rather than a random sample. Runs with the same suites and the same Max Cases are comparable to each other.
 :::
+
+Click **Show advanced target settings** for further target options. Then click **Start red-team run**.
+
+**03 History** lists the six most recent runs for the selected application and provider, with run, status, model, pass rate, and created time.
 
 ### Target behavior
 

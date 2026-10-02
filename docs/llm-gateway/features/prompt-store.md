@@ -6,7 +6,13 @@ sidebar_custom_props:
 
 # Prompt Store
 
-Manage and version system prompts centrally, then reference one or more of them and add inline instructions at request time.
+Store reusable system prompts centrally, then reference one or more of them and add inline instructions at request time.
+
+Open the app's **Settings > Prompt Store** (under **Identity & content**). Enter a **Prompt ID** and **Prompt content**, then **Save prompt**. Prompt changes apply immediately, without **Save settings**, and are recorded in the app's [Audit Log](./audit-log).
+
+![Prompt editor with the Prompt content box, the variable syntax help text and the Save prompt button](/img/llm-gateway/ui/app-prompt-store.png)
+
+Variable names can contain letters, numbers, underscores and hyphens. Callers must supply every variable as a string.
 
 ## How It Works
 
@@ -117,14 +123,41 @@ When a system message references several prompts, give each one its own entry - 
 
 ## Enforce System Prompts
 
-Require System From Store ensures every request's system message includes at least one managed Prompt Store reference, so no request runs without a reviewed, versioned base prompt.
+**Require system prompt from store** ensures every request's system message includes at least one managed Prompt Store reference, so no request runs without a reviewed base prompt.
 
 | Mode | Behavior |
 |------|----------|
 | **Enabled** | Every system message must contain at least one valid Prompt Store reference (`quilrai-prompt-store-<id>`). You can list multiple references and add your own inline instructions around them - the request is accepted as long as a valid reference is present. A system message with freeform text but no valid reference, or no system message at all, is rejected with a 400 (`system_prompt_not_found`). |
 | **Disabled** (default) | Both stored references and fully freeform system prompts are accepted. |
 
-This applies uniformly across Chat Completions, Anthropic Messages (both the top-level `system` field and any `system`-role messages), Vertex/Gemini, and the OpenAI Responses API. Useful when you want every system prompt to build on a reviewed, versioned base from the Prompt Store while still allowing per-request instructions.
+This applies uniformly across Chat Completions, Anthropic Messages (both the top-level `system` field and any `system`-role messages), Vertex/Gemini, and the OpenAI Responses API. Useful when every system prompt should build on a reviewed base from the Prompt Store while still allowing per-request instructions.
+
+## Global Prompt Store (V2 console)
+
+The Global Prompt Store is one prompt library for your whole organization, reusable by every LLM Gateway app. Open **Policy Engine > LLM Gateway** and click **Prompt Store** on the **Prompt Store and Enforcement** card.
+
+![Prompt Store and Enforcement card with the Configure menu, the Prompt Store button, and Require store prompt set for 3 applications](/img/llm-gateway/ui/policy-prompt-store-card.png)
+
+The drawer lists every prompt with its ID, variables and content. Search by ID or content, or use **Add prompt**, **Edit** and **Delete**. IDs and `{{variable}}` rules are the same as for app prompts. Changes apply immediately across the organization: they are not part of the policy draft and need no publish.
+
+![Global Prompt Store drawer with a search box and two prompts showing their persona and name variable chips](/img/llm-gateway/ui/policy-global-prompt-store-drawer.png)
+
+| | App Prompt Store | Global Prompt Store |
+|---|---|---|
+| Where | App **Settings > Prompt Store** | **Policy Engine > LLM Gateway > Prompt Store** |
+| Scope | One app | Every app in the organization |
+| Reference in requests | `quilrai-prompt-store-<id>` | `quilrai-prompt-store-<id>` |
+| Variables | `X-Prompt-Variables` header | `X-Prompt-Variables` header |
+
+How the two stores relate:
+
+- The global list also shows the prompts of your active apps. When apps share an ID, the newest app version is the default and conflicting versions get alias IDs.
+- Saving an app-derived ID in the global store creates an organization-level version that takes priority over the app copies.
+- Deleting an app-derived ID in the global store hides it from the global list.
+
+### Enforcement under the Policy Engine
+
+With the Policy Engine on, **Require system prompt from store** is set by **Prompt Store and Enforcement** policies instead of the app setting. Each configuration picks who it applies to (application, people, smart group and more) and sets **Require store prompt**. It applies to chat, Responses and Vertex traffic, and the highest-priority matching configuration wins. See [LLM Gateway Policies](../../policy-engine/llm-gateway#token-savings-and-prompt-store).
 
 ## Code Examples
 
@@ -161,7 +194,7 @@ client = anthropic.Anthropic(
 )
 
 message = client.messages.create(
-    model='claude-sonnet-4-20250514',
+    model='claude-sonnet-4-5',
     max_tokens=1024,
     system='quilrai-prompt-store-code-reviewer',
     messages=[
@@ -172,30 +205,3 @@ message = client.messages.create(
     }
 )
 ```
-
-### Combining references and instructions
-
-Reference one or more stored prompts and add per-request instructions in the same system message. The gateway resolves each `quilrai-prompt-store-<id>` token in place and keeps your inline text.
-
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    base_url='https://guardrails-usa-2.quilr.ai/openai_compatible/',
-    api_key='sk-quilr-xxx'
-)
-
-system_prompt = """quilrai-prompt-store-startup-advisor
-
-Be concise, practical, and honest. Always answer in English."""
-
-response = client.chat.completions.create(
-    model='gpt-4o-mini',
-    messages=[
-        {'role': 'system', 'content': system_prompt},
-        {'role': 'user', 'content': 'Should I raise a seed round now?'}
-    ]
-)
-```
-
-The model receives the stored `startup-advisor` prompt followed by your inline instructions.

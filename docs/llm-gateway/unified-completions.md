@@ -1,5 +1,5 @@
 ---
-sidebar_position: 9
+sidebar_position: 1.6
 sidebar_custom_props:
   badge: new
   icon: Route
@@ -9,12 +9,6 @@ sidebar_custom_props:
 
 Use OpenAI Chat Completions clients with provider-native chat models. QuilrAI accepts an OpenAI-style `/chat/completions` request, translates it to the selected provider, and returns an OpenAI-shaped chat completion response.
 
-Provider notes verified:
-
-- AWS Bedrock translation: May 13, 2026
-- Vertex AI translation: June 9, 2026
-- Anthropic Messages translation: June 9, 2026
-
 ## Scope
 
 This page covers translated providers on:
@@ -23,7 +17,7 @@ This page covers translated providers on:
 /openai_compatible/v1/chat/completions
 ```
 
-| Provider key | Upstream call | Model value | Streaming | Content support |
+| Provider type | Upstream call | Model value | Streaming | Content support |
 |--------------|---------------|-------------|-----------|-----------------|
 | `bedrock` | Bedrock `Converse` / `ConverseStream` | Selected Bedrock model ID or inference profile ID | Yes | Text only |
 | `vertex_ai` | Vertex AI Gemini `generateContent` / `streamGenerateContent` | Selected Gemini model name | Yes | Text only |
@@ -48,8 +42,8 @@ The translated OpenAI-compatible path is text-only today. Use native Vertex AI, 
 
 ## Request Flow
 
-1. Create an LLM Gateway key with provider `bedrock`, `vertex_ai`, `anthropic_messages`, `anthropic_messages_bedrock`, or `anthropic_messages_azure`.
-2. Select the models that the key is allowed to call.
+1. Add a provider of type `bedrock`, `vertex_ai`, `anthropic_messages`, `anthropic_messages_bedrock`, or `anthropic_messages_azure` to your app (or, in the V2 console, link a global provider of that type).
+2. Enable the models the app is allowed to call.
 3. Point your OpenAI SDK or OpenAI-compatible wrapper at the closest regional endpoint, such as `https://guardrails-usa-2.quilr.ai/openai_compatible/`.
 4. Send the provider model name in the OpenAI SDK `model` parameter.
 5. QuilrAI translates the OpenAI-style request to the provider-native chat API and translates the provider response back to OpenAI Chat Completions.
@@ -244,45 +238,17 @@ Non-streaming provider responses are converted back to OpenAI chat completions:
 - Tool-call-only responses return `message.content: null`.
 - Provider usage maps to OpenAI `prompt_tokens`, `completion_tokens`, and `total_tokens`.
 
-Bedrock finish reason mapping:
+Finish reason mapping:
 
-| Bedrock stop reason | OpenAI finish reason |
-|---------------------|----------------------|
-| `end_turn` | `stop` |
-| `stop_sequence` | `stop` |
-| `max_tokens` | `length` |
-| `tool_use` | `tool_calls` |
-| `content_filtered` | `content_filter` |
-| `guardrail_intervened` | `content_filter` |
+| OpenAI `finish_reason` | Bedrock | Anthropic Messages | Vertex AI |
+|------------------------|---------|--------------------|-----------|
+| `stop` | `end_turn`, `stop_sequence` | `end_turn`, `stop_sequence`, `pause_turn` | `STOP` and any unmapped reason |
+| `length` | `max_tokens` | `max_tokens` | `MAX_TOKENS` |
+| `tool_calls` | `tool_use` | `tool_use` | Any response containing function calls |
+| `content_filter` | `content_filtered`, `guardrail_intervened` | `refusal` | `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, `IMAGE_SAFETY` |
+| `null` | - | - | `FINISH_REASON_UNSPECIFIED` |
 
 Unknown Bedrock stop reasons pass through unchanged.
-
-Anthropic Messages finish reason mapping:
-
-| Anthropic stop reason | OpenAI finish reason |
-|-----------------------|----------------------|
-| `end_turn` | `stop` |
-| `stop_sequence` | `stop` |
-| `max_tokens` | `length` |
-| `tool_use` | `tool_calls` |
-| `pause_turn` | `stop` |
-| `refusal` | `content_filter` |
-
-Vertex AI finish reason mapping:
-
-| Vertex finish reason | OpenAI finish reason |
-|----------------------|----------------------|
-| `STOP` | `stop` |
-| `MAX_TOKENS` | `length` |
-| `SAFETY` | `content_filter` |
-| `RECITATION` | `content_filter` |
-| `BLOCKLIST` | `content_filter` |
-| `PROHIBITED_CONTENT` | `content_filter` |
-| `SPII` | `content_filter` |
-| `IMAGE_SAFETY` | `content_filter` |
-| `FINISH_REASON_UNSPECIFIED` | `null` |
-
-Unmapped Vertex reasons become `stop`. Any Vertex response containing function calls returns `finish_reason: "tool_calls"`.
 
 Vertex usage details include:
 
@@ -298,109 +264,42 @@ Anthropic Messages usage maps `usage.input_tokens` to `prompt_tokens`, `usage.ou
 
 ## Provider Setup
 
-### Anthropic Messages
+Credentials for these provider types (API key, AWS static keys or assume role, Vertex API key or service account, Azure Foundry base URL) are listed once in [Provider Support](./provider-support#credentials-by-provider).
 
-Create an LLM Gateway key with provider `anthropic_messages`, `anthropic_messages_bedrock`, or `anthropic_messages_azure`.
-
-| Provider | Auth mode | Required fields | Optional fields |
-|----------|-----------|-----------------|-----------------|
-| Anthropic Messages | API Key | `api_key` | `anthropic_version` |
-| Anthropic Messages on Bedrock | Static AWS keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
-| Anthropic Messages on Bedrock | Assume role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
-| Azure Anthropic Messages | API Key | `api_key`, `base_url` | `anthropic_version` |
-
-Direct Anthropic and Azure Anthropic default `anthropic_version` to `2023-06-01`. Anthropic Messages on Bedrock uses the same Bedrock credential resolver as the native Anthropic Messages Bedrock endpoint.
-
-### AWS Bedrock
-
-Create an LLM Gateway key with provider `bedrock`.
-
-| Auth mode | Required fields | Optional fields |
-|-----------|-----------------|-----------------|
-| Static AWS keys | `aws_access_key`, `aws_secret_key` | `aws_region`, `aws_session_token` |
-| Assume role | `aws_role_arn`, `aws_external_id` | `aws_region`, `aws_role_session_name`, `aws_session_duration_seconds` |
-
-Select one or more Bedrock chat models that support `Converse`. Send `model` as the Bedrock model ID or inference profile ID.
-
-AWS Bedrock default region: `us-east-1`. For assume-role setup, see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md).
-
-### Vertex AI
-
-Create an LLM Gateway key with provider `vertex_ai`.
-
-| Auth mode | Required fields | Optional fields | Notes |
-|-----------|-----------------|-----------------|-------|
-| Express | `api_key` | - | Uses `x-goog-api-key`; no project ID required |
-| API Key | `api_key`, `gcp_project_id` | `gcp_region` | Default region: `us-central1` |
-| Service Account | `service_account_json` | `gcp_project_id`, `gcp_region` | Project ID can be derived from the JSON |
-| ADC | `gcp_project_id` | `gcp_region` | Uses Application Default Credentials |
-
-Model listing for Vertex AI is best effort. Service-account and ADC auth fetch Gemini models from Vertex Model Garden and fall back to a curated Gemini list if fetching fails.
+- `anthropic_messages_azure` needs an API key and the Azure AI Foundry **Base URL**.
+- Direct and Azure Anthropic send `anthropic_version: 2023-06-01` by default.
+- For `bedrock`, select chat models that support `Converse`, and send the Bedrock model ID or inference profile ID as `model`. The default AWS region is `us-east-1`.
+- Vertex AI model listing is best effort and falls back to a curated Gemini list if fetching fails.
 
 ## Error Handling
 
-QuilrAI returns OpenAI-shaped error responses for adapter validation failures and preserves upstream provider error messages where possible.
+QuilrAI returns OpenAI-shaped errors for adapter validation failures and preserves upstream provider messages where possible.
 
-Common Bedrock adapter error codes:
+| Problem | Bedrock | Anthropic Messages | Vertex AI |
+|---------|---------|--------------------|-----------|
+| Parameter not translated | `unsupported_bedrock_openai_parameter` | `unsupported_anthropic_openai_parameter` | `unsupported_vertex_openai_parameter` |
+| Invalid parameter value or type | `invalid_bedrock_openai_parameter` | `invalid_anthropic_openai_parameter` | `invalid_vertex_openai_parameter` |
+| Unsupported content (image, audio, file, document parts) | `unsupported_bedrock_openai_content` | `unsupported_anthropic_openai_content` | `unsupported_vertex_openai_content` |
+| Invalid message order or tool-result history | `invalid_bedrock_openai_messages` | `invalid_anthropic_openai_messages` | `invalid_vertex_openai_messages` |
+| Unsupported role | `unsupported_bedrock_openai_role` | `unsupported_anthropic_openai_role` | `unsupported_vertex_openai_role` |
+| Malformed tool definitions or history | `invalid_bedrock_openai_tools` | `invalid_anthropic_openai_tools` | `invalid_vertex_openai_tools` |
+| Tool shape cannot be translated | `unsupported_bedrock_openai_tools` | `unsupported_anthropic_openai_tools` | `unsupported_vertex_openai_tools` |
 
 | Error code | Meaning |
 |------------|---------|
-| `unsupported_bedrock_openai_parameter` | The request included a parameter that is not translated for Bedrock. |
-| `invalid_bedrock_openai_parameter` | A supported parameter had an invalid value or type. |
-| `unsupported_bedrock_openai_content` | The request included unsupported content such as image, audio, or file parts. |
-| `invalid_bedrock_openai_messages` | Message order or tool-result history was invalid. |
-| `unsupported_bedrock_openai_role` | The request included an unsupported role. |
-| `invalid_bedrock_openai_tools` | Tool definitions or tool-call history were malformed. |
-| `unsupported_bedrock_openai_tools` | The request used a tool shape that cannot be translated. |
 | `bedrock_credentials_error` | Bedrock credentials could not be loaded or used. |
-| `bedrock_converse_error` | Bedrock `Converse` returned an error. |
-| `bedrock_converse_stream_error` | Bedrock `ConverseStream` returned an error. |
-
-Common Anthropic Messages adapter error codes:
-
-| Error code | Meaning |
-|------------|---------|
-| `unsupported_anthropic_openai_parameter` | The request included a parameter that is not translated for Anthropic Messages. |
-| `invalid_anthropic_openai_parameter` | A supported parameter had an invalid value or type. |
-| `unsupported_anthropic_openai_content` | The request included unsupported content such as image, audio, file, image block, or document block parts. |
-| `invalid_anthropic_openai_messages` | Message order or tool-result history was invalid. |
-| `unsupported_anthropic_openai_role` | The request included an unsupported role. |
-| `invalid_anthropic_openai_tools` | Tool definitions or tool-call history were malformed. |
-| `unsupported_anthropic_openai_tools` | The request used a tool shape that cannot be translated. |
+| `bedrock_converse_error` / `bedrock_converse_stream_error` | Bedrock `Converse` / `ConverseStream` returned an error. |
 | `missing_provider_key` | The Anthropic provider API key is missing. |
-| `missing_azure_anthropic_base_url` | The Azure Anthropic provider is missing `base_url`. |
+| `missing_azure_anthropic_base_url` | The Azure Anthropic provider is missing its Base URL. |
 | `anthropic_messages_bedrock_credentials_error` | Bedrock credentials could not be loaded or used for Anthropic Messages on Bedrock. |
-| `anthropic_messages_bedrock_package_missing` | The Anthropic Bedrock package required for the upstream call is missing. |
-| `anthropic_messages_error` | Anthropic Messages returned an error. |
-| `anthropic_messages_stream_error` | Anthropic Messages streaming returned an error. |
-
-Common Vertex AI adapter error codes:
-
-| Error code | Meaning |
-|------------|---------|
-| `unsupported_vertex_openai_parameter` | The request included a parameter that is not translated for Vertex AI. |
-| `invalid_vertex_openai_parameter` | A supported parameter had an invalid value or type. |
-| `unsupported_vertex_openai_content` | The request included unsupported content such as image, audio, file, or inline media parts. |
-| `invalid_vertex_openai_messages` | Message order or tool-result history was invalid. |
-| `unsupported_vertex_openai_role` | The request included an unsupported role. |
-| `invalid_vertex_openai_tools` | Tool definitions or tool-call history were malformed. |
-| `unsupported_vertex_openai_tools` | The request used a tool shape that cannot be translated. |
+| `anthropic_messages_bedrock_package_missing` | The Anthropic Bedrock package needed for the upstream call is missing. |
+| `anthropic_messages_error` / `anthropic_messages_stream_error` | Anthropic Messages (or its stream) returned an error. |
 | `vertex_credentials_error` | Vertex credentials could not be loaded or used. |
-| `vertex_generate_content_error` | Vertex `generateContent` returned an error. |
-| `vertex_generate_content_timeout` | Vertex `generateContent` timed out. |
-| `vertex_generate_content_parse_error` | A Vertex `generateContent` response could not be parsed. |
+| `vertex_generate_content_error` / `_timeout` / `_parse_error` | Vertex `generateContent` failed, timed out, or returned an unparseable response. |
 | `vertex_stream_generate_content_error` | Vertex `streamGenerateContent` returned an error. |
-| `vertex_stream_timeout` | The Vertex stream timed out. |
-| `vertex_stream_parse_error` | A Vertex stream event could not be parsed. |
+| `vertex_stream_timeout` / `vertex_stream_parse_error` | The Vertex stream timed out or sent an unparseable event. |
 
-Upstream Vertex HTTP errors are classified into OpenAI-style error types:
-
-| Upstream status | OpenAI-style error type |
-|-----------------|-------------------------|
-| `401` | `authentication_error` |
-| `429` | `rate_limit_error` |
-| `4xx` | `invalid_request_error` |
-| `5xx` | `upstream_error` |
+Upstream Vertex HTTP errors map to OpenAI-style types: `401` to `authentication_error`, `429` to `rate_limit_error`, other `4xx` to `invalid_request_error`, and `5xx` to `upstream_error`.
 
 ## Guardrail Behavior
 
@@ -410,49 +309,20 @@ Streaming responses are different: request-side DLP still runs, but response-sid
 
 Tool messages are carried through without changing tool IDs, function response names, or result ordering. Changing a `tool_call_id`, dropping a `role: "tool"` message, or reordering tool results can break provider tool-result validation.
 
-## Expected Good Scenarios
-
-These scenarios are covered by the translators:
-
-- Plain text chat
-- System, developer, user, and assistant text messages
-- Non-streaming text responses
-- Streaming text responses
-- Provider tool calls translated back to OpenAI `tool_calls`
-- Tool-call deltas in streaming responses
-- Consecutive OpenAI tool result messages grouped into one provider-native tool-result user message
-- Legacy OpenAI `functions`, `function_call`, and `role: "function"`
-- Anthropic top-level `system` convenience field
-- Vertex `response_format: json_object`
-- Vertex `response_format: json_schema` with local refs and nullable single-type unions
-- Bedrock `response_format: json_schema` on models that support `outputConfig`
-- Vertex reasoning-token and cached-token usage details
-
 ## Expected Failures
 
-These failures are intentional:
+Besides the unsupported parameters and content above, these are rejected on purpose:
 
-- OpenAI image, audio, or file content
-- Mixed multimodal content arrays
-- Multiple choices with `n > 1`
-- Log probabilities
-- Token bias
-- Audio input or output modes
-- Reasoning-effort controls
-- Provider-specific `extra_body`
-- Modern Bedrock `assistant.tool_calls` entries without `id`
-- Tool result messages missing `tool_call_id`
-- A user message immediately after assistant tool calls without matching tool results
-- Parallel tool results that are not consecutive in the OpenAI message history and therefore cannot be grouped into one provider-native user turn
-- Anthropic `response_format` values other than `{"type": "text"}`
-- Bedrock `response_format: json_object`
-- Bedrock `response_format: json_schema` on models that do not support `outputConfig`
-- Vertex JSON Schema union arrays other than nullable single-type unions
-- Vertex cyclic or unresolvable local JSON Schema refs
+- Tool result messages missing `tool_call_id`, or assistant `tool_calls` without `id` (Bedrock and Anthropic Messages)
+- A user message right after assistant tool calls, without the matching tool results
+- Parallel tool results that are not consecutive, so they cannot be grouped into one provider-native user turn
+- `n > 1`, log probabilities, token bias, audio modes, reasoning-effort controls and provider-specific `extra_body`
+- `response_format` other than `text` on Anthropic Messages; `json_object` on Bedrock; `json_schema` on Bedrock models without `outputConfig`
+- Vertex JSON Schema unions other than nullable single-type unions, and cyclic or unresolvable local refs
 
 ## Related Pages
 
-- [Provider Support](./provider-support.md)
-- [Integration Guide](./integration-guide.md)
-- [AWS Bedrock - boto3 Runtime](./bedrock-boto3.md)
-- [AWS Bedrock - Assume Role Setup](./bedrock-assume-role.md)
+- [Provider Support](./provider-support)
+- [Integration Guide](./integration-guide)
+- [AWS Bedrock - boto3 Runtime](./bedrock-boto3)
+- [AWS Bedrock - Assume Role Setup](./bedrock-assume-role)

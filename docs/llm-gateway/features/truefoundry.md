@@ -19,7 +19,7 @@ The example uses US East. Choose your [regional base URL](../integration-guide#r
 
 ## 1. Create a QuilrAI SDK key
 
-Create a QuilrAI app/key with provider **`quilr_sdk`** and configure its [security guardrails](./security-guardrails). Select the categories, sensitivities, actions, and request/response scopes you want TrueFoundry to enforce.
+In **Settings > LLM Gateway > Create App**, create an app with the **`quilr_sdk`** provider and configure its [security guardrails](./security-guardrails). Select the categories, sensitivities, actions, and request/response scopes you want TrueFoundry to enforce.
 
 For example, enable PII detection with **redact** and scope **both** to redact detected PII on input and output. Use **block** to reject detected content or **monitor** to record findings while leaving content unchanged.
 
@@ -45,7 +45,7 @@ In TrueFoundry, open **AI Gateway → Guardrails**, create or select a guardrail
 | Enforcement strategy | **Enforce** or **Enforce But Ignore On Error** to apply policy blocks |
 | Timeout | TrueFoundry's default is 10 seconds. Allow enough time for the QuilrAI checks you enable, especially image scanning and Guardian checks. |
 
-TrueFoundry sends `Authorization: Bearer sk-quilr-...` to QuilrAI. The configured URL must be reachable from the TrueFoundry gateway. If your QuilrAI key restricts source IPs, allow the gateway's outbound IP.
+TrueFoundry sends `Authorization: Bearer sk-quilr-...` to QuilrAI. The configured URL must be reachable from the TrueFoundry gateway. If your QuilrAI app restricts source IPs, allow the gateway's outbound IP.
 
 **Mutate** is required for redaction. **Validate** ignores replacement content and can run input checks alongside an already-started model request. **Audit** records outcomes without enforcing policy blocks. See TrueFoundry's [operation and enforcement modes](https://www.truefoundry.com/docs/ai-gateway/guardrails-overview).
 
@@ -191,7 +191,7 @@ Embedded images use the QuilrAI app's image-scanning settings and request/respon
 
 ### Identity and failures
 
-The TrueFoundry `context.user` fields are recorded as attribution. They do not replace QuilrAI authentication or verified user identity. Existing source-IP, identity, and conversation-ID requirements on your SDK key still apply. Configure any required identity headers according to [Identity Aware](./identity-aware); `subjectSlug` alone does not satisfy an identity requirement.
+The TrueFoundry `context.user` fields are recorded as attribution. They do not replace QuilrAI authentication or verified user identity. Existing source-IP, identity, and conversation-ID requirements on your SDK app still apply. Configure any required identity headers according to [Identity Aware](./identity-aware); `subjectSlug` alone does not satisfy an identity requirement.
 
 Invalid envelopes and credentials return SDK errors with non-2xx status codes. TrueFoundry's enforcement strategy controls handling of propagated errors and timeouts.
 
