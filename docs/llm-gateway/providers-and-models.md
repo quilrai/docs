@@ -70,7 +70,6 @@ Click **Add your own models**. Nothing is saved until the last step. Use **+ Add
 | Cohere, Jina, Voyage | Rerank (`cohere_rerank`, `jina_rerank`, `voyage_rerank`) |
 | Custom endpoint | Chat completions (`general`), Rerank (`general_rerank`) |
 
-Oracle OCI is coming to this page. Until then, set it up from the V1 console. See [Provider Support](./provider-support).
 
 ### 2. Models
 

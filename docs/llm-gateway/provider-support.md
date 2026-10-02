@@ -41,7 +41,7 @@ One row per provider type. The type is what you pick in the console and what you
 | `cohere_rerank` | Cohere | - | - | - | - | - | - | ✓ | - | ✓ |
 | `jina_rerank` | Jina | - | - | - | - | - | - | ✓ | - | ✓ |
 | `voyage_rerank` | Voyage | - | - | - | - | - | - | ✓ | - | ✓ |
-| `general` | Custom endpoint (vLLM, Ollama, LiteLLM, any OpenAI-compatible URL) | ✓ | - | - | - | - | - | - | - | ✓ |
+| `general` | Custom endpoint (vLLM, Ollama, LiteLLM, any OpenAI-compatible URL) | ✓ | - | - | - | - | ✓ | - | - | ✓ |
 | `general_rerank` | Custom endpoint with a Cohere-shaped `/rerank` | - | - | - | - | - | - | ✓ | - | ✓ |
 | `quilr_sdk` | QuilrAI SDK (guardrails only, no upstream) | - | - | - | - | - | - | - | - | - |
 | `copilot_studio` | Microsoft Copilot Studio (guardrails only) | - | - | - | - | - | - | - | - | - |
@@ -50,7 +50,7 @@ One row per provider type. The type is what you pick in the console and what you
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
-- [QuilrAI-provided models](./quilr-provided-models) can back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon.
+- **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./quilr-provided-models).
 
 ## Endpoints
 
@@ -74,39 +74,42 @@ Combine a [regional base URL](./integration-guide#region) with a path below.
 
 ## Credentials by provider
 
-Every provider also has a **Provider label** and a **Models** list. Field names in code font are the API names used by the [Management APIs](./management-apis/providers).
+Every provider also has a **Provider label** and a **Models** list. Field names in code font are the API names used by the [Management APIs](./management-apis/providers). The auth option value goes in `auth_type` (Vertex AI, Oracle) or `aws_auth_mode` (AWS).
 
-| Provider type | Auth option | Required | Optional |
-|---------------|-------------|----------|----------|
-| `openai`, `openai_responses`, `openai_assistants`, `openai_realtime` | API key | API key (`api_key`) | - |
-| `anthropic`, `anthropic_messages` | API key | API key | - |
-| `gemini_chatcompletions`, `deepseek` | API key | API key | - |
-| `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | - |
-| `sarvam` | API key | Sarvam API key | - |
-| `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`), Azure API version (`azure_api_version`) | - |
-| `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure` | API key | API key, Azure endpoint | - |
-| `anthropic_messages_azure` | API key | API key, Base URL (`base_url`, the Azure AI Foundry base URL) | - |
-| `general`, `general_rerank` | API key | API key, Base URL | - |
-| `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `bedrock_rerank` | Static credentials | AWS access key, AWS secret key | AWS region (default `us-east-1`), AWS session token |
-| same | Assume role | Role ARN (`aws_role_arn`), External ID (`aws_external_id`) | AWS region, Role session name, Session duration (900 to 43200 seconds) |
-| `vertex_ai` | API key | API key, GCP project ID | GCP region (default `us-central1`) |
-| `vertex_ai` | Service account | Service account JSON, GCP project ID | GCP region |
-| `oracle`, `oracle_responses` | API key | API key | - |
-| same | Gateway user principal | No secret. See [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy). | - |
-| same | User principal | Tenancy OCID, User OCID, Key fingerprint, Private key | Private key passphrase |
-| same | Session principal | Session token, Private key | Private key passphrase |
-| same | Instance principal, Resource principal | No secret | - |
-| `quilr_sdk`, `copilot_studio` | None | Label only | - |
+| Provider type | Auth option | Required | Optional | Where to set |
+|---------------|-------------|----------|----------|--------------|
+| `openai`, `anthropic_messages`, `sarvam` | API key | API key (`api_key`) | - | Console, API |
+| `openai_responses`, `openai_assistants`, `openai_realtime` | API key | API key | Base URL (`base_url`, default OpenAI) | Console, API |
+| `anthropic`, `gemini_chatcompletions`, `deepseek` | API key | API key | - | Console, API |
+| `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
+| `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
+| `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure` | API key | API key, Azure endpoint | Azure API version (defaults `2025-03-01-preview`, `2024-05-01-preview`, `2025-04-01-preview`) | Console, API |
+| `anthropic_messages_azure` | API key | API key, Base URL (the Azure AI Foundry base URL) | Anthropic version (`anthropic_version`, default `2023-06-01`) | Console, API |
+| `general`, `general_rerank` | API key | API key, Base URL | - | Console, API |
+| `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `bedrock_rerank` | Static credentials (`static`, default) | AWS access key (`aws_access_key`), AWS secret key (`aws_secret_key`) | AWS region (`aws_region`, default `us-east-1`), AWS session token (`aws_session_token`) | Console, API |
+| same | Assume role (`assume_role`) | Role ARN (`aws_role_arn`), External ID (`aws_external_id`) | AWS region, Role session name (`aws_role_session_name`), Session duration (`aws_session_duration_seconds`, 900 to 43200, default 3600) | Console, API |
+| `vertex_ai` | API key (`api_key`, default) | API key, GCP project ID (`gcp_project_id`) | GCP region (`gcp_region`, default `us-central1`) | Console, API |
+| same | Service account (`service_account`) | Service account JSON (`service_account_json`) | GCP project ID (the consoles require it; the API falls back to the JSON's `project_id`), GCP region | Console, API |
+| same | Express (`express`) | API key (Gemini API key; calls `generativelanguage.googleapis.com`, no project or region) | - | Management API only |
+| same | Application Default Credentials (`adc`) | GCP project ID. Uses the gateway's own Google identity. | GCP region | Management API only |
+| `oracle`, `oracle_responses` | API key (`api_key`, default) | API key | - | Console, API |
+| same | Gateway user principal (`gateway_user_principal`) | No secret. See [Oracle OCI - Gateway Sign-In Setup](./oracle-cross-tenancy). | - | Console, API |
+| same | User principal (`user_principal`) | Tenancy OCID (`oci_tenancy_id`), User OCID (`oci_user_id`), Key fingerprint (`oci_fingerprint`), Private key (`oci_private_key`) | Private key passphrase (`oci_private_key_passphrase`) | Console, API |
+| same | Session principal (`session_principal`) | Session token (`oci_session_token`), Private key | Private key passphrase | Console, API |
+| same | Instance principal (`instance_principal`), Resource principal (`resource_principal`) | No secret | - | Console, API |
+| `quilr_sdk`, `copilot_studio` | None | Label only | - | Console, API |
 
 Rules that apply to every app:
 
-- Every Oracle provider also needs the **OCI region** (`oci_region`) and **Generative AI project OCID** (`oci_project_id`). `oracle` also needs the **compartment OCID** (`oci_compartment_id`); it is optional for `oracle_responses`.
+- Every Oracle provider also needs the **OCI region** (`oci_region`) and **Generative AI project OCID** (`oci_project_id`). `oracle` also needs the **compartment OCID** (`oci_compartment_id`); it is optional for `oracle_responses`. Oracle does not accept `base_url`; the endpoint comes from the region.
+- Fields from a different auth option are rejected (for example, AWS access keys with `assume_role`). Switching the auth option removes the old option's credentials.
+- The Base URL and Azure API version overrides on Responses, Assistants, Realtime and rerank types are in the V1 console form. In the V2 console, set them through the Management APIs.
 - Every model-serving provider needs at least one model. For Azure, the model ID is the deployment name.
-- Labels may use letters, numbers, spaces, `_`, `.` and `-`. `primary` is reserved.
-- Each provider type can appear only once per app.
+- Labels may use letters, numbers, spaces, `_`, `.` and `-`, and must be unique within the app. `primary` is reserved.
+- The consoles take each provider type once per app. The API accepts several providers of the same type under different labels; select one with `provider_label`, since `provider` alone is then ambiguous.
 - `quilr_sdk` and `copilot_studio` apps cannot add other providers.
-- Anthropic and Azure Anthropic send `anthropic_version` `2023-06-01` by default.
 - For a Bedrock IAM role, see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role).
+- Credentials not listed here (Azure Entra ID or managed identity, AWS default chain or web identity, OpenAI organization or project headers, custom upstream headers) are not supported.
 
 ### What the forms look like
 
@@ -149,7 +152,7 @@ Only Bedrock Runtime is proxied, not the Bedrock control plane or Agent Runtime.
 
 ## Embeddings
 
-`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
+`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
 
 ## Rerank
 
