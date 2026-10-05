@@ -36,7 +36,7 @@ Messages are delivered using the selected wire format. RFC 5424 example:
 <142>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}
 ```
 
-For TCP, Message Framing controls how messages are delimited on the wire - your syslog server must be configured to match:
+A TCP stream has no built-in way to mark where one message ends and the next begins, so for TCP, Message Framing controls how that boundary is marked on the wire. Most syslog receivers (e.g. rsyslog, syslog-ng) let you choose a matching mode on their TCP input - set yours to the same option selected here:
 
 | Framing | Example |
 |---------|---------|
