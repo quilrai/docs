@@ -31,16 +31,16 @@ Forwards the Extension findings to your syslog server based on the controls conf
 Messages are delivered using the selected wire format. RFC 5424 example:
 
 ```
-<134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}
+<134>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}
 ```
 
 For TCP, Message Framing marks where one message ends and the next begins - configure your syslog receiver (e.g. rsyslog, syslog-ng) to the same mode:
 
 | Framing | Example |
 |---------|---------|
-| `None` (default) | `<134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}` |
-| `Octet-Count` | `85 <134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}` |
-| `Non-Transparent` | `<134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}\n` |
+| `None` (default) | `<134>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
+| `Octet-Count` | `85 <134>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
+| `Non-Transparent` | `<134>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}\n` |
 
 The JSON body contains the raw finding with browser and endpoint context:
 

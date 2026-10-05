@@ -33,16 +33,16 @@ Forwards audit log events to your syslog server. Supports optional filtering to 
 Messages are delivered using the selected wire format. RFC 5424 example:
 
 ```
-<142>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}
+<142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}
 ```
 
 For TCP, Message Framing marks where one message ends and the next begins - configure your syslog receiver (e.g. rsyslog, syslog-ng) to the same mode:
 
 | Framing | Example |
 |---------|---------|
-| `None` (default) | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}` |
-| `Octet-Count` | `93 <142>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}` |
-| `Non-Transparent` | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}\n` |
+| `None` (default) | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
+| `Octet-Count` | `93 <142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
+| `Non-Transparent` | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}\n` |
 
 The JSON body contains the audit log event:
 
