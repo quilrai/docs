@@ -38,11 +38,11 @@ Messages are delivered using the selected wire format. RFC 5424 example:
 
 For TCP, Message Framing marks where one message ends and the next begins - configure your syslog receiver (e.g. rsyslog, syslog-ng) to the same mode:
 
-| Framing | Example |
-|---------|---------|
-| `None` (default) | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
-| `Octet-Count` | `93 <142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
-| `Non-Transparent` | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}\n` |
+| Framing | Description | Example |
+|---------|--------------|---------|
+| `None` (default) | No framing - one message per connection | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
+| `Octet-Count` | RFC 6587 octet-counting - message prefixed with its byte length | `93 <142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}` |
+| `Non-Transparent` | RFC 6587 non-transparent - message ends with a trailing newline | `<142>1 2024-01-15T10:30:00Z hostname quilr-siem-event - - - {json_body}\n` |
 
 The JSON body contains the audit log event:
 
