@@ -34,7 +34,7 @@ Messages are delivered using the selected wire format. RFC 5424 example:
 <134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}
 ```
 
-A TCP stream has no built-in way to mark where one message ends and the next begins, so for TCP, Message Framing controls how that boundary is marked on the wire. Most syslog receivers (e.g. rsyslog, syslog-ng) let you choose a matching mode on their TCP input - set yours to the same option selected here:
+For TCP, Message Framing marks where one message ends and the next begins - configure your syslog receiver (e.g. rsyslog, syslog-ng) to the same mode:
 
 | Framing | Example |
 |---------|---------|
