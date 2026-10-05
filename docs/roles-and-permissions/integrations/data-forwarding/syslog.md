@@ -21,6 +21,7 @@ Forwards the Extension findings to your syslog server based on the controls conf
 | Syslog Server Port | Yes | Port your syslog server listens on |
 | Protocol | Yes | Transport protocol: `TCP`, `UDP`, or `TLS` |
 | Message Format | No | `RFC 5424` (default) or `RFC 3164` |
+| Message Framing | No | TCP only. `None` (default), `Octet-Count`, or `Non-Transparent` - see [Message Framing](#message-framing) below |
 | Facility | No | Syslog facility to use for outgoing messages |
 
 4. Click **Allow**.
@@ -32,6 +33,18 @@ Messages are delivered using the selected wire format. RFC 5424 example:
 ```
 <134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}
 ```
+
+## Message Framing
+
+TCP is a byte stream - it has no built-in way to mark where one message ends and the next begins. Message Framing controls how we mark that boundary, so your syslog server must be configured to parse the same framing you select here. This setting only applies when Protocol is `TCP`; UDP and TLS are unaffected (TLS always uses Octet-Count framing, per RFC 5425).
+
+| Value | Wire format | Example |
+|-------|-------------|---------|
+| `None` (default) | No framing - raw message | `<134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}` |
+| `Octet-Count` | RFC 6587 octet-counting: each message prefixed with its byte length and a space | `85 <134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}` |
+| `Non-Transparent` | RFC 6587 non-transparent framing: each message ends with a trailing newline | `<134>1 2024-01-15T10:30:00Z hostname quilr-siem-service - - - {json_body}\n` |
+
+`None` matches how this integration has always sent TCP messages - existing integrations are unaffected unless you explicitly change this setting.
 
 The JSON body contains the raw finding with browser and endpoint context:
 
