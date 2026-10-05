@@ -126,6 +126,9 @@ The new console organised by what you manage rather than by sensor, and the phas
 - [What Changed in Console V2](https://docs.quilrai.dev/console-v2/overview.md): Sensors as evidence rather than navigation, the three sidebar groups, and the shared-data guarantee between V1 and V2.
 - [Console Sections](https://docs.quilrai.dev/console-v2/console-sections.md): What is on each page of the V2 console across Observe, Govern, Settings and Red Teaming.
 - [Transition Plan](https://docs.quilrai.dev/console-v2/transition-plan.md): Ground rules, the three transition phases, and where to do what while both consoles run in parallel.
+- [Findings & Interactions](https://docs.quilrai.dev/console-v2/findings-and-interactions/overview.md): The Findings and Interactions tabs, the Bird's-eye, Cards and Table layouts, filters and saved views, and investigating a conversation in the drawer.
+- [Triage Center](https://docs.quilrai.dev/console-v2/findings-and-interactions/triage-center.md): Triage states, bulk-closing findings from suggestions, reviewing and undoing changes in Activity, and auto-resolve rules.
+- [Detection Tuning](https://docs.quilrai.dev/console-v2/findings-and-interactions/detection-tuning.md): Reviewing, applying and dismissing quick-suggestion learnings to stop repeat false positives.
 
 ## Playground
 

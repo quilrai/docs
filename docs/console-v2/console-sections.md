@@ -62,8 +62,12 @@ findings and an investigation drawer per conversation.
   data with masked spans (reveal is permission-gated and audited), related
   activity, timeline, and sensor-specific sections.
 - **Actions** - open the person, app or policy drawer, export to the Export
-  Center, or configure agent activation. There is no resolve or assign state:
-  remediation is agent activation.
+  Center, or configure agent activation.
+- **Triage center** - close findings in bulk, review and undo changes, set
+  auto-resolve rules, and tune detections to cut false positives.
+
+See [Findings & Interactions](./findings-and-interactions/overview) for a
+step-by-step guide, including the [Triage center](./findings-and-interactions/triage-center).
 
 ### Users
 
