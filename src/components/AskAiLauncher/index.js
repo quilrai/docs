@@ -42,8 +42,8 @@ export default function AskAiLauncher() {
   const docsName = product ? `QuilrAI ${product.name}` : 'QuilrAI';
   const prompt =
     effectiveScope === 'page'
-      ? buildDocPageAiPrompt(title || 'QuilrAI docs page', `${site}${path}.md`)
-      : buildProductIndexAiPrompt(docsName, `${site}/llms.txt`);
+      ? buildDocPageAiPrompt(title || 'QuilrAI docs page', `${site}${path}.md`, {site, product})
+      : buildProductIndexAiPrompt(docsName, {site, product});
 
   const close = useCallback((refocus = true) => {
     setOpen(false);
@@ -141,7 +141,7 @@ export default function AskAiLauncher() {
           <p className="qd-askai__hint">
             {effectiveScope === 'page'
               ? 'Opens your assistant with a link to this page, ready for questions.'
-              : `Opens your assistant with the ${docsName} docs index (llms.txt).`}
+              : `Opens your assistant with the ${docsName} docs index and full text.`}
           </p>
           <ul className="qd-askai__list">
             {AI_PROVIDERS.map(({name, icon: BrandIcon, buildUrl}) => (

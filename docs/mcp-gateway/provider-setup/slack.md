@@ -2,6 +2,7 @@
 sidebar_position: 2
 sidebar_custom_props:
   icon: MessageSquareText
+description: "Create a Slack app, enable Model Context Protocol, add the redirect URL and user-token scopes, and copy the Client ID and Client Secret for manual OAuth."
 ---
 
 # Slack

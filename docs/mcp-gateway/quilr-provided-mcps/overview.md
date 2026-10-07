@@ -2,6 +2,7 @@
 sidebar_position: 1
 sidebar_custom_props:
   icon: LayoutGrid
+description: "Compare Quilr-built and operated MCP integrations by use case, capabilities, connection method, and whether their tool surface can change provider data."
 ---
 
 # Quilr-Provided MCPs

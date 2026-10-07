@@ -2,6 +2,7 @@
 sidebar_position: 17
 sidebar_custom_props:
   icon: Database
+description: "Connect the dbt platform remote MCP server - no OAuth app or Client ID/Secret needed; copy the account-specific MCP Endpoint URL from dbt Account settings > Access URLs, add it manually, and authorize through dbt sign-in plus MFA enrollment. Covers the token-based alternative with Authorization and x-dbt-* headers, PAT vs service token limits, toolset restriction headers, and the remote toolsets (Semantic Layer, Discovery, SQL, Administrative API, Fusion, Product Docs)."
 ---
 
 # dbt Labs

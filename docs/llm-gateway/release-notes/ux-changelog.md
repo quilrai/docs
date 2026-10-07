@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "UX changelog"
 sidebar_custom_props:
   icon: ClipboardList
+description: "Recent interface improvements - tagging, filtering, and quality-of-life updates."
 ---
 
 # UX Changelog

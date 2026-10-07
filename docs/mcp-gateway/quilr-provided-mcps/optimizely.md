@@ -3,6 +3,7 @@ sidebar_position: 16
 sidebar_custom_props:
   badge: exclusive
   icon: FlaskConical
+description: "Quilr-built experimentation MCP for schema-guided queries, reporting, entity lifecycle, exports, audit history, collaborators, and datafiles."
 ---
 
 # Optimizely Experimentation

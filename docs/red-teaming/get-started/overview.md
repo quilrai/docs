@@ -9,6 +9,8 @@ sidebar_custom_props:
 
 Red Teaming actively tests your LLM apps, MCP servers, agents, and models for weaknesses before attackers find them. It lives in the console under **Assessments**.
 
+![Red Teaming in the console](/img/console-v2/pages/red-teaming.jpg)
+
 <ConsolePath console="QuilrAI console" path={['Assessments', 'Red Teaming']} />
 
 ## The four tools

@@ -2,6 +2,7 @@
 sidebar_position: 6
 sidebar_custom_props:
   icon: ClipboardList
+description: "Focused Microsoft To Do and Planner tools for personal tasks, plans, buckets, and team tasks."
 ---
 
 # Microsoft Tasks & Planner

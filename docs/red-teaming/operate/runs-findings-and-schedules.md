@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Runs, findings and schedules"
 sidebar_custom_props:
   icon: ListChecks
+description: "Track findings through review statuses with an audit history, and schedule recurring assessments."
 ---
 
 # Red Team Findings and Schedules

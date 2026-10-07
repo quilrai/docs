@@ -3,6 +3,7 @@ sidebar_position: 5
 sidebar_label: "OneMCP"
 sidebar_custom_props:
   icon: Network
+description: "Unified OneMCP endpoint, smart discovery tools, native memory tools, and inline authentication through an in-chat connector card or connection-link fallback."
 ---
 
 # OneMCP

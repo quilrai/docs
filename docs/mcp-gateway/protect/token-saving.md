@@ -3,6 +3,7 @@ sidebar_position: 11
 sidebar_label: "Token saving"
 sidebar_custom_props:
   icon: Coins
+description: "Per-server strategies that shorten tool results (smart JSON compression, HTML to text, Markdown to text, text compression) and where savings appear."
 ---
 
 # Token saving

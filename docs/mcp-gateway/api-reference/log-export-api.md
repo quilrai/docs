@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Log export API"
 sidebar_custom_props:
   icon: ClipboardList
+description: "Export server-scoped or tenant-scoped MCP tool call logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window."
 ---
 
 # MCP Gateway Log Export API

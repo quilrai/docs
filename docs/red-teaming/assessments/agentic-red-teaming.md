@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Agentic red teaming"
 sidebar_custom_props:
   icon: Target
+description: "Multi-turn adversarial assessment of a live AI agent over HTTP or voice - connect, choose attack coverage (Quick scan, Full library, Select attacks, custom objectives), and launch with an evaluation policy."
 ---
 
 # Agentic Red Teaming

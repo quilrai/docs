@@ -3,6 +3,7 @@ sidebar_position: 7
 sidebar_label: "API tokens"
 sidebar_custom_props:
   icon: KeyRound
+description: "Create, use and revoke direct-connection tokens for a server, sent with the mcpuser email header."
 ---
 
 # API Tokens

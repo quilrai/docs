@@ -4,6 +4,7 @@ sidebar_label: "Unified completions"
 sidebar_custom_props:
   badge: new
   icon: Route
+description: "Compatibility details for OpenAI Chat Completions requests translated to provider-native APIs such as Bedrock Converse, Vertex AI Gemini generateContent, and Anthropic Messages, including parameters, messages, tools, structured output, streaming, and unsupported features."
 ---
 
 # Unified Completions

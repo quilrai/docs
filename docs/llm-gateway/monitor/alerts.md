@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Alerts"
 sidebar_custom_props:
   icon: Activity
+description: "App-level and per-provider failure-rate alerts with email and webhook channels."
 ---
 
 # Alerts

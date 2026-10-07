@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "Integration guide"
 sidebar_custom_props:
   icon: Plug
+description: "MCP endpoint URLs, client-to-gateway authentication, gateway-to-upstream auth modes, user claims forwarding, and connection examples."
 ---
 
 # Integration Guide

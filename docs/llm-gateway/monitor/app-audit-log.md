@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "App audit log"
 sidebar_custom_props:
   icon: History
+description: "Configuration change history, per-version audit, and rollback for gateway apps."
 ---
 
 # Audit Log

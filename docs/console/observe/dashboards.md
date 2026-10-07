@@ -11,6 +11,8 @@ Dashboards lets you build custom dashboards by describing them in plain
 language to an AI designer. Open it from **Observe > Dashboards** (the page is
 titled **Custom dashboards**).
 
+![Dashboards in the console](/img/console-v2/pages/dashboards.jpg)
+
 ## Browse dashboards
 
 The page lists saved dashboards and your drafts. Each card shows its

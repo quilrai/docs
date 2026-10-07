@@ -39,6 +39,8 @@ export const products = [
     shotCaption: 'Console › Settings › AI Gateway › LLM Gateway',
     primary: {label: 'Quick start', to: '/llm-gateway/get-started/quick-start'},
     consoleUrl: 'https://web.quilr.ai/settings/llm-gateway',
+    // Navigation guide for AI agents: exact console labels, URLs, task -> screen.
+    consoleGuide: '/llmgateway_guide_for_admin_console.txt',
     tasks: [
       {title: 'Send your first request', desc: 'Create an app, copy its key, call the gateway', to: '/llm-gateway/get-started/quick-start'},
       {title: 'Connect a provider', desc: 'OpenAI, Anthropic, Azure, Bedrock, Vertex, OCI', to: '/llm-gateway/apps-and-providers/providers-and-models'},
@@ -58,6 +60,7 @@ export const products = [
     shotCaption: 'Console › Settings › AI Gateway › MCP Gateway',
     primary: {label: 'Quick start', to: '/mcp-gateway/get-started/quick-start'},
     consoleUrl: 'https://web.quilr.ai/settings/mcp-gateway',
+    consoleGuide: '/mcpgateway_guide_for_admin_console.txt',
     tasks: [
       {title: 'Connect your first client', desc: 'Claude, Cursor, ChatGPT and other MCP clients', to: '/mcp-gateway/get-started/quick-start'},
       {title: 'Add an MCP server', desc: 'From the library, a URL, or your own API', to: '/mcp-gateway/servers-and-connections/adding-mcp-servers'},
@@ -92,7 +95,7 @@ export const products = [
     sub: 'AI governance where people work',
     tagline:
       'See which AI apps people use in the browser, stop sensitive data at the prompt, and guide users at the moment they need it.',
-    shot: null,
+    shot: '/img/products/browser-extension.jpg',
     shotCaption: 'Console › Settings › Browser Extension',
     primary: {label: 'Deploy with Intune', to: '/browser-extension/deploy/microsoft-intune'},
     consoleUrl: 'https://web.quilr.ai/settings/browser-extension',
@@ -111,8 +114,8 @@ export const products = [
     sub: 'Desktop AI, coding agents and local models',
     tagline:
       'See and govern AI on company devices: desktop chat apps, coding agents, local models and the MCP servers they run.',
-    shot: null,
-    shotCaption: 'Console › Settings › Endpoint Agent',
+    shot: '/img/products/endpoint-agent.jpg',
+    shotCaption: 'Console › Govern › Policy Engine › Endpoint Agent',
     primary: {label: 'Requirements', to: '/endpoint-agent/get-started/requirements'},
     consoleUrl: 'https://web.quilr.ai/settings/endpoint-agent',
     tasks: [
@@ -130,7 +133,7 @@ export const products = [
     sub: 'Connect the platforms you already run',
     tagline:
       'Pull AI usage from SaaS and agent platforms into QuilrAI, and send findings and audit events to your SIEM.',
-    shot: null,
+    shot: '/img/products/integrations.jpg',
     shotCaption: 'Console › Settings › Integrations',
     primary: {label: 'How integrations work', to: '/integrations/get-started/how-integrations-work'},
     consoleUrl: 'https://web.quilr.ai/settings/integrations',

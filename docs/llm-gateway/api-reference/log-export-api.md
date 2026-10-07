@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Log export API"
 sidebar_custom_props:
   icon: ClipboardList
+description: "Export single-key or all-apps LLM Gateway request logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window."
 ---
 
 # LLM Gateway Log Export API

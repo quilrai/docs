@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Adding MCP servers"
 sidebar_custom_props:
   icon: Plug
+description: "Add a remote MCP server, choose how the gateway signs in, add custom headers, connect OAuth servers, and install from the MCP Library."
 ---
 
 # Adding MCP Servers

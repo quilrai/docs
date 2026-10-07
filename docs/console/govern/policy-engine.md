@@ -9,6 +9,8 @@ sidebar_custom_props:
 
 The Policy Engine decides what happens when AI use crosses a line. It has one tab per enforcement surface, and each surface holds the controls enforced through that product.
 
+![Policy Engine in the console](/img/console-v2/pages/policy-engine.jpg)
+
 <ConsolePath console="QuilrAI Console" path={['Govern', 'Policy Engine']} />
 
 ## The four surfaces

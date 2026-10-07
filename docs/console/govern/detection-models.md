@@ -9,6 +9,8 @@ sidebar_custom_props:
 
 Detection Models define what counts as sensitive data or an adversarial prompt. Policies and controls refer to these detections by name, so this page is where you decide what Quilr looks for, and how risky each finding is by default.
 
+![Detection Models in the console](/img/console-v2/pages/detection-models.jpg)
+
 <ConsolePath console="QuilrAI Console" path={['Govern', 'Detection Models']} />
 
 The page has two tabs: **Data Risks** and **AI Adversarial Risks**.

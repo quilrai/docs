@@ -124,6 +124,18 @@ const config = {
     plugins: [
         './plugins/doc-page-markdown.js',
         [
+            './plugins/llms-txt.js',
+            {
+                products,
+                // Console navigation guides for AI agents (exact on-screen labels and URLs).
+                extraLinks: Object.fromEntries(products.filter((p) => p.consoleGuide).map((p) => [p.id, [{
+                    title: `${p.name} console guide`,
+                    url: `https://docs.quilrai.dev${p.consoleGuide}`,
+                    description: `Exact labels, URLs and task-to-screen map for the ${p.name} pages of the admin console.`,
+                }]])),
+            },
+        ],
+        [
             '@docusaurus/plugin-client-redirects',
             {
                 redirects: [

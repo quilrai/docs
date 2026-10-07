@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Agent monitoring"
 sidebar_custom_props:
   icon: Activity
+description: "Correlate gateway LLM calls with agent runs, traces, workflows, and conversations via W3C/vendor tracing headers, Quilr agent headers, baggage, or provider request-body metadata."
 ---
 
 # Agent Monitoring

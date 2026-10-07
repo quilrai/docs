@@ -2,6 +2,7 @@
 sidebar_position: 7
 sidebar_custom_props:
   icon: Activity
+description: "Connect Datadog MCP - no OAuth app or Client ID/Secret needed; register the QuilrAI callback URL in Datadog Organization Settings under MCP OAuth Redirect URLs, enable MCP Access and the separate MCP Write Access opt-in, pick the core or toolsets=all endpoint for your Datadog site, and add that endpoint URL manually."
 ---
 
 # Datadog

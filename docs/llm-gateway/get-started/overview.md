@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Introduction"
 sidebar_custom_props:
   icon: BookOpen
+description: "What the gateway is, apps vs Quilr keys vs providers, and a tour of the console (overview cards, app workspace tabs, settings sections, self-service usage)."
 ---
 
 # LLM Gateway overview

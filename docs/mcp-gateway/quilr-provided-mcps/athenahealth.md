@@ -3,6 +3,7 @@ sidebar_position: 19
 sidebar_custom_props:
   badge: safety-first
   icon: ShieldCheck
+description: "Safety-first athenaOne and FHIR MCP with capability packs, allowlists, idempotent confirmed writes, separately enabled deletes, bulk exports, and PHI-safe telemetry."
 ---
 
 # Athenahealth

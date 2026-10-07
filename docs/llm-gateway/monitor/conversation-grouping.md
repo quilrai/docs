@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Conversation grouping"
 sidebar_custom_props:
   icon: MessageSquareText
+description: "Group gateway requests into conversations with a conversation ID header and see them in Activity."
 ---
 
 # Conversation Grouping

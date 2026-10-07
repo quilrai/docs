@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Quick start"
 sidebar_custom_props:
   icon: Rocket
+description: "Set up the MCP Gateway in 4 steps - add an MCP, configure tools and guardrails, connect an agent, and monitor."
 ---
 
 # Quick Start

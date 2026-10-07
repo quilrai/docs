@@ -2,6 +2,7 @@
 sidebar_position: 13
 sidebar_custom_props:
   icon: Handshake
+description: "Nine consolidated tools for CRM search, batch reads, associations, schemas, owners, records, notes, tasks, and controlled archive."
 ---
 
 # HubSpot CRM

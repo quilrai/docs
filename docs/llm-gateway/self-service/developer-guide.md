@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Developer guide"
 sidebar_custom_props:
   icon: Rocket
+description: "For developers - sign in to the Self-Service portal, read the app cards, create and revoke named user API keys, call the gateway with them, view your own logs and findings, and submit settings change requests for admin approval."
 ---
 
 # Developer Guide

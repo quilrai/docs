@@ -2,6 +2,7 @@
 sidebar_position: 22
 sidebar_custom_props:
   icon: Globe
+description: "Minimal two-tool web search and webpage retrieval integration with optional gateway domain policy."
 ---
 
 # Quilr Web Search

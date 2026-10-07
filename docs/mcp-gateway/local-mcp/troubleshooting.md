@@ -3,6 +3,7 @@ sidebar_position: 5
 sidebar_label: "Troubleshooting"
 sidebar_custom_props:
   icon: ListChecks
+description: "Symptom table for local packages unavailable, pairing rejection, gateway 401/403, Python version and dependency failures, missing tools and integrity mismatch - plus diagnosing a specific connection with --state, the Preparing response, response-policy blocks, and starting over cleanly."
 ---
 
 # Troubleshooting

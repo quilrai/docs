@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Tool visibility"
 sidebar_custom_props:
   icon: Wrench
+description: "Turn individual tools on or off per server, review read-only, write and destructive tools, and view input schemas."
 ---
 
 # Tool visibility

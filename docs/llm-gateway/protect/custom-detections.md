@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Custom detections"
 sidebar_custom_props:
   icon: Target
+description: "Define your own detections - precision (regex) patterns or intents trained with examples."
 ---
 
 # Custom detections

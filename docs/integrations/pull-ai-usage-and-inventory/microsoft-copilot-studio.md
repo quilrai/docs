@@ -4,6 +4,7 @@ sidebar_label: "Microsoft Copilot Studio"
 sidebar_custom_props:
   badge: new
   icon: Bot
+description: "Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution."
 ---
 
 # Microsoft Copilot Studio

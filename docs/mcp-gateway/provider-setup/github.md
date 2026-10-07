@@ -2,6 +2,7 @@
 sidebar_position: 3
 sidebar_custom_props:
   icon: GitBranch
+description: "Create a GitHub OAuth app, set the callback URL, and copy the Client ID and Client Secret for manual OAuth."
 ---
 
 # GitHub

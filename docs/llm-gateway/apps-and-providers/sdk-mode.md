@@ -4,6 +4,7 @@ sidebar_label: "SDK mode"
 sidebar_custom_props:
   badge: new
   icon: Wrench
+description: "Scan text, messages, or structured JSON directly from application code. Documents hashing_mode, processed_json, JSON Pointer locations, placeholder mappings, and advisory similar_entities."
 ---
 
 # SDK Mode

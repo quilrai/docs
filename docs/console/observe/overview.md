@@ -12,6 +12,8 @@ agentic assets exist, and where risk stands. Open it from **Observe >
 Overview**. It has three tabs, and the period selector at the top (for
 example **Last 7 days**) applies to all of them.
 
+![Overview in the console](/img/console-v2/pages/overview.jpg)
+
 Most tiles, bars and list entries are clickable and lead to the page with the
 underlying records.
 

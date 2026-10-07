@@ -2,6 +2,7 @@
 sidebar_position: 4
 sidebar_custom_props:
   icon: Plug
+description: "Connect Zoho Cliq MCP - no OAuth app or Client ID/Secret needed; generate the MCP server URL in the Zoho MCP console and add it manually."
 ---
 
 # Zoho

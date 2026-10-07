@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Architecture"
 sidebar_custom_props:
   icon: Layers
+description: "Request processing pipeline - Validate, Scan, Transform, Route - with a visual diagram of every stage."
 ---
 
 # Architecture

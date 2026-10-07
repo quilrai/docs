@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Administrator setup"
 sidebar_custom_props:
   icon: UserCog
+description: "Add a local package (CLI MCP), review its source, runtime, tool schemas and dependency lock, approve the version, then enable tools and configure access, guardrails and group/user rules - including Policy Engine mode, verification before rollout, revoking an installation, and reading Activity tool calls."
 ---
 
 # Administrator Setup

@@ -4,6 +4,7 @@ sidebar_label: "TrueFoundry"
 sidebar_custom_props:
   badge: new
   icon: Plug
+description: "Use QuilrAI SDK checks as TrueFoundry custom input/output guardrails, including Mutate and Bearer setup, rail selectors, full request/response examples, streaming requirements, verification, identity, and fail-open behavior."
 ---
 
 # TrueFoundry

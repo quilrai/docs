@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "Human approval"
 sidebar_custom_props:
   icon: Handshake
+description: "Require a person to approve a tool call, optionally with a written justification, and what users see in each AI client."
 ---
 
 # Human approval

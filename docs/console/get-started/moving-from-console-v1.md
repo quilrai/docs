@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Moving from Console V1"
 sidebar_custom_props:
   icon: Route
+description: "Ground rules, the three transition phases, and where to do what while both consoles run in parallel."
 ---
 
 # Moving from Console V1

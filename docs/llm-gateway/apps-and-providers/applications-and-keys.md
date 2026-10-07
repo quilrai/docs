@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Applications and keys"
 sidebar_custom_props:
   icon: KeyRound
+description: "App naming and status, multiple named Quilr keys with expiry and revocation, log keys, API integration, configuration versions and rollback, and the app audit tab."
 ---
 
 # Applications and Keys

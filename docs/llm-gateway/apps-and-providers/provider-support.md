@@ -4,6 +4,7 @@ sidebar_label: "Provider support matrix"
 sidebar_custom_props:
   badge: new
   icon: Handshake
+description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs."
 ---
 
 # Provider Support

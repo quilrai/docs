@@ -4,6 +4,7 @@ sidebar_label: "Oracle OCI"
 sidebar_custom_props:
   badge: new
   icon: KeyRound
+description: "Grant QuilrAI cross-tenancy access to OCI Generative AI for Chat Completions and Responses without sharing an Oracle API key or signing key."
 ---
 
 # Oracle OCI

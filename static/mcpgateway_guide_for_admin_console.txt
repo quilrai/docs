@@ -1,4 +1,6 @@
 QUILR ADMIN CONSOLE (v2): MCP GATEWAY GUIDE FOR BROWSING AGENTS
+Last verified: 2026-10-07 against web.quilr.ai
+Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
 - Page: sidebar Settings > AI Gateway > MCP Gateway  (URL /settings/mcp-gateway)
@@ -6,60 +8,110 @@ WHERE
 - Siblings in AI Gateway group: Workflow Agents, LLM Gateway, MCP Gateway, Models, Skills Library
 
 PAGE LAYOUT (top to bottom)
-- Header buttons: Overall analytics | OneMCP endpoint | Library (badge = pending user install requests) | Allowed Agents | Add MCP server | "..." menu (Connections, ZIA integration)
+- Header buttons: Overall analytics | OneMCP endpoint | Library (badge = pending user install requests) |
+  Allowed Agents | Add MCP server | "..." (More MCP Gateway actions) > Connections | ZIA integration
 - Summary tiles (rows are clickable filters/shortcuts):
-  Tool calls (People calling, Tools called, Success) -> opens analytics
-  Estate: Serving / Awaiting / No tools -> filters server list by state
-  Tools reachable: Scoped rules, OAuth servers (filters auth=oauth), Library queue (opens Library)
-  Stopped by guardrails: Guardrail flags, Failed calls, p95 latency
-- Banners: "N OAuth servers need an administrator connection" -> Review all (or "Connect <name>" if only one)
-           "N quick fixes could prevent failed tool calls" -> Review fixes
-- Links row "Elsewhere": Inventory & analytics, User dashboard (external), Documentation
-- Configured servers list: tabs All / Local / Remote / API (API tab only when an API MCP exists), Search servers, Filter (State, Auth, Source, Runtime)
-  "How to Use as an Admin" and "How Do Users Use MCP Gateway" help buttons sit above the list
-- Server card: tags System / Library / Local package / alias count; gateway endpoint, upstream (or API base URL), p95/failures, status, transport, auth
-  Chips: Tools, Guardrails, Scoped rules, Token saving (each opens that Configure section), Show tools, Uninstall, enable toggle
-  Rows: Inspect (Logs = activity, Open in Inventory) | Configure (General, API*, Guardrails, Token Saving, Tools, Group & User Rules)
+  TOOL CALLS: People calling, Tools called, Success, "% of them came through OneMCP" -> opens analytics
+  ESTATE: Serving / Awaiting / No tools -> filters server list by state; "N enabled - N disabled"
+  TOOLS REACHABLE: Scoped rules, OAuth servers (filters auth=oauth), Library queue (opens Library)
+  STOPPED BY GUARDRAILS: Guardrail flags, Failed calls, p95 latency
+- Banners: "N OAuth servers need an administrator connection..." -> Review all (or "Connect <name>" if only one)
+           "N quick fixes could prevent failed tool calls..." -> Review fixes
+- Links row "ELSEWHERE": Inventory & analytics, User dashboard (external), Documentation
+- "Configured servers": note "Users can login at mcpgateway.quilr.ai"; help buttons "How to Use as an Admin"
+  and "How Do Users Use MCP Gateway"; tabs All / Local / Remote / API with counts (API tab only when an API MCP
+  exists), "Search servers", Filter (State, Auth, Source, Runtime)
+- Server card: name, tags System / Library / Local package / alias count, slug, description; QUILR GATEWAY
+  endpoint, UPSTREAM (or API base URL), p95/failures, status (SERVING etc.), transport, auth
+  Chips: Tools, Guardrails, Scoped rules, Token saving (each opens that Configure section), Show tools,
+  Uninstall, enable toggle; usage stats (calls, users, tokens saved, top tools)
+  Rows: Inspect (Logs = activity, Open in Inventory) | Configure (General, Guardrails, Token Saving, Tools,
+  Group & User Rules; API on API MCPs)
   Awaiting servers show a "Connect OAuth" button
 
+WORKSPACE DRAWER ("MCP Gateway workspace")
+- Server picker ("All servers"); tiles SERVERS IN SCOPE / SERVING TOOLS / NOT SERVING
+- Tabs: Analytics | Activity | Connections | Health | Settings
+- Analytics: Summary, Traffic, Guardrails, People & tools, Servers, Agents & clients, Workflow graph, Topics
+- Activity sub-tabs: Tool calls | Interactions | Findings
+- Settings (one server): header strip Tools / Calls / Scoped rules / Endpoint; section list General, Tools,
+  Guardrails, Token saving, Input aliases, Group & User Rules, plus conditional API, Permissions, API tokens;
+  footer Discard changes | Save settings; Smart Assist panel at the bottom
+
 TASK -> WHERE
-- Add remote MCP -> Add MCP server > "Remote server" > Name, Slug, Transport URL, Description > auth: Auto-detect (recommended) / OAuth passthrough / Upstream API key / Connect with OAuth (client ID, secret, callback URL) > custom headers & query params > Probe and continue. Steps: Connection > Credentials > Registered
-- Add local CLI MCP -> Add MCP server > "Local package (CLI MCP)" > pick starter package or Import a local MCP package (package definition, review before approval)
-- Add REST API as MCP -> Add MCP server > "API" > name, slug, base URL > OpenAPI spec (None/URL/Upload/Paste, fetch headers, Load spec) or generic api_get/post/put/patch/delete > optional "API docs for the model" > Advanced timeout/max response > Credentials (none or API key, shared vs per-user, placement, prefix, headers/query) > Tools & access (allow/deny path rules; Start from Everything / No deletes / Read-only; Test a request; per-operation Auto/On/Off; "Also add generic HTTP tools") > Create API MCP
-- Install from catalog -> Library > search, filters Status / Type / Sign-in > Install or Set up (OAuth apps ask client ID/secret, show callback URL)
+- Add remote MCP -> Add MCP server (dialog "Add MCP") > "Remote server" > Name, Slug (optional), Transport URL,
+  Description > "How the gateway signs in": Auto-detect (recommended) / OAuth passthrough / Upstream API key
+  > optional "Custom headers & query parameters" > Probe and continue. Steps: Connection > Credentials >
+  Registered. If the probe finds OAuth, the "Connect with OAuth" step opens (OAuth callback URL, OAuth client ID,
+  OAuth client secret). OAuth passthrough is not available through OneMCP.
+- Add local CLI MCP -> Add MCP server > "Local package (CLI MCP)" > "Import a local MCP package" (a package
+  definition you reviewed). Steps: Import > Review & approve > Configure access. Tools start disabled.
+  Ready-made packages (Filesystem, Git, Playwright...) are approved from the Library instead.
+- Add REST API as MCP -> Add MCP server > "API" > Name, Slug, Base URL, Description > OpenAPI spec
+  (None/URL/Upload/Paste) or generic mode (api_get/post/put/patch/delete) > "API docs for the model" >
+  Credentials > Tools & access (allow/deny path rules, per-operation Auto/On/Off, Test a request) > create.
+  Steps: Connection > Credentials > Tools & access > Registered
+- Install from catalog -> Library (drawer "MCP Library", ~439 MCPs) > "Search by name or what it does", filters
+  Status / Type / Sign-in > Install, Set up or Continue setup (OAuth apps ask client ID/secret, show callback URL)
 - Handle user install requests -> Library > "Pending install requests" > Install or Dismiss
 - Connect OAuth server -> banner Review all, or card "Connect OAuth", or Configure > General
-- Pick OAuth scopes -> Configure > Permissions (only on OAuth servers with selectable scopes, e.g. Microsoft Office 365 V3): search permissions or tools, tick scope groups (Mail, Calendar, Teams, OneDrive, SharePoint...), expand a group to see which tools each scope unlocks, "Grant all (default)". Sign-in and offline access are always included. Users keep their old grant until they reconnect
+- Pick OAuth scopes -> Configure > Permissions (only on OAuth servers with selectable scopes, e.g. Microsoft
+  Office 365 V3): tick scope groups, "Grant all (default)". Users keep their old grant until they reconnect
 - Enable/disable server -> card toggle (or Configure > General header toggle)
-- Delete server -> card Uninstall, or Configure > General > Danger zone
-- Turn tools on/off -> Configure > Tools (per tool Enabled)
-- Require confirmation per tool -> Configure > Tools > "Require confirmation" + "Require justification" columns (turning confirmation on also turns justification on)
-- Tool drift watch -> Configure > Tools > card "When the upstream tool list changes": Tell me about changes (default) / Update tools automatically / Don't watch this MCP; Check now; pending change lists New/Gone from upstream > Approve or Dismiss. Some servers show "skipped" (OAuth, passthrough, per-user key)
-- Guardrails (DLP/adversarial) -> Configure > Guardrails > Data risk / Adversarial categories, actions block / redact / partial-redact / monitor, separate Request (tool arguments) and Response (tool results), Default action
-- Token saving -> Configure > Token Saving > strategies: smart JSON compression, HTML to text, Markdown to text, text compression
-- Fix wrong tool inputs -> banner Review fixes (drawer "Review quick fixes": Show example, Apply, Dismiss, Apply all) or Configure > Input aliases
-- Per group/user overrides -> Configure > Group & User Rules > rule applies to A smart group / A single user; tool, guardrail, token saving overrides (Inherit/On/Off), confirmation, justification; "Effective settings preview"
-- Allow/deny by agent, smart group, user -> Configure > General > Access control (Allowed agents, Allowed/Denied smart groups, Allowed/Denied users)
-- Forward identity to upstream -> Configure > General > "Forward user claims" (sends X-User-Claims header upstream)
-- Web Search (ZIA) policy -> QuilrAI Web Search > Configure > General > Web Search policy: ZIA check timeout, ZIA URL overrides (one URL or domain per line), Groups with domain exclusions (toggle per smart group). Tenant ZIA creds -> "..." > ZIA integration (base URL, API key, admin username/password)
+- Delete server -> card Uninstall, or Configure > General > Danger zone > Uninstall MCP
+- Turn tools on/off -> Configure > Tools ("Exposed to agents", grouped Read-only / Write / Destructive)
+- Require confirmation per tool -> Configure > Tools > "Require confirmation" + "Require justification"
+  (turning confirmation on also turns justification on)
+- Tool drift watch -> Configure > Tools > "When the upstream tool list changes": Tell me about changes (default)
+  / Update tools automatically / Don't watch this MCP; Check now; pending New/Gone > Approve or Dismiss.
+  Per-user sign-in servers say "refresh it from the console"; Quilr checks hourly
+- Guardrails (DLP/adversarial) -> Configure > Guardrails > Data risk / Adversarial categories, actions
+  block / redact / partial-redact / monitor, separate Request (tool arguments) and Response (tool results), Default action
+- Token saving -> Configure > Token saving > smart JSON compression, HTML to text, Markdown to text, text compression
+- Fix wrong tool inputs -> banner Review fixes (drawer "Review quick fixes": Show example, Apply, Dismiss,
+  Apply all) or Configure > Input aliases
+- Per group/user overrides -> Configure > Group & User Rules > rule applies to A smart group / A single user;
+  tool, guardrail, token saving overrides (Inherit/On/Off), confirmation, justification; "Effective settings preview"
+- Allow/deny by agent, smart group, user -> Configure > General > Access control (Allowed agents, Allowed /
+  Denied smart groups, Allowed / Denied users; denied users take precedence)
+- Forward identity to upstream -> Configure > General > "Forward user claims" (X-User-Claims header; non-OAuth servers)
+- Web Search (ZIA) policy -> QuilrAI Web Search > Configure > General > Web Search policy: ZIA check timeout,
+  ZIA URL overrides (one URL or domain per line), Groups with domain exclusions.
+  Tenant ZIA creds -> "..." > ZIA integration (ZIA base URL, API key, Admin username, Admin password > Connect ZIA)
 - API MCP rules after creation -> Configure > API (base URL, spec, rules)
-- Direct-connection tokens -> Configure > API tokens (not shown on OAuth servers; e.g. QuilrAI Web Search) > Create a token (token name + agent; Add agent registers a custom one) > Tokens table with Revoke. Clients send the token in Authorization plus their own mcpuser email header
-- Which clients may connect -> Allowed Agents (matched by User-Agent keyword; open agent to pick servers; Add agent)
-- OneMCP settings -> OneMCP endpoint dialog > Dynamic tool calling (User preference / Always on / Always off), Memories enabled toggle
-- Analytics/logs/health -> Overall analytics (drawer "MCP Gateway workspace"; Server picker; tabs Analytics (incl. Topics) / Activity (Tool calls, Interactions, Findings) / Connections / Health / Settings)
+- Direct-connection tokens -> Configure > API tokens (not on OAuth servers; e.g. QuilrAI Web Search) >
+  "Create a token": Token name + Agent (Add agent registers a custom one) > Create token; Tokens table with Revoke.
+  Clients send the token in Authorization plus their own mcpuser email header
+- Which clients may connect -> Allowed Agents (matched by User-Agent keyword; open an agent to pick servers; Add agent)
+- OneMCP settings -> OneMCP endpoint (dialog "OneMCP") > Dynamic tool calling (User preference / Always on /
+  Always off); Memories > "Memories enabled" switch (OneMCP and workflow agents)
+- Analytics/logs/health -> Overall analytics (workspace drawer above)
 - Who is connected (per user per MCP) -> "..." > Connections (Users, MCPs, Connected, Tool calls; "MCP users" table)
-- Rejected requests -> workspace Health: Rejected requests, Access denied, Auth challenges, OAuth refreshes, Token-auth requests, Upstream server errors, Rejection reasons, Recent rejections (gateway-wide, not server-scoped)
+- Rejected requests -> workspace Health: REJECTED REQUESTS, ACCESS DENIED, AUTH CHALLENGES, TOKEN-AUTH REQUESTS,
+  OAUTH REFRESHES, UPSTREAM SERVER ERRORS; Rejection reasons, Upstream server errors, Recent rejections (gateway-wide)
 - One server's logs -> card Inspect > Logs
 - Server inventory/usage -> card Open in Inventory, or sidebar Inventory (filter asset type MCP server)
 
+POLICY ENGINE (MCP) - /policy/engine/mcp-gateway  (also /history, /simulate, /code, /new)
+- Header when on: ENGINE ON, Revision N, "MCP Gateway controls", "N of 10 active", History, Filter
+- Stages: 1 SESSION (once per connection) | 2 DISCOVERY | 3 REQUEST (before dispatch) | 4 RESPONSE (before result returns)
+- "What applies to one call" > Describe a call
+- Cards: MCP Server Access, OneMCP Features, Discovery Visibility, Invocation, Human Approval, Usage Quotas &
+  Concurrency, Data & Adversarial Risks, Token Savings, Web Search Security, Claims Forwarding; then
+  "Advanced policies & classifications". One shared draft > Review changes > Publish revision
+- Card anchors #policy-surface-<id>: server-access, onemcp, discovery-visibility, invocation, human-approval,
+  usage-limits, data-risks, token-saving, ...
+- When on, the server's Tools, Guardrails, Token saving and Group & User Rules sections are tagged
+  "Controlled by Policy Engine"; the panel shows "Policy Engine active - Revision N" and "Controlled by Policy
+  Engine. Live requests follow the published ... policies." > View policies or Edit anyway (edits the legacy
+  per-server values used only when the engine is off). General, Input aliases and API tokens stay editable
+
 RELATED PAGES
-- Policy Engine MCP target: sidebar Policy Engine > MCP Gateway (/policy/engine/mcp-gateway; /new, /history, /code, /simulate). When enabled, Tools, Guardrails, Token saving and Group & User Rules on the server follow published policies; Configure shows "Controlled by Policy Engine" and those sections go read-only ("Edit anyway" edits the per-server values used when the policy is off). General and API tokens stay editable
-- Findings & Interactions (/interactions): MCP filter fields: MCP server, tool, agent, called via, auth mode, input DLP, output DLP, session
+- Findings & Interactions (/interactions): MCP filter fields: MCP server, tool, agent, called via, auth mode,
+  input DLP, output DLP, session
 - Costs & Savings (/costs-savings): source/channel "mcp" (URL ?channels=mcp)
-- Data Retention: Settings > Data Settings > Data Retention (covers LLM and MCP data)
-- Export Center: Settings > Data Settings > Export Center (MCP usage presets)
-- Skills Library: Settings > AI Gateway > Skills Library (skills list MCP dependencies)
-- Workflow Agents: Settings > AI Gateway > Workflow Agents (agents pick gateway MCP tools as capabilities)
+- Data Retention / Export Center: Settings > Data Settings (cover LLM and MCP data; MCP usage presets)
+- Skills Library / Workflow Agents: Settings > AI Gateway (skills list MCP dependencies; agents pick MCP tools)
 - Self Service (/self-service): end users link local MCP tools ("Connect your AI app")
 - Audit: Settings > Organization > Audit Logs
 
@@ -70,7 +122,7 @@ DEEP LINKS (append to /settings/mcp-gateway)
 - ?workspace=analytics | activity | connections | health | settings
 - &activity=calls | interactions | findings  (with workspace=activity)
 - &mcp=<inventoryAssetId>  or  &mcps=<id1>,<id2>  (scope workspace; mcp alone opens Settings)
-- &section=general | api | permissions | tools | guardrails | token-saving | input-aliases | access | tokens  (with workspace=settings)
+- &section=general | api | permissions | tools | guardrails | token-saving | input-aliases | access | tokens
 - ?mcp_state=serving|awaiting_connection|no_tools|disabled  ?mcp_auth=oauth|oauth_passthrough|api_key|none
   ?mcp_source=system|library|custom  ?mcp_runtime=remote|local|api  (comma-separate multiple)
 - ?period=..., ?from=...&to=...  (time window)
@@ -78,9 +130,28 @@ DEEP LINKS (append to /settings/mcp-gateway)
 
 GOTCHAS
 - Drawer radio cards (placement, auth mode): click the card label/title, not the hidden input
-- Buttons may be disabled when management is not enabled for the tenant or the role lacks MCP permissions; a warning banner says so
-- Settings tab in the workspace needs exactly one server; with none it says "Choose one server to configure"
-- Settings sections vary by server: API only for API MCPs; Permissions only for OAuth servers with selectable scopes; API tokens not on OAuth servers; Web Search policy only on QuilrAI Web Search
-- Configure edits are drafts; save with the sticky footer button before closing
+- Buttons may be disabled when management is not enabled for the tenant or the role lacks MCP permissions
+- Settings tab needs exactly one server; with none it says "Choose one server to configure"
+- Sections vary by server: API only for API MCPs; Permissions only for OAuth servers with selectable scopes;
+  API tokens and Forward user claims not on OAuth servers; Web Search policy only on QuilrAI Web Search
+- Configure edits are drafts; Save settings in the sticky footer before closing
 - Health ignores the server picker
 - OneMCP opens as a centered dialog, other manage views as side drawers
+
+DOCS (deeper reading; .md URLs return raw markdown)
+- Section home: https://docs.quilrai.dev/mcp-gateway
+- https://docs.quilrai.dev/mcp-gateway/get-started/quick-start.md
+- https://docs.quilrai.dev/mcp-gateway/get-started/onemcp.md
+- https://docs.quilrai.dev/mcp-gateway/servers-and-connections/adding-mcp-servers.md
+- https://docs.quilrai.dev/mcp-gateway/servers-and-connections/mcp-library.md
+- https://docs.quilrai.dev/mcp-gateway/servers-and-connections/api-to-mcp.md
+- https://docs.quilrai.dev/mcp-gateway/servers-and-connections/oauth-connect.md
+- https://docs.quilrai.dev/mcp-gateway/servers-and-connections/allowed-agents.md
+- https://docs.quilrai.dev/mcp-gateway/servers-and-connections/api-tokens.md
+- https://docs.quilrai.dev/mcp-gateway/protect/security-guardrails.md
+- https://docs.quilrai.dev/mcp-gateway/protect/tool-visibility.md
+- https://docs.quilrai.dev/mcp-gateway/protect/group-and-user-rules.md
+- https://docs.quilrai.dev/mcp-gateway/protect/tool-change-watch.md
+- https://docs.quilrai.dev/mcp-gateway/local-mcp/admin-setup.md
+- https://docs.quilrai.dev/mcp-gateway/provider-setup/overview.md
+- Policy Engine: https://docs.quilrai.dev/console/govern/policy-engine.md

@@ -2,6 +2,7 @@
 sidebar_position: 14
 sidebar_custom_props:
   icon: ListChecks
+description: "Connect the Asana V2 MCP server (https://mcp.asana.com/v2/mcp) - create an Asana MCP app in the developer console, add the QuilrAI redirect URL, configure workspace distribution, and paste the Client ID and Client Secret into QuilrAI with Auto-detect auth mode. Covers the retired V1 /sse endpoint and workspace-distribution errors."
 ---
 
 # Asana

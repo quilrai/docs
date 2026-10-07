@@ -12,6 +12,8 @@ cover them. Open it from **Observe > Users**. The page has five tabs: **All
 users**, **Browser deployment**, **Endpoint deployment**, **Accounts** and
 **Quilly**.
 
+![Users in the console](/img/console-v2/pages/users.jpg)
+
 ## All users
 
 One card or row per person, scoped by **Activity period**.

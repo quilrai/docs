@@ -3,6 +3,7 @@ sidebar_position: 6
 sidebar_label: "OAuth permissions"
 sidebar_custom_props:
   icon: KeyRound
+description: "Choose which OAuth scopes a server asks users for and see which tools each scope unlocks."
 ---
 
 # OAuth Permissions

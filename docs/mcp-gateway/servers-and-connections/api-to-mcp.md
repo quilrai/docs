@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Turn an API into MCP tools"
 sidebar_custom_props:
   icon: Plug
+description: "Turn a REST API into MCP tools from an OpenAPI spec or as generic HTTP calls, with credentials, access rules and per-operation control."
 ---
 
 # Turn an API into MCP tools

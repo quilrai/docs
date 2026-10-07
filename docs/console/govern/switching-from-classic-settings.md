@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Switching from classic settings"
 sidebar_custom_props:
   icon: GitBranch
+description: "The conversion review, what each target's conversion compares, activation, which settings freeze, and a recommended first rollout."
 ---
 
 # Switching from classic settings

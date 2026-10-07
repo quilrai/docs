@@ -3,6 +3,7 @@ sidebar_position: 5
 sidebar_label: "Tool change watch"
 sidebar_custom_props:
   icon: History
+description: "Get notified when a server adds, removes or changes tools, and approve or dismiss each change."
 ---
 
 # Tool change watch

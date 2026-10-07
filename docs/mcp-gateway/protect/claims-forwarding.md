@@ -3,6 +3,7 @@ sidebar_position: 8
 sidebar_label: "Claims forwarding"
 sidebar_custom_props:
   icon: Fingerprint
+description: "Forward gateway-generated, versioned user identity to trusted non-OAuth MCP servers in the reserved X-User-Claims header for direct MCP and OneMCP traffic."
 ---
 
 # Claims forwarding

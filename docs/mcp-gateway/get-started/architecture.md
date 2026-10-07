@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Architecture"
 sidebar_custom_props:
   icon: Layers
+description: "Tool call processing pipeline - Authenticate, Authorize, Scan, Policy, Connect - with auth mediation details."
 ---
 
 # Architecture

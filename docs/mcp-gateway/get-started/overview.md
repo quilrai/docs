@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Introduction"
 sidebar_custom_props:
   icon: BookOpen
+description: "The MCP Gateway page in the console - summary tiles, banners, server cards, the workspace tabs and the settings sections."
 ---
 
 # Introduction to the MCP Gateway

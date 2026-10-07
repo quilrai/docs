@@ -2,6 +2,7 @@
 sidebar_position: 15
 sidebar_custom_props:
   icon: Sparkles
+description: "Hosted ten-tool Writer surface for chat, applications, Knowledge Graphs, files, translation, vision, and web search."
 ---
 
 # Writer

@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "Connect your AI app"
 sidebar_custom_props:
   icon: Link
+description: "The one-command user flow for Cursor, Claude Desktop, Claude Code and VS Code - run the version-pinned npm or PyPI connection command, approve the computer in the browser, restart the client, and call a tool. Covers connection states, quilr_connect sign-in, workspace and interpreter flags, and disconnecting."
 ---
 
 # Connect Your AI App

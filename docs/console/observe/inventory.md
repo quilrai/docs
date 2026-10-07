@@ -11,6 +11,8 @@ Inventory is the catalog of every AI asset Quilr has discovered: applications,
 browser extensions, AI clients, models, MCP servers, agents, skills, plugins,
 hooks, repositories and more. Open it from **Observe > Inventory**.
 
+![Inventory in the console](/img/console-v2/pages/inventory.jpg)
+
 The header has **Refresh**, **Export** and the period selector.
 
 ## Summary panels

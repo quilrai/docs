@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Server access"
 sidebar_custom_props:
   icon: Lock
+description: "Allow or deny each MCP server by agent, smart group and user, and how those lists take precedence."
 ---
 
 # Server access

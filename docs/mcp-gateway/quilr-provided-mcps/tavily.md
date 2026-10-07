@@ -2,6 +2,7 @@
 sidebar_position: 20
 sidebar_custom_props:
   icon: Globe
+description: "Eight read-only tools for search, extraction, site mapping, crawling, asynchronous research, usage, and key information."
 ---
 
 # Tavily

@@ -2,6 +2,7 @@
 sidebar_position: 5
 sidebar_custom_props:
   icon: BarChart2
+description: "Eight workbook dispatchers covering worksheets, ranges, formulas, formatting, tables, named ranges, charts, pivots, and function evaluation."
 ---
 
 # Excel

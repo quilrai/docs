@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "Model red teaming"
 sidebar_custom_props:
   icon: BrainCircuit
+description: "Red team one model or compare 2-8 models side by side, from your gateway models, QuilrAI-provided models, or manual entry, with system prompts and Tool Studio."
 ---
 
 # Model Red Teaming

@@ -2,6 +2,7 @@
 sidebar_position: 9
 sidebar_custom_props:
   icon: BookOpen
+description: "Nine-tool Confluence surface for spaces, pages, CQL search, page creation and updates, and comments with no destructive tools."
 ---
 
 # Confluence

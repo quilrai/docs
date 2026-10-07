@@ -2,6 +2,7 @@
 sidebar_position: 13
 sidebar_custom_props:
   icon: PenTool
+description: "Connect Excalidraw - no OAuth app or Client ID/Secret needed; self-host the community Excalidraw MCP server with its live canvas, bridge stdio to streamable HTTP with Supergateway, and add the resulting /mcp URL manually. Covers all 26 tools, environment variables, and network-security guidance."
 ---
 
 # Excalidraw

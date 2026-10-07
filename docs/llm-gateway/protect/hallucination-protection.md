@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "Hallucination protection"
 sidebar_custom_props:
   icon: Target
+description: "Flag or act on responses that are likely fabricated: the per-app Hallucination check in Guardrails, and the Policy Engine card for confidence thresholds and actions."
 ---
 
 # Hallucination protection

@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "MCP Library"
 sidebar_custom_props:
   icon: LibraryBig
+description: "Browse and search the MCP Library, filter by status, type and sign-in, install or set up servers, and handle install requests from users."
 ---
 
 # MCP Library

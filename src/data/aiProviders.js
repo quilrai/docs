@@ -91,18 +91,51 @@ export const AI_PROVIDERS = [
   },
 ];
 
+// Prompts point assistants at markdown sources generated from the docs at
+// build time (plugins/llms-txt.js), so answers use the current docs.
+function productSources(site, product) {
+  if (!product) return [`- All QuilrAI docs (index): ${site}/llms.txt`];
+  const out = [
+    `- ${product.name} docs index: ${site}/llms/${product.slug}.txt`,
+    `- ${product.name} docs, full text: ${site}/llms/${product.slug}-full.txt`,
+  ];
+  if (product.consoleGuide) {
+    out.push(`- ${product.name} admin console guide (exact screen labels and URLs): ${site}${product.consoleGuide}`);
+  }
+  return out;
+}
+
+const ANSWER_RULES =
+  'Answer from these sources, quote exact console labels, and link the docs page you used. If the docs do not cover something, say so instead of guessing.';
+
 /**
  * @param {string} pageTitle
- * @param {string} canonicalPageUrl
+ * @param {string} pageMarkdownUrl  the page URL with a .md suffix
+ * @param {{site: string, product?: object}} ctx
  */
-export function buildDocPageAiPrompt(pageTitle, canonicalPageUrl) {
-  return `Please read this documentation page and help me with questions about it.\n\nTitle: ${pageTitle}\nURL: ${canonicalPageUrl}`;
+export function buildDocPageAiPrompt(pageTitle, pageMarkdownUrl, {site, product} = {}) {
+  const lines = [
+    `I have questions about this QuilrAI documentation page: "${pageTitle}".`,
+    '',
+    'Read it first:',
+    `- ${pageMarkdownUrl}`,
+  ];
+  if (site) lines.push('', 'For related context:', ...productSources(site, product));
+  lines.push('', ANSWER_RULES);
+  return lines.join('\n');
 }
 
 /**
- * @param {string} productName
- * @param {string} llmsTxtUrl
+ * @param {string} docsName  e.g. "QuilrAI MCP Gateway"
+ * @param {{site: string, product?: object}} ctx
  */
-export function buildProductIndexAiPrompt(productName, llmsTxtUrl) {
-  return `Please read the ${productName} documentation at ${llmsTxtUrl} and help me with questions about it.`;
+export function buildProductIndexAiPrompt(docsName, {site, product} = {}) {
+  return [
+    `I have questions about the ${docsName} documentation.`,
+    '',
+    'Read these first:',
+    ...productSources(site, product),
+    '',
+    ANSWER_RULES,
+  ].join('\n');
 }

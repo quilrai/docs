@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Quick start"
 sidebar_custom_props:
   icon: Rocket
+description: "Create an app in the console (platform providers or app-only credentials, guardrail defaults), send a first request, and check Activity."
 ---
 
 # Quick Start

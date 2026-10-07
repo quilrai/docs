@@ -2,6 +2,7 @@
 sidebar_position: 14
 sidebar_custom_props:
   icon: MessageSquareText
+description: "Four read-only meeting-intelligence tools for meeting details, transcripts, and structured notes."
 ---
 
 # Avoma

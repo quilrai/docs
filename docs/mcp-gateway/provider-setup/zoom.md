@@ -2,6 +2,7 @@
 sidebar_position: 8
 sidebar_custom_props:
   icon: Video
+description: "Connect Zoom's remote MCP server - create a Zoom Marketplace General App with user-managed OAuth, add the QuilrAI callback to the redirect URL and allow list, register the granular scopes for the Zoom, Docs, or Whiteboard server, and copy the Client ID and Client Secret for manual OAuth."
 ---
 
 # Zoom

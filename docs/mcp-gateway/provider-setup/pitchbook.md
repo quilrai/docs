@@ -2,6 +2,7 @@
 sidebar_position: 20
 sidebar_custom_props:
   icon: TrendingUp
+description: "Connect the PitchBook Premium Connector remote MCP - its Dynamic Client Registration is allowlisted, so confirm licence, SSO, and MCP service access, ask PitchBook to register the QuilrAI callback and return a Client ID and Client Secret (or allowlist the callback for DCR), install from the MCP Library with OAuth credentials or use OAuth passthrough for partner clients, restrict the server to licensed seats with Access Control, and roll out read-only."
 ---
 
 # PitchBook

@@ -2,6 +2,7 @@
 sidebar_position: 21
 sidebar_custom_props:
   icon: ShieldCheck
+description: "Remotely operated Cycode CLI MCP wrapper for service status and secret scanning without general shell access."
 ---
 
 # Cycode

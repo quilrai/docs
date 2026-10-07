@@ -2,6 +2,7 @@
 sidebar_position: 18
 sidebar_custom_props:
   icon: ShieldCheck
+description: "Connect the Netskope-hosted MCP server (technology preview, requires a signed Test Evaluation Agreement) - no OAuth app or Client ID/Secret; combine a Netskope-issued 6-character access code in the URL path with a REST API v2 bearer token, format the tenant identifier for multi-region tenants, and allowlist the MCP server egress IPs 184.32.255.197/32 and 52.89.242.156/32. Covers the ~77 tools across events, incidents, policy, users, IPsec, and DNS security, and the write tools that change enforcement configuration."
 ---
 
 # Netskope

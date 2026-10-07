@@ -3,6 +3,7 @@ sidebar_position: 6
 sidebar_label: "Security guardrails"
 sidebar_custom_props:
   icon: ShieldCheck
+description: "Data risk and adversarial categories on tool arguments and tool results, with Block, Redact, Partial Redact and Monitor actions."
 ---
 
 # Security guardrails

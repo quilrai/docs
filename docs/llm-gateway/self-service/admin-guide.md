@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Admin guide"
 sidebar_custom_props:
   icon: ShieldCheck
+description: "For QuilrAI platform admins - choose a credential mode, grant Viewer Access, Settings Request Access, Direct Settings Update, API Key Visibility, and All Logs Visibility, scope each with Everyone/Specific rules, smart groups, and exceptions, review change requests, and revoke access."
 ---
 
 # Admin Guide

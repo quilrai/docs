@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_custom_props:
   badge: flagship
   icon: Sparkles
+description: "Flagship unified Microsoft 365 MCP for Outlook mail and calendar, OneDrive, SharePoint, Teams, directory, OneNote, cross-workload search, batch operations, and delta sync, including a capability comparison with ChatGPT Outlook and SharePoint connectors."
 ---
 
 # Microsoft 365 v3

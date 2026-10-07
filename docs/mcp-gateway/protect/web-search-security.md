@@ -3,6 +3,7 @@ sidebar_position: 7
 sidebar_label: "Web search security"
 sidebar_custom_props:
   icon: Globe
+description: "Connect Zscaler Internet Access and apply its URL decisions, URL overrides and group domain exclusions to QuilrAI Web Search."
 ---
 
 # Web search security

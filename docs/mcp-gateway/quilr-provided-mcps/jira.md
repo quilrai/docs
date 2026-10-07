@@ -2,6 +2,7 @@
 sidebar_position: 8
 sidebar_custom_props:
   icon: Clipboard
+description: "Compact ten-tool Jira surface for projects, issue retrieval and search, creation, assignment, transitions, and comments."
 ---
 
 # Jira

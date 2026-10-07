@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "Integration guide"
 sidebar_custom_props:
   icon: Plug
+description: "Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway, including OpenAI-compatible access to Bedrock Converse, Vertex AI Gemini, and Anthropic Messages models, boto3 Bedrock Runtime, Sarvam speech and text, and Copilot Studio."
 ---
 
 import Tabs from '@theme/Tabs';

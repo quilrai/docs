@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Build a package"
 sidebar_custom_props:
   icon: Wrench
+description: "Package definition schema for bundled MCP source, package rules and limits (source, tools, Python requirements.lock, Node lockfile v3, environment names, immutable versioning), environment variable handling, Playwright and CLI-wrapper guidance, and designing for serialized execution."
 ---
 
 # Build Your Own Package

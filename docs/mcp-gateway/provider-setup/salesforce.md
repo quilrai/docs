@@ -2,6 +2,7 @@
 sidebar_position: 21
 sidebar_custom_props:
   icon: Cloud
+description: "Connect Salesforce two ways - the Salesforce Hosted MCP servers (activate SObject Reads/Mutations/Deletes/All, create an External Client App with the QuilrAI callback URL, mcp_api and refresh_token scopes, PKCE, refresh token rotation, and JWT-based access tokens, then use the Consumer Key as the Client ID with no secret), or the third-party Cirra (Salesforce MCP) admin server (https://mcp.cirra.ai/mcp) installed from the MCP Library with optional Client ID/Secret left empty, authorized by signing in with a Salesforce account. Covers sandbox URLs and troubleshooting."
 ---
 
 # Salesforce

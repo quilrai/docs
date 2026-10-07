@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Group and user rules"
 sidebar_custom_props:
   icon: UserCog
+description: "Override tools, confirmation, guardrails and token saving for a smart group or a single user, and preview a user's effective settings."
 ---
 
 # Group and user rules

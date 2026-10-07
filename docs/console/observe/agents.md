@@ -11,6 +11,8 @@ Agents lists every AI agent observed across your estate, and the skills, MCP
 servers, system prompts, models and people behind each one. Open it from
 **Observe > Agents**.
 
+![Agents in the console](/img/console-v2/pages/agents.jpg)
+
 Source chips at the top show which sources contribute agents, for example
 Azure AI Foundry, Copilot Studio, Endpoint discovered, Endpoint runtime, MCP
 Gateway and OpenAI Compliance. The headline tiles are **Agents observed**,

@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Author, simulate and publish"
 sidebar_custom_props:
   icon: Workflow
+description: "The draft, validate, simulate, replay, publish and roll back loop, plus permissions and engine limits."
 ---
 
 # Author, simulate and publish

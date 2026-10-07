@@ -3,6 +3,7 @@ sidebar_position: 4
 sidebar_label: "Allowed agents"
 sidebar_custom_props:
   icon: Bot
+description: "Match AI clients by user-agent keyword, choose which MCP servers each agent can use, and add custom agents."
 ---
 
 # Allowed Agents

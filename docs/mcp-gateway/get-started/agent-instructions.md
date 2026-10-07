@@ -3,6 +3,7 @@ sidebar_position: 6
 sidebar_label: "Agent instructions"
 sidebar_custom_props:
   icon: MessageSquareText
+description: "Copy-paste custom-instruction text that steers Claude, ChatGPT, and GitHub Copilot to use the OneMCP discovery flow (find_relevant_tools, call_tool, list_mcp_connections), with per-client placement and org-level admin push options and scope caveats."
 ---
 
 # Agent Custom Instructions

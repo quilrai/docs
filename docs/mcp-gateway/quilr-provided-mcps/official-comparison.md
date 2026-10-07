@@ -2,6 +2,7 @@
 sidebar_position: 2
 sidebar_custom_props:
   icon: BarChart2
+description: "Provider-by-provider comparison of official MCP or API coverage with Quilr's custom tool surface, operating model, safety controls, compound tools, and known limits."
 ---
 
 # Official MCP Comparison

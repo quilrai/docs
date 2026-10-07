@@ -2,6 +2,7 @@
 sidebar_position: 4
 sidebar_custom_props:
   icon: Database
+description: "Six consolidated tools for SharePoint sites, drives, files, folders, lists, list items, URL resolution, controlled writes, and confirmed deletes."
 ---
 
 # SharePoint

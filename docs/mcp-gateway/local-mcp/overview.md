@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Local MCP overview"
 sidebar_custom_props:
   icon: BookOpen
+description: "Run administrator-approved Python and Node MCP servers on a user's own computer with every tool call still checked by the gateway - what runs on the user's computer versus the gateway, how it differs from remote OneMCP, prerequisites, and current boundaries (macOS/Linux only, not an OS sandbox, no offline execution)."
 ---
 
 # Local MCP Overview

@@ -3,6 +3,7 @@ sidebar_position: 5
 sidebar_label: "HA and SLA"
 sidebar_custom_props:
   icon: Activity
+description: "Regional endpoints, recommended retry strategy, connection pooling, and 99.6% uptime SLA."
 ---
 
 # HA & SLA

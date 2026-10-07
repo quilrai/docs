@@ -3,6 +3,8 @@ import { useDoc } from "@docusaurus/plugin-content-docs/client";
 import { usePluginData } from "@docusaurus/useGlobalData";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import { AI_PROVIDERS, buildDocPageAiPrompt } from "@site/src/data/aiProviders";
+import { productForPath } from "@site/src/data/products";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import { Copy, Check, ChevronDown } from "lucide-react";
 
 const menuItemCls =
@@ -42,7 +44,11 @@ export default function DocPageCopyDropdown() {
   const hasMarkdown = Boolean(markdown?.trim());
 
   const pageUrl = useBaseUrl(metadata.permalink + '.md', { absolute: true });
-  const aiMessage = buildDocPageAiPrompt(metadata.title, pageUrl);
+  const { siteConfig } = useDocusaurusContext();
+  const aiMessage = buildDocPageAiPrompt(metadata.title, pageUrl, {
+    site: siteConfig.url.replace(/\/$/, ""),
+    product: productForPath(metadata.permalink),
+  });
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [copiedMd, setCopiedMd] = useState(false);

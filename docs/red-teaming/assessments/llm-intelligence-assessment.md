@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "LLM Intelligence Assessment"
 sidebar_custom_props:
   icon: FlaskConical
+description: "Benchmark the model behind an app against fixed adversarial and capability suites. Covers simulating your app with a system prompt and tool schemas, the Guardian counterfactual, and compliance framework rollups."
 ---
 
 # LLM Intelligence Assessment
