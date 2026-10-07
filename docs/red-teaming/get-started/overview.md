@@ -22,7 +22,7 @@ The Red Teaming page has one tab per tool.
 |-----|--------|---------------|--------|
 | [LLM Intelligence Assessment](../assessments/llm-intelligence-assessment) | The model behind an LLM Gateway app (provider, model, system prompt, tools) | A fixed corpus of adversarial and benchmark suites (Prompt Attacks, Grounded Answering, Hallucination, and more) | Pass rate per suite, Guardian counterfactual, framework rollups, knowledge horizon |
 | [MCP Threat Detection](../assessments/mcp-threat-detection) | An MCP server: a public repository and/or a live server | Static and dependency (CVE) scan, read-only tool-surface enumeration, threat model | A scan with findings and coverage |
-| [Agentic Red Teaming](../assessments/agentic-red-teaming) | A live agent over HTTP or voice | Adaptive, multi-turn attacks, including tool abuse | Letter grade, risk score, findings, remediation |
+| [Agentic Red Teaming](../assessments/agentic-red-teaming) | A live agent over HTTP, WebSocket, or voice | Adaptive, multi-turn attacks, including tool abuse | Letter grade, risk score, findings, remediation |
 | [Model Red Teaming](../assessments/model-red-teaming) | One model, or 2 to 8 models side by side | The same adaptive engine as Agentic Red Teaming, pointed at the model directly | Letter grade, risk score, findings; a campaign view when comparing |
 
 ## Model behind an app vs. the live app
@@ -31,7 +31,7 @@ The two most common choices test different things:
 
 | | LLM Intelligence Assessment | Agentic Red Teaming |
 |---|---|---|
-| What is attacked | The model configured on an LLM Gateway app | Your deployed agent or app at its own HTTP or voice endpoint |
+| What is attacked | The model configured on an LLM Gateway app | Your deployed agent or app at its own HTTP, WebSocket, or voice endpoint |
 | How it is called | Directly at the provider, with the app's provider credentials, system prompt and tool definitions | Through the same endpoint your users call, so whatever sits in that path (including the gateway, if the app uses it) is tested |
 | Gateway guardrails in the path | No. The run measures the raw model, so you can see how much protection the gateway needs to add. | Yes, if your app sends its traffic through the gateway |
 | Use it to | Benchmark or compare models behind a gateway app | Test the live app or agent end to end before launch |
@@ -61,7 +61,7 @@ Agentic and Model Red Teaming share the same sub-tabs (**New assessment**, **Run
 |------|----------|
 | LLM Intelligence Assessment | An LLM Gateway app with a configured provider and model, and an **active Quilr key**. The form warns when the app has none. See [Applications and keys](../../llm-gateway/apps-and-providers/applications-and-keys). |
 | MCP Threat Detection | A public repository URL and/or a reachable MCP server. |
-| Agentic Red Teaming | An agent endpoint you are authorized to test (HTTP endpoint or voice agent). |
+| Agentic Red Teaming | An agent endpoint you are authorized to test (HTTP endpoint, WebSocket endpoint, or voice agent). |
 | Model Red Teaming | A model source. Models connected in **Settings › Models** appear as **Your models**; see [Providers and models](../../llm-gateway/apps-and-providers/providers-and-models). |
 
 :::warning

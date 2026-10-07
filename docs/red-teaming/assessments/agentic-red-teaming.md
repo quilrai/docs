@@ -3,7 +3,7 @@ sidebar_position: 3
 sidebar_label: "Agentic red teaming"
 sidebar_custom_props:
   icon: Target
-description: "Multi-turn adversarial assessment of a live AI agent over HTTP or voice - connect, choose attack coverage (Quick scan, Full library, Select attacks, custom objectives), and launch with an evaluation policy."
+description: "Multi-turn adversarial assessment of a live AI agent over HTTP, WebSocket, or voice - connect, choose attack coverage (Quick scan, Full library, Select attacks, custom objectives), and launch with an evaluation policy."
 ---
 
 # Agentic Red Teaming
@@ -18,7 +18,7 @@ Open **Assessments → Red Teaming**. The page has four tabs:
 |-----|---------------|------|
 | **LLM Intelligence Assessment** | Fixed adversarial and benchmark suites against a gateway app's model | [LLM Intelligence Assessment](./llm-intelligence-assessment) |
 | **MCP Threat Detection** | Supply-chain scan of an MCP server (repository, dependencies, live tool surface) | [MCP Threat Detection](./mcp-threat-detection) |
-| **Agentic Red Teaming** | Adaptive attacks against a live agent over HTTP or voice | This page |
+| **Agentic Red Teaming** | Adaptive attacks against a live agent over HTTP, WebSocket, or voice | This page |
 | **Model Red Teaming** | The same adaptive engine pointed directly at one model, or 2-8 models side by side | [Model Red Teaming](./model-red-teaming) |
 
 Agentic and Model Red Teaming share one sub-navigation: **New assessment**, **Runs**, **Findings**, and **Schedules**. Runs, findings, and schedules are shared between both tabs.
@@ -29,7 +29,7 @@ Agentic and Model Red Teaming share one sub-navigation: **New assessment**, **Ru
 
 <StepFlow
   steps={[
-    { label: '01 Connect', items: ['HTTP endpoint or voice agent', 'Test connection'] },
+    { label: '01 Connect', items: ['HTTP, WebSocket, or voice agent', 'Test connection'] },
     { label: '02 Challenge', items: ['Quick scan, full library, or selected attacks', 'Optional custom objectives'] },
     { label: '03 Launch', items: ['Authorized scope', 'Depth + evaluation policy'] },
     { label: 'Engine runs', items: ['Benign recon', 'Tool-targeted objectives synthesized', 'Multi-turn attacks'] },
@@ -49,6 +49,7 @@ Give the assessment a **Name** (for example "Support Bot"), then choose **How do
 | Option | Use it when |
 |--------|-------------|
 | **HTTP endpoint** (default) | The agent answers over an HTTPS chat API your application already calls. |
+| **WebSocket endpoint** | The agent answers over a secure WebSocket (`wss://`) your application keeps open. |
 | **Voice agent** | The agent answers over a spoken channel: a realtime voice model, a hosted voice agent, or an audio endpoint. |
 
 ### HTTP endpoint
@@ -95,6 +96,48 @@ then the defaults already match: Reply path `reply`, Session-id path `session_id
 :::tip
 Returning the session id keeps multi-turn attacks coherent. Exposing tool calls lets the engine detect when the agent was induced to invoke a tool.
 :::
+
+To try this end to end, run the [HTTP agent example](https://github.com/quilrai/red-teaming-examples/tree/main/http-agent). It uses exactly this request and reply shape, so the defaults work as is.
+
+### WebSocket endpoint
+
+Choose **WebSocket endpoint** when your agent keeps a WebSocket open and answers each message with one or more frames, for example a typing indicator, streamed tokens, and a final frame.
+
+![WebSocket endpoint fields: WebSocket URL, Subprotocols, Opening message, When is a reply finished, Done path and Done value, Join the text of every frame, Connection, the reply mapping paths, Message template, Custom headers, the replay-safe checkbox, and Test connection](/img/red-teaming/agentic-connect-websocket-endpoint.png)
+
+| Field | Default | Notes |
+|-------|---------|-------|
+| **WebSocket URL** | placeholder `wss://agent.example.com/chat` | Your agent's secure WebSocket. Only `wss://` is accepted. Put authentication in custom headers, not the URL. Socket.IO endpoints are not supported. |
+| **Subprotocols** | Empty | Optional. Offered during the handshake, for example `graphql-transport-ws`. Separate several with commas. Treated as a secret and never stored with results. |
+| **Opening message** | Empty | Optional. Sent once after connecting, before the first message, for example an auth or session-start frame. Treated as a secret and never stored with results. |
+| **When is a reply finished?** | **First reply message** | **First reply message**: the first frame that carries reply text. **Done marker**: a frame where **Done path** is present and true, or equals **Done value** if you set one. **Quiet period**: the agent sends no frame for **Quiet period (s)** (default 2). |
+| **Join the text of every frame in the reply** | Off | With **Done marker** or **Quiet period**, joins the text of every frame. Use it for agents that stream a reply token by token. |
+| **Connection** | **Keep the connection open** | **Keep the connection open**: one connection per attack, so the agent keeps its own conversation context. **Reconnect for each message**: a new connection for every message; include `{{history}}` in the template if the agent keeps no context. |
+| **Reply path**, **Session-id path**, **Tool-calls path**, **Timeout (s)** | As for HTTP | Applied to each frame the agent sends. Without a reply path, only a plain-text frame or a common reply field counts as reply text; status frames such as `{"type": "typing"}` are ignored. |
+| **Message template** | `{"message": "{{message}}", "session_id": "{{session_id}}"}` | The frame sent for each turn. Same placeholders as the HTTP request body template. |
+| **Custom headers (optional)** | One `Authorization` row | Sent with the WebSocket handshake. |
+| **Confirmation replay is safe for this WebSocket endpoint** | Off | Same as for HTTP endpoints. |
+
+Click **Test connection** before you launch. It connects, sends the opening message if you set one, sends one benign message, and checks the reply mapping.
+
+#### Example: a streaming agent
+
+If your agent greets a new connection, then streams each reply:
+
+```text
+agent  -> {"type": "ready", "session_id": "rt-abc123"}
+you    -> {"message": "What is my balance?"}
+agent  -> {"type": "typing"}
+agent  -> {"type": "delta", "text": "Your "}
+agent  -> {"type": "delta", "text": "alice "}
+agent  -> {"type": "delta", "text": "balance: "}
+agent  -> {"type": "delta", "text": "$420.00."}
+agent  -> {"type": "complete", "actions": [{"name": "get_balance", "arguments": {"customer": "alice"}}]}
+```
+
+then set **When is a reply finished?** to **Done marker** with **Done path** `type` and **Done value** `complete`, turn on **Join the text of every frame in the reply**, and set **Reply path** `text`, **Session-id path** `session_id`, **Tool-calls path** `actions`, and the **Message template** to `{"message": "{{message}}"}`.
+
+The [WebSocket agent example](https://github.com/quilrai/red-teaming-examples/tree/main/websocket-agent) implements this protocol, including bearer auth on the handshake, an optional subprotocol, and an optional opening auth frame, with the matching settings in its README.
 
 ### Voice agent
 

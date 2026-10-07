@@ -25,7 +25,7 @@ description: "Benchmark the model behind an app against fixed adversarial and ca
 LLM Intelligence Assessment is the first tab on **Assessments → Red Teaming** (it was previously called Red Team Testing). It executes adversarial and benchmark suites against configured LLM Gateway applications, compares runs, and lets you review individual cases. The tab has two views: **Run red team** and **Results**.
 
 :::tip Looking for adaptive attacks on a live agent or model?
-This page covers the fixed-corpus assessment. For adaptive, multi-turn attacks against a live HTTP or voice agent, see [Agentic Red Teaming](./agentic-red-teaming). To attack a model directly or compare models, see [Model Red Teaming](./model-red-teaming).
+This page covers the fixed-corpus assessment. For adaptive, multi-turn attacks against a live HTTP, WebSocket, or voice agent, see [Agentic Red Teaming](./agentic-red-teaming). To attack a model directly or compare models, see [Model Red Teaming](./model-red-teaming).
 :::
 
 The test calls the selected provider **directly**, using the app's own provider credentials, system prompt, and tool definitions. Gateway guardrails are deliberately not in the path. That means a run measures what the underlying model does when attacked or stressed, which is the number you need in order to decide how much protection the gateway has to add on top.

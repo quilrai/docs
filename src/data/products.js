@@ -83,7 +83,7 @@ export const products = [
     tasks: [
       {title: 'Assess a gateway app', desc: "Run suites against the app's configured model through the gateway", to: '/red-teaming/assessments/llm-intelligence-assessment'},
       {title: 'Vet an MCP server', desc: 'Static, dependency and live tool-surface scan', to: '/red-teaming/assessments/mcp-threat-detection'},
-      {title: 'Red team an agent', desc: 'Attack any HTTP or voice agent endpoint', to: '/red-teaming/assessments/agentic-red-teaming'},
+      {title: 'Red team an agent', desc: 'Attack any HTTP, WebSocket, or voice agent endpoint', to: '/red-teaming/assessments/agentic-red-teaming'},
       {title: 'Compare models', desc: 'Run the same attacks on 2 to 8 models', to: '/red-teaming/assessments/model-red-teaming'},
     ],
   },
