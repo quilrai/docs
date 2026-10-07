@@ -2,6 +2,12 @@
 // change landed on main (git log --first-parent of the page's source file).
 export const updates = [
   {
+    date: '2026-10-08',
+    product: 'agents',
+    title: 'Workflow Agents docs: builder, teams, sharing and Slack',
+    to: '/workflow-agents/get-started/overview',
+  },
+  {
     date: '2026-10-07',
     product: 'mcp',
     title: 'MCP Gateway docs rewritten for the V2 console',

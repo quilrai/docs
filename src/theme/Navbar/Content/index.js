@@ -43,9 +43,10 @@ export function ProductTabs({className, onNavigate}) {
           className={clsx('qd-tab', active?.id === p.id && 'navbar__link--active')}
           style={{'--tc': `var(--c-${p.id})`}}
           aria-current={active?.id === p.id ? 'true' : undefined}
+          title={p.navLabel ? p.name : undefined}
           onClick={onNavigate}>
           <ProductIcon product={p} size={15} />
-          {p.name}
+          {p.navLabel || p.name}
         </Link>
       ))}
     </nav>

@@ -62,7 +62,7 @@ agents and models for weaknesses.
 
 | Group | Pages |
 |---|---|
-| AI Gateway | [Workflow Agents](../settings-ai-gateway/workflow-agents), [LLM Gateway](../../llm-gateway), [MCP Gateway](../../mcp-gateway), [Models](../../llm-gateway/apps-and-providers/providers-and-models), [Skills Library](../settings-ai-gateway/skills-library) |
+| AI Gateway | [Workflow Agents](../../workflow-agents), [LLM Gateway](../../llm-gateway), [MCP Gateway](../../mcp-gateway), [Models](../../llm-gateway/apps-and-providers/providers-and-models), [Skills Library](../settings-ai-gateway/skills-library) |
 | Organization | [General](../settings-organization/general-and-domains), [Smart Groups](../settings-organization/smart-groups), [Roles & Permissions](../settings-organization/roles-and-permissions), [Single sign-on](../settings-organization/single-sign-on), [Organizational Policies](../settings-organization/organizational-policies), [Data Sources](../settings-organization/data-sources), [Audit Logs](../settings-organization/audit-logs) |
 | Data management | [Data Retention](../settings-data/data-retention), [Export Center](../settings-data/export-center) |
 | Other | [Integrations](../../integrations), [Endpoint Agent](../../endpoint-agent/configure/agent-settings), [Browser Extension](../../browser-extension/configure/extension-settings), [User Interaction Hub](../settings-sensors/end-user-popups), [User Profile and Display](../settings-sensors/display-and-profile) |

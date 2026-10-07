@@ -39,6 +39,7 @@
   --c-browser: #a16207;  --s-browser: #fbf1dc;
   --c-endpoint: #1d4ed8; --s-endpoint: #e6edfd;
   --c-integ: #7e22ce;    --s-integ: #f3e8fd;
+  --c-agents: #c2410c;   --s-agents: #fdede3;
   --qd-shadow: 0 1px 2px rgba(14,25,21,.06), 0 8px 24px -12px rgba(14,25,21,.18);
   --qd-r-sm: 6px;
   --qd-r-md: 10px;
@@ -616,6 +617,7 @@
   --c-browser: #fcd34d; --s-browser: #2f2612;
   --c-endpoint: #93c5fd; --s-endpoint: #142240;
   --c-integ: #d8b4fe; --s-integ: #2a1a3d;
+  --c-agents: #fdba74; --s-agents: #35200f;
   --qd-shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.6);
 
   --docs-dark-bg: var(--qd-surface);
@@ -2819,6 +2821,7 @@ html[data-product="red"]      { --product-accent: var(--c-red);      --product-a
 html[data-product="browser"]  { --product-accent: var(--c-browser);  --product-accent-soft: var(--s-browser); }
 html[data-product="endpoint"] { --product-accent: var(--c-endpoint); --product-accent-soft: var(--s-endpoint); }
 html[data-product="integ"]    { --product-accent: var(--c-integ);    --product-accent-soft: var(--s-integ); }
+html[data-product="agents"]   { --product-accent: var(--c-agents);   --product-accent-soft: var(--s-agents); }
 
 html,
 body {
@@ -2897,8 +2900,8 @@ body {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 11px;
+  gap: 6px;
+  padding: 0 10px;
   font-size: 14px;
   font-weight: 500;
   color: var(--qd-muted);
@@ -4063,6 +4066,54 @@ body {
   color: var(--qd-muted);
 }
 
+/* Workflow Agents: a frame around the LLM Gateway and MCP Gateway lanes. The
+   negative margin keeps the framed lanes aligned with the ones above. */
+.qd-agents {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  margin: 8px -12px 0;
+  padding: 22px 12px 12px;
+  border: 1.5px dashed var(--c-agents);
+  border-radius: var(--qd-r-lg);
+  background: color-mix(in srgb, var(--s-agents) 45%, transparent);
+}
+
+.qd-agents__tag,
+.qd-agents__note {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--qd-sunken);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.qd-agents__tag {
+  left: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1.5px solid var(--c-agents);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-agents);
+}
+
+.qd-agents__tag:hover {
+  background: var(--s-agents);
+  color: var(--c-agents);
+  text-decoration: none;
+}
+
+.qd-agents__note {
+  right: 14px;
+  color: var(--qd-muted);
+}
+
 .qd-integ {
   display: flex;
   flex-wrap: wrap;
@@ -4104,6 +4155,21 @@ body {
 
   .qd-cp-red {
     width: auto;
+  }
+
+  .qd-agents {
+    margin: 8px 0 0;
+    padding: 12px;
+  }
+
+  .qd-agents__tag {
+    position: static;
+    justify-self: start;
+    transform: none;
+  }
+
+  .qd-agents__note {
+    display: none;
   }
 
   .qd-flowlabel,
@@ -4206,6 +4272,91 @@ body {
 .qd-journey__p {
   font-size: 12px;
   color: var(--qd-faint);
+}
+
+/* Open source projects */
+.qd-oss {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+}
+
+.qd-oss-card {
+  --product-accent: var(--qd-brand);
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 20px;
+  border: 1px solid var(--qd-line);
+  border-radius: var(--qd-r-lg);
+  background: var(--qd-surface);
+}
+
+.qd-oss-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qd-oss-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.qd-oss-card__tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--qd-brand-soft);
+  color: var(--qd-brand);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.qd-oss-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--qd-muted);
+}
+
+.qd-oss-card p.qd-oss-card__tagline {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--qd-ink);
+}
+
+.qd-oss-card__meta {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--qd-line);
+  font-size: 13.5px;
+}
+
+.qd-oss-card__meta div {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.qd-oss-card__meta dt {
+  font-weight: 400;
+  color: var(--qd-muted);
+}
+
+.qd-oss-card__meta dd {
+  margin: 0;
+  color: var(--qd-ink);
+}
+
+.qd-oss-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
 }
 
 .qd-updates {

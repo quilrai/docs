@@ -265,6 +265,10 @@ const config = {
                                 to: '/',
                             },
                             {
+                                label: 'Open source',
+                                to: '/#open-source',
+                            },
+                            {
                                 label: 'Resources',
                                 href: 'https://www.quilr.ai/resources',
                                 target: '_blank',

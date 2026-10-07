@@ -138,7 +138,7 @@ screen.
 **Activate Agent** starts a Quilly agent that follows up with the people
 behind findings, for example to explain the policy they hit and ask them to
 fix the issue. It is not the Endpoint Agent, and it does not create a
-[Workflow Agent](../settings-ai-gateway/workflow-agents). The same action is
+[Workflow Agent](../../workflow-agents). The same action is
 on **Users > All users** and **Users > Accounts**, where you select people or
 accounts and then choose which of their findings to act on.
 

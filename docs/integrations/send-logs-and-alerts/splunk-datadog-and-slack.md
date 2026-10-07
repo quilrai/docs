@@ -27,7 +27,7 @@ These Library cards send Quilr data **from** Quilr to your security and operatio
 | **Datadog** | Observability | **Datadog site**, the log delivery region (US1, US5, EU1); **Service label**, the service receiving Quilr events (for example `quilr-security`) | **Send logs** (primary), **Alerts & notifications** | Quilr events, and selected alerts routed to operations teams |
 | **Slack** | Workflow | **Slack workspace label**; **Channel label**, the destination for notifications (for example `#ai-security-alerts`) | **Alerts & notifications** | Findings and operational notifications to a Slack channel |
 
-The Slack card is for Quilr notifications. It is not the same as connecting Slack as an MCP tool ([Slack MCP setup](../../mcp-gateway/provider-setup/slack)) or talking to a Workflow Agent from Slack ([Workflow Agents](../../console/settings-ai-gateway/workflow-agents#connect-slack)).
+The Slack card is for Quilr notifications. It is not the same as connecting Slack as an MCP tool ([Slack MCP setup](../../mcp-gateway/provider-setup/slack)) or talking to a Workflow Agent from Slack ([Chat from Slack](../../workflow-agents/slack/chat-from-slack)).
 
 ## Check that it works
 

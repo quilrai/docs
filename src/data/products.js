@@ -1,6 +1,9 @@
-// The seven products the docs are organised around. One sidebar per product
+// The eight products the docs are organised around. One sidebar per product
 // (sidebars.js), one tab per product in the navbar, one landing page per
 // product (docs/<slug>/overview.mdx renders <ProductLanding product="<id>" />).
+//
+// `navLabel` (optional) is a shorter name for the navbar tab, so all eight tabs
+// fit on a laptop screen.
 //
 // Plain data only: this file is imported by docusaurus.config.js (Node) and by
 // theme components (browser).
@@ -69,6 +72,25 @@ export const products = [
     ],
   },
   {
+    id: 'agents',
+    slug: 'workflow-agents',
+    name: 'Workflow Agents',
+    icon: 'Workflow',
+    sub: 'Build and run governed AI agents',
+    tagline:
+      'Build AI agents on your own models and tools, share them with your teams, and run them from the console, chat, Slack or a schedule. Every model call and tool call goes through your gateways.',
+    shot: '/img/products/workflow-agents.jpg',
+    shotCaption: 'Console › Settings › AI Gateway › Workflow Agents',
+    primary: {label: 'Quick start', to: '/workflow-agents/get-started/quick-start'},
+    consoleUrl: 'https://web.quilr.ai/settings/agents',
+    tasks: [
+      {title: 'Build your first agent', desc: 'Describe it, pick a model and tools, publish', to: '/workflow-agents/get-started/quick-start'},
+      {title: 'Start from a template', desc: 'Research, support, code review and more', to: '/workflow-agents/build/library-templates'},
+      {title: 'Chat with it in Slack', desc: 'Connect a Socket Mode Slack app to an agent', to: '/workflow-agents/slack/chat-from-slack'},
+      {title: 'Share and schedule', desc: 'Groups, approvals, recurring runs, versions', to: '/workflow-agents/run-and-share/share-and-manage'},
+    ],
+  },
+  {
     id: 'red',
     slug: 'red-teaming',
     name: 'Red Teaming',
@@ -91,6 +113,7 @@ export const products = [
     id: 'browser',
     slug: 'browser-extension',
     name: 'Browser Extension',
+    navLabel: 'Browser',
     icon: 'Globe',
     sub: 'AI governance where people work',
     tagline:
@@ -110,6 +133,7 @@ export const products = [
     id: 'endpoint',
     slug: 'endpoint-agent',
     name: 'Endpoint Agent',
+    navLabel: 'Endpoint',
     icon: 'Laptop',
     sub: 'Desktop AI, coding agents and local models',
     tagline:
@@ -164,6 +188,7 @@ export function productForPath(pathname) {
 //   after:   for a synthetic category: the folder it is placed after
 export const crossLinks = [
   {in: 'console/settings-ai-gateway', at: 'start', links: [
+    {label: 'Workflow Agents', href: '/workflow-agents', product: 'agents'},
     {label: 'LLM Gateway settings', href: '/llm-gateway', product: 'llm'},
     {label: 'MCP Gateway settings', href: '/mcp-gateway', product: 'mcp'},
     {label: 'Models', href: '/llm-gateway/apps-and-providers/providers-and-models', product: 'llm'},

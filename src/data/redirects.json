@@ -218,5 +218,6 @@
   "/category/requisites": "/endpoint-agent/get-started/requirements",
   "/category/self-service": "/llm-gateway/self-service/overview",
   "/category/std-operating-procedure": "/endpoint-agent/deploy-and-operate/agent-kill-switch",
-  "/console-v1/deployment": "/browser-extension/get-started/prerequisites"
+  "/console-v1/deployment": "/browser-extension/get-started/prerequisites",
+  "/console/settings-ai-gateway/workflow-agents": "/workflow-agents/get-started/overview"
 }

@@ -146,7 +146,7 @@ To send a request to one specific linked provider, pass its label. See [Selectin
 QuilrAI hosts a catalog of chat models behind one OpenAI-compatible endpoint, `https://models.quilrai.dev/v1`. You do not need a provider account: create a model API key, select the models it may call, and send requests.
 
 - **Billing:** each request is charged at the catalog's listed prices (USD per 1M tokens) and drawn from your organization's model credit. Contact QuilrAI support to raise your credit limit.
-- **Shared credit:** the [Playground](#playground), [Workflow Agents](../../console/settings-ai-gateway/workflow-agents) and [Red Teaming](../../red-teaming/assessments/agentic-red-teaming) runs that use QuilrAI-provided models draw from the same credit.
+- **Shared credit:** the [Playground](#playground), [Workflow Agents](../../workflow-agents/get-started/overview) and [Red Teaming](../../red-teaming/assessments/agentic-red-teaming) runs that use QuilrAI-provided models draw from the same credit.
 
 | You want to | Use |
 |---|---|

@@ -8,7 +8,7 @@ import SidebarThemeToggle from '@site/src/components/SidebarThemeToggle';
 import {products, productForPath} from '@site/src/data/products';
 import {ProductIcon} from '@site/src/utils/productIcons';
 
-// Mobile drawer, main menu: the seven products (with icon and one-line sub),
+// Mobile drawer, main menu: the eight products (with icon and one-line sub),
 // then the utility links. Opening a product shows its sidebar as the
 // secondary menu (DocSidebar/Mobile).
 export default function NavbarMobilePrimaryMenu() {

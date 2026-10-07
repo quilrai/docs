@@ -1,15 +1,18 @@
 import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
-import {Search, Sparkles} from 'lucide-react';
+import Heading from '@theme/Heading';
+import {ArrowUpRight, Code, Search, Sparkles} from 'lucide-react';
 import {productById} from '@site/src/data/products';
 import {updates} from '@site/src/data/updates';
+import {openSourceProjects} from '@site/src/data/openSource';
 import {ProductIcon} from '@site/src/utils/productIcons';
 import {ASK_AI_EVENT} from '@site/src/components/AskAiLauncher';
 import {OPEN_SEARCH_EVENT} from '@site/src/theme/SearchBar';
 
 // Homepage: hero, the platform map (Console control plane, Red Teaming, four
-// sensor lanes, Integrations), common starting points and recent updates.
+// sensor lanes with Workflow Agents framing the two gateways, Integrations),
+// common starting points, open source projects and recent updates.
 
 const LANES = [
   ['browser', 'People using AI in the browser', 'ChatGPT, Claude, Gemini, Copilot', 'AI web apps', 'Personal and enterprise accounts'],
@@ -59,8 +62,38 @@ function formatDate(iso) {
   return `${month} ${d}, ${y}`;
 }
 
+// Workflow Agents run on both gateways, so the map draws them as a frame
+// around these two lanes.
+const AGENT_LANES = ['llm', 'mcp'];
+
+function renderLane([id, s1, s2, d1, d2]) {
+  const p = productById[id];
+  return (
+    <div className="qd-lane" key={id} style={{'--lc': `var(--c-${id})`, '--ls': `var(--s-${id})`}}>
+      <div className="qd-lane-src">
+        <b>{s1}</b>
+        <span>{s2}</span>
+      </div>
+      <i className="qd-wire qd-wire--l" aria-hidden="true" />
+      <Link to={`/${p.slug}`} className="qd-sensor">
+        <span className="qd-sensor__ico">
+          <ProductIcon product={p} size={18} />
+        </span>
+        <b>{p.name}</b>
+        <span>{p.sub}</span>
+      </Link>
+      <i className="qd-wire qd-wire--r" aria-hidden="true" />
+      <div className="qd-lane-dst">
+        <b>{d1}</b>
+        <span>{d2}</span>
+      </div>
+    </div>
+  );
+}
+
 function PlatformMap() {
   const red = productById.red;
+  const agents = productById.agents;
   const integ = productById.integ;
   return (
     <div className="qd-pmap" role="group" aria-label="QuilrAI platform map">
@@ -104,30 +137,17 @@ function PlatformMap() {
         <span>Where the traffic goes</span>
       </div>
       <div className="qd-lanes">
-        {LANES.map(([id, s1, s2, d1, d2]) => {
-          const p = productById[id];
-          return (
-            <div className="qd-lane" key={id} style={{'--lc': `var(--c-${id})`, '--ls': `var(--s-${id})`}}>
-              <div className="qd-lane-src">
-                <b>{s1}</b>
-                <span>{s2}</span>
-              </div>
-              <i className="qd-wire qd-wire--l" aria-hidden="true" />
-              <Link to={`/${p.slug}`} className="qd-sensor">
-                <span className="qd-sensor__ico">
-                  <ProductIcon product={p} size={18} />
-                </span>
-                <b>{p.name}</b>
-                <span>{p.sub}</span>
-              </Link>
-              <i className="qd-wire qd-wire--r" aria-hidden="true" />
-              <div className="qd-lane-dst">
-                <b>{d1}</b>
-                <span>{d2}</span>
-              </div>
-            </div>
-          );
-        })}
+        {LANES.filter(([id]) => !AGENT_LANES.includes(id)).map(renderLane)}
+        <div className="qd-agents">
+          <Link to={`/${agents.slug}`} className="qd-agents__tag">
+            <ProductIcon product={agents} size={15} />
+            <span>{agents.name}</span>
+          </Link>
+          <span className="qd-agents__note">
+            Models through the LLM Gateway, tools through the MCP Gateway
+          </span>
+          {LANES.filter(([id]) => AGENT_LANES.includes(id)).map(renderLane)}
+        </div>
       </div>
       <Link to={`/${integ.slug}`} className="qd-integ">
         <div className="qd-node-name" style={{color: 'var(--c-integ)'}}>
@@ -151,7 +171,7 @@ export default function Home() {
   return (
     <Layout
       title="QuilrAI Docs"
-      description="Documentation for the QuilrAI platform: Console, LLM Gateway, MCP Gateway, Red Teaming, Browser Extension, Endpoint Agent and Integrations."
+      description="Documentation for the QuilrAI platform: Console, LLM Gateway, MCP Gateway, Workflow Agents, Red Teaming, Browser Extension, Endpoint Agent and Integrations."
       wrapperClassName="qd-home-wrap">
       <main className="qd-home">
         <div className="qd-home-hero">
@@ -199,6 +219,54 @@ export default function Home() {
                   ))}
                 </ol>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="qd-home-sec">
+          <div className="qd-sec-h">
+            <Heading as="h2" id="open-source">
+              QuilrAI for Open Source
+            </Heading>
+            <p>Free tools we build in the open.</p>
+          </div>
+          <div className="qd-oss">
+            {openSourceProjects.map((p) => (
+              <article className="qd-oss-card" key={p.name}>
+                <div className="qd-oss-card__head">
+                  <h3>{p.name}</h3>
+                  <span className="qd-oss-card__tag">Open source</span>
+                </div>
+                <p className="qd-oss-card__tagline">{p.tagline}</p>
+                <p>{p.desc}</p>
+                <div className="qd-pills">
+                  {p.features.map((f) => (
+                    <span className="qd-pill" key={f}>{f}</span>
+                  ))}
+                </div>
+                <dl className="qd-oss-card__meta">
+                  <div>
+                    <dt>Works with</dt>
+                    <dd>{p.works.join(', ')}</dd>
+                  </div>
+                  <div>
+                    <dt>Runs on</dt>
+                    <dd>{p.platforms}</dd>
+                  </div>
+                  <div>
+                    <dt>Built with</dt>
+                    <dd>{p.stack}</dd>
+                  </div>
+                </dl>
+                <div className="qd-oss-card__links">
+                  <a className="qd-btn qd-btn--primary" href={p.site} target="_blank" rel="noopener noreferrer">
+                    Website <ArrowUpRight size={15} aria-hidden="true" />
+                  </a>
+                  <a className="qd-btn" href={p.repo} target="_blank" rel="noopener noreferrer">
+                    <Code size={15} aria-hidden="true" /> GitHub
+                  </a>
+                </div>
+              </article>
             ))}
           </div>
         </section>
