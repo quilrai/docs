@@ -70,12 +70,15 @@ module.exports = function docPageMarkdownPlugin(context, options = {}) {
       return {
         devServer: {
           setupMiddlewares(middlewares, devServer) {
-            devServer.app.get(/\.md$/, (req, res) => {
-              const permalink = req.path.replace(/\.md$/, '');
+            // <page>.md and its plain-text twin <page>.txt
+            devServer.app.get(/\.(md|txt)$/, (req, res, next) => {
+              const permalink = req.path.replace(/\.(md|txt)$/, '');
               const content = markdownByPermalink[permalink];
               if (content !== undefined) {
                 res.setHeader('Content-Type', 'text/plain; charset=utf-8');
                 res.send(content);
+              } else if (req.path.endsWith('.txt')) {
+                next();
               } else {
                 res.status(404).send('Not found');
               }
@@ -90,10 +93,14 @@ module.exports = function docPageMarkdownPlugin(context, options = {}) {
       const fs = require('fs/promises');
       const path = require('path');
 
+      // Each page as <page>.md and as <page>.txt. GitHub Pages serves .md
+      // as text/markdown, which some AI browsing tools (e.g. ChatGPT) fail to
+      // open; the .txt twin is served as text/plain and always readable.
       for (const [permalink, content] of Object.entries(markdownByPermalink)) {
-        const filePath = path.join(outDir, permalink + '.md');
-        await fs.mkdir(path.dirname(filePath), {recursive: true});
-        await fs.writeFile(filePath, content, 'utf-8');
+        const base = path.join(outDir, permalink);
+        await fs.mkdir(path.dirname(base), {recursive: true});
+        await fs.writeFile(base + '.md', content, 'utf-8');
+        await fs.writeFile(base + '.txt', content, 'utf-8');
       }
     },
   };

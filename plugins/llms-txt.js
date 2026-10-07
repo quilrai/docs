@@ -115,7 +115,7 @@ module.exports = function llmsTxtPlugin(context, options) {
 
       const intro =
         '> QuilrAI governs how an enterprise uses AI: a Console to observe and set policy, an LLM Gateway and MCP Gateway in front of models and tools, a Browser Extension and Endpoint Agent on the workforce side, Red Teaming to test AI systems, and Integrations with the platforms you already run.\n\n' +
-        'Every page is available as markdown by adding `.md` to its URL. Each product also has its own index at /llms/<product>.txt and full content at /llms/<product>-full.txt.';
+        'Every page is available as markdown by adding `.md` to its URL, and as the same content in plain text by adding `.txt` instead (use the `.txt` form if a `.md` link cannot be opened). Each product also has its own index at /llms/<product>.txt and its full content in one plain-text file at /llms/<product>-full.txt.';
       files['llms.txt'] = tidy(`# QuilrAI Documentation\n\n${intro}\n\n${index.join('\n\n')}`);
       files['llms-full.txt'] = tidy(`# QuilrAI Documentation (full)\n\n${intro}\n${fullAll.join('\n')}`);
     },

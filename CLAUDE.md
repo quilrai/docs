@@ -67,7 +67,7 @@ Files or folders starting with `_` are ignored by Docusaurus.
 - `src/css/custom.css` — global CSS (Tailwind v4 via `@tailwindcss/postcss`, + typography plugin).
 
 ### Everything else
-- **`plugins/doc-page-markdown.js`** — serves every doc as a raw `.md` file (dev: middleware; prod: written to `build/`). Powers "copy/view as markdown" and the `.md` URLs in `llms.txt`. If a page exists, `<page>.md` exists.
+- **`plugins/doc-page-markdown.js`** — serves every doc as a raw `.md` file (dev: middleware; prod: written to `build/`). Powers "copy/view as markdown" and the `.md` URLs in `llms.txt`. If a page exists, `<page>.md` and a plain-text twin `<page>.txt` exist (the `.txt` is for AI tools such as ChatGPT that fail on `text/markdown`; prompts link it).
 - **`plugins/llms-txt.js`** - generates the llms.txt family (rule 7).
 - **`scripts/check-sidebar-icons.js`** — the icon enforcer (rule 1). Runs on pre-commit (`--staged`) and via `npm run check-icons` (all).
 - **`static/`** — copied to site root verbatim. `img/` (referenced in docs as `/img/...`), console guides for AI agents (rule 7), `CNAME` (custom domain), `robots.txt`.

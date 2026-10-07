@@ -96,8 +96,8 @@ export const AI_PROVIDERS = [
 function productSources(site, product) {
   if (!product) return [`- All QuilrAI docs (index): ${site}/llms.txt`];
   const out = [
-    `- ${product.name} docs index: ${site}/llms/${product.slug}.txt`,
-    `- ${product.name} docs, full text: ${site}/llms/${product.slug}-full.txt`,
+    `- ${product.name} docs, full text in one file: ${site}/llms/${product.slug}-full.txt`,
+    `- ${product.name} docs index (page list with links): ${site}/llms/${product.slug}.txt`,
   ];
   if (product.consoleGuide) {
     out.push(`- ${product.name} admin console guide (exact screen labels and URLs): ${site}${product.consoleGuide}`);
@@ -110,7 +110,8 @@ const ANSWER_RULES =
 
 /**
  * @param {string} pageTitle
- * @param {string} pageMarkdownUrl  the page URL with a .md suffix
+ * @param {string} pageMarkdownUrl  the page URL with a .md suffix (a .txt twin
+ *   with the same content is published next to it)
  * @param {{site: string, product?: object}} ctx
  */
 export function buildDocPageAiPrompt(pageTitle, pageMarkdownUrl, {site, product} = {}) {
@@ -118,7 +119,8 @@ export function buildDocPageAiPrompt(pageTitle, pageMarkdownUrl, {site, product}
     `I have questions about this QuilrAI documentation page: "${pageTitle}".`,
     '',
     'Read it first:',
-    `- ${pageMarkdownUrl}`,
+    `- ${pageMarkdownUrl.replace(/\.md$/, '.txt')} (plain text)`,
+    `- ${pageMarkdownUrl.replace(/\.md$/, '')} (the same page on the web)`,
   ];
   // Management API pages render their reference from the OpenAPI file
   // (not Unified Completions or Log Export, which are separate APIs).
