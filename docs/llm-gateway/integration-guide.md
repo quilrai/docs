@@ -20,7 +20,8 @@ Connect to the QuilrAI gateway with your existing SDK. Change the base URL and t
 | **Nearest** (auto) | `https://guardrails.quilr.ai` |
 | **USA (US Central West)** | `https://guardrails-usa-1.quilr.ai` |
 | **USA (US East)** | `https://guardrails-usa-2.quilr.ai` |
-| **India** | `https://guardrails-india-1.quilr.ai` |
+| **India 1** | `https://guardrails-india-1.quilr.ai` |
+| **India 2** | `https://guardrails-india-2.quilr.ai` |
 | **Japan** | `https://guardrails-jp-1.quilr.ai` |
 | **Europe** | `https://guardrails-europe-1.quilr.ai` |
 

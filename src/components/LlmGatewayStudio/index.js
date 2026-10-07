@@ -34,7 +34,8 @@ const REGIONS = [
   { label: 'Nearest', value: 'https://guardrails.quilr.ai' },
   { label: 'US Central West', value: 'https://guardrails-usa-1.quilr.ai' },
   { label: 'US East', value: 'https://guardrails-usa-2.quilr.ai' },
-  { label: 'India', value: 'https://guardrails-india-1.quilr.ai' },
+  { label: 'India 1', value: 'https://guardrails-india-1.quilr.ai' },
+  { label: 'India 2', value: 'https://guardrails-india-2.quilr.ai' },
   { label: 'Japan', value: 'https://guardrails-jp-1.quilr.ai' },
   { label: 'Europe', value: 'https://guardrails-europe-1.quilr.ai' },
 ];

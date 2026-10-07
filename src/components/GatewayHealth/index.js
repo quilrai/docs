@@ -27,9 +27,16 @@ const OUR_SERVERS = [
   {
     id: 'india-1',
     group: 'LLM Gateway',
-    label: 'India · Mumbai',
+    label: 'India 1 · Mumbai',
     host: 'guardrails-india-1.quilr.ai',
     url: 'https://guardrails-india-1.quilr.ai',
+  },
+  {
+    id: 'india-2',
+    group: 'LLM Gateway',
+    label: 'India 2 · Mumbai',
+    host: 'guardrails-india-2.quilr.ai',
+    url: 'https://guardrails-india-2.quilr.ai',
   },
   {
     id: 'jp-1',
