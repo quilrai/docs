@@ -14,16 +14,16 @@ A complete, versioned history of every configuration change to an LLM Gateway ap
   {
     label: "Config Changes",
     items: [
-      "alice@acme.com edits guardrails",
+      "Administrator edits guardrails",
       "Save ✓",
     ],
   },
   {
     label: "Version Recorded",
     items: [
-      "v7 · update_config",
-      "Actor: alice@acme.com",
-      "Changed: security_guardrails",
+      "v7 · configuration update",
+      "Actor: administrator",
+      "Changed: security guardrails",
     ],
   },
   {
@@ -41,27 +41,23 @@ Every configuration change to an app is captured as an immutable version. Open t
 
 ## Config History
 
-Each config-changing action records a new version snapshot. A version captures:
+Each configuration change records a new version snapshot. A version captures:
 
 | Field | Description |
 |-------|-------------|
-| **Version** | A sequential number for display (`v7`). Each version also has a stable internal id used for rollback. |
+| **Version** | A sequential number for display (`v7`). Each version also has a stable ID used for rollback. |
 | **Operation** | What triggered the change - for example `update_config`, `set_tags`, `jwt_auth_settings`, `update_custom_category`, `prompt_store_create`, `prompt_store_delete`, or a `rollback`. |
 | **Actor** | Who made the change, attributed from their verified sign-in identity (email / username). |
-| **Time** | When the change was committed. |
-| **Change summary** | Which config sections changed and a list of the individual fields that were added, removed, or updated. |
+| **Time** | When the change was saved. |
+| **Change summary** | Which configuration sections changed and a list of the individual fields that were added, removed, or updated. |
 
 Snapshots are stored with credentials and secrets redacted, so provider API keys, AWS secrets, signing keys, and similar values never appear in audit history.
 
 ## Version Details
 
-Open any version to see what actually changed:
+Each entry in **Configuration versions** shows the version number, the operation, who made the change and when, and its change summary. The live version is tagged **Current**. If you can edit the app, each version has a **Roll back** button. Below the versions, **Audit events** lists configuration and request events for the app.
 
-- **Changed fields** - a compact list of field paths with their change type (added, removed, or updated).
-- **Config diff** - a side-by-side comparison of the previous and new configuration.
-- **Raw snapshots** - the full (redacted) previous and new config, available on demand.
-
-This makes it easy to answer "what changed, when, and by whom" without diffing exports by hand.
+Use this view to review "what changed, when, and by whom" without manually comparing exports.
 
 ## Rollback
 
@@ -69,7 +65,7 @@ When a change causes a problem, an admin can restore a previous version. Rollbac
 
 **Rollback restores** the app's provider settings, enabled guardrail categories, and API-key settings (including that app's custom categories).
 
-**Rollback does not touch** tenant-wide settings such as cross-app permissions, the shared custom-category definition registry, smart groups, or [Policy Engine](../../policy-engine/overview) revisions. Policies have their own revision history and rollback.
+**Rollback does not touch** tenant-wide settings such as cross-app permissions, shared custom-category definitions, smart groups, or [Policy Engine](../../policy-engine/overview) revisions. Policies have their own revision history and rollback.
 
 :::note When rollback is blocked
 Rollback fails if the target version no longer exists, or if the app or the target version has been revoked or made inactive. The confirmation surfaces the reason so nothing is half-applied.
@@ -77,27 +73,27 @@ Rollback fails if the target version no longer exists, or if the app or the targ
 
 ## Change Requests
 
-When [self-service](./self-service/developer-guide) users with Settings Request Access submit a change, it lands here as a change request for an admin to review. The **Audit Log** section lists requests for the current app, filterable by status.
+When [self-service](./self-service/developer-guide) users with Settings Request Access submit a change, it appears here as a change request for an admin to review. The **Audit Log** section lists requests for the current app, filterable by status.
 
 | Status | Meaning |
 |--------|---------|
 | **Pending** | Awaiting an admin decision. |
-| **Approved** | Reviewed and applied to the live config. |
+| **Approved** | Reviewed and applied to the live configuration. |
 | **Rejected** | Declined by an admin, with a reason. |
-| **Failed** | Approved, but applying the change errored. |
-| **Stale** | The app's config changed after the request was submitted, so it can no longer be applied safely. |
+| **Failed** | Approved, but the change could not be applied. |
+| **Stale** | The app's configuration changed after the request was submitted, so it can no longer be applied safely. |
 
-**Approving** a request applies the originally requested change to the live config as a normal, recorded edit. You can add an optional approval comment. As a safeguard, approval re-checks the app against the configuration the request was based on - if the config has changed since submission, the request is marked **stale** instead of applied, and the requester must resubmit against the current config.
+**Approving** a request applies the originally requested change to the live configuration as a normal, recorded edit. You can add an optional approval comment. As a safeguard, approval re-checks the app against the configuration the request was based on - if the configuration has changed since submission, the request is marked **stale** instead of applied, and the requester must resubmit against the current configuration.
 
-**Rejecting** a request requires a reason, which is shown back to the requester. Approve and reject are only available on **pending** requests.
+**Rejecting** a request requires a reason, which is shown to the requester. Approve and reject are only available on **pending** requests.
 
 :::tip Admin edits stay direct
-Approvals only govern self-service requests. An admin editing an app's settings directly still takes effect immediately - those edits are recorded in Config History, not routed through the approval queue.
+Approvals only govern self-service requests. An admin's direct edits to an app's settings still take effect immediately - those edits are recorded in Config History, not routed through the approval queue.
 :::
 
 ## Tenant-Wide Audit Log
 
-Beyond a single app, the **Audit log** button on the **Settings > LLM Gateway** page opens a tenant-wide view of activity across every app, with the application, operation, actor, status and time of each event. It combines two streams - committed config-history events and change-request workflow events - with status filters and a count of everything still pending approval, so admins can monitor governance across all apps from one place.
+Beyond a single app, the **Audit log** button on the **Settings > LLM Gateway** page opens a tenant-wide view of activity across every app, with the application, operation, actor, status and time of each event. It combines configuration changes and change-request events, with status filters and a count of everything still pending approval, so admins can monitor governance across all apps from one place.
 
 ## Permissions
 

@@ -13,7 +13,7 @@ Scan content directly from your application code - no LLM proxy required.
 
 SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages, text, or structured JSON for sensitive data and adversarial inputs.
 
-Want to test a key before wiring it into your app? Open the [LLM Gateway Playground](/llm-gateway-playground) and select **Quilr SDK**. Choose **Text**, **Messages**, or **JSON**, select the request/response check type and hashing mode, then run the check. The playground shows processed content, placeholder mappings, detected JSON paths, and similar names, and generates matching cURL, Python, and JavaScript.
+To test a key before integrating it into your app, open the [LLM Gateway Playground](/llm-gateway-playground) and select **Quilr SDK**. Choose **Text**, **Messages**, or **JSON**, select the request/response check type and hashing mode, then run the check. The playground shows processed content, placeholder mappings, detected JSON paths, and similar names, and generates matching cURL, Python, and JavaScript.
 
 Common uses:
 
@@ -26,7 +26,7 @@ Common uses:
 
 SDK mode requires a dedicated **SDK key** - regular LLM proxy keys are rejected with `403`.
 
-Create an app in **Settings > LLM Gateway > Create App**, choose **App-specific credentials** and pick the **quilr sdk** provider. It is a guardrails-only provider: it has no models and cannot be combined with other providers. Use the app's Quilr key as a Bearer token:
+Create an app in **Settings > LLM Gateway > Create App**, choose **App-only credentials** and select the **Quilr SDK** tile. It is a guardrails-only provider: it has no models and cannot be combined with other providers. Use the app's Quilr key as a Bearer token:
 
 ```
 Authorization: Bearer sk-quilr-xxx
@@ -582,7 +582,7 @@ See [TrueFoundry Integration](./truefoundry) for dashboard setup, selecting inpu
 
 ## LiteLLM Guardrails Integration
 
-If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can plug Quilr guardrails in as a native guardrail plugin. The plugin calls `/sdk/v1/check` automatically on every request and/or response - no changes needed in your application code.
+If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can integrate QuilrAI guardrails as a native guardrail plugin. The plugin calls `/sdk/v1/check` automatically on every request and/or response - no changes needed in your application code.
 
 ### Prerequisites
 
@@ -590,7 +590,7 @@ If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quic
 - Download [quilr_litellm_guardrails.py](https://github.com/quilrbusiness/quilr-sdks/blob/main/python-sdks/litellm_guardrails/quilr_litellm_guardrails.py) and place it in the same directory as your LiteLLM `config.yaml`
 
 :::note
-LiteLLM resolves custom guardrails by module path relative to the proxy working directory, so the plugin ships as a single file you drop next to `config.yaml`. There is no package to install.
+LiteLLM resolves custom guardrails by module path relative to the proxy working directory, so the plugin is provided as a single file placed alongside `config.yaml`. There is no package to install.
 :::
 
 ### Environment variables
@@ -622,7 +622,7 @@ Add guardrails to your LiteLLM `config.yaml` using the modes you need:
 **When to use `during_call` vs `pre_call`:**
 
 - Use `during_call` for better latency, since the guardrail runs concurrently with the LLM
-- Use `pre_call` if you want to avoid wasting LLM compute on blocked requests
+- Use `pre_call` to avoid using LLM compute for blocked requests
 
 ### LiteLLM `config.yaml`
 

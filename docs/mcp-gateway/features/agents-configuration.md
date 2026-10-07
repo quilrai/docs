@@ -4,80 +4,62 @@ sidebar_custom_props:
   icon: Bot
 ---
 
-# Agents Configuration
+# Allowed Agents
 
-Map AI clients to MCPs and monitor per-agent usage.
+Choose which MCP servers the gateway serves to each AI client, such as Claude, Cursor or ChatGPT.
 
-## How It Works
+Go to **Settings > AI Gateway > MCP Gateway** and click **Allowed Agents** in the header. The drawer reads: "Agents are matched by their User-Agent keyword. Open an agent to choose exactly which MCP servers the gateway serves to that client."
 
-<StepFlow steps={[
-  {
-    label: "Registered Agents",
-    items: [
-      "Cursor (cursor)",
-      "Claude (claude)",
-      "Custom: my-bot",
-    ],
-  },
-  {
-    label: "MCP Mapping",
-    items: [
-      "Cursor → GitHub ✓ Slack ✓",
-      "Claude → GitHub ✓ S3 ✗",
-      "my-bot → Slack ✓",
-    ],
-  },
-  {
-    label: "Usage Stats",
-    items: [
-      "Cursor: 1,247 calls",
-      "Claude: 892 calls",
-      "my-bot: 156 calls",
-    ],
-  },
-]} />
+![Allowed Agents drawer listing OpenAI / ChatGPT, Claude, Cursor, Gemini and other agents, each with its User-Agent keyword and N of N servers](/img/mcp-gateway/ui/allowed-agents.png)
 
-1. **Register Agents** - Use predefined agents or create custom ones
-2. **Map to MCPs** - Enable or disable MCPs per agent
-3. **Monitor Usage** - Track per-agent tool call statistics
+## How matching works
 
-## Predefined Agents
+Every AI client sends a User-Agent header. When the header contains an agent's keyword, the gateway treats the request as coming from that agent and serves only the servers turned on for it. Matching ignores case.
 
-Built-in agents are identified by their User-Agent header keywords:
+Each row shows the agent name, its **User-Agent** keyword and how many servers it can reach, for example **12 of 40 servers**.
 
-| Agent | User-Agent Keyword |
-|-------|-------------------|
-| OpenAI | `openai` |
+## Built-in agents
+
+| Agent | User-Agent keyword |
+|-------|--------------------|
+| OpenAI / ChatGPT | `openai` (also matches `chatgpt`) |
 | Claude | `claude` |
 | Cursor | `cursor` |
 | Gemini | `gemini` |
+| OpenAI Codex | `codex` |
+| VS Code IDE | `vscode` (also matches `visual studio code`) |
+| Cortex Code | `cortex-code` (also matches `cortex code`) |
+| OpenCode | `opencode` |
+| Windsurf | `windsurf` |
+| Kiro | `kiro` |
+| Amazon Q | `amazonq` (also matches `amazon q`, `amazon-q`, `q-cli`) |
+| Postman | `postman` |
+| n8n | `n8n` |
 
-## Custom Agents
+New servers allow every built-in agent until you disable an agent for the server.
 
-Create custom agents for any AI client not in the predefined list. Each custom agent requires:
+## Choose servers for an agent
 
-- **User-Agent Keyword** - The keyword to match in the User-Agent header (e.g., `my-custom-agent`)
-- **Display Name** - A human-readable name for the dashboard (e.g., `My Custom Agent`)
+1. Click the agent's row to expand it.
+2. Turn the switch next to each server on or off.
 
-## Per-Agent Dashboard
+Each switch saves immediately. Turning a server off for an agent also removes that agent from the server's **Allowed agents** list in [Access control](./access-control), and vice versa. Both places edit the same setting.
 
-Each agent card shows:
+## Add a custom agent
 
-- **Total tool calls** - Cumulative tool invocations for the agent
-- **MCP access** - Which MCPs are enabled vs. disabled
-- **Toggle controls** - Enable or disable individual MCP access per agent directly from this view
+Use a custom agent for any client that is not built in, such as an internal bot.
 
-### Example
+1. Click **Add agent**.
+2. Enter an **Agent name**.
+3. Enter a **User-Agent keyword**. Requests whose User-Agent contains this keyword match the agent.
+4. Click **Allow agent**.
 
-| Agent | Tool Calls | MCPs |
-|-------|-----------|------|
-| OpenAI | 1,247 | GitHub, Slack, Jira, Confluence (enabled) - S3, Internal API (disabled) |
+Custom agents show a **Custom** tag. To remove one, click its delete icon and confirm **Delete agent**. The gateway stops matching that keyword and the agent's server selections are removed with it.
 
-## Agents Configuration vs. Access Control
+Custom agents also appear when you create an [API token](./api-tokens) or set **Allowed agents** on a server.
 
-| View | Best For |
-|------|----------|
-| **Agents Configuration** | Global view - see all MCPs for each agent. Best for managing agent permissions across your entire MCP fleet. |
-| **Access Control** | Per-MCP view - see all agents for one MCP. Best when configuring a single MCP's permissions. |
+## Related
 
-Both views control the same underlying permissions - use whichever is more convenient for your workflow.
+- [Access control](./access-control) - allow or deny smart groups and users on one server.
+- [API Tokens](./api-tokens) - issue a direct-connection token for an agent.
+- [OneMCP](../onemcp) - one endpoint for every server an agent can reach.

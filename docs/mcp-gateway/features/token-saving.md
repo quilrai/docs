@@ -1,97 +1,56 @@
 ---
 sidebar_position: 9
 sidebar_custom_props:
-  badge: new
   icon: Coins
 ---
 
 # Token Saving
 
-Reduce token usage from MCP discovery and tool output before it enters an agent's context.
+Compress tool results before they reach the model, so agents use fewer tokens on each MCP call.
 
-## How It Works
+Go to **Settings > AI Gateway > MCP Gateway** and click **Configure > Token Saving** on the server card. The **Strategies** card reads: "Rewrites tool results on the way back to the client to cut model token usage." New servers have every strategy off.
 
-<StepFlow steps={[
-  {
-    label: "Tool Returns Output",
-    items: [
-      "HTML report",
-      "Large JSON payload",
-      "Verbose text",
-    ],
-  },
-  {
-    label: "QuilrAI Optimizes",
-    items: [
-      "HTML -> text",
-      "JSON -> TOON",
-      "Text compressed",
-    ],
-  },
-  {
-    label: "Client Receives",
-    items: [
-      "Shorter text blocks",
-      "Meaning preserved ✓",
-    ],
-  },
-]} />
+![Token saving section with the Strategies card showing Active strategies and switches for Smart JSON compression, HTML to text, Markdown to text and Text compression](/img/mcp-gateway/ui/settings-token-saving.png)
 
-1. **Agent calls a tool** - The AI client invokes an MCP `tools/call` request through QuilrAI.
-2. **MCP returns output** - The upstream MCP server returns text content, structured content, or both.
-3. **Gateway optimizes text** - Enabled token-saving transforms run on MCP text content blocks.
-4. **Client receives the result** - The agent gets a shorter response that preserves the useful meaning.
+:::note Policy Engine
+When the Policy Engine is on, response handling policies apply instead and this section is read-only. **Edit anyway** changes the values used only if the Policy Engine is turned off. See [MCP Gateway policies](../../policy-engine/mcp-gateway).
+:::
 
-## OneMCP Smart Tool Search
+## Strategies
 
-Output transforms are one layer of MCP token saving. [OneMCP](../onemcp) can also reduce discovery and planning tokens when smart mode is enabled.
+| Strategy | What it does | Turn it on when the server returns |
+|----------|--------------|------------------------------------|
+| **Smart JSON compression** | Compacts verbose JSON tool results before they reach the model. | Large JSON objects or lists. |
+| **HTML to text** | Strips HTML markup from tool results and keeps the readable text. | Web pages, HTML emails or reports. |
+| **Markdown to text** | Flattens Markdown formatting in tool results. | Markdown documents or wiki pages. |
+| **Text compression** | Compresses long text results while preserving meaning. | Long plain text. |
 
-Instead of exposing every backend tool schema to the agent up front, OneMCP returns a compact set of gateway tools:
+Turn on the strategies that match what the server returns, then click **Save settings** in the footer. The **Active strategies** bar and the section list (for example **2 of 4 strategies on**) show how many are on.
 
-- `list_tool_groups` to see available MCP groups
-- `find_relevant_tools` to search within a group for the current task
-- `call_tool` to invoke the selected backend tool
+Token saving runs after guardrails, so detections are made on the full tool result.
 
-This keeps the agent from loading long tool lists and full schemas until it has narrowed the task to relevant tools. It is especially useful when a user can access many MCPs or a single MCP exposes a large tool surface.
+## Where savings show
 
-## Per-MCP Settings
+| Place | What you see |
+|-------|--------------|
+| Server card | **Token saving** chip (**Yes** / **No**) and **tokens saved** for the period. |
+| **Overall analytics > Analytics** | The **Tokens saved** tile across servers. |
+| **Costs & Savings** | Savings from the MCP channel. |
 
-Token saving is configured independently for each MCP. Open the MCP's **Settings** panel and enable the methods that match that MCP's output shape.
+## OneMCP saves tokens too
 
-When all toggles are off, the saved config is equivalent to:
+[OneMCP](../onemcp) reduces the tokens agents use to discover tools. With dynamic tool calling on, an agent receives a small set of tools instead of every server's full tool list:
 
-```json
-{
-  "smart_json_compression": false,
-  "html_to_text": false,
-  "markdown_to_text": false,
-  "text_compression": false
-}
-```
+| Tool | Purpose |
+|------|---------|
+| `list_mcp_connections` | Lists the MCP servers the person can use and whether each is connected. |
+| `find_relevant_tools` | Finds the tools that fit the current task. |
+| `call_tool` | Calls the chosen tool. |
 
-## Methods
+Set it under **OneMCP endpoint > Dynamic tool calling**.
 
-| Setting | Behavior |
-|---------|----------|
-| `smart_json_compression` | Converts eligible JSON objects or arrays in MCP tool output to TOON when it reduces token usage. |
-| `html_to_text` | Strips HTML tags and extracts clean text content from markup-heavy tool output. |
-| `markdown_to_text` | Converts Markdown formatting to plain text and removes syntax-only tokens. |
-| `text_compression` | Compresses verbose plain text while preserving meaning in the tool response. |
+## Related
 
-## Runtime Order
-
-For `tools/call`, token saving runs after upstream execution and output safety checks:
-
-1. Upstream MCP tool result
-2. Web search policy output filtering, when applicable
-3. Security guardrail output processing
-4. Token-saving transforms
-5. Final MCP response and log entry
-
-Only text content blocks are transformed. `structuredContent` is preserved unless a separate DLP redaction action changes it through the structured-output guardrail path.
-
-## Logs and Measurement
-
-MCP Gateway logs record the enabled methods and estimated tokens saved by method. Use those log fields to compare MCPs before enabling token saving broadly.
-
-Token estimates use the `gpt-4o` tokenizer. They are intended for consistent measurement inside QuilrAI and may not exactly match every downstream model's billing tokenizer.
+- [Group & User Rules](./group-user-rules) - turn strategies on or off for a smart group or user.
+- [Security Guardrails](./security-guardrails) - scan tool results before they are shortened.
+- [OneMCP](../onemcp) - one endpoint with dynamic tool calling.

@@ -6,91 +6,51 @@ sidebar_custom_props:
 
 # User Claims Forwarding
 
-Forward the authenticated Quilr user identity to a trusted non-OAuth MCP backend. This is useful for internal or multi-user MCP servers that need to apply their own per-user authorization, filtering, or audit attribution while the gateway manages client authentication.
+Forward the caller's identity to a trusted MCP server. The gateway adds the signed-in person's identity to every request it forwards, so the server can apply its own per-user permissions, filtering or audit trail.
 
-## How It Works
+Go to **Settings > AI Gateway > MCP Gateway**, click **Configure > General** on the server card and turn on **Forward user claims** ("Send a trusted X-User-Claims header to this MCP"). Click **Save settings** in the footer.
 
-<StepFlow steps={[
-  {
-    label: "Authenticate",
-    items: [
-      "Client authenticates to QuilrAI",
-      "Gateway resolves the end user",
-      "Tenant and access checks pass",
-    ],
-  },
-  {
-    label: "Create Claims",
-    items: [
-      "Client-supplied claims are removed",
-      "Gateway builds versioned JSON",
-      "Available identity fields are added",
-    ],
-  },
-  {
-    label: "Forward",
-    items: [
-      "X-User-Claims is added upstream",
-      "Direct MCP and OneMCP supported",
-      "Backend applies user-aware policy",
-    ],
-  },
-]} />
+![General section of a server's settings with the Backend card showing Name, Slug, Upstream server, Auth type, Available tools and Created](/img/mcp-gateway/ui/settings-general.png)
 
-The feature is disabled by default and is available only for non-OAuth MCPs, including no-auth and static-key backends. OAuth backends use the upstream provider's user token and do not receive this header.
+The setting is off by default. It is shown for servers that sign in with an upstream API key or no authentication. It is not shown for OAuth or OAuth passthrough servers, which already receive each person's own token, or for local packages.
 
-## Configure the Setting
+## What the server receives
 
-1. Open **MCP Gateway** and select the MCP.
-2. Open **Settings → General**.
-3. Enable **Send user claims to backend**.
-4. Save the MCP settings.
-
-The setting is not shown for gateway-managed OAuth or OAuth passthrough MCPs.
-
-## Header Format
-
-The upstream MCP receives compact JSON in the `X-User-Claims` request header:
+The gateway adds an `X-User-Claims` header with compact JSON, on direct calls to the server and on calls routed through [OneMCP](../onemcp):
 
 ```http
 X-User-Claims: {"v":1,"iss":"quilr-gateway","email":"user@example.com","preferred_username":"user@example.com","sub":"user_123","quilr_tenant_id":"tenant_abc","auth_method":"sso"}
 ```
 
-| Claim | Required | Description |
-|-------|----------|-------------|
-| `v` | Yes | Claims schema version. The current value is `1`. |
-| `iss` | Yes | Claims issuer. The current value is `quilr-gateway`. |
-| `email` | Yes | Authenticated user's normalized lowercase email. |
-| `preferred_username` | Yes | Normalized email, provided for identity compatibility. |
-| `sub` | When available | Quilr user ID associated with the authenticated request. |
-| `quilr_tenant_id` | When available | Quilr tenant ID for the request. |
-| `auth_method` | When available | Authentication method resolved by the gateway, such as `sso`. |
+| Claim | Always sent | Description |
+|-------|-------------|-------------|
+| `v` | Yes | Claims format version. Currently `1`. |
+| `iss` | Yes | Issuer. Always `quilr-gateway`. |
+| `email` | Yes | The person's email, in lowercase. |
+| `preferred_username` | Yes | Same as `email`. |
+| `sub` | When available | The person's Quilr user ID. |
+| `quilr_tenant_id` | When available | Your Quilr tenant ID. |
+| `auth_method` | When available | How the person signed in, for example `sso`. |
+| `oid` | When available | The person's object ID from your identity provider. |
+| `tid` | When available | Your identity provider's tenant ID. |
+| `name` | When available | The person's display name. |
 
-Optional fields are omitted when the gateway does not have a value. Backends should tolerate new claims being added in later schema versions and should use `v` when parsing version-specific behavior.
+Claims with no value are left out. New claims may be added later, so check `v` and ignore unused claims.
 
-## Security and Trust
+## Trust
 
-- The gateway removes every client-supplied case variant of `X-User-Claims`. When forwarding is enabled, it replaces that value with claims derived from the authenticated request. When forwarding is disabled, the header remains removed.
-- Static upstream extra-header configuration cannot set `X-User-Claims`; it is reserved for the gateway.
-- The header is redacted from gateway request-header logs.
-- The value is JSON, not a signed JWT. Configure the upstream MCP to accept traffic only through a trusted gateway-to-backend channel, such as a private network or an authenticated transport, before using these claims for authorization.
-- The header contains user identity data. Enable it only for a backend that is approved to receive that data.
-- Shared capability caching is disabled for the MCP while forwarding is enabled so user-specific upstream responses are not reused across users.
+- The gateway always removes any `X-User-Claims` header a client sends, and adds its own only after the person has passed sign-in and [Access control](./access-control).
+- Custom headers on the server cannot set `X-User-Claims`.
+- The value is plain JSON, not a signed token. Make sure your server only accepts traffic from the gateway, for example over a private network, before trusting it.
+- The header contains personal data. Turn it on only for servers approved to receive it.
 
-:::note
-This header carries the identity authenticated by QuilrAI. It does not forward arbitrary identity claims supplied by the MCP client.
-:::
-
-## Backend Example
-
-The upstream server parses the header as JSON and then applies its own authorization rules:
+## Backend example
 
 ```python
 import json
 
 def authenticated_user(request):
-    # Parse this only after the server verifies that the request arrived
-    # through its trusted gateway-to-backend channel.
+    # Only trust this header on traffic that arrived from the gateway.
     raw_claims = request.headers.get("X-User-Claims")
     if not raw_claims:
         return None
@@ -101,4 +61,8 @@ def authenticated_user(request):
     return claims
 ```
 
-The gateway adds the header to both direct per-MCP traffic and live upstream calls routed through OneMCP after its normal identity and access-control checks succeed.
+## Related
+
+- [Access control](./access-control) - decide who may call the server.
+- [API Tokens](./api-tokens) - the `mcpuser` header sets the person for token calls.
+- [OneMCP](../onemcp) - claims are forwarded on OneMCP calls too.

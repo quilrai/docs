@@ -13,7 +13,7 @@ You add a provider to an app in **Create App** or in the app's **LLM Providers**
 
 ## Capability matrix
 
-One row per provider type. The type is what you pick in the console and what you pass as `X-Provider-Name`.
+One row per provider type. The type is what you select in the console and what you pass as `X-Provider-Name`.
 
 | Provider type | Provider | Chat | Messages | Responses | Assistants | Realtime | Embeddings | Rerank | Speech | List models |
 |---------------|----------|:----:|:--------:|:---------:|:----------:|:--------:|:----------:|:------:|:------:|:-----------:|
@@ -65,7 +65,7 @@ Combine a [regional base URL](./integration-guide#region) with a path below.
 | Responses | `/openai_responses/v1/responses` | `Authorization: Bearer <Quilr key>` |
 | Assistants | `/openai_assistants/` | `Authorization: Bearer <Quilr key>` |
 | Realtime | `wss://<base>/openai_realtime/v1/realtime` | `Authorization: Bearer <Quilr key>` |
-| Bedrock Runtime (boto3) | `/bedrock-runtime/model/{model_id}/converse` and friends | AWS SigV4 with the Quilr key |
+| Bedrock Runtime (boto3) | `/bedrock-runtime/model/{model_id}/converse` and related operations | AWS SigV4 with the Quilr key |
 | Vertex AI | `/vertex_ai/` | `Authorization: Bearer <Quilr key>` |
 | Rerank | `/rerank/v2/rerank`, `/rerank/v1/rerank`, `/rerank/rerank` | `Authorization: Bearer <Quilr key>` |
 | Sarvam native | `/sarvam/...` | `Authorization: Bearer <Quilr key>` |
@@ -106,7 +106,7 @@ Rules that apply to every app:
 - The Base URL and Azure API version overrides on Responses, Assistants, Realtime and rerank types are in the V1 console form. In the V2 console, set them through the Management APIs.
 - Every model-serving provider needs at least one model. For Azure, the model ID is the deployment name.
 - Labels may use letters, numbers, spaces, `_`, `.` and `-`, and must be unique within the app. `primary` is reserved.
-- The consoles take each provider type once per app. The API accepts several providers of the same type under different labels; select one with `provider_label`, since `provider` alone is then ambiguous.
+- The consoles accept each provider type once per app. The API accepts several providers of the same type under different labels; select one with `provider_label`, since `provider` alone is then ambiguous.
 - `quilr_sdk` and `copilot_studio` apps cannot add other providers.
 - For a Bedrock IAM role, see [AWS Bedrock - Assume Role Setup](./bedrock-assume-role).
 - Credentials not listed here (Azure Entra ID or managed identity, AWS default chain or web identity, OpenAI organization or project headers, custom upstream headers) are not supported.
@@ -125,7 +125,7 @@ Rules that apply to every app:
 
 ## Chat Completions
 
-`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. It reaches providers that already speak OpenAI (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, Oracle, Sarvam, custom endpoints) and translates for `bedrock` (Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types. Translation details: [Unified Completions](./unified-completions).
+`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. It reaches providers that already support the OpenAI format (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, Oracle, Sarvam, custom endpoints) and translates for `bedrock` (Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types. Translation details: [Unified Completions](./unified-completions).
 
 Sarvam serves only its chat models here. Its speech and text models use the [Sarvam routes](#sarvam-speech-and-text).
 
@@ -156,7 +156,7 @@ Only Bedrock Runtime is proxied, not the Bedrock control plane or Agent Runtime.
 
 ## Rerank
 
-All three rerank paths take a Cohere-compatible body (`model`, `query`, `documents`, optional `top_n`, `return_documents`) and return a Cohere-shaped response. Guardrails scan `query` and `documents`. Responses are scores and indices, so they are not scanned. `bedrock_rerank` serves Cohere Rerank 3.5 and Amazon Rerank and uses the `bedrock:InvokeModel` permission.
+All three rerank paths take a Cohere-compatible body (`model`, `query`, `documents`, optional `top_n`, `return_documents`) and return a response in Cohere format. Guardrails scan `query` and `documents`. Responses are scores and indices, so they are not scanned. `bedrock_rerank` serves Cohere Rerank 3.5 and Amazon Rerank and uses the `bedrock:InvokeModel` permission.
 
 ## TTS & STT
 
@@ -175,7 +175,7 @@ Transcriptions accept `response_format` of `json`, `verbose_json` or `text`, and
 
 ## Sarvam Speech and Text
 
-Native routes take and return Sarvam's own shapes. Auth: `Authorization: Bearer`, `api-key` or `api-subscription-key`, each with the Quilr key.
+Native routes accept and return Sarvam's own formats. Auth: `Authorization: Bearer`, `api-key` or `api-subscription-key`, each with the Quilr key.
 
 | Endpoint | Purpose | Models |
 |----------|---------|--------|
@@ -221,7 +221,7 @@ Guardrails are not yet applied to live Realtime events. Session logging (handsha
 
 ## Selecting a Provider on Multi-Provider Apps
 
-When an app has several providers that can serve a request, choose one by provider type or label. Without a selector, the gateway uses the one enabled provider that has the requested model; if several have it, one is picked at random.
+When an app has several providers that can serve a request, choose one by provider type or label. Without a selector, the gateway uses the one enabled provider that has the requested model; if several have it, one is selected at random.
 
 | Endpoint | Body field | Header | Query parameter |
 |----------|-----------|--------|-----------------|
@@ -229,7 +229,7 @@ When an app has several providers that can serve a request, choose one by provid
 | Sarvam native (multipart routes: as a form field) | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Realtime | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
 
-For apps linked to [global providers](./providers-and-models), the label is the global provider's label.
+For apps linked to [platform providers](./providers-and-models), the label is the platform provider's label.
 
 ## SDK
 

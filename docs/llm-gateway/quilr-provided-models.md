@@ -13,7 +13,7 @@ import TabItem from '@theme/TabItem';
 **Settings > Models** is available in the V2 console only.
 :::
 
-QuilrAI hosts a catalog of chat models behind one OpenAI-compatible endpoint. You do not need a provider account: create a model API key, pick the models it may call, and send requests to `https://models.quilrai.dev/v1`.
+QuilrAI hosts a catalog of chat models behind one OpenAI-compatible endpoint. You do not need a provider account: create a model API key, select the models it may call, and send requests to `https://models.quilrai.dev/v1`.
 
 | | |
 |---|---|
@@ -39,11 +39,11 @@ Go to **Settings > Models > Models** and select **QuilrAI provided models**.
 
 | Control | What it does |
 |---|---|
-| **Search models** | Filters by model id or provider prefix. |
+| **Search models** | Filters by model ID or provider prefix. |
 | **Sort by price** | Sorts by input, cached input, or output price, low to high or high to low. |
 | **Chat** (per row) | Opens the Playground with that model selected. |
 
-Columns: **Model** (the exact id to send as `model`), **Capabilities**, **Input price**, **Cached input price** ("Not available" when the model has no cached-input price), **Output price**, and **API schema**. Prices are USD per 1M tokens. See the [full catalog](#model-catalog) below.
+Columns: **Model** (the exact ID to send as `model`), **Capabilities**, **Input price**, **Cached input price** ("Not available" when the model has no cached-input price), **Output price**, and **API schema**. Prices are USD per 1M tokens. See the [full catalog](#model-catalog) below.
 
 ## 2. Create a model API key
 
@@ -81,7 +81,7 @@ You may also see keys you did not create:
 | **Console playground** | The Playground. Older playground keys stay listed after they are replaced. |
 | **Agent run &lt;id&gt;** | A Workflow Agent run. Limited to the run's model and revoked after the run. |
 
-**Permissions:** viewing the catalog, keys, and usage needs LLM Gateway read access. Creating a key needs LLM Gateway create access (under RBAC V2, `llm.apps.create` and `secrets.reveal`). Revoking needs LLM Gateway delete access (`llm.apps.delete`). Every key creation is recorded in the audit log.
+**Permissions:** viewing the catalog, keys, and usage requires LLM Gateway read access. Creating a key requires LLM Gateway create access (under RBAC V2, `llm.apps.create` and `secrets.reveal`). Revoking a key requires LLM Gateway delete access (`llm.apps.delete`). Every key creation is recorded in the audit log.
 
 ## 3. Call a model
 
@@ -90,7 +90,7 @@ You may also see keys you did not create:
 | **Base URL** | `https://models.quilrai.dev/v1` |
 | **Endpoint** | `POST /chat/completions` (OpenAI Chat Completions format) |
 | **Auth** | `Authorization: Bearer $QUILR_MODEL_API_KEY` |
-| **Model** | The exact catalog id, including any prefix (for example `deepseek/deepseek-v3.2`, `gpt-oss-120b`). It must be one of the key's allowed models. |
+| **Model** | The exact catalog ID, including any prefix (for example `deepseek/deepseek-v3.2`, `gpt-oss-120b`). It must be one of the key's allowed models. |
 
 ```bash
 export QUILR_MODEL_API_KEY="sk-quilrllm-..."
@@ -171,22 +171,22 @@ The Playground's **Use this model in your app** panel generates these snippets f
 
 ## Use through an LLM Gateway app
 
-Put QuilrAI-provided models behind an LLM Gateway app to get the app's guardrails, routing, limits, and logs. The app reaches them through the **General LLM** provider (an OpenAI-compatible custom endpoint).
+Connect QuilrAI-provided models through an LLM Gateway app to use the app's guardrails, routing, limits, and logs. The app reaches them through the **General LLM** provider (an OpenAI-compatible custom endpoint).
 
 1. [Create a model API key](#2-create-a-model-api-key) whose **Allowed models** include every model the app should use.
-2. In the LLM Gateway, create an app (or edit an existing one) and add a **General LLM** provider, either as a global provider or with app-specific credentials:
+2. In the LLM Gateway, create an app (or edit an existing one) and add a **General LLM** provider (the **Custom endpoint** tile with the **Chat completions** API), either as a platform provider or with app-only credentials:
 
    | Field | Value |
    |---|---|
    | `base_url` | `https://models.quilrai.dev/v1` |
    | `api_key` | Your model API key (`sk-quilrllm-...`) |
-   | Models | The exact catalog ids, for example `deepseek/deepseek-v3.2` |
+   | Models | The exact catalog IDs, for example `deepseek/deepseek-v3.2` |
 
-3. Call the app with its QuilrAI gateway key (`sk-quilr-...`) as in the [Quick Start](./quick-start), using the catalog id as `model`.
+3. Call the app with its QuilrAI gateway key (`sk-quilr-...`) as in the [Quick Start](./quick-start), using the catalog ID as `model`.
 
 See [Provider Support](./provider-support) for the General LLM provider's capabilities.
 
-Usage is billed from your organization credit either way, and shows up on the model API key's spend and the **Usage** tab.
+Usage is billed from your organization credit either way, and appears in the model API key's spend and the **Usage** tab.
 
 :::note
 Native integration, selecting QuilrAI-provided models directly in **Create App** without a General LLM provider, is coming soon.

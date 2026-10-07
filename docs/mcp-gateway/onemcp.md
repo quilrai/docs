@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # OneMCP
 
-OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents can discover MCP groups, find relevant tools, call tools, manage per-user connections, and use native memory tools without configuring each backend as a separate MCP server.
+OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents can discover MCP groups, find relevant tools, call tools, manage per-user connections, and use native memory tools without configuring each service as a separate MCP server.
 
 :::tip
 To steer Claude, ChatGPT, or GitHub Copilot to use the discovery flow reliably, see [Agent Custom Instructions](./agent-instructions) for copy-paste text and ready-to-use files.
@@ -33,7 +33,7 @@ https://mcpgateway.quilr.ai
 https://mcpgateway.quilrai.com
 ```
 
-The base domain may vary by environment. Copy the full OneMCP URL from the self-service user dashboard for MCPs before configuring an AI client.
+The base domain may vary by environment. Users copy the full OneMCP URL from the user dashboard at `mcpgateway.quilr.ai` before configuring an AI client.
 
 ```text
 https://<base-domain>/quilrone/mcp
@@ -48,14 +48,27 @@ https://mcpgateway.quilrai.com/quilrone/mcp
 
 OneMCP accepts gateway-issued OneMCP OAuth proxy tokens.
 
+## OneMCP settings
+
+Go to **Settings > AI Gateway > MCP Gateway** and click **OneMCP endpoint**.
+
+![OneMCP dialog with the Dynamic tool calling choices and the Memories enabled switch](/img/mcp-gateway/ui/onemcp-settings.png)
+
+| Setting | Options |
+|---------|---------|
+| **Dynamic tool calling** | Whether OneMCP narrows the tool list per request (see [Smart Tools](#smart-tools)). **User preference**: each user chooses on their own OneMCP dashboard. **Always on**: on for everyone. **Always off**: off for everyone. |
+| **Memories enabled** | Allow OneMCP and workflow agents to store and recall user memories for your organization (see [Native Memory Tools](#native-memory-tools)). |
+
+Changes save as soon as you select them.
+
 ## Smart Tools
 
-When smart mode is enabled, OneMCP returns a compact set of gateway tools:
+When dynamic tool calling is on, OneMCP returns a compact set of gateway tools:
 
 | Tool | Purpose |
 |------|---------|
 | `list_mcp_connections` | Lists visible MCPs and their connection state. In compatible clients, it renders the in-chat connector card. |
-| `find_relevant_tools` | Searches across available MCP tool groups and returns matching backend tools. A call without a query returns the available groups and their connection state. |
+| `find_relevant_tools` | Searches across available MCP tool groups and returns matching server tools. A call without a query returns the available groups and their connection state. |
 | `call_tool` | Calls a tool returned by `find_relevant_tools`. |
 
 The usual flow is:
@@ -66,7 +79,7 @@ The usual flow is:
 
 ## Native Memory Tools
 
-OneMCP includes native memory tools for user-scoped context:
+OneMCP includes native memory tools for user-scoped context. They are available while **Memories enabled** is on in [OneMCP settings](#onemcp-settings).
 
 | Tool | Purpose |
 |------|---------|
@@ -136,7 +149,7 @@ The card provides:
 - **Connection needed** and **Connected** tabs.
 - **Connect** or **Reconnect** actions for each MCP that needs user authentication.
 - Connection-status checks after the user returns from the provider flow.
-- A **Manage connectors** action that opens the self-service dashboard for adding or requesting MCPs.
+- A **Manage connectors** action that opens the user dashboard for adding or requesting MCPs.
 
 Connection links remain private to the connector card in UI-capable sessions. Other OneMCP tools direct the client to `list_mcp_connections` when authentication is needed.
 
@@ -149,7 +162,7 @@ After authorization, retry the original request. For OAuth MCPs, the gateway sto
 
 ## Visibility Rules
 
-OneMCP shows MCPs that are available to the user by organization policy, user preferences, and agent access controls. It does not include OAuth passthrough MCPs, because passthrough clients must own the upstream OAuth flow and provide the upstream bearer token directly to the per-MCP endpoint.
+OneMCP shows MCPs that are available to the user by organization policy, user preferences, and agent access controls. It does not include OAuth passthrough MCPs, because passthrough clients must manage the upstream OAuth flow and provide the upstream bearer token directly to the per-MCP endpoint.
 
 ## Operational Notes
 

@@ -7,12 +7,13 @@ sidebar_custom_props:
 # Data & Adversarial Risks
 
 :::info V2 console
-This card lives in **Policy Engine > LLM Gateway** at `web.quilr.ai/policy`. Edits join the shared draft and take effect once you [review and publish](../authoring-and-publishing) a revision.
+This card is in **Policy Engine > LLM Gateway** at `web.quilr.ai/policy`. Edits are saved in the shared draft and take effect once you [review and publish](../authoring-and-publishing) a revision.
 :::
 
 Decide what happens when PII, PHI, financial data, secrets, prompt attacks or your own custom detections appear in a model request or response.
 
 ![Data & Adversarial Risks card collapsed, showing Detection rules and Sensitivity profile rows](/img/policy-engine/llm-data-risks-card.png)
+<!-- TODO-SCREENSHOT: retake, shows old Sensitivity profile row (card now shows Language Blocking and Detection rules) -->
 
 ## Sections
 
@@ -21,7 +22,7 @@ Decide what happens when PII, PHI, financial data, secrets, prompt attacks or yo
 | Section | What it holds | Empty state |
 |---|---|---|
 | **Detection rules** | Which data types are found, how many times, and the action. | Nothing is redacted or blocked; findings are still detected and reported. |
-| **Sensitivity profile** | Detection sensitivity per category, subcategory actions, and scan scope for the whole request. | **Engine defaults**: every category detects at the engine's default sensitivity. |
+| **Language Blocking** | Monitor or block passages outside the allowed languages. Streamed responses are skipped. **Set allowed languages** adds one. | **Off**: languages are not restricted. |
 
 Applies on `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `rerank`, `responses`, `sdk_check`, `stt`, `text`, `tts` and `vertex`.
 
@@ -37,7 +38,7 @@ Applies on `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `rerank`, `
 | Findings threshold | **at least** N | 1 | Per line. |
 | Action | Monitor, Partial redact, Redact, Block | Monitor | Block on any line stops the whole request. |
 | Stage | Request, Response, Both | Request | Response redaction and blocking need the full response; streamed responses are scanned and tagged, not changed. |
-| Tool boundary | **Scan tool-call arguments** | Off | Judges each tool call's arguments on their own. Only Monitor and Block apply. |
+| Tool boundary | **Scan tool-call arguments** | Off | Evaluates each tool call's arguments independently. Only Monitor and Block apply. |
 | Severity | Not set, Very low, Low, Medium, High, Critical, Very critical | Not set | Reported for dashboards, exports and alerts. Never changes the action. |
 | More options | Priority, extra rules, metadata and content conditions, raw QuilrQL | - | Opens the full editor. |
 
@@ -56,13 +57,13 @@ Add more detection lines to one rule with **+ Add line**. Each line keeps its ow
   ]}
 />
 
-Start new detections on `monitor`, review activity, then raise the action.
+Start new detections on `monitor`, review activity, then select a more restrictive action.
 
 ## Scoping and precedence
 
 - **Applies to**: Everyone, People, Smart group, Application, App tag, Requested model, Provider, API surface, Environment, Prompt complexity, Prompt text, Tool, Source network, or **Except...**. Every chip must match; values accept `*` and `?`.
-- **Everyone** is priority 500. Narrower scopes win over it.
-- Highest priority wins **per data type**. At equal priority the more restrictive action wins.
+- **Everyone** is priority 500. Narrower scopes take precedence.
+- The highest priority takes precedence **per data type**. At equal priority the more restrictive action takes precedence.
 - `redact` and `partial-redact` rewrite only the findings their own rule selected.
 
 More examples, the full data type catalog and multi-rule configurations: [LLM Gateway Policies](../llm-gateway#protecting-data).

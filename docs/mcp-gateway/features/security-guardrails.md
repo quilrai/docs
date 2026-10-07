@@ -6,47 +6,62 @@ sidebar_custom_props:
 
 # Security Guardrails
 
-Detect and act on sensitive data in MCP tool call inputs and outputs.
+Scan what agents send to an MCP server and what the server sends back, and block, redact or flag sensitive data and attacks.
 
-## Overview
+Go to **Settings > AI Gateway > MCP Gateway** and click **Configure > Guardrails** on the server card.
 
-Security guardrails inspect data flowing through MCP tool calls - both the inputs your agent sends and the outputs the tool returns. Each category can be independently enabled with separate request and response actions.
+![Guardrails section with Coverage, Request actions across categories, the Actions card (Default, Request, Response) and the Data risk categories table](/img/mcp-gateway/ui/settings-guardrails.png)
 
-## Data Risk Detection
+:::note Policy Engine
+When the Policy Engine is on, data scan policies apply instead and this section is read-only. **Edit anyway** changes the values used only if the Policy Engine is turned off. See [MCP Gateway policies](../../policy-engine/mcp-gateway).
+:::
 
-Identifies sensitive data categories and applies the configured action.
+## Request and response
 
-### Supported Categories
+| Direction | What is scanned |
+|-----------|-----------------|
+| **Request (tool arguments)** | The inputs an agent sends when it calls a tool. |
+| **Response (tool results)** | What the tool returns before the agent sees it. |
 
-- **PII** - Personally Identifiable Information
-- **PHI** - Protected Health Information
-- **PFI** - Personal Financial Information
-- **PCI** - Payment Card Industry data
-- **Insurance** - Insurance-related sensitive data
-- **Auth & Secrets** - Authentication credentials and secrets
+## Actions
 
-## Adversarial Risk Detection
+| Action | What happens |
+|--------|--------------|
+| **Block** | The tool call is stopped. |
+| **Redact** | The detected data is removed and the call proceeds. |
+| **Partial** (**Partial Redact** in the category lists) | Part of each match is masked and the rest stays visible for context. |
+| **Monitor** | The call goes ahead and the detection is recorded. |
 
-Catches adversarial attack patterns in tool call data:
+The **Actions** card sets the defaults:
 
-- **Prompt injection** - Attempts to override agent instructions
-- **Jailbreak** - Attempts to bypass safety controls
-- **Context corruption** - Attempts to pollute agent context
-- **Semantic adversarial** - Semantically crafted adversarial inputs
-- **Social engineering** - Manipulation attempts targeting the AI agent
+| Setting | Meaning |
+|---------|---------|
+| **Default** | The action for any detection that has no more specific action. Starts as **Monitor**. |
+| **Request (tool arguments)** | The action for detections in tool inputs. **Default** uses the setting above. |
+| **Response (tool results)** | The action for detections in tool results. **Default** uses the setting above. |
 
-## Configurable Actions
+## Categories
 
-Each detection category supports per-direction actions:
+Select a category to scan for it, then optionally select its own **Request** and **Response** action. Leave a category on **Default** to use the **Actions** card.
 
-| Action | Behavior |
-|--------|----------|
-| **Block** | Reject the tool call entirely |
-| **Redact** | Remove the sensitive data and allow the call |
-| **Anonymize** | Replace sensitive data with anonymized placeholders |
-| **Monitor** | Allow the call and log the detection for review |
+| Group | Categories |
+|-------|------------|
+| **Data risk categories** | PII, PHI, PFI, PCI, Insurance, Auth Secrets, Device Network Online Identifiers, Telecom Subscriber Data, Employee HR Data |
+| **Adversarial categories** | Prompt Injection Techniques, Jailbreak Techniques, Prompt Context Corruption, Semantic Adversarial Prompts, Social Engineering Prompts, Response Risks, Hateful Or Offensive Content, Violence And Harmful Content, Fraudulent Or Illegal Activity Content, System Guardrail And Security Disclosure, Security Exploit And Payload Enablement, Cybersecurity Frameworks And Standards Mention |
 
-Actions are configured independently for:
+Each group shows how many categories are on, for example **3 of 9 on**. The **Coverage** card totals both groups and **Request actions across categories** shows how many categories use each action.
 
-- **Request (input)** - Data the agent sends to the MCP tool
-- **Response (output)** - Data the MCP tool returns to the agent
+Click **Save settings** in the footer to apply your changes.
+
+## Where detections show
+
+- The **Stopped by guardrails** tile on the MCP Gateway page counts guardrail flags.
+- The **Guardrails** chip on the server card opens this section.
+- **Overall analytics > Analytics** shows **Blocked** and **Guardrail flags**.
+- **Findings & Interactions** lists each detection, filterable by input and output DLP.
+
+## Related
+
+- [Group & User Rules](./group-user-rules) - more or less restrictive guardrail actions for a smart group or user.
+- [Tools Management](./tools-management) - turn tools off or require confirmation.
+- [MCP Gateway policies](../../policy-engine/mcp-gateway) - per data type actions under the Policy Engine.

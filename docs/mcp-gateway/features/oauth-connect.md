@@ -6,86 +6,81 @@ sidebar_custom_props:
 
 # OAuth Connect
 
-Authorize OAuth-protected MCP servers with one click.
-
-## How It Works
+Connect MCP servers that sign in with OAuth. An administrator connects once so the gateway can discover the server's tools, then each user connects their own account.
 
 <StepFlow steps={[
   {
-    label: "Probe MCP URL",
+    label: "Add the server",
     items: [
-      "URL: github-mcp.example.com",
-      "Auth: OAuth 2.0 detected",
-      "DCR: supported ✓",
+      "Auto-detect finds OAuth",
+      "Client ID and secret if needed",
     ],
   },
   {
-    label: "Authorize",
+    label: "Admin connects once",
     items: [
-      "→ GitHub OAuth consent",
-      "Scope: repo, read:org",
-      "Status: authorized ✓",
+      "Review all or Connect OAuth",
+      "Gateway discovers the tools",
     ],
   },
   {
-    label: "Capabilities Cached",
+    label: "Users connect",
     items: [
-      "Tools: 12 fetched",
-      "Resources: 3 fetched",
-      "Prompts: 2 fetched",
+      "On mcpgateway.quilr.ai",
+      "Or inline in OneMCP",
     ],
   },
 ]} />
 
-1. **Probe URL** - The gateway detects the MCP server's auth requirements
-2. **Authorize** - You're redirected to the MCP's OAuth authorization page
-3. **Fetch Capabilities** - Tools, resources, and prompts are cached automatically
+## Add an OAuth server
 
-## OAuth Modes
+Add the server with **Add MCP server** > **Remote server** and **Auto-detect (recommended)**, or install it from the [MCP Library](./mcp-library). When the server reports OAuth, the **Connect with OAuth** step opens.
 
-### Dynamic Client Registration (DCR) - Recommended
+| The server | You enter |
+|------------|-----------|
+| Registers its own client | Nothing. **OAuth client ID** and **OAuth client secret** are optional. |
+| Needs a custom OAuth app | **OAuth client ID** and **OAuth client secret** from an app you created with the provider. Register the **OAuth callback URL** shown in that app. |
 
-The gateway automatically registers as an OAuth client with the MCP server. No Client ID or Secret needed - just click **Connect** and authorize.
+For provider steps, see [MCP Provider Setup](../mcp-provider-setup/overview).
 
-### Manual OAuth
+## Connect as an administrator
 
-For MCP servers without DCR support. Provide your OAuth credentials during MCP setup:
+Until an administrator signs in, the server shows **Awaiting connection** and has no tools.
 
-```
-Client ID: your-client-id
-Client Secret: ••••••••••
-```
+1. Click **Review all** on the page banner (or **Connect** and the server name), or **Connect OAuth** on the server card.
+2. In **General**, under **Connect OAuth to discover tools**, click **Connect to fetch capabilities** and sign in.
+3. If you already signed in, click **Already connected? Refresh**.
 
-The gateway uses these credentials for the authorization flow. For provider-specific setup steps, see [MCP Provider Setup](../mcp-provider-setup/overview).
+**General** then reads **OAuth is connected and the gateway has discovered N tools.** Enable the tools you want in **Settings > Tools**.
 
-### OAuth Passthrough
+This sign-in is administrator-only. It does not connect anyone else's account.
 
-Use OAuth passthrough when the downstream MCP client must perform OAuth directly with the upstream MCP provider. In this mode:
+## Choose the scopes
 
-- The gateway relays or advertises upstream OAuth metadata.
-- The client obtains the upstream provider's access token.
-- The gateway accepts that upstream Bearer token on the direct per-MCP endpoint and forwards it upstream.
-- The gateway does not store, refresh, or revoke the upstream token.
-- The MCP is not exposed through OneMCP.
+For OAuth servers with selectable scopes, such as Microsoft Office 365, the **Permissions** section sets which scopes the connection requests and shows which tools each scope enables. See [OAuth Permissions](./oauth-permissions).
 
-### Inline OAuth in OneMCP
+## How users connect
 
-OneMCP can surface OAuth MCPs before a user has connected them. In MCP Apps-compatible clients such as ChatGPT, `list_mcp_connections` renders an **Available connectors** card in the conversation. The user selects **Connect** or **Reconnect**, finishes provider authorization, returns to the conversation, and retries the original request. The card checks the selected MCP and updates it when the connection succeeds.
+Each user connects their own account the first time they use the server:
 
-Clients that support URL elicitation can present the connection flow in a host-provided prompt. Other clients retain the tool-error flow with a short-lived connect URL.
+- On the user dashboard at `mcpgateway.quilr.ai`, by connecting the MCP there.
+- Inline in [OneMCP](../onemcp#inline-authentication): the AI app shows an **Available connectors** card or a connect link, the user signs in, then retries the request.
 
-For the full OneMCP flow, see [OneMCP](../onemcp).
+The gateway stores and refreshes each user's token. Calls run as that user.
 
-## Fetched Capabilities
+## OAuth passthrough
 
-After authorization, the gateway caches the MCP server's capabilities:
+Choose **OAuth passthrough** under **How the gateway signs in** when the AI client must sign in to the provider itself. The gateway forwards each client's bearer token unchanged and holds no credential.
 
-| Capability | Description |
-|------------|-------------|
-| **Tools** | Available tool functions |
-| **Resources** | Exposed data resources |
-| **Prompts** | Pre-defined prompt templates |
+| | Gateway OAuth | OAuth passthrough |
+|--|---------------|-------------------|
+| Who holds the token | The gateway, per user | The AI client |
+| Admin connection | Required once | Not used |
+| Available in OneMCP | Yes | No. Direct connection only. |
+| Connect on the user dashboard | Yes | No |
 
-## Re-Fetching Capabilities
+## Related
 
-If the MCP server adds new tools or updates its capabilities, click **"Already connected? Click to fetch capabilities"** in the Settings panel to refresh the cached capabilities without re-authorizing.
+- [Adding MCP Servers](../adding-mcp-servers) - every sign-in mode.
+- [OAuth Permissions](./oauth-permissions) - choose the scopes a connection requests.
+- [OneMCP](../onemcp) - inline connection in the AI app.

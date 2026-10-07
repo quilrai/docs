@@ -6,70 +6,60 @@ sidebar_custom_props:
 
 # Tools Management
 
-Control which MCP tools are available to AI agents, organized by risk level.
+Choose which of a server's tools AI agents can call. Disabled tools are hidden from every client, so agents never see them in their tool list.
 
-## How It Works
+On the server card, under **Configure**, click **Tools**. You can also open **Overall analytics > Settings**, select one server and choose **Tools**. The section subtitle shows how many tools are exposed, for example **12 of 15 exposed**.
 
-<StepFlow steps={[
-  {
-    label: "MCP Exposes Tools",
-    items: [
-      "get_repos → read",
-      "create_issue → write",
-      "delete_repo → destructive",
-    ],
-  },
-  {
-    label: "QuilrAI Categorizes",
-    items: [
-      "Low risk: 5 tools",
-      "Medium risk: 3 tools",
-      "High risk: 1 tool",
-    ],
-  },
-  {
-    label: "Admin Controls",
-    items: [
-      "get_repos: enabled ✓",
-      "create_issue: enabled ✓",
-      "delete_repo: disabled ✗",
-    ],
-  },
-]} />
+![Tools section with the Exposed to agents bar, the upstream tool changes card, and tool tables grouped into read-only, write and destructive tools with Enabled, Require confirmation and Require justification switches](/img/mcp-gateway/ui/settings-tools.png)
 
-1. **MCP Exposes Tools** - The server declares its available tools
-2. **Gateway Categorizes** - Tools are sorted by risk level automatically
-3. **Admin Controls** - Enable or disable each tool individually
+:::note Policy Engine
+When the Policy Engine is on, tool permission policies decide which tools are available and which need confirmation. The **Tools** section turns read-only and shows **Controlled by Policy Engine**. See [MCP Gateway policies](../../policy-engine/mcp-gateway#hiding-and-denying-a-tool).
+:::
 
-## Tool Categories
+## Tool groups
 
-### Read Only - Low Risk
+Tools are grouped by what they do to the upstream system.
 
-Tools that only read data. Safe to enable by default - no modifications to external systems.
+| Group | What the tools do |
+|-------|-------------------|
+| **Read-only tools** | Only read data. |
+| **Write tools** | Create or change data. |
+| **Destructive tools** | Delete data or make irreversible changes. |
 
-Examples: `get_file`, `list_repos`, `search_docs`, `read_database`
+The **Exposed to agents** bar at the top shows how many tools in each group are enabled, for example **Write 3 / 4**.
 
-### Write Access - Medium Risk
+## Per-tool controls
 
-Tools that create or modify data. Review before enabling - changes can be undone but may have side effects.
+| Column | What it does |
+|--------|--------------|
+| **Tool** | Name and description. Click **View input schema** to see the inputs the tool accepts. |
+| **Calls** | How many calls the tool has received. |
+| **Enabled** | Off hides the tool from every client. |
+| **Require confirmation** | The user must approve each call before it runs. See [Tool confirmation](./tool-confirmation). |
+| **Require justification** | The user must type a reason to approve. Only available with confirmation on. |
 
-Examples: `create_issue`, `update_record`, `send_message`, `write_file`
+Changes are drafts. Click **Save settings** in the footer to apply them.
 
-### Destructive - High Risk
+## Find a tool
 
-Tools that delete or irreversibly modify data. Disabled by default - enable only when explicitly needed.
+| Control | Use |
+|---------|-----|
+| **Search tools** | Filter by tool name or description. |
+| **All / Read-only / Write / Destructive** | Show one group. Each tab shows its tool count. |
 
-Examples: `delete_repo`, `drop_table`, `revoke_access`, `purge_data`
+## Refresh the tool list
 
-## Per-Tool Controls
+Click **Refresh tools** to fetch the server's current tool list. If the list is empty, the gateway hasn't fetched the tools yet; refresh, or connect OAuth first if the server needs it.
 
-Each tool shows its name, description, and an enable/disable toggle. Click **"View schema"** to inspect the tool's JSON input schema.
+The **Upstream tool changes** card above the tool list watches for tools the server adds, removes or changes. See [Tool change watch](./tool-change-watch).
 
-| Tool | Description | Status |
-|------|-------------|--------|
-| `search_documents` | Search the knowledge base | Enabled |
-| `delete_workspace` | Permanently delete a workspace | Disabled |
+## Per group and per user
 
-## Seamless and Transparent
+To enable a tool, or require confirmation, only for some people, add a rule in [Group & User Rules](./group-user-rules). A rule can set each tool's **Enabled**, **Confirmation** and **Justification** to **Inherit**, **On** or **Off** for one smart group or one user.
 
-Disabled tools are **hidden from AI agents automatically**. When an agent calls `tools/list`, only enabled tools are returned. No code changes required on the agent side.
+## Related
+
+- [Tool confirmation](./tool-confirmation) - what approvers see in each AI client.
+- [Tool change watch](./tool-change-watch) - review upstream tool changes before agents see them.
+- [Input aliases](./input-aliases) - translate mismatched tool inputs from AI clients.
+- [Security guardrails](./security-guardrails) - scan tool inputs and results.

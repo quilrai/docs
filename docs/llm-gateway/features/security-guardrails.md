@@ -20,12 +20,12 @@ Open **Settings > LLM Gateway**, choose an app, then **Settings > Security Guard
 | [Source IP restrictions](#source-ip-restrictions) | Accepts calls only from listed networks. |
 
 :::note Policy Engine
-When the tenant-wide Policy Engine is on, guardrail policies decide what happens on live requests, and this section shows legacy values that are not enforced. See [App settings under the Policy Engine](../../policy-engine/llm-gateway#app-settings-under-the-policy-engine).
+When the tenant-wide Policy Engine is on, guardrail policies decide what happens on live requests, and this section shows app settings that are not enforced. See [App settings under the Policy Engine](../../policy-engine/llm-gateway#app-settings-under-the-policy-engine).
 :::
 
 ## Defaults for a new app
 
-Step 2 of **Create App** sets the starting guardrails. Unless you change them, a new app gets:
+**Create App** has no guardrail step. Every new app starts with these guardrails, which you can then change in this section:
 
 | Setting | Default |
 |---------|---------|
@@ -37,8 +37,9 @@ Step 2 of **Create App** sets the starting guardrails. Unless you change them, a
 | Guardian Agent (dependency security check, latest-version suggestions, task adherence) | Off. See [Guardian Agent](./guardian-agent). |
 
 ![Create App step 2 with the data risk and adversarial risk toggles, Malicious scripts switched off, and the Guardian Agent toggles below](/img/llm-gateway/ui/create-app-step2-guardrail-categories.jpg)
+<!-- TODO-SCREENSHOT: retake or replace, shows the old Create App guardrails step, which no longer exists -->
 
-Because the default action is Monitor, a new app records detections without changing traffic. Review findings in the app's **Activity > Findings** view before you raise any category to Redact or Block.
+Because the default action is Monitor, a new app records detections without changing traffic. Review findings in the app's **Activity > Findings** view before you change any category to Redact or Block.
 
 ## Actions
 
@@ -52,9 +53,9 @@ Because the default action is Monitor, a new app records detections without chan
 | **Block** | Rejects the whole request. | All categories |
 
 - **Adversarial risks and the hallucination check support Block or Monitor only.** There is no value to redact.
-- **Action resolution:** the category's own action wins, then the app's default action, then Monitor.
+- **Action resolution:** the category's own action takes precedence, then the app's default action, then Monitor.
 - **Set everything to default** clears per-category actions so every category follows the default action.
-- The **Action mix** panel counts how many of the 20 categories (7 data + 13 adversarial) sit at each action or are off.
+- The **Action mix** panel counts how many of the 20 categories (7 data + 13 adversarial) use each action or are off.
 
 ## Data risks
 
@@ -82,9 +83,9 @@ Each category has these settings:
 
 ### Risk level and sub-category sensitivity
 
-Every sub-category carries a sensitivity. The category's risk level decides which sensitivities fire: a low risk level catches only clearly sensitive values, and a high risk level also catches weaker, contextual ones.
+Every sub-category has a sensitivity. The category's risk level determines which sensitivities trigger detection: a low risk level detects only clearly sensitive values, and a high risk level also detects weaker contextual signals.
 
-| Risk level | Fires on sub-categories marked |
+| Risk level | Detects sub-categories marked |
 |------------|--------------------------------|
 | Low | High |
 | Medium | High, Medium |
@@ -98,7 +99,7 @@ Example for PII, where passport is a high-sensitivity sub-category and name, hom
 | `Reach me at jane@example.com` | Allowed | Detected (`EMAIL ADDRESS`) |
 | `My passport number is M1234567` | Detected | Detected |
 
-Change one sub-category's sensitivity to tune that value without moving the whole category.
+Change one sub-category's sensitivity to tune that value without changing the whole category.
 
 ## Adversarial risks
 
@@ -126,7 +127,7 @@ Each category has an on/off switch and a **Block | Monitor** action. Its scope i
 
 ## Precision detections
 
-Exact-match patterns for structured identifiers. Use them when you need one specific identifier caught, on top of the contextual data risk categories. Each detection has its own switch and action (Redact, Partial redact, Block or Monitor; default Monitor), and all are off until you turn them on. A red dot marks a high-sensitivity identifier.
+Exact-match patterns for structured identifiers. Use them when you need a specific identifier detected in addition to the contextual data risk categories. Each detection has its own switch and action (Redact, Partial redact, Block or Monitor; default Monitor), and all are off until you turn them on. A red dot marks a high-sensitivity identifier.
 
 ![Precision detections list with a switch, Reset to default, and an action selector for each identifier](/img/llm-gateway/ui/app-guardrails-precision-detections.png)
 

@@ -11,9 +11,9 @@
 Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, Sarvam, and Copilot Studio - through a single API key. QuilrAI can infer providers from the requested model, or route traffic through routing groups for weighted load balancing, model-level routing, and automatic failover with zero code changes in your application.
 
 - [LLM Gateway Overview](https://docs.quilrai.dev/llm-gateway/overview.md): What the gateway is, apps vs Quilr keys vs providers, and a tour of the console (overview cards, app workspace tabs, settings sections, self-service usage).
-- [Quick Start](https://docs.quilrai.dev/llm-gateway/quick-start.md): Create an app in the console (global providers or app-specific credentials, guardrail defaults), send a first request, and check Activity.
+- [Quick Start](https://docs.quilrai.dev/llm-gateway/quick-start.md): Create an app in the console (platform providers or app-only credentials, guardrail defaults), send a first request, and check Activity.
 - [Applications and Keys](https://docs.quilrai.dev/llm-gateway/applications-and-keys.md): App naming and status, multiple named Quilr keys with expiry and revocation, log keys, API integration, configuration versions and rollback, and the app audit tab.
-- [Providers and Models](https://docs.quilrai.dev/llm-gateway/providers-and-models.md): V2 console global providers - the Add your own models wizard, per-provider fields, adding models with a stored key, enable/disable/delete, and linking providers to apps.
+- [Providers and Models](https://docs.quilrai.dev/llm-gateway/providers-and-models.md): V2 console platform providers - the Add your own models wizard, per-provider fields, adding models with a stored key, enable/disable/delete, and linking providers to apps.
 - [QuilrAI-Provided Models](https://docs.quilrai.dev/llm-gateway/quilr-provided-models.md): The QuilrAI-hosted model catalog with prices, model API keys, calling models.quilrai.dev with OpenAI-compatible clients, using them behind a gateway app via a General LLM provider, Playground, and usage.
 - [Architecture](https://docs.quilrai.dev/llm-gateway/architecture.md): Request processing pipeline - Validate, Scan, Transform, Route - with a visual diagram of every stage.
 - [Integration Guide](https://docs.quilrai.dev/llm-gateway/integration-guide.md): Endpoint URLs, authentication setup, and code examples for connecting your app to the gateway, including OpenAI-compatible access to Bedrock Converse, Vertex AI Gemini, and Anthropic Messages models, boto3 Bedrock Runtime, Sarvam speech and text, and Copilot Studio.
@@ -30,7 +30,7 @@ Connect to LLM providers and SDK-style guardrail integrations - OpenAI, Anthropi
 
 Management API reference with typed request specifications, tenant-scoped permissions and examples. Replace the example origin with your central management origin.
 
-- [Management APIs](https://docs.quilrai.dev/llm-gateway/management-apis/overview.md): Management v1 management apis; tenant-scoped permissions, typed request inputs and examples.
+- [Management APIs](https://docs.quilrai.dev/llm-gateway/management-apis/overview.md): Management v1 APIs; tenant-scoped permissions, typed request inputs and examples.
 - [Quick start](https://docs.quilrai.dev/llm-gateway/management-apis/quick-start.md): Management v1 quick start; tenant-scoped permissions, typed request inputs and examples.
 - [Authentication & management keys](https://docs.quilrai.dev/llm-gateway/management-apis/authentication.md): Management v1 authentication & management keys; tenant-scoped permissions, typed request inputs and examples.
 - [Apps & provider attachments](https://docs.quilrai.dev/llm-gateway/management-apis/apps.md): Management v1 apps & provider attachments; tenant-scoped permissions, typed request inputs and examples.
@@ -38,9 +38,9 @@ Management API reference with typed request specifications, tenant-scoped permis
 - [Shared providers & model tests](https://docs.quilrai.dev/llm-gateway/management-apis/providers.md): Management v1 shared providers & model tests; tenant-scoped permissions, typed request inputs and examples.
 - [Gateway app credentials](https://docs.quilrai.dev/llm-gateway/management-apis/credentials.md): Management v1 gateway app credentials; tenant-scoped permissions, typed request inputs and examples.
 - [QuilrQL behavior](https://docs.quilrai.dev/llm-gateway/management-apis/policy.md): Management v1 QuilrQL behavior; new-app model defaults, stored settings and authority boundaries.
-- [Prompt Store](https://docs.quilrai.dev/llm-gateway/management-apis/prompts.md): Management v1 prompt store; tenant-scoped permissions, typed request inputs and examples.
+- [Prompt Store](https://docs.quilrai.dev/llm-gateway/management-apis/prompts.md): Management v1 Prompt Store; tenant-scoped permissions, typed request inputs and examples.
 - [Catalogs & configuration history](https://docs.quilrai.dev/llm-gateway/management-apis/catalogs-and-history.md): Management v1 catalogs & configuration history; tenant-scoped permissions, typed request inputs and examples.
-- [API conventions & errors](https://docs.quilrai.dev/llm-gateway/management-apis/conventions.md): Management v1 api conventions & errors; tenant-scoped permissions, typed request inputs and examples.
+- [API conventions & errors](https://docs.quilrai.dev/llm-gateway/management-apis/conventions.md): Management v1 API conventions & errors; tenant-scoped permissions, typed request inputs and examples.
 - [OpenAPI 3.1 reference](https://docs.quilrai.dev/openapi/llm-gateway-management-v1.json): Machine-readable API contract for all management and administrative operations.
 
 ### LLM Gateway Features
@@ -52,7 +52,7 @@ Management API reference with typed request specifications, tenant-scoped permis
 - [Custom Detections](https://docs.quilrai.dev/llm-gateway/features/custom-intents.md): Define your own detections - precision (regex) patterns or intents trained with examples.
 - [Rate and Token Limits](https://docs.quilrai.dev/llm-gateway/features/rate-limits.md): Timeouts, concurrency, rolling request rates, token ceilings, per-model overrides, and 429 behavior.
 - [Alerts](https://docs.quilrai.dev/llm-gateway/features/alerts.md): App-level and per-provider failure-rate alerts with email and webhook channels.
-- [Prompt Store](https://docs.quilrai.dev/llm-gateway/features/prompt-store.md): Manage and version system prompts centrally; reference one or more from a single request, mix in inline instructions, and substitute template variables; plus the V2 console Global Prompt Store shared across apps.
+- [Prompt Store](https://docs.quilrai.dev/llm-gateway/features/prompt-store.md): Manage and version system prompts centrally; reference one or more from a single request, add inline instructions, and substitute template variables; plus the V2 console Global Prompt Store shared across apps.
 - [LLM Intelligence Assessment](https://docs.quilrai.dev/llm-gateway/features/red-team-testing.md): Benchmark the model behind an app against fixed adversarial and capability suites. Covers simulating your app with a system prompt and tool schemas, the Guardian counterfactual, and compliance framework rollups.
 - [LLM Intelligence Assessment Report](https://docs.quilrai.dev/llm-gateway/features/red-team-report.md): Interpret a completed red team run. What the headline pass rate counts and excludes, automated versus reviewed verdicts, per-suite results, Guardian residual failures and over-blocks, framework rollups, the knowledge horizon, and what makes two runs comparable.
 - [Agentic Red Teaming](https://docs.quilrai.dev/llm-gateway/features/agentic-red-teaming.md): Multi-turn adversarial assessment of a live AI agent over HTTP or voice - connect, choose attack coverage (Quick scan, Full library, Select attacks, custom objectives), and launch with an evaluation policy.
@@ -67,9 +67,9 @@ Management API reference with typed request specifications, tenant-scoped permis
 - [Conversation Grouping](https://docs.quilrai.dev/llm-gateway/features/conversation-grouping.md): Group gateway requests into conversations with a conversation ID header and see them in Activity.
 - [Audit Log](https://docs.quilrai.dev/llm-gateway/features/audit-log.md): Configuration change history, per-version audit, and rollback for gateway apps.
 - [Agent Monitoring](https://docs.quilrai.dev/llm-gateway/features/agent-monitoring.md): Correlate gateway LLM calls with agent runs, traces, workflows, and conversations via W3C/vendor tracing headers, Quilr agent headers, baggage, or provider request-body metadata.
-- [Self-Service Overview](https://docs.quilrai.dev/llm-gateway/features/self-service/overview.md): How self-service gives developers gateway access without an admin minting each key - shared parent key vs named user API keys, the `sk-quilr-…:ss1.…` key format, the five access capabilities, and the portal's Settings, Logs, and Findings tabs.
+- [Self-Service Overview](https://docs.quilrai.dev/llm-gateway/features/self-service/overview.md): How self-service gives developers gateway access without an admin creating each key - shared parent key vs named user API keys, the `sk-quilr-…:ss1.…` key format, the five access capabilities, and the portal's Settings, Logs, and Findings tabs.
 - [Self-Service Admin Guide](https://docs.quilrai.dev/llm-gateway/features/self-service/admin-guide.md): For QuilrAI platform admins - choose a credential mode, grant Viewer Access, Settings Request Access, Direct Settings Update, API Key Visibility, and All Logs Visibility, scope each with Everyone/Specific rules, smart groups, and exceptions, review change requests, and revoke access.
-- [Self-Service Developer Guide](https://docs.quilrai.dev/llm-gateway/features/self-service/developer-guide.md): For developers - sign in to the Self-Service portal, read the app cards, create and revoke named user API keys, call the gateway with them, view your own logs and findings, submit settings change requests for admin approval, and submit settings change requests for admin approval.
+- [Self-Service Developer Guide](https://docs.quilrai.dev/llm-gateway/features/self-service/developer-guide.md): For developers - sign in to the Self-Service portal, read the app cards, create and revoke named user API keys, call the gateway with them, view your own logs and findings, and submit settings change requests for admin approval.
 
 ## Policy Engine
 
@@ -132,7 +132,7 @@ The new console organised by what you manage rather than by sensor, and the phas
 
 ## Playground
 
-- [LLM Gateway Playground](https://docs.quilrai.dev/llm-gateway-playground): Full-page, console-style studio that fires real LLM Gateway requests from the browser against any gateway base URL. Streams chat completions live and runs every surface - chat, OpenAI Responses, Anthropic Messages, classic completions, embeddings, rerank, and text to speech - plus `quilr_sdk` guardrail checks for text, messages, or JSON against `POST /sdk/v1/check`, with hashing-mode controls, processed content, placeholder mappings, and similar-entity results and a Log Export surface that pages the LLM or MCP Gateway log export API (with an `sk-export-` key) into an Excel-ready CSV. Generates the exact cURL, Python, and JavaScript for each request.
+- [LLM Gateway Playground](https://docs.quilrai.dev/llm-gateway-playground): Full-page, console-style studio that sends live LLM Gateway requests from the browser against any gateway base URL. Streams chat completions live and runs every surface - chat, OpenAI Responses, Anthropic Messages, classic completions, embeddings, rerank, and text to speech - plus `quilr_sdk` guardrail checks for text, messages, or JSON against `POST /sdk/v1/check`, with hashing-mode controls, processed content, placeholder mappings, and similar-entity results and a Log Export surface that pages the LLM or MCP Gateway log export API (with an `sk-export-` key) into an Excel-ready CSV. Generates the exact cURL, Python, and JavaScript for each request.
 
 ## MCP Gateway
 
@@ -165,7 +165,10 @@ The new console organised by what you manage rather than by sensor, and the phas
 
 ## MCP Gateway
 
+- [MCP Gateway Overview](https://docs.quilrai.dev/mcp-gateway/overview.md): The MCP Gateway page in the console - summary tiles, banners, server cards, the workspace tabs and the settings sections.
 - [Quick Start](https://docs.quilrai.dev/mcp-gateway/quick-start.md): Set up the MCP Gateway in 4 steps - add an MCP, configure tools and guardrails, connect an agent, and monitor.
+- [Adding MCP Servers](https://docs.quilrai.dev/mcp-gateway/adding-mcp-servers.md): Add a remote MCP server, choose how the gateway signs in, add custom headers, connect OAuth servers, and install from the MCP Library.
+- [API to MCP](https://docs.quilrai.dev/mcp-gateway/api-to-mcp.md): Turn a REST API into MCP tools from an OpenAPI spec or as generic HTTP calls, with credentials, access rules and per-operation control.
 - [Architecture](https://docs.quilrai.dev/mcp-gateway/architecture.md): Tool call processing pipeline - Authenticate, Authorize, Scan, Policy, Connect - with auth mediation details.
 - [Integration Guide](https://docs.quilrai.dev/mcp-gateway/integration-guide.md): MCP endpoint URLs, client-to-gateway authentication, gateway-to-upstream auth modes, user claims forwarding, and connection examples.
 - [OneMCP](https://docs.quilrai.dev/mcp-gateway/onemcp.md): Unified OneMCP endpoint, smart discovery tools, native memory tools, and inline authentication through an in-chat connector card or connection-link fallback.
@@ -195,20 +198,25 @@ The new console organised by what you manage rather than by sensor, and the phas
 - [MCP Provider Setup: Zoom](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/zoom.md): Connect Zoom's remote MCP server - create a Zoom Marketplace General App with user-managed OAuth, add the QuilrAI callback to the redirect URL and allow list, register the granular scopes for the Zoom, Docs, or Whiteboard server, and copy the Client ID and Client Secret for manual OAuth.
 - [MCP Provider Setup: PitchBook](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/pitchbook.md): Connect the PitchBook Premium Connector remote MCP - its Dynamic Client Registration is allowlisted, so confirm licence, SSO, and MCP service access, ask PitchBook to register the QuilrAI callback and return a Client ID and Client Secret (or allowlist the callback for DCR), install from the MCP Library with OAuth credentials or use OAuth passthrough for partner clients, restrict the server to licensed seats with Access Control, and roll out read-only.
 - [MCP Provider Setup: Salesforce](https://docs.quilrai.dev/mcp-gateway/mcp-provider-setup/salesforce.md): Connect Salesforce two ways - the Salesforce Hosted MCP servers (activate SObject Reads/Mutations/Deletes/All, create an External Client App with the QuilrAI callback URL, mcp_api and refresh_token scopes, PKCE, refresh token rotation, and JWT-based access tokens, then use the Consumer Key as the Client ID with no secret), or the third-party Cirra (Salesforce MCP) admin server (https://mcp.cirra.ai/mcp) installed from the MCP Library with optional Client ID/Secret left empty, authorized by signing in with a Salesforce account. Covers sandbox URLs and troubleshooting.
-- [MCP Gateway Log Export API](https://docs.quilrai.dev/mcp-gateway/log-export-api.md): Export backend-scoped or tenant-scoped MCP tool call logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
+- [MCP Gateway Log Export API](https://docs.quilrai.dev/mcp-gateway/log-export-api.md): Export server-scoped or tenant-scoped MCP tool call logs as newline-delimited JSON with cursor pagination, a 15-minute export lag, and a 15-day retention window.
 
 ### MCP Gateway Features
 
-- [MCP Library](https://docs.quilrai.dev/mcp-gateway/features/mcp-library.md): One-click install pre-built MCP integrations from the catalog across productivity, developer tools, and more.
-- [Tools Management](https://docs.quilrai.dev/mcp-gateway/features/tools-management.md): Control which MCP tools are available to agents, organized by risk level (read, write, destructive).
-- [Agents Configuration](https://docs.quilrai.dev/mcp-gateway/features/agents-configuration.md): Map AI agents to MCPs, manage per-agent permissions, and monitor usage statistics.
-- [Security Guardrails](https://docs.quilrai.dev/mcp-gateway/features/security-guardrails.md): Detect sensitive data (PII, PHI, PCI) and adversarial attacks in MCP tool call inputs and outputs.
-- [Access Control](https://docs.quilrai.dev/mcp-gateway/features/access-control.md): Restrict which AI agents can use each MCP server via User-Agent header matching.
-- [API Tokens](https://docs.quilrai.dev/mcp-gateway/features/api-tokens.md): Generate and manage Bearer tokens scoped to specific agents for programmatic MCP access, and understand how static upstream API keys are injected separately.
-- [OAuth Connect](https://docs.quilrai.dev/mcp-gateway/features/oauth-connect.md): Authorize OAuth-protected MCP servers with Dynamic Client Registration, manual credentials, OAuth passthrough, or OneMCP's in-chat connector card and connection-link fallbacks.
-- [Web Search Policy](https://docs.quilrai.dev/mcp-gateway/features/web-search-policy.md): Filter web search domains using enterprise security gateway rules (Zscaler ZIA, Prisma Access, FortiGate, Cisco Umbrella).
-- [Token Saving](https://docs.quilrai.dev/mcp-gateway/features/token-saving.md): Reduce MCP discovery and tool-output token usage with OneMCP smart tool search plus per-MCP JSON compression, HTML/Markdown to text, and text compression.
-- [User Claims Forwarding](https://docs.quilrai.dev/mcp-gateway/features/user-claims-forwarding.md): Forward gateway-generated, versioned user identity to trusted non-OAuth MCP backends in the reserved X-User-Claims header for direct MCP and OneMCP traffic.
+- [MCP Library](https://docs.quilrai.dev/mcp-gateway/features/mcp-library.md): Browse and search the MCP Library, filter by status, type and sign-in, install or set up servers, and handle install requests from users.
+- [Tools Management](https://docs.quilrai.dev/mcp-gateway/features/tools-management.md): Turn individual tools on or off per server, review read-only, write and destructive tools, and view input schemas.
+- [Allowed Agents](https://docs.quilrai.dev/mcp-gateway/features/agents-configuration.md): Match AI clients by user-agent keyword, choose which MCP servers each agent can use, and add custom agents.
+- [Security Guardrails](https://docs.quilrai.dev/mcp-gateway/features/security-guardrails.md): Data risk and adversarial categories on tool arguments and tool results, with Block, Redact, Partial Redact and Monitor actions.
+- [Access Control](https://docs.quilrai.dev/mcp-gateway/features/access-control.md): Allow or deny each MCP server by agent, smart group and user, and how those lists take precedence.
+- [API Tokens](https://docs.quilrai.dev/mcp-gateway/features/api-tokens.md): Create, use and revoke direct-connection tokens for a server, sent with the mcpuser email header.
+- [OAuth Connect](https://docs.quilrai.dev/mcp-gateway/features/oauth-connect.md): Add OAuth servers, connect them as an administrator, how users connect, and how OAuth passthrough differs.
+- [Web Search Policy](https://docs.quilrai.dev/mcp-gateway/features/web-search-policy.md): Connect Zscaler Internet Access and apply its URL decisions, URL overrides and group domain exclusions to QuilrAI Web Search.
+- [Token Saving](https://docs.quilrai.dev/mcp-gateway/features/token-saving.md): Per-server strategies that shorten tool results (smart JSON compression, HTML to text, Markdown to text, text compression) and where savings appear.
+- [User Claims Forwarding](https://docs.quilrai.dev/mcp-gateway/features/user-claims-forwarding.md): Forward gateway-generated, versioned user identity to trusted non-OAuth MCP servers in the reserved X-User-Claims header for direct MCP and OneMCP traffic.
+- [Tool Confirmation](https://docs.quilrai.dev/mcp-gateway/features/tool-confirmation.md): Require a person to approve a tool call, optionally with a written justification, and what users see in each AI client.
+- [Tool Change Watch](https://docs.quilrai.dev/mcp-gateway/features/tool-change-watch.md): Get notified when a server adds, removes or changes tools, and approve or dismiss each change.
+- [Input Aliases](https://docs.quilrai.dev/mcp-gateway/features/input-aliases.md): Review and apply quick fixes that translate mismatched AI client inputs into the inputs a tool expects.
+- [OAuth Permissions](https://docs.quilrai.dev/mcp-gateway/features/oauth-permissions.md): Choose which OAuth scopes a server asks users for and see which tools each scope unlocks.
+- [Group & User Rules](https://docs.quilrai.dev/mcp-gateway/features/group-user-rules.md): Override tools, confirmation, guardrails and token saving for a smart group or a single user, and preview a user's effective settings.
 
 ## Compliance API Integration
 

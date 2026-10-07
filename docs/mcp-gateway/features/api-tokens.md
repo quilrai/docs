@@ -6,51 +6,69 @@ sidebar_custom_props:
 
 # API Tokens
 
-Generate and manage Bearer tokens for programmatic MCP access.
+Issue a direct-connection token so a script, service or AI client can call one MCP server through the gateway without signing in.
 
-## Overview
+Go to **Settings > AI Gateway > MCP Gateway**, click **Configure** on the server card and open **API tokens** ("Direct-connection tokens"). The section reads: "Clients call this MCP with an access token in the Authorization header plus their own `mcpuser` email header."
 
-API tokens provide programmatic access to MCP servers that don't use OAuth. Each token is scoped to an agent and must be sent as `Authorization: Bearer <token>` along with a `mcpuser: user@email.com` header identifying the end user.
+![API tokens section with the Create a token card (Token name, Agent, Add agent, Create token) and the Tokens table with Name, Agent, Created and Revoke](/img/mcp-gateway/ui/settings-api-tokens.png)
 
-API tokens authenticate the client to the gateway. They are separate from upstream MCP credentials. If the upstream MCP needs a fixed API key, an admin configures static upstream auth on the MCP; the gateway injects that upstream secret when forwarding calls.
+API tokens are not offered on OAuth servers, where each person signs in with their own account. A token works only for the server it was created on.
 
-## Key Features
+## Create a token
 
-- **Create named API tokens** for non-OAuth MCPs
-- **Assign each token to a specific agent** (OpenAI, Claude, Cursor, or custom)
-- **Token shown once at creation** - copy immediately
-- **Revoke tokens at any time** from the Settings panel
-- **Track last-used date** per token for auditing
+1. Under **Create a token**, enter a **Token name**, for example `reporting-service`.
+2. Select the **Agent** the token is for. Choose a built-in agent or a custom agent registered in **Allowed Agents**. To add a new one, click **Add agent**.
+3. Click **Create token**.
+4. Copy the **Generated MCP token** and click **Done**.
 
-## Usage
+:::warning
+The token is shown once. Save it now; it cannot be revealed later. If you lose it, revoke it and create a new one.
+:::
 
-Include the following headers in every request to the MCP endpoint:
+## Manage tokens
 
+The **Tokens** table lists every active token with its **Name**, **Agent** and **Created** time. Click **Revoke** to revoke access immediately.
+
+## Use a token
+
+Send the token and the email of the user making the call on every request to the server's gateway endpoint (shown as **QUILR GATEWAY** on the server card):
+
+| Header | Value |
+|--------|-------|
+| `Authorization` | `Bearer <your-api-token>` |
+| `mcpuser` | Email of the person making the call, for example `jane@example.com` |
+
+The gateway applies [Access control](./access-control), [Group & User Rules](./group-user-rules) and guardrails for the person named in `mcpuser`, and records the calls against them. Requests without a valid `mcpuser` email are rejected.
+
+```bash
+curl https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "mcpuser: jane@example.com" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
-Authorization: Bearer <your-api-token>
-mcpuser: user@company.com
+
+Most MCP clients let you set these as custom headers in their server configuration:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "url": "https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-token>",
+        "mcpuser": "jane@example.com"
+      }
+    }
+  }
+}
 ```
 
-| Header | Purpose |
-|--------|---------|
-| `Authorization` | Bearer token for authentication |
-| `mcpuser` | Identifies the end user for per-user tracking |
+API tokens only identify the client to the gateway. The credentials the gateway uses to reach the upstream server are set on the server itself, under **General > Upstream authentication**.
 
-## Static Upstream API Keys
+## Related
 
-Some MCP servers require a fixed upstream credential instead of per-user OAuth. Configure that credential on the MCP, not in the client. The gateway can inject the upstream secret as:
-
-| Placement | Example |
-|-----------|---------|
-| Bearer token | `Authorization: Bearer <upstream-secret>` |
-| Custom header | `x-api-key: <upstream-secret>` |
-| Query parameter | `?api_key=<upstream-secret>` |
-
-Client requests still use the gateway API token and `mcpuser` header. Gateway/client auth headers are stripped before the request is sent upstream.
-
-## Security
-
-- Tokens are displayed **only once** at creation - copy and store them securely
-- Revoke any token instantly from the Settings panel
-- Each token tracks its last usage timestamp for auditing
-- Tokens are scoped to a specific agent - a token created for OpenAI cannot be used by Claude
+- [Allowed Agents](./agents-configuration) - register a custom agent for a token.
+- [Access control](./access-control) - limit which people can use the server.
+- [Integration guide](../integration-guide) - connect AI clients to the gateway.

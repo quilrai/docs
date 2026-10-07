@@ -9,7 +9,7 @@ sidebar_custom_props:
 
 Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails.
 
-Copilot Studio calls QuilrAI before a tool executes. QuilrAI scans the user's recent prompt context and proposed tool inputs, then returns an allow/block decision. This is SDK-style guardrail enforcement; QuilrAI does not proxy an upstream LLM request for this integration.
+Copilot Studio calls QuilrAI before a tool executes. QuilrAI scans the user's recent prompt context and proposed tool inputs, then returns an allow/block decision. This integration checks content without forwarding an LLM request to a provider.
 
 ## When to use it
 
@@ -42,7 +42,7 @@ The example uses US East. Choose the nearest regional base URL for your tenant:
 | Japan | Tokyo | `https://guardrails-jp-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
 | Europe | Europe | `https://guardrails-europe-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
 
-Treat this URL as a secret. The QuilrAI key is part of the path because Copilot Studio owns the webhook call shape.
+Treat this URL as a secret. The QuilrAI key is part of the path because Copilot Studio controls the webhook request format.
 
 ## Routes
 
@@ -83,7 +83,7 @@ Use this same Microsoft Entra App ID when Power Platform asks for the Azure Entr
 
 ## Power Platform setup
 
-1. In QuilrAI, open **Settings > LLM Gateway > Create App**, choose **App-specific credentials** and pick the **copilot studio** provider (guardrails only, no models).
+1. In QuilrAI, open **Settings > LLM Gateway > Create App**, choose **App-only credentials** and select the **Copilot Studio** tile (guardrails only, no models).
 2. Copy the full endpoint base URL, including the `sk-quilr-...` key.
 3. Have a Microsoft 365 or Power Platform admin grant tenant-wide consent for the QuilrAI Copilot Studio integration.
 4. Open Power Platform admin center.
@@ -119,7 +119,7 @@ If Copilot includes a bearer token, QuilrAI uses available claims such as `email
 | No user input/tool values found | Allowed with `reason: "no_user_input"` |
 | DLP timeout/internal error | Allowed with fail-open diagnostics |
 
-Copilot Studio expects a fast decision. QuilrAI returns a fail-open allow decision on DLP timeout or internal DLP errors so the agent flow is not broken by transient guardrail service issues.
+Copilot Studio expects a fast decision. QuilrAI returns a fail-open allow decision on DLP timeout or internal DLP errors so the agent can continue during temporary guardrail service interruptions.
 
 Redaction-style actions become blocks because Copilot Studio cannot accept rewritten tool input from the external threat detection response. Use monitor actions for detections you want to observe without blocking.
 

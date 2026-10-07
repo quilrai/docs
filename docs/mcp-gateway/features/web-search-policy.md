@@ -1,73 +1,55 @@
 ---
 sidebar_position: 8
 sidebar_custom_props:
-  badge: new
   icon: Globe
 ---
 
 # Web Search Policy
 
-Filter web search domains using enterprise security gateway rules.
+Apply your Zscaler Internet Access (ZIA) URL policy to the QuilrAI Web Search MCP, so agents can only open web pages your users are allowed to visit.
 
-## How It Works
+Setup has two parts: connect ZIA once for your tenant, then set the policy on the **QuilrAI Web Search** server.
 
-<StepFlow steps={[
-  {
-    label: "Gateway Connected",
-    items: [
-      "Provider: Zscaler ZIA",
-      "Rules synced: 24",
-      "Groups: 8 cached",
-    ],
-  },
-  {
-    label: "Search Request",
-    items: [
-      "Agent: Cursor",
-      "Query: competitor-site.com",
-      "Category: blocked-domains",
-    ],
-  },
-  {
-    label: "Policy Enforced",
-    items: [
-      "Domain: blocked ✗",
-      "Rule: #7 URL filter",
-      "Search denied",
-    ],
-  },
-]} />
-
-1. **Connect Gateway** - Link your enterprise security gateway
-2. **Sync Rules** - Cache groups, users, and URL filter rules
-3. **Enforce** - Domain checks run on every web search tool call
-
-## Supported Security Gateways
-
-| Gateway | Required Credentials |
-|---------|---------------------|
-| **Zscaler Internet Access (ZIA)** | Base URL, API Key, Username, Password |
-| **Palo Alto Prisma Access** | API URL, API Key |
-| **Fortinet FortiGate** | API URL, API Key |
-| **Cisco Umbrella** | API URL, Org ID, API Key, API Secret |
-
-## Synced Data
-
-Once connected, the gateway caches the following from your security gateway:
-
-| Data | Description |
-|------|-------------|
-| **Groups** | Security groups |
-| **Departments** | Org departments |
-| **Users** | User accounts |
-| **Rules** | URL filter rules |
-
-## Check Timeout
-
-Configure the **ZIA Check Timeout** to set the maximum seconds the gateway waits for domain validation before allowing the request through. This prevents slow security gateway responses from blocking web search tool calls.
-
-## Scope
-
-:::caution Web Search MCP Only
-This policy applies exclusively to the system **Web Search MCP**. It does not affect other MCP servers registered in the gateway.
+:::note
+This policy applies only to the built-in **QuilrAI Web Search** server. Other MCP servers are not affected.
 :::
+
+## Connect ZIA
+
+Go to **Settings > AI Gateway > MCP Gateway**, open the **...** menu in the header and choose **ZIA integration**.
+
+![ZIA integration panel with Not connected status, ZIA base URL, API key, Admin username, Admin password and Connect ZIA](/img/mcp-gateway/ui/zia-integration.png)
+
+1. Enter the **ZIA base URL**, for example `https://zsapi.zscaler.net`.
+2. Enter the **API key**, **Admin username** and **Admin password** of a ZIA admin account.
+3. Click **Connect ZIA**.
+
+The status changes to **Connected** and shows how many ZIA groups and departments are available. Credentials are not displayed again. To change them, enter new values and connect again.
+
+## Set the policy
+
+On the **QuilrAI Web Search** server card, click **Configure > General** and scroll to **Web Search policy** ("Apply ZIA-backed group policy and explicit URL overrides to web-search results").
+
+![Web Search policy card with ZIA check timeout, ZIA URL overrides and Groups with domain exclusions switches](/img/mcp-gateway/ui/settings-web-search-policy.png)
+
+| Setting | What it does |
+|---------|--------------|
+| **ZIA check timeout** | Maximum seconds to wait for a ZIA decision before assuming the URL is allowed. |
+| **ZIA URL overrides** | One URL or domain per line. These values override the ZIA lookup. |
+| **Groups with domain exclusions** | A switch per smart group. Turn it on for the groups that receive domain exclusions in their search results. |
+
+Click **Save settings** in the footer to apply your changes.
+
+## How it works
+
+1. An agent asks QuilrAI Web Search to open one or more web pages.
+2. The gateway looks up the person's ZIA groups and department and checks each URL with ZIA, applying your **ZIA URL overrides** first.
+3. URLs ZIA blocks for that person are removed. The rest are fetched and returned.
+
+Because the check uses the person's own ZIA identity, web search results follow the same ZIA URL policy that applies to that person.
+
+## Related
+
+- [Access control](./access-control) - limit who can use QuilrAI Web Search.
+- [Security Guardrails](./security-guardrails) - scan search results for sensitive data.
+- [Tools Management](./tools-management) - turn individual web search tools on or off.

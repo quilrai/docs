@@ -1,0 +1,128 @@
+QUILR ADMIN CONSOLE (v2) - LLM GATEWAY NAVIGATION GUIDE FOR BROWSING AGENTS
+Labels below are the exact on-screen text. ">" means "then click".
+
+WHERE
+- Sidebar: Settings > AI Gateway > LLM Gateway        URL /settings/llm-gateway
+- Page tabs: Applications (default) | Management API   /settings/llm-gateway/management-api
+- Sibling: Settings > AI Gateway > Models              /settings/models/models
+- Not visible? The user lacks LLM Gateway access; a warning banner means management is disabled for the organization.
+
+PAGE LAYOUT (Applications tab, top to bottom)
+- Header buttons: Overall analytics | Provider health | Self-service usage | Audit log |
+  Provider configuration | Create App (primary) | "..." menu > Copy all-apps log key
+- Metric strip: Requests (click = analytics) | Applications (click Active/Inactive/Expired = filter)
+  | Needs attention (Not routable / No guardrails / Expiring in 30d = filter) | Stopped by guardrails
+- Warning banner if an app has every provider disabled: Configure <app> or Review all
+- "Providers & models" strip: platform provider tiles (click = Provider configuration drawer)
+- "Configured Apps": search box, Filter (Attention, Status, Provider, Model, Tag, Creator),
+  time period button, sort dropdown, then one card per app
+- App card:
+  header: name, key status, tag button ("Add a tag to <app>"), Manage keys, Integration docs
+  "API Keys: N active / N expired / N revoked" row (click = API Keys section)
+  capability chips Identity aware / Prompt store / Token saving / Guardian agent (Yes/No; click = that section)
+  Inspect row: Logs | Usage & Cost | Provider Status | Copy logs key | Export API docs
+  Configure row: Providers | Guardrails | Guardian | Token Saving | Routing | Self-Service | Audit Log | Prompts
+- Every Inspect/Configure button opens the "LLM Gateway workspace" drawer.
+
+WORKSPACE DRAWER
+- Application picker (top right, "All applications" = all applications)
+- Tabs: Analytics | Activity | Usage | Health | Settings | Audit
+- Activity sub-tabs: Requests | Interactions | Findings
+- Settings tab needs exactly one app selected; left section list, form on right, Save settings at bottom
+- Settings section groups and labels:
+  Providers & routing: LLM Providers, Routing
+  Protection: Security Guardrails, Guardian Agent, Custom Detections, Rate and Token Limits
+  Optimization & policy: Token Saving, Self-Service, Alerts
+  Identity & content: Identity Aware, Prompt Store
+  Operations: API Keys, API Integration, Audit Log
+
+TASK -> WHERE
+- Create an app -> LLM Gateway > Create App > fill Application name (4-29 chars), optional Application URL,
+  optional "Key settings" (Quilr key name, Initial key expiry) > "Where should this app get its models?"
+  pick Platform providers (Recommended) or App-only credentials > pick/enter providers > Create app
+  > step 2 "Integration": copy Quilr key, Log export key, All-apps log key > Done
+- Add/edit a shared (platform) provider -> LLM Gateway > Provider configuration > Add your own models
+  (steps Connect > Models > Pricing > Review & save). Same as Settings > Models > Add your own models
+- Change an app's providers/models/fallbacks -> app card > Configure > Providers (LLM Providers section)
+- Set guardrails (PII, secrets, prompt injection, hallucination, source IPs) -> Configure > Guardrails
+  ("Copy from another app" copies guardrails from another app)
+- Guardian Agent (coding/task adherence) -> Configure > Guardian
+- Custom detections -> workspace Settings > Custom Detections (detection models: sidebar Detection Models)
+- Set rate limits / token budgets / concurrency -> workspace Settings > Rate and Token Limits
+- Token saving (compression/caching) -> Configure > Token Saving
+- Routing (weighted, token-based, custom) -> Configure > Routing
+- Failure-rate alerts (email/webhook) -> workspace Settings > Alerts
+- Identity / JWT / conversation ID enforcement -> workspace Settings > Identity Aware
+- Prompt Store (approved prompts + enforcement) -> Configure > Prompts
+- Self-service for developers -> Configure > Self-Service > Enabled switch, then Capabilities grid
+  (Allow all users / Allow emails / Allow smart groups / Deny emails / Deny smart groups) > Save settings
+- Approve self-service change requests -> Configure > Audit Log > Change requests
+- Who uses self-service -> header Self-service usage
+- Add / revoke / change the expiry of a Quilr key -> card Manage keys > Add key (Quilr key name, Expiry) or per key
+  Edit expiry / Revoke > Revoke key
+- Get integration snippet / base URL / key -> card Integration docs (API Integration section)
+- Roll back an app's configuration -> Configure > Audit Log > Configuration versions > Roll back
+- Configuration audit across all apps -> header Audit log
+- Request logs for an app -> card Logs (Activity > Requests); conversations: Interactions; detections: Findings
+- Cost / tokens for an app -> card Usage & Cost
+- Provider latency / errors -> card Provider Status, or header Provider health (all apps)
+- Estate-wide analytics -> header Overall analytics
+- Tag apps -> card tag button; filter by Tag in Filter
+- Log export key -> card Copy logs key; all apps: header "..." > Copy all-apps log key
+- Management API keys -> Management API tab > "Allow management keys for this organization" switch,
+  then Management keys > Issue key (pick Scopes)
+- Quilr-provided models / model API keys -> Settings > Models: tabs Models | API keys | Usage | Playground
+  (Models tab sources: "QuilrAI provided models" | "Your models"; API keys > Create API key)
+- Govern all apps with policies -> sidebar Policy Engine > LLM Gateway (/policy/engine/llm-gateway)
+- Costs across gateway -> sidebar Costs & Savings: Overview | Attribution | Savings | Habits | Providers
+- Findings across sources -> sidebar Findings & Interactions (LLM traffic shows source "LLM Gateway")
+- App as an asset -> sidebar Inventory > open the app: Analytics | Requests | Usage & cost | Settings
+- Custom charts -> sidebar Dashboards
+- Log retention / exports -> Settings > Data Settings > Data Retention | Export Center
+
+POLICY ENGINE (LLM)
+- First time: Policy Engine > LLM Gateway > "Enable new Policy Engine" > Review conversion > tick both
+  checkboxes in "Confirm your review" > Continue to confirmation > confirm
+- After enabling: 12 control cards (Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
+  Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Routing Groups & Fallbacks,
+  Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement)
+- Edit cards > Review changes > Publish revision. "Describe a request" previews the winning values.
+- History: /policy/engine/llm-gateway/history. Simulate: /policy/engine/llm-gateway/simulate
+
+DEEP LINKS (query parameters on /settings/llm-gateway)
+- ?create=1                         Create App drawer
+- ?providers=manage | add           Provider configuration drawer (add opens Add models)
+- ?self_service_usage=1             Self-service usage drawer
+- ?audit=global                     workspace on Audit tab, all apps
+- ?workspace=analytics|activity|usage|health|settings|audit   opens workspace on that tab
+- &app=<appId>  or  &apps=<id1,id2> scope (max 24); no app = all apps
+- &section=<id> (with workspace=settings): providers, security, guardian, detections, limits,
+  token-saving, routing, self-service, alerts, identity, prompts, audit, api-keys, integration
+- &activity=interactions|findings   Activity sub-tab (omit = Requests)
+- &period=24h|3d|7d|30d|90d|180d|365d (default 7d), or &from=..&to=..
+- Register filters (repeatable): llm_status=active|inactive|expired,
+  llm_attention=not_routable|unprotected|expiring_soon, llm_provider, llm_model, llm_tag, llm_creator
+- Activity drill filters: llm_outcome, llm_model, llm_provider, llm_user
+- &interaction=<id> opens a conversation detail drawer
+- Example: /settings/llm-gateway?app=<id>&workspace=settings&section=limits
+- Models: /settings/models/models?action=add-models ; ?source=quilr|yours ; ?q=<search>
+- Policy card anchor: /policy/engine/llm-gateway#policy-surface-<card id, e.g. limits>
+
+CONFIGURATION NOTES
+- Policy Engine on (tenant-wide): Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving,
+  Routing follow published policies; per-app values are not enforced. Banner "Controlled by Policy Engine"
+  > View policies (go edit in Policy Engine) or Edit anyway > Edit legacy settings (NOT enforced).
+- Partly governed: Custom Detections (on/off, Applies to, Action), Identity Aware (Enforce identity /
+  Enforce conversation ID switches), Prompt Store (enforcement). Definitions, identity sources, prompts stay live here.
+- Not governed: LLM Providers, Self-Service, Alerts, API Keys, API Integration, Audit Log.
+- Settings save only on "Save settings" (or "Save legacy settings"); Discard reverts. Prompts and
+  custom detection definitions save immediately.
+- Radio cards (provider source): click the visible card label text ("Platform providers" /
+  "App-only credentials"), not a hidden input. This choice is permanent after creation.
+- Create App is 2 steps (Application and providers, then Integration); keys are shown once, copy them.
+- Settings tab with several apps selected shows "Choose one application to configure"; pick one app.
+- No platform providers yet? In Create App use Add a platform provider, or Use app-only credentials.
+- An app with every provider disabled is "Not routable": it accepts keys but routes nothing.
+- Header buttons are disabled when management is unavailable; missing buttons mean missing permission.
+- Docs may mention "Global providers" or "Red Team" on cards; current UI says Platform providers, no Red Team button.
+- llm_provider / llm_model are shared by register filters and the Activity drill; clear them when switching.

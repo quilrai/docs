@@ -14,7 +14,7 @@ Open **Policy Engine > LLM Gateway**. The workspace shows twelve control cards. 
 
 ## Two decision points per call
 
-The document is evaluated twice for a single model call.
+The policy document is evaluated twice for a single model call.
 
 <StepFlow steps={[
   {
@@ -52,9 +52,9 @@ The document is evaluated twice for a single model call.
   },
 ]} />
 
-Controls that shape the outbound call run **on request**. Controls that judge
-what came back run **on response**. Data inspection runs on both: on request it
-catches what your users send, on response it catches what the model returns.
+Controls that shape the outbound call run **on request**. Controls that evaluate
+the response run **on response**. Data inspection runs on both: on request it
+inspects what your users send, on response it inspects what the model returns.
 
 ## What you can match on
 
@@ -63,10 +63,10 @@ catches what your users send, on response it catches what the model returns.
 | Application | The gateway application. This is how a policy is scoped to one app, and the condition the automatic conversion always writes. |
 | Application method type | API surface in use: `chat`, `responses`, `assistants`, `embeddings`, `rerank`, `tts`, `stt`, `text`, `bedrock`, `vertex`, `copilot`, `sdk_check`. |
 | User email | The identified caller. |
-| Smart groups | The caller's Quilr Smart Groups, the gateway's own runtime groups. These are distinct from console access-control groups and are matched ignoring case. |
+| Smart groups | The caller's Quilr smart groups. These are distinct from console access-control groups and are matched ignoring case. |
 | Requested model | The model the caller asked for. |
 | Tool name, tags, arguments | The tool call under evaluation, its tags, and its individual argument values. |
-| Request metadata | Your own metadata sent on the call: environment, cost centre, ticket ID, anything you pass. |
+| Request metadata | Your own metadata sent on the call: environment, cost center, ticket ID, anything you pass. |
 | Data found | Detections by exact catalog name, with `is any of`, `is all of` or `is none of`, and an optional occurrence threshold. |
 
 ## The twelve control surfaces
@@ -178,8 +178,8 @@ financial data where the last four digits still need to be readable.
   ]}
 />
 
-Publish on `monitor`, read a week of activity, then raise it. A low priority
-keeps it clear of real enforcement rules.
+Publish on `monitor`, review a week of activity, then select a more restrictive action. A low priority
+keeps it below enforcement rules.
 
 ### Stop prompt attacks at ingress
 
@@ -196,8 +196,8 @@ keeps it clear of real enforcement rules.
   ]}
 />
 
-Adversarial detections are ordinary data types, so prompt-attack defence has
-the same shape as secrets defence.
+Adversarial detections are ordinary data types, so prompt-attack protection uses
+the same rule structure as secret detection.
 
 ## New data rule
 
@@ -211,11 +211,11 @@ On the **Data & Adversarial Risks** card, **Add rule** opens the New data rule d
 | **Detection lines** | Each line picks data types, a findings threshold (**at least** N, default 1), an action and a stage. Add more lines with **+ Add line**. |
 | **Action** | **Monitor** (default), **Partial redact**, **Redact**, **Block**. |
 | **Stage** | **Request** (default), **Response**, **Both**. |
-| **Tool boundary** | **Scan tool-call arguments** judges each tool call's arguments on their own. Only Monitor and Block apply. |
+| **Tool boundary** | **Scan tool-call arguments** evaluates each tool call's arguments independently. Only Monitor and Block apply. |
 | **Severity** | Not set, Very low, Low, Medium, High, Critical, Very critical. Reported for ranking in dashboards, exports and alerts; it never changes the action. |
 | **More options** | Priority, extra rules, metadata and content conditions, raw QuilrQL. |
 
-A configuration scoped to **Everyone** has priority 500. Narrower scopes such as People, Smart group or Application win over it. Highest priority wins per data type, and **Block** on any line stops the whole request. Response redaction and blocking apply only where the gateway holds the full response; streamed responses are scanned and tagged, not changed.
+A configuration scoped to **Everyone** has priority 500. Narrower scopes such as People, Smart group or Application take precedence. The highest priority takes precedence per data type, and **Block** on any line stops the whole request. Response redaction and blocking apply only where the gateway holds the full response; streamed responses are scanned and tagged, not changed.
 
 ### Choosing data types
 
@@ -252,7 +252,7 @@ The category list and descriptions match the app-level [Security Guardrails](../
 
 A configuration on the Data & Adversarial Risks card holds as many **data
 rules** as you need. Each rule picks its own data types and its own action;
-they all share the configuration's scope and priority. **Add data rule** adds
+they all share the configuration's scope and priority. **Add rule** adds
 another.
 
 <PolicyCard
@@ -313,14 +313,14 @@ they never compete with each other.
 :::
 
 Use separate configurations instead when the rules need different scopes or
-priorities, for example one for an application and another for a Smart Group
+priorities, for example one for an application and another for a smart group
 exception. Rules that share a scope belong in one configuration.
 
 ## Governing tool calls
 
-Tool Controls decides whether a call may proceed at all, separately from what
-data it carries, so an agent keeps its read tools while losing its dangerous
-ones.
+Tool Controls determines whether a call may proceed, independently of the
+data it carries. Use it to retain access to read tools while restricting
+higher-risk tools.
 
 <PolicyCard
   name="deny_public_repository_creation"
@@ -381,8 +381,8 @@ never proceeds.
 />
 
 One condition, no application scope, so these people are refused on every
-gateway application, every model and every method. Use this shape while a
-leaver's credentials are still being revoked upstream.
+gateway application, every model and every method. Use this rule structure while a
+former user's credentials are being revoked at the provider.
 
 ### Deny a group for particular models
 
@@ -400,8 +400,8 @@ leaver's credentials are still being revoked upstream.
   ]}
 />
 
-Interns keep full gateway access and are refused only when they reach for an
-expensive frontier model. Swap the group row for `User email is any of` to do
+Interns keep full gateway access and are refused only when they request a
+listed frontier model. Replace the group row for `User email is any of` to do
 the same for one person.
 
 ### The allow-list alternative
@@ -414,10 +414,10 @@ the same for one person.
   then={[{ effect: "Allowed models", values: ["gpt-4.1-mini", "claude-haiku-4.5"], tone: "info" }]}
 />
 
-Same intent, opposite construction. The card above denies three named models
+An allowlist offers another approach. The card above denies three named models
 and must be edited every time a new frontier model appears; this one names the
 two models Interns may use, so anything new is excluded by default. Prefer this
-shape unless you specifically need the denial recorded as a blocked call.
+structure unless you specifically need the denial recorded as a blocked call.
 
 ### Everyone except
 
@@ -581,8 +581,8 @@ section of the [Budgets & Usage Limits](./llm-controls/budgets-and-usage-limits)
   ]}
 />
 
-Savings show up as tokens saved in the activity view, so you can prove the
-reduction rather than assume it. See
+Savings show up as tokens saved in the activity view, so you can review the
+reported reduction. See
 [Token Saving](../token-saving) for the cross-product guide.
 
 <PolicyCard
@@ -597,7 +597,7 @@ reduction rather than assume it. See
 />
 
 Production traffic must use a reviewed system prompt while development traffic
-stays free to experiment. See
+can use other prompts. See
 [Prompt Store](../llm-gateway/features/prompt-store).
 
 ## Response quality
@@ -618,11 +618,11 @@ stays free to experiment. See
 />
 
 The threshold is the confidence at which a response counts as a hallucination.
-Start at `monitor`, then move either the action or the threshold.
+Start at `monitor`, then adjust the action or the threshold.
 
 ## Scoping to people and groups
 
-Every card carries one-click scope shortcuts, which add the condition and lift
+Every card carries one-click scope shortcuts, which add the condition and increase
 the priority so the narrower scope wins automatically.
 
 | Shortcut | Seeded priority |

@@ -6,15 +6,15 @@ sidebar_custom_props:
 
 # Quick Start
 
-Create an app, point your SDK at the gateway, and send a first request.
+Create an app, configure your SDK to use the gateway, and send a first request.
 
 <StepFlow steps={[
   {
     label: "Create App",
     items: [
-      "Name and Quilr key name",
+      "Name and key settings",
       "Providers and models",
-      "Guardrails",
+      "Default guardrails applied",
     ],
   },
   {
@@ -46,72 +46,74 @@ Create an app, point your SDK at the gateway, and send a first request.
 You need one of:
 
 - Credentials for a provider (for example an OpenAI API key), or
-- A global provider already set up in **Settings > Models** (V2 console only, see [Providers and Models](./providers-and-models)).
+- A platform provider already set up in **Settings > Models** (V2 console only, see [Providers and Models](./providers-and-models)). You can also add one from inside Create App.
 
 ## 1. Create the app
 
-Go to **Settings > LLM Gateway** and click **Create App**. The wizard has three steps.
+Go to **Settings > LLM Gateway** and click **Create App**. The wizard has two steps.
 
 ### Step 1: Application and providers
 
 ![Create App step 1 with Application name, Quilr key name, Application URL, Initial key expiry and the Global providers picker](/img/llm-gateway/ui/create-app-step1-global-providers.png)
+<!-- TODO-SCREENSHOT: retake, shows old "Global providers" picker and old field layout (Key settings is now a collapsed row) -->
 
 | Field | Notes |
 |-------|-------|
 | **Application name** | Required. 4 to 29 characters. |
-| **Quilr key name** | Required. Defaults to `Default`. Names the gateway key, not your provider key. |
 | **Application URL** | Optional. |
-| **Initial key expiry** | Optional. Leave blank for a key that never expires. |
+| **Quilr key name** | Under **Key settings**. Required. Defaults to `Default`. Names the gateway key, not your provider key. |
+| **Initial key expiry** | Under **Key settings**. Optional. Leave blank for a key that never expires. |
 
-Next, choose where the provider credentials come from.
+Next, under **Where should this app get its models?**, choose where the provider credentials come from.
 
 | Option | Use it when |
 |--------|-------------|
-| **Global providers** | A provider is already set up in **Settings > Models** and you want this app to reuse its credentials and models. |
-| **Use app-specific credentials** | You want to enter provider credentials for this app only. |
+| **Platform providers** (Recommended) | You want this app to reuse providers your team already connected, with credentials and models managed in one place. |
+| **App-only credentials** | You want to enter provider credentials for this app only, for example when one team's keys must stay separate. |
 
 :::info V2 console only
-The **Global providers** option exists only in the V2 console, and it is the default when any global provider exists. In V1, every app uses app-specific credentials. Either way, the choice is fixed once the app is created.
+The **Platform providers** option exists only in the V2 console, and it is the default. In V1, every app keeps its own provider credentials. Either way, the choice is fixed once the app is created.
 :::
 
-**Global providers.** Pick one or more providers. The first one you pick is the **Primary**. The app inherits all their models and credentials, including models added later.
+**Platform providers.** Select one or more providers. The first one you select is the **Primary**; the rest are fallbacks. Use the up and down arrows to change the order. The app inherits all their models and credentials, including models added later. If none exist yet, click **Add a platform provider** to add one without leaving the form, or **Use app-only credentials**.
 
 ![A global provider selected and marked Primary, with its model listed below](/img/llm-gateway/ui/create-app-global-provider-selected.png)
+<!-- TODO-SCREENSHOT: retake, shows old "Global providers" picker -->
 
-**App-specific credentials.** Click **Use app-specific credentials** and pick a provider type.
+**App-only credentials.** Select **App-only credentials** and select a provider tile. For providers with more than one API, also select one under **Which API does the gateway talk to?**.
 
 ![The Provider dropdown listing provider types such as openai, anthropic, azureopenai, general, deepseek, Sarvam and bedrock](/img/llm-gateway/ui/create-app-provider-dropdown.png)
+<!-- TODO-SCREENSHOT: retake, shows old Provider dropdown (now provider tiles) -->
 
 1. Keep or change the **Provider label**.
-2. Enter the **Models** the app may call, separated by commas, or click **Discover models** to list what the credentials can reach.
-3. Fill in the credential fields. Each provider's fields are listed in [Provider Support](./provider-support#credentials-by-provider).
-4. Optional: click **Validate first model** to test the credentials.
-5. Optional: use **Add provider** to add more providers for failover or routing.
+2. Fill in the credential fields. Each provider's fields are listed in [Provider Support](./provider-support#credentials-by-provider).
+3. Under **Models**, click **Get available models** and choose from the list, or type a model in **Add a model by name** and click **Add**. Each model is checked against the provider before it is added.
+4. Optional: click **Add another provider** to add fallback providers for failover or routing.
 
 ![An openai provider form with Models and API key fields, followed by the Discover models, Validate first model and Add provider controls](/img/llm-gateway/ui/create-app-discover-models-add-provider.jpg)
+<!-- TODO-SCREENSHOT: retake, shows old Discover models / Validate first model / Add provider controls -->
 
 :::tip Use QuilrAI-provided models
-To put an app in front of [QuilrAI-provided models](./quilr-provided-models), add a **general** (General LLM) provider with base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > Models > API keys**.
+To connect an app to [QuilrAI-provided models](./quilr-provided-models), add a **Custom endpoint** provider with the **Chat completions** API (`general`), base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > Models > API keys**.
 :::
 
-Click **Continue to guardrails**.
-
-### Step 2: Guardrails
+Click **Create app**. There is no guardrail step: every new app starts with these defaults, which you can change later in its [Security Guardrails](./features/security-guardrails) section.
 
 ![Create App step 2 with the Default guardrail action set to Monitor and the data and adversarial risk toggles](/img/llm-gateway/ui/create-app-step2-guardrails.jpg)
+<!-- TODO-SCREENSHOT: retake or remove, shows the old Create App guardrails step, which no longer exists -->
 
 | Setting | Default |
 |---------|---------|
-| **Default guardrail action** | **Monitor**. You can choose Block, Redact or Partial redact instead. |
+| **Default guardrail action** | **Monitor**. You can change it later to Block, Redact or Partial redact. |
 | **Data risks** | All six on: PII, PHI, financial, payment card, insurance, authentication secrets |
 | **Adversarial risks** | 12 of 13 on. **Malicious scripts** is off. |
 | **Dependency security check**, **Latest-version suggestions**, **Task adherence** | Off. These are [Guardian Agent](./features/guardian-agent) checks. |
 
-Monitor logs detections without changing traffic, which makes it a safe first setting. Click **Create app**.
+Monitor logs detections without changing traffic.
 
-### Step 3: Key details
+### Step 2: Key details
 
-The last step shows the new Quilr key. Copy it. You can copy it again later from the app's **API Integration** section (see [Applications and Keys](./applications-and-keys#api-integration)).
+The last step, **Integration**, shows the new Quilr key, the app's log export key and, if you have access, the all-apps log key. Copy them now, then click **Done**. You can copy the Quilr key again later from the app's **API Integration** section (see [Applications and Keys](./applications-and-keys#api-integration)).
 
 ## 2. Send your first request
 
@@ -132,7 +134,7 @@ resp = client.chat.completions.create(
 print(resp.choices[0].message.content)
 ```
 
-The example uses US East. Pick the nearest region, and the right path for your SDK (Anthropic, boto3, Vertex AI, Responses, Realtime), in the [Integration Guide](./integration-guide).
+The example uses US East. Select the nearest region and the appropriate path for your SDK (Anthropic, boto3, Vertex AI, Responses, Realtime), in the [Integration Guide](./integration-guide).
 
 ## 3. Check that it worked
 

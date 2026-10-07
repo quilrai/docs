@@ -8,7 +8,7 @@ sidebar_custom_props:
 
 Store reusable system prompts centrally, then reference one or more of them and add inline instructions at request time.
 
-Open the app's **Settings > Prompt Store** (under **Identity & content**). Enter a **Prompt ID** and **Prompt content**, then **Save prompt**. Prompt changes apply immediately, without **Save settings**, and are recorded in the app's [Audit Log](./audit-log).
+Open the app's **Settings > Prompt Store** (under **Identity & content**). Enter a **Prompt ID** and **Prompt content**, then click **Save prompt**. Prompt changes apply immediately, without **Save settings**, and are recorded in the app's [Audit Log](./audit-log).
 
 ![Prompt editor with the Prompt content box, the variable syntax help text and the Save prompt button](/img/llm-gateway/ui/app-prompt-store.png)
 
@@ -48,7 +48,7 @@ Variable names can contain letters, numbers, underscores and hyphens. Callers mu
 
 A system message is not limited to a single reference. The gateway scans it for `quilrai-prompt-store-<id>` reference tokens and replaces each one **in place** with that prompt's resolved content, leaving any other text exactly where you wrote it. So one system message can:
 
-- **Reference several prompts** - list multiple `quilrai-prompt-store-<id>` tokens and the gateway stitches their resolved content together in the order written.
+- **Reference several prompts** - list multiple `quilrai-prompt-store-<id>` tokens and the gateway combines their resolved content in the order written.
 - **Mix in your own instructions** - add freeform text around the references to extend the stored prompt for a single request, without editing the stored prompt itself.
 
 **System message your app sends:**
@@ -87,7 +87,7 @@ Only review the security-sensitive files in this diff.
 ```
 
 :::tip
-References and inline text are stitched together top-to-bottom in the order they appear. Put foundational prompts first and request-specific instructions last so the model reads them in a natural order.
+References and inline text are combined from top to bottom in the order they appear. Put foundational prompts first and request-specific instructions last so the model reads them in a natural order.
 :::
 
 ## Template Variables
@@ -123,7 +123,7 @@ When a system message references several prompts, give each one its own entry - 
 
 ## Enforce System Prompts
 
-**Require system prompt from store** ensures every request's system message includes at least one managed Prompt Store reference, so no request runs without a reviewed base prompt.
+**Enforce system prompts from store** (on the **Enforcement** card) ensures every request's system message includes at least one managed Prompt Store reference, so no request runs without a reviewed base prompt.
 
 | Mode | Behavior |
 |------|----------|
@@ -138,7 +138,7 @@ The Global Prompt Store is one prompt library for your whole organization, reusa
 
 ![Prompt Store and Enforcement card with the Configure menu, the Prompt Store button, and Require store prompt set for 3 applications](/img/llm-gateway/ui/policy-prompt-store-card.png)
 
-The drawer lists every prompt with its ID, variables and content. Search by ID or content, or use **Add prompt**, **Edit** and **Delete**. IDs and `{{variable}}` rules are the same as for app prompts. Changes apply immediately across the organization: they are not part of the policy draft and need no publish.
+The drawer lists every prompt with its ID, variables and content. Search by ID or content, or use **Add prompt**, **Edit** and **Delete**. IDs and `{{variable}}` rules are the same as for app prompts. Changes apply immediately across the organization: they are not part of the policy draft and do not require publishing.
 
 ![Global Prompt Store drawer with a search box and two prompts showing their persona and name variable chips](/img/llm-gateway/ui/policy-global-prompt-store-drawer.png)
 
@@ -157,7 +157,7 @@ How the two stores relate:
 
 ### Enforcement under the Policy Engine
 
-With the Policy Engine on, **Require system prompt from store** is set by **Prompt Store and Enforcement** policies instead of the app setting. Each configuration picks who it applies to (application, people, smart group and more) and sets **Require store prompt**. It applies to chat, Responses and Vertex traffic, and the highest-priority matching configuration wins. See [LLM Gateway Policies](../../policy-engine/llm-gateway#token-savings-and-prompt-store).
+With the Policy Engine on, **Enforce system prompts from store** is set by **Prompt Store and Enforcement** policies instead of the app setting. Each configuration specifies who it applies to (application, people, smart group and more) and sets **Require store prompt**. It applies to chat, Responses and Vertex traffic, and the highest-priority matching configuration wins. See [LLM Gateway Policies](../../policy-engine/llm-gateway#token-savings-and-prompt-store).
 
 ## Code Examples
 

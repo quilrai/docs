@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # Overview
 
-The LLM Gateway sits between your applications and your LLM providers. Your code keeps its SDK. You change the base URL and the API key, and every request is checked by guardrails, routed to a provider, and logged with cost and latency.
+The LLM Gateway sits between your applications and your LLM providers. Your application continues to use its existing SDK. You change the base URL and the API key, and every request is checked by guardrails, routed to a provider, and logged with cost and latency.
 
 <StepFlow steps={[
   {
@@ -42,7 +42,7 @@ The LLM Gateway sits between your applications and your LLM providers. Your code
 | **Quilr key** | The credential your code sends to the gateway. An app can have several named Quilr keys, each with its own expiry. See [Applications and Keys](./applications-and-keys). |
 | **Provider** | An upstream connection: a provider type (for example `openai` or `bedrock`), its credentials, a label, and the models the app may call. See [Provider Support](./provider-support). |
 | **Primary and additional providers** | An app can use several providers. The first is the primary; the rest serve failover, routing groups and explicit provider selection. |
-| **Global provider** | A provider set up once in **Settings > Models** and linked to many apps (V2 console only). See [Providers and Models](./providers-and-models). |
+| **Platform provider** | A provider set up once in **Settings > Models** (or **Provider configuration** on the LLM Gateway page) and selected by many apps (V2 console only). See [Providers and Models](./providers-and-models). |
 
 Provider credentials stay in the gateway. Developers only ever see the Quilr key.
 
@@ -51,12 +51,15 @@ Provider credentials stay in the gateway. Developers only ever see the Quilr key
 Go to **Settings > LLM Gateway**. The page has two tabs: **Applications** and **Management API** (see [Management APIs](./management-apis/overview)).
 
 ![LLM Gateway Applications tab with the Overall analytics, Self-service usage, Audit log and Create App buttons above four summary cards](/img/llm-gateway/ui/applications-overview-cards.png)
+<!-- TODO-SCREENSHOT: retake, header is missing the Provider health and Provider configuration buttons -->
 
 | Button | What it opens |
 |--------|---------------|
 | **Overall analytics** | The gateway workspace for all applications, on the Analytics tab |
+| **Provider health** | The gateway workspace for all applications, on the Health tab |
 | **Self-service usage** | Who can use self-service in each app, and whether they do |
 | **Audit log** | The gateway workspace on its Audit tab |
+| **Provider configuration** | Your platform providers and their models, with **Add your own models**. The same list as **Settings > Models > Your models**. See [Providers and Models](./providers-and-models). |
 | **Create App** | The Create App wizard. See [Quick Start](./quick-start). |
 | **...** | **Copy all-apps log key**, a read-only key for the [Log Export API](./log-export-api) across every app |
 
@@ -64,8 +67,10 @@ Go to **Settings > LLM Gateway**. The page has two tabs: **Applications** and **
 |--------------|-------|
 | **Requests** | Request count, people calling, models in use, success rate, tokens exchanged |
 | **Applications** | Active, Inactive and Expired apps, and the number of distinct providers |
-| **Needs attention** | Apps that are not routable (every provider off), have no guardrails, or have a key expiring in 30 days |
+| **Needs attention** | Apps that are not routable (every provider disabled), have no guardrails, or have a key expiring in 30 days |
 | **Stopped by guardrails** | Blocked and redacted requests, failed requests, p95 latency |
+
+Below the cards, the **Providers & models** strip lists your platform providers and opens **Provider configuration**.
 
 Click any number on a card to filter the app list. Below the cards, search by app, key, provider, model, creator or tag, and filter by attention, status or provider.
 
@@ -74,6 +79,7 @@ Click any number on a card to filter the app list. Below the cards, search by ap
 Each app in **Configured Apps** has a card.
 
 ![App card with its providers and models, feature chips, request and cost summary, and the Inspect and Configure button rows](/img/llm-gateway/ui/app-card-multi-provider.png)
+<!-- TODO-SCREENSHOT: retake if it still shows Red Team and Results buttons in the Inspect row -->
 
 | Area | What it shows |
 |------|---------------|
@@ -82,7 +88,7 @@ Each app in **Configured Apps** has a card.
 | Providers | Each provider with its models, a **Disabled** chip if switched off, and its p95, latency and error trend |
 | Feature chips | Identity aware, Prompt store, Token saving, Guardian agent |
 | Traffic | Requests, blocked, monitored, redacted and failed counts, estimated cost, tokens |
-| **Inspect** | Red Team, Results, Logs, Usage & Cost, Provider Status, Copy logs key, Export API docs |
+| **Inspect** | Logs, Usage & Cost, Provider Status, Copy logs key, Export API docs |
 | **Configure** | Providers, Guardrails, Guardian, Token Saving, Routing, Self-Service, Audit Log, Prompts |
 
 ## The app workspace
@@ -124,7 +130,7 @@ When the [Policy Engine](../policy-engine/llm-gateway) is on, sections marked wi
 
 ## Self-service usage
 
-**Self-service usage** reports who can view, request changes to, directly edit, see the keys of, and see all logs of each app, and how much they use it. Tabs: **Users**, **Applications**, **Change history**.
+**Self-service usage** reports who can view each app, request changes, edit settings directly, view keys, or view all logs, along with their usage. Tabs: **Users**, **Applications**, **Change history**.
 
 ![Self-service usage report with user, app, request and settings-change tiles above the Users tab](/img/llm-gateway/ui/self-service-usage.png)
 

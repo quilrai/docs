@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Unified Completions
 
-Use OpenAI Chat Completions clients with provider-native chat models. QuilrAI accepts an OpenAI-style `/chat/completions` request, translates it to the selected provider, and returns an OpenAI-shaped chat completion response.
+Use OpenAI Chat Completions clients with provider-native chat models. QuilrAI accepts an OpenAI-style `/chat/completions` request, translates it to the selected provider, and returns a chat completion response in OpenAI format.
 
 ## Scope
 
@@ -34,7 +34,7 @@ This page does not cover:
 - Bedrock embeddings or rerank
 - OpenAI Responses API
 
-Use Unified Completions when your application already speaks OpenAI Chat Completions and you want to call selected Bedrock, Vertex AI Gemini, or Anthropic Messages models without switching SDKs.
+Use Unified Completions when your application already uses OpenAI Chat Completions and you want to call selected Bedrock, Vertex AI Gemini, or Anthropic Messages models without switching SDKs.
 
 :::info Native multimodal routes
 The translated OpenAI-compatible path is text-only today. Use native Vertex AI, Anthropic Messages, or Bedrock Runtime routes when you need provider-native image, audio, video, document, or other multimodal request shapes.
@@ -42,7 +42,7 @@ The translated OpenAI-compatible path is text-only today. Use native Vertex AI, 
 
 ## Request Flow
 
-1. Add a provider of type `bedrock`, `vertex_ai`, `anthropic_messages`, `anthropic_messages_bedrock`, or `anthropic_messages_azure` to your app (or, in the V2 console, link a global provider of that type).
+1. Add a provider of type `bedrock`, `vertex_ai`, `anthropic_messages`, `anthropic_messages_bedrock`, or `anthropic_messages_azure` to your app (or, in the V2 console, link a platform provider of that type).
 2. Enable the models the app is allowed to call.
 3. Point your OpenAI SDK or OpenAI-compatible wrapper at the closest regional endpoint, such as `https://guardrails-usa-2.quilr.ai/openai_compatible/`.
 4. Send the provider model name in the OpenAI SDK `model` parameter.
@@ -85,7 +85,7 @@ response = client.chat.completions.create(
 )
 ```
 
-The normal gateway behavior still applies: authentication, provider and model routing, prompt-store substitution, request-side DLP, response-side DLP for non-streaming responses, logging, rate limits, token estimates, Guardian checks, and performance metrics.
+The normal gateway behavior still applies: authentication, provider and model routing, Prompt Store substitution, request-side DLP, response-side DLP for non-streaming responses, logging, rate limits, token estimates, Guardian checks, and performance metrics.
 
 ## Common Contract
 
@@ -273,7 +273,7 @@ Credentials for these provider types (API key, AWS static keys or assume role, V
 
 ## Error Handling
 
-QuilrAI returns OpenAI-shaped errors for adapter validation failures and preserves upstream provider messages where possible.
+QuilrAI returns errors in OpenAI format for request translation validation failures and preserves upstream provider messages where possible.
 
 | Problem | Bedrock | Anthropic Messages | Vertex AI |
 |---------|---------|--------------------|-----------|
@@ -311,7 +311,7 @@ Tool messages are carried through without changing tool IDs, function response n
 
 ## Expected Failures
 
-Besides the unsupported parameters and content above, these are rejected on purpose:
+Besides the unsupported parameters and content above, the following are rejected:
 
 - Tool result messages missing `tool_call_id`, or assistant `tool_calls` without `id` (Bedrock and Anthropic Messages)
 - A user message right after assistant tool calls, without the matching tool results

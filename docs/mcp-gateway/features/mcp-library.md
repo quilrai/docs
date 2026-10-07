@@ -1,72 +1,65 @@
 ---
 sidebar_position: 1
 sidebar_custom_props:
-  badge: new
   icon: LibraryBig
 ---
 
 # MCP Library
 
-One-click install pre-built MCP integrations from the catalog.
+Install ready-made MCP servers and local packages without entering URLs. The MCP Library includes provider-native servers and MCPs built by Quilr across productivity, developer tools, data, communication, cloud, security and web search.
 
-## How It Works
+Go to **Settings > AI Gateway > MCP Gateway** and click **Library**.
 
-<StepFlow steps={[
-  {
-    label: "Browse Catalog",
-    items: [
-      "Developer Tools: 8 servers",
-      "Productivity: 12 servers",
-      "Communication: 5 servers",
-    ],
-  },
-  {
-    label: "One-Click Install",
-    items: [
-      "GitHub MCP → installed ✓",
-      "OAuth: auto-authorized",
-      "Tools: auto-detected",
-    ],
-  },
-  {
-    label: "Configure",
-    items: [
-      "Read tools: 5 enabled",
-      "Write tools: 3 enabled",
-      "Destructive: 1 disabled ✗",
-    ],
-  },
-]} />
+![MCP Library drawer with the search box, Status, Type and Sign-in filters, and catalog rows with Install and Set up buttons](/img/mcp-gateway/ui/library.png)
 
-1. **Browse** - Open the MCP Library catalog
-2. **Install** - One-click install, no URLs needed
-3. **Configure** - Open Settings to customize tools and guardrails
+## Find an MCP
 
-## Pre-Built Integrations
+Type in **Search by name or what it does**, or filter:
 
-The catalog includes provider-native integrations and MCPs built by Quilr across productivity, developer tools, data, communication, cloud, security, and web search.
+| Filter | Options |
+|--------|---------|
+| **Status** | Installed, Not installed |
+| **Type** | Remote (HTTP), Local package (stdio) |
+| **Sign-in** | OAuth, API key, OAuth passthrough, No sign-in |
 
-For a capability and connection comparison of integrations such as Microsoft 365 Outlook, Azure DevOps, Figma, Semrush, BrowserStack, and Athenahealth, see [Quilr-Provided MCPs](../../quilr-provided-mcps/overview).
+Each row shows whether it is a **Remote server** or a local package (with its runtime and version), how it signs in, and an **Installed** or **Inactive** tag once installed.
 
-## Authentication
+For what each Quilr-built MCP can do, see [Quilr-Provided MCPs](../../quilr-provided-mcps/overview).
 
-### OAuth MCPs
+## Install
 
-Click **Connect** to authorize. The gateway handles client registration and capability fetching automatically.
+| Button | What it does |
+|--------|--------------|
+| **Install** | Installs at once. Shown when the MCP needs no key and no custom OAuth app. |
+| **Set up** | Opens the required setup fields. Complete them, then click **Install**. |
+| **Review** | Opens a local package for review and approval. See [Local MCP: Administrator Setup](../local-mcp/admin-setup). |
+| **Continue setup** | Opens the settings of an installed MCP that requires further setup. |
+| **Settings** | Opens the settings of a configured MCP. |
+| **Uninstall** | Removes the MCP and its configuration, after you confirm. |
 
-### No-Auth MCPs
+**Set up** asks for one of:
 
-Ready immediately after install. Create API tokens in **Settings** for programmatic access.
+- **API key**: the **Upstream API key**, **Authentication scope** (**Shared by the whole tenant** or **Each user brings their own**), placement and prefix. The key is stored at the gateway and never shown again.
+- **Custom OAuth app**: register the **OAuth callback URL** shown in the provider's OAuth app, then enter the **OAuth client ID** and **OAuth client secret**. See [MCP Provider Setup](../mcp-provider-setup/overview) for provider steps.
 
-## Add Your Own MCP Server
+After you install, the MCP appears in the server list. Enable its tools in **Settings > Tools**. If it uses OAuth, connect it once as an administrator (see [Adding MCP Servers](../adding-mcp-servers#connect-an-oauth-server-as-an-administrator)).
 
-Don't see what you need? Click **"Add MCP"** to register an MCP server operated by your organization or another provider. Supply its transport URL ending in `/sse` or `/mcp`; the gateway probes its capabilities and detects supported authentication metadata.
+## Install requests from users
 
-This bring-your-own workflow is separate from the catalog of [Quilr-provided integrations](../../quilr-provided-mcps/overview).
+People who can't install MCPs see **Request** instead of **Install**. Their requests:
+
+- Show as a count on the **Library** button and in the **Library queue** row of the **Tools reachable** tile.
+- Are listed under **Requested by your team** at the top of the MCP Library, with the requester and request time.
+
+Install the requested MCP from its row, or click **Dismiss** to clear the request.
+
+## Add your own MCP server
+
+To add an MCP that is not in the MCP Library, click **Add MCP server** to register a server by its URL, a REST API or a local package. See [Adding MCP Servers](../adding-mcp-servers).
 
 ## Internal MCPs
 
-To register an MCP server hosted inside your private network, allowlist the following Quilr gateway IPs on your firewall, VPC security group, or reverse proxy so the gateway can reach your internal endpoint:
+To register an MCP server hosted inside your private network, allowlist these Quilr gateway IPs on your firewall, VPC security group or reverse proxy so the gateway can reach it:
 
 ```
 132.226.119.116
@@ -76,4 +69,10 @@ To register an MCP server hosted inside your private network, allowlist the foll
 80.225.216.37
 ```
 
-Once the MCP URL is reachable from these IPs, add it via **"Add MCP"** like any other custom server. Capability probing and subsequent tool calls will originate from the same addresses.
+Once the URL is reachable from these IPs, add it with **Add MCP server** like any other remote server. Probing and tool calls come from the same addresses.
+
+## Related
+
+- [Adding MCP Servers](../adding-mcp-servers) - remote servers and sign-in modes.
+- [OAuth Connect](./oauth-connect) - how admins and users connect OAuth servers.
+- [Quilr-Provided MCPs](../../quilr-provided-mcps/overview) - what each Quilr-built MCP does.
