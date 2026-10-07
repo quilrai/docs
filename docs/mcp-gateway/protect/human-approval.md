@@ -16,7 +16,7 @@ The approval comes from the **person who made the call**, in their own AI app. I
 
 - No administrator, manager or second person reviews the call, and there is no approval queue or delegation.
 - A message such as "An administrator requires confirmation for this tool" means an administrator turned the rule on, not that an administrator approves each call.
-- By default, whoever opens the **Approve in Quilr** link can decide the request. Treat the link like the conversation it came from and do not share it.
+- Treat the **Approve in Quilr** link like the conversation it came from and do not share it.
 
 For separation of duties, restrict the tool instead: disable it with [Tool visibility](./tool-visibility), or limit who can reach it with [Group and user rules](./group-and-user-rules) and [Server access](./server-access).
 

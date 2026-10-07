@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 sidebar_label: "Claude Compliance API"
-description: "Bring Claude.ai activity, chats, files and projects into QuilrAI with an Anthropic Compliance Access Key, registered in Console V1."
+description: "Bring Claude.ai activity, chats, files and projects into QuilrAI with an Anthropic Compliance Access Key: prerequisites, key registration, sync and verification."
 sidebar_custom_props:
   icon: Layers
 ---
@@ -19,7 +19,7 @@ The Claude Compliance integration gives your organization visibility into Claude
 <ConsolePath console="QuilrAI console V1" path={['Settings', 'Compliance', 'Claude']} />
 
 :::note Where to set it up
-Key registration and sync run from **Settings › Compliance › Claude** in [Console V1](../../console/legacy-v1/overview). The **Claude Compliance** card in the current console's **Settings › Integrations › Library** asks only for a label and a data region and does not take a key: installing it records configuration but does not sync data.
+Install the **Claude Compliance** card from **Settings › Integrations › Library**, and register the Compliance Access Key under **Settings › Compliance › Claude** in [Console V1](../../console/legacy-v1/overview).
 :::
 
 ## Before you start

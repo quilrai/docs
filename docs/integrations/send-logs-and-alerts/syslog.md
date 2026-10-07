@@ -9,13 +9,7 @@ sidebar_custom_props:
 
 Forwards the Extension findings to your syslog server based on the controls configured.
 
-:::note Set up in Console V1
-Syslog forwarding is configured only on the **Integrations** page of [Console V1](../../console/legacy-v1/overview). The current console's **Settings › Integrations** library has no Syslog card. See [How integrations work](../get-started/how-integrations-work#availability).
-:::
-
 ## Setup
-
-In Console V1:
 
 1. Go to **Integrations** and open the **Available** tab.
 2. Click **+ Add** on the **Syslog** tile.
@@ -31,6 +25,10 @@ In Console V1:
 | Facility | No | Syslog facility to use for outgoing messages |
 
 4. Click **Allow**.
+
+## Check that it works
+
+After you save, trigger a harmless test finding (for example a test value that a browser DLP rule flags) and check that a message from `quilr-siem-event` arrives at your syslog server.
 
 ## Payload
 

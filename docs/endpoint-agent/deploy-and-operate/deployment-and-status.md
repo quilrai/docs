@@ -12,7 +12,7 @@ Roll the Endpoint Agent out to your fleet, then use the console to track coverag
 
 ## What you receive
 
-Agent packages are not downloadable from the console. Your QuilrAI representative supplies them with your tenant ID:
+Your QuilrAI representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates) with your tenant ID. Step-by-step installation guides are at [installdocs.quilrai.dev](https://installdocs.quilrai.dev/).
 
 | Platform | Package |
 | --- | --- |
@@ -69,17 +69,17 @@ Deploy to a small group first, confirm the checks in [Confirm a healthy rollout]
 
 | KPI | Meaning |
 | --- | --- |
-| **Workstations** | Workstations that have registered with QuilrAI. |
+| **Workstations** | Workstations where the agent has checked in with QuilrAI. |
 | **Enabled** | Workstations where the agent is enabled. |
 | **Disabled** | Workstations where the agent is disabled. |
 | **Without persona** | Workstations where no persona links activity to a person. Check the persona options in [Agent settings](../configure/agent-settings). |
 | **Latest version** | Workstations running the latest agent version. |
 
-The table lists each **Workstation**, **User**, **Operating system**, **Agent version**, **Status**, and **Last registered** time. Use **Search** and the status and version filters to find a device.
+The table lists each **Workstation**, **User**, **Operating system**, **Agent version**, **Status**, and **Last registered** time (the last time the agent checked in). Use **Search** and the status and version filters to find a device.
 
 ## Reconcile assigned and reporting devices
 
-The **Workstations** count shows devices that registered, not devices you assigned the package to. To find gaps:
+The **Workstations** count shows devices whose agent has checked in, not devices you assigned the package to. To find gaps:
 
 1. Export the device names in your MDM assignment group, with each device's install status and last check-in time.
 2. Search for those names in **Users › Endpoint deployment**.
@@ -87,7 +87,7 @@ The **Workstations** count shows devices that registered, not devices you assign
 
 | What you see | Likely cause | Next step |
 | --- | --- | --- |
-| Installed in MDM, not listed | The agent never registered. | Check the tenant ID, the [network destinations](../get-started/requirements#network) and, on macOS, that the profiles and CA certificates arrived before the package. |
+| Installed in MDM, not listed | The agent has never checked in. | Check the tenant ID, the [network destinations](../get-started/requirements#network) and, on macOS, that the profiles and CA certificates arrived before the package. |
 | Listed, **Last registered** much older than the MDM last check-in | The device is online but the agent is not reporting. | Check that the service is running (`QuilrAIAgent` on Windows, `com.quilrai.agent` on macOS). |
 | Listed, **Last registered** old and MDM check-in also old | The device is offline. | No action until it comes back online. |
 | Listed, not in the MDM group | Installed outside your assignment. | Decide whether to keep it, and add it to the group or uninstall. |
@@ -104,7 +104,7 @@ To turn the agent off for the whole tenant instead, use **Enable or Disable** in
 
 | Check | Where |
 | --- | --- |
-| Device registered and recent **Last registered** time | **Users › Endpoint deployment** |
+| Device listed with a recent **Last registered** (check-in) time | **Users › Endpoint deployment** |
 | Agent version matches the latest | **Latest version** KPI and **Agent version** column |
 | Persona created | **Without persona** count stays at zero for the pilot group |
 | Apps and AI components discovered | [Inventory](../../console/observe/inventory) and [Agents](../../console/observe/agents) |

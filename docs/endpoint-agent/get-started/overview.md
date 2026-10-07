@@ -33,7 +33,7 @@ The QuilrAI Endpoint Agent discovers and governs AI use that happens outside the
 ## Get started
 
 1. Check the [requirements](./requirements) for your endpoints.
-2. Get the agent package from your QuilrAI representative and [roll it out](../deploy-and-operate/deployment-and-status).
+2. Get the agent packages from your QuilrAI representative and [roll them out](../deploy-and-operate/deployment-and-status), following the installation guides at [installdocs.quilrai.dev](https://installdocs.quilrai.dev/).
 3. Review [agent settings](../configure/agent-settings) and set [app policies](../configure/app-policies).
 4. Keep the [kill switch](../deploy-and-operate/agent-kill-switch) procedure handy for incidents.
 

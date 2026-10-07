@@ -4,21 +4,29 @@ sidebar_label: "Microsoft Copilot Studio"
 sidebar_custom_props:
   badge: new
   icon: Bot
-description: "Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution, and what the inventory card does today."
+description: "Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution, and bring Copilot Studio agents and activity into the console with the inventory card."
 ---
 
 # Microsoft Copilot Studio
 
 The Microsoft Copilot Studio integration works in two ways:
 
-| Part | What it does | Status | Where you set it up |
-|------|--------------|--------|---------------------|
-| **Runtime threat detection** | Copilot Studio asks QuilrAI to allow or block each tool execution. | **Works today.** | An LLM Gateway app plus Power Platform admin center (this page) |
-| **Inventory and activity** | Meant to discover Copilot Studio agents, their Dataverse definitions, capabilities, governance, and sanitized activity metadata, shown under **Connected platforms** on **Overview › Agentic estate**, the **Microsoft Copilot Studio** source chip on **Agents**, and the **Copilot** chip on **Graph**. | **Configuration only.** The card stores your settings but does not connect to Microsoft yet. | **Settings › Integrations**, **Microsoft Copilot Studio** card |
+| Part | What it does | Where you set it up |
+|------|--------------|---------------------|
+| **Runtime threat detection** | Copilot Studio asks QuilrAI to allow or block each tool execution. | An LLM Gateway app plus Power Platform admin center (see [Runtime threat detection](#runtime-threat-detection)) |
+| **Inventory and activity** | Discovers Copilot Studio agents, their Dataverse definitions, capabilities, governance, and sanitized activity metadata. | **Settings › Integrations**, **Microsoft Copilot Studio** card |
 
-## Inventory card fields
+## Inventory and activity
 
-The card's drawer reads: "Installing it records management state; provider authentication and data transfer begin only when the corresponding connector supports activation." It asks for no client ID, secret or Microsoft permissions:
+### Where it shows up
+
+- **Overview › Agentic estate**: under **Connected platforms**.
+- **Agents**: the **Microsoft Copilot Studio** source chip.
+- **Graph**: the **Copilot** chip.
+
+### Set it up
+
+On the **Library** tab of **Settings › Integrations**, click **Install** on the **Microsoft Copilot Studio** card and fill in:
 
 | Field | What to enter |
 |-------|---------------|
@@ -28,7 +36,9 @@ The card's drawer reads: "Installing it records management state; provider authe
 | **Dataverse URL** | The Dataverse environment URL for that environment. |
 | **Credential reference** | Optional, non-secret identity reference. Do not enter a client secret, token or API key. |
 
-Contact your QuilrAI representative before you rely on Copilot Studio inventory data. The rest of this page covers runtime threat detection.
+### Check that it works
+
+The card shows **INSTALLED** on the **Installed** tab, and Copilot Studio agents appear on **Agents** under the **Microsoft Copilot Studio** source chip.
 
 ## Permissions for runtime threat detection
 

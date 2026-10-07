@@ -104,6 +104,8 @@ Example for PII, where passport is a high-sensitivity sub-category and name, hom
 
 Change one sub-category's sensitivity to tune that value without changing the whole category.
 
+The app's risk level wins over the organization-wide setting in [Detection Models](../../console/govern/detection-models#risk-levels). When the Policy Engine is enabled, the policy wins.
+
 ## Adversarial risks
 
 ![Adversarial risk list with an on/off switch and a Block or Monitor choice for each category](/img/llm-gateway/ui/app-guardrails-adversarial-risks.png)

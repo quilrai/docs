@@ -170,8 +170,8 @@ Applied learnings move to **Applied**. Matching findings are resolved as
 
 ### Scope, verification and undo
 
-- **Scope.** A learning applies to your whole organization, not to one person
-  or app. It resolves every matching open finding, not only the examples you
+- **Scope.** A learning applies to your whole organization and to every
+  sensor, not to one person, app or sensor. It resolves every matching open finding, not only the examples you
   saw, and stops matching content being raised as that risk from then on.
   Examples you marked **Leave this out** are not applied. Check the coverage
   line before applying a broad learning.

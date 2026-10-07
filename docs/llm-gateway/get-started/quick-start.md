@@ -76,7 +76,7 @@ Next, under **Where should this app get its models?**, choose where the provider
 The **Platform providers** option exists only in the V2 console, and it is the default. In V1, every app keeps its own provider credentials. Either way, the choice is fixed once the app is created.
 :::
 
-**Platform providers.** Under **Available**, tick one or more providers. The first one you tick is the **Primary**; use the up and down arrows to change the order. A disabled provider is skipped, but an upstream error is not retried on another provider (see [When a provider fails](../cost-and-traffic/routing-and-fallbacks#when-a-provider-fails)). The app inherits all their models and credentials, including models added later. If none exist yet, click **Add a platform provider** to add one without leaving the form, or **Use app-only credentials**.
+**Platform providers.** Under **Available**, tick one or more providers. The first one you tick is the **Primary**; use the up and down arrows to change the order. A disabled provider is skipped, and when the primary fails the gateway fails over to the next provider in the order (see [When a provider fails](../cost-and-traffic/routing-and-fallbacks#when-a-provider-fails)). The app inherits all their models and credentials, including models added later. If none exist yet, click **Add a platform provider** to add one without leaving the form, or **Use app-only credentials**.
 
 **App-only credentials.** Select **App-only credentials** and select a provider tile. For providers with more than one API, also select one under **Which API does the gateway talk to?**.
 

@@ -17,7 +17,7 @@ The GitHub integration discovers repositories, AI projects, workflows, and relat
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'GitHub']} />
 
-**Status:** delivers data from the current console. You connect a GitHub App that your organization owns (the drawer asks for its slug, client ID and client secret, and shows the OAuth callback URL to register in the app), then attach the installations it can access. Quilr scans only the default-branch head and syncs on the **Synchronization interval** you choose, for example 3 hours. Stopping sync never removes existing Inventory or Findings results.
+You connect a GitHub App that your organization owns (the drawer asks for its slug, client ID and client secret, and shows the OAuth callback URL to register in the app), then attach the installations it can access. Quilr scans only the default-branch head and syncs on the **Synchronization interval** you choose, for example 3 hours. Stopping sync never removes existing Inventory or Findings results.
 
 ## Where it shows up
 
@@ -30,7 +30,11 @@ The GitHub integration discovers repositories, AI projects, workflows, and relat
 
 1. Open **Settings › Integrations › Library**.
 2. Click **Install** on the **GitHub** card and follow the steps in the drawer.
-3. Check the card on the **Installed** tab. If it shows an error badge instead of **INSTALLED**, contact Quilr support.
+3. Check the card on the **Installed** tab. If it shows an error badge instead of **INSTALLED**, open it to see the error.
+
+## Check that it works
+
+After the first sync, discovered repositories appear in **Inventory**, and GitHub results appear under the **Sensor** filter in [Findings and interactions](../../console/observe/findings-and-interactions).
 
 ## Related
 

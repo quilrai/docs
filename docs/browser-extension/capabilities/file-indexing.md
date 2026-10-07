@@ -18,7 +18,7 @@ File indexing keeps a local index of files on the endpoint so the DLP engine can
 
 ## Settings
 
-File indexing settings are configured from the QuilrAI dashboard and pushed to the agent. Each update triggers an immediate re-scan. In the V1 console they are under **File Indexing › Settings**; the V2 console has no file indexing settings screen yet, so ask your QuilrAI representative to change them.
+File indexing settings are managed with your QuilrAI representative and pushed to the agent. Each update triggers an immediate re-scan.
 
 | Setting | Description |
 | --- | --- |
@@ -51,7 +51,7 @@ Scans run at reduced OS priority (background priority on macOS, below-normal thr
 
 ## Monitor index health
 
-Index state is reported back to the dashboard. In the V1 console, open **File Index Status** to track scan progress and confirm the index is healthy:
+Index state is reported back to QuilrAI and includes:
 
 - **Scan status**: Idle, Running, or Failed, with the last run time and duration.
 - **File count**: total indexed files and any paths pruned by safety limits.

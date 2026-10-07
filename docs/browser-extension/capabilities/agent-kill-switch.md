@@ -23,7 +23,7 @@ This switch stops only the Browser Agent. It does not turn off the extension its
 The Endpoint Agent kill switch page has the full matrix, required permissions and a canary recovery sequence.
 
 <StepFlow steps={[
-  { label: "Disable", items: ["Agent Settings in the extension", "Toggle Disable Agent"] },
+  { label: "Disable", items: ["Admin uses the console", "Toggle Disable Agent"] },
   { label: "Browser Agent stops", items: ["State saved on the device", "Services stopped", "DLP processing removed"] },
   { label: "Stays reachable", items: ["Only re-enable accepted", "Survives reboots ✓"] },
   { label: "Re-enable", items: ["Toggle Enable Agent", "Services restarted", "DLP restored ✓"] },
@@ -31,8 +31,7 @@ The Endpoint Agent kill switch page has the full matrix, required permissions an
 
 ## Disable the Browser Agent
 
-1. Open the Browser Extension and go to **Agent Settings**.
-2. Toggle **Disable Agent**.
+An admin toggles **Disable Agent** in the console.
 
 The extension sends the signal to the Browser Agent over the Native Messaging pipe, and the Browser Agent applies it immediately.
 
@@ -45,7 +44,7 @@ The extension sends the signal to the Browser Agent over the Native Messaging pi
 
 ## Re-enable the Browser Agent
 
-Toggle **Enable Agent** in the extension. The Browser Agent clears the flag, restarts its services, and restores DLP processing without a process restart. **Agent Status** shows Active.
+An admin toggles **Enable Agent** in the console. The Browser Agent clears the flag, restarts its services, and restores DLP processing without a process restart. **Agent Status** shows Active.
 
 To verify on the device, copy a harmless test value that a clipboard rule would act on and check that the expected prompt or finding appears again.
 

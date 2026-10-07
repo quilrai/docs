@@ -27,7 +27,7 @@ A request with no User-Agent header is allowed only when the server allows every
 - **It identifies clients; it does not authenticate them.** The User-Agent header is set by the client, and any client can send any value. Use Allowed Agents to steer which servers well-behaved clients see, not as a security boundary. Who may connect is decided by the user's sign-in or [API token](./api-tokens) and by [Server access](../protect/server-access).
 - **Keywords are substrings.** A keyword such as `code` would also match `vscode`, `cortex-code` and `opencode`. Pick distinctive custom keywords.
 - **It applies only to traffic through the gateway.** A client that connects to an MCP server directly bypasses it. To find servers used outside the gateway, see [An MCP server outside the gateway](../../console/observe/inventory#example-an-mcp-server-outside-the-gateway).
-- **Changes apply to the next request**, including requests in sessions that are already open. No reconnect is needed.
+- **Changes apply to new sessions.**
 - **With the Policy Engine on** for the MCP Gateway, agent rules are expressed as Policy Engine conditions on the agent name instead. See the [Policy Engine overview](../../console/govern/policy-engine).
 
 ## Built-in agents

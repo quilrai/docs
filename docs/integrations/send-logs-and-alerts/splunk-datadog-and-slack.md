@@ -12,10 +12,6 @@ These Library cards send Quilr data **from** Quilr to your security and operatio
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library']} />
 
-:::note Activation
-Installing one of these cards records the integration's management state for your tenant. The drawer collects labels only; it does not ask for an API key, HEC token or Slack authorization. Provider authentication and data transfer begin only when the connector supports activation. Contact Quilr support to confirm delivery to your tool before you rely on it. For delivery you can set up yourself today, use [Webhook](./webhook) or [Syslog](./syslog) forwarding in Console V1.
-:::
-
 ## Set it up
 
 1. On the **Library** tab, click **Install** on the card.
@@ -33,10 +29,10 @@ Installing one of these cards records the integration's management state for you
 
 The Slack card is for Quilr notifications. It is not the same as connecting Slack as an MCP tool ([Slack MCP setup](../../mcp-gateway/provider-setup/slack)) or talking to a Workflow Agent from Slack ([Workflow Agents](../../console/settings-ai-gateway/workflow-agents#connect-slack)).
 
-## Check the result
+## Check that it works
 
 - The card shows **INSTALLED** on the **Installed** tab. An error badge means it needs attention; open it to see the error.
-- There is no test-delivery button in the drawer. Once delivery is active, confirm events arrive in the Splunk index, the Datadog service or the Slack channel you named.
+- Confirm that events arrive in the Splunk index or the Datadog service you named, or that notifications arrive in the Slack channel.
 - To change the fields or capabilities later, click **Configure** on the installed card. **Uninstall** removes it.
 
 ## Related

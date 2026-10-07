@@ -59,10 +59,11 @@ confirm when they are settled.
 
 ## Phase 3: data, access and the last of V1
 
-1. **Publish retention.** A published retention policy is enforced today as
-   console visibility: data past its horizon is hidden in the console,
-   including data collected before you published. Nothing is deleted from
-   storage. See [Data retention](../settings-data/data-retention).
+1. **Publish retention.** A published retention policy deletes data once it
+   passes the retention period, including data collected before you
+   published, across the console and in exports created afterwards. Files
+   already downloaded are not affected. See
+   [Data retention](../settings-data/data-retention).
 2. **Move exports and alerts.** Recreate recurring extracts as Export Center
    definitions and check that Slack, SIEM and webhook integrations show as
    installed.

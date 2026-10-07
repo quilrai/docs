@@ -26,7 +26,7 @@ The clipboard monitor is part of the QuilrAI agent that you deploy with the exte
 
 ## Settings
 
-Clipboard settings are configured from the QuilrAI dashboard and pushed to the agent. They take effect on the next agent restart. In the V1 console they are under **Clipboard Monitor › Settings**; the V2 console has no clipboard settings screen yet, so ask your QuilrAI representative to change them.
+Clipboard settings are managed with your QuilrAI representative and pushed to the agent. They take effect on the next agent restart.
 
 | Setting | Default | Description |
 | --- | --- | --- |
@@ -38,7 +38,7 @@ Clipboard settings are configured from the QuilrAI dashboard and pushed to the a
 
 ## Policy actions
 
-The extension evaluates its DLP rules against the clipboard content (by content category, size, or custom regex). In the V2 console, clipboard rules are browser controls: open **Govern › Policy Engine › Browser Extension** and add or edit a control whose use case is **A user is copying to clipboard** (see [Browser controls](../configure/browser-controls)). In the V1 console these rules were under **DLP Policies › Clipboard**. The same rule set applies to text, files, and images.
+The extension evaluates its DLP rules against the clipboard content (by content category, size, or custom regex). Clipboard rules are browser controls: open **Govern › Policy Engine › Browser Extension** and add or edit a control whose use case is **A user is copying to clipboard** (see [Browser controls](../configure/browser-controls)). The same rule set applies to text, files, and images.
 
 | Action | What happens |
 | --- | --- |
@@ -56,6 +56,6 @@ The extension evaluates its DLP rules against the clipboard content (by content 
 
 ## Monitor activity
 
-Every clipboard event is logged with its content type, policy decision, and enforcement outcome. In the V1 console, check **Clipboard Monitor › Logs** to confirm events are flowing and policies are enforced. Check event volume, allow/block/prompt counts by content type, user justifications, and confirmation that blocked content was cleared.
+Every clipboard event is logged with its content type, policy decision, and enforcement outcome. Clipboard events appear in [Findings and interactions](../../console/observe/findings-and-interactions) (**Observe › Findings & Interactions**). Check there that events are flowing and policies are enforced, including user justifications for prompted copies.
 
 To pause clipboard monitoring together with the agent's other services, use the [agent kill switch](./agent-kill-switch).

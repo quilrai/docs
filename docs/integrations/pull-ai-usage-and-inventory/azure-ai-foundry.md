@@ -17,8 +17,6 @@ The Azure AI Foundry integration discovers agents, projects, models, access, and
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'Azure AI Foundry']} />
 
-**Status:** delivers data from the current console.
-
 ## Where it shows up
 
 - **Overview › Agentic estate**: the **Azure AI Foundry** tab under **Connected platforms**.
@@ -59,6 +57,10 @@ Quilr lists the Azure subscriptions it can see, with the effective access for **
 ### 4. Configure project monitoring
 
 For each discovered project, the table shows its generation (for example foundry or foundry classic), an **Inventory** and a **Conversations** checkbox, and a status with counts of agents, deployments, and threads. Choose what to monitor and click **Save monitoring**. **Refresh projects** re-runs discovery; projects that fail show an inline error.
+
+## Check that it works
+
+The project table shows counts of agents, deployments, and threads for each monitored project, and Foundry agents appear on **Agents** under the **Azure AI Foundry** source coverage chip and on **Overview › Agentic estate**.
 
 ## Related
 

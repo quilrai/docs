@@ -9,13 +9,7 @@ sidebar_custom_props:
 
 Forwards audit log events to your syslog server. Supports optional filtering to control which audit events are delivered.
 
-:::note Set up in Console V1
-Syslog Audit forwarding is configured only on the **Integrations** page of [Console V1](../../console/legacy-v1/overview). The current console's **Settings › Integrations** library has no Syslog Audit card. See [How integrations work](../get-started/how-integrations-work#availability).
-:::
-
 ## Setup
-
-In Console V1:
 
 1. Go to **Integrations** and open the **Available** tab.
 2. Click **+ Add** on the **Syslog Audit** tile.
@@ -33,6 +27,10 @@ In Console V1:
 
 4. If you selected **Send Filtered Audits**, use **Configure user condition** to add filter rules that control which audit events are forwarded.
 5. Click **Save**.
+
+## Check that it works
+
+After you save, make an audit-logged change in the console (for example, add a user) and check that a message from `quilr-siem-event` arrives at your syslog server.
 
 ## Payload
 

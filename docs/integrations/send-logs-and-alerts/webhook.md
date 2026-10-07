@@ -1,7 +1,7 @@
 ---
 sidebar_position: 3
 sidebar_label: "Webhook"
-description: "Forward findings and audit log events to an HTTPS endpoint from Console V1: setup, delivery behavior and payloads."
+description: "Forward findings and audit log events to an HTTPS endpoint: setup, endpoint requirements, how to check delivery, and payloads."
 sidebar_custom_props:
   icon: Globe
 ---
@@ -10,13 +10,14 @@ sidebar_custom_props:
 
 Forwards Extension findings and audit log events to your webhook endpoint.
 
-:::note Set up in Console V1
-Webhook forwarding that delivers events is configured on the **Integrations** page of [Console V1](../../console/legacy-v1/overview), as described below. The **Webhook** card in the current console's **Settings › Integrations › Library** is configuration only: it asks for a **Destination label** and an **Event family** but no URL or key, and its drawer reads "Installing it records management state; provider authentication and data transfer begin only when the corresponding connector supports activation." See [How integrations work](../get-started/how-integrations-work#availability).
-:::
+Use it to send QuilrAI findings and audit activity to your SIEM, SOAR, ticketing system or any HTTPS receiver you run.
+
+| | |
+|---|---|
+| **Sends** | Finding events (`FINDING`) and audit log events (`AUDIT_LOG`) |
+| **Direction** | From Quilr |
 
 ## Setup
-
-In Console V1:
 
 1. Go to **Integrations** and open the **Available** tab.
 2. Click **+ Add** on the **Webhook** tile.
@@ -29,16 +30,16 @@ In Console V1:
 
 4. Click **Allow**.
 
-## Delivery behavior
+The **Webhook** card in **Settings › Integrations › Library** asks for a **Destination label** and an **Event family**.
 
-| Behavior | Default |
-|----------|---------|
-| Batching | Events are grouped into one delivery of up to 100 events, collected over about half a second. |
-| Retries | A failed delivery is retried up to 3 times, about 1 second apart. |
-| Repeats | A retry can deliver the same events again, so make your receiver tolerate repeated events. |
-| Configuration changes | A new or changed destination is picked up within about 5 minutes. |
+## Endpoint requirements
 
-To test the receiver, trigger a harmless test finding (for example a test value that a browser DLP rule flags) and check that a `FINDING` delivery arrives.
+- The endpoint must use **HTTPS**.
+- It must return a **2xx** response to accept a delivery.
+
+## Check that it works
+
+Trigger a harmless test finding (for example a test value that a browser DLP rule flags) and check that a `FINDING` delivery arrives at your endpoint.
 
 ## Payload
 

@@ -55,7 +55,7 @@ The **Exports** table lists each export with its **Schedule**, **Next run** and 
 Every run is listed with its status, row count and size, and a download link. **Delete export run** deletes a finished run and its file. Select **Mark read** to clear new-export notifications.
 
 :::note
-Exports are a snapshot. A file you downloaded or that is still listed in run history can contain data that [Data retention](./data-retention) now hides in the console.
+Exports are a snapshot. Exports created after a [Data retention](./data-retention) policy is published follow it; files you already downloaded are not affected.
 :::
 
 ## Related

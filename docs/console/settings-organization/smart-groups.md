@@ -49,7 +49,7 @@ The **View** drawer also shows each member's **IdP user groups** and **IdP user 
 
 ## Groups converted from your identity provider
 
-Groups converted from a user group in your identity provider are tagged **Converted from IdP group** in the list. Ask your QuilrAI representative whether membership of a converted group follows later changes in your IdP before you rely on it.
+Groups converted from a user group in your identity provider are tagged **Converted from IdP group** in the list. Their membership comes from your identity provider.
 
 ## The list
 

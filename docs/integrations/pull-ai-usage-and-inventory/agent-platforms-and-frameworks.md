@@ -3,18 +3,14 @@ sidebar_position: 7
 sidebar_label: "Agent platforms and frameworks"
 sidebar_custom_props:
   icon: Workflow
-description: "Install the Amazon Bedrock Agents, Google Vertex AI Agent Builder, AutoGen, CrewAI, LangChain, LangGraph and LiteLLM cards: the fields each Install drawer asks for, the data each is meant to bring in, and how to check the result."
+description: "Install the Amazon Bedrock Agents, Google Vertex AI Agent Builder, AutoGen, CrewAI, LangChain, LangGraph and LiteLLM cards: the fields each Install drawer asks for, the data each brings in, and how to check it works."
 ---
 
 # Agent platforms and frameworks
 
-These Library cards register cloud agent platforms, agent frameworks and the LiteLLM proxy with Quilr. They are meant to discover agents, tools and models (**Pull inventory**) and bring the platform's runtime telemetry into Quilr (**Send logs**, which for these cards flows into Quilr).
+These Library cards register cloud agent platforms, agent frameworks and the LiteLLM proxy with Quilr. They discover agents, tools and models (**Pull inventory**) and bring the platform's runtime telemetry into Quilr (**Send logs**, which for these cards flows into Quilr).
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library']} />
-
-:::note Activation
-Installing one of these cards records the integration's management state for your tenant. The drawer collects labels and scope only, not credentials. Provider authentication and data transfer begin only when the connector supports activation. Contact Quilr support to confirm that data will flow for your platform before you rely on it.
-:::
 
 ## Set it up
 
@@ -25,7 +21,7 @@ Installing one of these cards records the integration's management state for you
 
 ## Fields and data per card
 
-| Card | Category | Connection fields | Meant to bring in |
+| Card | Category | Connection fields | Brings in |
 |---|---|---|---|
 | **Amazon Bedrock Agents** | Cloud agent platform | **AWS account alias**; **AWS region** (US East (N. Virginia), Europe (Frankfurt), Asia Pacific (Mumbai)) | Bedrock agents, action groups, knowledge bases and runtime activity |
 | **Google Vertex AI Agent Builder** | Cloud agent platform | **Google Cloud project label**; **Google Cloud region** (US Central, Europe West, Asia South) | Vertex AI agents and their runtime telemetry |
@@ -37,14 +33,14 @@ Installing one of these cards records the integration's management state for you
 
 For the cloud platforms, **Pull inventory** is the primary capability and **Send logs** is additional. For the frameworks and LiteLLM, **Send logs** is primary and **Pull inventory** is additional.
 
-## Check the result
+## Check that it works
 
 - The card shows **INSTALLED** on the **Installed** tab. An error badge means it needs attention; open it to see the error.
-- Once data is flowing, discovered agents, tools and models appear in [Inventory](../../console/observe/inventory) and [Agents](../../console/observe/agents), and activity appears in [Findings & Interactions](../../console/observe/findings-and-interactions).
+- Discovered agents, tools and models appear in [Inventory](../../console/observe/inventory) and [Agents](../../console/observe/agents), and activity appears in [Findings & Interactions](../../console/observe/findings-and-interactions).
 - To change the fields or capabilities later, click **Configure** on the installed card. **Uninstall** removes it.
 
 :::tip
-To route model traffic from these frameworks through Quilr's guardrails today, point them at the [LLM Gateway](../../llm-gateway) instead. That works independently of these cards.
+To also apply Quilr's guardrails to model traffic from these frameworks, point them at the [LLM Gateway](../../llm-gateway). That works independently of these cards.
 :::
 
 ## Related

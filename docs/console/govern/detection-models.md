@@ -71,6 +71,8 @@ Each group shows its risk level, **Show techniques** to list the individual tech
 
 Example: PII has **Risk level** set to **Low**, and its name subcategory has priority **Low**. A prompt containing only a person's name is not detected as PII at all, so no Policy Engine rule on PII matches it. Raise the category to **High** and the name is detected; a rule with **Risk level** `high` on PII then marks that call as high risk.
 
+When the same category's risk level is set in more than one place, an LLM Gateway app's own **Guardrails** setting wins over the organization-wide **Detection Models** setting. When the Policy Engine is enabled, the policy wins.
+
 None of these levels choose the action. Monitor, redact or block always comes from the policy or control.
 
 ## View & test
