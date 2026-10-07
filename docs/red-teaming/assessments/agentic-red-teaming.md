@@ -128,9 +128,11 @@ If your agent greets a new connection, then streams each reply:
 agent  -> {"type": "ready", "session_id": "rt-abc123"}
 you    -> {"message": "What is my balance?"}
 agent  -> {"type": "typing"}
-agent  -> {"type": "delta", "text": "Your balance "}
-agent  -> {"type": "delta", "text": "is $420.00."}
-agent  -> {"type": "complete", "actions": [{"name": "get_balance", "arguments": {"account": "self"}}]}
+agent  -> {"type": "delta", "text": "Your "}
+agent  -> {"type": "delta", "text": "alice "}
+agent  -> {"type": "delta", "text": "balance: "}
+agent  -> {"type": "delta", "text": "$420.00."}
+agent  -> {"type": "complete", "actions": [{"name": "get_balance", "arguments": {"customer": "alice"}}]}
 ```
 
 then set **When is a reply finished?** to **Done marker** with **Done path** `type` and **Done value** `complete`, turn on **Join the text of every frame in the reply**, and set **Reply path** `text`, **Session-id path** `session_id`, **Tool-calls path** `actions`, and the **Message template** to `{"message": "{{message}}"}`.
