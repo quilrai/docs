@@ -23,9 +23,9 @@ Read this before touching anything. This is the QuilrAI documentation site. It i
 
 5. **Docs are served at the root, not `/docs`.** `routeBasePath: '/'`. The homepage is `src/pages/index.js` (platform map), not a doc. Each product landing is `docs/<product>/overview.mdx` with `slug: /<product>` rendering `<ProductLanding product="<id>" />`. Internal links between docs are URL-relative (e.g. `./quick-start`, `../protect/security-guardrails`, `../../console/govern/policy-engine`).
 
-6. **Moved pages keep their old URLs.** `src/data/redirects.json` maps every old route to its new one (wired into `plugin-client-redirects`, plus `.md` and `/docs` variants). When you move or delete a page, add an entry. Never redirect a path that still exists.
+6. **Moved pages keep their old URLs.** `src/data/redirects.json` maps every old route to its new one (wired into `plugin-client-redirects`, plus `.md` and `/docs` variants). When you move or delete a page, add an entry (a `#section` target is fine for merged pages). Never redirect a path that still exists. Run `npm run check-redirects` after building.
 
-7. **`llms.txt` is generated, never hand-edited.** `plugins/llms-txt.js` builds `/llms.txt`, `/llms-full.txt`, `/llms/<product>.txt` and `/llms/<product>-full.txt` from the sidebars at build time (dev server serves them too). Entry text = page title + frontmatter `description` (else the first paragraph), so give every page a one-sentence `description`. The Ask AI launcher and the page Ask AI menu point assistants at these files (`src/data/aiProviders.js`). The two console navigation guides for AI agents, `static/llmgateway_guide_for_admin_console.txt` and `static/mcpgateway_guide_for_admin_console.txt`, ARE hand-maintained: update them when those console pages change (linked via `consoleGuide` in `src/data/products.js`).
+7. **`llms.txt` is generated, never hand-edited.** `plugins/llms-txt.js` builds `/llms.txt`, `/llms-full.txt`, `/llms/<product>.txt` and `/llms/<product>-full.txt` from the sidebars at build time (dev server serves them too). Entry text = page title + frontmatter `description` (else the first paragraph), so give every page a one-sentence `description`. The "Open in AI" launcher and the per-page "Open in AI" menu point assistants at these files (`src/data/aiProviders.js`). The two console navigation guides for AI agents, `static/llmgateway_guide_for_admin_console.txt` and `static/mcpgateway_guide_for_admin_console.txt`, ARE hand-maintained: update them when those console pages change (linked via `consoleGuide` in `src/data/products.js`).
 
 ---
 
@@ -59,10 +59,10 @@ Files or folders starting with `_` are ignored by Docusaurus.
   - `<ExpandableTable>` — **overrides the default `table` element**, so every Markdown table is automatically expandable/fullscreen. You usually just write a normal Markdown table.
   - `<SdkApiKeyTester>`, `<LogExportPlayground>` — interactive playgrounds that call **live `*.quilr.ai` endpoints**. Used in `docs/playground/`.
 - `src/theme/` (rest) — swizzled overrides: sidebar items (`DocSidebarItem/*` render the icons), code block copy buttons, doc cards, generated-index page, navbar + mobile sidebar, admonitions, TOC, search bar, layout. Changing these affects every page — be careful.
-- `src/components/` — the components above plus `ProductLanding` (product landing pages), `AskAiLauncher` (floating "Ask AI" button on every page: open this page or the product docs in ChatGPT/Claude/etc., copy as markdown), `DocPageCopyDropdown` (the per-page copy / Ask AI menu), `SidebarHeader`, `SidebarThemeToggle`.
+- `src/components/` — the components above plus `ProductLanding` (product landing pages), `AskAiLauncher` (floating "Open in AI" button on every page: open this page or the product docs in ChatGPT/Claude/etc., copy as markdown), `DocPageCopyDropdown` (the per-page Copy page / Open in AI menu), `SidebarHeader`, `SidebarThemeToggle`.
 - **`src/utils/sidebarIcons.js`** — the icon allowlist (see rule 1).
 - **`src/data/products.js`** — the seven products: navbar tabs, sidebar header, landing content, accents, cross-links. Add a product here, in `sidebars.js`, and as a `docs/<slug>/` folder.
-- `src/data/aiProviders.js` — provider list + prompt builders for the "Ask AI" features.
+- `src/data/aiProviders.js` — provider list + prompt builders for the "Open in AI" features.
 - `src/themes/prismLight.js`, `prismDark.js` — code-block syntax themes.
 - `src/css/custom.css` — global CSS (Tailwind v4 via `@tailwindcss/postcss`, + typography plugin).
 
@@ -85,6 +85,7 @@ npm start            # local dev server with hot reload
 npm run build        # production build — ALSO your link + config validator. Run before done.
 npm run serve        # serve the built site locally
 npm run check-icons  # validate all sidebar icons (subset of pre-commit)
+npm run check-redirects  # after a build: every old URL redirect lands on an existing page and #section
 ./replace-em-dashes.sh   # strip em dashes from docs/**/*.md
 ```
 

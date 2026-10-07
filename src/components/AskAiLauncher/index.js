@@ -10,7 +10,7 @@ import {
 } from '@site/src/data/aiProviders';
 import {productForPath} from '@site/src/data/products';
 
-// Other components (the homepage "Ask AI" button) open the panel with
+// Other components (the homepage "Open in AI" button) open the panel with
 // window.dispatchEvent(new Event(ASK_AI_EVENT)).
 export const ASK_AI_EVENT = 'qd:ask-ai';
 
@@ -109,21 +109,21 @@ export default function AskAiLauncher() {
           id={panelId}
           ref={panelRef}
           role="dialog"
-          aria-label="Ask AI about the docs">
+          aria-label="Open these docs in your AI assistant">
           <div className="qd-askai__head">
             <b>
-              <Sparkles size={15} aria-hidden="true" /> Ask AI
+              <Sparkles size={15} aria-hidden="true" /> Open in your AI assistant
             </b>
             <button
               type="button"
               className="qd-askai__close"
               onClick={() => close()}
-              aria-label="Close Ask AI">
+              aria-label="Close">
               <X size={16} aria-hidden="true" />
             </button>
           </div>
           {isDoc && (
-            <div className="qd-askai__seg" role="group" aria-label="What to ask about">
+            <div className="qd-askai__seg" role="group" aria-label="What to open">
               <button
                 type="button"
                 aria-pressed={effectiveScope === 'page'}
@@ -140,8 +140,8 @@ export default function AskAiLauncher() {
           )}
           <p className="qd-askai__hint">
             {effectiveScope === 'page'
-              ? 'Opens your assistant with a link to this page, ready for questions.'
-              : `Opens your assistant with the ${docsName} docs index and full text.`}
+              ? 'Opens your own AI assistant with this page loaded, ready for your questions.'
+              : `Opens your own AI assistant with the ${docsName} docs loaded, ready for your questions.`}
           </p>
           <ul className="qd-askai__list">
             {AI_PROVIDERS.map(({name, icon: BrandIcon, buildUrl}) => (
@@ -179,7 +179,7 @@ export default function AskAiLauncher() {
           }
         }}>
         <Sparkles size={16} aria-hidden="true" />
-        <span>Ask AI</span>
+        <span>Open in AI</span>
       </button>
     </div>
   );

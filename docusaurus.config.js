@@ -250,7 +250,7 @@ const config = {
                     },
                     {
                         to: '/health',
-                        label: 'Status',
+                        label: 'Health',
                         position: 'right',
                     },
                 ],

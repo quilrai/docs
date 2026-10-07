@@ -166,13 +166,13 @@ export default function Home() {
               className="qd-ask__field"
               onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))}>
               <Search size={17} aria-hidden="true" />
-              <span>Search the docs or ask a question</span>
+              <span>Search the docs</span>
             </button>
             <button
               type="button"
               className="qd-btn"
               onClick={() => window.dispatchEvent(new Event(ASK_AI_EVENT))}>
-              <Sparkles size={15} aria-hidden="true" /> Ask AI
+              <Sparkles size={15} aria-hidden="true" /> Open in AI
             </button>
           </div>
         </div>

@@ -128,9 +128,9 @@ export default function DocPageCopyDropdown() {
           aria-haspopup="true"
           aria-controls={menuId}
           onClick={() => setMenuOpen((o) => !o)}
-          title="Ask AI about this page"
+          title="Open this page in your AI assistant"
         >
-          <span>Ask AI</span>
+          <span>Open in AI</span>
           <ChevronDown
             size={16}
             aria-hidden

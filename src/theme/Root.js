@@ -19,7 +19,7 @@ import AskAiLauncher from '@site/src/components/AskAiLauncher';
 //
 // Root also tags <html data-product="<id>"> from the route so the per-product
 // accent (--product-accent / --product-accent-soft in custom.css) is right on
-// the server-rendered HTML, and mounts the floating Ask AI launcher.
+// the server-rendered HTML, and mounts the floating "Open in AI" launcher.
 export default function Root({children}) {
   const {pathname, hash} = useLocation();
   const product = productForPath(pathname);
