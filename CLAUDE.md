@@ -59,7 +59,7 @@ Files or folders starting with `_` are ignored by Docusaurus.
   - `<ExpandableTable>` — **overrides the default `table` element**, so every Markdown table is automatically expandable/fullscreen. You usually just write a normal Markdown table.
   - `<SdkApiKeyTester>`, `<LogExportPlayground>` — interactive playgrounds that call **live `*.quilr.ai` endpoints**. Used in `docs/playground/`.
 - `src/theme/` (rest) — swizzled overrides: sidebar items (`DocSidebarItem/*` render the icons), code block copy buttons, doc cards, generated-index page, navbar + mobile sidebar, admonitions, TOC, search bar, layout. Changing these affects every page — be careful.
-- `src/components/` — the components above plus `ProductLanding` (product landing pages), `AskAiBanner`, `DocPageCopyDropdown` (the "copy page as markdown / open in ChatGPT/Claude" menu), `HomepageFeatures`, `SidebarThemeToggle`.
+- `src/components/` — the components above plus `ProductLanding` (product landing pages), `AskAiLauncher` (floating "Ask AI" button on every page: open this page or the product docs in ChatGPT/Claude/etc., copy as markdown), `DocPageCopyDropdown` (the per-page copy / Ask AI menu), `SidebarHeader`, `SidebarThemeToggle`.
 - **`src/utils/sidebarIcons.js`** — the icon allowlist (see rule 1).
 - **`src/data/products.js`** — the seven products: navbar tabs, sidebar header, landing content, accents, cross-links. Add a product here, in `sidebars.js`, and as a `docs/<slug>/` folder.
 - `src/data/aiProviders.js` — provider list + prompt builders for the "Ask AI" features.

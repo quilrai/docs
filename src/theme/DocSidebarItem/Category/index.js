@@ -19,7 +19,6 @@ import { translate } from "@docusaurus/Translate";
 import useIsBrowser from "@docusaurus/useIsBrowser";
 import DocSidebarItems from "@theme/DocSidebarItems";
 import DocSidebarItemLink from "@theme/DocSidebarItem/Link";
-import { getSidebarIcon } from "@site/src/utils/sidebarIcons";
 import { ChevronDown } from "lucide-react";
 
 function useAutoExpandActiveCategory({
@@ -186,7 +185,11 @@ function DocSidebarItemCategoryCollapsible({
   };
 
   const badge = customProps?.badge;
-  const IconComponent = getSidebarIcon(customProps?.icon);
+  // Sidebar icons stay in frontmatter (the pre-commit check needs them) but
+  // the redesigned sidebar does not draw them. Top-level categories render
+  // as groups; the legacy group is muted.
+  const isGroup = level === 1;
+  const isLegacy = /\(legacy\)/i.test(label);
 
   return (
     <li
@@ -196,6 +199,8 @@ function DocSidebarItemCategoryCollapsible({
         "menu__list-item",
         {
           "menu__list-item--collapsed": collapsed,
+          "qd-group": isGroup,
+          "qd-group--legacy": isLegacy,
         },
         className,
       )}
@@ -220,18 +225,14 @@ function DocSidebarItemCategoryCollapsible({
           }
           {...props}
         >
-          {IconComponent && (
-            <IconComponent
-              size={16}
-              className="sidebar-icon"
-              aria-hidden="true"
-            />
-          )}
           <span className="sidebar-link-label" title={label}>
             {label}
           </span>
           {badge && (
             <span className="sidebar-badge sidebar-badge--new">{badge}</span>
+          )}
+          {!href && collapsible && (
+            <ChevronDown size={14} className="qd-chev" aria-hidden="true" />
           )}
         </Link>
         {href && collapsible && (

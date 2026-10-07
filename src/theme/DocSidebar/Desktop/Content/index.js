@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { ThemeClassNames } from "@docusaurus/theme-common";
 import DocSidebarItems from "@theme/DocSidebarItems";
 import SidebarThemeToggle from "@site/src/components/SidebarThemeToggle";
+import SidebarHeader from "@site/src/components/SidebarHeader";
 
 export default function DocSidebarDesktopContent({ path, sidebar, className }) {
   return (
@@ -15,6 +16,7 @@ export default function DocSidebarDesktopContent({ path, sidebar, className }) {
         className,
       )}
     >
+      <SidebarHeader />
       <ul
         className={clsx(
           ThemeClassNames.docs.docSidebarMenu,

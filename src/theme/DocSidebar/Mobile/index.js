@@ -7,11 +7,13 @@ import {
 import { useNavbarMobileSidebar } from "@docusaurus/theme-common/internal";
 import DocSidebarItems from "@theme/DocSidebarItems";
 import SidebarThemeToggle from "@site/src/components/SidebarThemeToggle";
+import SidebarHeader from "@site/src/components/SidebarHeader";
 
 const DocSidebarMobileSecondaryMenu = ({ sidebar, path }) => {
   const mobileSidebar = useNavbarMobileSidebar();
   return (
     <div className="navbar-sidebar-menu-stack">
+      <SidebarHeader />
       <ul className={clsx(ThemeClassNames.docs.docSidebarMenu, "menu__list")}>
         <DocSidebarItems
           items={sidebar}

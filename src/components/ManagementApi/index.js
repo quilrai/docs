@@ -36,11 +36,11 @@ export function ManagementHero() {
 export function ResourceCards() {
   const cards = [
     ['Apps','Create, read, configure and pause applications.','apps-and-credentials-api',Layers],
-    ['Providers','Configure shared credentials and explicitly test models.','providers-and-configuration-api',SlidersHorizontal],
+    ['Providers & catalogs','Configure shared credentials, test models, and read catalogs and config history.','providers-and-configuration-api',SlidersHorizontal],
     ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
     ['Gateway credentials','Issue, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
     ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
-    ['Prompts & catalogs','Manage prompt content and use existing definitions.','prompts-api',BookOpen],
+    ['Prompts','Manage Prompt Store content.','prompts-api',BookOpen],
   ];
   return <nav className={styles.cards} aria-label="Management API resources">{cards.map(([title,desc,page,Icon])=><Link to={'./'+page} className={styles.card} key={page}><div className={styles.cardTop}><Icon size={21}/><ArrowUpRight size={17}/></div><strong>{title}</strong><p>{desc}</p><span>Explore reference</span></Link>)}</nav>;
 }

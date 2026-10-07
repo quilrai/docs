@@ -149,6 +149,8 @@ export const productBySlug = Object.fromEntries(products.map((p) => [p.slug, p])
 /** The product a route belongs to, or null (homepage, playground, ...). */
 export function productForPath(pathname) {
   const first = (pathname || '/').split('/').filter(Boolean)[0];
+  // Legacy V1 category index pages keep their old /console-v1/* slugs.
+  if (first === 'console-v1') return productBySlug.console;
   return productBySlug[first] || null;
 }
 

@@ -5,7 +5,7 @@ import { isActiveSidebarItem } from "@docusaurus/plugin-content-docs/client";
 import Link from "@docusaurus/Link";
 import isInternalUrl from "@docusaurus/isInternalUrl";
 import IconExternalLink from "@theme/Icon/ExternalLink";
-import { getSidebarIcon } from "@site/src/utils/sidebarIcons";
+import { productById } from "@site/src/data/products";
 
 export default function DocSidebarItemLink({
   item,
@@ -19,7 +19,9 @@ export default function DocSidebarItemLink({
   const isActive = isActiveSidebarItem(item, activePath);
   const isInternalLink = isInternalUrl(href);
   const badge = customProps?.badge;
-  const IconComponent = getSidebarIcon(customProps?.icon);
+  // Links into another product (customProps.crossLink, injected by the
+  // sidebarItemsGenerator) get a muted "<Product> ↗" hint.
+  const crossProduct = productById[customProps?.crossLink];
 
   return (
     <li
@@ -27,6 +29,7 @@ export default function DocSidebarItemLink({
         ThemeClassNames.docs.docSidebarItemLink,
         ThemeClassNames.docs.docSidebarItemLinkLevel(level),
         "menu__list-item",
+        { "qd-side-top": level === 1, "qd-crosslink": crossProduct },
         className,
       )}
       key={label}
@@ -43,12 +46,12 @@ export default function DocSidebarItemLink({
         })}
         {...props}
       >
-        {IconComponent && (
-          <IconComponent className="sidebar-icon" aria-hidden="true" />
-        )}
         <span className="sidebar-link-label" title={label}>
           {label}
         </span>
+        {crossProduct && (
+          <span className="qd-xp">{crossProduct.name} ↗</span>
+        )}
         {badge && (
           <span className="sidebar-badge sidebar-badge--new">{badge}</span>
         )}

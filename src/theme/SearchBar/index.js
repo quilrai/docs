@@ -5,6 +5,10 @@ import useIsBrowser from '@docusaurus/useIsBrowser';
 import OriginalSearchBar from '@theme-original/SearchBar';
 import {Search} from 'lucide-react';
 
+// Other components (the homepage search field) open the modal with
+// window.dispatchEvent(new Event(OPEN_SEARCH_EVENT)).
+export const OPEN_SEARCH_EVENT = 'qd:open-search';
+
 function SearchModal({onClose, children}) {
   const overlayRef = useRef(null);
 
@@ -58,6 +62,12 @@ export default function SearchBarWrapper(props) {
   }, [location.pathname]);
 
   useEffect(() => {
+    const open = () => setIsOpen(true);
+    window.addEventListener(OPEN_SEARCH_EVENT, open);
+    return () => window.removeEventListener(OPEN_SEARCH_EVENT, open);
+  }, []);
+
+  useEffect(() => {
     const handler = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -94,11 +104,10 @@ export default function SearchBarWrapper(props) {
         onClick={() => setIsOpen(true)}
         type="button"
         aria-label="Search">
-        <Search size={15} strokeWidth={2.5} className="search-trigger__icon" />
-        <span className="search-trigger__text">Search</span>
+        <Search size={14} strokeWidth={2} className="search-trigger__icon" />
+        <span className="search-trigger__text">Search docs</span>
         <span className="search-trigger__keys">
-          <kbd>{isMac ? '⌘' : 'Ctrl'}</kbd>
-          <kbd>K</kbd>
+          <kbd>{isMac ? '⌘K' : 'Ctrl K'}</kbd>
         </span>
       </button>
 

@@ -205,6 +205,11 @@ const config = {
         /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
         ({
             image: 'img/QuilrAi-Open-Graph.png',
+            docs: {
+                sidebar: {
+                    autoCollapseCategories: false,
+                },
+            },
             colorMode: {
                 defaultMode: 'light',
                 respectPrefersColorScheme: true,
@@ -229,19 +234,12 @@ const config = {
                     {
                         to: '/llm-gateway-playground',
                         label: 'Playground',
-                        position: 'left',
+                        position: 'right',
                     },
                     {
                         to: '/health',
-                        label: 'Health',
-                        position: 'left',
-                    },
-                    {
-                        href: 'https://www.quilr.ai/resources',
-                        label: 'Resources',
+                        label: 'Status',
                         position: 'right',
-                        target: '_blank',
-                        rel: 'noopener noreferrer',
                     },
                 ],
             },

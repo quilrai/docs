@@ -7,7 +7,7 @@
 export const prismLight = {
   plain: {
     color: '#3f3f46',       // zinc-700
-    backgroundColor: '#ebe1cf',
+    backgroundColor: '#f6f8f7',
   },
   styles: [
     {

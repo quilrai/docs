@@ -9,7 +9,6 @@ import DocVersionBanner from '@theme/DocVersionBanner';
 import DocVersionBadge from '@theme/DocVersionBadge';
 import DocBreadcrumbs from '@theme/DocBreadcrumbs';
 import Heading from '@theme/Heading';
-import AskAiBanner from '@site/src/components/AskAiBanner';
 
 function DocCategoryGeneratedIndexPageMetadata({categoryGeneratedIndex}) {
   return (
@@ -37,7 +36,6 @@ function DocCategoryGeneratedIndexPageContent({categoryGeneratedIndex}) {
               <p>{categoryGeneratedIndex.description}</p>
             )}
           </header>
-          <AskAiBanner productName={categoryGeneratedIndex.title} />
         </div>
         <div className="not-prose margin-top--lg">
           <DocCardList items={category.items} />
