@@ -1,0 +1,10 @@
+{
+  "label": "Deploy and operate",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Rocket"
+  }
+}

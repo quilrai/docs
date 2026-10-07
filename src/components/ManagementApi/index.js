@@ -9,7 +9,7 @@ import styles from './styles.module.css';
 const base = '/llmgateway/management/v1';
 const adminBase = '/llmgateway/management-admin/v1';
 const download = '/openapi/llm-gateway-management-v1.json';
-const pageFor = {Apps:'apps', Providers:'providers', Credentials:'credentials', Administration:'authentication', Policy:'policy', Prompts:'prompts', Catalogs:'catalogs-and-history', History:'catalogs-and-history', Reference:'conventions'};
+const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
 const operations = Object.entries(spec.paths).flatMap(([path, methods]) => Object.entries(methods).map(([method, op]) => ({...op, path, method:method.toUpperCase()})));
 const resolve = (schema = {}) => schema.$ref ? {...spec.components.schemas[schema.$ref.split('/').pop()], ...Object.fromEntries(Object.entries(schema).filter(([k]) => k !== '$ref'))} : schema;
 const print = value => JSON.stringify(value, null, 2);
@@ -28,19 +28,19 @@ export function ManagementHero() {
     <div className={styles.eyebrow}><span className={styles.dot} /> LLM GATEWAY / MANAGEMENT V1</div>
     <h2>Configure your gateway.<br/><span>Keep every change intentional.</span></h2>
     <p>Manage apps, shared providers, access keys and configuration from one tenant-scoped API. Start with a workflow, then explore every request field.</p>
-    <div className={styles.heroActions}><Link className={styles.primaryLink} to="./quick-start">Start with an example <ArrowUpRight size={16}/></Link><a className={styles.downloadLink} href={download} download><Download size={16}/> OpenAPI reference</a></div>
+    <div className={styles.heroActions}><Link className={styles.primaryLink} to="./management-api#quick-start">Start with an example <ArrowUpRight size={16}/></Link><a className={styles.downloadLink} href={download} download><Download size={16}/> OpenAPI reference</a></div>
     <div className={styles.heroFacts}><span><ShieldCheck size={16}/> Tenant-bound keys</span><span><SlidersHorizontal size={16}/> Explicit scopes</span><span><Workflow size={16}/> Central configuration</span></div>
   </section>;
 }
 
 export function ResourceCards() {
   const cards = [
-    ['Apps','Create, read, configure and pause applications.','apps',Layers],
-    ['Providers','Configure shared credentials and explicitly test models.','providers',SlidersHorizontal],
-    ['Authentication','Enable access and issue scoped management keys.','authentication',ShieldCheck],
-    ['Gateway credentials','Issue, reveal, expire and revoke app keys.','credentials',KeyRound],
-    ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy',Workflow],
-    ['Prompts & catalogs','Manage prompt content and use existing definitions.','prompts',BookOpen],
+    ['Apps','Create, read, configure and pause applications.','apps-and-credentials-api',Layers],
+    ['Providers','Configure shared credentials and explicitly test models.','providers-and-configuration-api',SlidersHorizontal],
+    ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
+    ['Gateway credentials','Issue, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
+    ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
+    ['Prompts & catalogs','Manage prompt content and use existing definitions.','prompts-api',BookOpen],
   ];
   return <nav className={styles.cards} aria-label="Management API resources">{cards.map(([title,desc,page,Icon])=><Link to={'./'+page} className={styles.card} key={page}><div className={styles.cardTop}><Icon size={21}/><ArrowUpRight size={17}/></div><strong>{title}</strong><p>{desc}</p><span>Explore reference</span></Link>)}</nav>;
 }
@@ -129,7 +129,7 @@ function Operation({op}) {
       {content ? <details className={styles.parameterPanel}><summary>Full request body specification <span>application/json</span></summary><p className={styles.schemaIntro}>{resolve(content.schema).description}</p><SchemaFields schema={content.schema}/></details> : <p className={styles.noBody}>No request body.</p>}
       <div className={styles.exampleBar}><div className={styles.tabs} aria-label="Example format">{tabs.map(t=><button type="button" aria-pressed={tab===t} className={tab===t?styles.activeTab:''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>{examples.length>1&&<label><span className={styles.srOnly}>Request example for {op.summary}</span><select value={selected} onChange={e=>setSelected(e.target.value)}>{examples.map(([name])=><option key={name}>{name}</option>)}</select></label>}</div>
       <div className={styles.codeExample}><CodeBlock language={tab==='cURL'?'bash':'json'} title={tab==='Response'?`${success[0]} response example`:undefined}>{tab==='cURL'?curlFor(op,chosen):tab==='JSON body'?print(chosen):response?print(response):'// See the response schema for this operation.'}</CodeBlock></div>
-      <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./conventions">Authentication, errors &amp; retry rules</Link></p>
+      <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./management-api#conventions">Authentication, errors &amp; retry rules</Link></p>
     </div>
   </article>;
 }

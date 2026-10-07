@@ -1,0 +1,10 @@
+{
+  "label": "Settings · Sensors and more",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Wrench"
+  }
+}

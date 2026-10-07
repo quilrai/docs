@@ -1,0 +1,10 @@
+{
+  "label": "Settings · Organization",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "UserCog"
+  }
+}

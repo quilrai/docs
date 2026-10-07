@@ -1,0 +1,10 @@
+{
+  "label": "Console V1 (legacy)",
+  "position": 8,
+  "collapsible": true,
+  "collapsed": true,
+  "link": null,
+  "customProps": {
+    "icon": "History"
+  }
+}

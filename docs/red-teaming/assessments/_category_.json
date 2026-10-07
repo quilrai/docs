@@ -1,0 +1,10 @@
+{
+  "label": "Assessments",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Target"
+  }
+}

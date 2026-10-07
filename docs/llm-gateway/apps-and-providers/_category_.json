@@ -1,0 +1,10 @@
+{
+  "label": "Apps and providers",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Plug"
+  }
+}

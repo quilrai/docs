@@ -1,0 +1,10 @@
+{
+  "label": "Govern",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Scale"
+  }
+}

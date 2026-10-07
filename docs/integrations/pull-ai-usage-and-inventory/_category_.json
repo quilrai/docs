@@ -1,0 +1,10 @@
+{
+  "label": "Pull AI usage and inventory",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Database"
+  }
+}

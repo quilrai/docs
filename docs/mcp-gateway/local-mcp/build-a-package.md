@@ -1,5 +1,6 @@
 ---
-sidebar_position: 4
+sidebar_position: 3
+sidebar_label: "Build a package"
 sidebar_custom_props:
   icon: Wrench
 ---

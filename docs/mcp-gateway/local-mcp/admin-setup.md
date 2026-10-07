@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+sidebar_label: "Administrator setup"
 sidebar_custom_props:
   icon: UserCog
 ---

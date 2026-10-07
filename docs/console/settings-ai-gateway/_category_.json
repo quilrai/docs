@@ -1,0 +1,10 @@
+{
+  "label": "Settings · AI Gateway",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "BrainCircuit"
+  }
+}

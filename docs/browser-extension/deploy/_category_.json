@@ -1,0 +1,10 @@
+{
+  "label": "Deploy",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Rocket"
+  }
+}

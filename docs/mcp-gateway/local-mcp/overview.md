@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+sidebar_label: "Local MCP overview"
 sidebar_custom_props:
   icon: BookOpen
 ---

@@ -6,6 +6,62 @@
 
 import { prismLight } from './src/themes/prismLight.js';
 import { prismDark } from './src/themes/prismDark.js';
+import { products, crossLinks, syntheticCategories } from './src/data/products.js';
+import movedPages from './src/data/redirects.json' with { type: 'json' };
+
+// Every page that moved in the platform restructure keeps working at its old
+// URL (plus the .md and legacy /docs variants).
+const movedPageRedirects = Object.entries(movedPages).map(([from, to]) => ({
+    from: from.startsWith('/category/') || from === '/console-v1' || from === '/console-v1/deployment'
+        ? [from, `/docs${from}`]
+        : [from, `${from}.md`, `/docs${from}`, `/docs${from}.md`],
+    to,
+}));
+
+// Adds cross-product links and link-only categories to the generated sidebars.
+// Categories are matched by the folder of the docs they contain.
+function categoryFolder(item) {
+    for (const child of item.items || []) {
+        if (child.type === 'doc') return child.id.split('/').slice(0, -1).join('/');
+        if (child.type === 'category') {
+            const f = categoryFolder(child);
+            if (f) return f.split('/').slice(0, -1).join('/');
+        }
+    }
+    return null;
+}
+const linkItem = (l) => ({
+    type: 'link',
+    label: l.label,
+    href: l.href,
+    customProps: { crossLink: l.product },
+});
+async function sidebarItemsGenerator({ defaultSidebarItemsGenerator, ...args }) {
+    const items = await defaultSidebarItemsGenerator(args);
+    const root = args.item.dirName;
+    for (const item of items) {
+        if (item.type !== 'category') continue;
+        const folder = categoryFolder(item);
+        for (const c of crossLinks.filter((c) => c.in === folder)) {
+            const links = c.links.map(linkItem);
+            item.items = c.at === 'start' ? [...links, ...item.items] : [...item.items, ...links];
+        }
+    }
+    for (const syn of syntheticCategories.filter((s) => s.root === root)) {
+        const cat = {
+            type: 'category',
+            label: syn.label,
+            collapsible: true,
+            collapsed: false,
+            items: syn.links.map(linkItem),
+            customProps: { icon: syn.icon },
+        };
+        const i = syn.after ? items.findIndex((it) => it.type === 'category' && categoryFolder(it) === syn.after) : -1;
+        if (i >= 0) items.splice(i + 1, 0, cat);
+        else items.push(cat);
+    }
+    return items;
+}
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -71,6 +127,7 @@ const config = {
             '@docusaurus/plugin-client-redirects',
             {
                 redirects: [
+                    ...movedPageRedirects,
                     {
                         from: [
                             '/llm-gateway/openai-to-bedrock',
@@ -78,7 +135,7 @@ const config = {
                             '/docs/llm-gateway/openai-to-bedrock',
                             '/docs/llm-gateway/openai-to-bedrock.md',
                         ],
-                        to: '/llm-gateway/unified-completions',
+                        to: '/llm-gateway/api-reference/unified-completions',
                     },
                     {
                         from: [
@@ -107,7 +164,7 @@ const config = {
                             '/docs/llm-gateway/features/self-service',
                             '/docs/llm-gateway/features/self-service.md',
                         ],
-                        to: '/llm-gateway/features/self-service/overview',
+                        to: '/llm-gateway/self-service/overview',
                     },
                 ],
                 createRedirects(existingPath) {
@@ -129,6 +186,7 @@ const config = {
                 docs: {
                     routeBasePath: '/',
                     sidebarPath: './sidebars.js',
+                    sidebarItemsGenerator,
                 },
                 blog: false,
                 sitemap: {
@@ -160,12 +218,14 @@ const config = {
                     srcDark: 'img/QuilrAI-dark.png',
                 },
                 items: [
-                    {
+                    // One tab per product (styled by src/theme/Navbar/Content).
+                    ...products.map((p) => ({
                         type: 'docSidebar',
-                        sidebarId: 'docsSidebar',
+                        sidebarId: p.id,
                         position: 'left',
-                        label: 'Documentation',
-                    },
+                        label: p.name,
+                        className: `product-tab product-tab--${p.id}`,
+                    })),
                     {
                         to: '/llm-gateway-playground',
                         label: 'Playground',

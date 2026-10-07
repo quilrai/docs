@@ -1,0 +1,10 @@
+{
+  "label": "Provider setup",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Plug"
+  }
+}

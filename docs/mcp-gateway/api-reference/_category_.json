@@ -1,0 +1,10 @@
+{
+  "label": "API reference",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "FileText"
+  }
+}

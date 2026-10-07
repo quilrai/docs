@@ -9,6 +9,7 @@ import ConsolePath from '@site/src/components/ConsolePath';
 import PolicyCard from '@site/src/components/PolicyCard';
 import Walkthrough from '@site/src/components/Walkthrough';
 import VideoEmbed from '@site/src/components/VideoEmbed';
+import ProductLanding from '@site/src/components/ProductLanding';
 
 export default {
   ...MDXComponents,
@@ -23,4 +24,5 @@ export default {
   PolicyCard,
   Walkthrough,
   VideoEmbed,
+  ProductLanding,
 };
