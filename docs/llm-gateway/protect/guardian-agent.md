@@ -242,7 +242,7 @@ If Guardian Agent records a finding and no content was blocked or anonymized, th
 
 ## Going further with the Policy Engine
 
-Guardian Agent is also a card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardian tab freezes and the card applies instead. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+Guardian Agent is also a card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardian tab freezes and the card applies instead. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 The card has four sections: **Guardian** (master switch), **Coding helpers**, **Task adherence** and **After Guardian runs** (follow-up rules). Each control is a three-way switch (**Leave as is**, **On**, **Off**), so a narrow configuration can change one setting and inherit the rest. The card applies on the `assistants`, `bedrock`, `chat`, `copilot`, `responses`, `sdk_check` and `vertex` API surfaces.
 

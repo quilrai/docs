@@ -81,7 +81,7 @@ The preview lists the tools, any hidden tools, token saving and the guardrail ac
 
 ## Going further with the Policy Engine
 
-When the Policy Engine is on for the MCP Gateway, this section turns read-only and published policies apply instead. **Edit anyway** changes the values used only if the Policy Engine is turned off. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+When the Policy Engine is on for the MCP Gateway, this section turns read-only and published policies apply instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 The Policy Engine has no separate rules list. Every rule can match on the caller (**user email**, **smart groups**, identity provider, client IP), so a group or user override becomes a rule on the card that owns the setting:
 

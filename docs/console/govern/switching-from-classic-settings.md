@@ -3,7 +3,7 @@ sidebar_position: 3
 sidebar_label: "Switching from classic settings"
 sidebar_custom_props:
   icon: GitBranch
-description: "The conversion review, what each target's conversion compares, activation, which settings freeze, and a recommended first rollout."
+description: "The conversion review, activation, what happens to classic settings on publish, rollback, Edit anyway and disable, and a recommended first rollout."
 ---
 
 # Switching from classic settings
@@ -67,14 +67,16 @@ displayed.
 
 ## Activation
 
-Attention items sort to the top. Activation needs an acknowledgement that the
-settings screens will freeze, a second one when attention items exist, and a
+Attention items sort to the top. Activation needs an acknowledgement that legacy
+settings will be frozen (locked) while the engine is on, a second one when attention items exist, and a
 final confirmation naming the gateway.
 
 Confirming does three things at once:
 
-1. Snapshots your complete legacy configuration.
-2. Writes the converted document as **revision 1**.
+1. Records a snapshot of your complete legacy configuration as the conversion
+   input. Disabling does not restore this snapshot; see
+   [What happens to classic settings](#what-happens-to-classic-settings).
+2. Writes the converted document as a revision (**revision 1** the first time).
 3. Makes the engine authoritative for that gateway.
 
 If your gateway build predates the comparison, the console reports
@@ -83,23 +85,42 @@ you to switch blind.
 
 ## After the switch
 
-Policy-owned settings freeze, and a governed change attempted there is
-rejected.
+The governed sections of the settings screens lock and show **Controlled by Policy Engine**. Their values stay stored exactly as they were at activation, but live traffic follows published policies instead.
 
-| Gateway | Frozen once the engine is on | Still managed in Settings |
+| Gateway | Locked once the engine is on | Still managed in Settings |
 |---|---|---|
 | LLM Gateway | Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving, Routing, Identity Aware (identity and conversation ID requirements), Prompt Store (store-prompt enforcement) | Applications, keys, providers and credentials, custom detections, alerts, self-service, audit |
 | MCP Gateway | Tools, Guardrails, Token saving, Group & User Rules per server | Server register, connections, OneMCP operation, API tokens |
 
 The LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card.
 
-:::warning Disabling is a rollback, not an undo
-Disabling the engine restores the frozen snapshot exactly as it was at
-activation. Work done under the engine is not translated back: the document
-stays in revision history, but those changes do not reappear on the settings
-screens. Treat disable as a rollback to the moment you switched, and use the
-engine's own rollback for everything after.
-:::
+## What happens to classic settings
+
+This table is the reference for every page that mentions classic settings under the Policy Engine. It applies to the LLM Gateway and the MCP Gateway separately.
+
+| Event | Stored classic settings | What live traffic follows | Policy history |
+|---|---|---|---|
+| Engine off (classic mode) | Editable as normal | Classic settings | None, or revisions from an earlier period on the engine |
+| **Enable** (activation) | Kept as they were and locked | The converted document | Conversion becomes a new revision (revision 1 the first time) |
+| Card edits | Unchanged | The live revision | Edits collect in the shared draft only |
+| **Publish** a draft | Unchanged | The new revision | Next numbered revision |
+| **Rollback** to an earlier revision | Unchanged | The republished revision | The earlier document is republished as a new revision |
+| **Edit anyway**, then save | The saved values replace the stored ones | Still the live revision; the saved values are not enforced and are not added to policies | Unchanged |
+| Management API write to a governed field | Saved, with an `inactive_under_quilrql` warning in the response | Still the live revision | Unchanged |
+| **Disable Policy Engine** | Become live again, as currently stored | Classic settings | Kept in the revision store; not applied |
+| **Enable** again later | Kept as they are now and locked | A fresh conversion of the current settings | The fresh conversion becomes a new revision; it does not resume your last published revision |
+
+In short: on disable, the classic settings resume as they are stored at that moment, which is the activation values plus anything saved since through **Edit anyway** or the Management API. Work published in the engine is never copied back into the classic settings.
+
+### Example
+
+An LLM Gateway app has PII set to **Monitor** when you activate the engine.
+
+1. You publish revision 2, which blocks PII for that app. Live traffic: block.
+2. A colleague opens the app's Guardrails, chooses **Edit anyway** and saves PII as **Redact**. Live traffic: still block.
+3. You disable the engine. Live traffic: **Redact**, the stored classic value. Neither the activation value (Monitor) nor the engine's block returns.
+
+To return to the exact pre-activation behaviour after disabling, check each governed section and set it back by hand, or avoid **Edit anyway** while the engine is on.
 
 ## A recommended first rollout
 

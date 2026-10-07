@@ -20,8 +20,8 @@ The Endpoint Agent's network monitor is a local proxy that inspects AI traffic l
 
 | Platform | Binary | Runs as |
 | --- | --- | --- |
-| **macOS** | `sentinel-proxy` | LaunchDaemon with a Network Extension |
-| **Windows** | `sentinel-proxy.exe` | Windows service with the WinDivert driver |
+| **macOS** | Transparent proxy system extension in `QuilrAIProxy.app` | macOS system extension (network extension), alongside the `com.quilrai.agent` LaunchDaemon |
+| **Windows** | `quilrai-proxy.exe` | Child process of the `QuilrAIAgent` service, with the WinDivert driver |
 
 The network monitor installs with the agent. See [Requirements](../get-started/requirements) for the certificate trust and driver prerequisites.
 

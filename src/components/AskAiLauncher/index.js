@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {useLocation} from '@docusaurus/router';
 import {usePluginData} from '@docusaurus/useGlobalData';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import {Sparkles, X, Copy, Check, ArrowUpRight} from 'lucide-react';
+import {Sparkles, X, Copy, Check, ArrowUpRight, MessageSquareText} from 'lucide-react';
 import {
   AI_PROVIDERS,
   buildDocPageAiPrompt,
@@ -13,6 +13,23 @@ import {productForPath} from '@site/src/data/products';
 // Other components (the homepage "Open in AI" button) open the panel with
 // window.dispatchEvent(new Event(ASK_AI_EVENT)).
 export const ASK_AI_EVENT = 'qd:ask-ai';
+
+// Hiding the floating button lasts for the browser session only.
+const DISMISS_KEY = 'qd-askai-dismissed';
+function readDismissed() {
+  try {
+    return window.sessionStorage.getItem(DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+function writeDismissed() {
+  try {
+    window.sessionStorage.setItem(DISMISS_KEY, '1');
+  } catch {
+    // storage blocked: the button stays hidden until the next page load
+  }
+}
 
 function pageTitle() {
   const h1 = document.querySelector('.theme-doc-markdown h1, main h1');
@@ -32,10 +49,18 @@ export default function AskAiLauncher() {
   const [open, setOpen] = useState(false);
   const [scope, setScope] = useState('page');
   const [copied, setCopied] = useState(false);
+  const [promptCopied, setPromptCopied] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [title, setTitle] = useState('');
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
+  const promptRef = useRef(null);
   const panelId = useId();
+
+  useEffect(() => {
+    setDismissed(readDismissed());
+  }, []);
 
   const effectiveScope = isDoc ? scope : 'docs';
   const site = siteConfig.url.replace(/\/$/, '');
@@ -62,7 +87,13 @@ export default function AskAiLauncher() {
   useEffect(() => {
     setOpen(false);
     setCopied(false);
+    setPromptCopied(false);
+    setShowPrompt(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (showPrompt) promptRef.current?.select();
+  }, [showPrompt]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -91,6 +122,25 @@ export default function AskAiLauncher() {
     };
   }, [open, close]);
 
+  // Copies the same prompt the provider links send, for assistants not listed.
+  // If the clipboard is blocked, show the prompt selected so it can be copied.
+  const copyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setPromptCopied(true);
+      setTimeout(() => setPromptCopied(false), 1600);
+    } catch {
+      setShowPrompt(true);
+      promptRef.current?.select();
+    }
+  };
+
+  const dismiss = () => {
+    writeDismissed();
+    setDismissed(true);
+    setOpen(false);
+  };
+
   const copyMarkdown = async () => {
     try {
       await navigator.clipboard.writeText(markdown);
@@ -102,7 +152,7 @@ export default function AskAiLauncher() {
   };
 
   return (
-    <div className="qd-askai" data-open={open}>
+    <div className="qd-askai" data-open={open} data-dismissed={dismissed}>
       {open && (
         <div
           className="qd-askai__panel"
@@ -140,8 +190,8 @@ export default function AskAiLauncher() {
           )}
           <p className="qd-askai__hint">
             {effectiveScope === 'page'
-              ? 'Opens your own AI assistant with this page loaded, ready for your questions.'
-              : `Opens your own AI assistant with the ${docsName} docs loaded, ready for your questions.`}
+              ? 'Opens your AI assistant with a prompt that links to this page and the related docs.'
+              : `Opens your AI assistant with a prompt that links to the ${docsName} docs.`}
           </p>
           <ul className="qd-askai__list">
             {AI_PROVIDERS.map(({name, icon: BrandIcon, buildUrl}) => (
@@ -156,12 +206,35 @@ export default function AskAiLauncher() {
               </li>
             ))}
           </ul>
-          {isDoc && (
-            <button type="button" className="qd-askai__copy" onClick={copyMarkdown}>
-              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-              {copied ? 'Copied' : 'Copy page as Markdown'}
+          <div className="qd-askai__actions">
+            <button type="button" className="qd-askai__copy" onClick={copyPrompt}>
+              {promptCopied ? (
+                <Check size={14} aria-hidden="true" />
+              ) : (
+                <MessageSquareText size={14} aria-hidden="true" />
+              )}
+              {promptCopied ? 'Copied' : 'Copy prompt'}
             </button>
+            {isDoc && (
+              <button type="button" className="qd-askai__copy" onClick={copyMarkdown}>
+                {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                {copied ? 'Copied' : 'Copy page as Markdown'}
+              </button>
+            )}
+          </div>
+          {showPrompt && (
+            <textarea
+              ref={promptRef}
+              className="qd-askai__prompt"
+              readOnly
+              rows={5}
+              value={prompt}
+              aria-label="Prompt to copy into your AI assistant"
+            />
           )}
+          <span className="qd-askai__status" role="status" aria-live="polite">
+            {promptCopied ? 'Prompt copied' : copied ? 'Page copied as Markdown' : ''}
+          </span>
         </div>
       )}
       <button
@@ -181,6 +254,16 @@ export default function AskAiLauncher() {
         <Sparkles size={16} aria-hidden="true" />
         <span>Open in AI</span>
       </button>
+      {!dismissed && (
+        <button
+          type="button"
+          className="qd-askai__dismiss"
+          onClick={dismiss}
+          aria-label="Hide the Open in AI button for this session"
+          title="Hide for this session">
+          <X size={12} aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

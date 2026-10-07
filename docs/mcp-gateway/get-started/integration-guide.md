@@ -6,6 +6,9 @@ sidebar_custom_props:
 description: "MCP endpoint URLs, client-to-gateway authentication, gateway-to-upstream auth modes, user claims forwarding, and connection examples."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Integration Guide
 
 MCP endpoints, authentication methods, and connection examples for integrating AI agents with MCP Gateway.
@@ -84,22 +87,108 @@ curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
   }'
 ```
 
-## OneMCP Connection Example
+## Connect an AI client
+
+Use the **OneMCP URL** from the user dashboard (for example `https://mcpgateway.quilr.ai/quilrone/mcp`) to get every gateway-managed MCP through one connection, or a single MCP's **Quilr gateway** URL. OAuth passthrough MCPs are only available on their own URL (see [OneMCP](./onemcp#visibility-rules)).
+
+The gateway speaks MCP over Streamable HTTP. Clients authenticate with OAuth: on the first request the gateway answers `401` with a pointer to its OAuth metadata, the client registers itself, and your browser opens to sign in with your company account. There is no token to copy. Before an MCP's tools work, connect it once on the user dashboard (or through the [in-chat connector card](./onemcp#inline-authentication)).
+
+<Tabs groupId="mcp-client">
+<TabItem value="cursor" label="Cursor" default>
+
+### Connect Cursor
+
+Add the server to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` in a project:
 
 ```json
 {
   "mcpServers": {
     "quilr-onemcp": {
-      "url": "https://mcpgateway.quilr.ai/quilrone/mcp",
-      "headers": {
-        "Authorization": "Bearer <onemcp-token>"
-      }
+      "url": "https://mcpgateway.quilr.ai/quilrone/mcp"
     }
   }
 }
 ```
 
-With OneMCP, use `find_relevant_tools` for task-based discovery and `call_tool` to execute the selected tool. Use `list_mcp_connections` for connector inventory, authentication, and reconnection. Compatible clients such as ChatGPT render that result as an in-chat connector card; other clients use URL or text guidance.
+Open Cursor's MCP settings, start the sign-in for `quilr-onemcp`, and complete it in the browser.
+
+</TabItem>
+<TabItem value="claude" label="Claude Desktop / Claude.ai">
+
+### Connect Claude Desktop and Claude.ai
+
+Remote MCP servers are added as connectors, not in `claude_desktop_config.json` (that file is for local servers).
+
+1. In Claude, open **Settings > Connectors** and add a custom connector.
+2. Paste the OneMCP URL and save.
+3. Click **Connect** and sign in when the browser opens.
+
+A connector added on Claude.ai is also available in Claude Desktop for the same account.
+
+</TabItem>
+<TabItem value="vscode" label="VS Code">
+
+### Connect VS Code
+
+Add the server to `.vscode/mcp.json` in a workspace (or run **MCP: Add Server** for your user profile):
+
+```json
+{
+  "servers": {
+    "quilr-onemcp": {
+      "type": "http",
+      "url": "https://mcpgateway.quilr.ai/quilrone/mcp"
+    }
+  }
+}
+```
+
+Start the server from the file or the MCP server list, and sign in when prompted.
+
+</TabItem>
+<TabItem value="claude-code" label="Claude Code">
+
+### Connect Claude Code
+
+```bash
+claude mcp add --transport http quilr-onemcp https://mcpgateway.quilr.ai/quilrone/mcp
+```
+
+Then run `/mcp` in Claude Code, select `quilr-onemcp` and authenticate.
+
+</TabItem>
+<TabItem value="other" label="Other clients">
+
+### Connect other MCP clients
+
+Any client that supports remote MCP servers over Streamable HTTP with OAuth (protected resource metadata and dynamic client registration) can connect with just the URL.
+
+| Item | Value |
+|------|-------|
+| URL | The OneMCP URL or an MCP's **Quilr gateway** URL |
+| Transport | Streamable HTTP (`POST` JSON-RPC; `GET` opens an event stream for session-capable clients) |
+| `MCP-Protocol-Version` | `2025-03-26`, `2025-06-18` or `2025-11-25`. Other values are rejected with `400`. |
+| Auth | OAuth. Without a token, the gateway returns `401` with `WWW-Authenticate: Bearer resource_metadata="..."`. |
+
+Clients without OAuth can call a single non-OAuth MCP's URL with an [API token](#api-token-authentication) and the `mcpuser` header. OneMCP accepts only tokens from the OAuth sign-in, not API tokens.
+
+</TabItem>
+</Tabs>
+
+### Check the connection
+
+1. Without signing in, confirm the URL is right. A `401` with a `WWW-Authenticate` header that contains `resource_metadata` means you reached the gateway:
+
+   ```bash
+   curl -i -X POST https://mcpgateway.quilr.ai/quilrone/mcp \
+     -H "Content-Type: application/json" \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+   ```
+
+2. After signing in, list the client's tools. With OneMCP and [dynamic tool calling](./onemcp#smart-tools) on, expect `list_mcp_connections`, `find_relevant_tools` and `call_tool`, plus the memory tools when **Memories enabled** is on. With it off, expect each allowed MCP's tools, prefixed with the MCP's name.
+3. Ask the client to list available connectors. MCPs under **Connection needed** still need a one-time connect.
+
+If sign-in succeeds but calls are refused, check that the client is allowed under [Allowed Agents](../servers-and-connections/allowed-agents) and that you can reach the MCP under [access control](../protect/server-access).
 
 ## Agent Configuration
 

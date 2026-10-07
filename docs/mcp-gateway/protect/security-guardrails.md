@@ -67,7 +67,7 @@ Click **Save settings** in the footer to apply your changes.
 
 ## Going further with the Policy Engine
 
-When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Data & Adversarial Risks** card (stages 3 and 4, Request and Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the values used only if the Policy Engine is turned off. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Data & Adversarial Risks** card (stages 3 and 4, Request and Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
 
 The card's effects are **Actions per sensitive data type**, **Default sensitive data action**, **Sensitive data detectors** and a risk level. Scenarios it supports that server settings cannot:
 

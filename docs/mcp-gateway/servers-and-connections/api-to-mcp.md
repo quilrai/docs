@@ -12,6 +12,28 @@ Give AI apps controlled access to a REST API that has no MCP server. The gateway
 
 Open **Settings > AI Gateway > MCP Gateway**, click **Add MCP server** and choose **API** under **Where does this MCP run?** The setup has three steps: **Connection**, **Credentials** and **Tools & access**.
 
+## Network requirement
+
+The gateway calls the API from QuilrAI's network, so the base URL (and a spec URL, if you use one) must be reachable over the public internet. The gateway refuses any destination that resolves to a non-public address, and checks again on every call after DNS resolution:
+
+- Private ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, IPv6 unique-local), loopback, link-local and carrier-grade NAT (`100.64.0.0/10`)
+- Cloud metadata addresses such as `169.254.169.254`
+- The names `localhost`, `*.localhost` and `*.internal`
+
+Tool calls do not follow redirects. A spec URL may redirect up to 3 times, each hop is checked the same way, and an `https` to `http` downgrade is refused.
+
+A public hostname that resolves to a private address passes **Create API MCP** but every tool call then fails with **Blocked destination**. A spec URL on a private address fails at **Load spec**; upload or paste the spec instead.
+
+For an API that is only reachable inside your network:
+
+| Option | How it works |
+|--------|--------------|
+| **Publish the API on a public endpoint** | Put the API (or a gateway in front of it) on a public hostname that requires the API key you store in **Credentials**. |
+| **[Local MCP](../local-mcp/overview)** | The MCP runs on each user's computer, so it reaches whatever that computer can reach, such as a VPN or office network. You package the MCP yourself. |
+| **Self-hosted MCP Gateway** | A self-hosted deployment can allow specific private ranges. Ask your QuilrAI representative. |
+
+There is no console setting that turns off the private-address check.
+
 ## When to use it
 
 | Use | When |
@@ -28,7 +50,7 @@ Open **Settings > AI Gateway > MCP Gateway**, click **Add MCP server** and choos
 |-------|---------------|
 | **Name** | The name people see in their AI app. |
 | **Slug** | Optional. Derived from the name when left blank. Forms the gateway URL agents call. |
-| **Base URL** | The full URL, including `https://`. Every tool call goes to a path under it. Private and loopback addresses are refused. |
+| **Base URL** | The full URL, including `https://`. Every tool call goes to a path under it. Must be publicly reachable (see [Network requirement](#network-requirement)). |
 | **Description** | Optional. Shown beside the API wherever it is listed. |
 
 ### OpenAPI spec

@@ -10,10 +10,13 @@ import PolicyCard from '@site/src/components/PolicyCard';
 import Walkthrough from '@site/src/components/Walkthrough';
 import VideoEmbed from '@site/src/components/VideoEmbed';
 import ProductLanding from '@site/src/components/ProductLanding';
+import ZoomImage from '@site/src/components/ZoomImage';
 
 export default {
   ...MDXComponents,
   table: ExpandableTable,
+  // Markdown images enlarge on click (lightbox).
+  img: ZoomImage,
   StepFlow,
   ArchitectureDiagram,
   McpDecision,

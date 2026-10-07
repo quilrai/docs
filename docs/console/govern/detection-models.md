@@ -36,7 +36,7 @@ Contextual detections use the surrounding text to decide whether something is se
 - Auth & Secrets
 - Code Scripts and Queries
 
-Each category row shows how many subcategories it contains, its **risk level**, a **View & test** action and an enable toggle.
+Each category row shows how many subcategories it contains, its **Risk level** (**None**, **Low**, **Medium** or **High**), a **View & test** action and an enable toggle. Expanding a category shows each subcategory with a **priority** of **Low**, **Medium** or **High**.
 
 ### Non-contextual
 
@@ -59,7 +59,19 @@ Each group shows its risk level, **Show techniques** to list the individual tech
 
 ## Risk levels
 
-Every category and adversarial group carries a default risk level: **None**, **Low**, **Medium** or **High**. The risk level is reported on findings and used for ranking in dashboards, exports and alerts. A policy can raise the risk of a call further, but the action taken (monitor, redact, block) comes from the policy or control, not from the risk level.
+"Risk level" means different things in different places. Check which one you are looking at.
+
+| Where | UI label and values | What it does |
+|---|---|---|
+| **Data Risks > Contextual**, per category | **Risk level**: None, Low, Medium, High | A detection threshold, not a severity. It decides which subcategory priorities are detected: **None** detects nothing, **Low** only High-priority subcategories, **Medium** High and Medium, **High** all three. |
+| **Data Risks > Contextual**, per subcategory | **priority**: Low, Medium, High | How strong a signal the subcategory is. Combined with the category's risk level above. |
+| **AI Adversarial Risks**, per technique | Risk level badge | The default severity of that technique. Shown for reference. |
+| LLM Gateway app **Guardrails** tab | **Risk level** per category, with sub-category sensitivity | The same threshold model as Contextual, set per app. See [Risk level and sub-category sensitivity](../../llm-gateway/protect/security-guardrails#risk-level-and-sub-category-sensitivity). |
+| Policy Engine rule effect | **Risk level**: `very_low` to `very_critical` | The severity assigned to a matching call. It only climbs: a call takes the highest level any matching rule sets. |
+
+Example: PII has **Risk level** set to **Low**, and its name subcategory has priority **Low**. A prompt containing only a person's name is not detected as PII at all, so no Policy Engine rule on PII matches it. Raise the category to **High** and the name is detected; a rule with **Risk level** `high` on PII then marks that call as high risk.
+
+None of these levels choose the action. Monitor, redact or block always comes from the policy or control.
 
 ## View & test
 

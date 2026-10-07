@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Browser controls"
 sidebar_custom_props:
   icon: Scale
+description: "Browser Extension controls: the controls table, the add and edit form, what Enabled, Mark ready and Save changes do, and maintaining controls."
 ---
 
 # Browser controls
@@ -33,7 +34,15 @@ Select **Add control**, or **Edit** on a row. The form has these parts:
 4. **Additional conditions** (**Add condition**): optional conditions to narrow scope, for example to a user or smart group, an application, or a data type.
 5. **Perform action**: what happens in Action mode. Depending on the use case, this can include just-in-time choices for the user (remove sensitive data and continue, continue with no, optional, or mandatory justification, or redact sensitive data), remediation such as sending an alert to syslog, or activating an AI agent for follow-up.
 
-Then set **Enabled**, and use **Mark ready** once the control is ready to use. Select **Save changes**, or **Cancel** to discard.
+Then finish the form:
+
+| Control | What it does |
+| --- | --- |
+| **Mark ready** | Appears on each action under **Perform action**. It commits that action once its required choices are set; for an AI agent action it also generates the task summary. Saving stays disabled while any action is not marked ready or any condition is unfinished, and the form says which. |
+| **Enabled** | Whether the control runs. An inactive control is saved but does not run until it is enabled, so you can review it first. This is the same on/off state as the **Status** toggle in the table. |
+| **Save changes** (or **Create control** for a new one) | Opens a **Save this control?** or **Create this control?** summary where you can still change **Enabled**. Confirm to save. **Cancel** discards your edits. |
+
+To stage a control without running it, save it with **Enabled** off, review it, then turn it on from the **Status** toggle.
 
 :::tip Monitor first
 Start new or changed controls in **Monitor** mode, scoped to a pilot group. Review the findings for a week or two (true and false positives, affected users and apps) before you switch the control to **Action**.

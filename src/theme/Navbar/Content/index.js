@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import clsx from 'clsx';
 import {useThemeConfig, ErrorCauseBoundary} from '@docusaurus/theme-common';
 import {useNavbarMobileSidebar} from '@docusaurus/theme-common/internal';
@@ -18,13 +18,29 @@ import {ProductIcon} from '@site/src/utils/productIcons';
 export function ProductTabs({className, onNavigate}) {
   const {pathname} = useLocation();
   const active = productForPath(pathname);
+  const navRef = useRef(null);
+
+  // On narrow screens the strip scrolls sideways; keep the current product's
+  // tab in view on load and after navigation. Only the strip's own scrollLeft
+  // changes, so the page never jumps.
+  useEffect(() => {
+    const nav = navRef.current;
+    const tab = nav?.querySelector('[aria-current="true"]');
+    if (!nav || !tab || nav.scrollWidth <= nav.clientWidth) return;
+    const left = tab.getBoundingClientRect().left - nav.getBoundingClientRect().left + nav.scrollLeft;
+    const target = left - (nav.clientWidth - tab.offsetWidth) / 2;
+    nav.scrollLeft = Math.max(0, Math.min(target, nav.scrollWidth - nav.clientWidth));
+  }, [active?.id]);
+
   return (
-    <nav className={clsx('qd-tabs', className)} aria-label="Products">
+    <nav ref={navRef} className={clsx('qd-tabs', className)} aria-label="Products">
       {products.map((p) => (
         <Link
           key={p.id}
           to={`/${p.slug}`}
-          className="qd-tab"
+          // navbar__link--active also gives local search the product name as
+          // the first breadcrumb of every result.
+          className={clsx('qd-tab', active?.id === p.id && 'navbar__link--active')}
           style={{'--tc': `var(--c-${p.id})`}}
           aria-current={active?.id === p.id ? 'true' : undefined}
           onClick={onNavigate}>

@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 sidebar_label: "Webhook"
+description: "Forward findings and audit log events to an HTTPS endpoint from Console V1: setup, delivery behavior and payloads."
 sidebar_custom_props:
   icon: Globe
 ---
@@ -9,11 +10,13 @@ sidebar_custom_props:
 
 Forwards Extension findings and audit log events to your webhook endpoint.
 
-:::note
-These setup steps and the payloads below describe the webhook on the **Integrations** page of [Console V1](../../console/legacy-v1/overview). The current console also lists a **Webhook** card (Send logs, Alerts & notifications) under **Settings › Integrations › Library**; see [How integrations work](../get-started/how-integrations-work).
+:::note Set up in Console V1
+Webhook forwarding that delivers events is configured on the **Integrations** page of [Console V1](../../console/legacy-v1/overview), as described below. The **Webhook** card in the current console's **Settings › Integrations › Library** is configuration only: it asks for a **Destination label** and an **Event family** but no URL or key, and its drawer reads "Installing it records management state; provider authentication and data transfer begin only when the corresponding connector supports activation." See [How integrations work](../get-started/how-integrations-work#availability).
 :::
 
 ## Setup
+
+In Console V1:
 
 1. Go to **Integrations** and open the **Available** tab.
 2. Click **+ Add** on the **Webhook** tile.
@@ -22,9 +25,20 @@ These setup steps and the payloads below describe the webhook on the **Integrati
 | Field | Required | Description |
 |-------|----------|-------------|
 | Webhook URL | Yes | The HTTPS endpoint Quilr will POST events to |
-| API Key | Yes | Passed as both `X-API-KEY` and `Authorization: Bearer` on every request |
+| API Key | Yes | Passed as both `X-API-KEY` and `Authorization: Bearer` on every request. Stored encrypted. |
 
 4. Click **Allow**.
+
+## Delivery behavior
+
+| Behavior | Default |
+|----------|---------|
+| Batching | Events are grouped into one delivery of up to 100 events, collected over about half a second. |
+| Retries | A failed delivery is retried up to 3 times, about 1 second apart. |
+| Repeats | A retry can deliver the same events again, so make your receiver tolerate repeated events. |
+| Configuration changes | A new or changed destination is picked up within about 5 minutes. |
+
+To test the receiver, trigger a harmless test finding (for example a test value that a browser DLP rule flags) and check that a `FINDING` delivery arrives.
 
 ## Payload
 

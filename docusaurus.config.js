@@ -122,7 +122,7 @@ const config = {
     ],
 
     plugins: [
-        './plugins/doc-page-markdown.js',
+        ['./plugins/doc-page-markdown.js', {products}],
         [
             './plugins/llms-txt.js',
             {

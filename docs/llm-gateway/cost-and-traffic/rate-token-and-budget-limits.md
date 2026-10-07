@@ -33,7 +33,7 @@ The gateway rejects the call with HTTP `429` without contacting the provider. Ra
 
 ## Going further with the Policy Engine
 
-Two cards in **Policy Engine > LLM Gateway** cover limits: **Rate, Token & Timeout Limits** and **Budgets & Usage Limits**. When the engine is on for the LLM Gateway, the app's Rate and Token Limits settings freeze and the cards apply instead. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+Two cards in **Policy Engine > LLM Gateway** cover limits: **Rate, Token & Timeout Limits** and **Budgets & Usage Limits**. When the engine is on for the LLM Gateway, the app's Rate and Token Limits settings freeze and the cards apply instead. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 Both cards apply on the `assistants`, `bedrock`, `chat`, `embeddings`, `realtime`, `rerank`, `responses`, `stt`, `text`, `tts` and `vertex` API surfaces.
 

@@ -45,7 +45,7 @@ export const products = [
       {title: 'Send your first request', desc: 'Create an app, copy its key, call the gateway', to: '/llm-gateway/get-started/quick-start'},
       {title: 'Connect a provider', desc: 'OpenAI, Anthropic, Azure, Bedrock, Vertex, OCI', to: '/llm-gateway/apps-and-providers/providers-and-models'},
       {title: 'Turn on guardrails', desc: 'Block or redact sensitive data and attacks', to: '/llm-gateway/protect/security-guardrails'},
-      {title: 'Automate with the API', desc: 'Manage apps and policy as code', to: '/llm-gateway/api-reference/management-api'},
+      {title: 'Automate apps and keys', desc: 'Manage apps, keys and configuration with the Management API', to: '/llm-gateway/api-reference/management-api'},
     ],
   },
   {
@@ -81,7 +81,7 @@ export const products = [
     primary: {label: 'LLM Intelligence Assessment', to: '/red-teaming/assessments/llm-intelligence-assessment'},
     consoleUrl: 'https://web.quilr.ai/red-teaming',
     tasks: [
-      {title: 'Assess a gateway app', desc: 'Adversarial and benchmark suites on an LLM Gateway app', to: '/red-teaming/assessments/llm-intelligence-assessment'},
+      {title: 'Assess a gateway app', desc: "Run suites against the app's configured model through the gateway", to: '/red-teaming/assessments/llm-intelligence-assessment'},
       {title: 'Vet an MCP server', desc: 'Static, dependency and live tool-surface scan', to: '/red-teaming/assessments/mcp-threat-detection'},
       {title: 'Red team an agent', desc: 'Attack any HTTP or voice agent endpoint', to: '/red-teaming/assessments/agentic-red-teaming'},
       {title: 'Compare models', desc: 'Run the same attacks on 2 to 8 models', to: '/red-teaming/assessments/model-red-teaming'},

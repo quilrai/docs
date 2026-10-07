@@ -3,11 +3,12 @@ sidebar_position: 1
 sidebar_label: "Routing and fallbacks"
 sidebar_custom_props:
   icon: Route
+description: "Weighted, token-based and custom routing for LLM Gateway apps, what happens when a provider fails or is disabled, and Policy Engine routing."
 ---
 
 # Routing and fallbacks
 
-Spread one model name across several models, providers or accounts, fail over when a provider is down, and send small requests to cheaper models.
+Spread one model name across several models, providers or accounts, skip providers you disable, and send small requests to cheaper models.
 
 ## Turn it on for an app
 
@@ -43,7 +44,7 @@ Group names must be unique across weighted and token-based groups.
 | `gpt-4.1` | OpenAI | 60% |
 | `gpt-4.1` | Azure OpenAI | 40% |
 
-When a provider in the group fails, traffic shifts to the remaining models. No code change is needed.
+If you disable a provider, the group stops sending new requests to its models and splits traffic across the rest. No code change is needed. An upstream error does not move a request to another model; see [When a provider fails](#when-a-provider-fails).
 
 A group name can match a real model name. If a group named `gpt-4.1` routes to `gpt-4.1-mini` and `gpt-4.1-nano`, existing code that sends `model="gpt-4.1"` is rerouted without a deploy.
 
@@ -99,6 +100,23 @@ You do not need a group for the gateway to choose a provider. When a request nam
 
 For deterministic selection, send `provider`, `provider_label`, `X-Provider-Name` or `X-Provider-Label`.
 
+## When a provider fails
+
+The gateway picks one model before it calls the provider and makes a single upstream attempt for that request. It does not retry the request on another model in the group, on another provider, or on the next Policy Engine **Route to** target.
+
+| What happens | Moves the request to another model? | What the client gets |
+|---|---|---|
+| Provider is disabled in the console | Yes, before the call. Disabled providers are left out of groups, custom routing and **Route to**. | A normal response from the next eligible model |
+| Upstream returns 429, 5xx, 400, 401, 403 or 404 | No | The upstream status code and, when the provider returned one, its OpenAI-style error body |
+| Connection error or timeout | No | An error response (500 when the error carries no status code) |
+| Request blocked by a guardrail | No | The guardrail response for the app's action |
+| Streaming: upstream fails before the stream opens | No | A JSON error with the upstream status code |
+| Streaming: upstream fails after the stream opened | No | HTTP 200 (headers already sent), then one `data: {"error": ...}` event, then the stream closes |
+
+Weighted groups pick the model whose actual share is furthest below its weight, so traffic converges on the configured split rather than being random per request. The gateway records the routing group and mode with each request in its logs; it does not add a response header naming the provider that served it.
+
+To ride out a provider outage today, handle errors in your client (retry with backoff, or call again with a different `model` or provider selector), or disable the failing provider so later requests skip it.
+
 ## Call a routing group
 
 ```python
@@ -125,7 +143,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
 
 ## Going further with the Policy Engine
 
-Routing is also the **Routing Groups & Fallbacks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Routing tab freezes and the card decides where requests go; converted app groups are scoped with **Requested model** set to the group name. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+Routing is also the **Routing Groups & Fallbacks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Routing tab freezes and the card decides where requests go; converted app groups are scoped with **Requested model** set to the group name. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 The card decides in this order: [Allowed Models](../protect/gateway-access-and-allowed-models) filters what may be used, then the highest-priority **Route to** (first target with an enabled credential), then the highest-priority **Routing group** (weighted split), then the app's provider default.
 

@@ -120,6 +120,11 @@ export function buildDocPageAiPrompt(pageTitle, pageMarkdownUrl, {site, product}
     'Read it first:',
     `- ${pageMarkdownUrl}`,
   ];
+  // Management API pages render their reference from the OpenAPI file
+  // (not Unified Completions or Log Export, which are separate APIs).
+  if (site && /\/llm-gateway\/api-reference\/(management|apps-and-credentials|providers-and-configuration|prompts|policy)-api\b/.test(pageMarkdownUrl)) {
+    lines.push(`- OpenAPI definition (every operation and schema): ${site}/openapi/llm-gateway-management-v1.json`);
+  }
   if (site) lines.push('', 'For related context:', ...productSources(site, product));
   lines.push('', ANSWER_RULES);
   return lines.join('\n');

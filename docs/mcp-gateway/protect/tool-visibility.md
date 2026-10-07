@@ -66,7 +66,7 @@ To enable a tool, or require confirmation, only for some people, add a rule in [
 
 ## Going further with the Policy Engine
 
-When the Policy Engine is on for the MCP Gateway, the **Tools** section turns read-only and shows **Controlled by Policy Engine**. Tool availability then comes from two cards in **Govern > Policy Engine > MCP Gateway**:
+When the Policy Engine is on for the MCP Gateway, the **Tools** section turns read-only and shows **Controlled by Policy Engine**; values saved through **Edit anyway** apply only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). Tool availability then comes from two cards in **Govern > Policy Engine > MCP Gateway**:
 
 | Card | Stage | What a deny does |
 |------|-------|------------------|

@@ -26,7 +26,7 @@ Optional installer switches are `--pinned "false"` to hide the extension from th
 
 ## Windows and macOS extension policy
 
-1. Get the tenant extension policy for Microsoft Intune, for your browser and operating system, from Settings › Browser Extension in the QuilrAI console or from your QuilrAI representative.
+1. Get the tenant extension policy for Microsoft Intune, for your browser and operating system, from your QuilrAI representative. The current console's **Settings › Browser Extension** page does not offer this download.
 
 2. For Windows, download the tenant JSON. In Intune, open Devices > Configuration > Create > Import Policy, upload the JSON, name the policy, save it, and assign the required groups.
 

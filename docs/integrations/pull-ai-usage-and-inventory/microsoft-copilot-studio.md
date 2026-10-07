@@ -4,19 +4,41 @@ sidebar_label: "Microsoft Copilot Studio"
 sidebar_custom_props:
   badge: new
   icon: Bot
-description: "Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution."
+description: "Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution, and what the inventory card does today."
 ---
 
 # Microsoft Copilot Studio
 
 The Microsoft Copilot Studio integration works in two ways:
 
-| Part | What it does | Where you set it up |
-|------|--------------|---------------------|
-| **Inventory and activity** | Discovers Copilot Studio agents, their Dataverse definitions, capabilities, governance, and sanitized activity metadata (Pull inventory, Pull compliance data; Into Quilr). They appear under **Connected platforms** on **Overview › Agentic estate**, the **Microsoft Copilot Studio** source chip on **Agents**, and the **Copilot** chip on **Graph**. | **Settings › Integrations**, **Microsoft Copilot Studio** card |
-| **Runtime threat detection** | Copilot Studio asks QuilrAI to allow or block each tool execution. | An LLM Gateway app plus Power Platform admin center (this page) |
+| Part | What it does | Status | Where you set it up |
+|------|--------------|--------|---------------------|
+| **Runtime threat detection** | Copilot Studio asks QuilrAI to allow or block each tool execution. | **Works today.** | An LLM Gateway app plus Power Platform admin center (this page) |
+| **Inventory and activity** | Meant to discover Copilot Studio agents, their Dataverse definitions, capabilities, governance, and sanitized activity metadata, shown under **Connected platforms** on **Overview › Agentic estate**, the **Microsoft Copilot Studio** source chip on **Agents**, and the **Copilot** chip on **Graph**. | **Configuration only.** The card stores your settings but does not connect to Microsoft yet. | **Settings › Integrations**, **Microsoft Copilot Studio** card |
 
-The rest of this page covers runtime threat detection. For installing the inventory card, see [How integrations work](../get-started/how-integrations-work).
+## Inventory card fields
+
+The card's drawer reads: "Installing it records management state; provider authentication and data transfer begin only when the corresponding connector supports activation." It asks for no client ID, secret or Microsoft permissions:
+
+| Field | What to enter |
+|-------|---------------|
+| **Integration name** | A tenant-visible name for this installation. Required. |
+| **Microsoft tenant** | Your Microsoft tenant name or directory ID. |
+| **Environment scope** | The Power Platform environment this connection covers. |
+| **Dataverse URL** | The Dataverse environment URL for that environment. |
+| **Credential reference** | Optional, non-secret identity reference. Do not enter a client secret, token or API key. |
+
+Contact your QuilrAI representative before you rely on Copilot Studio inventory data. The rest of this page covers runtime threat detection.
+
+## Permissions for runtime threat detection
+
+| Who | Grants |
+|-----|--------|
+| A Microsoft 365 or Power Platform admin (an Entra ID role that can grant tenant-wide admin consent) | Admin consent for the QuilrAI Microsoft Entra application. See [Admin consent](#admin-consent). |
+| A Power Platform admin | Turns on additional threat detection for each environment in Power Platform admin center. |
+| A QuilrAI admin who can create LLM Gateway apps | Creates the `copilot_studio` app and key. |
+
+Threat detection is configured per Power Platform environment: repeat the Power Platform steps for each environment whose agents you want to protect.
 
 ## Runtime threat detection
 
@@ -105,6 +127,7 @@ Use this same Microsoft Entra App ID when Power Platform asks for the Azure Entr
 9. Enter the QuilrAI Microsoft Entra App ID: `54abe80d-4f95-4e44-a19a-d360e5cdb617`.
 10. Enter the QuilrAI endpoint base URL as the endpoint link.
 11. Choose the Power Platform error behavior and save.
+12. Verify: Power Platform calls the `/validate` route when you save. Then run a test agent with a tool and a prompt containing a harmless test value your policy blocks, and check that the tool call is blocked and the check appears in your LLM Gateway logs.
 
 Microsoft documents the setup flow in [Enable external threat detection and protection for Copilot Studio custom agents](https://learn.microsoft.com/en-us/microsoft-copilot-studio/external-security-provider). Their webhook contract is documented in [Build a runtime threat detection system for Copilot Studio agents](https://learn.microsoft.com/en-us/microsoft-copilot-studio/external-security-webhooks-interface-developers).
 

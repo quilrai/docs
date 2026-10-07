@@ -48,7 +48,7 @@ https://mcpgateway.quilr.ai/quilrone/mcp
 https://mcpgateway.quilrai.com/quilrone/mcp
 ```
 
-OneMCP accepts gateway-issued OneMCP OAuth proxy tokens.
+OneMCP accepts gateway-issued OneMCP OAuth proxy tokens, which the AI client gets when the user signs in. There is no token to copy. For per-client steps (Cursor, Claude Desktop and Claude.ai, VS Code, Claude Code), see [Connect an AI client](./integration-guide#connect-an-ai-client).
 
 ## OneMCP settings
 
@@ -72,6 +72,7 @@ When dynamic tool calling is on, OneMCP returns a compact set of gateway tools:
 | `list_mcp_connections` | Lists visible MCPs and their connection state. In compatible clients, it renders the in-chat connector card. |
 | `find_relevant_tools` | Searches across available MCP tool groups and returns matching server tools. A call without a query returns the available groups and their connection state. |
 | `call_tool` | Calls a tool returned by `find_relevant_tools`. |
+| `quilr_platform_helper` | Tenant administrators only. Queries MCP Gateway usage and discovery data; with no arguments, returns a 7-day overview. |
 
 The usual flow is:
 

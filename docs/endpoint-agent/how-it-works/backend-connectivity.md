@@ -10,7 +10,7 @@ sidebar_custom_props:
 The Endpoint Agent talks to the QuilrAI backend over outbound HTTPS only. It pushes what it discovers, pulls governance decisions, and reports enforcement activity.
 
 <StepFlow steps={[
-  { label: "Configure", items: ["Base URL: api.quilr.ai", "Tenant ID", "Subscriber ID"] },
+  { label: "Configure", items: ["Tenant ID at install", "Backend found by lookup"] },
   { label: "Push discovery", items: ["Startup + every 30 min", "Batches of 50, gzip"] },
   { label: "Pull governance", items: ["Delta sync every 60 s", "No restart needed"] },
   { label: "Report activity", items: ["Audit log per decision", "Block / quarantine alerts"] },
@@ -18,22 +18,7 @@ The Endpoint Agent talks to the QuilrAI backend over outbound HTTPS only. It pus
 
 ## Connection settings
 
-The agent reads its connection settings from the local configuration file in its data directory. Set these values before the agent starts.
-
-```toml
-[backend]
-base_url       = "https://api.quilr.ai"
-tenant_id      = "<your-tenant-uuid>"
-subscriber_id  = "<your-subscriber-id>"
-```
-
-| Field | Description |
-| --- | --- |
-| `base_url` | QuilrAI backend API root. |
-| `tenant_id` | Your organization's tenant UUID. |
-| `subscriber_id` | Your subscriber identifier. |
-
-Get these values from your QuilrAI representative. Every request carries the tenant and subscriber IDs in the `X-Tenant-ID` and `X-Subscriber-ID` headers, which the backend uses to keep tenants isolated.
+You do not edit a configuration file. At install time the agent is bound to your tenant ID (see [Deployment and status](../deploy-and-operate/deployment-and-status#bind-the-agent-to-your-tenant)) and looks up its tenant's backend and DLP hosts. Every request carries your tenant identity, which the backend uses to keep tenants isolated.
 
 ## What is exchanged
 

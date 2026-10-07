@@ -4,10 +4,12 @@ sidebar_position: 7
 sidebar_label: "Policy API (QuilrQL)"
 sidebar_custom_props:
   icon: Workflow
-description: "Implemented LLM Gateway management v1: quilrql behavior."
+description: "How the LLM Gateway management API behaves while the Policy Engine (QuilrQL authority) is on: new apps, stored versus effective settings, and what is not available."
 ---
 
 # QuilrQL behavior
+
+QuilrQL is the policy language behind the console's [Policy Engine](../../console/govern/policy-engine), so "QuilrQL authority enabled" in API responses means the Policy Engine is on for the LLM Gateway. This page describes how the management API behaves while it is on; it is not a policy-editing API.
 
 Management APIs can configure apps while tenant-wide QuilrQL authority is enabled. The response distinguishes stored app settings from the policy that governs runtime behavior.
 
@@ -19,7 +21,7 @@ Allowed-model lists combine additively with matching policy rules. Explicit mode
 
 ## Stored settings and effective behavior
 
-Changes to policy-governed app settings still save, but return `inactive_under_quilrql` with affected field paths and the active revision. These stored values take effect when authority is disabled. Shared-provider credentials/availability and Prompt Store content remain live dependencies. Whole-app disable is always enforced independently of QuilrQL.
+Changes to policy-governed app settings still save, but return `inactive_under_quilrql` with affected field paths and the active revision. They are not enforced and are not added to policies. If authority is later disabled, the stored values as they are at that moment become live, including these API writes and any **Edit anyway** saves made in the console. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings) for the full state table. Shared-provider credentials/availability and Prompt Store content remain live dependencies. Whole-app disable is always enforced independently of QuilrQL.
 
 App creation freezes the new app's degraded fallback baseline. Later stored-setting updates do not silently replace that baseline or publish arbitrary policies.
 
@@ -28,7 +30,7 @@ App creation freezes the new app's degraded fallback baseline. Later stored-sett
 - Read `policy_authority` in an app or capabilities response: `enabled`, `active_revision` and `active_checksum`.
 - Create apps and configure their stored settings using the normal app endpoints.
 - Add shared-provider attachments. Removing providers while authority is enabled returns `409 policy_dependency` and requires separate policy dependency review.
-- Roll back eligible app configuration. This does not roll back policy revisions.
+- Roll back eligible app configuration. This restores stored app settings only (inactive for governed fields while authority is enabled); it does not roll back policy revisions.
 
 ## Not Generally Available
 

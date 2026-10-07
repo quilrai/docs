@@ -3,6 +3,7 @@ sidebar_position: 5
 sidebar_label: "Triage center"
 sidebar_custom_props:
   icon: ListChecks
+description: "Close findings in bulk, undo changes, automate resolution with rules, and reduce false positives with detection tuning, including its scope and undo."
 ---
 
 # Triage center
@@ -166,6 +167,24 @@ and **Show examples**.
 
 Applied learnings move to **Applied**. Matching findings are resolved as
 **False positive** and stop being raised once the change finishes.
+
+### Scope, verification and undo
+
+- **Scope.** A learning applies to your whole organization, not to one person
+  or app. It resolves every matching open finding, not only the examples you
+  saw, and stops matching content being raised as that risk from then on.
+  Examples you marked **Leave this out** are not applied. Check the coverage
+  line before applying a broad learning.
+- **Verify.** While it runs, the panel shows the learning being applied. When
+  it finishes, the learning is under **Applied**, and the change appears on
+  the **Activity** tab as resolved by the tuning agent. Use **View findings**
+  there to see what it closed.
+- **Undo.** On the **Activity** tab, select **Undo** on the tuning entry. This
+  takes the learning off and reopens every finding it resolved, including
+  those from its other entries. Findings someone changed afterwards keep their
+  status. The same false positives are raised again, and the learning moves
+  to **Dismissed**. You can't undo while a learning is still being applied,
+  and the undo itself can't be undone; apply the learning again instead.
 
 ![A learning with its examples expanded, each example showing sensor, app and time with a Leave this out button, and the example content blurred](/img/console-v2/findings-and-interactions/detection-tuning-examples.png)
 

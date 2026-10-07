@@ -3,12 +3,22 @@ sidebar_position: 4
 sidebar_label: "Human approval"
 sidebar_custom_props:
   icon: Handshake
-description: "Require a person to approve a tool call, optionally with a written justification, and what users see in each AI client."
+description: "Require the calling user to confirm a tool call, optionally with a written justification, how that differs from independent approval, and what users see in each AI client."
 ---
 
 # Human approval
 
 Require user approval for tools that modify data or systems. With confirmation on, the gateway pauses each call to the tool and asks the user to approve it. The call reaches the MCP server only after the user clicks **Approve**.
+
+## Who approves
+
+The approval comes from the **person who made the call**, in their own AI app. It is a confirmation step that slows down risky actions and records a justification. It is **not** an independent approval:
+
+- No administrator, manager or second person reviews the call, and there is no approval queue or delegation.
+- A message such as "An administrator requires confirmation for this tool" means an administrator turned the rule on, not that an administrator approves each call.
+- By default, whoever opens the **Approve in Quilr** link can decide the request. Treat the link like the conversation it came from and do not share it.
+
+For separation of duties, restrict the tool instead: disable it with [Tool visibility](./tool-visibility), or limit who can reach it with [Group and user rules](./group-and-user-rules) and [Server access](./server-access).
 
 ## Configure it on the server
 
@@ -82,7 +92,7 @@ Open **Overall analytics > Activity > Tool calls**, or **Inspect > Logs** on the
 
 ## Going further with the Policy Engine
 
-When the Policy Engine is on for the MCP Gateway, the **Human Approval** card (stage 3, Request) in **Govern > Policy Engine > MCP Gateway** decides which calls need approval, and the switches in **Tools** are read-only. Its tool confirmation effect takes `required`, which asks for approval with an optional justification, or `required_with_justification`, which also makes the justification mandatory.
+When the Policy Engine is on for the MCP Gateway, the **Human Approval** card (stage 3, Request) in **Govern > Policy Engine > MCP Gateway** decides which calls need approval, and the switches in **Tools** are read-only. **Edit anyway** saves values that apply only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). Its tool confirmation effect takes `required`, which asks for approval with an optional justification, or `required_with_justification`, which also makes the justification mandatory.
 
 Scenarios the card supports that per-tool switches cannot:
 

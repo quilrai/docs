@@ -52,6 +52,12 @@ Emails match regardless of case, so `Jane@Example.com` and `jane@example.com` ma
 
 **Allowed agents** is checked separately. A request from a client whose User-Agent matches no allowed agent is denied regardless of the user.
 
+The User-Agent identifies a client but does not authenticate it, so treat **Allowed agents** as steering, and rely on the user and group lists for access decisions. See [Allowed Agents](../servers-and-connections/allowed-agents#what-this-control-does-and-does-not-do).
+
+:::note Gateway traffic only
+These rules apply to calls that go through the MCP Gateway. They do not stop someone from connecting to an MCP server directly from their own client. To find and close those paths, see [An MCP server outside the gateway](../../console/observe/inventory#example-an-mcp-server-outside-the-gateway).
+:::
+
 ### Example
 
 | Setting | Value |

@@ -20,6 +20,16 @@ Every AI client sends a User-Agent header. When the header contains an agent's k
 
 Each row shows the agent name, its **User-Agent** keyword and how many servers it can reach, for example **12 of 40 servers**.
 
+A request with no User-Agent header is allowed only when the server allows every agent, built-in and custom. A request from an agent that is turned off for the server is refused with the error `<agent name> is not allowed to access this MCP server`.
+
+## What this control does and does not do
+
+- **It identifies clients; it does not authenticate them.** The User-Agent header is set by the client, and any client can send any value. Use Allowed Agents to steer which servers well-behaved clients see, not as a security boundary. Who may connect is decided by the user's sign-in or [API token](./api-tokens) and by [Server access](../protect/server-access).
+- **Keywords are substrings.** A keyword such as `code` would also match `vscode`, `cortex-code` and `opencode`. Pick distinctive custom keywords.
+- **It applies only to traffic through the gateway.** A client that connects to an MCP server directly bypasses it. To find servers used outside the gateway, see [An MCP server outside the gateway](../../console/observe/inventory#example-an-mcp-server-outside-the-gateway).
+- **Changes apply to the next request**, including requests in sessions that are already open. No reconnect is needed.
+- **With the Policy Engine on** for the MCP Gateway, agent rules are expressed as Policy Engine conditions on the agent name instead. See the [Policy Engine overview](../../console/govern/policy-engine).
+
 ## Built-in agents
 
 | Agent | User-Agent keyword |

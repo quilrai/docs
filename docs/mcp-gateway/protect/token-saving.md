@@ -58,7 +58,7 @@ Set it with the **OneMCP endpoint** button in the MCP Gateway header, under **Dy
 
 ## Going further with the Policy Engine
 
-When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Token Savings** card (stage 4, Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the values used only if the Policy Engine is turned off. The card has one effect per strategy: **smart JSON compression**, **HTML to text**, **Markdown to text** and **text compression**.
+When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Token Savings** card (stage 4, Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). The card has one effect per strategy: **smart JSON compression**, **HTML to text**, **Markdown to text** and **text compression**.
 
 Scenarios the card supports that server settings cannot:
 

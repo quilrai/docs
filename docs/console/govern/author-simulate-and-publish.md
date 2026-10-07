@@ -66,7 +66,37 @@ the last 7 or 30 days.
 
 **History** lists every published revision with its checksum. Rolling back
 republishes an earlier document as a new revision, so the timeline only moves
-forward and an incident stays fully auditable.
+forward and an incident stays fully auditable. Rollback changes only policies;
+it never touches classic app settings (see
+[What happens to classic settings](./switching-from-classic-settings#what-happens-to-classic-settings)).
+
+## Worked example: block secrets for contractors
+
+Goal: on the LLM Gateway, block requests carrying **Auth & Secrets** for the
+**Contractors** Smart Group, and leave everyone else as they are. Assume the
+live revision is **Revision 4**.
+
+1. **Draft.** On the **Data & Adversarial Risks** card, select **Configure**,
+   add a Smart group scope for **Contractors**, pick **Auth & Secrets** and set
+   the action to **block**. The edit joins the shared draft; live traffic is
+   unchanged.
+2. **Positive test.** Select **Describe a request**. Describe a user in
+   Contractors and use **Add detection** to report **Auth & Secrets**. The
+   card should resolve to **block**.
+3. **Negative test.** Describe the same request for a user outside
+   Contractors. The card should resolve to the value you had before, for
+   example **monitor**. If it shows **block**, the scope is wrong.
+4. **Replay.** Replay the last 30 days. The would-be-blocked set should contain
+   only Contractors' calls that carried secrets.
+5. **Publish** with a message such as "Block secrets for contractors". The
+   header now shows **Revision 5**.
+6. **Verify.** Check the activity view and
+   [Findings & Interactions](../observe/findings-and-interactions) for blocked
+   calls from Contractors only.
+7. **Roll back if it misfires.** Open **History**, find **Revision 4** and
+   roll back. Its document is republished as **Revision 6**, and live traffic
+   behaves as it did under Revision 4. Revision 5 stays in History for the
+   audit trail.
 
 ## Source view and the Advanced workspace
 

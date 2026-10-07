@@ -56,6 +56,7 @@
   font-size: 0.8125rem;
   letter-spacing: 0.01em;
   border-bottom: 1px solid var(--docs-light-border);
+  overflow-wrap: anywhere;
 }
 
 :global([data-theme="dark"]) .cardHeader {
@@ -125,9 +126,12 @@
   font-size: 0.75rem;
   line-height: 1.7;
   color: var(--ifm-color-content-secondary, #64748b);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Labels wrap and the card grows; never truncate. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  /* Hanging indent: a wrapped line reads as the same item. */
+  padding-left: 2ch;
+  text-indent: -2ch;
 }
 
 /* ─── Status markers ─────────────────────────────────────────────────── */
@@ -201,7 +205,4 @@
     transform: rotate(90deg);
   }
 
-  .line {
-    white-space: normal;
-  }
 }

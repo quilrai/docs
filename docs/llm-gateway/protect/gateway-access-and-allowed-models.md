@@ -24,7 +24,7 @@ See [Link providers to an app](../apps-and-providers/providers-and-models#link-p
 
 ## Going further with the Policy Engine
 
-Two cards in **Policy Engine > LLM Gateway** cover access. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish). Gateway Access is policy-only, so nothing freezes when you turn it on; see [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what the engine takes over.
+Two cards in **Policy Engine > LLM Gateway** cover access. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish). Gateway Access is policy-only, so nothing freezes when you turn it on; see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings) for what the engine takes over.
 
 ### Gateway Access card
 

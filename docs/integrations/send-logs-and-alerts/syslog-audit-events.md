@@ -9,11 +9,13 @@ sidebar_custom_props:
 
 Forwards audit log events to your syslog server. Supports optional filtering to control which audit events are delivered.
 
-:::note
-These setup steps use the **Integrations** page of [Console V1](../../console/legacy-v1/overview). Syslog Audit is not listed in the current console's **Settings › Integrations** library.
+:::note Set up in Console V1
+Syslog Audit forwarding is configured only on the **Integrations** page of [Console V1](../../console/legacy-v1/overview). The current console's **Settings › Integrations** library has no Syslog Audit card. See [How integrations work](../get-started/how-integrations-work#availability).
 :::
 
 ## Setup
+
+In Console V1:
 
 1. Go to **Integrations** and open the **Available** tab.
 2. Click **+ Add** on the **Syslog Audit** tile.

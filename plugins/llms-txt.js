@@ -15,7 +15,9 @@
 module.exports = function llmsTxtPlugin(context, options) {
   const {siteDir, siteConfig} = context;
   const {products = [], extraLinks = {}} = options;
-  const SITE = siteConfig.url;
+  const SITE = siteConfig.url.replace(/\/$/, '');
+  const {toAiMarkdown, firstParagraph, landingMarkdown} = require('./ai-markdown');
+  const productsById = Object.fromEntries(products.map((p) => [p.id, p]));
 
   /** @type {Record<string, string>} output path -> file content */
   let files = {};
@@ -41,11 +43,13 @@ module.exports = function llmsTxtPlugin(context, options) {
           fileContent: await fs.readFile(abs, 'utf-8'),
           parseFrontMatter,
         });
-        return content.replace(/^import .*$/gm, '').trim();
+        return toAiMarkdown(content, {site: SITE, siteDir});
       };
       const clean = (s) => (s || '').replace(/\s+/g, ' ').replace(/—/g, '-').trim();
-      const entry = (doc) => {
-        const desc = clean(doc.description);
+      // Frontmatter description when set; otherwise the first real markdown
+      // paragraph (Docusaurus' own fallback runs JSX text together).
+      const entry = async (doc) => {
+        const desc = clean(doc.frontMatter?.description || firstParagraph(await markdown(doc)) || doc.description);
         return `- [${clean(doc.title)}](${SITE}${doc.permalink}.md)${desc ? `: ${desc}` : ''}`;
       };
 
@@ -57,22 +61,22 @@ module.exports = function llmsTxtPlugin(context, options) {
         const sidebar = version.sidebars[product.id] || [];
         const lines = [];
         const pages = [];
-        const walk = (items, depth) => {
+        const walk = async (items, depth) => {
           for (const item of items) {
             if (item.type === 'doc' || item.type === 'ref') {
               const doc = docsById.get(item.id);
               if (!doc || doc.permalink === `/${product.slug}`) continue;
-              lines.push(entry(doc));
+              lines.push(await entry(doc));
               pages.push(doc);
             } else if (item.type === 'category') {
               const docs = item.items.filter((i) => i.type !== 'link');
               if (!docs.length) continue;
               lines.push('', `${'#'.repeat(Math.min(3 + depth, 4))} ${item.label}`, '');
-              walk(docs, depth + 1);
+              await walk(docs, depth + 1);
             }
           }
         };
-        walk(sidebar, 0);
+        await walk(sidebar, 0);
 
         const extras = (extraLinks[product.id] || []).map(
           (l) => `- [${l.title}](${l.url}): ${l.description}`,
@@ -82,7 +86,7 @@ module.exports = function llmsTxtPlugin(context, options) {
           '',
           product.tagline,
           '',
-          `- [${product.name} overview](${SITE}/${product.slug}): Landing page with the main tasks and every section.`,
+          `- [${product.name} overview](${SITE}/${product.slug}.md): Landing page with the main tasks and every section.`,
           `- [${product.name} full docs](${SITE}/llms/${product.slug}-full.txt): Every ${product.name} page as markdown in one file.`,
           ...extras,
         ];
@@ -94,6 +98,14 @@ module.exports = function llmsTxtPlugin(context, options) {
         );
 
         const full = [`# QuilrAI ${product.name} documentation (full)`, '', `> ${product.tagline}`, ''];
+        full.push(
+          '',
+          '---',
+          '',
+          `Source: ${SITE}/${product.slug}`,
+          '',
+          landingMarkdown(product, {site: SITE, sidebar, docsById, productsById}),
+        );
         for (const doc of pages) {
           full.push('', '---', '', `Source: ${SITE}${doc.permalink}`, '', await markdown(doc));
         }

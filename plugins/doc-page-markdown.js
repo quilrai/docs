@@ -1,12 +1,17 @@
 /**
  * Injects globalData.markdownByPermalink for client-side copy / view-as-markdown.
+ * The markdown is cleaned for AI use by ./ai-markdown.js (no MDX imports or
+ * comments, final-state code, API components and product landings expanded).
  * Also serves each doc as a static .md file:
  *   - In dev: via webpack-dev-server middleware
  *   - In production: written to outDir in postBuild
  * @param {import('@docusaurus/types').LoadContext} context
  */
-module.exports = function docPageMarkdownPlugin(context) {
+module.exports = function docPageMarkdownPlugin(context, options = {}) {
   const {siteDir, siteConfig} = context;
+  const {products = []} = options;
+  const site = siteConfig.url.replace(/\/$/, '');
+  const {toAiMarkdown, landingProductId, landingMarkdown} = require('./ai-markdown');
 
   /** @type {Record<string, string>} shared between hooks */
   let markdownByPermalink = {};
@@ -28,7 +33,10 @@ module.exports = function docPageMarkdownPlugin(context) {
       const path = require('path');
       const parseFrontMatter = siteConfig.markdown.parseFrontMatter;
 
+      const productsById = Object.fromEntries(products.map((p) => [p.id, p]));
+      markdownByPermalink = {};
       for (const version of docsContent.loadedVersions) {
+        const docsById = new Map(version.docs.map((d) => [d.id, d]));
         for (const doc of version.docs) {
           try {
             const rel = aliasedSitePathToRelativePath(doc.source);
@@ -39,7 +47,15 @@ module.exports = function docPageMarkdownPlugin(context) {
               fileContent,
               parseFrontMatter,
             });
-            markdownByPermalink[doc.permalink] = content.trimEnd();
+            const landing = productsById[landingProductId(content)];
+            markdownByPermalink[doc.permalink] = landing
+              ? landingMarkdown(landing, {
+                  site,
+                  sidebar: version.sidebars[landing.id] || [],
+                  docsById,
+                  productsById,
+                })
+              : toAiMarkdown(content, {site, siteDir});
           } catch {
             // Skip unreadable or invalid files
           }

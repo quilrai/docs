@@ -64,9 +64,11 @@
   line-height: 1.7;
   background: transparent;
   color: var(--ifm-color-content-secondary, #64748b);
-  overflow-x: auto;
   border: none;
-  white-space: pre;
+  /* Wrap long lines so the code never clips on narrow screens. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 /* ─── Down arrow ─────────────────────────────────────────────────────── */
@@ -160,6 +162,7 @@
   font-size: 0.75rem;
   letter-spacing: 0.01em;
   border-bottom: 1px solid var(--docs-light-border);
+  overflow-wrap: anywhere;
 }
 
 :global([data-theme="dark"]) .stageName {
@@ -200,9 +203,12 @@
   font-size: 0.6875rem;
   line-height: 1.65;
   color: var(--ifm-color-content-secondary, #64748b);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Labels wrap and the stage grows; never truncate. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  /* Hanging indent: a wrapped line reads as the same item. */
+  padding-left: 2ch;
+  text-indent: -2ch;
 }
 
 /* ─── Gateway footer ─────────────────────────────────────────────────── */
@@ -289,7 +295,4 @@
     transform: rotate(90deg);
   }
 
-  .stageItem {
-    white-space: normal;
-  }
 }

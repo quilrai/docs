@@ -36,7 +36,7 @@ Both gateways use the same card-based engine:
 - The header shows **ENGINE ON**, the live **Revision N**, how many cards are active, and **History**.
 - Each card has **Configure** (edit in place) and a summary of what is set.
 - **All edits from every card collect in one shared draft.** Nothing changes for live traffic until you review the draft and publish it. Publishing creates the next numbered revision.
-- **History** lists published revisions, so you can review and roll back.
+- **History** lists published revisions, so you can review and roll back. Rollback republishes an earlier revision and never changes the classic settings.
 - **Advanced policies** holds rules that no card can express. They stay byte-preserved; card edits never rewrite them.
 
 The MCP Gateway tab groups its cards by the stage where they take effect: **1 Session** (evaluated once per connection), **2 Discovery** (per listed capability), **3 Request** (before a call is dispatched) and **4 Response** (before the result returns).
@@ -171,7 +171,7 @@ A session rule can combine several advanced effects, for example a locked-down p
 
 ## App settings under the Policy Engine
 
-The engine switch is tenant-wide. While the LLM Gateway engine is on, these sections of every gateway app's settings follow published policies instead of their own values. Each shows **Controlled by Policy Engine**, with **View policies** (open the matching card) and **Edit anyway** (edit the saved legacy values, which are not enforced and apply again only if the engine is turned off).
+The engine switch is tenant-wide. While the LLM Gateway engine is on, these sections of every gateway app's settings follow published policies instead of their own values. Each shows **Controlled by Policy Engine**, with **View policies** (open the matching card) and **Edit anyway** (edit the stored legacy values). Values saved through **Edit anyway** are not enforced and are not added to policies; they become live only if the engine is disabled. For every transition (publish, rollback, Edit anyway, Management API writes, disable), see [What happens to classic settings](./switching-from-classic-settings#what-happens-to-classic-settings).
 
 | App settings section | Policy Engine card |
 |---|---|

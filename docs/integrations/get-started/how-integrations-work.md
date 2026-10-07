@@ -11,6 +11,23 @@ Integrations connect third-party platforms to QuilrAI. Some bring AI usage, inve
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations']} />
 
+## Availability
+
+Not every card moves data yet. Many Install drawers say: "Installing it records management state; provider authentication and data transfer begin only when the corresponding connector supports activation." Those cards store your configuration but do not connect to the provider. Check this table before you plan around an integration.
+
+| Integration | Status in the current console |
+|-------------|-------------------------------|
+| [OpenAI Compliance](../pull-ai-usage-and-inventory/openai-compliance) | **Delivers data.** Validates your OpenAI key and syncs activity and inventory. |
+| [Azure AI Foundry](../pull-ai-usage-and-inventory/azure-ai-foundry) | **Delivers data.** Discovers projects and monitors the data you choose per project. |
+| [GitHub](../pull-ai-usage-and-inventory/github) | **Delivers data.** Connects through a GitHub App you own. |
+| [Claude Compliance](../pull-ai-usage-and-inventory/claude-compliance-api) | **Configuration only** on the current console's card. Key registration and sync run from [Console V1](../../console/legacy-v1/overview). |
+| [Microsoft Copilot Studio](../pull-ai-usage-and-inventory/microsoft-copilot-studio) inventory card | **Configuration only.** Runtime threat detection is set up separately and works today. |
+| [Microsoft Sentinel](../send-logs-and-alerts/microsoft-sentinel), [Splunk, Datadog and Slack](../send-logs-and-alerts/splunk-datadog-and-slack), the [Webhook](../send-logs-and-alerts/webhook) card | **Configuration only.** |
+| [Agent platforms and frameworks](../pull-ai-usage-and-inventory/agent-platforms-and-frameworks) | **Configuration only.** |
+| [Webhook](../send-logs-and-alerts/webhook), [Syslog](../send-logs-and-alerts/syslog) and [Syslog audit events](../send-logs-and-alerts/syslog-audit-events) forwarding | **Delivers data**, set up in [Console V1](../../console/legacy-v1/overview). |
+
+For a configuration-only card, contact your QuilrAI representative to confirm when data will flow before you rely on it.
+
 ## Installed and Library
 
 The Integrations page has two tabs:
@@ -44,7 +61,7 @@ Each card shows the provider and vendor, a status badge, a short description, ca
 ## Install, manage, and uninstall
 
 1. Open the **Library** tab and click **Install** on a card.
-2. Follow the setup steps in the drawer. The steps depend on the integration: credentials or a service principal, which scopes or subscriptions to monitor, and which capabilities (data flows) to enable.
+2. Follow the setup steps in the drawer. Each integration's page lists its own fields and credentials. The steps depend on the integration: credentials or a service principal, which scopes or subscriptions to monitor, and which capabilities (data flows) to enable.
 3. The integration moves to **Installed**.
 
 On an installed card:

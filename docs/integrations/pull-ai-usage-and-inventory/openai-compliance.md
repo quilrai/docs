@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 sidebar_label: "OpenAI Compliance"
+description: "Connect a ChatGPT Enterprise or Edu workspace with an OpenAI Admin key: prerequisites, fields, first sync timing and verification."
 sidebar_custom_props:
   icon: ShieldCheck
 ---
@@ -16,6 +17,14 @@ The OpenAI Compliance integration brings OpenAI organization compliance events a
 | **Category** | Compliance provider |
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'OpenAI Compliance']} />
+
+**Status:** delivers data from the current console. QuilrAI validates your key when you connect it and then syncs on its own.
+
+## Before you start
+
+- A **ChatGPT Enterprise or Edu** workspace. OpenAI offers its Compliance Platform only on these plans.
+- An OpenAI **Admin key** with compliance access, scoped to the workspace. A workspace owner or admin creates it; only a workspace owner can grant broad compliance access or the conversation messages permission. See OpenAI's [Compliance Platform for Enterprise and Edu customers](https://help.openai.com/en/articles/9261474) and its guide to managing Admin keys. Grant the access your integration needs for the data you select under **Data to synchronize**; your QuilrAI representative can confirm the exact permission set.
+- Your **Workspace ID** (a UUID) or, for the Organization scope, your **Organization ID** (it starts with `org-`).
 
 ## What it brings in
 
@@ -39,16 +48,27 @@ Install **OpenAI Compliance** from the **Library** tab, or click **Manage** on t
 
 | Field | Description |
 |-------|-------------|
-| **OpenAI API key** | Used to validate the scope. The console never reads the stored credential back. |
+| **OpenAI API key** | The Admin key with compliance access. Used to validate the scope. The console never reads the stored credential back. |
 | **Scope** | **Workspace** (authorize one OpenAI workspace) or **Organization** (authorize an organization and its configured workspaces). |
-| **Workspace ID** | Required for the Workspace scope. |
+| **Workspace ID** or **Organization ID** | Matches the scope. A workspace ID must be a UUID; an organization ID starts with `org-`. |
+| **Workspace IDs** | Organization scope only. Comma-separated workspace IDs; required when you sync inventory, optional for activity only. |
 | **Data to synchronize** | **Activity**, **Inventory**, and **Enable synchronization**. A configuration with synchronization disabled keeps its historical authorization but does not sync. |
 
 Click **Connect credential**.
 
+## First sync and verification
+
+| What | Timing |
+|------|--------|
+| First activity sync | Looks back 30 days. |
+| Ongoing activity sync | About every 5 minutes. |
+| Inventory | Refreshed about every 6 hours. |
+
+To verify the first sync, check that **Manage** shows a recent last-collected time for the credential and that OpenAI activity appears under the **Sensor** filter in [Findings and interactions](../../console/observe/findings-and-interactions).
+
 ## Manage credentials and scopes
 
-The **Manage** view lists each credential (masked) with its status, when data was last collected, and its scopes. Each scope shows its type (Organization or Workspace), what it syncs (activity, inventory), and a status such as **READY** or **DISABLED**.
+The **Manage** view lists each credential (masked) with its status, when data was last collected, and its scopes. Each scope shows its type (Organization or Workspace), what it syncs (activity, inventory), and a status: **PREPARING**, **READY** or **DISABLED**.
 
 - **Add scope** authorizes another workspace or organization with the same credential.
 - **Manage** on a scope changes what it syncs.

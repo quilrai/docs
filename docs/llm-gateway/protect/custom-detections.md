@@ -51,7 +51,7 @@ For intents, add negative examples that are close to the positive ones. A detect
 
 ## Going further with the Policy Engine
 
-Custom detections stay editable in app settings when the Policy Engine is on; they do not freeze (see [Switching from classic settings](../../console/govern/switching-from-classic-settings)). In the **Data & Adversarial Risks** card, they appear under the **Custom** group of the data type picker, so a data rule can give them their own action, threshold, stage and scope. For example, block a project codename only for one Smart group, or only on requests to one provider. See [Security guardrails](./security-guardrails#going-further-with-the-policy-engine).
+Custom detections stay editable in app settings when the Policy Engine is on; they do not freeze (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). In the **Data & Adversarial Risks** card, they appear under the **Custom** group of the data type picker, so a data rule can give them their own action, threshold, stage and scope. For example, block a project codename only for one Smart group, or only on requests to one provider. See [Security guardrails](./security-guardrails#going-further-with-the-policy-engine).
 
 Tenant-wide detectors and the shared detection library are managed in the console's Detection Models. See [Custom detections and library](../../console/govern/custom-detections-and-library).
 

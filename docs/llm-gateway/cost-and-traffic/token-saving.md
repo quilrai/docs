@@ -59,7 +59,7 @@ For the [Management API](../api-reference/management-api), the app's switches ar
 
 ## Going further with the Policy Engine
 
-Token saving is also the **Token Savings** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Token Saving tab freezes and the card applies instead. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+Token saving is also the **Token Savings** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Token Saving tab freezes and the card applies instead. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 Each strategy is a section with a **Turn on** button; all four apply on `chat`, `responses` and `vertex`. Each strategy is a three-way switch (**Leave as is**, **On**, **Off**), and the highest-priority configuration wins per strategy. Scenarios the card supports:
 

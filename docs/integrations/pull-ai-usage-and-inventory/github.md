@@ -17,6 +17,8 @@ The GitHub integration discovers repositories, AI projects, workflows, and relat
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'GitHub']} />
 
+**Status:** delivers data from the current console. You connect a GitHub App that your organization owns (the drawer asks for its slug, client ID and client secret, and shows the OAuth callback URL to register in the app), then attach the installations it can access. Quilr scans only the default-branch head and syncs on the **Synchronization interval** you choose, for example 3 hours. Stopping sync never removes existing Inventory or Findings results.
+
 ## Where it shows up
 
 - **Inventory**: discovered repositories and related developer assets.

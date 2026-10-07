@@ -3,19 +3,27 @@ sidebar_position: 1
 sidebar_label: "Data retention"
 sidebar_custom_props:
   icon: CalendarDays
+description: "What Data Retention enforces today (console visibility, not deletion), which data it covers, and how to set, publish and verify a retention policy."
 ---
 
 # Data retention
 
-Data Retention sets how long LLM Gateway and MCP Gateway data stays visible in the console. You set a default horizon for each kind of data, then add ordered rules for traffic that needs a different horizon.
+Data Retention sets how long LLM Gateway, MCP Gateway and OpenAI Compliance data stays visible in the console. You set a default horizon for each kind of data, then add ordered rules for traffic that needs a different horizon.
 
 <ConsolePath console="QuilrAI Console" path={['Settings', 'Data management', 'Data Retention']} />
+
+:::note What retention does today
+- **Enforced as visibility, not deletion.** A published policy hides data past its horizon in the console. Nothing is deleted from storage, so retention is not a purge or a storage-deletion control.
+- **Applies to existing data.** The horizon is measured from each event's time, so data collected before you published is hidden too.
+- **Covers LLM Gateway, MCP Gateway and OpenAI Compliance data**, in [Findings & Interactions](../observe/findings-and-interactions), custom [dashboards](../observe/dashboards) and new [Export Center](./export-center) runs.
+- **Earlier export files are not changed.** Exports finished before you published can still contain data the policy now hides.
+:::
 
 ## Summary tiles
 
 | Tile | Shows |
 |---|---|
-| **In force** | The live revision, when it was published, and **Applying policy** while it is being applied |
+| **In force** | The live revision, when it was published (or **Baseline policy**), and its state: **Enforcing**, or **Applying policy** while console services load a newly published revision |
 | **Draft** | Changes staged but not yet published |
 | **Rules** | How many ordered rules exist, plus the default |
 
@@ -54,6 +62,12 @@ Edits are staged in a draft. The **Review and publish** section shows what is st
 3. **Preview impact** shows, per data kind, how many events and characters the draft would hide and their share of the total.
 4. **Publish** makes the draft the live revision. Publishing applies the policy to everything already collected, not just to new data.
 
+### Verify a published policy
+
+1. Wait until the **In force** tile shows the new revision with **Enforcing** rather than **Applying policy**.
+2. Open [Findings & Interactions](../observe/findings-and-interactions) and look at an LLM or MCP interaction older than the horizon you shortened. The data kinds you shortened, for example request content, should no longer be shown.
+3. Compare with **Preview impact**, which estimated how many events each data kind would hide.
+
 **Discard draft** drops the staged changes and keeps the live revision.
 
 ## History
@@ -62,9 +76,18 @@ Edits are staged in a draft. The **Review and publish** section shows what is st
 
 ## What retention does and does not affect
 
+| | Affected | Not affected |
+|---|---|---|
+| Data | LLM Gateway, MCP Gateway and OpenAI Compliance events | Other sources, such as Browser Extension and Endpoint Agent interactions |
+| Where | Findings & Interactions, custom dashboards, new exports | Export files that already finished |
+| Storage | Nothing is deleted; data is hidden in the console | |
+| Time | Existing and new data, measured from each event's time | |
+
 :::warning
 Exports finished earlier stay downloadable and can still contain data that the retention policy now hides. Review older exports in the [Export Center](./export-center) when they must follow the new policy.
 :::
+
+If you need data physically deleted, for example for a regulatory deletion request, retention does not do that today. Ask your QuilrAI representative.
 
 ## Related
 

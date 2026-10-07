@@ -129,7 +129,7 @@ Pair `X-User-Email` with [`X-Conversation-Id`](../monitor/conversation-grouping)
 
 ## Going further with the Policy Engine {#identity-aware-in-the-policy-engine-v2-console}
 
-The **Identity & Network Trust** card in **Policy Engine > LLM Gateway** sets who must prove identity, who must send a conversation ID, and which networks may call. When the engine is on for the LLM Gateway, the app's identity requirements freeze and the card applies instead (see [Switching from classic settings](../../console/govern/switching-from-classic-settings)). How identity is verified (header mode, JWT, JWKS or PEM, allowed domains) stays in the app settings.
+The **Identity & Network Trust** card in **Policy Engine > LLM Gateway** sets who must prove identity, who must send a conversation ID, and which networks may call. When the engine is on for the LLM Gateway, the app's identity requirements freeze and the card applies instead (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). How identity is verified (header mode, JWT, JWKS or PEM, allowed domains) stays in the app settings.
 
 ![Identity and Network Trust card showing Require identity required for 5 applications, Require conversation ID not set, and Allowed source IPs not set](/img/llm-gateway/ui/policy-identity-network-trust-card.png)
 

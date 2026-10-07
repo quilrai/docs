@@ -17,6 +17,8 @@ The Azure AI Foundry integration discovers agents, projects, models, access, and
 
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'Azure AI Foundry']} />
 
+**Status:** delivers data from the current console.
+
 ## Where it shows up
 
 - **Overview › Agentic estate**: the **Azure AI Foundry** tab under **Connected platforms**.

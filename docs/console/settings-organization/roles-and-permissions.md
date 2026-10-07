@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Roles and permissions"
 sidebar_custom_props:
   icon: ShieldCheck
+description: "Migrating from V1 roles, how the V2 access policy decides access, roles and assignments, and publishing access changes safely."
 ---
 
 # Roles and permissions
@@ -11,11 +12,26 @@ Roles and permissions control who can open which console pages and which data th
 
 <ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'Roles & Permissions']} />
 
+:::warning Check which model your tenant is on
+Everything below the next section applies **after** your tenant migrates to Access Control V2. Until then, V1 roles decide access and this page is read-only, with a **Review the migration** banner. Migration is optional and permanent.
+:::
+
+## Before you migrate
+
+The **Review the migration** banner (or **Continue in read-only mode** to dismiss it) is shown until your tenant migrates. Starting the migration needs an Admin, Super Admin, or a user with an RBAC_ADMIN write grant.
+
+1. Select **Review the migration**, then generate the read-only plan. It shows **Roles V2 creates**, **Users keep access**, **Users denied**, **Recovery admins** and **Unmapped permissions**, and compares each V1 role with its console, data and change access after migration.
+2. Resolve every unmapped permission, and make sure at least one recovery administrator remains. Activation is blocked until both are true.
+3. Under **Verify and make V2 authoritative**, activate. Activation rereads V1 and stops if anything changed since the preview; run a new preview if so.
+4. Confirm by typing `ACTIVATE RBAC V2`, then **Activate irreversibly**. The tenant can never return to V1 authorization, and users without an imported role are denied immediately.
+
+If another administrator activates while you have the migration page open, it asks you to **Reload session**.
+
 ## How access is decided
 
 The **How access is decided** drawer on the page summarizes the rules:
 
-- **The access policy is the only thing that grants access.** Legacy Console V1 roles and Access Groups no longer apply.
+- **The access policy is the only thing that grants access.** After migration, legacy Console V1 roles and Access Groups no longer apply.
 - **No role means no access.** Anyone without a role assignment is denied everything.
 - **Deny beats allow.** When rules conflict, an explicit deny beats every allow.
 - **Pages and data are separate decisions.** Opening a page and seeing its data are decided separately. Every narrowed data choice applies together, so a role that sees **All data** cannot widen another role that narrows it.

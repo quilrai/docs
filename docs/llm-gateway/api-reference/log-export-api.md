@@ -69,12 +69,16 @@ If `end_time` is newer than `now - 15 minutes`, the server clamps it to the maxi
 
 ## Request Examples
 
-Start an export window:
+Start an export window, here the hour that ended two hours ago (logs are kept for 15 days, so fixed dates go stale):
 
 ```bash
+# macOS (BSD date) first, GNU date as fallback
+START=$(date -u -v-3H +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d '3 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+END=$(date -u -v-2H +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d '2 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+
 curl -N \
   -H "X-Quilr-Log-Export-Key: sk-export-..." \
-  "https://guardrails.quilr.ai/llmgateway/logs/export?start_time=2026-05-14T00:00:00Z&end_time=2026-05-14T01:00:00Z&limit=1000"
+  "https://guardrails.quilr.ai/llmgateway/logs/export?start_time=$START&end_time=$END&limit=1000"
 ```
 
 Resume from the previous checkpoint:
@@ -104,6 +108,106 @@ If `checkpoint.has_more` is `false`, there are no more rows in the current effec
 When an initial request (no `cursor` supplied) returns zero rows, the API returns a checkpoint cursor pinned to the effective end time. This lets exporters store one cursor value even for empty windows.
 
 When a request with a `cursor` returns zero rows, `checkpoint.next_cursor` echoes the inbound cursor unchanged and `has_more` is `false`. Re-poll later with the same cursor.
+
+## A reliable collector
+
+A minimal Python collector (standard library only) that you can run on a schedule or as a service. It:
+
+- stores rows and the cursor in **one SQLite transaction**, so the cursor only advances after the page is safely written;
+- writes idempotently (`INSERT OR IGNORE` on a unique id), so a replayed page never creates duplicates;
+- treats a mid-stream `error` event or a stream without a `checkpoint` as a failed page, and retries it with exponential backoff and jitter;
+- stops on `400`, `401` and `403`, which retrying cannot fix.
+
+```python title="collector.py"
+"""Minimal LLM Gateway log collector: cursor checkpoint, retries, idempotent writes."""
+import json, os, random, sqlite3, time, urllib.error, urllib.parse, urllib.request
+from datetime import datetime, timedelta, timezone
+
+URL = os.environ.get("EXPORT_URL", "https://guardrails.quilr.ai/llmgateway/logs/export")
+KEY = os.environ["QUILR_LOG_EXPORT_KEY"]
+EVENT = "llmgateway.request"
+row_id = lambda e: e["request"]["id"]  # unique per request
+
+db = sqlite3.connect("quilr_logs.db")
+db.execute("CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, ts TEXT, body TEXT)")
+db.execute("CREATE TABLE IF NOT EXISTS state (k TEXT PRIMARY KEY, v TEXT)")
+
+def saved_cursor():
+    row = db.execute("SELECT v FROM state WHERE k = 'cursor'").fetchone()
+    return row[0] if row else None
+
+def fetch_page(params):
+    """Return (events, checkpoint) for one complete page, or raise."""
+    req = urllib.request.Request(URL + "?" + urllib.parse.urlencode(params),
+                                 headers={"X-Quilr-Log-Export-Key": KEY})
+    events, checkpoint = [], None
+    with urllib.request.urlopen(req, timeout=300) as r:  # raises HTTPError on 4xx/5xx
+        for line in r:
+            if not line.strip():
+                continue
+            msg = json.loads(line)
+            if msg["type"] == "error":  # can arrive after HTTP 200
+                raise RuntimeError(f"export error: {msg['error']}")
+            if msg["type"] == EVENT:
+                events.append(msg)
+            elif msg["type"] == "checkpoint":
+                checkpoint = msg
+    if checkpoint is None:
+        raise RuntimeError("stream ended without a checkpoint")
+    return events, checkpoint
+
+def with_retries(fn, *args, attempts=6):
+    for n in range(attempts):
+        try:
+            return fn(*args)
+        except urllib.error.HTTPError as e:
+            if e.code in (400, 401, 403) or n == attempts - 1:
+                raise  # fix the key or the window; retrying will not help
+        except (OSError, RuntimeError, ValueError):  # network, mid-stream error, truncation
+            if n == attempts - 1:
+                raise
+        time.sleep(min(60, 2 ** n) + random.random())  # backoff with jitter
+
+def run_once():
+    cursor = saved_cursor()
+    if cursor:
+        params = {"cursor": cursor, "limit": 1000}
+    else:  # first run: start one hour back, well inside the 15-day retention
+        start = datetime.now(timezone.utc) - timedelta(hours=1)
+        params = {"start_time": start.strftime("%Y-%m-%dT%H:%M:%SZ"), "limit": 1000}
+    while True:
+        events, checkpoint = with_retries(fetch_page, params)
+        with db:  # one transaction: rows and cursor commit together
+            db.executemany(
+                "INSERT OR IGNORE INTO events VALUES (?, ?, ?)",
+                [(row_id(e), e["request"]["timestamp"], json.dumps(e)) for e in events])
+            db.execute("INSERT OR REPLACE INTO state VALUES ('cursor', ?)",
+                       (checkpoint["next_cursor"],))
+        print(f"stored {checkpoint['rows']} rows up to {checkpoint['effective_end_time']}")
+        if not checkpoint["has_more"]:
+            return
+        params = {"cursor": checkpoint["next_cursor"], "limit": 1000}
+
+if __name__ == "__main__":
+    while True:
+        run_once()
+        time.sleep(300)  # new rows appear about 15 minutes after the request
+```
+
+```bash
+export QUILR_LOG_EXPORT_KEY='sk-export-...'
+python3 collector.py
+```
+
+To forward to a SIEM instead of SQLite, replace the `with db:` block with your sink's write, and persist `next_cursor` only after the sink acknowledges the batch. If the collector is down for longer than the 15-day retention, the saved cursor fails with `400`; delete it to restart from a recent `start_time`.
+
+### Verify delivery
+
+1. Send one request through an app covered by the export key and note the time.
+2. After at least 15 minutes, run the collector once.
+3. Check that the row arrived: `sqlite3 quilr_logs.db "SELECT id, ts FROM events ORDER BY ts DESC LIMIT 5"`.
+4. For a closed window, compare the number of rows you stored with `governance_metrics.total_requests` from the [metrics view](#metrics-view) for the same `start_time` and `end_time` (check `coverage.complete` is `true`). A gap means pages were skipped; re-export that window, and the idempotent writes absorb the overlap.
+
 
 ## Coverage
 
@@ -413,7 +517,7 @@ the default logs view: the 15-minute export lag, the 15-day retention limit, and
 
 ```bash
 curl -H "X-Quilr-Log-Export-Key: sk-export-..." \
-  "https://guardrails.quilr.ai/llmgateway/logs/export?view=metrics&start_time=2026-05-07T00:00:00Z"
+  "https://guardrails.quilr.ai/llmgateway/logs/export?view=metrics&start_time=$START&end_time=$END"
 ```
 
 ### Counting Model

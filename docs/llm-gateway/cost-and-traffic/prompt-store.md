@@ -191,7 +191,7 @@ message = client.messages.create(
 
 ## Going further with the Policy Engine
 
-The **Prompt Store and Enforcement** card in **Policy Engine > LLM Gateway** holds two things: the organization-wide Global Prompt Store, and the **Require store prompt** policy. When the engine is on for the LLM Gateway, the app's store-prompt enforcement freezes and the card's policies decide it. App prompts themselves stay editable. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+The **Prompt Store and Enforcement** card in **Policy Engine > LLM Gateway** holds two things: the organization-wide Global Prompt Store, and the **Require store prompt** policy. When the engine is on for the LLM Gateway, the app's store-prompt enforcement freezes and the card's policies decide it. App prompts themselves stay editable. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 ### Global Prompt Store {#global-prompt-store-v2-console}
 

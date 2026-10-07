@@ -190,7 +190,7 @@ Accept gateway calls only from listed networks. Turn on **Enabled** and enter **
 
 ## Going further with the Policy Engine
 
-The same controls live on the **Data & Adversarial Risks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardrails tab freezes and the card decides what happens on live requests. See [Switching from classic settings](../../console/govern/switching-from-classic-settings). Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+The same controls live on the **Data & Adversarial Risks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardrails tab freezes and the card decides what happens on live requests. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings). Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
 
 A detection rule picks data types (a whole category, single types or [custom detections](./custom-detections)), a findings threshold (**at least** N), an action (Monitor, Partial redact, Redact, Block), a stage (Request, Response, Both) and an optional severity that is reported but never changes the action. The card applies on the `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `rerank`, `responses`, `sdk_check`, `stt`, `text`, `tts` and `vertex` API surfaces.
 

@@ -23,9 +23,10 @@ before it enforces.
 - **Governance moves per target, not per console.** A target is governed either
   by its legacy settings or by the Policy Engine, never both. Switching one
   target changes nothing for the others.
-- **Every switch starts with a review and ends with a snapshot.** Conversion is
-  previewed before anything changes, activation snapshots the legacy
-  configuration, and disabling restores it.
+- **Every switch starts with a review and can be turned off.** Conversion is
+  previewed before anything changes, and activation locks the legacy settings.
+  Disabling makes the legacy settings live again as they are stored at that
+  moment. See [What happens to classic settings](../govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 ## Phase 1: the gateways
 
@@ -53,20 +54,25 @@ Endpoint Agent and Browser Extension control sets are still undergoing minor
 changes. Their data is already in V2: device status under Users, agentic
 inventory under Agents and Inventory, interactions in the feed. Keep authoring
 their controls where you do today, and do not use **Convert to Policy Engine**
-on the Endpoint Agent tab yet. Quilr will confirm when they are settled.
+on the Endpoint Agent tab yet, even if your console shows the button. Quilr will
+confirm when they are settled.
 
 ## Phase 3: data, access and the last of V1
 
-1. **Publish retention before enforcement starts.** Retention settings can be
-   published and reviewed today, but enforcement is not yet active and nothing
-   is purged. Once enforcement is on, a published horizon applies to data
-   already collected.
+1. **Publish retention.** A published retention policy is enforced today as
+   console visibility: data past its horizon is hidden in the console,
+   including data collected before you published. Nothing is deleted from
+   storage. See [Data retention](../settings-data/data-retention).
 2. **Move exports and alerts.** Recreate recurring extracts as Export Center
    definitions and check that Slack, SIEM and webhook integrations show as
    installed.
-3. **Optionally migrate access control.** Roles & Permissions offers a wizard
-   from V1 authorization to V2 bindings. V2 is default-deny once enabled, so
-   run the wizard's review first.
+3. **Optionally migrate access control.** Until you migrate, V1 roles still
+   decide access and Roles & Permissions in V2 is read-only. **Review the
+   migration** opens a wizard that previews the V2 roles it will create, who
+   keeps access, who would be denied and any unmapped permissions. Activation
+   is **permanent**: the tenant cannot return to V1 authorization, and anyone
+   without an imported role is denied immediately. See
+   [Roles and permissions](../settings-organization/roles-and-permissions#before-you-migrate).
 4. **Retire V1 habits, not V1 data.** V1 remains available and reads the same
    data. Nothing needs exporting or copying.
 
@@ -84,9 +90,12 @@ on the Endpoint Agent tab yet. Quilr will confirm when they are settled.
 | Retention, exports, dashboards, skills, models catalog | V2 only | V2 only |
 
 :::warning The one-way step, restated
-Activating a target is reversible: disabling restores the frozen legacy
-snapshot exactly as it was. What is not reversible is the work you do under the
-engine afterwards. It stays in revision history and does not reappear on the
-legacy settings screens. Treat disable as a rollback to the moment you
-switched, and use the engine's own rollback for everything after.
+Activating a gateway target can be turned off: disabling makes the legacy
+settings live again as they are stored at that moment, including anything
+saved through **Edit anyway** or the Management API since activation. What
+does not carry back is the work you publish under the engine. It stays in
+revision history and does not reappear on the legacy settings screens. Use the
+engine's own rollback to undo a published change, and see
+[What happens to classic settings](../govern/switching-from-classic-settings#what-happens-to-classic-settings) for every case. Access control
+migration, by contrast, is permanent.
 :::

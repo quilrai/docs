@@ -56,6 +56,6 @@ The extension evaluates its DLP rules against the clipboard content (by content 
 
 ## Monitor activity
 
-Every clipboard event is logged with its content type, policy decision, and enforcement outcome. In the V2 console, clipboard events that trigger a control appear in **Observe › Findings & Interactions** (filter by the Browser Extension sensor); in the V1 console they were under **Clipboard Monitor › Logs**. Use them to confirm events are flowing and policies are enforced. Check event volume, allow/block/prompt counts by content type, user justifications, and confirmation that blocked content was cleared.
+Every clipboard event is logged with its content type, policy decision, and enforcement outcome. In the V1 console, check **Clipboard Monitor › Logs** to confirm events are flowing and policies are enforced. Check event volume, allow/block/prompt counts by content type, user justifications, and confirmation that blocked content was cleared.
 
 To pause clipboard monitoring together with the agent's other services, use the [agent kill switch](./agent-kill-switch).

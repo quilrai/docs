@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 sidebar_label: "Agent kill switch"
+description: "Stop the Endpoint Agent on one device, across the tenant, or immediately on a Mac or Windows machine, then restore it with a canary."
 sidebar_custom_props:
   icon: Rocket
 ---
@@ -10,109 +11,140 @@ sidebar_custom_props:
 Use the kill switch to stop the Endpoint Agent on one device or across your tenant, for example if it interferes with users' work, and to restore it afterwards. No reinstall or new package is needed.
 
 <StepFlow steps={[
-  { label: "One device", items: ["Disable the workstation", "Effect: next poll (~30 min)"] },
-  { label: "Whole tenant", items: ["Disable tenant-wide", "Effect: next poll (~30 min)"] },
-  { label: "Right now", items: ["IT stops the service locally", "Effect: immediate"] },
-  { label: "Restore", items: ["Enable again", "Test device first ✓"] },
+  { label: "One device", items: ["Disable the workstation", "About 2 minutes"] },
+  { label: "Whole tenant", items: ["Disable in Settings", "About 2 minutes"] },
+  { label: "Right now", items: ["IT stops the service", "Immediate"] },
+  { label: "Restore", items: ["Canary device first ✓"] },
 ]} />
 
-## Quick reference
+## Which switch controls what
 
-| Situation | Action | Time to effect |
-| --- | --- | --- |
-| Disable the agent on **one device** | Set the device flag `endpointAgentEnabled` to off: **Disable** the workstation in **Users › Endpoint deployment** | Next poll cycle (about 30 minutes) |
-| Disable the agent for the **whole tenant** | Set the tenant flag `tenantEndpointAgentEnabled` to off: **Disable** in **Settings › Endpoint Agent** | Next poll cycle (about 30 minutes) |
-| Stop the agent **immediately** on one Mac | Local IT command (below) | Immediate |
-| Disable from the browser | The [Browser Extension kill switch](../../browser-extension/capabilities/agent-kill-switch) | Immediate |
+QuilrAI has three separately installed components on a device. Each switch stops only its own component.
 
-The agent checks these flags about every 30 minutes. A disabled agent goes dormant but stays installed, and resumes when the flag is turned back on.
+| Switch | Where | Stops | Scope | Time to effect |
+| --- | --- | --- | --- | --- |
+| **Tenant Enable or Disable** | **Settings › Endpoint Agent** | Endpoint Agent | Every device in the tenant | Next check-in, about 2 minutes |
+| **Workstation Disable** | **Users › Endpoint deployment** | Endpoint Agent | Selected workstations | Next check-in, about 2 minutes |
+| **Local stop** | On the device (commands below) | Endpoint Agent service | One device | Immediate |
+| **Browser Extension on or off** | **Settings › Browser Extension** | Browser Extension | Every managed browser | See [Extension settings](../../browser-extension/configure/extension-settings) |
+| **Browser Agent kill switch** | Browser Extension | The extension's native Browser Agent | One device | See [Browser Agent kill switch](../../browser-extension/capabilities/agent-kill-switch) |
 
-:::note Tenant flag wins
-If the tenant flag is off, device flags are ignored: every device in the tenant stays disabled until the tenant flag is turned back on.
-:::
+The Endpoint Agent ignores the Browser Extension's flags, and the Browser Extension switches do not stop the Endpoint Agent. To stop everything on a device, use the Endpoint Agent and the Browser Extension switches together.
+
+**Precedence.** The agent runs only when both the tenant flag and its workstation flag are on. If the tenant flag is off, every device stays disabled whatever its workstation flag says. The two flags are stored separately: turning the tenant back on does not change any workstation flag.
+
+**Who can do it.** Changing either console switch needs the **Manage Endpoint Agent** permission (Endpoint area) in [Roles and permissions](../../console/settings-organization/roles-and-permissions). A local stop needs administrator rights on the device (`sudo` on macOS, an elevated PowerShell on Windows).
 
 ## Disable one device
 
 1. Open **Users › Endpoint deployment** and search for the workstation.
 2. Select it and choose **Disable**. The action applies to every session on that workstation.
-3. Within one poll cycle, the workstation's **Status** shows it as disabled and the device stops sending new activity.
+3. The agent picks up the change at its next check-in, about every 2 minutes.
 
 To restore, select the workstation and choose **Enable**.
 
 ## Disable the whole tenant
 
-1. Open **Settings › Endpoint Agent** and turn the agent off under **Enable / Disable**. See [Agent settings](../configure/agent-settings).
-2. After one poll cycle, spot-check a few workstations in **Users › Endpoint deployment**.
+1. Open **Settings › Endpoint Agent** and turn **Enable or Disable** off. See [Agent settings](../configure/agent-settings).
+2. Every agent picks up the change at its next check-in, about every 2 minutes.
 
-To restore, turn the agent back on.
+To restore, use the [canary sequence](#restore-with-a-canary) below rather than turning the tenant flag straight back on.
 
-## Stop immediately on a Mac
+## Stop immediately on a device
 
-When you cannot wait for the next poll cycle, IT staff with `sudo` access can stop the agent locally. All monitoring and traffic interception stops at once.
+When you cannot wait for the next check-in, IT staff can stop the agent locally. A local stop is not reported to the console.
+
+The agent's updater runs every 30 minutes and starts the agent again if it is not running. To keep the agent stopped for longer than that, also stop the updater as shown under **Keep it stopped**.
+
+### macOS
 
 ```bash
 # Stop the agent
-sudo launchctl bootout "system/com.sentinel.agent"
+sudo launchctl bootout system/com.quilrai.agent
 
 # Check it is stopped (no output means stopped)
-sudo launchctl list | grep sentinel
-
-# Start it again
-sudo launchctl bootstrap system "/Library/LaunchDaemons/com.sentinel.agent.plist"
+pgrep -x quilrai
 ```
 
-A `launchctl bootout` lasts only until the next reboot. To keep the agent stopped across reboots, disable it first:
+Keep it stopped across updater runs and reboots:
 
 ```bash
-sudo launchctl disable "system/com.sentinel.agent"
-sudo launchctl bootout "system/com.sentinel.agent"
+sudo launchctl bootout system/com.quilrai.endpoint.updater
+sudo launchctl disable system/com.quilrai.endpoint.updater
+sudo launchctl disable system/com.quilrai.agent
+sudo launchctl bootout system/com.quilrai.agent
 ```
 
-To undo a persistent stop:
+Start it again:
 
 ```bash
-sudo launchctl enable "system/com.sentinel.agent"
-sudo launchctl bootstrap system "/Library/LaunchDaemons/com.sentinel.agent.plist"
+sudo launchctl enable system/com.quilrai.agent
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.quilrai.agent.plist
+sudo launchctl enable system/com.quilrai.endpoint.updater
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.quilrai.endpoint.updater.plist
 ```
 
-## Version problems
+### Windows
 
-The agent rolls back automatically if a new version fails its health check after an update (see [Requirements](../get-started/requirements#security-and-updates)). If a device still misbehaves after an update, disable it as above and contact your QuilrAI representative for a known-good package. You can check the installed version on a Mac with `cat /usr/local/sentinel/VERSION`, or in the **Agent version** column of **Users › Endpoint deployment**.
+Run in an elevated PowerShell:
 
-If the agent auto-rolled back after a failed update and the device is still having issues, IT staff can clear the stuck rollback on a Mac so the agent retries:
+```powershell
+# Stop the agent and its child processes
+Stop-Service -Name QuilrAIAgent -Force
 
-```bash
-# Check which version was rejected
-cat ~/.sentinel/.quarantined_version
-
-# Remove the quarantine file so the agent can retry
-rm ~/.sentinel/.quarantined_version
+# Check it is stopped (Status should be Stopped)
+Get-Service -Name QuilrAIAgent
 ```
 
-Then restart the agent with the `launchctl bootout` and `bootstrap` commands in [Stop immediately on a Mac](#stop-immediately-on-a-mac), and confirm the active version with `cat /usr/local/sentinel/VERSION`.
+Keep it stopped across updater runs and reboots:
+
+```powershell
+Disable-ScheduledTask -TaskName "QuilrAI-Endpoint-Update"
+Set-Service -Name QuilrAIAgent -StartupType Disabled
+Stop-Service -Name QuilrAIAgent -Force
+```
+
+Start it again:
+
+```powershell
+Set-Service -Name QuilrAIAgent -StartupType Automatic
+Start-Service -Name QuilrAIAgent
+Enable-ScheduledTask -TaskName "QuilrAI-Endpoint-Update"
+```
 
 ## What happens on the device
 
 | Event | Result |
 | --- | --- |
-| Agent receives a disable (console flag or extension) | The disabled state is saved to the agent's local database. All DLP processing stops and services (clipboard monitoring, file indexing) are stopped. |
-| Agent starts while disabled | No services or DLP processing are started at all. The agent only listens for a re-enable. The disabled state survives reboots. |
-| Agent receives a re-enable | The state is cleared, DLP processing is restored, and services restart without a process restart. |
-| Local `launchctl bootout` | The process exits immediately and restarts on the next bootstrap or reboot (unless disabled). |
+| Console disable (tenant or workstation) | At the next check-in the agent stops its traffic proxy (new connections are refused and in-flight requests finish) and its monitoring services. The core service keeps running so it can receive a re-enable. |
+| Agent restarts while disabled | The disabled state is held by QuilrAI, not on the device. The agent applies it again at its next check-in. |
+| Console re-enable | At the next check-in the agent restarts its services. No process restart or reinstall is needed. |
+| Check-in fails (for example no network) | The agent keeps its last known state. |
+| Local stop | The service and its child processes exit at once. The updater starts it again within 30 minutes unless you also stopped the updater. |
 
-The re-enable channel is never removed, so a disabled agent can always be restored.
+## Verify
 
-## Verify and recover
+The **Status** column in **Users › Endpoint deployment** shows the flag you set, not a confirmation from the device: the agent does not report its kill switch state back. Verify independently:
 
-After any kill switch action:
+- [ ] After about 2 minutes, no new activity or findings arrive from the device in [Findings and interactions](../../console/observe/findings-and-interactions).
+- [ ] For a local stop, `pgrep -x quilrai` returns nothing (macOS) or `Get-Service QuilrAIAgent` shows **Stopped** (Windows).
+- [ ] For a tenant-wide action, spot-check at least three devices, including one Mac and one Windows machine.
 
-- [ ] The affected workstations show as disabled in **Users › Endpoint deployment**.
-- [ ] If stopped locally, `launchctl list | grep sentinel` returns nothing.
-- [ ] No new activity or findings arrive from the device for a few minutes.
-- [ ] For a tenant-wide action, spot-check at least three devices.
+## Restore with a canary
 
-When the cause is fixed:
+Because the tenant flag overrides workstation flags, you cannot test one device while the tenant flag is off. Use this sequence:
 
-1. Re-enable one test device and watch it for about 10 minutes.
-2. If it is healthy, re-enable the rest of the affected devices or the tenant.
-3. Record what was disabled, when, and why, for your own change log.
+1. In **Users › Endpoint deployment**, select all workstations and choose **Disable**.
+2. In **Settings › Endpoint Agent**, turn the tenant flag back on. Nothing restarts yet, because every workstation flag is off.
+3. Enable one test workstation and watch it for about 10 minutes: normal browsing and apps work, and activity appears in the console.
+4. Enable a small pilot group, then the rest of the fleet.
+
+If you only disabled single workstations, skip steps 1 and 2.
+
+For a local stop, run the start commands for the device's platform on one test machine first.
+
+Record what was disabled, when, and why, for your own change log.
+
+## Version problems
+
+The updater checks for a new version every 30 minutes. After installing one, it waits for the agent to run stably and restores the previous version if it does not. If a device still misbehaves after an update, disable it as above and contact your QuilrAI representative. Check the installed version in the **Agent version** column of **Users › Endpoint deployment**.

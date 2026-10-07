@@ -13,7 +13,7 @@ These Library cards send Quilr data **from** Quilr to your security and operatio
 <ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library']} />
 
 :::note Activation
-Installing one of these cards records the integration's management state for your tenant. The drawer collects labels only; it does not ask for an API key, HEC token or Slack authorization. Provider authentication and data transfer begin only when the connector supports activation. Contact Quilr support to confirm delivery to your tool before you rely on it. For delivery you can set up yourself today, use [Webhook](./webhook) or [Syslog](./syslog).
+Installing one of these cards records the integration's management state for your tenant. The drawer collects labels only; it does not ask for an API key, HEC token or Slack authorization. Provider authentication and data transfer begin only when the connector supports activation. Contact Quilr support to confirm delivery to your tool before you rely on it. For delivery you can set up yourself today, use [Webhook](./webhook) or [Syslog](./syslog) forwarding in Console V1.
 :::
 
 ## Set it up

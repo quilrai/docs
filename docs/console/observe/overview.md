@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 sidebar_label: "Overview"
+description: "The Adoption, Agentic estate and Posture & risk tabs of the console Overview."
 sidebar_custom_props:
   icon: BarChart2
 ---
@@ -53,7 +54,9 @@ they are governed.
   Studio and Azure AI Foundry, plus the data sources behind the page.
 
 Use it to find agentic assets that bypass the gateway and work through them
-one by one. Each asset opens in [Inventory](./inventory).
+one by one. Each asset opens in [Inventory](./inventory). For a worked
+example from discovery to verification, see
+[An MCP server outside the gateway](./inventory#example-an-mcp-server-outside-the-gateway).
 
 ## Posture & risk
 
