@@ -63,6 +63,14 @@ Limit the result size and tell me the estimated API-unit cost before running any
 additional reports.
 ```
 
+To verify batch behavior:
+
+```text
+Using Semrush Advanced, compare domain overviews for example.com, example.org,
+and example.net in one batch request. Keep the input order and report any
+per-domain errors without failing the whole batch.
+```
+
 ### Use it effectively
 
 - Prefer batch tools for several domains, keywords, projects or backlink targets.

@@ -44,4 +44,15 @@ Policy changes reach agents without a restart. See [Backend connectivity](../how
 
 ## Convert to Policy Engine
 
-The **Convert to Policy Engine** button moves the Endpoint Agent from Basic policies to the Policy Engine model used by the gateways. It is separate from the LLM Gateway and MCP Gateway switches. For how the gateway conversions work, see [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+The **Convert to Policy Engine** button moves the Endpoint Agent from Basic policies to the Policy Engine model used by the gateways. It is separate from the LLM Gateway and MCP Gateway switches. The header shows **Basic policies** before conversion and **Engine on** with the active revision after it.
+
+The button appears only when Policy Engine management for the Endpoint Agent is enabled for your organization and session. If you do not see it, your tenant stays on Basic policies; ask your Quilr contact about availability.
+
+1. Select **Convert to Policy Engine**, then **Review conversion**. Quilr builds a read-only review of your current Basic policies. Nothing changes yet.
+2. Review the result: **Scopes reviewed**, **Converted policies**, **Preserved settings** and **Attention items**, with the **Generated rules** and **Scope-by-scope changes**. Check every scope and warning marked **Needs attention**. Use **Copy policy** to keep the generated policy.
+3. Under **Confirm your review**, tick both confirmations, then **Enable new Policy Engine**. The reviewed conversion becomes revision 1, and Basic policies are frozen.
+4. From then on, make changes as Policy Engine drafts and publish them as new revisions. Check [Findings and interactions](../../console/observe/findings-and-interactions) to confirm enforcement matches what you had before.
+
+**Disable Policy Engine** returns to Basic policies. The frozen Basic settings resume as they were; changes made in the Policy Engine meanwhile are not carried back.
+
+If the review reports **Detailed comparison unavailable**, the Endpoint converter has not returned the comparison needed to enable it. Retry later. For how the gateway conversions work, see [Switching from classic settings](../../console/govern/switching-from-classic-settings).

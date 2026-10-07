@@ -24,7 +24,7 @@ The MCP provides 20 tools. The original upload is never modified in place. Every
 | Text editing | Batched replace and delete, redrawn on the original baseline at the original size, colour and embedded font | Write |
 | Text insertion | New text at a position, with size, colour, bold, italic, monospaced and multi-line support | Write |
 | Metadata | Read and change title, author, subject, keywords, creator and producer; clear a field to strip it | Write |
-| Watermarks and stamps | Text or an uploaded image across chosen pages, with position, opacity, rotation and scale | Write |
+| Watermarks and stamps | Text or an uploaded image across chosen pages, with position, opacity, rotation and scale; behind the content as a watermark or on top as a stamp | Write |
 | Form filling | List and fill real AcroForm fields, which stay fillable | Write |
 | Image extraction | Per-page image inventory with format, dimensions, size and placement | Read only |
 | Undo and export | Revert unexported edits, or export the finished PDF as a download | Write |
@@ -57,7 +57,7 @@ The claim code works once and expires after 30 minutes. The upload page also acc
 | Document retention | 24 hours |
 | Claim code lifetime | 30 minutes |
 
-- **Active content is removed on upload.** Each PDF is rebuilt from its pages, dropping embedded JavaScript, auto-run, launch and remote actions, and embedded files. Hyperlinks and annotations are dropped too; form fields are kept.
+- **Active content is removed on upload.** Each PDF is rebuilt from its pages, dropping embedded JavaScript, auto-run, launch and remote actions, and embedded files. Hyperlinks and annotations are dropped too; form fields are kept. What was removed is reported back.
 - **Documents are reachable only by ID.** IDs are unguessable, documents cannot be listed, and one conversation cannot reach another's file.
 - **Documents expire** after 24 hours, including edits and exports.
 - Encrypted or password-protected PDFs are not supported.
@@ -105,7 +105,7 @@ The export should come back as a downloadable file, not a description of one.
 | `block_id not found` | The page was edited, so block IDs changed | Search the page again; batch all edits into one call. |
 | Replacement overlaps nearby text | The new text is wider than the old | Shorten it, or ask for it to be shrunk to fit. |
 | Replaced text looks slightly different | The original font is not embedded | Expected; size, colour and position still match. |
-| OCR returns little | Blank, low-resolution or unsupported-language page | Ask for a higher OCR resolution. |
+| OCR returns little | Blank, low-resolution or unsupported-language page | Ask for a higher OCR resolution, or check which languages are available. |
 | A stamp image is rejected | Not a supported raster image | Use PNG, JPEG, GIF, BMP or WebP; SVG is not accepted. |
 | `exceeds the 25 MB limit` or `exceeds the 200 page limit` | Document too large | Split the document. |
 

@@ -13,13 +13,28 @@ Smart Groups are named sets of people that you reuse across the console: in Poli
 
 ## Create a Smart Group
 
-You can build a group three ways:
+Select **Create Smart Group**, enter a **Name** (for example "Finance approvers") and an optional **Description**, and select at least one user. To add more people later, open the group with **View**, or bulk add them from a CSV file.
 
-| Method | How |
-|---|---|
-| Manually | **Create Smart Group**, name it and add members |
-| From a file | **Import from CSV** |
-| From your identity provider | Convert an existing IdP group into a Smart Group |
+Groups converted from a user group in your identity provider are tagged **Converted from IdP group** in the list.
+
+## Bulk add members from a CSV
+
+**Import from CSV** adds the people listed in a file to one or more existing Smart Groups. Create the groups first.
+
+The file needs a column headed `email`. Other columns are ignored:
+
+```csv
+email,name
+alice@example.com,Alice
+bob@example.com,Bob
+```
+
+1. Select **Import from CSV**, then **Select CSV**. The modal shows how many email addresses it found and a preview of the file.
+2. Select **Next** to **Choose Smart Groups**, then search for and select the groups to add the people to.
+3. Select **Queue bulk add**. The add runs in the background.
+4. Follow it with the **Bulk add progress** button next to **Import from CSV**. Each job shows **Queued**, **In progress**, **Completed** or **Failed**, with the error for a failed job.
+
+One import can include at most 10,000 email addresses. Invalid addresses, people who are not in Quilr, and people already in the group are skipped. If the file has no `email` column, the modal asks you to add one and select the file again.
 
 ## The list
 

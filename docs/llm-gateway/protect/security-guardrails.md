@@ -192,7 +192,19 @@ Accept gateway calls only from listed networks. Turn on **Enabled** and enter **
 
 The same controls live on the **Data & Adversarial Risks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardrails tab freezes and the card decides what happens on live requests. See [Switching from classic settings](../../console/govern/switching-from-classic-settings). Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
 
-A detection rule picks data types (a whole category, single types or [custom detections](./custom-detections)), a findings threshold (**at least** N), an action (Monitor, Partial redact, Redact, Block), a stage (Request, Response, Both) and an optional severity that is reported but never changes the action. Scenarios the card supports that app settings cannot express:
+A detection rule picks data types (a whole category, single types or [custom detections](./custom-detections)), a findings threshold (**at least** N), an action (Monitor, Partial redact, Redact, Block), a stage (Request, Response, Both) and an optional severity that is reported but never changes the action. The card applies on the `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `rerank`, `responses`, `sdk_check`, `stt`, `text`, `tts` and `vertex` API surfaces.
+
+| Detection line setting | Default |
+|---|---|
+| Data types (several types on one line match any of them) | None |
+| Findings threshold (**at least** N) | 1 |
+| Action | Monitor |
+| Stage | Request |
+| **Scan tool-call arguments** | Off |
+
+Add more lines to one rule with **+ Add line**. Each line keeps its own types, threshold, action and stage, and all lines share the configuration's scope and priority. Adding a rule copies the scope from the rule above it.
+
+Scenarios the card supports that app settings cannot express:
 
 - **Block secrets for everyone, monitor PII for one team.** Scope rules to Everyone, People, a Smart group, an Application or App tag. Narrower scopes take precedence, and the highest priority wins per data type.
 - **Different rules per model or provider.** Scope by Requested model, Provider, API surface or Environment, for example redact PHI only on requests to one provider.
@@ -200,16 +212,44 @@ A detection rule picks data types (a whole category, single types or [custom det
 - **Tool-call arguments.** Turn on **Scan tool-call arguments** to evaluate each tool call's arguments on their own (Monitor and Block only).
 - **Language blocking.** Monitor or block passages outside a list of allowed languages (streamed responses are skipped).
 
+- **Several data types, several actions.** One configuration for Support Copilot redacts Aadhaar numbers, records names and blocks secrets. A request carrying all three has the Aadhaar redacted, the name left alone but recorded, and the whole call refused because of the key.
+
 <PolicyCard
-  name="block_request_secrets"
+  name="support_copilot_data_actions"
   stage="request"
-  priority={900}
-  when={[{ field: "data found", op: "is any of", values: ["Auth & Secrets"] }]}
-  then={[
-    { effect: "Sensitive data action", value: "block" },
-    { effect: "Risk level", value: "critical" },
+  priority={700}
+  rules={[
+    {
+      when: [
+        { field: "Application", op: "is", value: "Support Copilot" },
+        { field: "data found", op: "is any of", value: "Aadhaar Number / VID" },
+      ],
+      then: [
+        { effect: "Sensitive data action", value: "redact" },
+        { effect: "Risk level", value: "high" },
+      ],
+    },
+    {
+      when: [
+        { field: "Application", op: "is", value: "Support Copilot" },
+        { field: "data found", op: "is any of", value: "Name" },
+      ],
+      then: [{ effect: "Sensitive data action", value: "monitor" }],
+    },
+    {
+      when: [
+        { field: "Application", op: "is", value: "Support Copilot" },
+        { field: "data found", op: "is any of", value: "Auth & Secrets" },
+      ],
+      then: [
+        { effect: "Sensitive data action", value: "block" },
+        { effect: "Risk level", value: "critical" },
+      ],
+    },
   ]}
 />
+
+Redact and Partial redact rewrite only the findings their own rule selected, and a finding no rule selects is left unchanged. Where two rules select the same finding, the higher priority wins; at equal priority the more restrictive action wins.
 
 Hallucination scoring and source IP lists move to their own cards: [Hallucination protection](./hallucination-protection) and [Identity and network trust](./identity-and-network-trust).
 

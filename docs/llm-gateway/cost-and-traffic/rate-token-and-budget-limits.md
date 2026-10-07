@@ -35,6 +35,8 @@ The gateway rejects the call with HTTP `429` without contacting the provider. Ra
 
 Two cards in **Policy Engine > LLM Gateway** cover limits: **Rate, Token & Timeout Limits** and **Budgets & Usage Limits**. When the engine is on for the LLM Gateway, the app's Rate and Token Limits settings freeze and the cards apply instead. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
 
+Both cards apply on the `assistants`, `bedrock`, `chat`, `embeddings`, `realtime`, `rerank`, `responses`, `stt`, `text`, `tts` and `vertex` API surfaces.
+
 ### Rate, Token & Timeout Limits card
 
 The same limits as the app settings (concurrency, requests, input and output token windows, tokens per request, timeout), in an **Application limits** section and a **Per-model limits** section keyed by model or by provider credential and model.
@@ -42,6 +44,7 @@ The same limits as the app settings (concurrency, requests, input and output tok
 - Limits do **not** resolve by priority. For each limit, the **strictest** matching value wins, so a narrower row can tighten a broader one but never loosen it.
 - Window limits compare per second, so 1,000 per minute is stricter than 100,000 per day.
 - A limit left off keeps the value from a broader configuration.
+- New limits default to a **per minute** window for **Requests** and **per hour** for **Input tokens** and **Output tokens**. **Tokens per request** counts input tokens in one request.
 
 ### Budgets & Usage Limits card
 
@@ -51,16 +54,20 @@ Cap spend in USD, or requests and tokens, over a reset period.
 |---|---|---|
 | What to count | Spend (USD), Requests, Input tokens, Output tokens, Total tokens | Spend (USD) |
 | Limit | A number above zero | - |
-| Counted | **Shared**, or **Separately for each** of user email, user ID, application key, application method, actual provider, actual model and more (pick several for one counter per combination) | Shared |
-| Resets | Rolling minute to year, calendar day to year, or Lifetime | Calendar month |
+| Counted | **Shared**, or **Separately for each** of Tenant ID, User ID, User email, Application key ID, Application key, Application method key, Application method type, Actual provider, Actual provider label, Actual model (pick several for one counter per combination) | Shared |
+| Resets | Rolling minute to year, calendar day to year (calendar weeks start Monday), or Lifetime | Calendar month |
 | Timezone | IANA timezone, calendar periods only | UTC |
 
 - **Every matching budget applies.** A request must fit inside all of them, so the tightest one stops it first.
 - **Requests count at the start; tokens and spend count at completion.** One in-flight request can carry a counter past its limit.
 - Requests without a user email do not count toward a per-person budget.
 
+:::warning The Budget ID matters
+Each budget gets a generated ID that its usage is tracked against. Keep the ID when changing the amount and recorded usage carries over. Changing the measure, period, timezone or grouping after publishing needs a new unique ID and starts a fresh count.
+:::
+
 :::warning Spend budgets need prices
-A spend budget prices usage with the rates in the card's **Model pricing** section (USD per 1M input and output tokens, per provider and model, optionally per credential). With the Policy Engine on, this section is the only price source: a model with no rate under a spend budget is rejected with `503 quota_price_unavailable`. Price every model the budget can reach, including [routing](./routing-and-fallbacks) fallbacks. Coverage is checked when you add the budget and before publishing.
+A spend budget prices usage with the rates in the card's **Model pricing** section (USD per 1M input and output tokens, per provider and model, optionally per credential). With the Policy Engine on, this section is the only price source: a model with no rate under a spend budget is rejected with `503 quota_price_unavailable`. Price every model the budget can reach, including [routing](./routing-and-fallbacks) fallbacks. Coverage is checked when you add the budget and before publishing. Every matching Model pricing configuration contributes its rates, so avoid pricing the same model differently in overlapping scopes.
 :::
 
 ### Scenarios

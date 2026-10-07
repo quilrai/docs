@@ -26,7 +26,7 @@ The clipboard monitor is part of the QuilrAI agent that you deploy with the exte
 
 ## Settings
 
-Clipboard settings are configured from the QuilrAI dashboard and pushed to the agent. They take effect on the next agent restart.
+Clipboard settings are configured from the QuilrAI dashboard and pushed to the agent. They take effect on the next agent restart. In the V1 console they are under **Clipboard Monitor › Settings**; the V2 console has no clipboard settings screen yet, so ask your QuilrAI representative to change them.
 
 | Setting | Default | Description |
 | --- | --- | --- |
@@ -38,7 +38,7 @@ Clipboard settings are configured from the QuilrAI dashboard and pushed to the a
 
 ## Policy actions
 
-The extension evaluates its DLP rules against the clipboard content (by content category, size, or custom regex). The same rule set applies to text, files, and images.
+The extension evaluates its DLP rules against the clipboard content (by content category, size, or custom regex). In the V2 console, clipboard rules are browser controls: open **Govern › Policy Engine › Browser Extension** and add or edit a control whose use case is **A user is copying to clipboard** (see [Browser controls](../configure/browser-controls)). In the V1 console these rules were under **DLP Policies › Clipboard**. The same rule set applies to text, files, and images.
 
 | Action | What happens |
 | --- | --- |
@@ -56,6 +56,6 @@ The extension evaluates its DLP rules against the clipboard content (by content 
 
 ## Monitor activity
 
-Every clipboard event is logged with its content type, policy decision, and enforcement outcome. Check event volume, allow/block/prompt counts by content type, user justifications, and confirmation that blocked content was cleared.
+Every clipboard event is logged with its content type, policy decision, and enforcement outcome. In the V2 console, clipboard events that trigger a control appear in **Observe › Findings & Interactions** (filter by the Browser Extension sensor); in the V1 console they were under **Clipboard Monitor › Logs**. Use them to confirm events are flowing and policies are enforced. Check event volume, allow/block/prompt counts by content type, user justifications, and confirmation that blocked content was cleared.
 
 To pause clipboard monitoring together with the agent's other services, use the [agent kill switch](./agent-kill-switch).

@@ -72,7 +72,7 @@ Directory tools use the People API and read only the signed-in user's own Worksp
 
 Seven destructive tools are enabled by default, each with the `destructive` annotation and tag, so you can hide them or require [human approval](../protect/human-approval) as a class: `send_gmail_message`, `trash_gmail_messages`, `delete_gmail_label`, `delete_gmail_draft`, `delete_google_calendar_event`, `delete_google_calendar`, `trash_google_drive_file`.
 
-Sending mail is irreversible. Trashing is recoverable until Google purges the item. Nothing in this MCP permanently deletes mail or files. Even when Drive sharing is enabled, a grant to `anyone` is refused unless the call explicitly confirms it.
+Sending mail is irreversible. Trashing is recoverable until Google purges the item. Nothing in this MCP permanently deletes mail or files. `share_google_drive_file` is also destructive and is registered disabled; an operator must set `GOOGLE_ENABLE_DRIVE_SHARING=true` for your deployment to offer it. Even when Drive sharing is enabled, a grant to `anyone` is refused unless the call explicitly confirms it.
 
 ## Setup
 
@@ -80,8 +80,8 @@ Sending mail is irreversible. Trashing is recoverable until Google purges the it
 
 1. In the [Google Cloud Console](https://console.cloud.google.com/), create or select a project for the integration.
 2. In **APIs & Services** > **Library**, enable the **Gmail API**, **Google Calendar API**, **Google Drive API** and **People API**. Without the People API the directory tools fail.
-3. In **APIs & Services** > **OAuth consent screen**, choose **Internal** if every user is in your Workspace organization (no Google verification needed), or **External** for any Google account (restricted Gmail and Drive scopes then require Google verification and a security assessment).
-4. Add the fifteen scopes below.
+3. In **APIs & Services** > **OAuth consent screen**, choose **Internal** if every user is in your Workspace organization (no Google verification needed), or **External** for any Google account (restricted Gmail and Drive scopes then require [Google OAuth verification](https://support.google.com/cloud/answer/9110914), including the security assessment Google requires for restricted scopes, before the app can serve users outside its **Test users** list).
+4. Add the fifteen scopes below. The MCP accepts a token only if both `openid` and `userinfo.email` were granted; other tools return `insufficient_scope` if their product scope is missing.
 5. In **APIs & Services** > **Credentials**, click **Create Credentials** > **OAuth client ID** and choose **Web application**. Other client types do not work with the gateway callback.
 6. Under **Authorized redirect URIs**, add the **OAuth callback URL** shown on the Google Workspace setup screen in QuilrAI. It must match exactly; use a separate client per environment with a different callback.
 7. Click **Create** and copy the **Client ID** and **Client Secret**.
@@ -89,7 +89,7 @@ Sending mail is irreversible. Trashing is recoverable until Google purges the it
 | Scope | Why it is needed | Google class |
 |-------|------------------|--------------|
 | `openid` | **Mandatory.** Without it Google returns no user identifier (`sub`) and the MCP rejects the token. | Basic |
-| `.../auth/userinfo.email` | Identify the connected user. | Basic |
+| `.../auth/userinfo.email` | **Mandatory.** Identify the connected user. | Basic |
 | `.../auth/userinfo.profile` | Read the user's own name and photo. | Basic |
 | `.../auth/gmail.readonly` | Search and read messages, threads and attachments. | Restricted |
 | `.../auth/gmail.compose` | Create and update drafts, and send mail. | Restricted |
@@ -133,8 +133,8 @@ Tool failures return a JSON error with a `code`, the HTTP `status`, whether it i
 | `insufficient_scope` on every directory tool | People API not enabled, or `directory.readonly` not granted. | Enable the API, confirm the scope and reconnect. |
 | `not_found` on a directory search | The account is not in a Workspace domain. | Directory lookups need a Workspace account. |
 | `sync_expired` from a `sync_*` tool | The sync marker is older than Google's retention window. | Start a fresh sync without a marker. |
-| `invalid_cursor` when paging | The cursor was altered or reused by another user. | Re-run the query without a cursor. |
-| `share_google_drive_file` is not listed | The tool is disabled by default. | Ask Quilr to enable Drive sharing for your deployment. |
+| `invalid_cursor` when paging | The cursor was altered, reused by another user, or the deployment lost its cursor signing secret. | Re-run the query without a cursor. |
+| `share_google_drive_file` is not listed | The tool is disabled by default. | Ask Quilr to set `GOOGLE_ENABLE_DRIVE_SHARING=true` for your deployment. |
 
 References: [Create an OAuth client ID](https://support.google.com/cloud/answer/6158849), [OAuth API verification FAQ](https://support.google.com/cloud/answer/9110914), [People API](https://developers.google.com/people).
 

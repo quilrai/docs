@@ -33,18 +33,18 @@ subscriber_id  = "<your-subscriber-id>"
 | `tenant_id` | Your organization's tenant UUID. |
 | `subscriber_id` | Your subscriber identifier. |
 
-Get these values from your QuilrAI representative. Every request carries the tenant and subscriber IDs, which the backend uses to keep tenants isolated.
+Get these values from your QuilrAI representative. Every request carries the tenant and subscriber IDs in the `X-Tenant-ID` and `X-Subscriber-ID` headers, which the backend uses to keep tenants isolated.
 
 ## What is exchanged
 
-| Direction | Data | When |
-| --- | --- | --- |
-| Agent to backend | Discovered apps and AI entities, including device ID, user, OS, and identity | At startup and every 30 minutes; batches of up to 50, gzip-compressed, retried on failure |
-| Agent to backend | Processes the agent could not map, for the backend to identify | As found |
-| Backend to agent | Governance overrides: approval status, execution policy, criticality | Delta sync every 60 seconds |
-| Backend to agent | Process-name to application mappings | Used by the correlator |
-| Agent to backend | Enforcement audit record per decision | Immediately |
-| Agent to backend | Block and quarantine alerts | Immediately |
+| Direction | Endpoint | Data | When |
+| --- | --- | --- | --- |
+| Agent to backend | `POST /ea/v1/sync/discovered-apps` | Discovered apps and AI entities, including device ID, user, OS, and identity. Returns `202 Accepted`. | At startup and every 30 minutes; batches of up to 50, gzip-compressed, retried on failure |
+| Agent to backend | `POST /ea/v1/sync/unknown-processes` | Processes the agent could not map, for the backend to identify | As found |
+| Backend to agent | `GET /ea/v1/sync/delta` | Governance overrides: approval status, execution policy, criticality | Delta sync every 60 seconds |
+| Backend to agent | `GET /ea/v1/sync/process-map` | Process-name to application mappings | Used by the correlator |
+| Agent to backend | `POST /ea/v1/sync/activity` | Enforcement audit record per decision | Immediately |
+| Agent to backend | `POST /ea/v1/sync/alerts` | Block and quarantine alerts | Immediately |
 
 Policy changes you make in the console reach the agent on the next delta sync and apply without a restart.
 

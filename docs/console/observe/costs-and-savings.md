@@ -20,6 +20,8 @@ or one), **Compare: previous period**, and refresh.
 Only the [LLM Gateway](../../llm-gateway) sees exact token counts, because
 requests pass through it. Spend and tokens for other sources (MCP Gateway,
 Endpoint Agent, Browser Extension and connected platforms) are **estimates**.
+MCP Gateway, Endpoint Agent and Browser Extension figures are estimated at
+four characters per token.
 Estimates from different sources can overlap, so do not add them up as if
 they were a bill. Use your provider invoices for the amount you actually pay.
 The **Data coverage** table on the Overview tab shows what each source

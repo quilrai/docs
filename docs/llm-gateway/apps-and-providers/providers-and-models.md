@@ -168,7 +168,7 @@ Go to **Settings > AI Gateway > Models > Models** and select **QuilrAI provided 
 | **Sort by price** | Sorts by input, cached input or output price, low to high or high to low. |
 | **Chat** (per row) | Opens the Playground with that model selected. |
 
-Columns: **Model** (the exact ID to send as `model`), **Capabilities**, **Input price**, **Cached input price** ("Not available" when the model has none), **Output price** and **API schema** (informational; every model is called the same way). The console always shows the current list and prices.
+Columns: **Model** (the exact ID to send as `model`), **Capabilities**, **Input price**, **Cached input price** ("Not available" when the model has none), **Output price** and **API schema** (informational; every model is called the same way). These docs do not keep a copy of the catalog, because models and prices change: **Settings > AI Gateway > Models > Models** is the reference for current model IDs and prices (USD per 1M tokens).
 
 ### Model API keys
 
@@ -229,9 +229,31 @@ print(response.choices[0].message.content)
 ```
 
 </TabItem>
+<TabItem value="node" label="Node">
+
+```javascript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.QUILR_MODEL_API_KEY,
+  baseURL: "https://models.quilrai.dev/v1",
+});
+const response = await client.chat.completions.create({
+  model: "deepseek/deepseek-v3.2",
+  messages: [
+    { role: "user", content: "Explain zero trust in one sentence." }
+  ],
+  temperature: 0.7,
+  top_p: 1,
+  max_tokens: 1024,
+});
+console.log(response.choices[0].message.content);
+```
+
+</TabItem>
 </Tabs>
 
-The Playground's **Use this model in your app** panel generates these snippets (also for Node) for the selected model, prompt and settings.
+The Playground's **Use this model in your app** panel generates these snippets for the selected model, prompt and settings.
 
 ### Use QuilrAI-provided models in a gateway app
 

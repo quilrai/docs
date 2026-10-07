@@ -69,8 +69,7 @@ To stop showing an integration's data in the console without uninstalling it, us
 | [Azure AI Foundry](../pull-ai-usage-and-inventory/azure-ai-foundry) | Foundry projects, agents, models, access, and activity |
 | [Microsoft Copilot Studio](../pull-ai-usage-and-inventory/microsoft-copilot-studio) | Copilot Studio agents, definitions, capabilities, and activity metadata |
 | [GitHub](../pull-ai-usage-and-inventory/github) | Repositories, AI projects, workflows, and developer inventory |
-
-Other cards in the Library (no dedicated page yet): Amazon Bedrock Agents, Google Vertex AI Agent Builder, AutoGen, CrewAI, LangChain, LangGraph, and LiteLLM. These discover agents, tools, and models and send runtime telemetry into Quilr.
+| [Agent platforms and frameworks](../pull-ai-usage-and-inventory/agent-platforms-and-frameworks) | Amazon Bedrock Agents, Google Vertex AI Agent Builder, AutoGen, CrewAI, LangChain, LangGraph, and LiteLLM: agents, tools, models, and runtime telemetry |
 
 ### Send logs and alerts
 
@@ -79,8 +78,7 @@ Other cards in the Library (no dedicated page yet): Amazon Bedrock Agents, Googl
 | [Microsoft Sentinel](../send-logs-and-alerts/microsoft-sentinel) | Quilr activity and findings to a Sentinel workspace |
 | [Webhook](../send-logs-and-alerts/webhook) | Governed events and notifications to an HTTP receiver |
 | [Syslog](../send-logs-and-alerts/syslog) and [Syslog audit events](../send-logs-and-alerts/syslog-audit-events) | Findings and audit events to a syslog server |
-
-Other cards in the Library: Splunk, Datadog (logs and alerts), and Slack (findings and notifications to a channel).
+| [Splunk, Datadog and Slack](../send-logs-and-alerts/splunk-datadog-and-slack) | Activity and findings to a Splunk index or Datadog service, and notifications to a Slack channel |
 
 ### Runtime guardrail integrations
 

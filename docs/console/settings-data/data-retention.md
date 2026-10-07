@@ -45,6 +45,21 @@ Rules give specific traffic a different horizon. An event takes the **first rule
 - **Add rule** to create one. Order matters, so put the most specific rules first.
 - The default rule, **Everything else**, cannot be removed. It catches every event no rule above claimed. It has a **Preset** (for example **Full activity**) and a duration per data kind.
 
+## Review and publish
+
+Edits are staged in a draft. The **Review and publish** section shows what is staged, for example "Publishing draft 4 replaces revision 3 everywhere in the console".
+
+1. **Save draft** to stage your edits. You must save before you can preview or publish.
+2. **Validate** checks the draft for errors.
+3. **Preview impact** shows, per data kind, how many events and characters the draft would hide and their share of the total.
+4. **Publish** makes the draft the live revision. Publishing applies the policy to everything already collected, not just to new data.
+
+**Discard draft** drops the staged changes and keeps the live revision.
+
+## History
+
+**Published revisions** lists every revision with its number, publish time, rule count and who published it. The live revision is marked **Enforcing**. The first entry may show **Baseline** instead of a time. History records configuration, actor and time only, never the data itself. There is no one-click rollback: to go back, edit the draft to match an earlier revision and publish it.
+
 ## What retention does and does not affect
 
 :::warning

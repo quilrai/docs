@@ -103,7 +103,10 @@ the list, so you keep your place.
    focus, and **Copy thread** to copy it.
    Where detected values are involved, a **Sensitive data** tab lists them
    masked. **Reveal values** at the top of the drawer shows them in clear, if
-   your role allows it.
+   your role allows it. Each reveal is recorded in the
+   [Audit logs](../settings-organization/audit-logs#what-gets-recorded) as
+   **Requested sensitive data reveal**, and copying a conversation as
+   **Requested conversation copy**.
 
    ![Capture tab showing a single user turn and the justification the person gave](/img/console-v2/findings-and-interactions/drawer-capture.png)
 
@@ -123,11 +126,41 @@ screen.
 
 - **Export** sends the list you are looking at, with its filters, to the
   [Export Center](../settings-data/export-center) so you can download it.
-- **Activate Agent** becomes available when you select findings.
+- **Activate Agent** becomes available when you select findings. See
+  [Activate an agent](#activate-an-agent).
 - **Triage** (next to Export) holds bulk triage actions for the selection and
   links to the [Triage center](./triage-center).
 - The menu on each row copies the request, conversation or context IDs, for
   support tickets.
+
+## Activate an agent
+
+**Activate Agent** starts a Quilly agent that follows up with the people
+behind findings, for example to explain the policy they hit and ask them to
+fix the issue. It is not the Endpoint Agent, and it does not create a
+[Workflow Agent](../settings-ai-gateway/workflow-agents). The same action is
+on **Users > All users** and **Users > Accounts**, where you select people or
+accounts and then choose which of their findings to act on.
+
+1. Select up to 50 findings (or people or accounts), then **Activate Agent**.
+   Starting from people or accounts adds a first step, **Findings and
+   accounts**: tick the findings to act on and the accounts to contact. Each
+   checked finding gets its own agent, which acts on each account's latest
+   finding.
+2. **Configure agent**: choose the **Agent**. Agents that explain a policy
+   also need a **Policy**. Optionally set the **Tone**, the number of
+   **Reminders** (none to three) and **Resolve within** (an SLA in hours, days
+   or weeks).
+3. Select **Generate plan**. Quilly drafts the plan it will follow; read it,
+   and use **Regenerate** if needed. Each finding shows **Ready** when it can
+   be activated.
+4. **Review** the findings and accounts the agent will contact, then **Start
+   agent**. Each item reports **Activated**, **Failed** or **Not permitted**.
+
+Follow the conversations on the **Quilly** tab of [Users](./users#quilly).
+If activation fails, check that tab before you try again, because some
+people may already have been contacted. The action is unavailable when your
+organization or role does not allow agent activation.
 
 ## Next steps
 

@@ -122,7 +122,7 @@ If Quilr already provides a managed Entra application for your tenant, skip this
 2. Enter a name such as `QuilrAI Azure DevOps MCP`.
 3. Choose **Accounts in this organizational directory only** for a single-tenant deployment, or **Accounts in any organizational directory** only for an approved multi-tenant deployment.
 4. Under **Redirect URI**, select **Web** and enter `https://azure-devops.mcp.quilr.ai/auth/callback`. Click **Register**.
-5. From **Overview**, copy the **Application (client) ID** and **Directory (tenant) ID**.
+5. From **Overview**, copy the **Application (client) ID** and **Directory (tenant) ID**. For an approved multi-tenant application, use `organizations` instead of a tenant ID.
 6. Open **API permissions** > **Add a permission** > **APIs my organization uses**, select **Azure DevOps**, then under **Delegated permissions** enable `user_impersonation`.
 7. Grant tenant-wide admin consent if your consent policy requires it. Otherwise users are prompted when they connect.
 8. Open **Certificates & secrets** > **Client secrets** > **New client secret**, then copy the secret **Value** (not the Secret ID).
@@ -183,7 +183,9 @@ update, run, vote, comment, or delete anything.
 
 ### Reconnection
 
-Routine redeployments do not require users to sign in again while the public MCP and callback URLs, the Entra tenant and application, the OAuth signing key and the stored OAuth and organization state stay the same. Users must reconnect after the client secret expires or rotates without a service update, consent is revoked, scopes change, or the Entra application is replaced.
+Routine redeployments do not require users to sign in again while the public MCP and callback URLs, the Entra tenant and application, the OAuth signing key and the stored OAuth and organization state stay the same. Users must reconnect after the client secret expires or rotates without a service update, consent is revoked, scopes change, refresh fails permanently, OAuth state is lost, the public resource URL changes, or the Entra application is replaced.
+
+Organization membership is refreshed automatically. A routine restart can refresh linked organizations without the user signing in again.
 
 ### Troubleshooting
 
@@ -197,6 +199,7 @@ Routine redeployments do not require users to sign in again while the public MCP
 | `organization_selection_required` | Several organizations and no saved default. | Call `ado_select_organization` with the exact URL-name segment. |
 | `401` or `TF400813` | Token, membership, tenant linkage or Azure DevOps authorization is invalid. | Reconnect and confirm the user is active in the organization. |
 | `403` for one tool | The user lacks that resource permission or product license. | Grant the minimum permission or use an authorized account. |
+| Users must reconnect after a redeployment | The OAuth signing key, stored OAuth state, callback or resource URL, or Entra application changed. | Restore the stable configuration and state, or have users reconnect after verifying the new deployment. |
 | Tools stay at **Loading tools** | OAuth not completed, wrong URL, or capabilities not refreshed. | Use the gateway URL, finish **Connect**, refresh tools and restart the client entry. |
 
 References: [Entra OAuth for Azure DevOps](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/entra-oauth?view=azure-devops), [Azure DevOps OAuth deprecation](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/azure-devops-oauth?view=azure-devops), [Microsoft Azure DevOps MCP source](https://github.com/microsoft/azure-devops-mcp).

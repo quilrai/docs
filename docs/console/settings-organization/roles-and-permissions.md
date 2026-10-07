@@ -56,9 +56,15 @@ Built-in roles include **Super Admin** (full access), **Admin**, **Analyst** and
 
 ## Change access safely
 
-1. Edit roles or assignments. Changes go into the shared draft.
-2. Review the draft. Check that no one loses access they need, and that at least one person keeps full access.
-3. Publish. The change takes effect as a new revision.
+1. Edit roles or assignments. Changes autosave into the shared draft, and a bar at the bottom of the page shows how many changes are not in effect yet.
+2. Select **Review changes**. The draft drawer compares the active revision with the draft, with a **Summary** tab and a **Raw** difference. Check that no one loses access they need, and that at least one person keeps full access.
+3. Select **Publish v52** (the button names the next revision). The first step lists exactly what will publish and, when roles narrow data, an estimate of the access added and removed per role. **Continue**, enter a **Reason** (recorded in the audit log), confirm material changes when asked, then **Publish**. The change takes effect immediately as the next revision.
+
+Without permission to manage roles you can still edit the draft; it takes effect when an administrator publishes it. The draft drawer can also discard the draft.
+
+### History
+
+Select the **Active v51** version button to open **Policy history**. It lists every published revision with its number, who published it, when, and the reason. The newest is tagged **Active**. Select **Diff** on a revision to see what it changed from the one before. **Audit events** at the bottom lists the configuration actions taken on the policy. History is read-only: to undo a change, edit the draft back and publish a new revision.
 
 :::warning
 Because anyone without a role is denied everything, removing someone's last role locks them out of the console. Keep more than one Super Admin.

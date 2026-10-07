@@ -129,11 +129,20 @@ Routing is also the **Routing Groups & Fallbacks** card in **Policy Engine > LLM
 
 The card decides in this order: [Allowed Models](../protect/gateway-access-and-allowed-models) filters what may be used, then the highest-priority **Route to** (first target with an enabled credential), then the highest-priority **Routing group** (weighted split), then the app's provider default.
 
-| Section | What it does | Empty state |
+| Section | What it does | Applies on | Empty state |
+|---|---|---|---|
+| **Route to** | An ordered fallback list of provider credential and model pairs, whatever model the client asked for. Drag the handle or use the arrow keys to reorder targets. | `bedrock`, `chat`, `responses`, `vertex` | Requests keep the model they asked for. |
+| **Routing groups** | A weighted split across models. Weights total 100. | `bedrock`, `chat`, `realtime`, `responses`, `vertex` | No split. |
+| **Complexity thresholds** | Word counts that classify a prompt Low, Medium or High for the **Prompt complexity** scope. Thresholds cannot themselves be scoped by Prompt complexity. | `bedrock`, `chat`, `responses`, `vertex` | 6 words or fewer are Low, 7 to 10 Medium, longer High. |
+
+A policy routing group has these settings:
+
+| Setting | Options | Default |
 |---|---|---|
-| **Route to** | An ordered fallback list of provider credential and model pairs, whatever model the client asked for. | Requests keep the model they asked for. |
-| **Routing groups** | A weighted split across models, by requests or by tokens. Weights total 100. | No split. |
-| **Complexity thresholds** | Word counts that classify a prompt Low, Medium or High for the **Prompt complexity** scope. | 6 words or fewer are Low, 7 to 10 Medium, longer High. |
+| Name | Text, required. A policy-only alias. | - |
+| Kind | Chat completion, Anthropic messages, Vertex AI, Responses, Realtime, Bedrock (the API shape the group serves) | Chat completion |
+| Mode | Split by requests, Split by tokens | Split by requests |
+| Models | **Add model** per provider credential and model, each with a weight. **Balance evenly** splits the weights equally. | - |
 
 Scenarios the card supports that app settings cannot:
 

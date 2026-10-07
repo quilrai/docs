@@ -32,10 +32,19 @@ Allow or deny an entire request by who sent it, which app or model it targets, o
 
 | Section | What it does | Empty state |
 |---|---|---|
-| **Requests** | **Add rule**: Allow or Deny the whole request for a scope, with an optional severity. | Everyone without a rule is allowed. |
+| **Requests** | **Add rule**: Allow or Deny (default **Deny**) the whole request for a scope, with an optional severity. | Everyone without a rule is allowed. |
 | **Prompt text rules** | **Add phrase rule**: act on a phrase in the user prompt, system prompt or either. | No request is denied for what its prompt says. |
 
-Phrase rules run at the request stage on `chat`, `responses`, `bedrock` and `vertex`. Conditions are **contains**, **starts with**, **ends with**, **matches `*wildcard*`** and **is exactly** (case-sensitive). Matching is case-insensitive otherwise and reads the first 8,192 characters. There are no regular expressions. **Then** is **Deny request**, **Route to...** (an ordered list of targets) or **Severity only**.
+Phrase rules run at the request stage on `chat`, `responses`, `bedrock` and `vertex`.
+
+| Setting | Options | Default |
+|---|---|---|
+| Where | User prompt, System prompt, Either. Tool-call content is not part of the text. | User prompt |
+| Condition | **contains**, **starts with**, **ends with**, **matches `*wildcard*`**, **is exactly** (case-sensitive) | contains |
+| Phrase | Text or a pattern. Add more lines and match **any line** or **all lines**. | Any line |
+| Then | **Deny request**, **Route to...** (an ordered list of targets), **Severity only** | Deny request |
+
+Matching is case-insensitive (except **is exactly**) and reads the first 8,192 characters. There are no regular expressions; wildcards use `*` and `?`.
 
 Highest priority wins. When an allow and a deny share a priority, **deny wins**. An allow never bypasses identity, source IP, model or tool checks.
 
@@ -48,7 +57,9 @@ Choose which models matching traffic may call, and which models nobody in scope 
 - **No matching allowed list** means any configured model may be requested unless it is rejected.
 - The card runs before routing: it filters what may be used, then routing picks where the request goes.
 
-The model picker is grouped by provider credential and lists only enabled credentials. Leave **Allowed models** empty to add only rejections.
+The model picker is grouped by provider credential and lists only enabled credentials. Use **Search models**, **Select all** and **Clear all**, or **All** / **None** on one credential's group, to maintain long lists without ticking models one by one. Leave **Allowed models** empty to add only rejections.
+
+Both sections apply on the `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `models`, `realtime`, `rerank`, `responses`, `sdk_check`, `stt`, `text`, `tts` and `vertex` API surfaces.
 
 :::warning Everyone lists affect every app
 An allowed list scoped to **Everyone** restricts every application and user to that list. Choose **Application** or another scope to limit who it affects.

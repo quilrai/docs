@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Policy Engine overview"
 sidebar_custom_props:
   icon: ListChecks
+description: "The four Policy Engine surfaces, how policies resolve, where each card is documented, and the MCP field and effect reference."
 ---
 
 # Policy Engine overview
@@ -116,7 +117,57 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | 4 Response | Token Savings | [Token saving](../../mcp-gateway/protect/token-saving) |
 | 4 Response | Web Search Security | [Web search security](../../mcp-gateway/protect/web-search-security) |
 
-Settings without a card (cache mode, managed authentication and credential references, web search tuning, response-stage access rules) live under **Advanced policies & classifications**.
+Settings without a card (cache mode, managed authentication and credential references, web search tuning, response-stage access rules) live under **Advanced policies & classifications**. See [MCP advanced policy reference](#mcp-advanced-policy-reference).
+
+## MCP advanced policy reference
+
+An effect is legal only on the stages that own it. The compiler rejects a rule that puts an effect on the wrong stage, so a quota cannot run at `session` and a cache mode cannot run at `response`.
+
+### What you can match on
+
+| Group | Fields |
+|---|---|
+| Caller | User email, user ID, user full name, smart groups, identity provider, client IP |
+| Agent | Agent name, keyword, normalized and raw user agent, classification, matching registered agent keywords |
+| Route | Route kind (`direct`, `onemcp`, `workflow`), route name, route source |
+| MCP server | MCP ID, name, slug, transport, auth type, system MCP, tags |
+| Operation | MCP method, operation kind |
+| Tool | Tool name, type, tags, risk, and the `read_only`, `destructive`, `idempotent` and `open_world` annotations |
+| Resource and prompt | Resource URI, template URI, name, MIME type; prompt name |
+| Response | Whether the response succeeded, error code and message |
+| Data found | Detections by exact catalog name |
+
+### Effects by stage
+
+| Surface | Stage | Effects |
+|---|---|---|
+| MCP Server Access | session | `mcp.access` allow or deny |
+| Tools, Resources & Prompts | discovery, request, response | `tool.access`, `resource.access`, `prompt.access` |
+| Human Approval | request | `tool.confirmation` none or required |
+| Data & Adversarial Risks | request, response | `dlp.action`, `dlp.category_actions`, `dlp.default_action`, `dlp.detectors`, `risk.level` |
+| Usage Quotas & Concurrency | request | `quota.minute`, `quota.hour`, `quota.day`, `quota.window`, `quota.timezone`, `quota.dimensions`, `quota.id`, `concurrency.limit`, `concurrency.ttl_seconds`, `concurrency.dimensions` |
+| OneMCP Features | session | `onemcp.dynamic_tools`, `onemcp.memory` |
+| Identity & Managed Authentication | session | `claims.forward`, `token.profile`, credential references |
+| Capability Cache & Isolation | session | `cache.mode`: `shared`, `tenant`, `private` or `none` |
+| Token Savings | response | `token_saving.smart_json_compression`, `html_to_text`, `markdown_to_text`, `text_compression` |
+| Web Search Security | response | `web_search.zia_timeout_seconds`, `excluded_domains`, `url_overrides`, `result_domain_action` |
+
+Quota and concurrency dimensions are keyed by `tenant`, `user`, `agent`, `mcp`, `tool` or `group`, over a `fixed` or `rolling` window.
+
+A session rule can combine several advanced effects, for example a locked-down posture for contractors:
+
+<PolicyCard
+  name="contractor_session_posture"
+  stage="session"
+  priority={800}
+  when={[{ field: "Smart groups", op: "includes (ignoring case)", value: "Contractors" }]}
+  then={[
+    { effect: "OneMCP dynamic tools", value: "false" },
+    { effect: "OneMCP memory", value: "deny" },
+    { effect: "forward user claims", value: "false" },
+    { effect: "cache mode", value: "private" },
+  ]}
+/>
 
 ## App settings under the Policy Engine
 

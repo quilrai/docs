@@ -75,6 +75,11 @@ The AI accounts people use, and whether they are personal or corporate.
 
 Use it to find work done in personal accounts.
 
+Select up to 50 accounts and choose **Activate Agent** to have a Quilly agent
+follow up on their findings. The same action is on **All users** for selected
+people. See
+[Activate an agent](./findings-and-interactions#activate-an-agent).
+
 ## Quilly
 
 Quilly is Quilr's AI coach for end users. This tab is the feed of Quilly

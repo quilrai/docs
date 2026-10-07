@@ -244,7 +244,12 @@ If Guardian Agent records a finding and no content was blocked or anonymized, th
 
 Guardian Agent is also a card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardian tab freezes and the card applies instead. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
 
-The card has four sections: **Guardian** (master switch), **Coding helpers**, **Task adherence** and **After Guardian runs** (follow-up rules). Each control is a three-way switch (**Leave as is**, **On**, **Off**), so a narrow configuration can change one setting and inherit the rest. Scenarios it supports:
+The card has four sections: **Guardian** (master switch), **Coding helpers**, **Task adherence** and **After Guardian runs** (follow-up rules). Each control is a three-way switch (**Leave as is**, **On**, **Off**), so a narrow configuration can change one setting and inherit the rest. The card applies on the `assistants`, `bedrock`, `chat`, `copilot`, `responses`, `sdk_check` and `vertex` API surfaces.
+
+- In a new configuration, **Guardian** starts **On** when opened from the Guardian section; **Coding helpers** and **Task adherence** start at **Leave as is**. Turning Coding helpers On ticks both **Dependency security check** and **Latest version suggestions**. At least one control must be On or Off.
+- Guardian results are request-stage fields, so follow-up rules cannot see them on the response leg.
+
+Scenarios it supports:
 
 - **Coding models only.** Turn on coding helpers and strict task adherence when the Requested model matches a pattern such as `*code*`.
 - **Exempt one app or group.** Guardian **Off** on a narrower scope (People, Smart group, Application, App tag) beats **On** for Everyone. The highest-priority configuration wins per setting.

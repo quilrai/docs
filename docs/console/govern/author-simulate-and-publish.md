@@ -28,6 +28,11 @@ Each card shows what is live. Select **Configure** to edit it in place. Scope sh
 
 Every edit, from every card and every admin, collects in one shared draft. Pickers are backed by your real catalogs (people, applications, Smart Groups, detections), so you cannot enter a value that would fail validation. Anything too complex for a card stays byte-preserved under **Advanced policies** and remains editable in source view.
 
+Conditions are built from a field, an operator and a value. Operators adapt to the field: `is`, `is not`, `is any of`, `is none of`, `is set`, `is not set`, `contains`, `starts with`, `ends with`, `matches pattern`, `is inside CIDR`, `includes (ignoring case)`, `has entry` and `has count`. **Data found** takes `is any of`, `is all of` or `is none of`, with an optional occurrence threshold.
+
+- Rows join with `and` or `or`, and an any-of group nests a bracketed set of alternatives inside the sentence.
+- On a card, every **Applies to** chip must match (AND), and values accept `*` and `?` wildcards. For "A or B", add a second configuration or an any-of group.
+
 ### 3. Validate
 
 Problems are reported against the exact field that caused them, with warnings
@@ -35,7 +40,7 @@ kept separate from errors.
 
 ### 4. Simulate
 
-Use **Describe a request** (MCP: **Describe a call**) to see the winning value per control for one request. For more coverage, run up to 100 synthetic cases against your draft and read the engine's actual decision evidence: which rules matched, on which stage, and the call-level outcome.
+Use **Describe a request** (MCP: **Describe a call**) to see the winning value per control for one request. Leave **API surface** empty and the request simulates as `chat`; **Add detection** reports a data type as found, with a count per type. For more coverage, run up to 100 synthetic cases against your draft and read the engine's actual decision evidence: which rules matched, on which stage, and the call-level outcome.
 
 :::tip
 A policy validating, or appearing to be in scope, is not evidence of the
@@ -50,7 +55,7 @@ that would have blocked more than you intended.
 
 ### 6. Publish
 
-Review the draft, then publish. All pending changes publish together as the next numbered revision, shown as **Revision N** in the header. Drafts carry a concurrency guard, so a colleague's publish cannot be silently overwritten.
+Review the draft, then publish. On the LLM Gateway, publish takes a message; on the MCP Gateway it takes no message, and drafts can be renamed. All pending changes publish together as the next numbered revision, shown as **Revision N** in the header. Drafts carry a concurrency guard, so a colleague's publish cannot be silently overwritten.
 
 ### 7. Watch, then adjust
 
@@ -62,6 +67,28 @@ the last 7 or 30 days.
 **History** lists every published revision with its checksum. Rolling back
 republishes an earlier document as a new revision, so the timeline only moves
 forward and an incident stays fully auditable.
+
+## Source view and the Advanced workspace
+
+Every policy has an exact text form in QuilrQL, the policy language. The `</>` toggle switches between the sentence editor and source in both directions. You need source only for review, diffing or bulk work.
+
+```
+policy block_request_secrets priority 900 {
+  request
+  data_type ("Auth & Secrets")
+  then {
+    dlp.action = block;
+    risk.level = critical;
+  }
+}
+```
+
+**Advanced policies > Advanced workspace** opens the source-level editor for the whole document:
+
+1. **New draft from active revision** clones the live revision into a named draft.
+2. Edit with the visual builder (one policy at a time) or the full QuilrQL source. **Suggested policies** inserts ready-made rules, and **Insert from catalog** inserts exact values for users, apps and more.
+3. **Save draft** explicitly. Validation and publication run only against the saved source.
+4. **02 Analyze** runs **Diagnostics**, **Simulation** and **Historical Try** against the candidate, then publish the revision.
 
 ## Permissions
 

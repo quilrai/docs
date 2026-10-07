@@ -44,6 +44,28 @@ The repositories the library is built from. Select **Add repository** to add one
 Pinning a source to a commit means the library does not change silently when the upstream repository changes. Refresh deliberately, and review what changed.
 :::
 
+## Add a repository and install a skill
+
+1. On **Sources**, select **Add repository** and enter the **Repository URL**, for example `https://github.com/owner/repository`. Only public github.com repositories are accepted. **Add and refresh** imports the repository and pins it to an immutable commit.
+2. When the import finishes, the source shows its **Pinned commit**, **Import summary** and **License / trust**.
+3. On **Library**, find the skill and review its provenance, license, declared capabilities and security status. Select **Install**.
+4. In the **Install** dialog for the skill, set:
+   - **Audience**: **All users** (tenant-wide) or **Smart Group** (one [Smart Group](../settings-organization/smart-groups), entered by name).
+   - **Requested compression**: **Original package**, or **Text compression · pending**, which the console marks as pending.
+   - If the license is not MIT, Apache or BSD, tick **I attest that this tenant has distribution rights**.
+   - If the skill declares shell/Bash or wildcard tool preapproval, read the declarations under **Administrator capability review** and tick **I reviewed these exact declarations for this immutable version**. Quilr records the version and a digest of the declarations as review evidence. This does not grant Endpoint permissions.
+5. Select **Install for audience**. The skill appears on **Installed**.
+
+The install dialog warns when security has not been evaluated: installing records your intent, it does not certify the package as safe.
+
+To change the audience or compression later, use **Settings** on the **Installed** tab (**Configure Skill**).
+
+### Refresh and disable a source
+
+**Refresh repository** resolves the latest repository state to a new immutable commit. Existing installations stay pinned to the version they were installed from. Refreshes run only when you start them.
+
+**Disable repository** stops the source refreshing. Installed snapshots and audit history remain.
+
 ## Related
 
 - [Inventory](../observe/inventory)

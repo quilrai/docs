@@ -108,20 +108,21 @@ Confirm the returned user and organization are the ones you intended, and that n
 
 ### Credential rotation
 
-- Redeploying the Calendly MCP or the gateway does not require users to reconnect while the gateway's stored OAuth state and callback URL are kept.
+- Redeploying the Calendly MCP does not require users to reconnect. A gateway redeployment also keeps connections when its database, encryption key, public callback URL, backend record and OAuth token state are all retained.
 - Update the saved client ID and secret if you replace the Calendly application or rotate its credentials.
-- Users must reconnect after their grant is revoked, scopes change or their refresh token is lost. Calendly refresh tokens are single-use and rotate; the gateway stores the new one after each refresh.
+- Users must reconnect after their grant is revoked, scopes change, their latest refresh token is lost, the gateway connection is deleted, or the public OAuth identity changes. Calendly refresh tokens are single-use and rotate; the gateway stores the new one after each refresh.
 
 ### Troubleshooting
 
 | Error or symptom | Likely cause | Fix |
 |------------------|--------------|-----|
-| `invalid_client` before consent | Wrong client ID or secret, or a secret from another application | Re-enter the matching credentials. |
+| `invalid_client` before consent | Wrong client ID or secret, or a secret from another application | Re-enter the matching credentials. If the secret was not saved when the app was created, issue replacement credentials through the Calendly developer portal. |
 | `invalid_scope` | The MCP advertises a scope not enabled on your application | Make the enabled and advertised scopes identical, then reconnect. |
 | Redirect URI error | Callback differs in environment, scheme, path or trailing slash | Paste QuilrAI's callback exactly into Calendly and reconnect. |
 | `403` or missing-scope error | The application or the user's grant lacks a scope | Add the minimum scope and reconnect. |
 | Unexpected account connected | The browser was signed in to another Calendly account | Disconnect, sign out of that account and reconnect. |
 | No tools, or **Loading tools** | Wrong upstream URL, OAuth not completed, or the client uses Calendly's official URL | Check both URLs, finish **Connect**, refresh tools and restart the client entry. |
+| Reconnect requested after working previously | Grant revoked, refresh token invalidated, credentials rotated, gateway OAuth state lost, or callback/resource identity changed | Preserve gateway state during deployment. Otherwise fix the configuration and reconnect the affected user. |
 | A routing, booking or organization tool fails | Plan or role does not permit the operation | Check the Calendly plan, role and scope. |
 
 References: [Creating an OAuth app](https://developer.calendly.com/creating-an-oauth-app), [Scopes](https://developer.calendly.com/scopes), [Refresh token rotation](https://developer.calendly.com/refresh-token-rotation-guide).

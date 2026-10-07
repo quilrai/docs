@@ -85,6 +85,14 @@ Using BrowserStack Advanced, list five available desktop browser environments
 and five real mobile devices. Do not start a session or change anything.
 ```
 
+To verify batch reads:
+
+```text
+Using BrowserStack Advanced, retrieve details for these BrowserStack session IDs
+in one batch. Preserve the input order and report per-session errors. This is
+read-only: <session-id-1>, <session-id-2>.
+```
+
 ### Use it effectively
 
 - Prefer batch and bulk tools for multiple builds, sessions, cases, runs or results.

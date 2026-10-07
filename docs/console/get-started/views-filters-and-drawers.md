@@ -14,7 +14,8 @@ and the other list pages.
 ## Period and compare
 
 The period selector at the top right of a page (for example **Last 7 days**
-or **Last 30 days**) scopes every count, chart and list on that page. Some
+or **Last 30 days**) scopes every count, chart and list on that page. Ranges
+run from 24 hours to 365 days, or pick a custom range. Some
 pages, such as [Costs & Savings](../observe/costs-and-savings), also offer
 **Compare: previous period** so that changes are shown against the period
 before.

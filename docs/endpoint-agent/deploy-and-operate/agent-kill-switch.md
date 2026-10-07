@@ -79,6 +79,18 @@ sudo launchctl bootstrap system "/Library/LaunchDaemons/com.sentinel.agent.plist
 
 The agent rolls back automatically if a new version fails its health check after an update (see [Requirements](../get-started/requirements#security-and-updates)). If a device still misbehaves after an update, disable it as above and contact your QuilrAI representative for a known-good package. You can check the installed version on a Mac with `cat /usr/local/sentinel/VERSION`, or in the **Agent version** column of **Users › Endpoint deployment**.
 
+If the agent auto-rolled back after a failed update and the device is still having issues, IT staff can clear the stuck rollback on a Mac so the agent retries:
+
+```bash
+# Check which version was rejected
+cat ~/.sentinel/.quarantined_version
+
+# Remove the quarantine file so the agent can retry
+rm ~/.sentinel/.quarantined_version
+```
+
+Then restart the agent with the `launchctl bootout` and `bootstrap` commands in [Stop immediately on a Mac](#stop-immediately-on-a-mac), and confirm the active version with `cat /usr/local/sentinel/VERSION`.
+
 ## What happens on the device
 
 | Event | Result |

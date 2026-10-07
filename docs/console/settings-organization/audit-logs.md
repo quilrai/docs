@@ -29,6 +29,18 @@ The audit log records who changed or accessed what in the console, and when. Use
 | Outcome | Whether it succeeded |
 | Target | What was changed or accessed |
 
+## What gets recorded
+
+Besides configuration changes and sign-ins, the log records sensitive reads in the console:
+
+| Action | Recorded when |
+|---|---|
+| **Requested sensitive data reveal** | Someone uses **Reveal values** in a [Findings & Interactions](../observe/findings-and-interactions) drawer |
+| **Requested conversation copy** | Someone copies conversation content |
+| **Opened** a record | Someone opens a record's detail panel. Reveals and copies appear as separate actions |
+
+Exports of agent output, dashboards and red-team reports, and copies of LLM Gateway secrets, are recorded too. Filter by **Action** to review who revealed what, and when.
+
 ## Related
 
 - [Export Center](../settings-data/export-center) - the Audit trail quick export

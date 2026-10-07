@@ -165,7 +165,11 @@ Choose **View my local tools** after approval. Self service then shows your link
 It confirms **enrollment**, not that your AI app is currently running.
 :::
 
-If no tools are permitted, ask your administrator to grant access, then use **Refresh access**. Do not sign in again.
+If no tools are permitted, the page says "No local tools are permitted for this account yet". Ask your administrator to grant access, then use **Refresh access**. Do not sign in again; your connection is saved.
+
+### Manage MCP access (administrators)
+
+Administrators see a **Manage MCP access** button next to **Refresh access**. It opens the MCP Gateway settings, where an administrator enables local tools and checks the [Group and user rules](../protect/group-and-user-rules) that decide who may use them. End users cannot change their own MCP access from Self service; once an administrator grants it, **Refresh access** lists the tools. To remove a computer's access, [disconnect](#disconnecting) it. See [Admin setup](./admin-setup) for the full administrator flow.
 
 ## 5. Use a tool
 

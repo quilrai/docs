@@ -32,6 +32,13 @@ The network monitor installs with the agent. See [Requirements](../get-started/r
 | **Explicit proxy** | Apps send HTTP to `:8080` and HTTPS to `:8443` (for example via `HTTP_PROXY` / `HTTPS_PROXY`). | Managed browsers and targeted monitoring. |
 | **Transparent redirect** | A packet redirector captures traffic at the OS network layer: Network Extension on macOS, WinDivert on Windows. No app configuration needed. | Full endpoint coverage, including unmanaged apps. |
 
+To point an app at the explicit proxy, set the proxy variables in its environment:
+
+```bash
+export HTTPS_PROXY=http://localhost:8443
+export HTTP_PROXY=http://localhost:8080
+```
+
 Transparent redirection is turned on from the QuilrAI dashboard; configuration reaches the agent in real time.
 
 ## DLP settings

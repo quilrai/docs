@@ -68,6 +68,10 @@ The payload identifies the user and key, and the random suffix lets one person h
 
 Five capabilities are granted independently: **Viewer access**, **Settings request access**, **Direct settings update**, **API key visibility** and **All-logs visibility**. Self-service is denied by default. See [Grant capabilities](./admin-guide#grant-capabilities) for what each one does and how to scope it.
 
+## Local MCP tools
+
+The Self Service portal also has **Your local tools**, where people connect their AI app to permitted local MCP tools. See [Connect your AI app](../../mcp-gateway/local-mcp/connect-your-ai-app). When no tools are permitted, administrators get a **Manage MCP access** shortcut to the MCP Gateway settings; see [Manage MCP access](../../mcp-gateway/local-mcp/connect-your-ai-app#manage-mcp-access-administrators).
+
 ## Limitations
 
 - **Revoking access does not revoke issued keys.** Removing a user hides the app and stops them creating new keys, but keys they already created or copied keep working. Revoke named keys individually, or rotate the shared app key.
