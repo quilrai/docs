@@ -47,11 +47,11 @@ Create an app, configure your SDK to use the gateway, and send a first request.
 You need one of:
 
 - Credentials for a provider (for example an OpenAI API key), or
-- A platform provider already set up in **Settings > Models** (V2 console only, see [Providers and Models](../apps-and-providers/providers-and-models)). You can also add one from inside Create App.
+- A platform provider already set up in **Settings > AI Gateway > Models** (V2 console only, see [Providers and Models](../apps-and-providers/providers-and-models)). You can also add one from inside Create App.
 
 ## 1. Create the app
 
-Go to **Settings > LLM Gateway** and click **Create App**. The wizard has two steps.
+Go to **Settings > AI Gateway > LLM Gateway** and click **Create App**. The wizard has two steps.
 
 ### Step 1: Application and providers
 
@@ -95,7 +95,7 @@ The **Platform providers** option exists only in the V2 console, and it is the d
 <!-- TODO-SCREENSHOT: retake, shows old Discover models / Validate first model / Add provider controls -->
 
 :::tip Use QuilrAI-provided models
-To connect an app to [QuilrAI-provided models](../apps-and-providers/providers-and-models), add a **Custom endpoint** provider with the **Chat completions** API (`general`), base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > Models > API keys**.
+To connect an app to [QuilrAI-provided models](../apps-and-providers/providers-and-models), add a **Custom endpoint** provider with the **Chat completions** API (`general`), base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > AI Gateway > Models > API keys**.
 :::
 
 Click **Create app**. There is no guardrail step: every new app starts with these defaults, which you can change later in its [Security Guardrails](../protect/security-guardrails) section.

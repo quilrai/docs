@@ -5,15 +5,15 @@ sidebar_custom_props:
   icon: GitBranch
 ---
 
-# Switching from Settings
+# Switching from classic settings
 
-How a target moves from its classic settings screens to the Policy Engine.
+How a gateway moves from its classic per-app settings screens to the [Policy Engine](./policy-engine).
 
 ## The two authorities
 
-A target is governed **either** by its classic per-application settings **or**
-by the Policy Engine, never by both. Each target has its own switch, so turning
-on the LLM Gateway engine changes nothing for the MCP Gateway.
+The LLM Gateway and the MCP Gateway are each governed **either** by their classic per-application settings **or** by the Policy Engine, never by both. Each has its own switch, so turning on the LLM Gateway engine changes nothing for the MCP Gateway. When a gateway is on the engine, its Policy Engine tab shows **ENGINE ON**.
+
+The Endpoint Agent tab runs in **Basic policies** mode and offers its own **Convert to Policy Engine** button.
 
 ## The conversion review
 
@@ -68,13 +68,13 @@ displayed.
 
 Attention items sort to the top. Activation needs an acknowledgement that the
 settings screens will freeze, a second one when attention items exist, and a
-final confirmation naming the target.
+final confirmation naming the gateway.
 
 Confirming does three things at once:
 
 1. Snapshots your complete legacy configuration.
 2. Writes the converted document as **revision 1**.
-3. Makes the engine authoritative for that target.
+3. Makes the engine authoritative for that gateway.
 
 If your gateway build predates the comparison, the console reports
 `detailed comparison unavailable` and will not offer activation. It never asks
@@ -85,12 +85,12 @@ you to switch blind.
 Policy-owned settings freeze, and a governed change attempted there is
 rejected.
 
-| Target | Frozen once the engine is on | Still managed in Settings |
+| Gateway | Frozen once the engine is on | Still managed in Settings |
 |---|---|---|
 | LLM Gateway | Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving, Routing, Identity Aware (identity and conversation ID requirements), Prompt Store (store-prompt enforcement) | Applications, keys, providers and credentials, custom detections, alerts, self-service, audit |
 | MCP Gateway | Tools, Guardrails, Token saving, Group & User Rules per server | Server register, connections, OneMCP operation, API tokens |
 
-The seven LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card.
+The LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card.
 
 :::warning Disabling is a rollback, not an undo
 Disabling the engine restores the frozen snapshot exactly as it was at

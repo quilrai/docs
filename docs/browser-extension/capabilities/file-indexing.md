@@ -5,86 +5,57 @@ sidebar_custom_props:
   icon: Rocket
 ---
 
-# Quick Start
+# File indexing
 
-Get up and running with File Indexing in 4 steps.
+File indexing keeps a local index of files on the endpoint so the DLP engine can quickly resolve the real file behind an upload or download and scan it. The QuilrAI agent builds the index from paths you configure, keeps it current with OS file events, and re-scans on a schedule.
 
 <StepFlow steps={[
-  {
-    label: "Configure Paths",
-    items: [
-      "Root: /Users/alice/Documents",
-      "Ignore: node_modules, .git",
-      "Interval: 60 min",
-    ],
-  },
-  {
-    label: "Initial Scan",
-    items: [
-      "Trigger: config push",
-      "Walker: parallel scan",
-      "Index: built ✓",
-    ],
-  },
-  {
-    label: "Real-time Watch",
-    items: [
-      "Watcher: OS-native events",
-      "Batch window: 300 ms",
-      "Updates: incremental ✓",
-    ],
-  },
-  {
-    label: "Monitor Index",
-    items: [
-      "Files indexed: 24,310",
-      "Status: Idle",
-      "Last scan: 2 min ago",
-    ],
-  },
+  { label: "Configure", items: ["Root paths", "Ignore patterns", "Scan interval"] },
+  { label: "Scan", items: ["Parallel walker", "Low OS priority", "Safety limits"] },
+  { label: "Watch", items: ["OS-native file events", "300 ms batches", "Incremental updates"] },
+  { label: "Serve", items: ["Index lookup", "Disk verification", "DLP file resolution"] },
 ]} />
 
-## 1. Configure Index Paths
+## Settings
 
-Go to **File Indexing → Settings** in the dashboard and set the paths and rules for the endpoint.
+File indexing settings are configured from the QuilrAI dashboard and pushed to the agent. Each update triggers an immediate re-scan.
 
 | Setting | Description |
-|---------|-------------|
+| --- | --- |
 | **Root paths** | Directories to index. Supports macOS and Windows paths. |
-| **Ignore patterns** | gitignore-style globs for paths to exclude (e.g. `**/node_modules/**`, `**/.git/**`, `*.tmp`). |
-| **Scan interval** | How often a full re-scan runs. Default is 60 minutes. |
-| **Max files** | Ceiling for total indexed files. Safety limits apply automatically when approached. |
+| **Ignore patterns** | gitignore-style globs to exclude, for example `**/node_modules/**`, `**/.git/**`, `*.tmp`. |
+| **Scan interval** | How often a full re-scan runs. Default: 60 minutes. |
+| **Max files** | Ceiling on total indexed files. Safety limits apply as the index approaches it. |
 
-Network shares, UNC paths, and macOS disk images are excluded automatically — no configuration needed.
+Network shares, Windows UNC paths, and macOS mounted disk images are excluded automatically.
 
-## 2. Trigger the Initial Scan
+## When scans run
 
-A scan is triggered automatically when:
-- A configuration update is pushed from the dashboard
-- The Quilr endpoint agent starts or restarts
+| Trigger | When |
+| --- | --- |
+| Configuration update | Immediately on every settings change. |
+| Agent start | On every start or restart of the agent. |
+| Scheduled scan | Every scan interval (default 60 minutes), to catch changes the watcher missed. |
 
-The scan runs at reduced OS priority so it does not affect endpoint performance. Navigate to **File Index Status** to track progress.
+Scans run at reduced OS priority (background priority on macOS, below-normal thread priority on Windows) so they do not slow the endpoint.
 
-## 3. Enable Real-time Watching
+## How it works
 
-The file watcher runs continuously alongside scheduled scans, keeping the index current between full sweeps.
+| Stage | What happens |
+| --- | --- |
+| **Mount policy** | Each root path is checked first; network shares and disk images are skipped. |
+| **Full scan** | A parallel directory walker traverses the root paths and writes results to a local index in batches. |
+| **Safety guards** | Near the file ceiling, a soft limit reduces scan depth. After a scan, a hard limit prunes the deepest paths. A 30-minute timeout prevents data loss from a partial scan. |
+| **Real-time watcher** | OS file events (FSEvents on macOS, ReadDirectoryChangesW on Windows) are collected in 300 ms windows and applied to the index in one atomic update. It starts automatically; no configuration is needed. |
+| **File search** | For DLP, the agent looks up the filename in the index, then verifies size and modification time on disk. If the index has no match, it falls back to the platform's own search. |
 
-| Platform | OS API |
-|----------|--------|
-| **macOS** | FSEvents |
-| **Windows** | ReadDirectoryChangesW |
+## Monitor index health
 
-Filesystem changes are collected in 300 ms windows and written to the index in a single atomic operation. No additional configuration is required — the watcher starts automatically with the indexing service.
+Index state is reported back to the dashboard:
 
-## 4. Monitor Index Health
+- **Scan status**: Idle, Running, or Failed, with the last run time and duration.
+- **File count**: total indexed files and any paths pruned by safety limits.
+- **Watcher activity**: create, modify, and delete event counts.
+- **Search hit rate**: how often file resolution is served from the index versus falling back to disk.
 
-Check **File Index Status** in the dashboard to confirm the index is healthy and up to date.
-
-- **Scan status**: Idle / Running / Failed with last-run timestamp
-- **File count**: total indexed paths and any pruned by safety limits
-- **Watcher events**: create, modify, and delete counts per hour
-- **Search hit rate**: how often DLP file resolution hits the index vs. falls back to disk
-
----
-
-**Next step:** See the [Architecture](./file-indexing) for full scan, watch, and search pipeline details.
+To pause file indexing together with the agent's other services, use the [agent kill switch](./agent-kill-switch).

@@ -40,5 +40,5 @@ People who already connected keep their previous permissions until they reconnec
 ## Related
 
 - [OAuth Connect](./oauth-connect) - connect OAuth servers.
-- [Tools management](../protect/tool-visibility) - turn individual tools on or off.
+- [Tool visibility](../protect/tool-visibility) - turn individual tools on or off.
 - [Access control](../protect/server-access) - limit who can use the server.

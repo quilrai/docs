@@ -127,7 +127,7 @@ Click **Create**. Salesforce can take a few minutes to roll out a new External C
 
 ### 6. Add Salesforce Hosted MCP To QuilrAI
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP**.
+1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the server URL you copied in step 1, for example `https://api.salesforce.com/platform/mcp/v1/platform/sobject-reads`.
 3. Set **Auth Mode** to **Auto-detect**.
 4. Paste the **Consumer Key** as the **Client ID**. Leave **Client Secret** empty unless you kept a secret requirement on.
@@ -192,7 +192,7 @@ Sign in with a sandbox user for your first install and test agent workflows ther
 
 Before you roll Cirra AI out to agents, use QuilrAI controls to narrow what it can do:
 
-- [Tools Management](../protect/tool-visibility) - turn off tools the agents do not need, such as user creation or permission-set assignment.
+- [Tool visibility](../protect/tool-visibility) - turn off tools the agents do not need, such as user creation or permission-set assignment.
 - [Access Control](../protect/server-access) - limit which users and agents can reach this MCP.
 - [Security Guardrails](../protect/security-guardrails) - add checks on write and metadata operations.
 

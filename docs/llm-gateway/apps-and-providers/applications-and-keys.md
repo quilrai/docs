@@ -11,7 +11,7 @@ An **application** holds a gateway configuration. **Quilr keys** are the credent
 
 ## Applications
 
-- **Create** an app with **Create App** on **Settings > LLM Gateway**. See [Quick Start](../get-started/quick-start).
+- **Create** an app with **Create App** on **Settings > AI Gateway > LLM Gateway**. See [Quick Start](../get-started/quick-start).
 - **Name**: 4 to 29 characters.
 - **Status**: each app is **Active**, **Inactive** or **Expired**. Click a status on the Applications summary card to filter by it.
 - **Tags**: click **+ Tag** on an app card. The app search box matches tags, so you can group apps by team, environment or cost center.
@@ -59,7 +59,7 @@ Log keys are read-only. They cannot send model requests.
 | Key | Reads | Where to copy it |
 |-----|-------|------------------|
 | **Log export key** | One app's logs | API Integration, **Copy logs key** on the app card, or the last step of Create App |
-| **All-apps log key** | Logs of every app in the tenant | **...** menu on **Settings > LLM Gateway** > **Copy all-apps log key**, or the last step of Create App |
+| **All-apps log key** | Logs of every app in the tenant | **...** menu on **Settings > AI Gateway > LLM Gateway** > **Copy all-apps log key**, or the last step of Create App |
 
 ## Configuration history and rollback
 
@@ -73,7 +73,7 @@ Rolling back restores app settings only. It does not change published [Policy En
 
 ## Audit tab
 
-The workspace **Audit** tab lists configuration events with their application, operation (such as `create` or `update_config`), actor, status and time. The **Audit log** button on **Settings > LLM Gateway** opens it for all apps.
+The workspace **Audit** tab lists configuration events with their application, operation (such as `create` or `update_config`), actor, status and time. The **Audit log** button on **Settings > AI Gateway > LLM Gateway** opens it for all apps.
 
 ## Automate it
 

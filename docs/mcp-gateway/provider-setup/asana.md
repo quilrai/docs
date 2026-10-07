@@ -29,7 +29,7 @@ The V1 beta server (`https://mcp.asana.com/sse`) was deprecated and scheduled to
 
 - An Asana account with access to the workspace you want to connect.
 - Permission to create an app in the Asana developer console for that account.
-- The QuilrAI callback URL. Copy it from the MCP setup screen when you click **Add MCP**; production is normally `https://mcpgateway.quilrai.com/oauth/callback`.
+- The QuilrAI callback URL. Copy it from the MCP setup screen when you click **Add MCP server**; production is normally `https://mcpgateway.quilrai.com/oauth/callback`.
 
 ## Create The Asana MCP App
 
@@ -62,7 +62,7 @@ In the app's left sidebar, click **OAuth** and add the QuilrAI callback URL exac
 
 ## Add Asana MCP To QuilrAI
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP**.
+1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the Asana MCP endpoint URL: `https://mcp.asana.com/v2/mcp`
 3. Set **Auth Mode** to **Auto-detect**.
 4. Paste the **Client ID** and **Client Secret** from the Asana app.
@@ -79,7 +79,7 @@ The installed MCP card shows the QuilrAI gateway URL your agents point at, the o
 - **Use the MCP app type.** Tokens from a standard Asana OAuth app do not work against the MCP server.
 - **One app per environment.** Create a separate Asana app for each QuilrAI tenant or environment whose callback URL differs, so rotation and testing stay isolated.
 - **Access follows the authorizing user.** Each user authorizes individually, and tools operate with that user's own Asana permissions.
-- **Restrict write tools before rollout.** The MCP can create and update tasks and projects. Use [Tools Management](../protect/tool-visibility), [Access Control](../protect/server-access), and [Security Guardrails](../protect/security-guardrails) to limit which operations agents can reach.
+- **Restrict write tools before rollout.** The MCP can create and update tasks and projects. Use [Tool visibility](../protect/tool-visibility), [Access Control](../protect/server-access), and [Security Guardrails](../protect/security-guardrails) to limit which operations agents can reach.
 
 ## Troubleshooting
 

@@ -5,11 +5,20 @@ sidebar_custom_props:
   icon: ShieldCheck
 ---
 
-# Security Guardrails
+# Security guardrails
 
-Detect sensitive data and adversarial input in prompts and responses, then monitor, redact or block it.
+Detect sensitive data and adversarial input in prompts and responses, then monitor, redact or block it. Set the basics per app in the app's settings; use the Policy Engine's **Data & Adversarial Risks** card when you need rules that depend on who is calling, which model, or which part of the request.
 
-Open **Settings > LLM Gateway**, choose an app, then **Settings > Security Guardrails** (under **Protection**). The section has six parts:
+## Turn it on for an app
+
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
+  action="Guardrails"
+/>
+
+The Guardrails tab has six parts:
 
 | Part | What it does |
 |------|--------------|
@@ -20,13 +29,9 @@ Open **Settings > LLM Gateway**, choose an app, then **Settings > Security Guard
 | [Hallucination check](#hallucination-check) | Flags responses that score as likely fabricated. |
 | [Source IP restrictions](#source-ip-restrictions) | Accepts calls only from listed networks. |
 
-:::note Policy Engine
-When the tenant-wide Policy Engine is on, guardrail policies decide what happens on live requests, and this section shows app settings that are not enforced. See [App settings under the Policy Engine](../../console/govern/policy-engine#app-settings-under-the-policy-engine).
-:::
+### Defaults for a new app
 
-## Defaults for a new app
-
-**Create App** has no guardrail step. Every new app starts with these guardrails, which you can then change in this section:
+**Create App** has no guardrail step. Every new app starts with these guardrails:
 
 | Setting | Default |
 |---------|---------|
@@ -35,12 +40,9 @@ When the tenant-wide Policy Engine is on, guardrail policies decide what happens
 | Adversarial risks | 12 of 13 on. **Malicious scripts** is off (opt-in). |
 | Data risk scope | Request and response |
 | Precision detections, hallucination check, source IP restrictions | Off |
-| Guardian Agent (dependency security check, latest-version suggestions, task adherence) | Off. See [Guardian Agent](./guardian-agent). |
+| Guardian Agent | Off. See [Guardian Agent](./guardian-agent). |
 
-![Create App step 2 with the data risk and adversarial risk toggles, Malicious scripts switched off, and the Guardian Agent toggles below](/img/llm-gateway/ui/create-app-step2-guardrail-categories.jpg)
-<!-- TODO-SCREENSHOT: retake or replace, shows the old Create App guardrails step, which no longer exists -->
-
-Because the default action is Monitor, a new app records detections without changing traffic. Review findings in the app's **Activity > Findings** view before you change any category to Redact or Block.
+Because the default action is Monitor, a new app records detections without changing traffic. Review findings before you change any category to Redact or Block.
 
 ## Actions
 
@@ -157,7 +159,7 @@ Flags responses the gateway scores as likely fabricated, using a fixed threshold
 | Action | Block, Monitor | Monitor |
 | Risk level | Low, Medium, High | Medium |
 
-It runs on non-streaming responses only, because a streamed response cannot be blocked once it has started. To set a different threshold per app or group, use the Policy Engine's **Hallucination Protection** card.
+It runs on non-streaming responses only, because a streamed response cannot be blocked once it has started. To set a different threshold per app or group, use the Policy Engine's [Hallucination protection](./hallucination-protection) card.
 
 ## Source IP restrictions
 
@@ -186,8 +188,33 @@ Accept gateway calls only from listed networks. Turn on **Enabled** and enter **
 - **Copilot Studio** cannot accept rewritten tool input, so Redact and Partial redact become Block. See [Copilot Studio](../../integrations/pull-ai-usage-and-inventory/microsoft-copilot-studio).
 - **Realtime** sessions log the handshake, byte counters and usage, but do not run DLP. Use [SDK Mode](../apps-and-providers/sdk-mode) to scan Realtime transcripts out of band.
 
+## Going further with the Policy Engine
+
+The same controls live on the **Data & Adversarial Risks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardrails tab freezes and the card decides what happens on live requests. See [Switching from classic settings](../../console/govern/switching-from-classic-settings). Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+
+A detection rule picks data types (a whole category, single types or [custom detections](./custom-detections)), a findings threshold (**at least** N), an action (Monitor, Partial redact, Redact, Block), a stage (Request, Response, Both) and an optional severity that is reported but never changes the action. Scenarios the card supports that app settings cannot express:
+
+- **Block secrets for everyone, monitor PII for one team.** Scope rules to Everyone, People, a Smart group, an Application or App tag. Narrower scopes take precedence, and the highest priority wins per data type.
+- **Different rules per model or provider.** Scope by Requested model, Provider, API surface or Environment, for example redact PHI only on requests to one provider.
+- **Thresholds.** Act only when a request contains at least N findings of a type, such as 5 or more email addresses.
+- **Tool-call arguments.** Turn on **Scan tool-call arguments** to evaluate each tool call's arguments on their own (Monitor and Block only).
+- **Language blocking.** Monitor or block passages outside a list of allowed languages (streamed responses are skipped).
+
+<PolicyCard
+  name="block_request_secrets"
+  stage="request"
+  priority={900}
+  when={[{ field: "data found", op: "is any of", values: ["Auth & Secrets"] }]}
+  then={[
+    { effect: "Sensitive data action", value: "block" },
+    { effect: "Risk level", value: "critical" },
+  ]}
+/>
+
+Hallucination scoring and source IP lists move to their own cards: [Hallucination protection](./hallucination-protection) and [Identity and network trust](./identity-and-network-trust).
+
 ## Related
 
-- [Custom Detections](./custom-detections) - your own regex and intent detections.
+- [Custom detections](./custom-detections) - your own regex and intent detections.
 - [Guardian Agent](./guardian-agent) - dependency checks and task adherence.
-- [LLM Gateway Policies](../../console/govern/policy-engine) - the same controls as tenant-wide policies.
+- [Policy Engine overview](../../console/govern/policy-engine) - how cards, scopes and priorities work.

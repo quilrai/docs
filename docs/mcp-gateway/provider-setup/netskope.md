@@ -102,7 +102,7 @@ Multi-region tenants are the common mistake here. A four-level hostname such as 
 
 ### 5. Add Netskope MCP to QuilrAI
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP**.
+1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the full MCP URL, including the tenant identifier and access code.
 3. Supply the Netskope REST API v2 token as the bearer credential. Paste only the token value, with no `Bearer` prefix, quotes, or surrounding spaces.
 4. Save, then let QuilrAI fetch the tool list.

@@ -54,7 +54,7 @@ client.chat.completions.create(
         ],
       },
     ],
-    footer: "Logging  ·  Cost Tracking  ·  Analytics  ·  Red Team Testing",
+    footer: "Logging  ·  Cost Tracking  ·  Analytics",
   }}
   destination={{
     label: "LLM Providers",

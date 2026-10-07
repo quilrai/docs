@@ -54,7 +54,7 @@ All query parameters are optional.
 | `end_time` | ISO 8601 upper bound for exported logs. Naive timestamps are treated as UTC. |
 | `cursor` | Opaque cursor from the previous `checkpoint.next_cursor`. When provided, it wins over `start_time`. |
 | `limit` | Maximum request rows to export in this response. Default `1000`. Values above `5000` are silently clamped to `5000`. Values below `1` or non-integer values return `400`. |
-| `view` | Response shape. `logs` (default) streams per-request NDJSON events. `metrics` returns one aggregated JSON document — see [Metrics View](#metrics-view). Any other value returns `400`. |
+| `view` | Response shape. `logs` (default) streams per-request NDJSON events. `metrics` returns one aggregated JSON document. See [Metrics View](#metrics-view). Any other value returns `400`. |
 
 Logs are available for a maximum of 15 days. Choose `start_time` within that retention window when backfilling. Requests with an effective `start_time`, `end_time`, or cursor timestamp before the retention window fail with `400`.
 

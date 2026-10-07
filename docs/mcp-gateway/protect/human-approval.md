@@ -5,13 +5,20 @@ sidebar_custom_props:
   icon: Handshake
 ---
 
-# Tool Confirmation
+# Human approval
 
 Require user approval for tools that modify data or systems. With confirmation on, the gateway pauses each call to the tool and asks the user to approve it. The call reaches the MCP server only after the user clicks **Approve**.
 
-## Turn it on
+## Configure it on the server
 
-On the server card, under **Configure**, click **Tools**. Each tool has two switches.
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
+  action="Tools"
+/>
+
+Each tool has two switches.
 
 ![Tools section with the Require confirmation and Require justification switches beside each tool](/img/mcp-gateway/ui/settings-tools.png)
 
@@ -26,13 +33,9 @@ On the server card, under **Configure**, click **Tools**. Each tool has two swit
 
 Click **Save settings** to apply. Good candidates are tools in the **Write tools** and **Destructive tools** groups, such as sending messages, deleting records or merging code.
 
-:::note Policy Engine
-When the Policy Engine is on, the tool confirmation effect in a published policy decides which calls need approval, and the switches here are read-only. `required` asks for approval with an optional justification; `required_with_justification` also makes the justification mandatory. See [Requiring a human](../../console/govern/policy-engine#requiring-a-human).
-:::
-
 ## Different rules for groups and users
 
-Confirmation can differ by smart group or user. In [Group & User Rules](./group-and-user-rules), click **Add rule**, choose **A smart group** or **A single user**, and under **Tool overrides** set **Confirmation** and **Justification** for each tool.
+Confirmation can differ by smart group or user. In [Group and user rules](./group-and-user-rules), click **Add rule**, choose **A smart group** or **A single user**, and under **Tool overrides** set **Confirmation** and **Justification** for each tool.
 
 | Value | Meaning |
 |-------|---------|
@@ -76,8 +79,28 @@ A request that was already approved or denied elsewhere shows **Already decided*
 
 Open **Overall analytics > Activity > Tool calls**, or **Inspect > Logs** on the server card, and click a call. The **Tool call detail** drawer shows the arguments and the result. The approval decision and the justification are recorded in the call's **Metadata**.
 
+## Going further with the Policy Engine
+
+When the Policy Engine is on for the MCP Gateway, the **Human Approval** card (stage 3, Request) in **Govern > Policy Engine > MCP Gateway** decides which calls need approval, and the switches in **Tools** are read-only. Its tool confirmation effect takes `required`, which asks for approval with an optional justification, or `required_with_justification`, which also makes the justification mandatory.
+
+Scenarios the card supports that per-tool switches cannot:
+
+- **Approve by tool type, on every server.** Match tool **tags** (for example `write`) or the `destructive` annotation, so new tools that fit the pattern need approval as soon as they appear.
+- **Approve for some people or agents only.** Combine the tool condition with **smart groups**, **user email** or **agent name**, for example require approval from contractors but not from the team that owns the server.
+- **Approve on one route.** Require approval only on direct connections or only through OneMCP, using **route kind**.
+
+<PolicyCard
+  name="confirm_write_tools"
+  stage="request"
+  priority={700}
+  when={[{ field: "Tool tags", op: "has entry", value: "write" }]}
+  then={[{ effect: "tool confirmation", value: "required" }]}
+/>
+
+Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+
 ## Related
 
-- [Tools management](./tool-visibility) - enable and disable tools.
+- [Tool visibility](./tool-visibility) - enable and disable tools.
 - [Security guardrails](./security-guardrails) - block or redact sensitive data in calls.
-- [MCP Gateway policies](../../console/govern/policy-engine) - confirmation as a policy.
+- [Policy Engine overview](../../console/govern/policy-engine) - how cards, stages and priorities work.

@@ -6,9 +6,9 @@ sidebar_custom_props:
   icon: Plug
 ---
 
-# TrueFoundry Integration
+# TrueFoundry
 
-Use QuilrAI as a custom guardrail in TrueFoundry AI Gateway to scan, redact, or block LLM inputs and outputs. Your application continues calling TrueFoundry. TrueFoundry calls QuilrAI for the configured checks and applies the result before forwarding the input or returning the output.
+Use QuilrAI as a custom guardrail in TrueFoundry AI Gateway to scan, redact, or block LLM inputs and outputs. This integration is set up with an LLM Gateway app and in TrueFoundry, not from **Settings › Integrations**. Use QuilrAI logs to inspect the findings. Your application continues calling TrueFoundry. TrueFoundry calls QuilrAI for the configured checks and applies the result before forwarding the input or returning the output.
 
 The integration uses a dedicated [SDK Mode](../../llm-gateway/apps-and-providers/sdk-mode) endpoint:
 

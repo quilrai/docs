@@ -8,7 +8,7 @@ sidebar_custom_props:
 # LLM Intelligence Assessment
 
 <div className="rt-hero">
-  <span className="rt-kicker">LLM Gateway</span>
+  <span className="rt-kicker">Red Teaming</span>
   <strong>Measure what your model actually does when it is attacked.</strong>
   <p>LLM Intelligence Assessment runs a fixed, version-controlled corpus of adversarial and capability tests against the model behind any gateway app. Every case is executed and graded automatically, and the run produces a scored report broken down by test suite, risk area, and compliance framework.</p>
   <div className="rt-stats">
@@ -613,7 +613,7 @@ A run moves through pending, processing, and then completed or failed.
 
 Any adaptation the runner had to make to fit the provider is recorded on the case, so a difference in results is never unexplained.
 
-Each of those numbers answers a different question, and several of them are easy to misread on their own. [Reading the Report](../get-started/reading-a-report) walks through what the headline pass rate actually counts, how to triage Guardian residual failures, and what makes two runs comparable.
+Each of those numbers answers a different question, and several of them are easy to misread on their own. [Reading a report](../get-started/reading-a-report#llm-intelligence-assessment-report) walks through what the headline pass rate actually counts, how to triage Guardian residual failures, and what makes two runs comparable.
 
 ## Reliability
 

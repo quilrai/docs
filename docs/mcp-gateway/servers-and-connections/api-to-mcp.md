@@ -146,11 +146,11 @@ The API MCP appears under the **API** tab of the server list. In the server's se
 | Section | What you do there |
 |---------|-------------------|
 | **API** | Review the base URL, timeout, spec, access rules and the tools each operation became. |
-| **Tools** | Turn tools on or off and require confirmation. See [Tools management](../protect/tool-visibility). |
+| **Tools** | Turn tools on or off and require confirmation. See [Tool visibility](../protect/tool-visibility). |
 | **General > Upstream authentication** | Change the API key. |
 
 ## Related
 
-- [Tool confirmation](../protect/human-approval) - ask the user before a write call runs.
+- [Human approval](../protect/human-approval) - ask the user before a write call runs.
 - [Security guardrails](../protect/security-guardrails) - scan tool inputs and API responses.
 - [OneMCP](../get-started/onemcp) - one endpoint for every MCP, including APIs.

@@ -78,7 +78,7 @@ Every MCP tool call flows through these stages in order. Each stage is independe
 |-------|-------------|---------|
 | **Bearer Token / OAuth** | Authenticates the agent via API token, gateway OAuth proxy token, OneMCP proxy token, or OAuth passthrough token. | [API Tokens →](../servers-and-connections/api-tokens) · [OAuth Connect →](../servers-and-connections/oauth-connect) |
 | **Agent Access** | Controls which agents can access each MCP server. Matches User-Agent headers. | [Access Control →](../protect/server-access) · [Agents Configuration →](../servers-and-connections/allowed-agents) |
-| **Tool Controls** | Categorizes tools by risk level and lets admins enable or disable each tool individually. | [Tools Management →](../protect/tool-visibility) |
+| **Tool Controls** | Categorizes tools by risk level and lets admins enable or disable each tool individually. | [Tool visibility →](../protect/tool-visibility) |
 | **Security Guardrails** | Detects PII, PHI, PCI, and financial data. Catches prompt injection, jailbreak, and social engineering. | [Security Guardrails →](../protect/security-guardrails) |
 | **Web Search Policy** | Enforces enterprise domain filtering rules on web search tool calls via connected security gateways. | [Web Search Policy →](../protect/web-search-security) |
 | **Token Saving** | Optimizes MCP text content blocks - JSON to TOON, HTML/Markdown to plain text, and prose compression. | [Token Saving →](../protect/token-saving) |

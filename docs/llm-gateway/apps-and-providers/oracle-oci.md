@@ -6,7 +6,7 @@ sidebar_custom_props:
   icon: KeyRound
 ---
 
-# Oracle OCI - Gateway Sign-In Setup
+# Oracle OCI
 
 Connect OCI Generative AI to QuilrAI without giving QuilrAI an Oracle API key or a customer-owned signing key. Your OCI administrator creates a cross-tenancy policy that admits QuilrAI's gateway IAM group, and QuilrAI signs each request using its own OCI identity.
 

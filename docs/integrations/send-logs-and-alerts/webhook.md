@@ -9,6 +9,10 @@ sidebar_custom_props:
 
 Forwards Extension findings and audit log events to your webhook endpoint.
 
+:::note
+These setup steps and the payloads below describe the webhook on the **Integrations** page of [Console V1](../../console/legacy-v1/overview). The current console also lists a **Webhook** card (Send logs, Alerts & notifications) under **Settings › Integrations › Library**; see [How integrations work](../get-started/how-integrations-work).
+:::
+
 ## Setup
 
 1. Go to **Integrations** and open the **Available** tab.

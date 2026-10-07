@@ -93,4 +93,4 @@ Users who can't install can click **Request**. Their requests appear under **Req
 - [MCP Library](./mcp-library) - filters, requests and uninstalling.
 - [API to MCP](./api-to-mcp) - add a REST API.
 - [Local MCP](../local-mcp/overview) - run an approved package on the user's computer.
-- [Tools Management](../protect/tool-visibility) - enable the tools after you add a server.
+- [Tool visibility](../protect/tool-visibility) - enable the tools after you add a server.

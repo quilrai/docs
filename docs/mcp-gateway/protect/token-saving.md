@@ -5,19 +5,24 @@ sidebar_custom_props:
   icon: Coins
 ---
 
-# Token Saving
+# Token saving
 
 Compress tool results before they reach the model, so agents use fewer tokens on each MCP call.
 
-Go to **Settings > AI Gateway > MCP Gateway** and click **Configure > Token Saving** on the server card. The **Strategies** card reads: "Rewrites tool results on the way back to the client to cut model token usage." New servers have every strategy off.
+## Configure it on the server
+
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
+  action="Token Saving"
+/>
+
+The **Strategies** card reads: "Rewrites tool results on the way back to the client to cut model token usage." New servers have every strategy off.
 
 ![Token saving section with the Strategies card showing Active strategies and switches for Smart JSON compression, HTML to text, Markdown to text and Text compression](/img/mcp-gateway/ui/settings-token-saving.png)
 
-:::note Policy Engine
-When the Policy Engine is on, response handling policies apply instead and this section is read-only. **Edit anyway** changes the values used only if the Policy Engine is turned off. See [MCP Gateway policies](../../console/govern/policy-engine).
-:::
-
-## Strategies
+### Strategies
 
 | Strategy | What it does | Turn it on when the server returns |
 |----------|--------------|------------------------------------|
@@ -28,7 +33,7 @@ When the Policy Engine is on, response handling policies apply instead and this 
 
 Turn on the strategies that match what the server returns, then click **Save settings** in the footer. The **Active strategies** bar and the section list (for example **2 of 4 strategies on**) show how many are on.
 
-Token saving runs after guardrails, so detections are made on the full tool result.
+Token saving runs after guardrails, so detections are made on the full tool result. The four strategies are the same methods the LLM Gateway applies to requests; see [LLM Gateway token saving](../../llm-gateway/cost-and-traffic/token-saving) for a before-and-after example of each.
 
 ## Where savings show
 
@@ -48,10 +53,35 @@ Token saving runs after guardrails, so detections are made on the full tool resu
 | `find_relevant_tools` | Finds the tools that fit the current task. |
 | `call_tool` | Calls the chosen tool. |
 
-Set it under **OneMCP endpoint > Dynamic tool calling**.
+Set it with the **OneMCP endpoint** button in the MCP Gateway header, under **Dynamic tool calling** (**User preference**, **Always on** or **Always off**).
+
+## Going further with the Policy Engine
+
+When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Token Savings** card (stage 4, Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the values used only if the Policy Engine is turned off. The card has one effect per strategy: **smart JSON compression**, **HTML to text**, **Markdown to text** and **text compression**.
+
+Scenarios the card supports that server settings cannot:
+
+- **Compress by tool, not by server.** Match **tool name** or tags, so only the tools that return large payloads are compressed.
+- **Compress for some callers or agents.** Match **smart groups** or **agent name**, for example compress results only for an agent with a small context window.
+- **Compress on one route.** Match **route kind** to treat OneMCP traffic differently from direct connections.
+
+<PolicyCard
+  name="compress_web_search"
+  stage="response"
+  priority={400}
+  when={[{ field: "MCP name", op: "is", value: "Web Search" }]}
+  then={[
+    { effect: "smart JSON compression", value: "true" },
+    { effect: "HTML to text", value: "true" },
+  ]}
+/>
+
+The OneMCP side has its own card. **OneMCP Features** (stage 1, Session) sets OneMCP dynamic tools and memory per caller, for example turning dynamic tools off for one smart group.
 
 ## Related
 
-- [Group & User Rules](./group-and-user-rules) - turn strategies on or off for a smart group or user.
-- [Security Guardrails](./security-guardrails) - scan tool results before they are shortened.
+- [Group and user rules](./group-and-user-rules) - turn strategies on or off for a smart group or user.
+- [Security guardrails](./security-guardrails) - scan tool results before they are shortened.
 - [OneMCP](../get-started/onemcp) - one endpoint with dynamic tool calling.
+- [LLM Gateway token saving](../../llm-gateway/cost-and-traffic/token-saving) - the shared compression methods.
+- [Policy Engine overview](../../console/govern/policy-engine) - how cards, stages and priorities work.

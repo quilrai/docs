@@ -5,7 +5,7 @@ sidebar_custom_props:
   icon: BookOpen
 ---
 
-# Overview
+# Introduction to the MCP Gateway
 
 The MCP Gateway sits between your AI apps and the MCP servers they call. Users connect their AI app to a Quilr gateway URL instead of the server itself, and every tool call is checked against your tool rules and guardrails, then logged with the user, the agent and the result.
 
@@ -121,10 +121,10 @@ Sections vary by server. Edits are drafts until you click **Save settings**.
 
 | Section | What you set |
 |---------|--------------|
-| **General** | Name, upstream sign-in, custom headers, [Access Control](../protect/server-access), [User Claims Forwarding](../protect/claims-forwarding), [Web Search Policy](../protect/web-search-security) (QuilrAI Web Search only), Uninstall |
+| **General** | Name, upstream sign-in, custom headers, [Access Control](../protect/server-access), [Claims forwarding](../protect/claims-forwarding), [Web Search Policy](../protect/web-search-security) (QuilrAI Web Search only), Uninstall |
 | **API** | Base URL, spec and access rules of an [API MCP](../servers-and-connections/api-to-mcp) |
 | **Permissions** | [OAuth Permissions](../servers-and-connections/oauth-permissions): the scopes the connection requests (OAuth servers with selectable scopes) |
-| **Tools** | [Tools Management](../protect/tool-visibility), [Tool Confirmation](../protect/human-approval), [Tool Change Watch](../protect/tool-change-watch) |
+| **Tools** | [Tool visibility](../protect/tool-visibility), [Human approval](../protect/human-approval), [Tool Change Watch](../protect/tool-change-watch) |
 | **Guardrails** | [Security Guardrails](../protect/security-guardrails) on tool arguments and tool results |
 | **Token saving** | [Token Saving](../protect/token-saving) strategies |
 | **Input aliases** | [Input Aliases](../protect/input-aliases): translate mismatched inputs from AI clients |

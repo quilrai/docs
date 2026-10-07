@@ -134,5 +134,5 @@ Click **Save schedule**.
 
 ## Related
 
-- [Reading Red Team Results](../get-started/reading-a-report)
+- [Reading a report](../get-started/reading-a-report#agentic-and-model-red-teaming-reports)
 - [Attack Library](./attack-library)

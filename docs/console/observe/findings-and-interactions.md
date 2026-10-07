@@ -33,8 +33,9 @@ activity.
 ![Findings tab in the Cards layout, with the period picker, quick filters, the All, Open and Resolved toggle, and a list of finding cards showing person, app, policy and outcome](/img/console-v2/findings-and-interactions/findings-cards.png)
 
 Each finding card reads as one sentence: who did what, in which app, under
-which policy, and what happened (for example **Allowed**, **Justified** or
-**Blocked**). The severity and the time sit on the left.
+which policy or detection, and what happened (for example **Monitored**,
+**Justified**, **Redacted** or **Blocked**). The severity and the time sit on
+the left.
 
 On the **Interactions** tab, turn on **Group related conversations** to fold
 related records (for example several prompts in one short session) into a
@@ -79,8 +80,9 @@ top right. Filters and the period carry across all three.
 ### Save a view
 
 When you use the same filters often, click **Save new view**. Saved views keep
-the filters, columns and layout, and appear under **All Views** so you can
-return to them in one click.
+the filters, columns and layout, and appear as chips next to **All findings**
+so you can return to them in one click. See
+[Views, filters and drawers](../get-started/views-filters-and-drawers).
 
 ## Investigate a conversation
 
@@ -99,6 +101,9 @@ the list, so you keep your place.
    Gateway, **Tool calls** for the MCP Gateway and **Agent activity** for the
    Endpoint Agent. Use **All turns**, **Flagged only** or **User only** to
    focus, and **Copy thread** to copy it.
+   Where detected values are involved, a **Sensitive data** tab lists them
+   masked. **Reveal values** at the top of the drawer shows them in clear, if
+   your role allows it.
 
    ![Capture tab showing a single user turn and the justification the person gave](/img/console-v2/findings-and-interactions/drawer-capture.png)
 
@@ -117,12 +122,15 @@ screen.
 ## Export and other actions
 
 - **Export** sends the list you are looking at, with its filters, to the
-  Export Center so you can download it.
-- **Triage** (next to Export) opens the [Triage center](./triage-center) and
-  shows how many suggestions are waiting.
+  [Export Center](../settings-data/export-center) so you can download it.
+- **Activate Agent** becomes available when you select findings.
+- **Triage** (next to Export) holds bulk triage actions for the selection and
+  links to the [Triage center](./triage-center).
+- The menu on each row copies the request, conversation or context IDs, for
+  support tickets.
 
 ## Next steps
 
 - [Triage center](./triage-center) - close findings that no longer need action
-- [Detection tuning](./triage-center) - stop the same false positives from
-  being raised again
+- [Detection tuning](./triage-center#detection-tuning) - stop the same false
+  positives from being raised again

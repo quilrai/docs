@@ -5,9 +5,9 @@ sidebar_custom_props:
   icon: Globe
 ---
 
-# Web Search Policy
+# Web search security
 
-Apply your Zscaler Internet Access (ZIA) URL policy to the QuilrAI Web Search MCP, so agents can only open web pages your users are allowed to visit.
+Apply your Zscaler Internet Access (ZIA) URL policy to the [QuilrAI Web Search](../quilr-provided-mcps/web-search) MCP, so agents can only open web pages your users are allowed to visit.
 
 Setup has two parts: connect ZIA once for your tenant, then set the policy on the **QuilrAI Web Search** server.
 
@@ -17,7 +17,12 @@ This policy applies only to the built-in **QuilrAI Web Search** server. Other MC
 
 ## Connect ZIA
 
-Go to **Settings > AI Gateway > MCP Gateway**, open the **...** menu in the header and choose **ZIA integration**.
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'MCP Gateway', '...']}
+  action="ZIA integration"
+/>
 
 ![ZIA integration panel with Not connected status, ZIA base URL, API key, Admin username, Admin password and Connect ZIA](/img/mcp-gateway/ui/zia-integration.png)
 
@@ -29,7 +34,14 @@ The status changes to **Connected** and shows how many ZIA groups and department
 
 ## Set the policy
 
-On the **QuilrAI Web Search** server card, click **Configure > General** and scroll to **Web Search policy** ("Apply ZIA-backed group policy and explicit URL overrides to web-search results").
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'MCP Gateway', 'QuilrAI Web Search card', 'Configure']}
+  action="General"
+/>
+
+Scroll to **Web Search policy** ("Apply ZIA-backed group policy and explicit URL overrides to web-search results").
 
 ![Web Search policy card with ZIA check timeout, ZIA URL overrides and Groups with domain exclusions switches](/img/mcp-gateway/ui/settings-web-search-policy.png)
 
@@ -49,8 +61,33 @@ Click **Save settings** in the footer to apply your changes.
 
 Because the check uses the person's own ZIA identity, web search results follow the same ZIA URL policy that applies to that person.
 
+## Going further with the Policy Engine
+
+The **Web Search Security** card (stage 4, Response) in **Govern > Policy Engine > MCP Gateway** carries the same controls as policy effects: ZIA timeout, URL overrides, excluded domains and a result domain action. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+
+Scenarios the card supports beyond the server setting:
+
+- **Exclude domains outright.** List domains such as paste sites or raw file hosts as **excluded domains** and set **result domain action** to `block`, independent of the ZIA lookup.
+- **Different rules per group or agent.** Match **smart groups**, **user email** or **agent name**, for example a stricter exclusion list for contractors.
+- **Pair with token saving.** One response rule can also turn on **smart JSON compression** and **HTML to text** for search results.
+
+<PolicyCard
+  name="compress_and_fence_search"
+  stage="response"
+  priority={400}
+  when={[{ field: "MCP name", op: "is", value: "Web Search" }]}
+  then={[
+    { effect: "smart JSON compression", value: "true" },
+    { effect: "HTML to text", value: "true" },
+    { effect: "excluded domains", values: ["pastebin.com", "raw.githubusercontent.com"], tone: "info" },
+    { effect: "result domain action", value: "block" },
+  ]}
+/>
+
 ## Related
 
-- [Access control](./server-access) - limit who can use QuilrAI Web Search.
-- [Security Guardrails](./security-guardrails) - scan search results for sensitive data.
-- [Tools Management](./tool-visibility) - turn individual web search tools on or off.
+- [QuilrAI Web Search](../quilr-provided-mcps/web-search) - the MCP this policy applies to.
+- [Server access](./server-access) - limit who can use QuilrAI Web Search.
+- [Security guardrails](./security-guardrails) - scan search results for sensitive data.
+- [Tool visibility](./tool-visibility) - turn individual web search tools on or off.
+- [Policy Engine overview](../../console/govern/policy-engine) - how cards, stages and priorities work.

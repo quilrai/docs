@@ -5,17 +5,26 @@ sidebar_custom_props:
   icon: MessageSquareText
 ---
 
-# Prompt Store
+# Prompt store
 
 Store reusable system prompts centrally, then reference one or more of them and add inline instructions at request time.
 
-Open the app's **Settings > Prompt Store** (under **Identity & content**). Enter a **Prompt ID** and **Prompt content**, then click **Save prompt**. Prompt changes apply immediately, without **Save settings**, and are recorded in the app's [Audit Log](../monitor/app-audit-log).
+## Turn it on for an app
+
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
+  action="Prompts"
+/>
+
+Enter a **Prompt ID** and **Prompt content**, then click **Save prompt**. Prompt changes apply immediately, without **Save settings**, and are recorded in the app's [Audit Log](../monitor/app-audit-log).
 
 ![Prompt editor with the Prompt content box, the variable syntax help text and the Save prompt button](/img/llm-gateway/ui/app-prompt-store.png)
 
 Variable names can contain letters, numbers, underscores and hyphens. Callers must supply every variable as a string.
 
-## How It Works
+## How it works
 
 <StepFlow steps={[
   {
@@ -45,7 +54,7 @@ Variable names can contain letters, numbers, underscores and hyphens. Callers mu
 2. **Reference** - Use it as the system message content: `quilrai-prompt-store-code-reviewer`
 3. **Gateway Resolves** - The gateway resolves the prompt and sends the full text to the LLM
 
-## Combining Prompts and Instructions
+## Combining prompts and instructions
 
 A system message is not limited to a single reference. The gateway scans it for `quilrai-prompt-store-<id>` reference tokens and replaces each one **in place** with that prompt's resolved content, leaving any other text exactly where you wrote it. So one system message can:
 
@@ -91,7 +100,7 @@ Only review the security-sensitive files in this diff.
 References and inline text are combined from top to bottom in the order they appear. Put foundational prompts first and request-specific instructions last so the model reads them in a natural order.
 :::
 
-## Template Variables
+## Template variables
 
 Prompts support `{{variable}}` placeholders. Pass values via the `X-Prompt-Variables` header, keyed by the reference each set of values belongs to.
 
@@ -122,9 +131,9 @@ When a system message references several prompts, give each one its own entry - 
 }
 ```
 
-## Enforce System Prompts
+## Enforce system prompts
 
-**Enforce system prompts from store** (on the **Enforcement** card) ensures every request's system message includes at least one managed Prompt Store reference, so no request runs without a reviewed base prompt.
+**Enforce system prompts from store**, in the app's prompt settings, ensures every request's system message includes at least one managed Prompt Store reference, so no request runs without a reviewed base prompt.
 
 | Mode | Behavior |
 |------|----------|
@@ -133,34 +142,7 @@ When a system message references several prompts, give each one its own entry - 
 
 This applies uniformly across Chat Completions, Anthropic Messages (both the top-level `system` field and any `system`-role messages), Vertex/Gemini, and the OpenAI Responses API. Useful when every system prompt should build on a reviewed base from the Prompt Store while still allowing per-request instructions.
 
-## Global Prompt Store (V2 console)
-
-The Global Prompt Store is one prompt library for your whole organization, reusable by every LLM Gateway app. Open **Policy Engine > LLM Gateway** and click **Prompt Store** on the **Prompt Store and Enforcement** card.
-
-![Prompt Store and Enforcement card with the Configure menu, the Prompt Store button, and Require store prompt set for 3 applications](/img/llm-gateway/ui/policy-prompt-store-card.png)
-
-The drawer lists every prompt with its ID, variables and content. Search by ID or content, or use **Add prompt**, **Edit** and **Delete**. IDs and `{{variable}}` rules are the same as for app prompts. Changes apply immediately across the organization: they are not part of the policy draft and do not require publishing.
-
-![Global Prompt Store drawer with a search box and two prompts showing their persona and name variable chips](/img/llm-gateway/ui/policy-global-prompt-store-drawer.png)
-
-| | App Prompt Store | Global Prompt Store |
-|---|---|---|
-| Where | App **Settings > Prompt Store** | **Policy Engine > LLM Gateway > Prompt Store** |
-| Scope | One app | Every app in the organization |
-| Reference in requests | `quilrai-prompt-store-<id>` | `quilrai-prompt-store-<id>` |
-| Variables | `X-Prompt-Variables` header | `X-Prompt-Variables` header |
-
-How the two stores relate:
-
-- The global list also shows the prompts of your active apps. When apps share an ID, the newest app version is the default and conflicting versions get alias IDs.
-- Saving an app-derived ID in the global store creates an organization-level version that takes priority over the app copies.
-- Deleting an app-derived ID in the global store hides it from the global list.
-
-### Enforcement under the Policy Engine
-
-With the Policy Engine on, **Enforce system prompts from store** is set by **Prompt Store and Enforcement** policies instead of the app setting. Each configuration specifies who it applies to (application, people, smart group and more) and sets **Require store prompt**. It applies to chat, Responses and Vertex traffic, and the highest-priority matching configuration wins. See [LLM Gateway Policies](../../console/govern/policy-engine#token-savings-and-prompt-store).
-
-## Code Examples
+## Code examples
 
 ### OpenAI
 
@@ -206,3 +188,54 @@ message = client.messages.create(
     }
 )
 ```
+
+## Going further with the Policy Engine
+
+The **Prompt Store and Enforcement** card in **Policy Engine > LLM Gateway** holds two things: the organization-wide Global Prompt Store, and the **Require store prompt** policy. When the engine is on for the LLM Gateway, the app's store-prompt enforcement freezes and the card's policies decide it. App prompts themselves stay editable. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+
+### Global Prompt Store {#global-prompt-store-v2-console}
+
+The Global Prompt Store is one prompt library for your whole organization, reusable by every LLM Gateway app. Open **Policy Engine > LLM Gateway** and click **Prompt Store** on the **Prompt Store and Enforcement** card.
+
+![Prompt Store and Enforcement card with the Configure menu, the Prompt Store button, and Require store prompt set for 3 applications](/img/llm-gateway/ui/policy-prompt-store-card.png)
+
+The drawer lists every prompt with its ID, variables and content. Search by ID or content, or use **Add prompt**, **Edit** and **Delete**. IDs and `{{variable}}` rules are the same as for app prompts. Changes apply immediately across the organization: they are not part of the policy draft and do not require publishing.
+
+![Global Prompt Store drawer with a search box and two prompts showing their persona and name variable chips](/img/llm-gateway/ui/policy-global-prompt-store-drawer.png)
+
+| | App Prompt Store | Global Prompt Store |
+|---|---|---|
+| Where | App **Configure > Prompts** | **Policy Engine > LLM Gateway > Prompt Store** |
+| Scope | One app | Every app in the organization |
+| Reference in requests | `quilrai-prompt-store-<id>` | `quilrai-prompt-store-<id>` |
+| Variables | `X-Prompt-Variables` header | `X-Prompt-Variables` header |
+
+How the two stores relate:
+
+- The global list also shows the prompts of your active apps. When apps share an ID, the newest app version is the default and conflicting versions get alias IDs.
+- Saving an app-derived ID in the global store creates an organization-level version that takes priority over the app copies.
+- Deleting an app-derived ID in the global store hides it from the global list.
+
+### Require store prompt
+
+**Require** adds a configuration with **Require store prompt** set to **Required**, **Not required** (exempts a narrower scope) or **Leave as is**. It applies on `chat`, `responses` and `vertex`. The highest-priority matching configuration wins; new configurations start at 500. Edits join the shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+
+Scenarios:
+
+- **Production only.** Require a store prompt when request metadata marks the environment as production, and leave development free to experiment.
+- **Tenant-wide with exceptions.** Require it for Everyone, then set **Not required** for one Application, App tag or Smart group.
+- **Per model or provider.** Require it only for a Requested model or Provider.
+
+<PolicyCard
+  name="require_approved_system_prompts"
+  stage="request"
+  priority={600}
+  when={[{ field: "Request metadata . environment", op: "is", value: "production" }]}
+  then={[{ effect: "Require Prompt Store system prompt", value: "required" }]}
+/>
+
+## Related
+
+- [Prompts API](../api-reference/prompts-api)
+- [Token saving](./token-saving)
+- [Policy Engine overview](../../console/govern/policy-engine)

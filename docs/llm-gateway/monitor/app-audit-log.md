@@ -94,7 +94,7 @@ Approvals only govern self-service requests. An admin's direct edits to an app's
 
 ## Tenant-Wide Audit Log
 
-Beyond a single app, the **Audit log** button on the **Settings > LLM Gateway** page opens a tenant-wide view of activity across every app, with the application, operation, actor, status and time of each event. It combines configuration changes and change-request events, with status filters and a count of everything still pending approval, so admins can monitor governance across all apps from one place.
+Beyond a single app, the **Audit log** button on the **Settings > AI Gateway > LLM Gateway** page opens a tenant-wide view of activity across every app, with the application, operation, actor, status and time of each event. It combines configuration changes and change-request events, with status filters and a count of everything still pending approval, so admins can monitor governance across all apps from one place.
 
 ## Permissions
 

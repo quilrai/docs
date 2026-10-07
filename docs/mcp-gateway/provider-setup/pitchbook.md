@@ -55,7 +55,7 @@ PitchBook does not have a developer console where you create an OAuth applicatio
 
 1. **Confirm your entitlement.** Ask your PitchBook account representative to confirm the three items above: licence type, SSO, and MCP service access. If you do not know who your representative is, write to [support@pitchbook.com](mailto:support@pitchbook.com).
 
-2. **Get the QuilrAI callback URL.** In QuilrAI, go to **Settings** > **AI Gateway** > **MCP Gateway**, click **Add MCP**, enter the PitchBook transport URL, and copy the callback URL the setup screen displays. It follows this pattern, where the host is your gateway and the last segment is the slug you chose:
+2. **Get the QuilrAI callback URL.** In QuilrAI, go to **Settings** > **AI Gateway** > **MCP Gateway**, click **Add MCP server**, enter the PitchBook transport URL, and copy the callback URL the setup screen displays. It follows this pattern, where the host is your gateway and the last segment is the slug you chose:
 
    ```text
    https://mcpgateway.quilr.ai/pitchbook/oauth/callback
@@ -119,7 +119,7 @@ PitchBook is listed in the [MCP Library](../servers-and-connections/mcp-library)
 
 Register the server manually with the same credentials:
 
-1. Click **Add MCP** and enter the following values:
+1. Click **Add MCP server** and enter the following values:
 
 | Field | Value |
 |-------|-------|
@@ -158,7 +158,7 @@ Expect the surface to centre on company, investor, fund, and deal lookups. Treat
 ## Recommended Read-Only Rollout
 
 1. In [Access Control](../protect/server-access), restrict the server to a smart group containing only users who hold a PitchBook seat. Do this before enabling any tools, not after.
-2. In [Tools Management](../protect/tool-visibility), disable every tool that is not a plain lookup.
+2. In [Tool visibility](../protect/tool-visibility), disable every tool that is not a plain lookup.
 3. Set a rate limit on the server. PitchBook data pulls are metered on most contracts, and an unattended agent iterating over a target list can consume a quarter's allowance in an afternoon.
 4. Review the audit log after the first week and compare query volume against your contract terms.
 
@@ -211,4 +211,4 @@ Confirm that:
 - PitchBook support: [support@pitchbook.com](mailto:support@pitchbook.com)
 - [QuilrAI: OAuth Connect](../servers-and-connections/oauth-connect)
 - [QuilrAI: Access Control](../protect/server-access)
-- [QuilrAI: Tools Management](../protect/tool-visibility)
+- [QuilrAI: Tool visibility](../protect/tool-visibility)

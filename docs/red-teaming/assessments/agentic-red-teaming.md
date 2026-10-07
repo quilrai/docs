@@ -16,7 +16,7 @@ Open **Assessments → Red Teaming**. The page has four tabs:
 | Tab | What it tests | Docs |
 |-----|---------------|------|
 | **LLM Intelligence Assessment** | Fixed adversarial and benchmark suites against a gateway app's model | [LLM Intelligence Assessment](./llm-intelligence-assessment) |
-| **MCP Threat Detection** | Supply-chain scan of an MCP server (repository, dependencies, live tool surface) | - |
+| **MCP Threat Detection** | Supply-chain scan of an MCP server (repository, dependencies, live tool surface) | [MCP Threat Detection](./mcp-threat-detection) |
 | **Agentic Red Teaming** | Adaptive attacks against a live agent over HTTP or voice | This page |
 | **Model Red Teaming** | The same adaptive engine pointed directly at one model, or 2-8 models side by side | [Model Red Teaming](./model-red-teaming) |
 
@@ -129,7 +129,7 @@ Voice assessments need speech-to-text and text-to-speech enabled for the assessm
 | **Full library** | All 64 objectives | A complete baseline before release |
 | **Select attacks** | The objectives you tick | Focusing on the risks that matter to this agent |
 
-Every mode also adds **tool-targeted objectives synthesized live** for the target after recon. In the example runs in [Reading Red Team Results](../get-started/reading-a-report), recon synthesized 6, so a quick scan ran 14 objectives (8 library + 6 synthesized).
+Every mode also adds **tool-targeted objectives synthesized live** for the target after recon. In the example runs in [Reading a report](../get-started/reading-a-report#agentic-and-model-red-teaming-reports), recon synthesized 6, so a quick scan ran 14 objectives (8 library + 6 synthesized).
 
 Expand **Attack library** to see every objective grouped by OWASP category, with its MITRE ATLAS technique and severity. In Quick scan mode, objectives outside the quick scan are dimmed and tagged "full only".
 
@@ -183,6 +183,6 @@ Full transcripts are visible only in this live view. The completed report shows 
 
 ## Next steps
 
-- [Reading Red Team Results](../get-started/reading-a-report) - grades, findings, framework mapping, remediation, and two worked example reports.
+- [Reading a report](../get-started/reading-a-report#agentic-and-model-red-teaming-reports) - grades, findings, framework mapping, remediation, and two worked example reports.
 - [Findings and Schedules](../operate/runs-findings-and-schedules) - track remediation and run the same assessment on a recurring schedule.
 - [Model Red Teaming](./model-red-teaming) - test a model directly, or compare up to eight.

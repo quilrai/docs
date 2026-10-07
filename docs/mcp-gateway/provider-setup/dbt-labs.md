@@ -6,7 +6,7 @@ sidebar_custom_props:
 
 # dbt Labs
 
-dbt Labs operates its own remote MCP server as part of the dbt platform. Like Datadog and Zoho, you do **not** create an OAuth app or supply a Client ID and Client Secret. The dbt platform displays a ready-made **MCP Endpoint URL** in your account settings, and you add that URL to QuilrAI manually through **Add MCP**.
+dbt Labs operates its own remote MCP server as part of the dbt platform. Like Datadog and Zoho, you do **not** create an OAuth app or supply a Client ID and Client Secret. The dbt platform displays a ready-made **MCP Endpoint URL** in your account settings, and you add that URL to QuilrAI manually through **Add MCP server**.
 
 ## How dbt Labs Differs
 
@@ -62,7 +62,7 @@ dbt's documentation specifies the endpoint with a trailing slash (`/api/ai/v1/mc
 
 ### 3. Add dbt MCP to QuilrAI
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP**.
+1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the MCP Endpoint URL you copied above.
 3. Leave auth mode on auto-detect. dbt's remote server advertises OAuth, so QuilrAI does not need a Client ID or Client Secret.
 4. Authorize when prompted. The dbt sign-in page opens in the browser.
@@ -84,7 +84,7 @@ dbt enforces multi-factor authentication on the account, so the browser sign-in 
 Enroll the factor, finish the sign-in, and the flow returns to QuilrAI and completes. The authorization does not fail here, it just pauses until enrollment is done.
 
 :::tip
-Enroll MFA on the authorizing dbt user **before** starting **Add MCP**. Hitting enrollment mid-flow is the most common reason this setup looks stuck.
+Enroll MFA on the authorizing dbt user **before** starting **Add MCP server**. Hitting enrollment mid-flow is the most common reason this setup looks stuck.
 :::
 
 ## Token-Based Alternative

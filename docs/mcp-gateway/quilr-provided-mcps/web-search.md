@@ -29,4 +29,4 @@ sidebar_custom_props:
 | Provider usage reporting | - | ✅ |
 | Smallest possible tool surface | ✅ | - |
 
-Administrators can apply [Web Search Policy](../protect/web-search-security) to constrain destinations through enterprise security-gateway rules.
+Administrators can apply your Zscaler (ZIA) URL policy and domain exclusions to search results. See [Web search security](../protect/web-search-security).

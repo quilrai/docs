@@ -9,6 +9,10 @@ sidebar_custom_props:
 
 Forwards the Extension findings to your syslog server based on the controls configured.
 
+:::note
+These setup steps use the **Integrations** page of [Console V1](../../console/legacy-v1/overview). Syslog is not listed in the current console's **Settings › Integrations** library.
+:::
+
 ## Setup
 
 1. Go to **Integrations** and open the **Available** tab.

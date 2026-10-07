@@ -2,78 +2,70 @@
 sidebar_position: 3
 sidebar_label: "Roles and permissions"
 sidebar_custom_props:
-  icon: Rocket
+  icon: ShieldCheck
 ---
 
-# Quick Start
+# Roles and permissions
 
-Get up and running with Roles and Permissions in 4 steps.
+Roles and permissions control who can open which console pages and which data they see. Access is defined by one versioned access policy: roles hold permissions, and people and Smart Groups hold roles.
 
-<StepFlow steps={[
-  {
-    label: "Invite User",
-    items: [
-      "Settings → Manage Users",
-      "Email: user@company.com",
-      "Role: Analyst",
-    ],
-  },
-  {
-    label: "Assign Role",
-    items: [
-      "Roles: Super Admin, Admin",
-      "Analyst, Viewer, No Role",
-      "Permissions: auto-applied",
-    ],
-  },
-  {
-    label: "Change Role",
-    items: [
-      "Select user → Change Role",
-      "New role: Admin",
-      "User logged out on change",
-    ],
-  },
-  {
-    label: "Review Access",
-    items: [
-      "User list: name, role, email",
-      "Last login visible",
-      "Remove access anytime",
-    ],
-  },
-]} />
+<ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'Roles & Permissions']} />
 
-## 1. Invite a User
+## How access is decided
 
-Go to **Settings → Organizational Context → Manage Users** → **Add Users** → fill details → click **Send Invite**.
+The **How access is decided** drawer on the page summarizes the rules:
 
-## 2. Assign a Role
+- **The access policy is the only thing that grants access.** Legacy Console V1 roles and Access Groups no longer apply.
+- **No role means no access.** Anyone without a role assignment is denied everything.
+- **Deny beats allow.** When rules conflict, an explicit deny beats every allow.
+- **Pages and data are separate decisions.** Opening a page and seeing its data are decided separately. Every narrowed data choice applies together, so a role that sees **All data** cannot widen another role that narrows it.
+- **Shared draft, then publish.** Edits autosave into one shared draft. Nothing changes for anyone until the draft is published, and publishing creates the next numbered revision. The version selector shows the live one, for example **Active v51**.
 
-Select the appropriate role when inviting the user. Permissions are applied immediately upon acceptance.
+## People and Group
 
-- **Super Admin** - owns the tenant and has full access including all destructive actions
-- **Admin** - suitable for security operators managing day-to-day controls
-- **Analyst** - suitable for security analysts reviewing findings and reports
-- **Viewer** - suitable for stakeholders who need visibility without making changes
-- **No Role** - revokes all permissions; the user retains their account but loses all access
+Who holds which roles. Switch between **People** and **Smart Groups**.
 
-## 3. Change a User's Role
+| Column | Shows |
+|---|---|
+| User | The person |
+| Status | Account status |
+| Roles | Roles held directly or through a group |
+| Smart Groups | Group memberships |
+| Last login | Most recent console sign-in |
 
-Go to **Settings → Organizational Context → Manage Users**, find the user in the list, and select role from the dropdown. Choose the new role and confirm. The user will be logged out on refresh and must log back in for the new role to take effect.
+Actions: **Give access** (assign a role), **Add user**, and per row **View**, **Remove Role** and **Remove User**.
 
-Only **Super Admins** and **Admins** can change roles of other users.
+:::tip
+Assign roles to [Smart Groups](./smart-groups) rather than to individuals where you can. New joiners get the right access as soon as they are added to the group.
+:::
 
-## 4. Delete or Revoke Role
+## Roles
 
-**To revoke a role:** Select the user, choose **No Role** from the role dropdown, and confirm. This removes the user's role without deleting their account.
+All roles, with **+ New role** to create one.
 
-**To delete a Super Admin:** The Super Admin's role must first be revoked by selecting **No Role** before the account can be deleted. A Super Admin cannot revoke their own role - another Super Admin must do it.
+| Column | Shows |
+|---|---|
+| Role | Name and description |
+| Holders | How many people and groups hold the role |
+| Access | Permissions granted out of the total (for example 57/107), with a count of explicit denies |
+| Sees | **All data**, or **Narrowed** when the role limits which data is visible |
 
-> The tenant must always have at least one Super Admin. The last Super Admin's role cannot be revoked.
+Expand a role to see its permission counts per area: Pages, Overview, Users, Graph, Agents, Inventory, Dashboards, Costs, Policy, LLM Gateway, MCP Gateway, Endpoint, Browser, Skills, Secrets, Integrations, Data, Outputs, Audit and Administration. From there, **Edit permissions** or **View users**.
 
-Only **Super Admins** can delete users.
+Built-in roles include **Super Admin** (full access), **Admin**, **Analyst** and **Viewer**. Use them as starting points and create narrower roles for specific teams, for example an AI Gateway admin or a findings reviewer.
 
----
+## Change access safely
 
-**Next step:** See [Roles and Permissions](./roles-and-permissions) for a full breakdown of what each role can do across every screen.
+1. Edit roles or assignments. Changes go into the shared draft.
+2. Review the draft. Check that no one loses access they need, and that at least one person keeps full access.
+3. Publish. The change takes effect as a new revision.
+
+:::warning
+Because anyone without a role is denied everything, removing someone's last role locks them out of the console. Keep more than one Super Admin.
+:::
+
+## Related
+
+- [Smart Groups](./smart-groups)
+- [Single sign-on](./single-sign-on)
+- [Audit logs](./audit-logs)

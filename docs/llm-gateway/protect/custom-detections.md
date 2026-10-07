@@ -5,11 +5,13 @@ sidebar_custom_props:
   icon: Target
 ---
 
-# Custom Detections
+# Custom detections
 
 Add your own detections to an app when the built-in [guardrail categories](./security-guardrails) do not describe what you need caught, such as an internal project codename, a customer ID format or competitor mentions.
 
-Open the app's **Settings > Custom Detections** (under **Protection**).
+## Add one to an app
+
+Custom detections are defined per app. Open the app from **Settings > AI Gateway > LLM Gateway** and choose any **Configure** option to open the app workspace's **Settings** tab, then select **Custom Detections** under **Protection**.
 
 ![Custom Detections form with Precision (regex) selected, Detection ID, Display name, Code name, and Positive and Negative regex boxes](/img/llm-gateway/ui/app-custom-detections-precision.png)
 
@@ -46,11 +48,13 @@ Open the app's **Settings > Custom Detections** (under **Protection**).
 For intents, add negative examples that are close to the positive ones. A detection for "competitor pricing questions" needs negatives such as "what is our own pricing?" to stay precise.
 :::
 
-## Custom detections and the Policy Engine
+## Going further with the Policy Engine
 
-Custom Detections stay editable in app settings when the Policy Engine is on. In a policy, custom detections appear under the **Custom** group of the data type picker, so a data rule can give them their own action. See [LLM Gateway Policies](../../console/govern/policy-engine#new-data-rule).
+Custom detections stay editable in app settings when the Policy Engine is on; they do not freeze (see [Switching from classic settings](../../console/govern/switching-from-classic-settings)). In the **Data & Adversarial Risks** card, they appear under the **Custom** group of the data type picker, so a data rule can give them their own action, threshold, stage and scope. For example, block a project codename only for one Smart group, or only on requests to one provider. See [Security guardrails](./security-guardrails#going-further-with-the-policy-engine).
+
+Tenant-wide detectors and the shared detection library are managed in the console's Detection Models. See [Custom detections and library](../../console/govern/custom-detections-and-library).
 
 ## Related
 
-- [Security Guardrails](./security-guardrails) - built-in categories and precision detections.
-- [SDK Mode](../apps-and-providers/sdk-mode) - run the same detections from your own code.
+- [Security guardrails](./security-guardrails) - built-in categories and precision detections.
+- [SDK mode](../apps-and-providers/sdk-mode) - run the same detections from your own code.

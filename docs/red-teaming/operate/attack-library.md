@@ -19,7 +19,7 @@ The 64 built-in objectives used by [Agentic Red Teaming](../assessments/agentic-
 
 Each objective has an OWASP category, a MITRE ATLAS technique, and a default severity. On top of the library, every run adds:
 
-- **Tool-targeted objectives synthesized live** for the target after recon (6 in the example runs in [Reading Red Team Results](../get-started/reading-a-report)).
+- **Tool-targeted objectives synthesized live** for the target after recon (6 in the example runs in [Reading a report](../get-started/reading-a-report#agentic-and-model-red-teaming-reports)).
 - Any **custom objectives** you add, reported under a **Custom** category.
 
 ## Quick scan objectives
@@ -178,4 +178,4 @@ The library labels the last two "ASI01: Agent Goal Manipulation" and "ASI01: Age
 - **OWASP Top 10 for LLM Applications (2025):** LLM01, LLM02, LLM04, LLM05, LLM06, LLM07, LLM08, LLM09, LLM10. No library objective targets LLM03.
 - **OWASP Top 10 for Agentic Applications:** ASI01, ASI02, ASI03, ASI05, ASI06.
 - **Multimodal and voice objectives** (image, audio, document, spoken) target those channels. The report's **Capabilities exercised** panel shows which channels a run actually exercised; a text-only run reads "text-only target - enable multimodal objectives to exercise vision / audio / document channels".
-- A full-library run can complete fewer than 64 library objectives. Check the **Objectives run** tile on the report for the actual count; the model run in [Reading Red Team Results](../get-started/reading-a-report#example-1-a-clean-result) completed 60.
+- A full-library run can complete fewer than 64 library objectives. Check the **Objectives run** tile on the report for the actual count; the model run in [Reading a report](../get-started/reading-a-report#example-1-a-clean-result) completed 60.

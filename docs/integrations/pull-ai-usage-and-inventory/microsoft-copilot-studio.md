@@ -6,9 +6,18 @@ sidebar_custom_props:
   icon: Bot
 ---
 
-# Copilot Studio
+# Microsoft Copilot Studio
 
-Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails.
+The Microsoft Copilot Studio integration works in two ways:
+
+| Part | What it does | Where you set it up |
+|------|--------------|---------------------|
+| **Inventory and activity** | Discovers Copilot Studio agents, their Dataverse definitions, capabilities, governance, and sanitized activity metadata (Pull inventory, Pull compliance data; Into Quilr). They appear under **Connected platforms** on **Overview › Agentic estate**, the **Microsoft Copilot Studio** source chip on **Agents**, and the **Copilot** chip on **Graph**. | **Settings › Integrations**, **Microsoft Copilot Studio** card |
+| **Runtime threat detection** | Copilot Studio asks QuilrAI to allow or block each tool execution. | An LLM Gateway app plus Power Platform admin center (this page) |
+
+The rest of this page covers runtime threat detection. For installing the inventory card, see [How integrations work](../get-started/how-integrations-work).
+
+## Runtime threat detection
 
 Copilot Studio calls QuilrAI before a tool executes. QuilrAI scans the user's recent prompt context and proposed tool inputs, then returns an allow/block decision. This integration checks content without forwarding an LLM request to a provider.
 

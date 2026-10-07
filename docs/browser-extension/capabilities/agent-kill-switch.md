@@ -5,77 +5,44 @@ sidebar_custom_props:
   icon: Rocket
 ---
 
-# Quick Start
+# Agent kill switch (extension)
 
-Disable and re-enable the Quilr endpoint agent from the browser extension in 4 steps.
+The Browser Extension can switch off the QuilrAI agent on the endpoint and switch it back on, without restarting any process. While disabled, the agent stops its services (clipboard monitoring and file indexing) and processes no clipboard, file, or network DLP events. The disabled state survives reboots.
+
+This page covers the switch in the extension. To disable the Endpoint Agent for a device or a whole tenant from the console, see the [Endpoint Agent kill switch](../../endpoint-agent/deploy-and-operate/agent-kill-switch).
 
 <StepFlow steps={[
-  {
-    label: "Open Agent Settings",
-    items: [
-      "Extension: Agent Settings",
-      "Status: Active",
-      "Toggle: Disable Agent",
-    ],
-  },
-  {
-    label: "Agent Disables",
-    items: [
-      "State: persisted to disk",
-      "Services: stopped",
-      "DLP chains: removed",
-    ],
-  },
-  {
-    label: "Re-enable Channel Active",
-    items: [
-      "Re-enable: always accepted",
-      "Survives reboots: ✓",
-      "No other events processed",
-    ],
-  },
-  {
-    label: "Re-enable Agent",
-    items: [
-      "Toggle: Enable Agent",
-      "Services: restarted",
-      "DLP chains: restored ✓",
-    ],
-  },
+  { label: "Disable", items: ["Agent Settings in the extension", "Toggle Disable Agent"] },
+  { label: "Agent stops", items: ["State saved to disk", "Services stopped", "DLP processing removed"] },
+  { label: "Stays reachable", items: ["Only re-enable accepted", "Survives reboots ✓"] },
+  { label: "Re-enable", items: ["Toggle Enable Agent", "Services restarted", "DLP restored ✓"] },
 ]} />
 
-## 1. Disable the Agent
+## Disable the agent
 
-Open the browser extension, navigate to **Agent Settings**, and toggle **Disable Agent**. The extension sends the disable signal to the Quilr endpoint agent over the Native Messaging pipe.
+1. Open the Browser Extension and go to **Agent Settings**.
+2. Toggle **Disable Agent**.
 
-The agent responds immediately — no process restart is required.
+The extension sends the signal to the agent over the Native Messaging pipe, and the agent applies it immediately.
 
-## 2. What Happens on the Endpoint
+| What happens | Result |
+| --- | --- |
+| **State saved** | The disabled flag is written to the agent's local database and survives reboots. |
+| **Services stopped** | Clipboard monitoring and file indexing stop. |
+| **DLP processing removed** | No clipboard, file, or network DLP events are processed. |
+| **Confirmed** | The extension receives confirmation and **Agent Status** shows Disabled. |
 
-| Step | Result |
-|------|--------|
-| **Flag persisted** | Disabled state written to local database — survives reboots |
-| **Services stopped** | Clipboard monitoring and file indexing pause immediately |
-| **DLP chains removed** | No clipboard, file, or network DLP events are processed |
-| **Confirmed** | Extension receives confirmation; **Agent Status** updates to Disabled |
+## Re-enable the agent
 
-## 3. Re-enable Channel
+Toggle **Enable Agent** in the extension. The agent clears the flag, restarts its services, and restores DLP processing without a process restart. **Agent Status** shows Active.
 
-While disabled, the agent ignores all events except re-enable signals. The re-enable channel is permanently preserved and cannot be removed — the extension can always reach the agent to restore it.
+## How it works
 
-If the endpoint reboots while disabled, the agent starts in the disabled state automatically. No action is required to maintain the disabled state across restarts.
+- **Re-enable is always available.** While disabled, the agent ignores every event except re-enable signals. This channel is never removed, so the extension can always restore the agent, including after a disable pushed by MDM or GPO.
+- **Startup enforcement.** On every start, the agent reads the flag before it registers any service. If the agent is disabled, it skips service and DLP registration entirely and only listens for re-enable. Nothing is started and then torn down.
+- **Logging.** Every disable and re-enable is logged with a timestamp and the trigger source.
 
-## 4. Re-enable the Agent
-
-Toggle **Enable Agent** in the extension. All services and DLP chains are restored without a process restart.
-
-| Step | Result |
-|------|--------|
-| **Flag cleared** | Enabled state written to local database |
-| **Services restarted** | Clipboard monitoring and file indexing resume |
-| **DLP chains restored** | Full event processing resumes immediately |
-| **Confirmed** | Extension receives confirmation; **Agent Status** updates to Active |
-
----
-
-**Next step:** See the [Architecture](./agent-kill-switch) for the full disable and startup enforcement details.
+| Agent state at startup | Behavior |
+| --- | --- |
+| Enabled | All services and DLP processing start normally. |
+| Disabled | Nothing starts except the re-enable channel. |

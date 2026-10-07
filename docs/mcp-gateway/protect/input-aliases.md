@@ -5,7 +5,7 @@ sidebar_custom_props:
   icon: Route
 ---
 
-# Input Aliases
+# Input aliases
 
 Map client inputs to the inputs a tool expects. AI clients sometimes send mismatched inputs, such as `num_results` when the tool expects `limit`, causing the call to fail. The console identifies recurring input mismatches and suggests an alias. Applying it translates the input before policy evaluation and DLP scanning.
 
@@ -106,6 +106,6 @@ Aliases are added from **Review quick fixes**. You cannot add one manually in th
 
 ## Related
 
-- [Tools management](./tool-visibility) - inspect a tool's input schema.
+- [Tool visibility](./tool-visibility) - inspect a tool's input schema.
 - [Security guardrails](./security-guardrails) - DLP checks run on the translated inputs.
-- [Agents configuration](../servers-and-connections/allowed-agents) - the AI clients named on fix cards.
+- [Allowed Agents](../servers-and-connections/allowed-agents) - the AI clients named on fix cards.

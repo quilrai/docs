@@ -10,7 +10,7 @@ sidebar_custom_props:
 
 Every provider type, the gateway endpoints it serves, and the credentials it needs. Provider support is the same in the V1 and V2 consoles.
 
-You add a provider to an app in **Create App** or in the app's **LLM Providers** section. In the V2 console you can also add it once in **Settings > Models** and link it to many apps (see [Providers and Models](./providers-and-models)). Your code always authenticates with a Quilr key; provider credentials never leave the gateway.
+You add a provider to an app in **Create App** or in the app's **LLM Providers** section. In the V2 console you can also add it once in **Settings > AI Gateway > Models** and link it to many apps (see [Providers and Models](./providers-and-models)). Your code always authenticates with a Quilr key; provider credentials never leave the gateway.
 
 ## Capability matrix
 

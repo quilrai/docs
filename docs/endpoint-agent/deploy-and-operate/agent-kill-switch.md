@@ -5,226 +5,102 @@ sidebar_custom_props:
   icon: Rocket
 ---
 
-# Quick Start
+# Agent kill switch
 
-Disable or restore the Quilr endpoint agent without a code deploy. Pick the action that matches your scenario.
+Use the kill switch to stop the Endpoint Agent on one device or across your tenant, for example if it interferes with users' work, and to restore it afterwards. No reinstall or new package is needed.
 
 <StepFlow steps={[
-  {
-    label: "Single Device",
-    items: [
-      "Who: dashboard admin",
-      "How: set endpointAgentEnabled = false",
-      "Effect: next poll cycle (~30 min)",
-    ],
-  },
-  {
-    label: "Entire Tenant",
-    items: [
-      "Who: tenant admin",
-      "How: set tenantEndpointAgentEnabled = false",
-      "Effect: next poll cycle (~30 min)",
-    ],
-  },
-  {
-    label: "Immediate Stop",
-    items: [
-      "Who: IT / helpdesk (sudo)",
-      "How: launchctl bootout",
-      "Effect: immediate",
-    ],
-  },
-  {
-    label: "Roll Back",
-    items: [
-      "Who: IT or MDM",
-      "How: re-run installer with --force",
-      "Effect: ~5 minutes",
-    ],
-  },
+  { label: "One device", items: ["Disable the workstation", "Effect: next poll (~30 min)"] },
+  { label: "Whole tenant", items: ["Disable tenant-wide", "Effect: next poll (~30 min)"] },
+  { label: "Right now", items: ["IT stops the service locally", "Effect: immediate"] },
+  { label: "Restore", items: ["Enable again", "Test device first ✓"] },
 ]} />
 
-## Quick Reference
+## Quick reference
 
-| Situation | Action | Time to Effect |
-|-----------|--------|----------------|
-| Disable agent for **one device** | Backend: set `endpointAgentEnabled = false` | Next poll cycle (~30 min) |
-| Disable agent for **entire tenant** | Backend: set `tenantEndpointAgentEnabled = false` | Next poll cycle (~30 min) |
-| Disable agent **right now** on one machine | IT: `launchctl bootout` (see below) | Immediate |
-| Roll back to a previous version | IT: re-run installer script (see below) | ~5 minutes |
-| Disable a specific sub-feature | Engineering required — see [Sub-feature Flags](#sub-feature-flags) | Requires deploy |
+| Situation | Action | Time to effect |
+| --- | --- | --- |
+| Disable the agent on **one device** | Set the device flag `endpointAgentEnabled` to off: **Disable** the workstation in **Users › Endpoint deployment** | Next poll cycle (about 30 minutes) |
+| Disable the agent for the **whole tenant** | Set the tenant flag `tenantEndpointAgentEnabled` to off: **Disable** in **Settings › Endpoint Agent** | Next poll cycle (about 30 minutes) |
+| Stop the agent **immediately** on one Mac | Local IT command (below) | Immediate |
+| Disable from the browser | The [Browser Extension kill switch](../../browser-extension/capabilities/agent-kill-switch) | Immediate |
 
----
+The agent checks these flags about every 30 minutes. A disabled agent goes dormant but stays installed, and resumes when the flag is turned back on.
 
-## 1. Disable for a Single Device
-
-> **Who**: Anyone with access to the Quilr admin dashboard or backend API.
-
-The agent goes dormant but stays installed. It re-checks every ~30 minutes and resumes if the flag is turned back on.
-
-| Step | Action |
-|------|--------|
-| **1** | Log in to the Quilr admin backend (BFF) |
-| **2** | Find the device record by device ID or user email |
-| **3** | Set `endpointAgentEnabled = false` and save |
-| **4** | Confirm: agent status endpoint returns `enabled: false` within one poll cycle |
-
-To re-enable, set `endpointAgentEnabled = true` and save.
-
----
-
-## 2. Disable for an Entire Tenant
-
-> **Who**: Anyone with tenant-level admin access.
-
-Disables the agent across all devices for that tenant. The tenant-level flag takes priority over device-level flags.
-
-| Step | Action |
-|------|--------|
-| **1** | Log in to the Quilr admin backend |
-| **2** | Find the tenant record |
-| **3** | Set `tenantEndpointAgentEnabled = false` and save |
-| **4** | Confirm: spot-check one or two devices — agents should stop within the next poll cycle |
-
-To re-enable, set `tenantEndpointAgentEnabled = true` and save.
-
-:::note
-If the tenant flag is `false`, individual device flags are ignored — the tenant flag always wins.
+:::note Tenant flag wins
+If the tenant flag is off, device flags are ignored: every device in the tenant stays disabled until the tenant flag is turned back on.
 :::
 
----
+## Disable one device
 
-## 3. Immediate Stop on a Specific Machine
+1. Open **Users › Endpoint deployment** and search for the workstation.
+2. Select it and choose **Disable**. The action applies to every session on that workstation.
+3. Within one poll cycle, the workstation's **Status** shows it as disabled and the device stops sending new activity.
 
-> **Who**: IT / helpdesk with sudo access to the macOS machine.
+To restore, select the workstation and choose **Enable**.
 
-Use this when you cannot wait for the next backend poll cycle.
+## Disable the whole tenant
 
-### Stop the agent
+1. Open **Settings › Endpoint Agent** and turn the agent off under **Enable / Disable**. See [Agent settings](../configure/agent-settings).
+2. After one poll cycle, spot-check a few workstations in **Users › Endpoint deployment**.
+
+To restore, turn the agent back on.
+
+## Stop immediately on a Mac
+
+When you cannot wait for the next poll cycle, IT staff with `sudo` access can stop the agent locally. All monitoring and traffic interception stops at once.
 
 ```bash
+# Stop the agent
 sudo launchctl bootout "system/com.sentinel.agent"
-```
 
-All monitoring and proxy interception ceases immediately.
-
-### Verify the agent is stopped
-
-```bash
+# Check it is stopped (no output means stopped)
 sudo launchctl list | grep sentinel
-```
 
-Returns nothing if the agent is stopped.
-
-### Restart the agent
-
-```bash
+# Start it again
 sudo launchctl bootstrap system "/Library/LaunchDaemons/com.sentinel.agent.plist"
 ```
 
-### Prevent restart on reboot (persistent stop)
+A `launchctl bootout` lasts only until the next reboot. To keep the agent stopped across reboots, disable it first:
 
 ```bash
 sudo launchctl disable "system/com.sentinel.agent"
 sudo launchctl bootout "system/com.sentinel.agent"
 ```
 
-To re-enable after a persistent stop:
+To undo a persistent stop:
 
 ```bash
 sudo launchctl enable "system/com.sentinel.agent"
 sudo launchctl bootstrap system "/Library/LaunchDaemons/com.sentinel.agent.plist"
 ```
 
-:::warning
-Stopping via `launchctl` is temporary by default. The agent restarts on reboot unless you also run the `disable` command above.
-:::
+## Version problems
 
----
+The agent rolls back automatically if a new version fails its health check after an update (see [Requirements](../get-started/requirements#security-and-updates)). If a device still misbehaves after an update, disable it as above and contact your QuilrAI representative for a known-good package. You can check the installed version on a Mac with `cat /usr/local/sentinel/VERSION`, or in the **Agent version** column of **Users › Endpoint deployment**.
 
-## 4. Roll Back to a Previous Version
+## What happens on the device
 
-> **Who**: IT with sudo access, or engineering via MDM.
+| Event | Result |
+| --- | --- |
+| Agent receives a disable (console flag or extension) | The disabled state is saved to the agent's local database. All DLP processing stops and services (clipboard monitoring, file indexing) are stopped. |
+| Agent starts while disabled | No services or DLP processing are started at all. The agent only listens for a re-enable. The disabled state survives reboots. |
+| Agent receives a re-enable | The state is cleared, DLP processing is restored, and services restart without a process restart. |
+| Local `launchctl bootout` | The process exits immediately and restarts on the next bootstrap or reboot (unless disabled). |
 
-### Option A — Re-run the installer
+The re-enable channel is never removed, so a disabled agent can always be restored.
 
-```bash
-sudo /usr/local/sentinel/scripts/sentinel-endpoint.sh --env <environment> --force
-```
-
-Replace `<environment>` with `quartz`, `preprod`, or `secure`. The installer pulls the latest stable release and overwrites the broken version.
-
-### Option B — Clear a stuck auto-rollback
-
-If the agent auto-rolled back after a failed upgrade but the device is still having issues:
-
-```bash
-# Check what version was rejected
-cat ~/.sentinel/.quarantined_version
-
-# Remove the quarantine file to let the agent retry
-rm ~/.sentinel/.quarantined_version
-```
-
-Then restart the agent (see Section 3).
-
-### Confirm the active version
-
-```bash
-cat /usr/local/sentinel/VERSION
-```
-
----
-
-## Sub-feature Flags
-
-The following sub-features have their own `enabled` flags but are **not yet remotely toggleable** without a code change. Open an incident ticket and tag the on-call engineer.
-
-| Sub-feature | What it does | Config flag |
-|-------------|--------------|-------------|
-| Enforcement | Kills non-compliant processes | `enforcement.enabled` |
-| Enforcement dry-run | Logs violations but does NOT kill processes | `enforcement.dry_run` |
-| File scanning | Scans for sensitive files (`.claude`, `.cursor`, etc.) | `scan.enabled` |
-| Hook integrity | Verifies Claude/Cursor hook files aren't tampered | `hook_manager.enabled` |
-| Package scanning (npm/cargo/go) | Scans installed packages | `pkg_scanner.enabled` |
-
-**Workaround while waiting for engineering**: Use the tenant or device-level kill switch (Sections 1–2) to stop the entire agent.
-
----
-
-## Severity & Escalation
-
-| Severity | Symptoms | First action | Escalate if |
-|----------|----------|--------------|-------------|
-| **P0 – Critical** | Agent breaking user workflows, blocking logins, data loss risk | Immediate stop via launchctl + tenant flag off | Not resolved in 15 min |
-| **P1 – High** | Feature misbehaving for a group of users | Device-level flag off | Affecting >5 devices |
-| **P2 – Medium** | Unexpected behavior, no immediate harm | Backend toggle + monitor | Persists after toggle |
-| **P3 – Low** | Cosmetic, minor annoyance | Log ticket | — |
-
-Tag `#sentinel-oncall` in Slack with the device ID, tenant ID, and what you observed.
-
----
-
-## Verification Checklist
+## Verify and recover
 
 After any kill switch action:
 
-- [ ] Agent status endpoint returns `enabled: false` for the affected device(s)
-- [ ] `launchctl list | grep sentinel` shows not running (if stopped via IT)
-- [ ] User confirms monitoring and proxy interception has stopped
-- [ ] No new alerts or logs from the device for 5 minutes post-action
-- [ ] If tenant-wide: spot-check at least 3 devices from the tenant
+- [ ] The affected workstations show as disabled in **Users › Endpoint deployment**.
+- [ ] If stopped locally, `launchctl list | grep sentinel` returns nothing.
+- [ ] No new activity or findings arrive from the device for a few minutes.
+- [ ] For a tenant-wide action, spot-check at least three devices.
 
----
+When the cause is fixed:
 
-## Re-enabling After an Incident
-
-1. Confirm the root cause has been identified.
-2. Confirm a fix is in place (code deploy, config change, or false alarm).
-3. Re-enable at the device level first (one test device) and monitor for 10 minutes.
-4. If clean, re-enable for the full tenant.
-5. Post a brief incident summary in `#sentinel-oncall` with what was toggled and when.
-
----
-
-**Next step:** See the [Architecture](./agent-kill-switch) for the full enforcement pipeline and state machine.
+1. Re-enable one test device and watch it for about 10 minutes.
+2. If it is healthy, re-enable the rest of the affected devices or the tenant.
+3. Record what was disabled, when, and why, for your own change log.

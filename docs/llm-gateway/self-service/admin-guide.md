@@ -13,7 +13,7 @@ New to self-service? Start with the [Overview](./overview). For the developer's 
 
 ## Where to configure it
 
-Open **Settings > LLM Gateway**, choose an app, then **Settings > Self-Service** (under **Optimization & policy**). Turn on the **Self-service** switch; when it is off, nobody can see or manage the app from self-service. Self-Service stays app-managed when the Policy Engine is on.
+Open **Settings > AI Gateway > LLM Gateway**, choose an app, then **Settings > Self-Service** (under **Optimization & policy**). Turn on the **Self-service** switch; when it is off, nobody can see or manage the app from self-service. Self-Service stays app-managed when the Policy Engine is on.
 
 ![Self-Service capabilities table with Allow all users switches and Allow and Deny email and smart group fields for Viewer access and Settings request access](/img/llm-gateway/ui/app-self-service-capabilities.png)
 
@@ -80,7 +80,7 @@ Requests from users with **Settings request access** land in the app's **Setting
 
 ## Track usage
 
-The **Self-service usage** button on the **Settings > LLM Gateway** page opens a tenant-wide report of who can do what in each app, and whether they use it.
+The **Self-service usage** button on the **Settings > AI Gateway > LLM Gateway** page opens a tenant-wide report of who can do what in each app, and whether they use it.
 
 ![Self-service usage Applications tab listing each app's credential mode as Personal keys or Main app key, with users per role, keys, requests and estimated cost](/img/llm-gateway/ui/self-service-usage-by-application.png)
 

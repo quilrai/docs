@@ -27,7 +27,7 @@ Common uses:
 
 SDK mode requires a dedicated **SDK key** - regular LLM proxy keys are rejected with `403`.
 
-Create an app in **Settings > LLM Gateway > Create App**, choose **App-only credentials** and select the **Quilr SDK** tile. It is a guardrails-only provider: it has no models and cannot be combined with other providers. Use the app's Quilr key as a Bearer token:
+Create an app in **Settings > AI Gateway > LLM Gateway > Create App**, choose **App-only credentials** and select the **Quilr SDK** tile. It is a guardrails-only provider: it has no models and cannot be combined with other providers. Use the app's Quilr key as a Bearer token:
 
 ```
 Authorization: Bearer sk-quilr-xxx

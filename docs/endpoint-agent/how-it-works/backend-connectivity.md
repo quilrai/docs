@@ -5,48 +5,20 @@ sidebar_custom_props:
   icon: Rocket
 ---
 
-# Quick Start
+# Backend connectivity
 
-Get the Quilr endpoint agent connected to the Quilr backend in 4 steps.
+The Endpoint Agent talks to the QuilrAI backend over outbound HTTPS only. It pushes what it discovers, pulls governance decisions, and reports enforcement activity.
 
 <StepFlow steps={[
-  {
-    label: "Configure",
-    items: [
-      "Base URL: api.quilr.ai",
-      "Tenant ID: from dashboard",
-      "Auth: X-Tenant-ID + X-Subscriber-ID",
-    ],
-  },
-  {
-    label: "Sync Apps",
-    items: [
-      "Auto-push on startup",
-      "Batches of 50, gzip-compressed",
-      "Visible in Applications tab",
-    ],
-  },
-  {
-    label: "Pull Governance",
-    items: [
-      "Delta sync every 60s",
-      "No agent restart needed",
-      "Approval status + policy",
-    ],
-  },
-  {
-    label: "Report Activity",
-    items: [
-      "Enforcement audit log",
-      "Block & quarantine alerts",
-      "Fire-and-forget",
-    ],
-  },
+  { label: "Configure", items: ["Base URL: api.quilr.ai", "Tenant ID", "Subscriber ID"] },
+  { label: "Push discovery", items: ["Startup + every 30 min", "Batches of 50, gzip"] },
+  { label: "Pull governance", items: ["Delta sync every 60 s", "No restart needed"] },
+  { label: "Report activity", items: ["Audit log per decision", "Block / quarantine alerts"] },
 ]} />
 
-## 1. Configure Backend Connection
+## Connection settings
 
-The agent reads its connection settings from the local configuration file in the data directory. Set these values before starting the agent:
+The agent reads its connection settings from the local configuration file in its data directory. Set these values before the agent starts.
 
 ```toml
 [backend]
@@ -54,38 +26,41 @@ base_url       = "https://api.quilr.ai"
 tenant_id      = "<your-tenant-uuid>"
 subscriber_id  = "<your-subscriber-id>"
 ```
- 
+
 | Field | Description |
-|-------|-------------|
-| `base_url` | Quilr backend API root |
-| `tenant_id` | Your organization's tenant UUID |
-| `subscriber_id` | Subscriber identifier from the Quilr dashboard |
+| --- | --- |
+| `base_url` | QuilrAI backend API root. |
+| `tenant_id` | Your organization's tenant UUID. |
+| `subscriber_id` | Your subscriber identifier. |
 
-Replace the placeholder values with your credentials from the **Quilr dashboard**.
+Get these values from your QuilrAI representative. Every request carries the tenant and subscriber IDs, which the backend uses to keep tenants isolated.
 
-## 2. Verify Discovery Sync
+## What is exchanged
 
-Once the agent starts, it pushes discovered apps to the backend automatically. Check the backend received them:
+| Direction | Data | When |
+| --- | --- | --- |
+| Agent to backend | Discovered apps and AI entities, including device ID, user, OS, and identity | At startup and every 30 minutes; batches of up to 50, gzip-compressed, retried on failure |
+| Agent to backend | Processes the agent could not map, for the backend to identify | As found |
+| Backend to agent | Governance overrides: approval status, execution policy, criticality | Delta sync every 60 seconds |
+| Backend to agent | Process-name to application mappings | Used by the correlator |
+| Agent to backend | Enforcement audit record per decision | Immediately |
+| Agent to backend | Block and quarantine alerts | Immediately |
 
-- Go to **Applications** in the Quilr dashboard
-- Discovered apps appear within the first polling cycle (startup + every 30 min)
-- Each entity includes device ID, user, OS type, and canonical identity
+Policy changes you make in the console reach the agent on the next delta sync and apply without a restart.
 
-The agent batches up to 50 entities per request, compresses with gzip, and retries on failure.
+## Verify the connection
 
-## 3. Confirm Governance Pull
+1. Discovered apps appear in [Inventory](../../console/observe/inventory) within the first discovery cycle.
+2. The device appears in **Users › Endpoint deployment** with a recent **Last registered** time. See [Deployment and status](../deploy-and-operate/deployment-and-status).
+3. After you change an [app policy](../configure/app-policies), the agent applies it within about a minute.
 
-The agent polls for governance overrides every 60 seconds via [delta sync](./backend-connectivity#api-endpoints). After setting a policy in the dashboard:
+## Offline behavior
 
-- Policy changes reach the agent within the next poll cycle
-- No agent restart needed
-- The agent applies the override immediately to its in-memory EntityStore
+| Feature | Behavior |
+| --- | --- |
+| **Alert buffering** | Critical alerts are queued in a local database while the backend is unreachable and sent when connectivity returns. Non-critical activity logs are not buffered. |
+| **Idempotent uploads** | Discovery batches can be retried safely. |
+| **Sync cursor** | The last delta position is saved to disk before overrides are applied, so a restart resumes safely. |
+| **Inventory snapshot** | Discovered entities are snapshotted to disk and reloaded at startup. |
 
-## 4. Check Activity Reporting
-
-Enforcement events (block, quarantine, justify) are reported to the backend as they happen:
-
-- **Activity sync** : enforcement audit log per decision
-- **Alert sync** : block and quarantine alerts for dashboard notifications
-
-Both are fire-and-forget. Critical alerts are buffered in a local SQLite database if the backend is unreachable and retried automatically.
+Network requirements are listed in [Requirements](../get-started/requirements#network).

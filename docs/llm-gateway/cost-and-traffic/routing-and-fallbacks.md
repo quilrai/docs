@@ -5,17 +5,22 @@ sidebar_custom_props:
   icon: Route
 ---
 
-# Request Routing
+# Routing and fallbacks
 
 Spread one model name across several models, providers or accounts, fail over when a provider is down, and send small requests to cheaper models.
 
-Open the app's **Settings > Routing** (under **Providers & routing**). Routing draws on the models of the app's enabled providers, so add providers first under **LLM Providers**.
+## Turn it on for an app
+
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
+  action="Routing"
+/>
+
+Routing draws on the models of the app's enabled providers, so link providers first in the app's **Providers** tab.
 
 ![Routing section with an example group splitting gpt-4.1 traffic 40/30/20/10 across OpenAI, Azure OpenAI and Anthropic models, and the app's available providers below](/img/llm-gateway/ui/app-routing-overview.png)
-
-:::note Policy Engine
-When the Policy Engine is on, routing policies (the **Routing Groups & Fallbacks** card) apply instead. See [App settings under the Policy Engine](../../console/govern/policy-engine#app-settings-under-the-policy-engine).
-:::
 
 ## Three ways to route
 
@@ -71,7 +76,7 @@ Route by request size within one API surface. Pick a surface tab, then fill the 
 | Vertex AI | |
 | Bedrock Runtime | Converse and ConverseStream only. InvokeModel stays direct. |
 
-Request size is measured in words. Under the Policy Engine the thresholds are set on the **Routing Groups & Fallbacks** card. OpenAI Realtime sessions always use weighted routing.
+Request size is measured in words. Under the Policy Engine the thresholds are set on the **Routing Groups & Fallbacks** card (see below). OpenAI Realtime sessions always use weighted routing.
 
 ## Which surfaces a group can mix
 
@@ -94,7 +99,7 @@ You do not need a group for the gateway to choose a provider. When a request nam
 
 For deterministic selection, send `provider`, `provider_label`, `X-Provider-Name` or `X-Provider-Label`.
 
-## Example
+## Call a routing group
 
 ```python
 from openai import OpenAI
@@ -117,3 +122,38 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
   -H "Authorization: Bearer sk-quilr-xxx" \
   -d '{"model": "Group1", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
+
+## Going further with the Policy Engine
+
+Routing is also the **Routing Groups & Fallbacks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Routing tab freezes and the card decides where requests go; converted app groups are scoped with **Requested model** set to the group name. See [Switching from classic settings](../../console/govern/switching-from-classic-settings).
+
+The card decides in this order: [Allowed Models](../protect/gateway-access-and-allowed-models) filters what may be used, then the highest-priority **Route to** (first target with an enabled credential), then the highest-priority **Routing group** (weighted split), then the app's provider default.
+
+| Section | What it does | Empty state |
+|---|---|---|
+| **Route to** | An ordered fallback list of provider credential and model pairs, whatever model the client asked for. | Requests keep the model they asked for. |
+| **Routing groups** | A weighted split across models, by requests or by tokens. Weights total 100. | No split. |
+| **Complexity thresholds** | Word counts that classify a prompt Low, Medium or High for the **Prompt complexity** scope. | 6 words or fewer are Low, 7 to 10 Medium, longer High. |
+
+Scenarios the card supports that app settings cannot:
+
+- **Failover for one app.** Route Support Copilot to `openai_primary / gpt-4.1`, falling back to `azureopenai_primary / gpt-4.1` when the first credential is disabled.
+- **Cheap model for short prompts, tenant-wide.** Route requests whose Prompt complexity is Low to a smaller model, and tune what counts as short with **Complexity thresholds**.
+- **Different routes per group or environment.** Scope a route or group to People, a Smart group, App tag, Requested model, Provider, API surface, Environment, Prompt text, Tool or Source network. Highest priority wins where scopes overlap.
+
+<PolicyCard
+  name="cheap_short_prompts"
+  stage="request"
+  priority={600}
+  when={[{ field: "Prompt complexity", op: "is", value: "low" }]}
+  then={[{ effect: "Route to", value: "openai_primary / gpt-4.1-mini", tone: "info" }]}
+/>
+
+Rejected models on the Allowed Models card still win over a route or group target. A routing group name on the card is a policy-only alias and never affects a live app routing group with the same name.
+
+## Related
+
+- [Providers and models](../apps-and-providers/providers-and-models)
+- [Provider support](../apps-and-providers/provider-support)
+- [Gateway access and allowed models](../protect/gateway-access-and-allowed-models)
+- [Policy Engine overview](../../console/govern/policy-engine)

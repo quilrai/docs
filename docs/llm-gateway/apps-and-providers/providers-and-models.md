@@ -5,13 +5,25 @@ sidebar_custom_props:
   icon: Cloud
 ---
 
-# Providers and Models
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Providers and models
 
 :::info V2 console only
-**Settings > Models**, platform providers and credential reuse across apps are available in the V2 console only. In V1, each app keeps its own provider credentials.
+**Settings > AI Gateway > Models**, platform providers and credential reuse across apps are available in the V2 console only. In V1, each app keeps its own provider credentials.
 :::
 
-A **platform provider** is a provider connection you set up once for the whole tenant and then link to any number of apps. You manage them in **Settings > Models** under **Your models**, or with **Provider configuration** on the **Settings > LLM Gateway** page, which opens the same list.
+The **Models** page (**Settings > AI Gateway > Models**) is where you manage every model the gateway can reach. It has four tabs:
+
+| Tab | What it is for |
+|-----|----------------|
+| **Models** | **Your models** (your own provider connections and their costs) and **QuilrAI provided models** (the hosted catalog with retail prices). |
+| **API keys** | Model API keys for calling QuilrAI-provided models directly. |
+| **Usage** | Credit remaining, spend, requests, tokens and per-model throughput for QuilrAI-provided models. |
+| **Playground** | Chat with any active QuilrAI-provided model. |
+
+A **platform provider** is a provider connection you set up once for the whole tenant and then link to any number of apps. You manage them in **Settings > AI Gateway > Models** under **Your models**, or with **Provider configuration** on the **Settings > AI Gateway > LLM Gateway** page, which opens the same list.
 
 <StepFlow steps={[
   { label: "Connect", items: ["Provider and API", "Label and credentials"] },
@@ -25,7 +37,7 @@ A **platform provider** is a provider connection you set up once for the whole t
 
 | | Platform provider | App-only credentials |
 |---|---|---|
-| Set up in | **Settings > Models**, or **Provider configuration** on the LLM Gateway page | Create App, or the app's **LLM Providers** section |
+| Set up in | **Settings > AI Gateway > Models**, or **Provider configuration** on the LLM Gateway page | Create App, or the app's **LLM Providers** section |
 | Credentials | Stored once, shared by every linked app | Stored on one app |
 | Models added later | Reach every linked app automatically | Added app by app |
 | Credential change, disable or delete | Affects every linked app | Affects one app |
@@ -37,13 +49,13 @@ An app uses either platform providers or app-only credentials, never both. You c
 
 ## Your models
 
-Go to **Settings > Models > Models** and select **Your models**.
+Go to **Settings > AI Gateway > Models > Models** and select **Your models**.
 
 ![Your models list showing two provider cards, each with its label, provider and API, Enabled badge, and a table of models with input, cached input and output prices](/img/llm-gateway/ui/models-your-models-list.png)
 
 Each card is one provider connection. It shows the label, the provider and API (for example `Anthropic · Messages`), its status, and each model's input, cached input and output price in USD per 1M tokens. **Price source** shows `Published` when the price came from the provider's published list.
 
-The **QuilrAI provided models** switch shows the models QuilrAI hosts. See [QuilrAI-Provided Models](./providers-and-models).
+The **QuilrAI provided models** switch shows the models QuilrAI hosts. See [QuilrAI-provided models](#quilrai-provided-models).
 
 ## Add a provider
 
@@ -125,10 +137,143 @@ In **Create App**, step 1 selects **Platform providers** by default.
 1. Select one or more providers. The first one is the **Primary**; the rest are fallbacks. To change the order, use the up and down arrows.
 2. The app inherits every model and credential of the linked providers.
 
-If none exist, the wizard says **No platform providers yet** and offers **Add a platform provider** (adds one without leaving the form), **Provider configuration** and **Use app-only credentials**. See [Quick Start](../get-started/quick-start#step-1-application-and-providers).
+If none exist, the wizard says **No platform providers yet** and offers **Add a platform provider** (adds one without leaving the form), **Provider configuration** and **Use app-only credentials**. See [Quick Start](../get-started/quick-start#1-create-the-app).
 
 To send a request to one specific linked provider, pass its label. See [Selecting a provider](./provider-support#selecting-a-provider-on-multi-provider-apps).
 
-## QuilrAI-provided models in an app
+## QuilrAI-provided models
 
-QuilrAI-provided models can serve a gateway app through a **Custom endpoint** provider with the **Chat completions** API (`general`): base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > Models > API keys**. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
+QuilrAI hosts a catalog of chat models behind one OpenAI-compatible endpoint, `https://models.quilrai.dev/v1`. You do not need a provider account: create a model API key, select the models it may call, and send requests.
+
+- **Billing:** each request is charged at the catalog's listed prices (USD per 1M tokens) and drawn from your organization's model credit. Contact QuilrAI support to raise your credit limit.
+- **Shared credit:** the [Playground](#playground), [Workflow Agents](../../console/settings-ai-gateway/workflow-agents) and [Red Teaming](../../red-teaming/assessments/agentic-red-teaming) runs that use QuilrAI-provided models draw from the same credit.
+
+| You want to | Use |
+|---|---|
+| Call a hosted model directly, billed from your QuilrAI credit | A [model API key](#model-api-keys) against `https://models.quilrai.dev/v1` |
+| Use QuilrAI-provided models with gateway guardrails, routing, limits and logging | An LLM Gateway app with a General LLM provider ([steps](#use-quilrai-provided-models-in-a-gateway-app)) |
+| Use your own OpenAI, Anthropic, Azure, Bedrock or Vertex accounts | An LLM Gateway app with [your own providers](#add-a-provider) |
+
+A model API key can only call QuilrAI-provided models. Your own provider models cannot be added to it.
+
+### Browse the catalog
+
+Go to **Settings > AI Gateway > Models > Models** and select **QuilrAI provided models**.
+
+![QuilrAI-provided models catalog](/img/llm-gateway/ui/models-quilrai-provided-catalog.png)
+
+| Control | What it does |
+|---|---|
+| **Search models** | Filters by model ID or provider prefix. |
+| **Sort by price** | Sorts by input, cached input or output price, low to high or high to low. |
+| **Chat** (per row) | Opens the Playground with that model selected. |
+
+Columns: **Model** (the exact ID to send as `model`), **Capabilities**, **Input price**, **Cached input price** ("Not available" when the model has none), **Output price** and **API schema** (informational; every model is called the same way). The console always shows the current list and prices.
+
+### Model API keys
+
+1. Go to **Settings > AI Gateway > Models > API keys** and click **Create API key**.
+2. Enter a **Key name** (required, 1 to 128 characters; "Console playground" is reserved) and pick **Allowed models** (at least one). The key can call only these models.
+3. Click **Create API key**. The full key (`sk-quilrllm-...`) and the inference base URL are shown **once**. The console keeps only the key prefix.
+
+![Create model API key dialog](/img/llm-gateway/ui/quilr-models-create-api-key-dialog.png)
+
+:::warning
+If you lose the key, revoke it and create a new one. Revocation is permanent.
+:::
+
+The list shows each key's name, key prefix, allowed models (**View**), status (`ACTIVE` / `REVOKED`), requests and spend this month, and **Revoke**. Keys have no expiry and no per-key spend limit; the organization credit is the only cap. You may also see keys you did not create: **Console playground** (used by the Playground) and **Agent run &lt;id&gt;** (a Workflow Agent run, limited to the run's model and revoked after it).
+
+**Permissions:** viewing the catalog, keys and usage requires LLM Gateway read access. Creating a key requires LLM Gateway create access (under RBAC V2, `llm.apps.create` and `secrets.reveal`). Revoking requires LLM Gateway delete access (`llm.apps.delete`). Every key creation is recorded in the audit log.
+
+### Call a model
+
+| | |
+|---|---|
+| **Base URL** | `https://models.quilrai.dev/v1` |
+| **Endpoint** | `POST /chat/completions` (OpenAI Chat Completions format) |
+| **Auth** | `Authorization: Bearer $QUILR_MODEL_API_KEY` |
+| **Model** | The exact catalog ID, including any prefix (for example `deepseek/deepseek-v3.2`). It must be one of the key's allowed models. |
+
+<Tabs groupId="quilr-models-lang">
+<TabItem value="curl" label="cURL" default>
+
+```bash
+curl 'https://models.quilrai.dev/v1/chat/completions' \
+  -H "Authorization: Bearer $QUILR_MODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{
+  "model": "deepseek/deepseek-v3.2",
+  "messages": [{"role": "user", "content": "Explain zero trust in one sentence."}],
+  "max_tokens": 1024
+}'
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["QUILR_MODEL_API_KEY"],
+    base_url="https://models.quilrai.dev/v1",
+)
+response = client.chat.completions.create(
+    model="deepseek/deepseek-v3.2",
+    messages=[{"role": "user", "content": "Explain zero trust in one sentence."}],
+    max_tokens=1024,
+)
+print(response.choices[0].message.content)
+```
+
+</TabItem>
+</Tabs>
+
+The Playground's **Use this model in your app** panel generates these snippets (also for Node) for the selected model, prompt and settings.
+
+### Use QuilrAI-provided models in a gateway app
+
+Route QuilrAI-provided models through an LLM Gateway app to apply the app's guardrails, routing, limits and logs.
+
+1. [Create a model API key](#model-api-keys) whose **Allowed models** include every model the app should use.
+2. Add a **General LLM** provider to the app (the **Custom endpoint** tile with the **Chat completions** API, `general`), as a platform provider or with app-only credentials:
+
+   | Field | Value |
+   |---|---|
+   | `base_url` | `https://models.quilrai.dev/v1` |
+   | `api_key` | Your model API key (`sk-quilrllm-...`) |
+   | Models | The exact catalog IDs, for example `deepseek/deepseek-v3.2` |
+
+3. Call the app with its QuilrAI gateway key (`sk-quilr-...`) as in the [Quick Start](../get-started/quick-start), using the catalog ID as `model`.
+
+Usage is billed from your organization credit either way and appears in the key's spend and the **Usage** tab. Selecting QuilrAI-provided models directly in **Create App**, without a General LLM provider, is coming soon.
+
+### Playground
+
+Go to **Settings > AI Gateway > Models > Playground** (or click **Chat** on a catalog row). No key is needed; the Playground uses its own server-held key. Requests count toward your organization's usage, and responses are not stored by the console or streamed.
+
+| Setting | Range | Default |
+|---|---|---|
+| **Model** | Any active catalog model | |
+| **System prompt** / **User prompt** | Up to 16,000 characters each | |
+| **Temperature** | 0 to 2 | 0.7 |
+| **Top P** | 0 to 1 | 1 |
+| **Max output tokens** | 1 to 4,096 | 1,024 |
+
+Conversations are limited to 20 messages and 64,000 characters.
+
+### Usage
+
+**Settings > AI Gateway > Models > Usage** shows credit and spend. Usage can take a few moments to appear; click **Refresh** to update.
+
+| Tile | Shows |
+|---|---|
+| **Credit remaining** | Remaining credit, and amount spent of your lifetime limit |
+| **Spend this month** | Spend in the current UTC month |
+| **Requests this month** | Successful and failed requests |
+| **Tokens this month** | Input and output tokens |
+| **Total throughput** | Tokens per second, input and output |
+
+Below the tiles, a per-model table lists requests, tokens, input/output/total TPS, average latency, error rate, month spend and lifetime spend. If a banner says some token totals are estimated, the provider did not report exact usage for those requests. Per-key spend is on the **API keys** tab.

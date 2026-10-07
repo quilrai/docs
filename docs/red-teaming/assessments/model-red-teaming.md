@@ -131,6 +131,6 @@ How to read the matrix:
 
 ## Next steps
 
-- [Reading Red Team Results](../get-started/reading-a-report) - including a worked example: `gpt-5.4-mini` on the full library, grade A.
+- [Reading a report](../get-started/reading-a-report#agentic-and-model-red-teaming-reports) - including a worked example: `gpt-5.4-mini` on the full library, grade A.
 - [Attack Library](../operate/attack-library) - all 64 objectives.
 - [Findings and Schedules](../operate/runs-findings-and-schedules).

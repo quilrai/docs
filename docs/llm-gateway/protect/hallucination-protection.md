@@ -5,13 +5,15 @@ sidebar_custom_props:
   icon: Target
 ---
 
-# Hallucination Protection
-
-:::info V2 console
-This card lives in **Policy Engine > LLM Gateway** at `web.quilr.ai/policy`. Edits join the shared draft and take effect once you [review and publish](../../console/govern/author-simulate-and-publish) a revision.
-:::
+# Hallucination protection
 
 Score model responses for hallucinations and monitor or block them above a confidence threshold. Runs at the response stage.
+
+## Where it is configured
+
+Hallucination protection is a Policy Engine feature. There is no dedicated app setting or Configure tab for it. The only per-app option is the on/off [Hallucination check](./security-guardrails#hallucination-check) in an app's Guardrails tab, which uses a fixed threshold of 0.8 and freezes once the Policy Engine is on (see [Switching from classic settings](../../console/govern/switching-from-classic-settings)).
+
+For a tunable threshold, scoping and follow-up severities, use the **Hallucination Protection** card in **Policy Engine > LLM Gateway**. Edits join the shared draft and take effect once you [review and publish](../../console/govern/author-simulate-and-publish) a revision.
 
 ![Hallucination Protection card expanded with the response-stage banner, the Protection section and the After a hallucination is detected section](/img/policy-engine/llm-hallucination-protection-expanded.jpg)
 
@@ -40,7 +42,15 @@ Applies on `bedrock`, `chat`, `responses` and `vertex`, and only to **non-stream
 
 **Add follow-up** opens **Hallucination follow-up**. **When** is one of: **a hallucination is detected**, **the score is at least** (0 to 1), or **the risk level is** (Low, Medium, High). The rule then tags a severity. The highest severity among matching rules is reported.
 
-## Example
+## Scoping and advanced scenarios
+
+- **Applies to**: Everyone, People, Smart group, Application, App tag, Requested model, Provider, API surface, Environment, Tool, Source network, or **Except...**.
+- **Threshold**: the **lowest** matching threshold applies, whatever its priority. A narrower scope cannot raise the threshold set for Everyone.
+- **Action and risk level** follow the highest-priority matching configuration.
+- **Off** on a narrower scope beats **On** for Everyone.
+- Need to key protection off attachment types, streaming or a metadata field? Use **Add configuration**.
+
+For example, block likely hallucinations for one customer-facing app while the rest of the tenant only monitors, or set a lower (stricter) threshold for one Smart group. Start at Monitor, then move the action or the threshold:
 
 <PolicyCard
   name="monitor_high_confidence_hallucinations"
@@ -57,16 +67,7 @@ Applies on `bedrock`, `chat`, `responses` and `vertex`, and only to **non-stream
   ]}
 />
 
-Start at `monitor`, then move the action or the threshold.
+## Related
 
-## Scoping and precedence
-
-- **Applies to**: Everyone, People, Smart group, Application, App tag, Requested model, Provider, API surface, Environment, Tool, Source network, or **Except...**.
-- **Threshold**: the **lowest** matching threshold applies, whatever its priority. A narrower scope cannot raise the threshold set for Everyone.
-- **Action and risk level** follow the highest-priority matching configuration.
-- **Off** on a narrower scope beats **On** for Everyone.
-- Need to key protection off attachment types, streaming or a metadata field? Use **Add configuration**.
-
-## Legacy app setting
-
-Replaces the [Hallucination check](./security-guardrails#hallucination-check) in an app's Security Guardrails.
+- [Security guardrails](./security-guardrails) - the basic per-app hallucination check.
+- [Policy Engine overview](../../console/govern/policy-engine)

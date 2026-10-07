@@ -5,11 +5,17 @@ sidebar_custom_props:
   icon: History
 ---
 
-# Tool Change Watch
+# Tool change watch
 
 MCP servers can add, remove or change tools. Quilr checks each server's tool list every hour. With the default setting, it tells you what changed so you can review new or changed tools before your users get them.
 
-On the server card, under **Configure**, click **Tools**. The **Upstream tool changes** card sits above the tool list.
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
+  action="Tools"
+  note="The Upstream tool changes card sits above the tool list."
+/>
 
 ![Upstream tool changes card with the When the upstream tool list changes selector, Last checked time and the Check now button](/img/mcp-gateway/ui/settings-tool-changes.png)
 
@@ -59,6 +65,6 @@ For these, click **Refresh tools** in the **Tools** section to fetch the current
 
 ## Related
 
-- [Tools management](./tool-visibility) - enable, disable and inspect tools.
-- [Tool confirmation](./human-approval) - ask the user before a tool runs.
+- [Tool visibility](./tool-visibility) - enable, disable and inspect tools.
+- [Human approval](./human-approval) - ask the user before a tool runs.
 - [OAuth Connect](../servers-and-connections/oauth-connect) - connect OAuth servers so their tools can be listed.

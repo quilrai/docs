@@ -1,15 +1,15 @@
 ---
-title: "Management APIs"
+title: "Management API"
 sidebar_position: 3
 sidebar_label: "Management API"
 sidebar_custom_props:
   icon: Wrench
-description: "LLM Gateway Management API v1: management apis, with typed inputs and examples."
+description: "LLM Gateway Management API v1: overview, quick start, authentication and conventions."
 ---
 
 import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
 
-# Management APIs
+# Management API
 <ManagementHero />
 
 
@@ -19,7 +19,7 @@ Use the Management API to configure LLM Gateway apps, shared providers, credenti
 
 ## Enable in the console
 
-1. Go to **Settings > LLM Gateway** and open the **Management API** tab.
+1. Go to **Settings > AI Gateway > LLM Gateway** and open the **Management API** tab.
 2. Turn on **Allow management keys for this organization**. Turning it off later suspends every management key until you turn it back on.
 
 ![Management API tab with the Allow management keys for this organization switch turned on](/img/llm-gateway/ui/management-api-overview.png)
@@ -37,7 +37,7 @@ Use the Management API to configure LLM Gateway apps, shared providers, credenti
 | **Issue app keys** | `credentials:write` | Issue, extend and revoke Quilr keys for apps |
 | **Reveal app keys** | `credentials:read` | Read the value of an active app key. Every reveal is audited. |
 
-A key acts for the whole organization within its scopes and cannot be limited to one app. Revoke a key from the keys table on the same tab. See [Authentication & management keys](./management-api) for details.
+A key acts for the whole organization within its scopes and cannot be limited to one app. Revoke a key from the keys table on the same tab. See [Authentication and management keys](#authentication) for details.
 
 ## Choose a resource
 
@@ -99,4 +99,261 @@ Search by resource, path, action or HTTP method. Open an endpoint to see its sco
 
 ## Continue
 
-Start with the [end-to-end example](./management-api), inspect the [full app configuration schema](./providers-and-configuration-api), or review [errors, concurrency and retry semantics](./management-api). Download the [OpenAPI 3.1 reference](/openapi/llm-gateway-management-v1.json) for all operations and input schemas.
+Start with the [end-to-end example](#quick-start), inspect the [full app configuration schema](./providers-and-configuration-api#configuration), or review [errors, concurrency and retry semantics](#conventions). Download the [OpenAPI 3.1 reference](/openapi/llm-gateway-management-v1.json) for all operations and input schemas.
+
+## Quick start {#quick-start}
+
+This workflow creates a shared provider, creates an app, reads it, then disables it without losing configuration. Replace the placeholder origin with your central management origin and enable management access before making requests.
+
+### 1. Prepare access
+
+Enable `LLMGATEWAY_MANAGEMENT_API_ENABLED=true` on the central service. A verified tenant administrator opts the tenant in and issues a management key. See [authentication](#authentication).
+
+For this workflow, the key needs `read`, `providers:write`, `config:write` and `credentials:write`.
+
+```bash
+export MANAGEMENT_ORIGIN='https://management.example.com'
+export MANAGEMENT_KEY='<management-key>'
+export PROVIDER_API_KEY='<provider-api-key>'
+```
+
+Keep secrets in your automation secret store. These example values are placeholders, not live credentials.
+
+### 2. Create a shared provider
+
+```bash
+curl --request POST \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/providers" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --header 'Idempotency-Key: support-provider-001' \
+  --data "{\"label\":\"Production OpenAI\",\"provider_name\":\"openai\",\"provider_settings\":{\"api_key\":\"$PROVIDER_API_KEY\"},\"selected_models\":[\"gpt-4.1-mini\"]}"
+```
+
+A `201` response returns `provider` metadata with `credential_configured` and an opaque `version`. **Saving does not contact the provider.** Use [explicit testing](./providers-and-configuration-api#Test_connection_or_model) when you want to verify connectivity or model access.
+
+### 3. Create an app
+
+```bash
+curl --request POST \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --header 'Idempotency-Key: support-app-001' \
+  --data '{
+    "name": "Support Bot",
+    "provider_labels": ["Production OpenAI"],
+    "tags": ["production", "support"]
+  }'
+```
+
+Abbreviated creation response; additional stored-setting sections and metadata may be present:
+
+```json
+{
+  "app": {
+    "name": "Support Bot",
+    "mode": "gateway",
+    "enabled": true,
+    "version": "app-v1",
+    "provider_labels": ["Production OpenAI"],
+    "tags": ["production", "support"],
+    "policy_authority": {"enabled": false, "active_revision": null, "active_checksum": null}
+  },
+  "key": {
+    "key_id": "key_example",
+    "name": "Default",
+    "secret": "<new-gateway-key>",
+    "status": "active",
+    "expires_at": null
+  },
+  "warnings": [],
+  "operation_id": "operation_example",
+  "request_id": "req_example"
+}
+```
+
+The initial key is issued even when `initial_key` is omitted. Use the gateway credential for runtime calls. Keep using the management credential for configuration.
+
+:::note New apps under QuilrQL
+When tenant-wide QuilrQL authority is already enabled, app creation captures the app baseline and can publish an app-specific allowed-models default for all app users. Finite configured model lists receive this default; unrestricted providers and SDK/Copilot Studio apps do not get a finite model list. Matching tenant policies, including explicit model denials, still apply. Creation does not enable authority or change existing drafts. See [QuilrQL behavior](./policy-api).
+:::
+
+### 4. Read the current version
+
+```bash
+curl --include \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps/Support%20Bot" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY"
+```
+
+Use the returned `ETag` in updates. The example below assumes it is `"app-v1"`; use the actual value from your read.
+
+### 5. Disable and re-enable
+
+```bash
+curl --request PATCH \
+  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps/Support%20Bot" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --header 'If-Match: "app-v1"' \
+  --data '{"enabled":false}'
+```
+
+This preserves the app, prompts, provider references and keys. After a gateway observes the change, newly admitted traffic is rejected for all app authentication modes. Existing requests finish normally.
+
+To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expired or were revoked while the app was disabled remain invalid. Propagation is asynchronous; the API does not promise an instantaneous global kill switch.
+
+### Next steps
+
+| Task | Reference |
+| --- | --- |
+| Add another shared provider | [Attach a provider](./apps-and-credentials-api#Attach_a_shared_provider) |
+| Configure guardrails, routing or limits | [Full configuration input](./providers-and-configuration-api#configuration) |
+| Issue a separate automation key | [Gateway credentials](./apps-and-credentials-api#credentials) |
+| Understand new-app policy defaults | [QuilrQL behavior](./policy-api) |
+| Add a system prompt | [Prompt Store](./prompts-api) |
+
+## Authentication and management keys {#authentication}
+
+Two gates enable access: the deployment switch and tenant opt-in. Every management key belongs to exactly one tenant; one tenant can have multiple keys for independent automation clients.
+
+### Request authentication
+
+```http
+Authorization: Bearer <management-key>
+```
+
+The key establishes the tenant. Caller-supplied tenant headers cannot expand that scope. Gateway inference keys, log-export credentials and management keys are not interchangeable.
+
+| Credential | Purpose | Secret retrieval |
+| --- | --- | --- |
+| Management key | Read/write authorized tenant configuration. | Issuance only; cannot reveal it later. |
+| Gateway app key | Runtime access to one canonical gateway app. | Explicit reveal with `credentials:read`. |
+| Verified administrator identity | Opt in a tenant; create, change or revoke management keys. | Follows the administration identity provider. |
+
+### Enablement and lifecycle
+
+1. Enable `LLMGATEWAY_MANAGEMENT_API_ENABLED` on the central service. It defaults to `false`.
+2. An authorized administrator enables management for the tenant.
+3. The administrator creates a named key with explicit scopes and, optionally, an expiry.
+4. Store the returned secret. Issue a replacement key before revoking a key used by an existing integration.
+
+Disabling tenant management **suspends** its keys. Re-enabling restores keys that remain unexpired and unrevoked. This does not enable/disable gateway apps. Tenant admins may continue to inspect enablement and revoke keys while tenant management is suspended, provided the deployment gate is enabled.
+
+Management keys do not expire by default. `expires_at` is a future RFC 3339 timestamp or `null`. On PATCH, omission preserves the current expiry and `null` clears it. Expired and revoked keys are terminal: issue a new key instead of resurrecting one.
+
+### Scopes
+
+All scopes listed for an operation are required. No scope implies another.
+
+| Scope | Grants |
+| --- | --- |
+| `read` | Capabilities/OpenAPI, app/provider/key metadata, prompts, configuration history, management audit, existing groups/definitions and operation status. |
+| `config:write` | App create/update/enable/disable, provider attachments/conversion, app controls, prompt changes eligible app rollback and configuration recovery. |
+| `providers:write` | Shared-provider create/update/enable/disable, credential rotation and explicit upstream tests. |
+| `credentials:write` | Issue/revoke gateway app keys and change supported expiry. |
+| `credentials:read` | Explicitly reveal a retained gateway app credential. |
+
+App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`.
+
+Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The five scopes above are the accepted scopes and apply tenant-wide.
+
+### Administration boundary
+
+The `/llmgateway/management-admin/v1` routes require `Authorization: Bearer <Quilr tenant-admin JWT>`. The verified JWT must include the selected tenant in `tenantIds`, an `Admin` or `Super Admin` role, and an identifying `sub`, `userId` or `email`. Tenant headers alone do not authorize access. A management key cannot grant itself permissions or enable its tenant.
+
+GET/PATCH tenant settings controls `{ "enabled": true }`. GET/POST tenant keys lists metadata or creates a management key. PATCH/DELETE a key changes its name/scopes/expiry or revokes it. Dedicated rotation and per-key pause/resume are **Not Generally Available**; issue a replacement and then revoke the old key.
+
+Lists return each key's `version`, status, creator, creation/expiry/revocation times and `last_used_at`. Use the quoted `version` as `If-Match` for editing or revoking that key. Management-key timestamps are Unix seconds, potentially fractional; request `expires_at` values use RFC 3339. List responses never include the secret. Later management-secret retrieval is **Not Generally Available**; retain the issuance response.
+
+Key creation requires `Idempotency-Key`. The same administrator can replay the completed issuance response, including its secret, for 24 hours using the same key and payload. After that window, the token cannot create another key. See [retry and recovery](#idempotency-and-recovery).
+
+<ApiReference tags={['Administration']} />
+
+## API conventions and errors {#conventions}
+
+### Enablement and authentication
+
+Management v1 runs on the central service with `LLMGATEWAY_MANAGEMENT_API_ENABLED=true`; it defaults off. Both route families return `404` when disabled. Deployments using `CLICKHOUSE_MASTER_URL` reject management with `503 central_service_required`.
+
+Resource routes use `/llmgateway/management/v1` and `Authorization: Bearer <qlmgmt_...>`. The key establishes the tenant. Administrator routes use `/llmgateway/management-admin/v1` and a verified tenant-admin JWT; see [authentication](#authentication).
+
+Send JSON bodies with `Content-Type: application/json`. Requests are capped at 1 MiB, with a 10-second body-read timeout and 32 admitted management requests per HTTP worker. Model probes have a 20-second timeout. Secret-bearing values are omitted from ordinary reads. Responses use `Cache-Control: no-store` and `X-Request-ID`.
+
+### Names and pagination
+
+Use URL-encoded paths for simple names. For app names containing `/`, `%` or other proxy-sensitive characters, use the `/app` query aliases and encode `app_name` once. Every app subresource supports the same alias.
+
+Paginated lists accept `limit` (1-200, default 50) and `cursor`:
+
+```json
+{"items": [], "next_cursor": null, "request_id": "req_example"}
+```
+
+There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider/group/definition/audit lists support no additional filters. App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
+
+### Versions and preconditions
+
+Read the current resource version, then send its quoted value in `If-Match`. Missing preconditions return `428`; stale versions return `412`. Re-read and reconcile the intended change.
+
+App updates, provider attachments/conversion, all prompt mutations and configuration rollback use the app ETag. Provider changes use the provider ETag. Gateway credential changes use the individual credential GET version. Management-key changes use `key.version` from the admin list. Tenant enablement changes use the settings version.
+
+Prompt creation also requires the app ETag; `If-None-Match` has no create-only semantics. Lists do not return a collection ETag for editing their members.
+
+### Idempotency and recovery
+
+App/provider/gateway-key/management-key creation and app rollback require a distinct `Idempotency-Key` per intended operation. Reusing it with different input returns `409`. Completed responses are encrypted and replayable for 24 hours to the same principal. Expiry does not permit duplicate issuance using that token.
+
+A timeout or `503` does not prove that nothing changed. `503 operation_pending` includes `error.operation_id` when a configuration/creation operation remains incomplete. Configuration recovery uses `/operations/{operation_id}` and `/operations/{operation_id}/recover` with the initiating key. Creation recovery retries the original POST and token. See [operation recovery](./providers-and-configuration-api#operation-recovery).
+
+Provider/credential PATCH and revocation, and provider conversion, have no idempotent replay contract. After a transport/storage error, read current state/version before deciding whether another mutation is needed.
+
+### Dates and response formats
+
+Request `expires_at` values are future RFC 3339 timestamps with a timezone, or null. Gateway credential expiry responses also use RFC 3339. Management-key metadata, management audit, operation creation and provider-test completion times use Unix seconds, potentially fractional. Treat opaque IDs, versions and fingerprints as strings.
+
+Capabilities fields are at the response root, including `schema_version`, `scopes`, `app_fields`, `writes_available`, `policy_updates`, `policy_authority` and model-test support. There is no wrapping `capabilities` object. Configuration history detail uses `version_record`. All ordinary JSON responses include `request_id`; `/openapi.json` returns an OpenAPI document directly.
+
+### Errors
+
+```json
+{
+  "error": {
+    "code": "operation_pending",
+    "message": "Creation is incomplete; retry the same Idempotency-Key to recover",
+    "operation_id": "operation_example"
+  },
+  "request_id": "req_example"
+}
+```
+
+| Status | Meaning |
+| --- | --- |
+| `200` | Read/update/reveal, revocation, detach, prompt deletion or recovery completed. |
+| `201` | App/provider/key or a previously missing prompt created. |
+| `400` | Invalid fields, values or pagination. |
+| `401` | Invalid, expired or revoked credential. |
+| `403` | Tenant suspended or insufficient permission. |
+| `404` | Deployment disabled or resource missing/outside tenant. |
+| `408` | Request body read timed out. |
+| `409` | Identity/dependency/idempotency conflict, changed collection or terminal key state. |
+| `412` | Stale version. |
+| `413` | Request exceeds 1 MiB. |
+| `428` | Required `If-Match` missing. |
+| `429` | Management concurrency limit reached. |
+| `503` | Central service/storage unavailable or operation pending. |
+
+Deletes return JSON with `200`, not `204`. Provider tests return `200` with an explicit `passed`, `failed` or `unsupported` outcome; inspect `test.code` and `test.configuration_version`. Connection tests currently return `unsupported_test_kind`.
+
+### Propagation and deployment
+
+Central writes synchronize asynchronously to gateway nodes. Whole-app disable rejects new admissions after each node observes the change; existing requests and streams finish. Management-key revocation and tenant suspension are checked against central authority on each admitted management request.
+
+Central HTTP workers and the tenant watcher share persistent `DLP_SERVER_DATA_DIR`. Management authority, keys, audit and encrypted replay data are central-only; back up `DATABASES/llmgateway_management.db` and `llmgateway_management.replay.key` together. Independent replicas with independent data directories are unsupported.
+
+### Capability and schema reference
+
+Features marked **Not Generally Available** in the [availability table](#availability) are not currently supported. The static downloadable reference adds examples to the current implemented routes. The authenticated `/openapi.json` endpoint returns the backend-generated contract. Use `/capabilities` for deployed fields/provider types and test support.
+
+<ApiReference tags={['Reference']} />

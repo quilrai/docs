@@ -72,7 +72,7 @@ After you add a server, its settings open. Its tools stay off until you enable t
 
 | Section | Set |
 |---------|-----|
-| **Tools** | Turn on the tools agents may call. See [Tools Management](../protect/tool-visibility). |
+| **Tools** | Turn on the tools agents may call. See [Tool visibility](../protect/tool-visibility). |
 | **Guardrails** | Block or redact sensitive data in tool arguments and results. See [Security Guardrails](../protect/security-guardrails). |
 | **General > Access control** | Limit the server to agents, smart groups or users. See [Access Control](../protect/server-access). |
 | **Group & User Rules** | Set different tools or guardrails for one group or user. See [Group & User Rules](../protect/group-and-user-rules). |

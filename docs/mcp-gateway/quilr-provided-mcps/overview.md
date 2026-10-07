@@ -47,7 +47,7 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 | [PDF Editor](./pdf-editor) | Reading and editing PDF documents | Inspect, search, OCR, edit text, watermark, forms, metadata, export | None - enabled, not connected | Yes |
 
 :::note
-“Changes data?” describes the integration's available tool surface, not what every user can do. Administrators can disable write or destructive tools in [Tools Management](../protect/tool-visibility) and restrict agent access through [Access Control](../protect/server-access).
+“Changes data?” describes the integration's available tool surface, not what every user can do. Administrators can disable write or destructive tools in [Tool visibility](../protect/tool-visibility) and restrict agent access through [Server access](../protect/server-access).
 :::
 
 ## Quilr-Provided vs Provider-Native vs Your Own
@@ -68,4 +68,4 @@ Provider-native MCPs in the library that need a setup guide, including Slack, Gi
 - MCP Gateway policies can scan tool inputs and outputs and retain auditable tool-call metadata.
 - Availability and exact tools can vary by tenant, provider plan, granted scopes, and administrator policy.
 
-Open any integration above for its focused capability matrix, Quilr differentiation, safety model, and setup links.
+Open any integration above for its tools, setup steps, and how it compares with the official server.

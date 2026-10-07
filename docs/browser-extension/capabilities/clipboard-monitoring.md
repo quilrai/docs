@@ -5,89 +5,57 @@ sidebar_custom_props:
   icon: Rocket
 ---
 
-# Quick Start
+# Clipboard monitoring
 
-Get up and running with Clipboard Monitoring in 4 steps.
+Clipboard monitoring catches sensitive data at the copy step. The QuilrAI agent on the endpoint watches clipboard events, sends them to the Browser Extension for a DLP decision, and then allows the copy, clears the clipboard, or asks the user for a justification.
 
 <StepFlow steps={[
-  {
-    label: "Enable Monitor",
-    items: [
-      "Platform: macOS / Windows",
-      "Content: text enabled",
-      "Status: active ✓",
-    ],
-  },
-  {
-    label: "Choose Content Types",
-    items: [
-      "Text: ✓ monitored",
-      "Files: — off by default",
-      "Images: — off by default",
-    ],
-  },
-  {
-    label: "Set DLP Policies",
-    items: [
-      "PII detected: block",
-      "Credentials: block",
-      "Custom rules: configurable",
-    ],
-  },
-  {
-    label: "Monitor Events",
-    items: [
-      "Events forwarded: 142",
-      "Blocked: 3",
-      "Prompted: 1",
-    ],
-  },
+  { label: "Detect", items: ["OS clipboard hook", "Debounce + type gates", "Payload size cap"] },
+  { label: "Inspect", items: ["Sent to the extension", "DLP rules evaluated", "User identity context"] },
+  { label: "Enforce", items: ["Allow: logged", "Block: clipboard cleared", "Prompt: justification"] },
 ]} />
 
-## 1. Enable the Monitor
+## Set it up
 
-The clipboard monitor runs as part of the Quilr endpoint agent and starts automatically on deployment.
+The clipboard monitor is part of the QuilrAI agent that you deploy with the extension (see [Prerequisites](../get-started/prerequisites)). It starts automatically after deployment.
 
 | Platform | Requirement |
-|----------|------------|
-| **macOS** | Grant **Accessibility permission** to the Quilr endpoint agent process in System Settings → Privacy & Security |
-| **Windows** | No additional permissions required |
+| --- | --- |
+| **macOS** | Grant **Accessibility** permission to the QuilrAI agent process in System Settings › Privacy & Security. |
+| **Windows** | No additional permissions. |
 
-Deploy the Quilr endpoint agent via MDM or GPO. The clipboard monitor activates immediately.
+## Settings
 
-## 2. Choose Content Types
-
-Navigate to **Clipboard Monitor → Settings** in the dashboard to configure which clipboard operations to intercept.
+Clipboard settings are configured from the QuilrAI dashboard and pushed to the agent. They take effect on the next agent restart.
 
 | Setting | Default | Description |
-|---------|---------|-------------|
-| **Monitor text** | On | Captures plain text and rich-text clipboard copies |
-| **Monitor files** | Off | Captures file-path clipboard events |
-| **Monitor images** | Off | Captures image clipboard events |
-| **Debounce window** | 100 ms | Suppresses repeated events within this window |
-| **Max payload size** | 10 KB | Payload forwarded to the extension is capped at this size |
+| --- | --- | --- |
+| **Monitor text** | On | Plain-text and rich-text copies. |
+| **Monitor files** | Off | File-path clipboard events. |
+| **Monitor images** | Off | Image clipboard events. |
+| **Debounce window** | 100 ms | Repeated events inside this window are suppressed. |
+| **Max payload size** | 10 KB | Content sent to the extension is capped at this size. |
 
-Changes are pushed to the endpoint agent and take effect on the next agent restart.
+## Policy actions
 
-## 3. Set DLP Policies
+The extension evaluates its DLP rules against the clipboard content (by content category, size, or custom regex). The same rule set applies to text, files, and images.
 
-Define rules in the browser extension under **DLP Policies → Clipboard**. Rules match on content category, size, or custom regex patterns.
+| Action | What happens |
+| --- | --- |
+| **Allow** | The copy completes and the event is logged. |
+| **Block** | The agent clears the clipboard and notifies the user. |
+| **Prompt** | A native dialog asks the user for a justification before continuing. The justification is logged. |
 
-| Action | What Happens |
-|--------|-------------|
-| **Allow** | Clipboard operation completes silently; event is logged |
-| **Block** | Endpoint clears the clipboard; user is notified |
-| **Prompt** | Native OS dialog asks the user for a justification before continuing |
+## How it works
 
-## 4. Monitor Events
+1. **OS hook.** The agent listens for clipboard changes: NSPasteboard change-count polling on macOS, WinAPI clipboard-change notifications on Windows.
+2. **Filter.** Events inside the debounce window, disabled content types, and oversized payloads are dropped or trimmed.
+3. **Forward.** Content metadata and a size-capped payload go to the Browser Extension over the Native Messaging pipe.
+4. **Evaluate.** The extension applies its DLP rules with the user's identity and returns Allow, Block, or Prompt.
+5. **Enforce.** The agent carries out the decision on the endpoint. The justification dialog is a native Cocoa dialog on macOS and a native dialog on Windows.
 
-Check **Logs under Clipboard Monitor** to verify events are flowing and policies are being enforced.
+## Monitor activity
 
-- **Event volume**: clipboard events detected and forwarded per hour
-- **Policy decisions**: allow, block, and prompt counts by content type
-- **Justification text**: user responses to prompted events
-- **Enforcement outcomes**: confirmation of block and clear actions on the endpoint
+Every clipboard event is logged with its content type, policy decision, and enforcement outcome. Check event volume, allow/block/prompt counts by content type, user justifications, and confirmation that blocked content was cleared.
 
----
-
-**Next step:** See the [Architecture](./clipboard-monitoring) for the full detection and enforcement pipeline.
+To pause clipboard monitoring together with the agent's other services, use the [agent kill switch](./agent-kill-switch).

@@ -32,7 +32,7 @@ The server exposes 26 tools:
 | Control the viewport | `set_viewport` | Write |
 | Reference material | `read_diagram_guide`, `get_resource` | Read only |
 
-`create_from_mermaid` converts Mermaid diagram source into Excalidraw elements, which is the fastest way for an agent to draw architecture and flow diagrams. `clear_canvas` and `restore_snapshot` are destructive; consider disabling them with [Tools Management](../protect/tool-visibility) if agents only need to draw.
+`create_from_mermaid` converts Mermaid diagram source into Excalidraw elements, which is the fastest way for an agent to draw architecture and flow diagrams. `clear_canvas` and `restore_snapshot` are destructive; consider disabling them with [Tool visibility](../protect/tool-visibility) if agents only need to draw.
 
 ## Deploy The Excalidraw MCP Server
 
@@ -57,7 +57,7 @@ The server exposes 26 tools:
 
 3. Make the endpoint reachable from the QuilrAI gateway over HTTPS - for example behind your reverse proxy or an internal load balancer. Do not expose it to the public internet unprotected; the server has no authentication of its own.
 
-4. In QuilrAI, go to the **MCP Gateway** tab, click **Add MCP**, and paste the `/mcp` URL manually. No OAuth authorization step is required.
+4. In QuilrAI, go to the **MCP Gateway** tab, click **Add MCP server**, and paste the `/mcp` URL manually. No OAuth authorization step is required.
 
 5. Open the canvas UI (`http://<host>:3000`) in a browser, then ask a connected agent to draw something - for example "create a flowchart of our deployment pipeline" - and confirm the elements appear on the canvas in real time.
 

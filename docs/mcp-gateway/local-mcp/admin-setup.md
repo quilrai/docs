@@ -146,7 +146,7 @@ Use the **effective-settings preview** for a real permitted user before you shar
 
 ### When Policy Engine is enabled
 
-If your organization uses Policy Engine, the published **Policy Engine -> MCP Gateway** revision controls live tool access, guardrails, confirmation and token-saving effects.
+If your organization uses the Policy Engine, the published revision in **Govern > Policy Engine > MCP Gateway** controls live tool access, guardrails, confirmation and token-saving effects. See the [Policy Engine overview](../../console/govern/policy-engine).
 
 In this mode the older per-MCP settings screens stay editable, but **saving them does not change live behavior**. The MCP settings screen tells you when this applies and links to MCP policies. To change what users can actually do: edit a policy draft, validate it, inspect its effect for the intended user and MCP, then publish.
 

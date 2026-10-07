@@ -5,7 +5,7 @@ sidebar_custom_props:
   icon: ListChecks
 ---
 
-# Triage Center
+# Triage center
 
 The Triage center is where you work the findings queue. It helps you close
 findings that no longer need action, see who changed what, set up rules for
@@ -126,8 +126,58 @@ Rules follow a few simple guarantees:
 - Rules run in list order, and every change they make is listed in
   **Activity**.
 
-## Detection tuning: fewer false positives at the source
+## Detection tuning: fewer false positives at the source {#detection-tuning}
 
 Triage closes findings that already exist. Detection tuning stops the same
-false positives from being raised in the first place. See
-[Detection tuning](./triage-center) for the step-by-step guide.
+false positives from being raised again.
+
+**Quick suggestions** review your recent findings and propose **learnings**:
+short, plain-language statements of what is not a real risk in your
+organisation, such as "Developer documentation and code syntax are not prompt
+injection". You apply the ones you agree with and dismiss the rest. Nothing
+changes until you apply. You can also reach it from **Triage > Quick
+suggestions** on the Findings page.
+
+:::note
+Applying or dismissing learnings, running suggestions and changing the
+automatic schedule need permission to update detection models.
+:::
+
+![Detection tuning tab with the Quick suggestions panel, the open learnings and findings-would-be-cleared counters, the To review, Applied and Dismissed views, and a list of learnings](/img/console-v2/findings-and-interactions/detection-tuning-learnings.png)
+
+The header shows when suggestions last ran, with **Auto** and **Run now**,
+plus **Open learnings** and **Findings would be cleared**. Switch between
+**To review**, **Applied** and **Dismissed**. Each learning card shows the
+learning, its risk category, why the content is not a real risk, how many
+findings it covers across how many apps, when they were first and last seen,
+and **Show examples**.
+
+### Review and apply learnings
+
+1. Read the learning and its explanation. Is this content really harmless in
+   your organisation?
+2. Check the coverage line. A learning that covers many findings across
+   several apps has a bigger effect.
+3. Click **Show examples** to see the findings it is based on (sensor, app
+   and time). If an example should **not** be covered, click **Leave this
+   out**. **Include this again** undoes it.
+4. Tick each learning you agree with, then click **Apply learnings** at the
+   bottom of the list (for example **Apply 3 learnings**).
+
+Applied learnings move to **Applied**. Matching findings are resolved as
+**False positive** and stop being raised once the change finishes.
+
+![A learning with its examples expanded, each example showing sensor, app and time with a Leave this out button, and the example content blurred](/img/console-v2/findings-and-interactions/detection-tuning-examples.png)
+
+### Dismiss, restore and schedule
+
+- **Dismiss learning** moves a learning to **Dismissed** without applying it.
+  Open **Dismissed** and click **Restore** to send it back to **To review**.
+- **Run now** looks at your latest findings straight away. New learnings
+  appear in **To review** when the run finishes.
+- **Auto** opens **Automatic suggestions**: turn on **Run daily** and pick the
+  **Time of day**, **Time zone** and **Findings per run**. Automatic runs only
+  prepare learnings; nothing changes until you apply one.
+
+For custom detectors and the detection catalog, see
+[Detection Models](../govern/detection-models).

@@ -20,7 +20,7 @@ Use the architecture-appropriate macOS package and the tenant-generated configur
 
 4. Create a policy with Recurring Check-in and Once per computer. Add the tenant script, then the PKG with Action: Install, and scope the policy to the approved computers or smart group.
 
-5. For the extension, download the tenant mobileconfig from Settings > Browser Extension > Deployment. Upload it to Computers > Configuration Profiles, use Computer Level and Install Automatically, define scope, and save.
+5. For the extension, download the tenant mobileconfig (from Settings › Browser Extension in the QuilrAI console, or from your QuilrAI representative). Upload it to Computers > Configuration Profiles, use Computer Level and Install Automatically, define scope, and save.
 
 ![Jamf Pro Configuration Profiles area used to upload the tenant mobileconfig and Full Disk Access profile.](/img/console-v1/jamf-configuration-profiles.png)
 

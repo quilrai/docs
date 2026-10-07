@@ -5,86 +5,63 @@ sidebar_custom_props:
   icon: Rocket
 ---
 
-# Quick Start
+# Process mapping
 
-Get up and running with Process Mapping in 4 steps.
+Process mapping is how the Endpoint Agent builds an inventory of applications and AI components on each device, ties running processes to those applications, and enforces execution policies. It starts discovery as soon as the agent runs.
 
 <StepFlow steps={[
-  {
-    label: "Deploy Agent",
-    items: [
-      "Platform: macOS / Windows",
-      "Auto-discovery: immediate",
-      "Background service: always-on",
-    ],
-  },
-  {
-    label: "Review Apps",
-    items: [
-      "OS installed: ✓",
-      "Package managers: ✓",
-      "AI agents: MCP, skills, hooks",
-    ],
-  },
-  {
-    label: "Set Policies",
-    items: [
-      "Allow / Block / Quarantine",
-      "Justify with popup prompt",
-      "Per-app policy rules",
-    ],
-  },
-  {
-    label: "Monitor",
-    items: [
-      "Discovery events: real-time",
-      "Process spawns: correlated",
-      "Enforcement: full audit trail",
-    ],
-  },
+  { label: "Discover", items: ["Process monitor (10 s)", "File scanner (startup + 30 min)"] },
+  { label: "Correlate", items: ["Process to app identity", "Cached lookups"] },
+  { label: "Sync", items: ["Push discovered apps", "Pull governance"] },
+  { label: "Enforce", items: ["Allow / Block", "Quarantine / Justify"] },
 ]} />
 
-## 1. Deploy the System Monitor
+## What it discovers
 
-Runs as a background service on each endpoint. Starts discovery immediately on first boot.
+| Method | What it finds |
+| --- | --- |
+| **OS installers** | Installed apps and programs (macOS apps, Windows installed programs). |
+| **Package managers** | Binaries from npm, pip, go, gem, Homebrew, and Chocolatey. |
+| **Process monitoring** | Running processes, matched to known applications. |
+| **File system scan** | Standalone executables, AI agent configuration, and project files. |
+| **AI agent discovery** | MCP servers, skills, plugins, hooks, models, and instruction files. |
 
-| Platform | Coverage |
-|----------|----------|
-| **macOS** | Installed apps, Homebrew, npm/pip/go globals, standalone binaries |
-| **Windows** | Installed programs, Chocolatey, npm/pip/go globals, standalone binaries |
+Discovered items are grouped into these entity types:
 
-Deployed alongside the Quilr endpoint agent.
+| Entity | Examples |
+| --- | --- |
+| Application | Desktop apps, CLI tools, running processes |
+| MCP server | MCP server configurations |
+| Hook | Lifecycle hooks for AI tools such as Cursor and Claude |
+| Skill | Agent skill definitions |
+| Agent | AI agent configurations |
+| Model | Downloaded or referenced AI models |
+| Controlled repo | Git repositories under AI tool control |
+| Permission | Tool permission configurations |
+| Plugin | IDE plugins and extensions |
 
-## 2. Review Discovered Applications
+Discovered items appear in [Inventory](../../console/observe/inventory), [Agents](../../console/observe/agents), and the **Discovered** tab of the [Skills Library](../../console/settings-ai-gateway/skills-library).
 
-| Discovery Method | What It Finds |
-|-----------------|---------------|
-| **OS Installers** | Apps from native package managers |
-| **Package Managers** | npm, pip, go, gem, Homebrew, Chocolatey binaries |
-| **Process Monitoring** | Running processes correlated to applications |
-| **File System Scan** | Standalone executables, AI agent configs, project files |
-| **AI Agent Discovery** | MCP servers, skills, plugins, hooks, models, instruction files |
+## Policy actions
 
-Navigate to **Applications under Process Mapping** to see your inventory.
+| Action | What happens |
+| --- | --- |
+| **Allow** | The application runs normally; activity is logged. |
+| **Block** | The application is terminated and the user is notified. |
+| **Quarantine** | The executable is renamed in place (it can be restored) and the event is logged. |
+| **Justify** | The user is asked for a justification before continuing. |
 
-## 3. Configure Policies
+Policies come from the console (approval status, execution policy, and criticality per application). See [App policies](../configure/app-policies). Every decision and enforcement action is recorded for audit.
 
-| Policy Action | Description |
-|---------------|-------------|
-| **Allow** | Application runs normally; activity is logged |
-| **Block** | Application is terminated and prevented from running |
-| **Quarantine** | Executable is renamed in place; supports restore |
-| **Justify** | User is prompted for a justification before continuing |
+## How it works
 
-Policies are evaluated through a **Process Chain**: enriches each event with catalog data, evaluates policies, resolves actions, and logs the decision. Every enforcement action is recorded for audit.
+| Stage | What happens |
+| --- | --- |
+| **Process monitor** | Polls running processes every 10 seconds and tracks new processes, exits, and PID reuse. |
+| **File scanner** | Runs at startup and every 30 minutes. Walks configured paths and runs sandboxed discovery scripts to find AI entities. |
+| **Correlator** | Maps process names and executable paths to application identities, using a cache with a 300-second lifetime per entry. |
+| **Entity store** | Holds the current inventory in memory and publishes added, updated, removed, and governance-changed events. |
+| **Sync** | Uploads discovered entities to the backend and pulls governance overrides. See [Backend connectivity](./backend-connectivity). |
+| **Enforcer** | Applies the execution policy when an entity changes: terminates blocked processes (POSIX signals on macOS, process termination APIs on Windows), quarantines, or logs. |
 
-## 4. Monitor Activity
-
-Every discovery event, policy decision, and enforcement action is logged and synced to the Quilr dashboard.
-
-- **Discovery events** : new applications found with identity and catalog metadata
-- **Process spawns** : real-time correlation of running processes to known applications
-- **Policy decisions** : which policy matched, what action was taken, and why
-- **Enforcement actions** : block, quarantine, justify outcomes with full audit trail
-- **AI agent artifacts** : MCP servers, skills, plugins, hooks, and models per app
-
+The agent snapshots its inventory to disk every 30 seconds. After a crash or restart it reloads the snapshot and resumes syncing from where it left off; replaying governance updates is safe.

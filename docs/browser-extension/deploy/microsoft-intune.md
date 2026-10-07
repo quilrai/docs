@@ -22,11 +22,11 @@ Deploy the native Browser Agent package and the tenant-specific extension policy
 
 5. Assign the app as Required to the approved device group and review App install status after synchronization.
 
-Optional installer switches documented in the supplied MDM guide are `--pinned "false"` to hide the extension from the toolbar and `-skipBrowserExtension` to install only the native component. Use optional switches only when they match the approved deployment design.
+Optional installer switches are `--pinned "false"` to hide the extension from the toolbar and `-skipBrowserExtension` to install only the native component. Use optional switches only when they match the approved deployment design.
 
 ## Windows and macOS extension policy
 
-1. In QuilrAI, open Settings > Browser Extension > Deployment, choose MDM, select Microsoft Intune, then select the browser and operating system.
+1. Get the tenant extension policy for Microsoft Intune, for your browser and operating system, from Settings › Browser Extension in the QuilrAI console or from your QuilrAI representative.
 
 2. For Windows, download the tenant JSON. In Intune, open Devices > Configuration > Create > Import Policy, upload the JSON, name the policy, save it, and assign the required groups.
 
@@ -54,4 +54,4 @@ Optional installer switches documented in the supplied MDM guide are `--pinned "
 
 ## Validate deployment
 
-Follow the [validation procedure](./validate-deployment) and compare the installed paths with the current package detection rule. The guide includes package-specific path examples; do not assume they identify the same executable across releases.
+Follow the [validation procedure](./validate-deployment) and compare the installed paths with the current package detection rule. Paths can change between package releases; do not assume they identify the same executable across releases.

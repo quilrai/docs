@@ -64,7 +64,7 @@ The MCP server URL and every OAuth endpoint must match your organization's actua
 
 ### 3. Add Datadog MCP to QuilrAI
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP**.
+1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the Datadog MCP endpoint URL you copied above (core or `?toolsets=all`, per [Choose Your Toolset Endpoint](#choose-your-toolset-endpoint)).
 3. Authorize when prompted. Datadog's OAuth flow opens and asks you to approve access.
 4. After authorization, QuilrAI connects and fetches available tools.

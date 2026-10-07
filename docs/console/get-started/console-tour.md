@@ -5,50 +5,93 @@ sidebar_custom_props:
   icon: LayoutGrid
 ---
 
-# What Changed in Console V2
+# Console tour
 
-V1 was organised around the sensors. V2 is organised around what you manage.
+The QuilrAI console at [web.quilr.ai](https://web.quilr.ai) is organised
+around what you manage (people, applications, agents, interactions and
+controls), not around the sensors that collect the data. This page shows how
+the sidebar is laid out and where each job lives.
 
-## Sensors are evidence, not navigation
+## How sensors feed every page
 
-V1 gave each sensor - LLM Gateway, MCP Gateway, Endpoint Agent, Browser
-Extension - its own screens, its own activity view and its own settings. To
-answer "what is this person doing with AI?" you visited four places.
+The LLM Gateway, MCP Gateway, Endpoint Agent and Browser Extension, plus
+connected platforms such as OpenAI Compliance, GitHub, Microsoft Copilot
+Studio and Azure AI Foundry, all report into the same data. You do not visit
+one page per sensor. Instead:
 
-V2 turns that around. The console is organised by what you manage: people,
-applications, interactions and controls. Every row in every list carries an
-**Observed via** mark naming the sensors that saw it, and every list can be
-filtered by sensor. The sensors keep one home each under Settings for
-deployment and operation, and one home each under Govern for enforcement.
+- every Observe page combines all sources, and most lists have a **Sensor**
+  or **Sources** filter to narrow them,
+- rows and drawers name the sensor that saw the activity,
+- each sensor keeps one home under Settings (deployment and operation) and
+  one tab under **Govern > Policy Engine** (enforcement).
 
-## Three groups in the sidebar
+To hide a source from the console without stopping ingestion, use
+[Data sources](../settings-organization/data-sources).
 
-| Group | Contains |
+## The sidebar
+
+The sidebar has four groups: Observe, Govern, Assessments and Settings.
+
+### Observe
+
+| Page | What it is for |
 |---|---|
-| Observe | Overview, Costs & Savings, Graph, Findings & Interactions, Users, Inventory, Agents, Dashboards |
-| Govern | Policy Engine, Detection Models |
-| Red Teaming | Assessments |
-| Settings | AI Gateway (LLM Gateway, MCP Gateway, Models, Skills Library), Sensors (Endpoint Agent, Browser Extension, User Interaction Hub), Integrations, Organization, Data Settings |
+| [Overview](../observe/overview) | Executive snapshot: AI adoption, the agentic estate, and posture and risk. |
+| [Costs & Savings](../observe/costs-and-savings) | AI spend and tokens by source, who drives them, and settings that would save tokens. |
+| [Graph](../observe/graph) | Interactive map of how people, apps, agents, MCP servers and data connect. |
+| [Findings & Interactions](../observe/findings-and-interactions) | Every finding and every AI interaction, with an investigation drawer. Includes the [Triage center](../observe/triage-center). |
+| [Users](../observe/users) | Each person's AI usage and risk, plus browser and endpoint deployment coverage. |
+| [Inventory](../observe/inventory) | Catalog of every AI asset Quilr discovered, with approval status and risk. |
+| [Agents](../observe/agents) | Every AI agent observed, with the skills, MCP servers, prompts and people behind it. |
+| [Dashboards](../observe/dashboards) | Custom dashboards you describe in plain language to an AI designer. |
 
-## One policy engine, two enforcement targets
+### Govern
 
-In V1, controls lived in the settings of each application or server. In V2 the
-**Policy Engine** under Govern holds one versioned policy document per
-enforcement target, authored as sentences, published as immutable revisions,
-and proven by simulation and replay before they take effect.
+| Page | What it is for |
+|---|---|
+| [Policy Engine](../govern/policy-engine) | What happens when AI use crosses a line, per enforcement surface: Browser Extension, LLM Gateway, MCP Gateway and Endpoint Agent. |
+| [Detection Models](../govern/detection-models) | What counts as sensitive data or an adversarial prompt: built-in and custom detectors. |
+| [Action Request](../govern/action-requests) | Approve or reject justification requests raised when the browser extension blocked an action. |
 
-See the [Policy Engine](../govern/policy-engine) section for the complete
-guide.
+### Assessments
 
-:::note Same data, both consoles
-V1 and V2 read the same tenant data. An application created in either console,
-a request logged through any gateway, a finding raised by any sensor: all of it
-appears in both places. You can open V2 today for every Observe page without
-changing anything in V1. The only things that move one way are the governance
-targets you deliberately switch to the Policy Engine.
-:::
+[Red Teaming](../../red-teaming) actively tests LLM applications, MCP servers,
+agents and models for weaknesses.
 
-## Where to go next
+### Settings
 
-- [Console sections](./console-tour) - what is on each page
-- [Transition plan](./moving-from-console-v1) - the order in which to move across
+| Group | Pages |
+|---|---|
+| AI Gateway | [Workflow Agents](../settings-ai-gateway/workflow-agents), [LLM Gateway](../../llm-gateway), [MCP Gateway](../../mcp-gateway), [Models](../../llm-gateway/apps-and-providers/providers-and-models), [Skills Library](../settings-ai-gateway/skills-library) |
+| Organization | [General](../settings-organization/general-and-domains), [Smart Groups](../settings-organization/smart-groups), [Roles & Permissions](../settings-organization/roles-and-permissions), [Single sign-on](../settings-organization/single-sign-on), [Organizational Policies](../settings-organization/organizational-policies), [Data Sources](../settings-organization/data-sources), [Audit Logs](../settings-organization/audit-logs) |
+| Data management | [Data Retention](../settings-data/data-retention), [Export Center](../settings-data/export-center) |
+| Other | [Integrations](../../integrations), [Endpoint Agent](../../endpoint-agent/configure/agent-settings), [Browser Extension](../../browser-extension/configure/extension-settings), [User Interaction Hub](../settings-sensors/end-user-popups), [User Profile and Display](../settings-sensors/display-and-profile) |
+
+## Search, Quilr Assist and the page guide
+
+- **Search** at the top of the sidebar (**Cmd+K**) opens a command palette to
+  jump to any page.
+- The **Quilr Assist** bubble in the bottom-right corner opens the in-console
+  assistant.
+- The **?** button next to it opens the **page guide** for the page you are
+  on.
+
+You can hide the bubble, turn off the page guide, or make the bubble compact
+under **Settings > Display**. See
+[Display and profile](../settings-sensors/display-and-profile).
+
+Patterns shared by most pages (period selector, filters, saved views,
+layouts, drawers and export) are covered in
+[Views, filters and drawers](./views-filters-and-drawers).
+
+## Self Service for end users
+
+**Switch to Self Service** at the bottom of the sidebar opens the end-user
+portal. There, people connect their AI apps, see the LLM Gateway applications
+they are approved for, and use Workflow Agents shared with them. See
+[Self Service](../../llm-gateway/self-service/overview).
+
+## Next steps
+
+- [Views, filters and drawers](./views-filters-and-drawers)
+- [Moving from Console V1](./moving-from-console-v1)

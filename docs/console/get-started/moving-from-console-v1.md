@@ -5,7 +5,7 @@ sidebar_custom_props:
   icon: Route
 ---
 
-# Transition Plan
+# Moving from Console V1
 
 Both consoles run in parallel on the same data. Governance moves one
 enforcement target at a time, and each move is reviewed, reversible and proven
@@ -13,7 +13,7 @@ before it enforces.
 
 ## Ground rules
 
-- **Observe pages are safe from day one.** Overview, Costs & Savings, Findings
+- **Observe pages are safe from day one.** Overview, Costs & Savings, Graph, Findings
   & Interactions, Users, Inventory, Agents and Dashboards read the same data V1
   reads. Use them now; nothing in V1 changes.
 - **Data is reflected in both places.** Applications, keys, servers, findings
@@ -33,26 +33,26 @@ control surfaces, conversion review, simulation, replay and rollback.
 
 1. **Tidy in V1 first.** Resolve duplicate application names and disable
    providers you no longer use.
-2. **Set model prices.** Under Settings, Models, confirm input and output
+2. **Set model prices.** Under **Settings > Models**, confirm input and output
    prices for every model you route to.
 3. **Review the conversion, do not activate.** Read the generated rules and the
    scope-by-scope changes.
 4. **Activate and change nothing.** Revision 1 is your current behaviour. Let
    it run for a few days.
 5. **Repeat for MCP Gateway.** Tools, Guardrails, Token saving and Group & User
-   Rules from each server arrive as sentences in the ten MCP cards.
+   Rules from each server arrive as sentences in the MCP Gateway cards.
 6. **Add new controls on monitor**, then **replay before you enforce**.
 
 Full detail is in
-[Switching from settings](../govern/switching-from-classic-settings).
+[Switching from classic settings](../govern/switching-from-classic-settings).
 
 ## Phase 2: the device sensors
 
 Endpoint Agent and Browser Extension control sets are still undergoing minor
 changes. Their data is already in V2: device status under Users, agentic
 inventory under Agents and Inventory, interactions in the feed. Keep authoring
-their controls where you do today, and do not switch the Endpoint Agent target
-yet. Quilr will confirm when they are settled.
+their controls where you do today, and do not use **Convert to Policy Engine**
+on the Endpoint Agent tab yet. Quilr will confirm when they are settled.
 
 ## Phase 3: data, access and the last of V1
 

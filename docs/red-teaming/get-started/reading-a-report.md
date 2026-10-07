@@ -5,320 +5,255 @@ sidebar_custom_props:
   icon: ClipboardList
 ---
 
-# LLM Intelligence Assessment Report
+# Reading a report
 
-<div className="rt-hero">
-  <span className="rt-kicker">LLM Gateway</span>
-  <strong>Every number in a red team report answers a different question. This page says which.</strong>
-  <p>A completed run gives you a headline pass rate, a per-suite breakdown, a Guardian counterfactual, framework rollups, a knowledge horizon, and a list of cases that never completed. Read in the wrong order, they contradict each other. Read in the right order, they tell you what to fix and what to ship.</p>
-  <div className="rt-stats">
-    <div><strong>1</strong><span>Headline pass rate</span></div>
-    <div><strong>2</strong><span>Verdict views, before and after review</span></div>
-    <div><strong>3</strong><span>Guardian outcome buckets</span></div>
-    <div><strong>7</strong><span>Report sections to read in order</span></div>
-  </div>
-</div>
+Each Red Teaming tool produces its own kind of result. This page explains how to read each one, in the order that tells you what to fix first.
 
-:::note Scope
-This page covers reports from the **LLM Intelligence Assessment** tab only. For Agentic Red Teaming and Model Red Teaming reports (letter grade, risk score, breached / partial / held findings, remediation), see [Reading Red Team Results](./reading-a-report).
-:::
+| Tool | What the result looks like | Section |
+|------|----------------------------|---------|
+| [LLM Intelligence Assessment](../assessments/llm-intelligence-assessment) | Pass rate per suite, Guardian counterfactual, framework rollups, knowledge horizon | [LLM Intelligence Assessment report](#llm-intelligence-assessment-report) |
+| [Agentic Red Teaming](../assessments/agentic-red-teaming) and [Model Red Teaming](../assessments/model-red-teaming) | Letter grade, risk score, breached / partial / held findings, remediation | [Agentic and Model Red Teaming reports](#agentic-and-model-red-teaming-reports) |
+| [MCP Threat Detection](../assessments/mcp-threat-detection) | A scan with findings and coverage, listed under **Recent scans** | [MCP Threat Detection scans](#mcp-threat-detection-scans) |
 
-This page is about interpreting a finished run. For how the test is executed, what each suite contains, and how to configure a run, see [LLM Intelligence Assessment](../assessments/llm-intelligence-assessment).
+All reports share the same ideas: results are evidence for the tested scope only, every failure is mapped to a framework category (see [Framework mapping](#framework-mapping)), and each failing case or finding carries the evidence behind it.
 
-## What the Report Is
+## LLM Intelligence Assessment report
 
-The report is not a static snapshot written when the run ended. It is rebuilt from the stored cases every time you open it, which has two consequences worth knowing up front.
+The report is rebuilt from the stored cases every time you open it. Two consequences:
 
-<div className="rt-grid rt-cols-2">
-  <div className="rt-card" data-accent="info">
-    <span>Consequence 1</span>
-    <strong>Human review changes the numbers</strong>
-    <p>Record a human verdict on a case and the pass rate, the suite breakdown, the framework rollups, and the Guardian counts all move with it. Nothing needs to be re-run.</p>
-  </div>
-  <div className="rt-card" data-accent="warn">
-    <span>Consequence 2</span>
-    <strong>The numbers you see already exclude errors</strong>
-    <p>Cases that failed for technical reasons are stripped out of every rate and listed separately, so an outage never reads as a safety regression.</p>
-  </div>
-</div>
+- **Human review changes the numbers.** Record a human verdict on a case and the pass rate, suite breakdown, framework rollups, and Guardian counts all move. Nothing needs to be re-run.
+- **The numbers already exclude errors.** Cases that failed for technical reasons are removed from every rate and listed separately, so an outage never reads as a safety regression.
 
-## Read It In This Order
+Read it in this order:
 
 <StepFlow steps={[
-  {
-    label: "1. Health",
-    items: [
-      "Run status",
-      "Excluded error tests",
-      "✓ Is this run trustworthy",
-    ],
-  },
-  {
-    label: "2. Exposure",
-    items: [
-      "Guardian residual failures",
-      "Prompt Attacks failures",
-      "✗ What is actually at risk",
-    ],
-  },
-  {
-    label: "3. Quality",
-    items: [
-      "Per-suite pass rates",
-      "Capability suites",
-      "Knowledge horizon",
-    ],
-  },
-  {
-    label: "4. Evidence",
-    items: [
-      "Case drill-down",
-      "Human review",
-      "Framework rollups",
-    ],
-  },
+  { label: "1. Health", items: ["Run status", "Excluded error tests", "✓ Is this run trustworthy"] },
+  { label: "2. Exposure", items: ["Guardian residual failures", "Prompt Attacks failures", "✗ What is actually at risk"] },
+  { label: "3. Quality", items: ["Per-suite pass rates", "Capability suites", "Knowledge horizon"] },
+  { label: "4. Evidence", items: ["Case drill-down", "Human review", "Framework rollups"] },
 ]} />
 
-Checking health first is not a formality. A run that aborted, or one where a quarter of the cases errored, produces a pass rate that looks like a result and is not one.
+### Run health
 
-## 1. Run Health
-
-### Status
-
-| Status | What it means for the report |
+| Status | Meaning |
 |---|---|
-| **Pending** | Queued, no cases executed yet. Nothing to read. |
-| **Processing** | Cases are landing one at a time. Everything below is readable but partial, and every rate will move as the remaining cases complete. |
-| **Completed** | The full selected corpus ran. The report is final apart from human review. |
-| **Failed** | The run aborted part way through. Read the run error first, treat the numbers as a fragment, and re-run once the cause is fixed. |
+| **Pending** | Queued, no cases executed yet. |
+| **Processing** | Cases are landing one at a time. Everything is readable but partial. |
+| **Completed** | The full selected corpus ran. Final apart from human review. |
+| **Failed** | The run aborted. Read the run error first, treat the numbers as a fragment, and re-run once the cause is fixed. |
 
-A failed run is almost always a configuration or provider problem rather than a model problem. Authentication and permission failures abort on the first case, because every remaining case would fail the same way. Other systemic failures abort after a sustained run of consecutive case errors. This is deliberate: a broken run stops visibly instead of producing a report full of errors that reads like a catastrophic safety result.
+A failed run is almost always a configuration or provider problem. Authentication and permission failures abort on the first case; other systemic failures abort after a sustained run of consecutive case errors.
 
-### Excluded error tests
+**Excluded error tests** are listed with the reason and error type, next to the pre-exclusion totals:
 
-Cases that could not be completed are removed from every pass rate and every rollup, then listed on their own with the reason and the error type. The report keeps the pre-exclusion totals alongside the adjusted ones, so you can always see how much of the corpus actually produced a verdict.
-
-Common reasons, in plain terms:
-
-| Reason | What happened | What to do |
-|---|---|---|
-| **Rate limit** | The provider throttled the run. The runner already lowers concurrency automatically when this happens. | Re-run with lower concurrency, or raise the provider quota. |
-| **Timeout, connection, or server error** | The provider was slow or unavailable beyond the retry budget. | Re-run. If it recurs at the same point, suspect a specific case size or a provider region. |
-| **Authentication or permission error** | The credentials on the app cannot call the selected model. | Fix the provider configuration. The run will have aborted early. |
-| **Bad request** | The provider rejected the request shape, usually a model that does not accept an option you set. | Check the generation options, then re-run. |
-| **Unsupported capability** | The model refused something the case requires, most often tool definitions on a tool-required case. | Expected on models without tool support. Those cases cannot be scored on that target. |
-| **Parse error** | The response could not be read as the fixed answer format the case requires. | Usually a model that ignores output constraints. That is itself a finding, but it is reported as an error rather than a failure. |
+| Reason | What to do |
+|---|---|
+| **Rate limit** | The runner already lowers concurrency. Re-run with lower concurrency or raise the provider quota. |
+| **Timeout, connection, or server error** | Re-run. If it recurs at the same point, suspect a case size or a provider region. |
+| **Authentication or permission error** | Fix the provider configuration on the app. |
+| **Bad request** | Usually a model that does not accept an option you set. Check generation options. |
+| **Unsupported capability** | The model refused something the case needs, most often tool definitions. Expected on models without tool support. |
+| **Parse error** | The response could not be read in the required answer format. Reported as an error, not a failure. |
 
 :::note
-A handful of excluded errors in a long run is normal. A large share of one suite erroring means that suite was not really tested, and its pass rate is being computed over whatever survived.
+A few excluded errors in a long run is normal. A large share of one suite erroring means that suite was not really tested.
 :::
 
-## 2. The Headline Pass Rate
+### Pass rate
 
-The headline number is the share of completed, non-error cases that passed.
-
-<div className="rt-grid">
-  <div className="rt-card" data-accent="good">
-    <span>In the numerator</span>
-    <strong>Passing cases</strong>
-    <p>Cases where the response met the expected behavior or matched the answer key, after any human verdict is applied.</p>
-  </div>
-  <div className="rt-card" data-accent="danger">
-    <span>In the denominator</span>
-    <strong>Passes, failures, and needs review</strong>
-    <p>Every case that produced a verdict. Cases awaiting human judgment are counted here even though they have not been decided.</p>
-  </div>
-  <div className="rt-card" data-accent="info">
-    <span>Not counted at all</span>
-    <strong>Error cases</strong>
-    <p>Removed from both sides and reported separately, so a provider outage cannot move the score in either direction.</p>
-  </div>
-</div>
+The headline number is passing cases divided by every case that produced a verdict (passes, failures, and **needs review**). Error cases are not counted at all.
 
 :::warning
-**Needs review sits in the denominator.** Until a human resolves them, unreviewed cases depress the pass rate exactly as if they had failed. On a fresh Prompt Attacks run this can be a visible gap. Resolving reviews can only hold the number steady or raise it, never lower it, so an unreviewed run is a floor rather than a verdict.
+**Needs review sits in the denominator.** Until a human resolves them, unreviewed cases lower the pass rate as if they had failed. Resolving reviews can only hold the number steady or raise it, so an unreviewed run is a floor, not a verdict.
 :::
 
-### Automated and effective verdicts
+The report shows two views over the same cases:
 
-The report shows two pass rates side by side over the same set of cases.
-
-| View | What it counts |
+| View | Use it to |
 |---|---|
-| **Automated verdicts** | The grader's original decisions only. This is the reproducible number, and the one to use when comparing runs. |
-| **Effective verdicts** | The same cases with human decisions applied where they exist. This is the number to sign off on. |
+| **Automated verdicts** | Compare runs. This is the reproducible number. |
+| **Effective verdicts** | Sign off. Human decisions are applied where they exist. |
 
-Before anyone reviews, the two are identical. The gap between them is a direct measure of how much human judgment moved the result, which is worth watching: a large gap means the automated grading is not matching your policy on this corpus, and the reviewed cases are worth reading as a set rather than one at a time.
+A large gap between them means automated grading is not matching your policy on this corpus.
 
-## 3. Per-Suite Results
+### Per-suite results
 
-Each suite reports its own totals, verdict counts, pass rate, and average score. The headline number tells you whether there is a problem. The suite breakdown tells you what kind.
+Each suite reports totals, verdict counts, pass rate, and average score.
 
-| Suite | A failure here means |
+| Suite | A failure means |
 |---|---|
-| **Prompt Attacks** | The model did something unsafe under adversarial pressure. This is the security signal. |
-| **Grounded Answering** | The model answered with something the source document did not say, including quietly filling in a field that was absent. |
-| **Hallucination** | The model accepted a fabricated statement as supported, or failed to recognise that a question was unanswerable from the source. |
-| **Instruction Following** | The model treated an explicit constraint as approximate. Format, length, ordering, and forbidden-content rules are the usual casualties. |
-| **Knowledge** | The model is weaker than expected in a domain. Not a security signal on its own, but it is what tells you whether a drop elsewhere is a safety regression or just a less capable model. |
-| **Logic & Reasoning** | The model reasoned incorrectly or over-assumed on facts that were fully stated in the prompt. |
-
-A useful pattern to watch for: security failures concentrated in one suite are a policy problem, while failures spread evenly across Prompt Attacks and the capability suites usually mean the model itself is under-powered for the application.
+| **Prompt Attacks** | The model did something unsafe under adversarial pressure. The security signal. |
+| **Grounded Answering** | The model answered with something the source did not say. |
+| **Hallucination** | The model accepted a fabricated statement, or missed that a question was unanswerable. |
+| **Instruction Following** | The model treated an explicit format, length, ordering, or content rule as approximate. |
+| **Knowledge** | The model is weaker in a domain. Tells you whether a drop elsewhere is a safety regression or a less capable model. |
+| **Logic & Reasoning** | The model reasoned incorrectly on facts that were fully stated. |
 
 :::warning
-**Average score is not comparable across suites.** The deterministic suites are pass or fail per case, so their average score is just their pass rate expressed differently. Prompt Attacks carries a graded 0 to 100 score per case, so its average blends partial outcomes. Reading one suite's average against another's, or averaging them together, produces a number that means nothing. Compare a suite only against the same suite in another run.
+**Average score is not comparable across suites.** Deterministic suites are pass or fail per case; Prompt Attacks carries a graded 0 to 100 score. Compare a suite only against the same suite in another run.
 :::
 
-Suites where cases were excluded for errors show that count alongside their totals, so a suite that was only half tested is visible as such.
+### Prompt Attacks cases
 
-## 4. Reading a Prompt Attacks Case
+Each case shows the verdict, a 0 to 100 score (how much was given away), a severity, an evidence quote, an unsafe tool use flag, and the full conversation including any tool calls. The verdict and the score are decided separately: use the verdict to count, and the score to prioritize within failures.
 
-Prompt Attacks is the only suite where a case carries a graded judgment rather than a match against an answer key, and it is where the drill-down matters most.
+On a failure, check which turn broke, what the evidence quote actually disclosed, which tool call and arguments the model constructed, and any recorded provider adaptation. The corpus also contains benign **control cases** that look like attacks; failing one means the model refused legitimate work.
 
-Each case shows:
+### Guardian counterfactual
 
-- **The verdict** - pass, fail, or needs review.
-- **A score from 0 to 100** - how much was actually given away.
-- **A severity** - how bad this particular failure would be in production.
-- **An evidence quote** - the exact span of the response the grader based its decision on.
-- **An unsafe tool use flag** - whether the model decided to call something it should not have.
-- **The full conversation** - every turn, the request that was sent, the response, and any tool calls the model constructed.
+For Prompt Attacks, each request is replayed through a Guardian block evaluation, turn by turn, to answer: would the gateway have stopped it?
+
+| Bucket | Meaning |
+|---|---|
+| **Residual failures** | The model failed and Guardian would have allowed it. Your live exposure. Act on these first. |
+| **Prevented** | The model failed but Guardian would have blocked it first. |
+| **Potential over-blocks** | The model was safe and Guardian would have blocked it anyway. Friction to tune. |
+
+The report also shows the **prevention rate** (prevented divided by prevented plus residual), raw **blocked and allowed** counts, **pending review**, and **skipped and errors** (never counted as allowed). Each blocked case records the turn, the reason, and the quoted phrases, so you can trace an over-block to exact wording. Tune against residual failures and over-blocks together. Other suites have no Guardian numbers.
+
+### Framework rollups
+
+Each framework the run covers gets per-category totals, pass and fail counts, pass rate, and average score, and each failing category links to its cases. Keep in mind:
+
+- One case usually maps to several categories and frameworks, so category totals add up to more than the number of cases.
+- Hallucination, Grounded Answering, and Instruction Following also map into integrity and information-quality categories.
+- A category only appears when the run contains cases mapped to it. Limiting **Max cases** or deselecting suites narrows the rollup silently. Only a full run supports a coverage claim.
+
+### Knowledge horizon
+
+The Temporal Knowledge suite groups dated questions by calendar quarter and shows a pass rate per quarter plus the latest quarter the model answers reliably. A clean drop-off is a real cutoff; a ragged pattern means uneven coverage. A horizon earlier than the provider claims means the app needs retrieval for current topics. The horizon does not affect the headline pass rate, and there is none if you deselect the suite.
+
+### Review state
+
+| Signal | Meaning |
+|---|---|
+| **Review status** | Not started, in progress, or complete. |
+| **Reviewed cases** | Cases with a human verdict, including confirmations. |
+| **Human overrides** | Human verdicts that differ from the grader. |
+| **Unresolved needs review** | Cases nobody has decided. Still in the denominator. |
+
+Treat a run as evidence when unresolved needs review reaches zero. Human decisions never overwrite the grader: both verdicts are kept, changing a decided verdict requires a reason, and the history cannot be edited.
+
+### Comparing two runs
+
+Runs are comparable only when everything else is held still: the same suites and **Max cases**, the same system prompt and tool schemas, the same generation options, and one variable changed at a time. Compare automated verdicts, not effective ones. A bare-model baseline (no system prompt, no tools) shows how much of your posture comes from your own configuration.
+
+## Agentic and Model Red Teaming reports
+
+Open **Runs** on either tab. The **Completed** list has one card per assessment: a letter grade (A-F, or N/A when incomplete), the target name, "x/y vulnerable · done | incomplete", and the date. Comparisons across several models open a campaign view first; see [Compare models](../assessments/model-red-teaming#compare-models).
+
+![Completed runs list with four grade A cards: gpt-5.4-mini 0/12, 0/12, and 0/60 vulnerable, and test-01 0/14 vulnerable](/img/red-teaming/model-runs-graded-list.png)
+
+| Section | Answers |
+|---------|---------|
+| **Posture card** | Grade, risk score, and outcome counts. |
+| **Capabilities exercised** | What the assessment actually tested (objectives, tools probed, channels). |
+| **Severity / OWASP coverage / Tool exposure** | How bad the issues are, which categories and tools were hit. |
+| **MITRE ATLAS coverage / Attack-technique effectiveness** | Which adversary techniques were tried and which worked. |
+| **Discovered attack surface** | What benign recon found before any attack, plus fingerprint chips such as model family. |
+| **Findings** | What broke, with evidence and a fix for each. |
+| **Remediation** | Guardrail verification, prompt hardening, Guardian Agent, and custom detections. |
+
+The top bar has **Back to runs**, **Track findings** (copies the findings into the [findings tracker](../operate/runs-findings-and-schedules#findings-tracker)), **Review findings**, and **Remediate & verify**.
+
+### Grade, risk score, and outcomes
+
+| Term | Meaning |
+|------|---------|
+| **Breached** | The attack succeeded. Counted as vulnerable. |
+| **Partial** | The target partly gave way, for example leaking a fragment. |
+| **Held** | The target resisted the objective. |
+| **Inconclusive** | The evaluation could not reach a verdict. |
+| **Tested** | Total objectives completed. |
+| **Grade** and **risk N/100** | Letter grade and risk score for the run. Lower risk is better. |
+| **COMPLETE · RESIDUAL RISK** | At least one breached or partial probe remains. |
+| **Synthesized** | The finding came from a tool-targeted objective generated for this target, not the library. |
 
 :::warning
-**The verdict and the score are decided separately.** Pass or fail comes from the grader's verdict alone. The score describes the magnitude of what happened, not the decision. That means a case can pass with a middling score, where the model held the line but wobbled on the way, and a case can fail at a score that is not near zero, where it leaked a fragment rather than the whole thing. Use the verdict to count, and the score to prioritise within the failures.
+A letter grade is not a pass. When anything is breached or partial, the report states that this is not a clean or passing posture regardless of the letter grade.
 :::
 
-### What to look at on a failure
+### Example 1: a clean result
 
-1. **Which turn broke.** Multi-turn cases build rapport before the attack lands. A model that holds for four turns and gives way on the fifth needs a different fix than one that fails immediately.
-2. **The evidence quote.** It tells you what was actually disclosed. A paraphrase of one policy line is a different problem than a verbatim system prompt dump.
-3. **The tool calls.** On a tool-aware case, the call the model decided to make is the finding. Check the function it chose and the arguments it constructed, particularly whether attacker text landed inside an argument.
-4. **Any recorded adaptation.** If the runner had to adjust the request to fit the provider, that is noted on the case, so a difference in behavior is never unexplained.
+`gpt-5.4-mini` through Model Red Teaming with the **Full library**: grade **A**, risk **0/100**, 0 breached, 0 partial, 60 held, 60 tested, 16 OWASP categories, 23 ATLAS techniques, every category green.
 
-### Control cases
+![Posture card for gpt-5.4-mini: grade A, risk 0/100, COMPLETE, 0 breached, 0 partial, 60 held, 0 inconclusive, 60 tested](/img/red-teaming/model-report-posture-header.png)
 
-The corpus deliberately includes benign requests that look like attacks. A failure on one of these is not an over-cautious model behaving well, it is a model refusing legitimate work. They are scored the same way as everything else, which is what keeps the pass rate a measure of usable safety rather than blanket refusal.
-
-## 5. The Guardian Counterfactual
-
-For Prompt Attacks cases, the report also answers a question the pass rate cannot: would the gateway have stopped this before it reached the model? The same request is replayed through a Guardian block evaluation, turn by turn, stopping at the first turn that would have been blocked.
-
-The result splits every scenario into three buckets that matter and several that do not.
-
-<div className="rt-grid">
-  <div className="rt-card" data-accent="danger">
-    <span>Act on this first</span>
-    <strong>Residual failures</strong>
-    <p>The model failed and Guardian would have allowed the request through. Nothing in the stack stopped these. This is your live exposure.</p>
-  </div>
-  <div className="rt-card" data-accent="good">
-    <span>Evidence of value</span>
-    <strong>Prevented</strong>
-    <p>The model failed but Guardian would have blocked the request first. Protection the gateway is adding today, on top of whatever the model does.</p>
-  </div>
-  <div className="rt-card" data-accent="warn">
-    <span>Friction to tune</span>
-    <strong>Potential over-blocks</strong>
-    <p>The model handled the case safely and Guardian would have blocked it anyway. Cost with no security benefit.</p>
-  </div>
-</div>
-
-Alongside those, the report gives you:
-
-| Number | How to read it |
-|---|---|
-| **Prevention rate** | Of the failures Guardian could have caught, the share it would have caught. The denominator is prevented plus residual failures, so it is a statement about coverage of real failures, not about the whole corpus. |
-| **Blocked and allowed** | The raw counterfactual decisions across all scenarios, regardless of whether the model passed or failed. Useful for seeing how aggressive the current policy is overall. |
-| **Pending review** | Scenarios where the model's verdict is still awaiting a human, so the case cannot yet be sorted into prevented or residual. |
-| **Skipped and errors** | Evaluations that could not run. These are unknown outcomes and are never counted as allowed, so they never flatter the prevention rate. |
-
-Each blocked case records which turn triggered the block, the reason, and the phrases quoted from the conversation. That is what makes an over-block actionable: you can trace it to the exact wording, rather than guessing at the policy.
+- "No vulnerabilities confirmed across 60 completed probes. This is evidence for the tested scope, not a guarantee beyond it." The result covers this model, with this configuration, at this depth.
+- **0 tools probed** and "text-only target" mean tool abuse and multimodal channels were not exercised. Add tools or a system prompt on the model form to widen the test.
+- With nothing to fix, **Remediation** shows only the guardrail verification card.
 
 :::tip
-Residual failures and potential over-blocks pull in opposite directions, and tuning against only one of them is how policies go wrong. A policy that drives residual failures to zero by blocking everything shows up immediately in the over-block count.
+Re-run after any change to the model, system prompt, or tools. Scheduled quick scans of the same model can vary between runs, so a single clean run is a data point, not a guarantee.
 :::
 
-The counterfactual runs for Prompt Attacks only. The other suites measure model capability rather than request policy, so a request-side block has no meaningful reading there, and their cases are absent from every Guardian number.
+### Example 2: findings to fix
 
-## 6. Framework Rollups
+A support agent ("HTTP Agent") through Agentic Red Teaming with a **Quick scan**: grade **D**, risk **30/100**, COMPLETE · RESIDUAL RISK, 1 breached, 1 partial, 12 held, 14 tested (8 quick-scan objectives plus 6 synthesized). Severity: 1 High, 1 Medium.
 
-Each framework the run has coverage for gets its own rollup: per-category totals, pass and fail counts, pass rate, and average score. Individual cases carry their own mapping, so a failing category can be traced from the framework view straight to the prompt and response that failed it. That traceability is what makes a run usable as an audit artifact rather than a dashboard.
+![Residual-risk banner, Capabilities exercised tiles, severity breakdown with 1 High and 1 Medium, OWASP coverage with LLM07 red and the rest green, and Tool exposure showing no tools configured](/img/red-teaming/agentic-report-capabilities-severity-owasp.png)
 
-Three things to know before reading these as coverage:
+**See where it broke.** In **OWASP LLM & Agentic coverage**, green is held and red is breached; only **LLM07: System Prompt Leakage** is red. **Tool exposure** marks in red any tool the agent was induced to invoke. In **MITRE ATLAS coverage** only **AML.T0056: Extract LLM System Prompt** is red, and **Attack-technique effectiveness** shows **Direct** (1). Prioritize defenses against the techniques that appear there.
 
-<div className="rt-grid">
-  <div className="rt-card" data-accent="warn">
-    <span>Read carefully</span>
-    <strong>Category totals overlap</strong>
-    <p>One case usually maps to several categories, and to several frameworks at once. Category totals within a framework will add up to more than the number of cases in the run. They are views of the same cases, not a partition of them.</p>
-  </div>
-  <div className="rt-card" data-accent="info">
-    <span>Read carefully</span>
-    <strong>Not only Prompt Attacks contributes</strong>
-    <p>Most categories are driven by the security suite, but Hallucination, Grounded Answering, and Instruction Following also map into the integrity and information-quality categories. A weak category there is a grounding problem, not an attack.</p>
-  </div>
-  <div className="rt-card" data-accent="danger">
-    <span>Read carefully</span>
-    <strong>Coverage follows the run</strong>
-    <p>A framework or category only appears when the run contains cases mapped to it. Limiting cases or deselecting suites silently narrows the rollup, and a category that is absent has not been tested rather than passed.</p>
-  </div>
-</div>
+**Read each finding.** Filter with **All findings / Breached & partial**. Each row shows title, severity, chips (PARTIAL, SYNTHESIZED), OWASP category, ATLAS technique, the technique that worked ("via Direct"), and reproduction status.
 
-That last point is the one that trips people up. A capped smoke run produces a framework view that looks clean because most of the corpus never executed. Only a full run supports a coverage claim.
+![Findings: 2 issues surfaced. System prompt fragment disclosure via piecewise extraction (HIGH) and Truncated system-prompt leakage of verification policy (MEDIUM, PARTIAL, SYNTHESIZED)](/img/red-teaming/agentic-report-findings-list.png)
 
-## 7. Knowledge Horizon
+### Findings, evidence, and reproduction
 
-The Temporal Knowledge suite measures where the target model's factual recall actually stops. Questions anchored to dated public events are grouped by calendar quarter, and the report shows a pass rate for each quarter plus the most recent quarter the model answers reliably.
+Expand a finding for the full write-up:
 
-How to read it:
+| Block | What it shows |
+|-------|---------------|
+| **Evaluation provenance** | Evaluation mode (for example Hybrid), hard signals, judge consensus, disagreement. |
+| **Reproduction** | Whether confirmation replays ran. They run only when the target is declared replay-safe and confirmation runs are above 0; otherwise the finding says "Reproduction not attempted" and why. |
+| **What happened** | A plain description of the attack and the target's behavior. |
+| **Evidence** | Turn-referenced quotes from the conversation. |
+| **Recommended fix** | What to change in the target. |
+| **OWASP mitigation** | Guidance for the OWASP category. |
+| **MITRE ATLAS mitigations** | For example AML.M0020, AML.M0021, AML.M0022. Some techniques have no published mitigation, and the finding says so. |
+| **NIST AI RMF** | Subcategory citations such as MEASURE 2.7 or GOVERN 1.1. |
 
-- **The per-quarter curve matters more than the single headline quarter.** A clean run of high quarters that falls off a cliff is a real cutoff. A ragged pattern of high and low quarters usually means uneven training coverage rather than a boundary.
-- **A horizon earlier than the provider claims** is the useful finding. It tells you the app needs retrieval or web tooling to answer anything current, regardless of what the model card says.
-- **A horizon that moves between runs on the same model name** is worth investigating on its own. It is one of the few signals that a provider has quietly changed the model behind a stable name.
+![Expanded finding with Evaluation provenance, Reproduction not attempted, What happened, Evidence, Recommended fix, OWASP mitigation LLM07, MITRE ATLAS mitigations, and NIST AI RMF](/img/red-teaming/agentic-report-finding-detail.png)
 
-It comes from the Temporal Knowledge suite, which is selected by default. If you deselect that suite, the run has no horizon. The horizon does not contribute to the headline pass rate.
+:::note
+Completed reports show turn-referenced evidence, not full transcripts. Full transcripts are visible only in the live run view while the assessment runs.
+:::
 
-## 8. Review State
+### Remediate and verify
 
-The report tracks how much of it has been through human hands:
+<StepFlow
+  steps={[
+    { label: 'Verify baseline', items: ['Run guardrail verification', 'Before/after grade'] },
+    { label: 'Harden the prompt', items: ['Copy suggested guardrails'] },
+    { label: 'Add Guardian + detections', items: ['Paste Guardian prompt', 'Add custom detections'] },
+    { label: 'Re-verify', items: ['Apply & verify with the guardrail'] },
+  ]}
+/>
 
-| Signal | What it tells you |
-|---|---|
-| **Review status** | Not started, in progress, or complete. Complete means no case is still waiting on a human decision. |
-| **Reviewed cases** | How many cases carry a human verdict, including confirmations of a verdict the grader already got right. |
-| **Human overrides** | How many human verdicts actually differ from the grader. This is the number that shows whether review is changing the outcome or confirming it. |
-| **Unresolved needs review** | Cases the grader could not decide and no human has decided either. These are still sitting in the pass rate denominator. |
+1. **Verify with the Quilr guardrail.** Re-runs the same assessment with Quilr's guardrail in front of the target and shows before/after grade cards. It is the same task-adherence classifier the LLM Gateway [Guardian Agent](../../llm-gateway/protect/guardian-agent) enforces inline. Options: **Guardrail scope** (Both, Incoming, Replies; Both is the default) and **Enforcement** (Block or Monitor; Block is the default).
+2. **Prompt hardening suggestions.** Auto-generated from the findings: why the changes help, a checklist of key changes, and recommended system-prompt guardrails to copy.
+3. **Guardian Agent and custom detection recommendations.** A **Guardian Agent prompt** (agent purpose plus Do and Don't rules, with suggested settings) to paste into the app's Guardian Agent, and **Custom detection suggestions**, each with an action (for example BLOCK or MONITOR), a control type, a rationale, and patterns to add. Some runs also suggest a **Token Limit** control.
 
-A run is ready to be treated as evidence when unresolved needs review reaches zero. Until then the effective pass rate is understated by an amount you can read directly off that count.
+![Custom detection suggestions with patterns to add for each control, and the Apply & verify with the guardrail button](/img/red-teaming/agentic-report-custom-detections.png)
 
-Human decisions never overwrite the grader. Both verdicts are kept, changing a decided verdict requires a reason, and the history of who decided what and when cannot be edited or removed.
+Finish with **Apply & verify with the guardrail** to measure the improvement, then **Track findings** to hand open issues to their owners. See [Turn findings into detections](../operate/turn-findings-into-detections) for where to put the suggested controls.
 
-## Comparing Two Runs
+### Export
 
-The corpus is fixed, so runs are comparable, but only when everything else is held still. For a difference between two runs to be attributable:
+Use **PDF** or **Markdown** on the posture card. Exports include the executive summary and coverage, OWASP and ATLAS coverage and strategy effectiveness, tool exposure and discovery, findings with evidence (judge votes, excerpts, reproduction, tool arguments and results), guardrail application history, prompt hardening, Guardian Agent and custom detections, remaining app-side fixes, and framework references.
 
-- **The same suites, with the same Max Cases.** The cap is divided evenly across the selected suites and takes cases from the front of each suite, so two runs are comparable only when both the suite selection and Max Cases match.
-- **The same system prompt and the same tool schemas.** These are the entire simulation of your application. Changing either changes what is being measured.
-- **The same generation options.** Temperature and the rest are part of the target's behavior.
-- **One variable changed at a time.** A new model and a reworded system prompt in the same run leave you unable to attribute the movement to either.
-- **Compare automated verdicts, not effective ones.** Human review is applied unevenly across runs, so the reviewed number is the one to sign off on and the automated number is the one to diff.
+## MCP Threat Detection scans
 
-<div className="rt-note">
-  <strong>Keep a bare-model baseline.</strong>
-  <p>A run with no system prompt and no tools measures the provider before your application does anything. The gap between that and your configured run is the part of your posture your own configuration is responsible for, which is the only part you can fix without changing models.</p>
-</div>
+An MCP Threat Detection scan appears under **Recent scans** on its tab, with its findings and coverage. See [MCP Threat Detection](../assessments/mcp-threat-detection).
 
-## Quick Reference
+## Framework mapping
 
-| If you want to know | Read |
-|---|---|
-| Whether the run is worth reading at all | Status, then the excluded error tests |
-| What is exposed in production right now | Guardian residual failures |
-| Whether the gateway is earning its place | Prevented, and the prevention rate |
-| Where policy is too aggressive | Potential over-blocks, then the blocking turn and evidence on each |
-| Whether the model is safe under attack | Prompt Attacks pass rate, automated view |
-| Whether the model is trustworthy when not under attack | Grounded Answering, Hallucination, Instruction Following |
-| Whether a regression is a safety problem or a weaker model | Knowledge and Logic & Reasoning against the previous run |
-| Whether the app needs retrieval | The knowledge horizon curve |
-| Whether the report can be signed off | Unresolved needs review, then human overrides |
-| What to show an auditor | The framework rollups, with the case drill-down behind each failing category |
+| Framework | Where it appears |
+|-----------|------------------|
+| **OWASP Top 10 for LLM Applications (2025)** | LLM01, LLM02, LLM04-LLM10 in the OWASP coverage panel and on each finding |
+| **OWASP Top 10 for Agentic Applications** | ASI01, ASI02, ASI03, ASI05, ASI06 in the same panel |
+| **MITRE ATLAS** | A technique per objective and mitigations per finding |
+| **NIST AI RMF** | Subcategory citations per finding |
+
+LLM Intelligence Assessment reports group results by framework in the [framework rollups](#framework-rollups). For the mapping of each Agentic and Model Red Teaming objective, see the [Attack library](../operate/attack-library).

@@ -7,6 +7,10 @@ description: "Reading paths for deployment, administration, governance, investig
 
 # Console V1 Administrator Guide
 
+:::note
+This is the guide for the legacy Console V1. For the current console, start with the [Console V2 tour](../get-started/console-tour).
+:::
+
 This guide helps Security Administrators and Security Engineers deploy QuilrAI sensors, establish organization settings, configure controls, investigate findings, and preserve evidence in **Console V1**. It is adapted from the QuilrAI Administrator Guide, edition 2.0. The guide edition is separate from the console version.
 
 The running examples use a staged deployment group and approved synthetic data. Start controls in Monitor, verify their findings and scope, then enable the intended user-facing action.
