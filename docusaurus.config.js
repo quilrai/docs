@@ -246,6 +246,11 @@ const config = {
                         className: `product-tab product-tab--${p.id}`,
                     })),
                     {
+                        to: '/videos',
+                        label: 'Videos',
+                        position: 'right',
+                    },
+                    {
                         to: '/llm-gateway-playground',
                         label: 'Playground',
                         position: 'right',
@@ -265,6 +270,10 @@ const config = {
                             {
                                 label: 'Documentation',
                                 to: '/',
+                            },
+                            {
+                                label: 'Videos',
+                                to: '/videos',
                             },
                             {
                                 label: 'Open source',

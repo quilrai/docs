@@ -10,6 +10,8 @@ description: "Connect Zscaler Internet Access and apply its URL decisions, URL o
 
 Apply your Zscaler Internet Access (ZIA) URL policy to the [QuilrAI Web Search](../quilr-provided-mcps/web-search) MCP, so agents can only open web pages your users are allowed to visit.
 
+<VideoEmbed id="mcp-web-security" />
+
 Setup has two parts: connect ZIA once for your tenant, then set the policy on the **QuilrAI Web Search** server.
 
 :::note

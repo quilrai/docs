@@ -40,6 +40,20 @@
   color: var(--ifm-heading-color);
 }
 
+.meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.kind {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--qd-brand);
+}
+
 .duration {
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.6875rem;
@@ -103,10 +117,45 @@
   transform: scale(1.07);
 }
 
+.foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.875rem 1.125rem 1.125rem;
+}
+
 .description {
   margin: 0;
-  padding: 0.875rem 1.125rem 1.125rem;
+  flex: 1 1 18rem;
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--ifm-color-emphasis-700);
+}
+
+.links {
+  display: inline-flex;
+  gap: 0.875rem;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--qd-muted);
+  text-decoration: none;
+}
+
+.links a:hover {
+  color: var(--qd-brand);
+}
+
+/* Player only: no card chrome (the /videos theater draws its own). */
+.bare {
+  border-radius: var(--qd-r-lg);
+  overflow: hidden;
 }

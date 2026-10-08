@@ -9,6 +9,8 @@ sidebar_custom_props:
 
 Rewrite request content into fewer tokens before it reaches the provider. Responses are returned untouched, and your code does not change.
 
+<VideoEmbed id="ai-gateway-token-saving" />
+
 ## Turn it on for an app
 
 <ConsolePath

@@ -47,13 +47,7 @@ Approve a local package version, then decide who can use which of its tools. App
 
 ## Walk through it
 
-<VideoEmbed
-  src="https://www.youtube.com/embed/EXEuECE3mg0"
-  poster="/img/mcp-gateway/video/local-admin.jpg"
-  title="Local MCP: administrator setup"
-  duration="2:03"
-  description="Importing a local package, reviewing its source and tool schemas, approving the version, then enabling tools and access."
-/>
+<VideoEmbed id="local-mcp-admin-setup" />
 
 Or step through it below.
 

@@ -42,13 +42,7 @@ Add an MCP server, choose what agents may call, connect an AI app and review the
 
 ## Video walkthrough
 
-<VideoEmbed
-  src="https://www.youtube.com/embed/QxDvZjOwF9o"
-  poster="/img/mcp-gateway/video/admin-overview.jpg"
-  title="MCP Gateway: administrator overview"
-  duration="4:59"
-  description="Registering servers, governing which tools agents can call, reading the audit trail, and handing the gateway to your users."
-/>
+<VideoEmbed id="mcp-admin-overview" />
 
 The rest of the series: the [user dashboard](./onemcp) for the people who will use the MCPs, and local setup for [administrators](../local-mcp/admin-setup) and for [users](../local-mcp/connect-your-ai-app).
 

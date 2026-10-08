@@ -10,6 +10,8 @@ description: "Per-server strategies that shorten tool results (smart JSON compre
 
 Compress tool results before they reach the model, so agents use fewer tokens on each MCP call.
 
+<VideoEmbed id="ai-gateway-token-saving" />
+
 ## Configure it on the server
 
 <ConsolePath

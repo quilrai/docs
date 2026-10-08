@@ -10,6 +10,8 @@ description: "Review and apply quick fixes that translate mismatched AI client i
 
 Map client inputs to the inputs a tool expects. AI clients sometimes send mismatched inputs, such as `num_results` when the tool expects `limit`, causing the call to fail. The console identifies recurring input mismatches and suggests an alias. Applying it translates the input before policy evaluation and DLP scanning.
 
+<VideoEmbed id="mcp-input-aliases" />
+
 ## How it works
 
 <StepFlow steps={[

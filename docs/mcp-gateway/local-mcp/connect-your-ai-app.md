@@ -47,13 +47,7 @@ You run one command, approve your computer in the browser, and your permitted lo
 
 ## Walk through it
 
-<VideoEmbed
-  src="https://www.youtube.com/embed/zC6GOtPPUm8"
-  poster="/img/mcp-gateway/video/local-user.jpg"
-  title="Local MCP: connect your computer"
-  duration="4:05"
-  description="Running the connection command, approving your computer in the browser, restarting your client, and calling a local tool."
-/>
+<VideoEmbed id="local-mcp-connect" />
 
 Or step through it below.
 

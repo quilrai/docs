@@ -1,0 +1,106 @@
+{
+  "_comment": "Every product video, in display order within each product. Docs pages embed one with <VideoEmbed id=\"...\" />; /videos lists them all. kind: explainer (illustrated concept) or walkthrough (recorded in the console). products: first entry is where it is grouped on /videos. docs: pages that cover the feature (the first one embeds it). poster: 1280x720 under static/img/.",
+  "videos": [
+    {
+      "id": "mcp-admin-overview",
+      "youtube": "QxDvZjOwF9o",
+      "title": "MCP Gateway: administrator overview",
+      "description": "Registering servers, governing which tools agents can call, reading the audit trail, and handing the gateway to your users.",
+      "kind": "walkthrough",
+      "products": ["mcp"],
+      "duration": "4:59",
+      "published": "2026-09-16",
+      "poster": "/img/mcp-gateway/video/admin-overview.jpg",
+      "docs": [
+        {"to": "/mcp-gateway/get-started/quick-start", "label": "Quick start"},
+        {"to": "/mcp-gateway/protect/server-access", "label": "Server access"}
+      ]
+    },
+    {
+      "id": "mcp-user-dashboard",
+      "youtube": "GHVeqDy2IPc",
+      "title": "MCP Gateway: user dashboard",
+      "description": "What a user does with this endpoint: copy it, add it to Claude, ChatGPT or Cursor, and check which tools they are allowed to call.",
+      "kind": "walkthrough",
+      "products": ["mcp"],
+      "duration": "3:33",
+      "published": "2026-09-16",
+      "poster": "/img/mcp-gateway/video/user-dashboard.jpg",
+      "docs": [
+        {"to": "/mcp-gateway/get-started/onemcp", "label": "OneMCP"}
+      ]
+    },
+    {
+      "id": "mcp-web-security",
+      "youtube": "dGTI9kq8258",
+      "title": "Web security for AI agents",
+      "description": "How the MCP Gateway applies your web security policy to the pages an agent opens through QuilrAI Web Search.",
+      "kind": "explainer",
+      "products": ["mcp"],
+      "duration": "0:41",
+      "published": "2026-10-08",
+      "poster": "/img/videos/mcp-web-security.jpg",
+      "docs": [
+        {"to": "/mcp-gateway/protect/web-search-security", "label": "Web search security"},
+        {"to": "/mcp-gateway/quilr-provided-mcps/web-search", "label": "QuilrAI Web Search"}
+      ]
+    },
+    {
+      "id": "mcp-input-aliases",
+      "youtube": "QzGha2V1vyk",
+      "title": "Automatic input aliases",
+      "description": "How the MCP Gateway spots recurring input mismatches, such as num_results sent where a tool expects limit, and suggests an alias that fixes the call.",
+      "kind": "explainer",
+      "products": ["mcp"],
+      "duration": "2:19",
+      "published": "2026-10-08",
+      "poster": "/img/videos/mcp-input-aliases.jpg",
+      "docs": [
+        {"to": "/mcp-gateway/protect/input-aliases", "label": "Input aliases"}
+      ]
+    },
+    {
+      "id": "local-mcp-admin-setup",
+      "youtube": "EXEuECE3mg0",
+      "title": "Local MCP: administrator setup",
+      "description": "Importing a local package, reviewing its source and tool schemas, approving the version, then enabling tools and access.",
+      "kind": "walkthrough",
+      "products": ["mcp"],
+      "duration": "2:03",
+      "published": "2026-09-15",
+      "poster": "/img/mcp-gateway/video/local-admin.jpg",
+      "docs": [
+        {"to": "/mcp-gateway/local-mcp/admin-setup", "label": "Local MCP admin setup"}
+      ]
+    },
+    {
+      "id": "local-mcp-connect",
+      "youtube": "zC6GOtPPUm8",
+      "title": "Local MCP: connect your computer",
+      "description": "Running the connection command, approving your computer in the browser, restarting your client, and calling a local tool.",
+      "kind": "walkthrough",
+      "products": ["mcp"],
+      "duration": "4:05",
+      "published": "2026-09-15",
+      "poster": "/img/mcp-gateway/video/local-user.jpg",
+      "docs": [
+        {"to": "/mcp-gateway/local-mcp/connect-your-ai-app", "label": "Connect your AI app"}
+      ]
+    },
+    {
+      "id": "ai-gateway-token-saving",
+      "youtube": "E_OajLZODrw",
+      "title": "Token saving on the AI gateways",
+      "description": "How the LLM Gateway and MCP Gateway rewrite JSON, HTML, Markdown and verbose text into fewer tokens before it reaches the model.",
+      "kind": "explainer",
+      "products": ["llm", "mcp"],
+      "duration": "1:58",
+      "published": "2026-10-08",
+      "poster": "/img/videos/token-saving.jpg",
+      "docs": [
+        {"to": "/llm-gateway/cost-and-traffic/token-saving", "label": "LLM Gateway token saving"},
+        {"to": "/mcp-gateway/protect/token-saving", "label": "MCP Gateway token saving"}
+      ]
+    }
+  ]
+}

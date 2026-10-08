@@ -15,6 +15,8 @@
  *     page: name, tagline, tasks and the section map from the sidebar.
  *   - Deployment SOP components (<InstallSop>, <SopLink>) become links to the
  *     SOP pages synced into /sop/ (see plugins/install-sop.js).
+ *   - Videos (<VideoEmbed id="..."/>, from src/data/videos.json) become a
+ *     link to the video with its length and description.
  *
  * Plain CommonJS: loaded by Docusaurus plugins in Node.
  */
@@ -166,6 +168,21 @@ function sopComponents(text, {site, siteDir}) {
     });
 }
 
+// Replaces <VideoEmbed .../> with a markdown link to the video.
+function videoComponents(text) {
+  if (!/<VideoEmbed\b/.test(text)) return text;
+  const {videos} = require('../src/data/videos.json');
+  return text.replace(/<VideoEmbed\b([\s\S]*?)\/>/g, (_, attrs) => {
+    const v = videos.find((x) => x.id === attr(attrs, 'id'));
+    if (!v && attr(attrs, 'id')) throw new Error(`<VideoEmbed id="${attr(attrs, 'id')}"> is not in src/data/videos.json`);
+    const title = v ? v.title : attr(attrs, 'title') || 'Video';
+    const url = v ? `https://www.youtube.com/watch?v=${v.youtube}` : attr(attrs, 'src');
+    const duration = v ? v.duration : attr(attrs, 'duration');
+    const desc = attr(attrs, 'description') || v?.description;
+    return `Video: [${title}](${url})${duration ? ` (${duration})` : ''}${desc ? `. ${desc}` : ''}`;
+  });
+}
+
 function cleanProse(text, ctx) {
   let t = text
     // MDX imports / exports of components (outside code fences only).
@@ -175,6 +192,7 @@ function cleanProse(text, ctx) {
     .replace(/<!--[\s\S]*?-->/g, '');
   t = apiComponents(t, ctx);
   t = sopComponents(t, ctx);
+  t = videoComponents(t);
   return t;
 }
 
