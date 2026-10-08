@@ -68,7 +68,7 @@ The approval request appears in the user's AI app. Each app supports different t
 
 If an in-chat prompt can't be shown or isn't answered, the gateway falls back to an approval link. Cards always come with the **Approve in Quilr** link underneath, in case the card doesn't load. Card and link resolve the same request, so approving in one place is enough.
 
-<!-- TODO-SCREENSHOT: ChatGPT or claude.ai conversation showing the Quilr "Approval required" card with arguments, Justification box, Approve and Deny -->
+![Approval required card in ChatGPT showing the server, the search_web tool and its arguments, the expiry countdown, a Justification box, Approve and Deny buttons, and the Approve in Quilr link below](/img/mcp-gateway/ui/approval-card-chatgpt.png)
 
 <!-- TODO-SCREENSHOT: Browser "Approval required" page opened from the Approve in Quilr link, showing Arguments, Why approval is needed, Justification, Approve and Deny -->
 
@@ -96,6 +96,12 @@ Based on what each app reports to the gateway when it connects, as of October 20
 3. Review the arguments, add a justification if asked, and click **Approve**. The tool runs once and the card shows **Approved - completed** with the result.
 4. claude.ai then places a short message in your message box, starting with **Approved**, that asks Claude to continue with the result. claude.ai shows its own caution notice above it. Press Enter to send it, and Claude continues from the result.
 
+![claude.ai conversation with the Quilr card showing Completed, Claude's earlier text asking for approval, the red "Use caution before running this prompt" notice, and the pre-filled Approved message in the message box](/img/mcp-gateway/ui/approval-card-claude-ai.png)
+
+:::note claude.ai web chat shows a caution warning
+After you approve, claude.ai shows a red notice above the message box: **Use caution before running this prompt. Malicious content could trick Claude into attempting harmful actions or sharing your data.** claude.ai shows this for any message an app or card fills in for you, not because anything is wrong with the call. The tool has already run once with the arguments you approved. Check that the message is the short **Approved** follow-up from the card, then press Enter.
+:::
+
 The last step is a claude.ai safeguard: claude.ai doesn't let a card send a message for you without your say-so, and Quilr can't bypass it. The tool has already run at step 3. Sending the message only lets Claude read the result and carry on. claude.ai doesn't support in-chat prompts today, which is why it uses the card.
 
 If the tool takes a long time, the card shows **Approved - still running** and a **Check result** button. If you use the **Approve in Quilr** link under the card instead of the card's own button, the tool doesn't run yet: ask Claude to try the tool again.
@@ -105,6 +111,10 @@ If the tool takes a long time, the card shows **Approved - still running** and a
 1. ChatGPT calls a tool that needs approval. An **Approval required** card appears in the conversation.
 2. Click **Approve**. The tool runs once and the card shows the result.
 3. The card sends a short follow-up to ChatGPT, and ChatGPT continues with the result without you typing anything.
+
+![ChatGPT conversation with the Quilr card showing Completed and ChatGPT continuing with the search results below it](/img/mcp-gateway/ui/approval-card-chatgpt-completed.png)
+
+ChatGPT's text written before the card may still ask you to approve or reply "Approved". That is expected: it was written before you clicked, and ChatGPT carries on once the card reports the result.
 
 #### VS Code (GitHub Copilot Chat)
 
