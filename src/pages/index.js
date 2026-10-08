@@ -190,7 +190,7 @@ function FeatureCards() {
             <CirclePlay size={15} aria-hidden="true" /> Video centre
           </span>
           <h2>See it working in the console</h2>
-          <p>{videos.length} short walkthroughs and explainers, each linked to the docs it covers.</p>
+          <p>Short walkthroughs and explainers, each linked to the docs it covers.</p>
           <span className="qd-feature-card__cta">
             Browse videos <ArrowRight size={15} aria-hidden="true" />
           </span>
