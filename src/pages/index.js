@@ -2,7 +2,7 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import Heading from '@theme/Heading';
-import {ArrowRight, ArrowUpRight, CirclePlay, Code, CodeXml, Play, Search, Sparkles} from 'lucide-react';
+import {ArrowRight, ArrowUpRight, Check, CirclePlay, Code, CodeXml, History, Play, Search, Sparkles} from 'lucide-react';
 import {productById} from '@site/src/data/products';
 import {updates} from '@site/src/data/updates';
 import {openSourceProjects} from '@site/src/data/openSource';
@@ -13,8 +13,8 @@ import {OPEN_SEARCH_EVENT} from '@site/src/theme/SearchBar';
 
 // Homepage: hero, the platform map (Console control plane, Red Teaming, four
 // sensor lanes with Workflow Agents framing the two gateways, Integrations),
-// Video centre and open source feature cards, common starting points, open
-// source projects and recent updates.
+// feature cards (Video centre, open source, what's new), common starting
+// points and open source projects.
 
 const LANES = [
   ['browser', 'People using AI in the browser', 'ChatGPT, Claude, Gemini, Copilot', 'AI web apps', 'Personal and enterprise accounts'],
@@ -59,9 +59,9 @@ const JOURNEYS = [
 ];
 
 function formatDate(iso) {
-  const [y, m, d] = iso.split('-').map(Number);
+  const [, m, d] = iso.split('-').map(Number);
   const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1];
-  return `${month} ${d}, ${y}`;
+  return `${month} ${d}`;
 }
 
 // Workflow Agents run on both gateways, so the map draws them as a frame
@@ -208,11 +208,14 @@ function FeatureCards() {
             </Link>
           </h2>
           <p>{oss.tagline}</p>
-          <div className="qd-pills">
-            {oss.works.map((w) => (
-              <span className="qd-pill" key={w}>{w}</span>
+          <ul className="qd-feature-checks">
+            {oss.features.map((f) => (
+              <li key={f}>
+                <Check size={14} aria-hidden="true" /> {f}
+              </li>
             ))}
-          </div>
+          </ul>
+          <p className="qd-feature-card__meta">Works with {oss.works.join(', ')}</p>
           <div className="qd-feature-card__links">
             <span className="qd-feature-card__cta">
               Learn more <ArrowRight size={15} aria-hidden="true" />
@@ -221,6 +224,30 @@ function FeatureCards() {
               <Code size={15} aria-hidden="true" /> GitHub
             </a>
           </div>
+        </div>
+      </div>
+      <div className="qd-feature-card qd-feature-card--updates">
+        <div className="qd-feature-card__body">
+          <span className="qd-feature-card__kicker">
+            <History size={15} aria-hidden="true" /> What's new
+          </span>
+          <h2>Recently updated</h2>
+          <ul className="qd-feature-updates">
+            {updates.slice(0, 4).map((u) => {
+              const p = productById[u.product];
+              return (
+                <li key={u.to}>
+                  <Link to={u.to}>
+                    <span className="qd-feature-updates__ico" style={{color: `var(--c-${p.id})`}} title={p.name}>
+                      <ProductIcon product={p} size={14} />
+                    </span>
+                    <span className="qd-feature-updates__title">{u.title}</span>
+                    <time dateTime={u.date}>{formatDate(u.date)}</time>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
     </section>
@@ -330,28 +357,6 @@ export default function Home() {
                 </div>
               </article>
             ))}
-          </div>
-        </section>
-
-        <section className="qd-home-sec">
-          <div className="qd-sec-h">
-            <h2>Recently updated</h2>
-            <p>From the docs repository.</p>
-          </div>
-          <div className="qd-updates">
-            {updates.map((u) => {
-              const p = productById[u.product];
-              return (
-                <div className="qd-update" key={u.to}>
-                  <time dateTime={u.date}>{formatDate(u.date)}</time>
-                  <span className="qd-update__prod" style={{color: `var(--c-${p.id})`}}>
-                    <ProductIcon product={p} size={14} />
-                    <span>{p.name}</span>
-                  </span>
-                  <Link to={u.to}>{u.title}</Link>
-                </div>
-              );
-            })}
           </div>
         </section>
       </main>

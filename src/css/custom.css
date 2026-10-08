@@ -4359,53 +4359,6 @@ body {
   padding-top: 4px;
 }
 
-.qd-updates {
-  display: grid;
-  border-top: 1px solid var(--qd-line);
-}
-
-.qd-update {
-  display: grid;
-  grid-template-columns: 110px 150px minmax(0, 1fr);
-  gap: 16px;
-  align-items: baseline;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--qd-line);
-  font-size: 14px;
-}
-
-.qd-update time {
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: var(--qd-faint);
-}
-
-.qd-update__prod {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-}
-
-.qd-update__prod span {
-  color: var(--qd-muted);
-}
-
-.qd-update a {
-  color: var(--qd-ink);
-}
-
-.qd-update a:hover {
-  color: var(--qd-brand);
-}
-
-@media (max-width: 640px) {
-  .qd-update {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2px;
-  }
-}
-
 /* ── Ask AI launcher (src/components/AskAiLauncher) ─────────────────── */
 .qd-askai {
   position: fixed;
@@ -4866,16 +4819,23 @@ body {
 /* Homepage feature cards, under the hero */
 .qd-feature {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   margin-top: -16px;
+}
+
+@media (min-width: 1000px) {
+  .qd-feature {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .qd-feature-card {
   position: relative;
   display: flex;
-  gap: 20px;
-  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
   overflow: hidden;
   padding: 20px;
   border: 1px solid color-mix(in srgb, var(--fc) 30%, var(--qd-line));
@@ -4887,8 +4847,16 @@ body {
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
-.qd-feature-card--videos { --fc: var(--c-red); }
-.qd-feature-card--oss    { --fc: var(--qd-brand); }
+.qd-feature-card--videos  { --fc: var(--c-red); }
+.qd-feature-card--oss     { --fc: var(--qd-brand); }
+.qd-feature-card--updates { --fc: var(--c-endpoint); }
+
+/* Only the whole-card links lift; the updates card holds several links */
+.qd-feature-card--updates:hover {
+  border-color: color-mix(in srgb, var(--fc) 30%, var(--qd-line));
+  box-shadow: none;
+  transform: none;
+}
 
 .qd-feature-card:hover {
   border-color: var(--fc);
@@ -4898,9 +4866,12 @@ body {
 }
 
 .qd-feature-card__body {
-  display: grid;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 6px;
-  align-content: start;
+  width: 100%;
   min-width: 0;
 }
 
@@ -4940,7 +4911,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 6px;
   font-size: 14px;
   font-weight: 600;
   color: var(--fc);
@@ -5020,6 +4992,39 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 18px;
+  margin-top: auto;
+}
+
+.qd-feature-card__links .qd-feature-card__cta {
+  margin-top: 0;
+}
+
+.qd-feature-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  width: 100%;
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+}
+
+.qd-feature-checks li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qd-feature-checks svg {
+  flex: none;
+  color: var(--fc);
+}
+
+.qd-feature-card p.qd-feature-card__meta {
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  color: var(--qd-faint);
 }
 
 .qd-feature-card__repo {
@@ -5029,9 +5034,49 @@ body {
   font-size: 13px;
 }
 
-@media (max-width: 520px) {
-  .qd-feature-card--videos {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* What's new: the latest entries from src/data/updates.js */
+.qd-feature-updates {
+  display: grid;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qd-feature-updates li + li {
+  border-top: 1px solid var(--qd-line);
+}
+
+.qd-feature-updates a {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--qd-ink);
+}
+
+.qd-feature-updates a:hover .qd-feature-updates__title {
+  color: var(--fc);
+}
+
+.qd-feature-updates__ico {
+  align-self: center;
+  display: inline-flex;
+}
+
+.qd-feature-updates__title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.qd-feature-updates time {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--qd-faint);
+  white-space: nowrap;
 }
