@@ -4802,3 +4802,236 @@ body {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
+
+/* ── Featured: Videos + Open source (src/data/featured.js) ──────────── */
+.qd-feat--videos { --fc: var(--c-red);     --fs: var(--s-red); }
+.qd-feat--oss    { --fc: var(--qd-brand);  --fs: var(--qd-brand-soft); }
+
+.qd-feat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px 0 9px;
+  border: 1px solid color-mix(in srgb, var(--fc) 35%, transparent);
+  border-radius: 999px;
+  background: var(--fs);
+  color: var(--qd-ink);
+  font-size: 13.5px;
+  font-weight: 550;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.qd-feat svg {
+  flex: none;
+  color: var(--fc);
+}
+
+.qd-feat:hover,
+.qd-feat--active {
+  border-color: var(--fc);
+  color: var(--qd-ink);
+  text-decoration: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fc) 14%, transparent);
+}
+
+@media (max-width: 996px) {
+  .qd-feat {
+    display: none;
+  }
+}
+
+/* Room for the featured buttons: the navbar search shrinks to its icon until
+   the screen is wide enough for all eight product tabs (search stays on ⌘K
+   and in the homepage hero). */
+@media (min-width: 997px) and (max-width: 1760px) {
+  .qd-nav__right .search-trigger,
+  [data-theme="dark"] .qd-nav__right .search-trigger {
+    width: 30px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .qd-nav__right .search-trigger__text,
+  .qd-nav__right .search-trigger__keys {
+    display: none;
+  }
+}
+
+.qd-mprod__item--videos { --tc: var(--c-red);    --ts: var(--s-red); }
+.qd-mprod__item--oss    { --tc: var(--qd-brand); --ts: var(--qd-brand-soft); }
+
+/* Homepage feature cards, under the hero */
+.qd-feature {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+  margin-top: -16px;
+}
+
+.qd-feature-card {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--fc) 30%, var(--qd-line));
+  border-radius: var(--qd-r-lg);
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--fc) 16%, transparent), transparent 60%),
+    var(--qd-surface);
+  color: var(--qd-ink);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.qd-feature-card--videos { --fc: var(--c-red); }
+.qd-feature-card--oss    { --fc: var(--qd-brand); }
+
+.qd-feature-card:hover {
+  border-color: var(--fc);
+  box-shadow: var(--qd-shadow);
+  transform: translateY(-1px);
+  color: var(--qd-ink);
+}
+
+.qd-feature-card__body {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+}
+
+.qd-feature-card__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fc);
+}
+
+.qd-feature-card__badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--fc);
+  color: var(--qd-surface);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.qd-feature-card h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.qd-feature-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--qd-muted);
+}
+
+.qd-feature-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fc);
+}
+
+.qd-feature-card__cta svg {
+  transition: transform 0.15s;
+}
+
+.qd-feature-card:hover .qd-feature-card__cta svg {
+  transform: translateX(3px);
+}
+
+/* Poster stack: three newest videos fanned out, play button on top */
+.qd-feature-card__posters {
+  position: relative;
+  flex: none;
+  width: 170px;
+  height: 104px;
+}
+
+.qd-feature-card__posters img {
+  position: absolute;
+  width: 140px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 2px solid var(--qd-surface);
+  border-radius: 8px;
+  box-shadow: var(--qd-shadow);
+  transition: transform 0.2s;
+}
+
+.qd-feature-card__posters img:nth-child(1) { left: 30px; top: 0;    transform: rotate(5deg); }
+.qd-feature-card__posters img:nth-child(2) { left: 15px; top: 12px; transform: rotate(-2deg); }
+.qd-feature-card__posters img:nth-child(3) { left: 0;    top: 24px; z-index: 1; }
+
+.qd-feature-card:hover .qd-feature-card__posters img:nth-child(1) { transform: rotate(9deg) translate(8px, -4px); }
+.qd-feature-card:hover .qd-feature-card__posters img:nth-child(2) { transform: rotate(-1deg) translate(4px, -2px); }
+
+.qd-feature-card__play {
+  position: absolute;
+  z-index: 2;
+  left: 50px;
+  top: 42px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding-left: 2px;
+  border-radius: 50%;
+  background: var(--c-red);
+  color: #fff;
+  box-shadow: 0 4px 14px -2px color-mix(in srgb, var(--c-red) 60%, transparent);
+}
+
+[data-theme="dark"] .qd-feature-card__play {
+  color: #1a0b0f;
+}
+
+/* Open source card: the title link covers the card; GitHub sits above it */
+.qd-feature-card__stretch {
+  color: inherit;
+}
+
+.qd-feature-card__stretch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.qd-feature-card__stretch:hover {
+  color: inherit;
+}
+
+.qd-feature-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.qd-feature-card__repo {
+  position: relative;
+  z-index: 1;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .qd-feature-card--videos {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -7,9 +7,10 @@ import NavbarItem from '@theme/NavbarItem';
 import SidebarThemeToggle from '@site/src/components/SidebarThemeToggle';
 import {products, productForPath} from '@site/src/data/products';
 import {ProductIcon} from '@site/src/utils/productIcons';
+import {featuredLinks} from '@site/src/data/featured';
 
 // Mobile drawer, main menu: the eight products (with icon and one-line sub),
-// then the utility links. Opening a product shows its sidebar as the
+// then Videos / Open source (src/data/featured.js) and the utility links. Opening a product shows its sidebar as the
 // secondary menu (DocSidebar/Mobile).
 export default function NavbarMobilePrimaryMenu() {
   const mobileSidebar = useNavbarMobileSidebar();
@@ -37,6 +38,23 @@ export default function NavbarMobilePrimaryMenu() {
               <span>
                 <b>{p.name}</b>
                 <small>{p.sub}</small>
+              </span>
+            </Link>
+          </li>
+        ))}
+        <li className="qd-mprod__sep" aria-hidden="true" />
+        {featuredLinks.map(({id, to, label, sub, Icon}) => (
+          <li key={id}>
+            <Link
+              to={to}
+              className={`qd-mprod__item qd-mprod__item--${id}`}
+              onClick={() => mobileSidebar.toggle()}>
+              <span className="qd-mprod__ico">
+                <Icon size={16} aria-hidden="true" />
+              </span>
+              <span>
+                <b>{label}</b>
+                <small>{sub}</small>
               </span>
             </Link>
           </li>

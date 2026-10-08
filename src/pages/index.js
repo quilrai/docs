@@ -2,17 +2,19 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import Heading from '@theme/Heading';
-import {ArrowUpRight, Code, Search, Sparkles} from 'lucide-react';
+import {ArrowRight, ArrowUpRight, CirclePlay, Code, CodeXml, Play, Search, Sparkles} from 'lucide-react';
 import {productById} from '@site/src/data/products';
 import {updates} from '@site/src/data/updates';
 import {openSourceProjects} from '@site/src/data/openSource';
+import {videos} from '@site/src/data/videos';
 import {ProductIcon} from '@site/src/utils/productIcons';
 import {ASK_AI_EVENT} from '@site/src/components/AskAiLauncher';
 import {OPEN_SEARCH_EVENT} from '@site/src/theme/SearchBar';
 
 // Homepage: hero, the platform map (Console control plane, Red Teaming, four
 // sensor lanes with Workflow Agents framing the two gateways, Integrations),
-// common starting points, open source projects and recent updates.
+// Video centre and open source feature cards, common starting points, open
+// source projects and recent updates.
 
 const LANES = [
   ['browser', 'People using AI in the browser', 'ChatGPT, Claude, Gemini, Copilot', 'AI web apps', 'Personal and enterprise accounts'],
@@ -167,6 +169,64 @@ function PlatformMap() {
   );
 }
 
+// The newest videos first, for the poster stack on the Video centre card.
+const LATEST_VIDEOS = [...videos].sort((a, b) => b.published.localeCompare(a.published)).slice(0, 3);
+
+function FeatureCards() {
+  const oss = openSourceProjects[0];
+  return (
+    <section className="qd-feature" aria-label="Featured">
+      <Link to="/videos" className="qd-feature-card qd-feature-card--videos">
+        <div className="qd-feature-card__posters" aria-hidden="true">
+          {LATEST_VIDEOS.map((v) => (
+            <img key={v.id} src={v.poster} alt="" loading="lazy" />
+          ))}
+          <span className="qd-feature-card__play">
+            <Play size={20} fill="currentColor" />
+          </span>
+        </div>
+        <div className="qd-feature-card__body">
+          <span className="qd-feature-card__kicker">
+            <CirclePlay size={15} aria-hidden="true" /> Video centre
+          </span>
+          <h2>See it working in the console</h2>
+          <p>{videos.length} short walkthroughs and explainers, each linked to the docs it covers.</p>
+          <span className="qd-feature-card__cta">
+            Browse videos <ArrowRight size={15} aria-hidden="true" />
+          </span>
+        </div>
+      </Link>
+      <div className="qd-feature-card qd-feature-card--oss">
+        <div className="qd-feature-card__body">
+          <span className="qd-feature-card__kicker">
+            <CodeXml size={15} aria-hidden="true" /> QuilrAI for Open Source
+            <span className="qd-feature-card__badge">Free</span>
+          </span>
+          <h2>
+            <Link to="/#open-source" className="qd-feature-card__stretch">
+              {oss.name}
+            </Link>
+          </h2>
+          <p>{oss.tagline}</p>
+          <div className="qd-pills">
+            {oss.works.map((w) => (
+              <span className="qd-pill" key={w}>{w}</span>
+            ))}
+          </div>
+          <div className="qd-feature-card__links">
+            <span className="qd-feature-card__cta">
+              Learn more <ArrowRight size={15} aria-hidden="true" />
+            </span>
+            <a className="qd-btn qd-feature-card__repo" href={oss.repo} target="_blank" rel="noopener noreferrer">
+              <Code size={15} aria-hidden="true" /> GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <Layout
@@ -196,6 +256,8 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        <FeatureCards />
 
         <PlatformMap />
 

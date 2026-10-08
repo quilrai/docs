@@ -245,11 +245,8 @@ const config = {
                         label: p.name,
                         className: `product-tab product-tab--${p.id}`,
                     })),
-                    {
-                        to: '/videos',
-                        label: 'Videos',
-                        position: 'right',
-                    },
+                    // Videos and Open source are rendered from src/data/featured.js
+                    // as highlighted buttons (src/theme/Navbar/Content).
                     {
                         to: '/llm-gateway-playground',
                         label: 'Playground',

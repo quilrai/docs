@@ -10,10 +10,12 @@ import NavbarMobileSidebarToggle from '@theme/Navbar/MobileSidebar/Toggle';
 import NavbarLogo from '@theme/Navbar/Logo';
 import {products, productForPath} from '@site/src/data/products';
 import {ProductIcon} from '@site/src/utils/productIcons';
+import {featuredLinks} from '@site/src/data/featured';
 
 // Navbar: logo, one tab per product (the `product-tab` docSidebar items in
 // docusaurus.config.js; rendered here from src/data/products.js so each tab
-// gets its icon and accent), then search and the utility links.
+// gets its icon and accent), then search, the highlighted Videos / Open source
+// buttons (src/data/featured.js) and the utility links.
 
 export function ProductTabs({className, onNavigate}) {
   const {pathname} = useLocation();
@@ -53,6 +55,24 @@ export function ProductTabs({className, onNavigate}) {
   );
 }
 
+function FeaturedLinks() {
+  const {pathname, hash} = useLocation();
+  return featuredLinks.map(({id, to, label, Icon}) => {
+    const [path, anchor] = to.split('#');
+    const active = pathname === path && (!anchor || hash === `#${anchor}`);
+    return (
+      <Link
+        key={id}
+        to={to}
+        className={clsx('qd-feat', `qd-feat--${id}`, active && 'qd-feat--active')}
+        aria-current={active ? 'page' : undefined}>
+        <Icon size={15} aria-hidden="true" />
+        {label}
+      </Link>
+    );
+  });
+}
+
 function UtilityItems({items}) {
   return items.map((item, i) => (
     <ErrorCauseBoundary
@@ -85,6 +105,7 @@ export default function NavbarContent() {
       <ProductTabs />
       <div className="qd-nav__right">
         <SearchBar />
+        <FeaturedLinks />
         <UtilityItems items={utility} />
       </div>
     </div>
