@@ -11,7 +11,7 @@ description: "Tenant configuration, enterprise prerequisites, deployment choices
 Deploy the QuilrAI Browser Extension and its native Browser Agent manually or centrally through Group Policy, Microsoft Intune, or Jamf Pro. The Browser Agent is a small native process that runs beside the extension and handles device-level tasks such as [clipboard monitoring](../capabilities/clipboard-monitoring) and [file indexing](../capabilities/file-indexing).
 
 - **Central deployment:** Get the tenant-specific extension policy (JSON for Windows, mobileconfig for macOS) from **Settings › Browser Extension** in the console or from your QuilrAI representative, then deploy it with Group Policy Management, Microsoft Intune, or Jamf Pro.
-- **Manual installation:** Follow the [QuilrAI installation instructions](https://installdocs.quilrai.dev/sop/).
+- **Manual installation:** Follow <SopLink track="browser-extension" step="manual-installation" /> in the [installation SOP](../deploy/installation-sop).
 - **Change control:** Keep the tenant ID, extension ID, manifest URL, package architecture, Full Disk Access profile, assignment scope, retries, and detection rules under change control.
 - **Ownership:** Security administrators own deployment configuration and scope; endpoint and directory administrators implement GPO or MDM assignments; security engineers validate policy, process, connectivity, and telemetry.
 
@@ -37,6 +37,8 @@ The deployment examples use extension ID `piajhjohgigijkddhdpgbjdcfhmammbk` and 
 | Group Policy | Windows browser policies and native Browser Agent installation | [Deploy with Group Policy](../deploy/group-policy) |
 | Microsoft Intune | Windows and macOS packages and tenant extension profiles | [Deploy with Microsoft Intune](../deploy/microsoft-intune) |
 | Jamf Pro | macOS native package, Full Disk Access, and extension profile | [Deploy with Jamf Pro](../deploy/jamf-pro) |
+
+The [installation SOP](../deploy/installation-sop) walks through the same rollout step by step, and also covers Kandji, ManageEngine Endpoint Central and SCCM.
 
 ## Endpoint Agent is a separate package
 

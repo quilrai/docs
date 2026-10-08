@@ -123,6 +123,8 @@ const config = {
 
     plugins: [
         ['./plugins/doc-page-markdown.js', {products}],
+        // Deployment SOP pulled from quilrai/installdocs into static/sop/ (scripts/sync-install-sop.js).
+        './plugins/install-sop.js',
         [
             './plugins/llms-txt.js',
             {

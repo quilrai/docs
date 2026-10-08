@@ -1,0 +1,35 @@
+---
+sidebar_position: 0
+sidebar_label: "Installation SOP"
+description: "The step-by-step operator runbook for installing the Endpoint Agent on macOS and Windows: prerequisites, connectivity checks, manual and MDM installs, PAC routing, verification and troubleshooting."
+sidebar_custom_props:
+  icon: ClipboardList
+---
+
+# Endpoint Agent installation SOP
+
+The installation SOP is the operator runbook for rolling the Endpoint Agent out to macOS and Windows devices. Work through the steps in order: each one gates the next. At the top of each step, pick your platform and your tenant environment, and the commands and hostnames on the page change to match.
+
+<InstallSop track="endpoint-agent" />
+
+## What each step covers
+
+| Step | Use it to |
+| --- | --- |
+| <SopLink track="endpoint-agent" step="prerequisites">Prerequisites</SopLink> | Check the tenant environment, supported OS versions, MDM admin access, the network allow-list and the install bundle. |
+| <SopLink track="endpoint-agent" step="prerequisites-validation">Prerequisites validation</SopLink> | Confirm every QuilrAI host is reachable on TCP 443 and bypassed from SSL inspection, with the connectivity check scripts. |
+| <SopLink track="endpoint-agent" step="manual-installation">Manual installation</SopLink> and <SopLink track="endpoint-agent" step="validation-manual-installation">validation</SopLink> | Install on one device from the command line, then prove it works with a live interception test. |
+| <SopLink track="endpoint-agent" step="installing-using-mdm">Installing using MDM</SopLink> | Roll out to the fleet with Microsoft Intune, Jamf Pro, Kandji or ManageEngine Endpoint Central. |
+| <SopLink track="endpoint-agent" step="enable-pac-routing">Enable PAC routing</SopLink> | Point devices at the PAC file and confirm traffic takes the route. |
+| <SopLink track="endpoint-agent" step="verify-mdm-install">Verify MDM install</SopLink> | Confirm the fleet rollout on the devices and in the console. |
+| <SopLink track="endpoint-agent" step="troubleshooting">Troubleshooting</SopLink> | Triage failures, find the logs and collect the diagnostic bundle for QuilrAI support. |
+
+:::note
+Always deploy trust before traffic: the CA certificates first, then the configuration profiles, then the agent package. Confirm tenant-specific values (tenant ID, environment hosts, MSI product code) with QuilrAI support before you roll out.
+:::
+
+## Related pages
+
+- [Requirements](../get-started/requirements): OS versions, privileges, network destinations and platform approvals.
+- [Deployment and status](./deployment-and-status): the silent install reference (tenant binding, detection rules, uninstall) and coverage tracking in **Users › Endpoint deployment**.
+- [Agent kill switch](./agent-kill-switch): stop the agent on one device or across the tenant.

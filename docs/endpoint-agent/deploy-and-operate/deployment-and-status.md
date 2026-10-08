@@ -12,7 +12,7 @@ Roll the Endpoint Agent out to your fleet, then use the console to track coverag
 
 ## What you receive
 
-Your QuilrAI representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates) with your tenant ID. Step-by-step installation guides are at [installdocs.quilrai.dev](https://installdocs.quilrai.dev/).
+Your QuilrAI representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates) with your tenant ID. For a step-by-step walk-through, from prerequisites to troubleshooting, follow the [installation SOP](./installation-sop). This page is the reference for silent installs.
 
 | Platform | Package |
 | --- | --- |
@@ -57,11 +57,13 @@ The installer needs your tenant ID. It uses it to look up your tenant's backend 
    sudo "/Library/Application Support/QuilrAI/quilrai-endpoint-uninstaller" --force
    ```
 
+For per-tool walk-throughs (Microsoft Intune, Jamf Pro, Kandji, ManageEngine Endpoint Central), see <SopLink track="endpoint-agent" step="installing-using-mdm" />. To install on one test device from the command line, see <SopLink track="endpoint-agent" step="manual-installation" />.
+
 After the first install, the agent keeps itself up to date. See [Requirements](../get-started/requirements#security-and-updates).
 
 ## Pilot first
 
-Deploy to a small group first, confirm the checks in [Confirm a healthy rollout](#confirm-a-healthy-rollout), then widen the assignment.
+Deploy to a small group first, confirm the checks in [Confirm a healthy rollout](#confirm-a-healthy-rollout) and <SopLink track="endpoint-agent" step="verify-mdm-install" />, then widen the assignment. If devices fail to install or check in, work through <SopLink track="endpoint-agent" step="troubleshooting" />.
 
 ## Watch coverage
 

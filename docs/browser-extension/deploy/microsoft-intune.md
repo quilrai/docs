@@ -8,7 +8,7 @@ description: "Deploy Windows and macOS Browser Agent packages and tenant-specifi
 
 # Deploy with Microsoft Intune
 
-Deploy the native Browser Agent package and the tenant-specific extension policy to the same approved device scope. Complete the [deployment prerequisites](../get-started/prerequisites) first.
+Deploy the native Browser Agent package and the tenant-specific extension policy to the same approved device scope. Complete the [deployment prerequisites](../get-started/prerequisites) first. For a guided walk-through with platform and environment filters, see <SopLink track="browser-extension" step="installing-using-mdm" />.
 
 ## Windows Browser Agent package
 

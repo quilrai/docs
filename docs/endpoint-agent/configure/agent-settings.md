@@ -12,7 +12,7 @@ Tenant-wide Endpoint Agent behavior is set on one page in the console. These set
 <ConsolePath console="QuilrAI console" path={['Settings', 'Endpoint Agent']} />
 
 :::note Installers
-Your QuilrAI representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates). Installation guides are at [installdocs.quilrai.dev](https://installdocs.quilrai.dev/). See [Deployment and status](../deploy-and-operate/deployment-and-status).
+Your QuilrAI representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates). Follow the [installation SOP](../deploy-and-operate/installation-sop) to install them, and see [Deployment and status](../deploy-and-operate/deployment-and-status) to track coverage.
 :::
 
 ## Deployment

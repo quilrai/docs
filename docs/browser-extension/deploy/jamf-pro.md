@@ -8,7 +8,7 @@ description: "Deploy the macOS Browser Agent, Full Disk Access profile, tenant c
 
 # Deploy with Jamf Pro
 
-Use the architecture-appropriate macOS package and the tenant-generated configuration profiles. Complete the [deployment prerequisites](../get-started/prerequisites) first.
+Use the architecture-appropriate macOS package and the tenant-generated configuration profiles. Complete the [deployment prerequisites](../get-started/prerequisites) first. For a guided walk-through, see <SopLink track="browser-extension" step="installing-using-mdm" />.
 
 ## Deploy the native agent and extension
 

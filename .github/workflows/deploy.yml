@@ -4,6 +4,18 @@ on:
   push:
     branches:
       - main
+  # quilrai/installdocs fires this when the Deployment SOP changes, so /sop/
+  # serves its latest main (`npm run build` pulls it, scripts/sync-install-sop.js).
+  repository_dispatch:
+    types: [install-sop-updated]
+  # Daily rebuild as a fallback in case a dispatch is missed.
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -20,7 +32,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      - name: Build website
+      - name: Build website (pulls the Deployment SOP from quilrai/installdocs)
         run: npm run build
 
       - name: Upload Build Artifact

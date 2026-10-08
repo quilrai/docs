@@ -13,6 +13,8 @@
  *     list of the operations / fields they show.
  *   - Product landing pages (<ProductLanding product="..."/>) become a real
  *     page: name, tagline, tasks and the section map from the sidebar.
+ *   - Deployment SOP components (<InstallSop>, <SopLink>) become links to the
+ *     SOP pages synced into /sop/ (see plugins/install-sop.js).
  *
  * Plain CommonJS: loaded by Docusaurus plugins in Node.
  */
@@ -140,6 +142,30 @@ function apiComponents(text, {site, siteDir}) {
     .replace(/<SchemaReference\s+name=["']([^"']+)["']\s*\/>/g, (_, name) => schemaMarkdown(spec, name));
 }
 
+const attr = (attrs, name) => (attrs.match(new RegExp(`\\b${name}=["']([^"']+)["']`)) || [])[1];
+
+// Replaces <InstallSop .../> and <SopLink ...>...</SopLink> with links into /sop/.
+function sopComponents(text, {site, siteDir}) {
+  if (!/<(InstallSop|SopLink)\b/.test(text)) return text;
+  const {readManifest, resolveStep} = require('./install-sop');
+  const manifest = readManifest(siteDir);
+  const abs = (url) => `${site}${url}`;
+  return text
+    .replace(/<InstallSop\b([^>]*?)\/>/g, (_, attrs) => {
+      const {track} = resolveStep(manifest, attr(attrs, 'track'));
+      return [
+        `${track.title} installation SOP (step-by-step runbook, ${abs(manifest.url)}):`,
+        '',
+        ...track.steps.map((s) => `${s.number}. [${s.label}](${abs(s.url)})`),
+      ].join('\n');
+    })
+    .replace(/<SopLink\b([^>]*?)(?:\/>|>([\s\S]*?)<\/SopLink>)/g, (_, attrs, children) => {
+      const {track, step} = resolveStep(manifest, attr(attrs, 'track'), attr(attrs, 'step'));
+      const text = children?.trim() || (step ? `SOP step ${step.number}: ${step.label}` : `${track.title} installation SOP`);
+      return `[${text}](${abs(step ? step.url : track.steps[0].url)})`;
+    });
+}
+
 function cleanProse(text, ctx) {
   let t = text
     // MDX imports / exports of components (outside code fences only).
@@ -148,6 +174,7 @@ function cleanProse(text, ctx) {
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
     .replace(/<!--[\s\S]*?-->/g, '');
   t = apiComponents(t, ctx);
+  t = sopComponents(t, ctx);
   return t;
 }
 

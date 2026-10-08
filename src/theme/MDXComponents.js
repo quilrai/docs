@@ -11,6 +11,7 @@ import Walkthrough from '@site/src/components/Walkthrough';
 import VideoEmbed from '@site/src/components/VideoEmbed';
 import ProductLanding from '@site/src/components/ProductLanding';
 import ZoomImage from '@site/src/components/ZoomImage';
+import InstallSop, {SopLink} from '@site/src/components/InstallSop';
 
 export default {
   ...MDXComponents,
@@ -28,4 +29,6 @@ export default {
   Walkthrough,
   VideoEmbed,
   ProductLanding,
+  InstallSop,
+  SopLink,
 };

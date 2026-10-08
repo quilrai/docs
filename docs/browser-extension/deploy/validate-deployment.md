@@ -51,4 +51,6 @@ Prove the extension, native agent, browser policy, network path, console registr
 
 **Verification:** Store the management result, policy output, version/process evidence, Browser deployment status, finding ID, test time, and reviewer. Do not expand scope when any layer remains contradictory or stale.
 
-If a layer fails, use [Troubleshooting](../../console/legacy-v1/troubleshooting) before expanding the deployment.
+The installation SOP has matching checks in <SopLink track="browser-extension" step="verify-mdm-install" />.
+
+If a layer fails, use [Troubleshooting](../../console/legacy-v1/troubleshooting) and <SopLink track="browser-extension" step="troubleshooting" /> before expanding the deployment.

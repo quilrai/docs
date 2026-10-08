@@ -42,7 +42,7 @@ The agent makes outbound HTTPS connections on port 443 only. No inbound ports ar
 | QuilrAI update hosts | Update checks and package downloads. Included in the list your representative provides. |
 | `login.microsoftonline.com` or `oauth2.googleapis.com` | User sign-in that links the device to a person. |
 
-Get the full list of hosts to allow from your QuilrAI representative. If endpoints go through a corporate proxy, let these destinations pass through without TLS inspection of the agent's own traffic.
+Get the full list of hosts to allow from your QuilrAI representative. If endpoints go through a corporate proxy, let these destinations pass through without TLS inspection of the agent's own traffic. To test reachability from a device before you install, run the connectivity check scripts in <SopLink track="endpoint-agent" step="prerequisites-validation" />.
 
 ## Platform specifics
 
