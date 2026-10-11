@@ -91,7 +91,7 @@ A budget saved before per-group budgets existed may count each request against o
 
 1. Choose **Smooth bursts**, then who it covers, for example **Each person** or **A specific app**.
 2. **Measure** is **Requests**. Set **Limit** to N. **Resets** is **Per minute** (a rolling minute).
-3. To also cap the day, select **+ Stack another window** and add, for example, `2000` over **Rolling 24 h**. Every window applies: 60 a minute and 2,000 a day both hold.
+3. To also cap the day, select **+ Stack another window** and add, for example, `2000` **Per day**. Every window applies: 60 a minute and 2,000 a day both hold.
 4. **Add to draft** and publish.
 
 ![New rate limit form with 60 requests per minute and a stacked 2,000 per day window](/img/policy/budgets-rate-limit.png)
@@ -142,7 +142,7 @@ The tab also lists what is **Never counted today**. These are how the gateway be
 
 ## Only let one group use an app
 
-This is an access rule, not a budget. In **Policy Engine > LLM Gateway**, open **Gateway Access > Configure** and in Quick add choose **Only let certain groups use an app**, then **Pick the app, then the groups that keep it**. Everyone outside the groups you pick is denied the app before any model is called. See [Gateway access and allowed models](../protect/gateway-access-and-allowed-models#gateway-access-card).
+This is an access rule, not a budget. In **Policy Engine > LLM Gateway**, open **Gateway Access > Configure** and in Quick add choose **Only let certain groups use an app**. In the rule form that opens, pick the app and the groups that keep access. Everyone outside the groups you pick is denied the app before any model is called. See [Gateway access and allowed models](../protect/gateway-access-and-allowed-models#gateway-access-card).
 
 ![Gateway Access Quick add with Only let certain groups use an app selected and an app plus one smart group picked](/img/policy/gateway-access-only-groups.png)
 
