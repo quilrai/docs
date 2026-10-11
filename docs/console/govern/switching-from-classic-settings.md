@@ -127,9 +127,9 @@ To return to the exact pre-activation behaviour after disabling, check each gove
 1. **Tidy first.** Resolve duplicate application names and disable providers
    you no longer use. Attention items are far easier to fix before the review.
 2. **Plan model prices.** Once the engine is on, spend budgets use the
-   **Model pricing** section of the Budgets & Usage Limits card, so plan input
-   and output prices for every model you route to. Spend budgets refuse requests without a
-   price.
+   **Model prices** tab of the Budgets & Usage Limits card, so check the
+   prices for every model you route to. By default, spend budgets refuse requests
+   to models without a price.
 3. **Review, do not activate.** Read every attention item and both review
    views.
 4. **Activate and change nothing.** Revision 1 is your current behaviour. Let

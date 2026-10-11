@@ -97,8 +97,7 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | Tool Controls | [Tool controls](../../llm-gateway/protect/tool-controls) |
 | Allowed Models | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |
 | Routing Groups & Fallbacks | [Routing and fallbacks](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
-| Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
-| Rate, Token & Timeout Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
+| Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits), [Budgets and limits: how-to](../../llm-gateway/cost-and-traffic/budgets-and-limits-how-to) |
 | Token Savings | [Token saving](../../llm-gateway/cost-and-traffic/token-saving) |
 | Prompt Store and Enforcement | [Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store) |
 
@@ -179,13 +178,13 @@ The engine switch is tenant-wide. While the LLM Gateway engine is on, these sect
 | Security Guardrails > Hallucination check | Hallucination Protection |
 | Security Guardrails > Source IP restrictions | Identity & Network Trust |
 | Guardian Agent | Guardian Agent |
-| Rate and Token Limits | Rate, Token & Timeout Limits |
+| Rate and Token Limits | Budgets & Usage Limits |
 | Token Saving | Token Savings |
 | Routing | Routing Groups & Fallbacks |
 | Identity Aware (Enforce identity, Enforce conversation ID) | Identity & Network Trust |
 | Prompt Store (Require system prompt from store) | Prompt Store and Enforcement |
 
-Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls and Budgets & Usage Limits exist only in the engine. See [Switching from classic settings](./switching-from-classic-settings).
+Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access and Tool Controls exist only in the engine, as do spend budgets, per-person limits and exemptions on Budgets & Usage Limits. See [Switching from classic settings](./switching-from-classic-settings).
 
 ## Related
 

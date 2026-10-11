@@ -3,6 +3,7 @@ sidebar_position: 10
 sidebar_label: "Usage quotas and concurrency"
 sidebar_custom_props:
   icon: Gauge
+description: "Cap MCP tool calls per minute, hour or day and simultaneous calls, per person, server, tool, group, agent or organization."
 ---
 
 # Usage quotas and concurrency
@@ -23,6 +24,29 @@ There is no quota setting in a server's **Configure** sections. Quotas and concu
 />
 
 Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+
+## Quick add
+
+The card opens with **Quick add**: pick what you want, then how it is counted.
+
+| Quick add | Level two | Counted by |
+|---|---|---|
+| **Limit calls** (calls per minute, hour or day) | **Each person** | `user` |
+| | **Each person on each server** | `user`, `mcp` |
+| | **Each tool** | `tool` |
+| | **Each group** | `group` |
+| | **Whole organization** | `tenant` |
+| **Limit simultaneous calls** | **Each person** | `user` |
+| | **Each server** | `mcp` |
+
+{/* TODO(screenshot): mcp-usage-quotas-quick-add.png - see SHOT_LIST.md #13 */}
+![MCP Usage Quotas & Concurrency card with Quick add showing Limit calls and Limit simultaneous calls and their level two choices](/img/policy/mcp-usage-quotas-quick-add.png)
+
+- **Calls per server.** **Each person on each server** gives every person a separate count on each server. To cap one server for everyone together, scope the rule to that MCP server and count by `tenant`.
+- **Calls per agent.** Scope the rule to an agent name, or set the quota dimensions to `agent` (or `agent`, `mcp`) in the full editor.
+- A rule that names no dimensions counts per person, server and tool.
+
+For LLM Gateway budgets and rate limits, see [Budgets and limits: how-to](../../llm-gateway/cost-and-traffic/budgets-and-limits-how-to).
 
 ## Effects
 

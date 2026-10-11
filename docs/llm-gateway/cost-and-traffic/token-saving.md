@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 sidebar_label: "Token saving"
 sidebar_custom_props:
   icon: Coins

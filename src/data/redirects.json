@@ -55,7 +55,7 @@
   "/llm-gateway/features/request-routing": "/llm-gateway/cost-and-traffic/routing-and-fallbacks",
   "/policy-engine/llm-controls/routing-groups-and-fallbacks": "/llm-gateway/cost-and-traffic/routing-and-fallbacks",
   "/llm-gateway/features/rate-limits": "/llm-gateway/cost-and-traffic/rate-token-and-budget-limits",
-  "/policy-engine/llm-controls/rate-token-timeout-limits": "/llm-gateway/cost-and-traffic/rate-token-and-budget-limits#rate-token--timeout-limits-card",
+  "/policy-engine/llm-controls/rate-token-timeout-limits": "/llm-gateway/cost-and-traffic/rate-token-and-budget-limits#budgets--usage-limits-card",
   "/policy-engine/llm-controls/budgets-and-usage-limits": "/llm-gateway/cost-and-traffic/rate-token-and-budget-limits#budgets--usage-limits-card",
   "/llm-gateway/features/token-saving": "/llm-gateway/cost-and-traffic/token-saving",
   "/token-saving": "/llm-gateway/cost-and-traffic/token-saving",

@@ -99,11 +99,16 @@ TASK -> WHERE
 
 POLICY ENGINE (LLM) - /policy/engine/llm-gateway
 - Surface tabs: Browser Extension | LLM Gateway | MCP Gateway | Endpoint Agent
-- Header when on: ENGINE ON, Revision N, "Gateway controls", "N of 12 active", History, Docs, Filter
+- Header when on: ENGINE ON, Revision N, "Gateway controls", "N of M active", History, Docs, Filter
 - "What applies to one request" > Describe a request (previews the winning value per control)
-- 12 cards (each Configure + Docs): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
+- 11 cards (each Configure + Docs): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
   Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Routing Groups & Fallbacks,
-  Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement.
+  Budgets & Usage Limits, Token Savings, Prompt Store & Enforcement.
+- Budgets & Usage Limits card: Quick add (Set a spending budget | Set a request or token limit | Smooth bursts |
+  Exempt someone from all limits | Cap prompt size or provider timeout) above tabs Budgets & rate limits |
+  Request guards | Alerts & response | Exemptions | Model prices | Usage. "Usage" button in the LLM Gateway
+  header opens the same usage view (who is closest to each limit). Recipes:
+  https://docs.quilrai.dev/llm-gateway/cost-and-traffic/budgets-and-limits-how-to.md
   Below them: "Advanced policies" (policies the cards cannot represent; Advanced workspace).
 - Edits go to one shared draft > Review changes > Publish revision.
 - History: /policy/engine/llm-gateway/history. Simulate: /policy/engine/llm-gateway/simulate

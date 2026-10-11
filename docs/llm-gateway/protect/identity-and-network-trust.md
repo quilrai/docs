@@ -3,6 +3,7 @@ sidebar_position: 5
 sidebar_label: "Identity and network trust"
 sidebar_custom_props:
   icon: Fingerprint
+description: "Where the LLM Gateway takes user identity from, how to require identity and conversation IDs, verify JWTs, restrict domains and limit source networks."
 ---
 
 # Identity and network trust
@@ -13,7 +14,7 @@ Identify the user behind every gateway call, require identity or a conversation 
 
 Identity is configured per app. Open the app from **Settings > AI Gateway > LLM Gateway** and choose any **Configure** option to open the app workspace's **Settings** tab, then select **Identity Aware** under **Identity & content**. Apps with it on show an **Identity aware** chip in the app list.
 
-New apps have every control off: identity optional, conversation ID optional, any user domain, JWT not verified. Network limits are set separately under [Source IP restrictions](./security-guardrails#source-ip-restrictions) in the Guardrails tab.
+New apps start with identity optional, conversation ID optional, any user domain and JWT not verified. The `X-User-Email` header is always captured. Network limits are set separately under [Source IP restrictions](./security-guardrails#source-ip-restrictions) in the Guardrails tab.
 
 ![Identity Aware section with Identity header mode, Enforce identity and Enforce conversation ID switches, Allowed user domains, and JWT authentication with Allowed issuers, Allowed client IDs and Signing key source](/img/llm-gateway/ui/app-identity-aware.png)
 
@@ -51,7 +52,7 @@ New apps have every control off: identity optional, conversation ID optional, an
 
 ### Header based (trusted clients)
 
-Uses the `X-User-Email` header to identify users. If your app handles user login and makes LLM calls from your own backend, this is the easiest and recommended approach - just pass the logged-in user's email as a header.
+Uses the `X-User-Email` header to identify users. The gateway always reads it. If your app handles user login and makes LLM calls from your own backend, this is the easiest and recommended approach - just pass the logged-in user's email as a header.
 
 ```
 X-User-Email: user@company.com
@@ -82,20 +83,31 @@ MIIBIjANBgkqh...
 | **Allowed issuers** (`iss`) | Only tokens from trusted identity providers are accepted |
 | **Allowed client IDs** (`azp` / `client_id`) | Restricts which OAuth clients can access the gateway |
 
+## Where identity comes from
+
+The gateway takes a person's identity from the first source present, in this order:
+
+| Order | Source | Notes |
+|---|---|---|
+| 1 | Verified JWT | Only when **JWT authentication** is on. The `email` claim names the person. |
+| 2 | Self-service key | A key issued to one person through [Self-service](../self-service/overview). |
+| 3 | `X-User-Email` header | Always captured, never verified. Send it only from a backend you trust. |
+| 4 | Forwarded identity-token headers | Identity tokens forwarded by supported clients. |
+
+**Allowed user domains** apply to every source. Email matching ignores case, so `Ana@Example.com` and `ana@example.com` are the same person in logs, policies and per-person budgets.
+
+Identity drives per-user analytics and every per-person control. [Per-person budgets and rate limits](../cost-and-traffic/budgets-and-limits-how-to#give-each-person-in-an-app-their-own-budget) skip requests with no identified person, so turn on **Enforce identity** for apps that must always name one.
+
 ## Access controls
 
-Each app has three independent identity controls, plus [Enforce conversation ID](../monitor/conversation-grouping). They compose: turn on header identity to accept the `X-User-Email` header, turn on enforced identity to make identity mandatory, and list allowed domains to whitelist who counts as identity.
+The **Identity enforcement** section of each app has the controls below, plus [Enforce conversation ID](../monitor/conversation-grouping).
+
+{/* TODO(screenshot): identity-enforcement.png - see SHOT_LIST.md #15 */}
+![Identity enforcement section with the locked Identity header mode switch reading The X-User-Email header is always captured, the Enforce identity and Enforce conversation ID switches, and Allowed user domains](/img/policy/identity-enforcement.png)
 
 ### Identity header mode
 
-Controls whether the gateway reads the `X-User-Email` header at all.
-
-| Mode | Behavior |
-|------|----------|
-| **Enabled** | Gateway reads `X-User-Email` from every request, attaches it to logs and per-user analytics, and (when Enforce Identity is on) accepts it as valid identity. |
-| **Disabled** (default) | `X-User-Email` is ignored even if sent. JWT is still the only identity source. |
-
-Leave it off for apps using JWT only. Turn it on for trusted backends that pass the logged-in user's email to the gateway.
+Always on and not editable. The gateway reads the `X-User-Email` header from every request and attaches it to logs and per-user analytics, whatever value older app settings stored.
 
 ### Enforce identity
 
@@ -103,10 +115,8 @@ Makes identity mandatory. After auth succeeds, the request is only accepted if i
 
 | Mode | Behavior |
 |------|----------|
-| **Enabled** | Request must carry either a valid JWT or a valid `X-User-Email` (when Identity Header Mode is on). Requests with only a Quilr key are rejected with *"This API key requires identity context."* |
+| **Enabled** | The request must carry identity from one of the sources above. Requests with only a Quilr key are rejected with *"This API key requires identity context."* |
 | **Disabled** (default) | Identity is logged if present but never required. |
-
-JWT auth always satisfies Enforce Identity - the JWT itself is the identity. The `X-User-Email` header only satisfies it when Identity Header Mode is also enabled.
 
 ### Allowed user domains
 
@@ -117,7 +127,7 @@ A list of email domains permitted as identity.
 | Empty (default) | Any email domain is accepted. |
 | Specific domains (e.g. `company.com`, `partner.com`) | Only emails in these domains are accepted. |
 
-The check runs on both the `X-User-Email` header and the `email` claim extracted from JWTs. Requests from disallowed domains are rejected even if the JWT signature is otherwise valid.
+The check runs on every identity source. Requests from disallowed domains are rejected even if the JWT signature is otherwise valid.
 
 :::tip Restrict by network
 To accept calls only from known IP ranges, use [Source IP restrictions](./security-guardrails#source-ip-restrictions).
@@ -129,7 +139,7 @@ Pair `X-User-Email` with [`X-Conversation-Id`](../monitor/conversation-grouping)
 
 ## Going further with the Policy Engine {#identity-aware-in-the-policy-engine-v2-console}
 
-The **Identity & Network Trust** card in **Policy Engine > LLM Gateway** sets who must prove identity, who must send a conversation ID, and which networks may call. When the engine is on for the LLM Gateway, the app's identity requirements freeze and the card applies instead (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). How identity is verified (header mode, JWT, JWKS or PEM, allowed domains) stays in the app settings.
+The **Identity & Network Trust** card in **Policy Engine > LLM Gateway** sets who must prove identity, who must send a conversation ID, and which networks may call. When the engine is on for the LLM Gateway, the app's identity requirements freeze and the card applies instead (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). How identity is verified (JWT, JWKS or PEM, allowed domains) stays in the app settings.
 
 ![Identity and Network Trust card showing Require identity required for 5 applications, Require conversation ID not set, and Allowed source IPs not set](/img/llm-gateway/ui/policy-identity-network-trust-card.png)
 

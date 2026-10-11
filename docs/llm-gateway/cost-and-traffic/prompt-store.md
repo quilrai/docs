@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 sidebar_label: "Prompt store"
 sidebar_custom_props:
   icon: MessageSquareText
