@@ -102,7 +102,6 @@ Identity drives per-user analytics and every per-person control. [Per-person bud
 
 The **Identity enforcement** section of each app has the controls below, plus [Enforce conversation ID](../monitor/conversation-grouping).
 
-{/* TODO(screenshot): identity-enforcement.png - see SHOT_LIST.md #15 */}
 ![Identity enforcement section with the locked Identity header mode switch reading The X-User-Email header is always captured, the Enforce identity and Enforce conversation ID switches, and Allowed user domains](/img/policy/identity-enforcement.png)
 
 ### Identity header mode

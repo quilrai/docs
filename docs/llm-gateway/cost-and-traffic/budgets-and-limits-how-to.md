@@ -21,10 +21,8 @@ All LLM Gateway recipes start in the same place:
 
 The card opens with **Quick add** at the top: pick what you want (level one), then who it covers and how it is counted (level two), and a form opens with those choices filled in. Everything you add joins the shared draft and applies once you [publish a revision](../../console/govern/author-simulate-and-publish).
 
-{/* TODO(screenshot): budgets-card-overview.png - see SHOT_LIST.md #1 */}
 ![Budgets & Usage Limits card with Quick add above the Budgets & rate limits, Request guards, Alerts & response, Exemptions, Model prices and Usage tabs](/img/policy/budgets-card-overview.png)
 
-{/* TODO(screenshot): budgets-quick-add.png - see SHOT_LIST.md #2 */}
 ![Quick add level one: Set a spending budget, Set a request or token limit, Smooth bursts, Exempt someone from all limits, Cap prompt size or provider timeout](/img/policy/budgets-quick-add.png)
 
 | Quick add card | Use it for | Starts as |
@@ -48,7 +46,6 @@ Spend budgets, per-person limits and exemptions exist only in the Policy Engine.
 5. Review the **pricing check** below the form: every model the app can reach needs a price. Fill any gaps in place (see [How spend is counted](#how-spend-is-counted)).
 6. Select **Add to draft**, then review and publish.
 
-{/* TODO(screenshot): budgets-new-budget-app.png - see SHOT_LIST.md #3 */}
 ![New budget form for A specific app with Limit 500, Resets Monthly, the Reads as line and the pricing check](/img/policy/budgets-new-budget-app.png)
 
 One app, one pool: every person and key in the app draws from the same $500. To give every app its own $500 instead, choose **Each app gets its own**.
@@ -82,7 +79,6 @@ Other per-person shapes:
 
 Each chosen group gets its own budget with the same limit. A person counts against **every** chosen group they belong to, so one request by someone in both Sales and EMEA is charged to both pools. People in none of the chosen groups are not limited by these budgets.
 
-{/* TODO(screenshot): budgets-each-group-in-app.png - see SHOT_LIST.md #4 */}
 ![New budget form for Each group in an app with an app and three smart groups selected](/img/policy/budgets-each-group-in-app.png)
 
 Related shapes: **Each group gets its own pool** (every app), **A group inside an app** (one shared pool for the group), and **Each group in each app**.
@@ -98,8 +94,7 @@ A budget saved before per-group budgets existed may count each request against o
 3. To also cap the day, select **+ Stack another window** and add, for example, `2000` over **Rolling 24 h**. Every window applies: 60 a minute and 2,000 a day both hold.
 4. **Add to draft** and publish.
 
-{/* TODO(screenshot): budgets-rate-limit.png - see SHOT_LIST.md #5 */}
-![New rate limit form with 60 requests per minute and a stacked 2,000 per rolling 24 h window](/img/policy/budgets-rate-limit.png)
+![New rate limit form with 60 requests per minute and a stacked 2,000 per day window](/img/policy/budgets-rate-limit.png)
 
 Rate limits can also count **Input tokens**, **Output tokens** or **Total tokens**. Token counts are added when the response finishes; requests are counted when they start.
 
@@ -115,7 +110,6 @@ Use **Exceptions** inside the budget. Open the budget with **Edit** (or set them
    - **No limit** to leave them out of this budget entirely ("Unlimited (not counted)").
 3. Save, then publish.
 
-{/* TODO(screenshot): budgets-exceptions.png - see SHOT_LIST.md #6 */}
 ![Exceptions table in a budget form: one person with Own limit $1,000 / person, one with No limit, and the Paste people box open](/img/policy/budgets-exceptions.png)
 
 For many people at once, select **Paste people…** and paste one `email, amount` per line. Leave the amount empty, or write `exempt`, for no limit:
@@ -137,7 +131,6 @@ Use an exemption when someone must skip limits entirely, for example a productio
 4. Enter a **Reason** (recorded with the exemption) and, optionally, **Expires after** a date (the end of that day, UTC).
 5. **Add to draft** and publish.
 
-{/* TODO(screenshot): budgets-exemptions-tab.png - see SHOT_LIST.md #7 */}
 ![Exemptions tab with the Add exemption form for an application, Everything selected, a reason and an expiry date, and the Never counted today panel below](/img/policy/budgets-exemptions-tab.png)
 
 The tab also lists what is **Never counted today**. These are how the gateway behaves, not settings:
@@ -151,17 +144,14 @@ The tab also lists what is **Never counted today**. These are how the gateway be
 
 This is an access rule, not a budget. In **Policy Engine > LLM Gateway**, open **Gateway Access > Configure** and in Quick add choose **Only let certain groups use an app**, then **Pick the app, then the groups that keep it**. Everyone outside the groups you pick is denied the app before any model is called. See [Gateway access and allowed models](../protect/gateway-access-and-allowed-models#gateway-access-card).
 
-{/* TODO(screenshot): gateway-access-only-groups.png - see SHOT_LIST.md #8 */}
 ![Gateway Access Quick add with Only let certain groups use an app selected and an app plus one smart group picked](/img/policy/gateway-access-only-groups.png)
 
 ## See who is close to a limit
 
 Open the **Usage** tab on the Budgets & Usage Limits card, or select **Usage** in the LLM Gateway header of the Policy Engine. Usage lists every published budget and rate limit with its current use, the people, groups or apps closest to their limit, and when each one resets.
 
-{/* TODO(screenshot): budgets-usage-tab.png - see SHOT_LIST.md #9 */}
 ![Usage tab on the Budgets & Usage Limits card listing budgets with usage meters and the people closest to each limit](/img/policy/budgets-usage-tab.png)
 
-{/* TODO(screenshot): llm-gateway-usage-button.png - see SHOT_LIST.md #10 */}
 ![Policy Engine LLM Gateway header with the Usage button highlighted](/img/policy/llm-gateway-usage-button.png)
 
 Each row in the **Budgets & rate limits** tab also shows a live reading: the amount used of the limit for a shared pool, or the **Highest** percentage and a **Closest to limit** list for a per-person, per-group or per-app budget. A budget you have not published yet shows no usage.
@@ -196,7 +186,6 @@ On a budget, pick the **Alerts** thresholds: 50%, 80%, 100% or a custom percenta
 
 The preview shows the exact `429` for OpenAI, Anthropic, Claude Code, Bedrock and Vertex clients.
 
-{/* TODO(screenshot): budgets-alerts-response.png - see SHOT_LIST.md #11 */}
 ![Alerts & response tab with one webhook destination and the block message form with its OpenAI 429 preview](/img/policy/budgets-alerts-response.png)
 
 ## How spend is counted

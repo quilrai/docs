@@ -42,7 +42,6 @@ The card applies on the `assistants`, `bedrock`, `chat`, `embeddings`, `realtime
 
 ### Budgets & Usage Limits card
 
-{/* TODO(screenshot): budgets-list-row.png - see SHOT_LIST.md #14 */}
 ![Budgets & rate limits tab with a spend budget row (Budget and Spend tags, who it covers, EXCEPT tags, usage meter with Closest to limit) and a rate limit row with two stacked windows](/img/policy/budgets-list-row.png)
 
 **Quick add** sits above the tabs: **Set a spending budget**, **Set a request or token limit**, **Smooth bursts**, **Exempt someone from all limits** and **Cap prompt size or provider timeout**. Each opens a form with the shape you picked already filled in. **Open advanced editor** at the bottom covers anything the forms cannot say, such as limits keyed on request metadata or each person x each model.
