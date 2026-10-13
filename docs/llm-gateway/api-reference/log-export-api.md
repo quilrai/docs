@@ -651,6 +651,92 @@ id contains `jailbreak` counts toward `jailbreak_attempts`).
       "prevented_percent": 61.29
     }
   },
+  "reliability_metrics": {
+    "total_requests": 1245,
+    "successful_requests": 1131,
+    "failed_requests": 47,
+    "blocked_by_guardrails": 67,
+    "status_unknown": 0,
+    "success_rate_percent": 96.01,
+    "failures_by_status_code": [
+      {
+        "status_code": 429,
+        "count": 21
+      },
+      {
+        "status_code": 500,
+        "count": 14
+      },
+      {
+        "status_code": 503,
+        "count": 8
+      },
+      {
+        "status_code": 400,
+        "count": 4
+      }
+    ],
+    "by_app": [
+      {
+        "name": "support-bot",
+        "requests": 768,
+        "successful": 701,
+        "failed": 22,
+        "blocked_by_guardrails": 45,
+        "success_rate_percent": 96.96
+      },
+      {
+        "name": "internal-assistant",
+        "requests": 387,
+        "successful": 352,
+        "failed": 17,
+        "blocked_by_guardrails": 18,
+        "success_rate_percent": 95.39
+      },
+      {
+        "name": "batch-summarizer",
+        "requests": 90,
+        "successful": 78,
+        "failed": 8,
+        "blocked_by_guardrails": 4,
+        "success_rate_percent": 90.7
+      }
+    ],
+    "latency_ms": {
+      "total": {
+        "avg": 1843.27,
+        "p50": 1310.0,
+        "p95": 5120.0,
+        "p99": 9875.0,
+        "max": 21430.0,
+        "samples": 1245
+      },
+      "upstream": {
+        "avg": 1702.55,
+        "p50": 1195.0,
+        "p95": 4890.0,
+        "p99": 9610.0,
+        "max": 21102.0,
+        "samples": 1178
+      },
+      "quilr_processing": {
+        "avg": 88.41,
+        "p50": 61.0,
+        "p95": 240.0,
+        "p99": 410.0,
+        "max": 1290.0,
+        "samples": 1245
+      },
+      "first_response": {
+        "avg": 642.9,
+        "p50": 480.0,
+        "p95": 1650.0,
+        "p99": 2900.0,
+        "max": 6120.0,
+        "samples": 1178
+      }
+    }
+  },
   "executive_kpis": {
     "critical_events_prevented": 67,
     "secrets_blocked": 9,
@@ -715,6 +801,39 @@ with no traffic are omitted from this array and listed in
 This is deliberately a share of traffic that reached the gateway, not a share of all
 AI usage in your organisation. The gateway can only observe requests routed through
 it, so it cannot measure traffic that bypasses it.
+
+### `reliability_metrics`
+
+Every request counted in `total_requests` lands in exactly one of the four buckets
+below, so they always add up to `total_requests`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_requests` | number | Same value as `governance_metrics.total_requests`. |
+| `successful_requests` | number | Requests that completed with an HTTP status below 400. |
+| `failed_requests` | number | Requests that returned an HTTP status of 400 or above, excluding guardrail blocks. |
+| `blocked_by_guardrails` | number | Requests stopped by a Quilr guardrail policy. |
+| `status_unknown` | number | Requests with no recorded HTTP status. |
+| `success_rate_percent` | number \| null | `successful_requests` as a percentage of `successful_requests + failed_requests`. `null` when both are 0. |
+| `failures_by_status_code` | array | Up to 10 `{status_code, count}` entries for failed requests, most frequent first. |
+| `by_app` | array | Per application: `{name, requests, successful, failed, blocked_by_guardrails, success_rate_percent}`, highest `requests` first. |
+| `latency_ms.total` | object | End-to-end request latency. |
+| `latency_ms.upstream` | object | Time spent waiting on the model provider. |
+| `latency_ms.quilr_processing` | object | Time Quilr added for guardrails and routing. |
+| `latency_ms.first_response` | object | Time to the first response byte or streamed chunk. |
+
+Each `latency_ms` entry has the shape `{avg, p50, p95, p99, max, samples}`, in
+milliseconds. `samples` is the number of requests that recorded that latency;
+for example, blocked requests never reach the provider, so they have no upstream
+latency. Percentiles use the nearest-rank method, so each one is a latency that was
+actually observed. When no request recorded a latency, its entry is all `null` with
+`samples: 0`.
+
+A guardrail block is reported separately rather than as a failure: it is your
+policy working as intended, even though the caller receives a 4xx response. That is
+why blocked requests do not lower `success_rate_percent`. Use
+`blocked_by_guardrails` together with `governance_metrics.guardrail_effectiveness`
+to track policy enforcement.
 
 ### `executive_kpis`
 
