@@ -727,13 +727,13 @@ id contains `jailbreak` counts toward `jailbreak_attempts`).
         "max": 1290.0,
         "samples": 1245
       },
-      "first_response": {
+      "time_to_first_chunk": {
         "avg": 642.9,
         "p50": 480.0,
         "p95": 1650.0,
         "p99": 2900.0,
         "max": 6120.0,
-        "samples": 1178
+        "samples": 812
       }
     }
   },
@@ -820,12 +820,14 @@ below, so they always add up to `total_requests`.
 | `latency_ms.total` | object | End-to-end request latency. |
 | `latency_ms.upstream` | object | Time spent waiting on the model provider. |
 | `latency_ms.quilr_processing` | object | Time Quilr added for guardrails and routing. |
-| `latency_ms.first_response` | object | Time to the first response byte or streamed chunk. |
+| `latency_ms.time_to_first_chunk` | object | Time until the first streamed chunk reached the caller. Streaming requests only. |
 
 Each `latency_ms` entry has the shape `{avg, p50, p95, p99, max, samples}`, in
 milliseconds. `samples` is the number of requests that recorded that latency;
 for example, blocked requests never reach the provider, so they have no upstream
-latency. Percentiles use the nearest-rank method, so each one is a latency that was
+latency. `time_to_first_chunk` covers streaming requests only: a non-streaming
+response arrives in one piece, so its first chunk is simply its total latency.
+Percentiles use the nearest-rank method, so each one is a latency that was
 actually observed. When no request recorded a latency, its entry is all `null` with
 `samples: 0`.
 
