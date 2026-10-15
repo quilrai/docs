@@ -13,9 +13,13 @@ import TabItem from '@theme/TabItem';
 
 MCP endpoints, authentication methods, and connection examples for integrating AI agents with MCP Gateway.
 
+:::tip Administrator rollout guides
+For detailed prerequisites, organization controls, OAuth fields, and troubleshooting, start with [AI client setup](../client-setup/overview). Choose [GitHub Copilot](../client-setup/github-copilot), [Copilot Studio / Microsoft 365](../client-setup/copilot-studio), [Claude and Claude Code](../client-setup/claude), [Cursor](../client-setup/cursor), or [ChatGPT and Codex](../client-setup/openai).
+:::
+
 ## MCP Endpoint URL
 
-Each MCP gets a unique endpoint URL, shown as **Quilr gateway** on its server card in **Settings > AI Gateway > MCP Gateway** and on the user dashboard at `mcpgateway.quilr.ai`. Point your AI agent to this URL to connect. The base domain is typically `https://mcpgateway.quilr.ai` or `https://mcpgateway.quilrai.com`, but it can vary by environment.
+Each MCP gets a unique endpoint URL, shown as **Quilr gateway** on its server card in **Settings > AI Gateway > MCP Gateway** and on your deployment's user dashboard. Point your AI agent to this complete URL. The base is `https://mcpgateway.quilr.ai` or your exact assigned hostname under `quilrai.com`. Never enter `*.quilrai.com` literally or mix hosts between MCP and OAuth requests.
 
 ```
 https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp
@@ -45,7 +49,7 @@ mcpuser: user@company.com
 
 - Create API tokens in the server's **Settings > API tokens** (not shown on OAuth servers). See [API Tokens](../servers-and-connections/api-tokens).
 - Each token is scoped to a specific agent
-- The `mcpuser` header identifies the end user for per-user tracking
+- The `mcpuser` header supplies trusted caller attribution for per-user tracking; it is not proof that the named user completed SSO
 - The `mcpuser` email must belong to an allowed company domain
 
 #### Gateway OAuth Proxy Tokens
@@ -74,12 +78,16 @@ Non-OAuth MCPs can also receive the authenticated Quilr user identity in a gatew
 
 ## Token-Based Connection Example
 
+This is an administrator diagnostic for a direct non-OAuth server. Replace the token, email, backend path, and diagnostic User-Agent with values matching the token's configured agent. In production, bind the token to the actual client rather than overriding its identity. For end-to-end session validation, use a real MCP client and complete initialization; see [validation](../client-setup/troubleshooting).
+
 ```bash
 # Connect to MCP endpoint with token auth
 curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-api-token>" \
   -H "mcpuser: user@company.com" \
+  -H "User-Agent: <token-configured-agent-key>" \
+  -H "Accept: application/json, text/event-stream" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/list",
@@ -91,7 +99,7 @@ curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
 
 Use the **OneMCP URL** from the user dashboard (for example `https://mcpgateway.quilr.ai/quilrone/mcp`) to get every gateway-managed MCP through one connection, or a single MCP's **Quilr gateway** URL. OAuth passthrough MCPs are only available on their own URL (see [OneMCP](./onemcp#visibility-rules)).
 
-The gateway speaks MCP over Streamable HTTP. Clients authenticate with OAuth: on the first request the gateway answers `401` with a pointer to its OAuth metadata, the client registers itself, and your browser opens to sign in with your company account. There is no token to copy. Before an MCP's tools work, connect it once on the user dashboard (or through the [in-chat connector card](./onemcp#inline-authentication)).
+The gateway speaks MCP over Streamable HTTP. Compatible clients can authenticate with OAuth: on the first request the gateway answers `401` with a pointer to its OAuth metadata, the client registers itself, and your browser opens to sign in with your company account. Use the client's OAuth flow rather than copying a token. Review the [authentication compatibility limits](../client-setup/authentication) and validate your client version before rollout. Before an MCP's tools work, connect it once on the user dashboard (or through the [in-chat connector card](./onemcp#inline-authentication)).
 
 <Tabs groupId="mcp-client">
 <TabItem value="cursor" label="Cursor" default>
@@ -161,7 +169,7 @@ Then run `/mcp` in Claude Code, select `quilr-onemcp` and authenticate.
 
 ### Connect other MCP clients
 
-Any client that supports remote MCP servers over Streamable HTTP with OAuth (protected resource metadata and dynamic client registration) can connect with just the URL.
+For a client supporting Streamable HTTP, protected-resource metadata, and dynamic client registration, start with the MCP URL. Validate its authentication requirements against the [current gateway behavior](../client-setup/authentication); discovery support alone does not guarantee compatibility.
 
 | Item | Value |
 |------|-------|

@@ -29,7 +29,7 @@ https://mcpgateway.quilr.ai
 https://mcpgateway.quilrai.com
 ```
 
-The base domain may vary by environment. Users copy the full OneMCP URL from the user dashboard at `mcpgateway.quilr.ai` before configuring an AI client.
+Your deployment may use another assigned hostname under `quilrai.com`. Copy the full OneMCP URL from that deployment's user dashboard. Never enter `*.quilrai.com` literally or substitute a different environment's hostname.
 
 ```text
 https://<base-domain>/quilrone/mcp
@@ -42,7 +42,7 @@ https://mcpgateway.quilr.ai/quilrone/mcp
 https://mcpgateway.quilrai.com/quilrone/mcp
 ```
 
-OneMCP accepts gateway-issued OneMCP OAuth proxy tokens, which the AI client gets when the user signs in. There is no token to copy. For per-client steps (Cursor, Claude Desktop and Claude.ai, VS Code, Claude Code), see [Connect an AI client](./integration-guide#connect-an-ai-client).
+OneMCP accepts gateway-issued OneMCP OAuth proxy tokens, which the AI client gets when the user signs in. There is no token to copy. For quick examples see [Connect an AI client](./integration-guide#connect-an-ai-client). Administrators should use the detailed [AI client setup guides](../client-setup/overview), including Copilot Studio, GitHub Copilot, Claude, Cursor, ChatGPT, and Codex.
 
 ## OneMCP settings
 

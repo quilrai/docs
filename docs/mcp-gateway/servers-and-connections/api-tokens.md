@@ -40,12 +40,17 @@ Send the token and the email of the user making the call on every request to the
 | `Authorization` | `Bearer <your-api-token>` |
 | `mcpuser` | Email of the person making the call, for example `jane@example.com` |
 
+The `mcpuser` value is an identity assertion from the trusted token holder, not proof that the named person completed SSO. New tokens are bound to a selected agent, so the actual client User-Agent must match that binding.
+
 The gateway applies [Access control](../protect/server-access), [Group & User Rules](../protect/group-and-user-rules) and guardrails for the person named in `mcpuser`, and records the calls against them. Requests without a valid `mcpuser` email are rejected.
+
+For an administrator diagnostic, supply a User-Agent matching the token's selected agent. Production clients should use a token bound to their actual identity. This raw request is a limited transport/auth check; use the [client validation procedure](../client-setup/troubleshooting) for a complete initialized MCP session.
 
 ```bash
 curl https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp \
   -H "Authorization: Bearer <your-api-token>" \
   -H "mcpuser: jane@example.com" \
+  -H "User-Agent: <token-configured-agent-key>" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
