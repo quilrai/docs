@@ -27,17 +27,24 @@ Client documentation was checked on **15 October 2026**. These guides describe v
 
 ## 1. Record the deployment and endpoint
 
-Quilr gateways are deployed at **`https://mcpgateway.quilr.ai`** or an assigned hostname under **`quilrai.com`**. Copy the complete URL from the gateway user dashboard or the server's **Quilr gateway** field. An environment-specific hostname is not interchangeable with another deployment.
+Use `<YOUR_MCP_BASE_URL>` for the base URL of your gateway deployment, including `https://` and without a trailing slash. For example:
 
-`*.quilrai.com` describes a family of hostnames. It is not a URL to enter in a client. Use the exact assigned hostname, for example `https://mcpgateway.quilrai.com` only when that is your deployment. Keep the same hostname throughout MCP requests, OAuth discovery, and sign-in.
+| Deployment | Example base URL |
+| --- | --- |
+| Quilr gateway | `https://mcpgateway.quilr.ai` |
+| Quilr gateway on quilrai.com | `https://mcpgateway.quilrai.com` |
+| Assigned environment | The exact HTTPS hostname provided for your deployment under `quilrai.com` |
 
-| Endpoint | Purpose | Example on the primary hostname |
+Copy the base URL from your Quilr dashboard. Replace `<YOUR_MCP_BASE_URL>` in every configuration example before use. Do not enter a wildcard hostname or add another `https://` before the placeholder.
+
+For example, a base of `https://mcpgateway.quilrai.com` gives the OneMCP URL `https://mcpgateway.quilrai.com/quilrone/mcp`.
+
+| Endpoint | Purpose | URL template |
 | --- | --- | --- |
-| Tenantless OneMCP | Resolve the user's organization through sign-in | `https://mcpgateway.quilr.ai/quilrone/mcp` |
-| Tenant-scoped OneMCP | Address one Quilr tenant explicitly | `https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp` |
-| Direct MCP | Connect to one installed server | `https://mcpgateway.quilr.ai/<backend-id-or-slug>/mcp` |
+| OneMCP | Access the user's permitted connectors through one URL | `<YOUR_MCP_BASE_URL>/quilrone/mcp` |
+| Direct MCP | Connect to one installed server | `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/mcp` |
 
-Use the dashboard-provided endpoint. The **Quilr tenant ID** is not automatically the Microsoft Entra tenant ID. A backend UUID avoids ambiguous slugs. OneMCP excludes OAuth-passthrough servers; use their direct endpoint and discovered upstream authorization details.
+Use `/quilrone/mcp` on your assigned gateway hostname. Quilr resolves the organization from the signed-in account and applies that user's connector and tool permissions. For a direct MCP connection, copy its dashboard-provided URL; a backend UUID avoids ambiguous slugs. OneMCP excludes OAuth-passthrough servers; use their direct endpoint and discovered upstream authorization details.
 
 ## 2. Assign responsibilities
 
@@ -90,8 +97,7 @@ AI client and version:
 Workspace / organization:
 Gateway base URL (exact HTTPS hostname):
 MCP server URL (complete path):
-Endpoint type: tenantless OneMCP / tenant-scoped OneMCP / direct MCP
-Quilr tenant ID (if tenant-scoped):
+Endpoint type: OneMCP / direct MCP
 Authentication: OAuth dynamic registration / approved direct API token
 Client administrator contact:
 Quilr administrator contact:

@@ -9,7 +9,9 @@ description: "Configure Cursor with Quilr OneMCP, distribute the endpoint, apply
 
 # Cursor
 
-Use the exact OneMCP URL supplied by the gateway dashboard, on `https://mcpgateway.quilr.ai` or your assigned hostname under `quilrai.com`. Never enter a literal wildcard hostname. Confirm the [administrator checklist](./overview) before rollout.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
+Use `<YOUR_MCP_BASE_URL>/quilrone/mcp` for OneMCP. Confirm the [administrator checklist](./overview) before rollout.
 
 **Documentation checked: 15 October 2026.** Validate this setup against your client version and deployment; the guide does not represent a completed live connection test.
 
@@ -21,13 +23,13 @@ Cursor supports remote Streamable HTTP and OAuth. Use `.cursor/mcp.json` for a p
 {
   "mcpServers": {
     "quilr-onemcp": {
-      "url": "https://mcpgateway.quilr.ai/quilrone/mcp"
+      "url": "<YOUR_MCP_BASE_URL>/quilrone/mcp"
     }
   }
 }
 ```
 
-If the dashboard gives you a tenant-scoped endpoint, use `https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp` instead, replacing the placeholder. For one server use its direct gateway URL. Keep the endpoint and OAuth issuer from the same deployment.
+Use `/quilrone/mcp` on your assigned gateway hostname. Quilr resolves the organization from the signed-in account. For one server use its direct gateway URL. Keep the endpoint and OAuth issuer from the same deployment.
 
 Open **Customize**, enable the server, and complete the offered OAuth sign-in. Review the available tools and approvals before using them. [Cursor server management](https://cursor.com/docs/mcp).
 
@@ -40,7 +42,7 @@ Cursor distinguishes distribution from policy. Team servers are managed in **Das
 For a Quilr rollout:
 
 1. Distribute the exact approved URL, never an administrator's token or personal connection.
-2. Set the enterprise URL rule to match that endpoint. Include the intended tenant/backend path rather than approving unrelated deployments.
+2. Set the enterprise URL rule to match that endpoint. Match `/quilrone/mcp` for OneMCP or the exact backend path for a direct server.
 3. Allow the actual Cursor runtime under Quilr Allowed Agents and configure the permitted user groups and tools.
 4. Have users authenticate with their own company accounts and connect required upstream services.
 5. Validate IDE, CLI, and cloud runtimes separately if the organization enables them. Endpoint distribution alone does not establish credentials or network reachability in each runtime.
@@ -55,7 +57,7 @@ For an eligible non-OAuth backend only, an administrator can issue a gateway API
 {
   "mcpServers": {
     "quilr-direct": {
-      "url": "https://mcpgateway.quilr.ai/<backend-id>/mcp",
+      "url": "<YOUR_MCP_BASE_URL>/<backend-id>/mcp",
       "headers": {
         "Authorization": "Bearer ${env:QUILR_MCP_TOKEN}",
         "mcpuser": "employee@customer.example"

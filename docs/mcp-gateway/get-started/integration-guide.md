@@ -11,6 +11,8 @@ import TabItem from '@theme/TabItem';
 
 # Integration Guide
 
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
 MCP endpoints, authentication methods, and connection examples for integrating AI agents with MCP Gateway.
 
 :::tip Administrator rollout guides
@@ -19,10 +21,10 @@ For detailed prerequisites, organization controls, OAuth fields, and troubleshoo
 
 ## MCP Endpoint URL
 
-Each MCP gets a unique endpoint URL, shown as **Quilr gateway** on its server card in **Settings > AI Gateway > MCP Gateway** and on your deployment's user dashboard. Point your AI agent to this complete URL. The base is `https://mcpgateway.quilr.ai` or your exact assigned hostname under `quilrai.com`. Never enter `*.quilrai.com` literally or mix hosts between MCP and OAuth requests.
+Each MCP gets a unique endpoint URL, shown as **Quilr gateway** on its server card in **Settings > AI Gateway > MCP Gateway** and on your deployment's user dashboard. Point your AI agent to this complete URL. Use the same `<YOUR_MCP_BASE_URL>` for MCP and OAuth requests.
 
 ```
-https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp
+<YOUR_MCP_BASE_URL>/<your-mcp-slug>/mcp
 ```
 
 ## Authentication Methods
@@ -36,7 +38,7 @@ MCP Gateway separates the credential your AI client uses to reach the gateway fr
 | **API token** | Programmatic access to non-OAuth or static-key MCPs. | `Authorization: Bearer <api-token>` plus `mcpuser: user@company.com`. |
 | **Gateway OAuth proxy token** | The AI client supports OAuth with the gateway. | A gateway-issued Bearer token from the MCP OAuth authorize/token flow. |
 | **OAuth passthrough** | The upstream MCP expects the client to perform OAuth directly with the upstream provider. | The upstream provider's Bearer token. |
-| **OneMCP OAuth proxy token** | The client connects to the dashboard-provided OneMCP URL, such as `https://mcpgateway.quilr.ai/quilrone/mcp`. | A gateway-issued OneMCP Bearer token. |
+| **OneMCP OAuth proxy token** | The client connects to the dashboard-provided OneMCP URL, such as `<YOUR_MCP_BASE_URL>/quilrone/mcp`. | A gateway-issued OneMCP Bearer token. |
 
 #### API Token Authentication
 
@@ -82,7 +84,7 @@ This is an administrator diagnostic for a direct non-OAuth server. Replace the t
 
 ```bash
 # Connect to MCP endpoint with token auth
-curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
+curl -X POST '<YOUR_MCP_BASE_URL>/your-mcp-slug/mcp' \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-api-token>" \
   -H "mcpuser: user@company.com" \
@@ -97,7 +99,7 @@ curl -X POST https://mcpgateway.quilr.ai/your-mcp-slug/mcp \
 
 ## Connect an AI client
 
-Use the **OneMCP URL** from the user dashboard (for example `https://mcpgateway.quilr.ai/quilrone/mcp`) to get every gateway-managed MCP through one connection, or a single MCP's **Quilr gateway** URL. OAuth passthrough MCPs are only available on their own URL (see [OneMCP](./onemcp#visibility-rules)).
+Use the **OneMCP URL** from the user dashboard (for example `<YOUR_MCP_BASE_URL>/quilrone/mcp`) to get every gateway-managed MCP through one connection, or a single MCP's **Quilr gateway** URL. OAuth passthrough MCPs are only available on their own URL (see [OneMCP](./onemcp#visibility-rules)).
 
 The gateway speaks MCP over Streamable HTTP. Compatible clients can authenticate with OAuth: on the first request the gateway answers `401` with a pointer to its OAuth metadata, the client registers itself, and your browser opens to sign in with your company account. Use the client's OAuth flow rather than copying a token. Review the [authentication compatibility limits](../client-setup/authentication) and validate your client version before rollout. Before an MCP's tools work, connect it once on the user dashboard (or through the [in-chat connector card](./onemcp#inline-authentication)).
 
@@ -112,7 +114,7 @@ Add the server to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` in a
 {
   "mcpServers": {
     "quilr-onemcp": {
-      "url": "https://mcpgateway.quilr.ai/quilrone/mcp"
+      "url": "<YOUR_MCP_BASE_URL>/quilrone/mcp"
     }
   }
 }
@@ -145,7 +147,7 @@ Add the server to `.vscode/mcp.json` in a workspace (or run **MCP: Add Server** 
   "servers": {
     "quilr-onemcp": {
       "type": "http",
-      "url": "https://mcpgateway.quilr.ai/quilrone/mcp"
+      "url": "<YOUR_MCP_BASE_URL>/quilrone/mcp"
     }
   }
 }
@@ -159,7 +161,7 @@ Start the server from the file or the MCP server list, and sign in when prompted
 ### Connect Claude Code
 
 ```bash
-claude mcp add --transport http quilr-onemcp https://mcpgateway.quilr.ai/quilrone/mcp
+claude mcp add --transport http quilr-onemcp '<YOUR_MCP_BASE_URL>/quilrone/mcp'
 ```
 
 Then run `/mcp` in Claude Code, select `quilr-onemcp` and authenticate.
@@ -188,7 +190,7 @@ Clients without OAuth can call a single non-OAuth MCP's URL with an [API token](
 1. Without signing in, confirm the URL is right. A `401` with a `WWW-Authenticate` header that contains `resource_metadata` means you reached the gateway:
 
    ```bash
-   curl -i -X POST https://mcpgateway.quilr.ai/quilrone/mcp \
+   curl -i -X POST '<YOUR_MCP_BASE_URL>/quilrone/mcp' \
      -H "Content-Type: application/json" \
      -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
    ```

@@ -9,19 +9,20 @@ description: "Configure Quilr MCP Gateway for GitHub Copilot in VS Code, Copilot
 
 # GitHub Copilot
 
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
 Use browser OAuth for interactive Copilot clients connecting to OneMCP. GitHub's repository cloud agent and code review require a separate token-based setup. These are different clients with different configuration and authentication capabilities.
 
 **Documentation checked: October 15, 2026.** This guide combines the gateway's documented behavior with official client documentation. Complete the pilot below against your assigned deployment before organization-wide rollout; these instructions are not a live interoperability certification.
 
 ## Administrator preparation
 
-Get the exact MCP URL from the Quilr dashboard. The public base is `https://mcpgateway.quilr.ai`, or the exact customer hostname assigned under `quilrai.com`. A wildcard such as `*.quilrai.com` is a domain pattern, never a server URL.
+Get the exact MCP URL from the Quilr dashboard and substitute its base URL in the examples below.
 
 | Required item | Administrator action |
 |---|---|
-| Quilr tenant | Confirm the **Quilr tenant ID**, which is not automatically the Microsoft Entra tenant ID or GitHub organization name. |
-| Interactive endpoint | Copy the dashboard-provided OneMCP URL. The tenant-scoped example is `https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp`. Use `/quilrone/mcp` when that is the URL assigned by the dashboard. |
-| Individual connector | Use `https://mcpgateway.quilr.ai/<backend-id>/mcp` for a single MCP. Copy the backend ID rather than inferring it from a display name. |
+| Interactive endpoint | Use `<YOUR_MCP_BASE_URL>/quilrone/mcp`, after substituting your deployment base URL. |
+| Individual connector | Use `<YOUR_MCP_BASE_URL>/<backend-id>/mcp` for a single MCP. Copy the backend ID rather than inferring it from a display name. |
 | Quilr permissions | Permit the pilot users and actual client under server access control and Allowed Agents. Complete upstream connections for the pilot account. |
 | Network | Allow HTTPS from the runtime running MCP and from the browser used for sign-in to the assigned gateway and its advertised authentication endpoints. A successful browser visit alone does not prove a remote development environment can connect. |
 | Client entitlement | Confirm users can use the chosen Copilot product and that organization/enterprise MCP policies allow the gateway. |
@@ -41,13 +42,13 @@ See [client overview](./overview) and [authentication](./authentication) for end
   "servers": {
     "quilr-onemcp": {
       "type": "http",
-      "url": "https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp"
+      "url": "<YOUR_MCP_BASE_URL>/quilrone/mcp"
     }
   }
 }
 ```
 
-Replace the placeholder and host before use. Merge this entry into an existing file instead of replacing unrelated servers. The VS Code format uses `servers`; portable Copilot configurations use `mcpServers`. [Configuration reference](https://code.visualstudio.com/docs/agents/reference/mcp-configuration).
+Replace `<YOUR_MCP_BASE_URL>` before saving. Merge this entry into an existing file instead of replacing unrelated servers. The VS Code format uses `servers`; portable Copilot configurations use `mcpServers`. [Configuration reference](https://code.visualstudio.com/docs/agents/reference/mcp-configuration).
 
 4. Run **MCP: List Servers**, choose `quilr-onemcp`, and start it. Review any trust prompt.
 5. Complete browser sign-in with the permitted company identity.
@@ -68,7 +69,7 @@ Use this only when the gateway administrator has created an API token for an eli
   "servers": {
     "quilr-direct": {
       "type": "http",
-      "url": "https://mcpgateway.quilr.ai/<backend-id>/mcp",
+      "url": "<YOUR_MCP_BASE_URL>/<backend-id>/mcp",
       "headers": {
         "Authorization": "Bearer ${input:quilr-api-token}",
         "mcpuser": "user@company.com"
@@ -94,10 +95,10 @@ Add a remote HTTP server from a terminal:
 
 ```bash
 copilot mcp add --transport http quilr-onemcp \
-  'https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp'
+  '<YOUR_MCP_BASE_URL>/quilrone/mcp'
 ```
 
-After replacing the placeholder, launch `copilot` and inspect `/mcp`. If sign-in is required, run:
+After confirming the gateway hostname, launch `copilot` and inspect `/mcp`. If sign-in is required, run:
 
 ```text
 /mcp auth quilr-onemcp
@@ -118,7 +119,7 @@ Example template:
   "mcpServers": {
     "quilr-direct": {
       "type": "http",
-      "url": "https://mcpgateway.quilr.ai/<backend-id>/mcp",
+      "url": "<YOUR_MCP_BASE_URL>/<backend-id>/mcp",
       "headers": {
         "Authorization": "Bearer ${COPILOT_MCP_QUILR_TOKEN}",
         "mcpuser": "${COPILOT_MCP_QUILR_USER}"

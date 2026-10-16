@@ -8,6 +8,8 @@ description: "Create, use and revoke direct-connection tokens for a server, sent
 
 # API Tokens
 
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
 Issue a direct-connection token so a script, service or AI client can call one MCP server through the gateway without signing in.
 
 Go to **Settings > AI Gateway > MCP Gateway**, click **Configure** on the server card and open **API tokens** ("Direct-connection tokens"). The section reads: "Clients call this MCP with an access token in the Authorization header plus their own `mcpuser` email header."
@@ -47,7 +49,7 @@ The gateway applies [Access control](../protect/server-access), [Group & User Ru
 For an administrator diagnostic, supply a User-Agent matching the token's selected agent. Production clients should use a token bound to their actual identity. This raw request is a limited transport/auth check; use the [client validation procedure](../client-setup/troubleshooting) for a complete initialized MCP session.
 
 ```bash
-curl https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp \
+curl '<YOUR_MCP_BASE_URL>/<your-mcp-slug>/mcp' \
   -H "Authorization: Bearer <your-api-token>" \
   -H "mcpuser: jane@example.com" \
   -H "User-Agent: <token-configured-agent-key>" \
@@ -62,7 +64,7 @@ Most MCP clients let you set these as custom headers in their server configurati
 {
   "mcpServers": {
     "github": {
-      "url": "https://mcpgateway.quilr.ai/<your-mcp-slug>/mcp",
+      "url": "<YOUR_MCP_BASE_URL>/<your-mcp-slug>/mcp",
       "headers": {
         "Authorization": "Bearer <your-api-token>",
         "mcpuser": "jane@example.com"

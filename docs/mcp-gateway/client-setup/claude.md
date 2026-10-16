@@ -8,6 +8,8 @@ description: "Administrator setup for Quilr MCP Gateway in Claude web, Desktop, 
 
 # Claude and Claude Code
 
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
 Connect Claude to the **Quilr gateway URL** copied from your dashboard. This guide covers hosted Claude custom connectors and a separately configured Claude Code HTTP connection. Use the [client overview](./overview) to choose an endpoint and the [authentication reference](./authentication) for the gateway's supported flows.
 
 Official client documentation checked **15 October 2026**. These instructions combine the documented client setup with Quilr's implementation; they are not a record of a live customer interoperability test. Complete the pilot checks below before a broad rollout.
@@ -20,18 +22,16 @@ Give the person configuring Claude these values:
 | --- | --- |
 | Display name | For example, `Quilr OneMCP` |
 | Server URL | Exact HTTPS URL from Quilr, including its full path |
-| Shared deployment | `https://mcpgateway.quilr.ai` |
-| Customer deployment | Exact assigned hostname under `quilrai.com`; never enter `*.quilrai.com` as a server URL |
-| Tenant OneMCP path | `/quilrone/<quilr-tenant-id>/mcp` |
-| Dashboard OneMCP alternative | `/quilrone/mcp`, when this is the URL Quilr supplies |
+| MCP base URL | `<YOUR_MCP_BASE_URL>` as defined above |
+| OneMCP path | `/quilrone/mcp` |
 | Single-server path | `/<backend-id>/mcp` |
 | Transport | Streamable HTTP |
 | Recommended gateway authentication | Interactive OAuth with automatic client registration |
 | OAuth client secret | None for the gateway's public DCR client |
 | Sign-in identity | The user's authorized company account |
-| Support details | Quilr tenant ID, endpoint owner, approved upstream connectors, permitted tools, and pilot users |
+| Support details | Organization name, endpoint owner, approved upstream connectors, permitted tools, and pilot users |
 
-Copy the whole endpoint. Do not substitute a Microsoft Entra tenant ID for the Quilr tenant ID or guess a backend ID from its display name. Keep the same hostname throughout discovery and sign-in. Upstream connector client secrets belong in Quilr's provider configuration and are not Claude credentials.
+Use `/quilrone/mcp` on your assigned hostname. Quilr resolves the organization from the signed-in account. For a direct MCP, copy the backend endpoint from the dashboard rather than guessing it from a display name. Keep the same hostname throughout discovery and sign-in. Upstream connector client secrets belong in Quilr's provider configuration and are not Claude credentials.
 
 ## Claude web and Desktop
 
@@ -73,7 +73,7 @@ Use the exact dashboard URL in place of the example. `--scope user` makes this d
 
 ```bash
 claude mcp add --transport http --scope user quilr-onemcp \
-  'https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp'
+  '<YOUR_MCP_BASE_URL>/quilrone/mcp'
 ```
 
 Run Claude Code and enter `/mcp`, select `quilr-onemcp`, and authenticate in the browser. Then inspect the saved definition and connection:
@@ -102,7 +102,7 @@ A project definition contains the endpoint, not users' tokens:
   "mcpServers": {
     "quilr-onemcp": {
       "type": "http",
-      "url": "https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp"
+      "url": "<YOUR_MCP_BASE_URL>/quilrone/mcp"
     }
   }
 }

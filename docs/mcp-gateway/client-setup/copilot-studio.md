@@ -9,6 +9,8 @@ description: "Administer Quilr MCP connections in Copilot Studio and publish the
 
 # Copilot Studio and Microsoft 365
 
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
 Connect a Copilot Studio agent to Quilr using the MCP onboarding wizard, then publish that agent to the approved Microsoft 365 or Teams channel. Start a pilot with **OAuth 2.0 > Dynamic discovery** for OneMCP. The gateway's discovery and public-client behavior must work with your Microsoft environment before production approval.
 
 **Documentation checked: October 15, 2026.** The configuration below is based on gateway behavior and official Microsoft documentation. It has not been validated through a live customer Copilot Studio connection.
@@ -32,10 +34,9 @@ Prepare the following Quilr settings:
 
 | Item | Required value or decision |
 |---|---|
-| Gateway host | `https://mcpgateway.quilr.ai` or the exact assigned customer host under `quilrai.com`. Never enter `https://*.quilrai.com`. |
-| Server URL | Copy the dashboard-provided OneMCP URL. The tenant-scoped example is `https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp`. `/quilrone/mcp` is valid when assigned by the dashboard. |
-| Single MCP alternative | `https://mcpgateway.quilr.ai/<backend-id>/mcp`; authentication depends on that backend's mode. |
-| Tenant identifier | The Quilr tenant ID, not the Entra tenant ID unless Quilr has explicitly assigned that value. |
+| MCP base URL | `<YOUR_MCP_BASE_URL>` as defined above |
+| Server URL | `<YOUR_MCP_BASE_URL>/quilrone/mcp`, after substituting your deployment base URL. |
+| Single MCP alternative | `<YOUR_MCP_BASE_URL>/<backend-id>/mcp`; authentication depends on that backend's mode. |
 | Transport | Streamable HTTP. Use the `/mcp` endpoint. |
 | Gateway access | Allow the pilot users and the observed Copilot Studio client in Quilr access controls. |
 | Upstream access | Complete each user's upstream service connection and permissions. Gateway sign-in does not grant access to upstream data by itself. |
@@ -69,7 +70,7 @@ Example administrator-provided values:
 ```text
 Server name: Quilr OneMCP
 Description: Read approved business information through Quilr-managed MCP tools.
-Server URL: https://mcpgateway.quilr.ai/quilrone/<quilr-tenant-id>/mcp
+Server URL: <YOUR_MCP_BASE_URL>/quilrone/mcp
 Authentication: OAuth 2.0
 OAuth type: Dynamic discovery
 ```
@@ -78,16 +79,16 @@ Adapt the description to the actual approved tools. A read-only description is n
 
 ## If Microsoft asks for individual OAuth fields
 
-Let `G` be the exact HTTPS gateway base and `T` the Quilr tenant ID. The following values describe the current **tenant-qualified OneMCP** implementation, not every direct backend:
+Use `<YOUR_MCP_BASE_URL>` as defined above for these **OneMCP** values. Direct backends may advertise different authentication details:
 
 | Field | OneMCP value | Admin guidance |
 |---|---|---|
-| MCP URL | `G/quilrone/T/mcp` | The tool endpoint, not the authorization URL. |
-| Issuer | `G/quilrone/T` | Confirm against live metadata. |
-| Discovery document | `G/.well-known/oauth-authorization-server/quilrone/T` | Use the metadata advertised for your endpoint. |
-| Authorization endpoint | `G/quilrone/T/oauth/authorize` | Starts user sign-in. |
-| Token endpoint | `G/quilrone/T/oauth/token` | Supports authorization-code exchange. |
-| Registration endpoint | `G/quilrone/T/oauth/register` | Used by dynamic client registration. |
+| MCP URL | `<YOUR_MCP_BASE_URL>/quilrone/mcp` | The tool endpoint, not the authorization URL. |
+| Issuer | `<YOUR_MCP_BASE_URL>/quilrone` | Confirm against live metadata. |
+| Discovery document | `<YOUR_MCP_BASE_URL>/.well-known/oauth-authorization-server/quilrone` | Use the metadata advertised for your endpoint. |
+| Authorization endpoint | `<YOUR_MCP_BASE_URL>/quilrone/oauth/authorize` | Starts user sign-in. |
+| Token endpoint | `<YOUR_MCP_BASE_URL>/quilrone/oauth/token` | Supports authorization-code exchange. |
+| Registration endpoint | `<YOUR_MCP_BASE_URL>/quilrone/oauth/register` | Used by dynamic client registration. |
 | Client ID | Returned by registration | Use the response, not an upstream provider's app ID. |
 | Client secret | None issued by OneMCP registration | Public client; token endpoint auth method `none`. |
 | Refresh URL / refresh token | Not provided by the current OneMCP client-facing flow | Do not claim refresh-token grant support. |
@@ -129,7 +130,7 @@ Record deployment host, Quilr tenant, Microsoft environment/agent/channel, crede
 | Symptom | What to investigate |
 |---|---|
 | Required client secret or refresh URL | You may be in Manual OAuth mode. OneMCP does not issue these values; return to Dynamic discovery or escalate the compatibility requirement. |
-| OAuth discovery fails | Check the exact host, tenant-qualified route, `401` challenge, metadata URLs, and HTTPS reachability from Microsoft's runtime. |
+| OAuth discovery fails | Check the exact host, `/quilrone/mcp` route, `401` challenge, metadata URLs, and HTTPS reachability from Microsoft's runtime. |
 | Works in a browser, fails in Studio | Browser sign-in tests only one part of the connection; verify the hosted connector can fetch metadata and exchange tokens. |
 | Connector/tool disabled or publish blocked | Review Power Platform data-policy details and the connector's data group. |
 | Signed in but no usable backend | Check Quilr Allowed Agents, user/group permissions, tool visibility, and the user's upstream connections. |

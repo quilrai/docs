@@ -9,7 +9,9 @@ description: "Connect ChatGPT hosted MCP integrations and Codex local clients to
 
 # ChatGPT and Codex
 
-Choose the runtime before configuring access. A hosted ChatGPT custom MCP integration and a local Codex MCP server definition are separate setup paths. Use the exact dashboard URL on `https://mcpgateway.quilr.ai` or your assigned `quilrai.com` hostname.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
+Choose the runtime before configuring access. A hosted ChatGPT custom MCP integration and a local Codex MCP server definition are separate setup paths. Use the deployment base URL from your Quilr dashboard.
 
 **Documentation checked: 15 October 2026.** OpenAI product names and administration surfaces evolve. Follow the current official links if a menu has moved, and complete a deployment-specific pilot. This page does not claim a live interoperability test.
 
@@ -22,11 +24,11 @@ The current official flow starts at [ChatGPT Plugins](https://chatgpt.com/plugin
 | Name | `Quilr OneMCP` |
 | Description | The approved business tasks provided by your configured MCPs |
 | Connection | Public HTTPS endpoint for an externally reachable deployment |
-| Server URL | Dashboard-provided full URL, for example `https://mcpgateway.quilr.ai/quilrone/mcp` |
+| Server URL | Dashboard-provided full URL, for example `<YOUR_MCP_BASE_URL>/quilrone/mcp` |
 | Authentication | OAuth using gateway discovery and dynamic registration |
 | Client ID / secret | Let DCR supply the public client ID; no OneMCP client secret is issued |
 
-For a tenant-scoped deployment, use the supplied `/quilrone/<quilr-tenant-id>/mcp` path. The Quilr tenant identifier is not the ChatGPT workspace ID. Complete user sign-in and then connect any upstream services that require personal authorization.
+Use `/quilrone/mcp` on your assigned gateway hostname. Complete user sign-in; Quilr resolves the organization from that account. Then connect any upstream services that require personal authorization.
 
 ### Workspace administrator tasks
 
@@ -52,13 +54,13 @@ Add this table to the existing file:
 
 ```toml
 [mcp_servers.quilr_onemcp]
-url = "https://mcpgateway.quilr.ai/quilrone/mcp"
+url = "<YOUR_MCP_BASE_URL>/quilrone/mcp"
 ```
 
 Or use the CLI with your assigned endpoint:
 
 ```bash
-codex mcp add quilr_onemcp --url 'https://mcpgateway.quilr.ai/quilrone/mcp'
+codex mcp add quilr_onemcp --url '<YOUR_MCP_BASE_URL>/quilrone/mcp'
 codex mcp login quilr_onemcp
 codex mcp list
 ```
@@ -85,7 +87,7 @@ For an eligible direct backend, use an environment-backed bearer token and the r
 
 ```toml
 [mcp_servers.quilr_direct]
-url = "https://mcpgateway.quilr.ai/<backend-id>/mcp"
+url = "<YOUR_MCP_BASE_URL>/<backend-id>/mcp"
 bearer_token_env_var = "QUILR_MCP_TOKEN"
 http_headers = { "mcpuser" = "employee@customer.example" }
 ```

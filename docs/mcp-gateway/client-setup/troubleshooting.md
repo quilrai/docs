@@ -9,6 +9,8 @@ description: "Validate discovery, sign-in, tool access, and user attribution, an
 
 # Validation and troubleshooting
 
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+
 Run these checks from the actual client execution environment. A successful request from an administrator laptop does not prove that a hosted vendor service can reach the gateway.
 
 ## Verify the public authentication surface
@@ -17,13 +19,13 @@ These commands do not send credentials or invoke an upstream tool. Replace the U
 
 ```bash
 curl --silent --show-error --include \
-  'https://mcpgateway.quilr.ai/.well-known/oauth-protected-resource/quilrone/mcp'
+  '<YOUR_MCP_BASE_URL>/.well-known/oauth-protected-resource/quilrone/mcp'
 
 curl --silent --show-error --include \
-  'https://mcpgateway.quilr.ai/.well-known/oauth-authorization-server/quilrone'
+  '<YOUR_MCP_BASE_URL>/.well-known/oauth-authorization-server/quilrone'
 
 curl --silent --show-error --include \
-  'https://mcpgateway.quilr.ai/quilrone/mcp' \
+  '<YOUR_MCP_BASE_URL>/quilrone/mcp' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"quilr-admin-diagnostic","version":"1.0"}}}'
@@ -36,7 +38,7 @@ Expected results:
 - The request without credentials returns `401` with a Bearer challenge pointing to resource metadata. This is expected authentication discovery, not a failed login.
 - An HTML login page, reverse-proxy redirect, WAF challenge, or unrelated `404` means the client has not reached a usable MCP authentication surface.
 
-For a tenant-scoped URL, include `/quilrone/<quilr-tenant-id>` in both discovery paths. For a direct endpoint, follow the actual `WWW-Authenticate` metadata URL rather than assuming the OneMCP issuer.
+For a direct endpoint, follow the actual `WWW-Authenticate` metadata URL rather than assuming the OneMCP issuer.
 
 ## Validate through the client
 
@@ -65,7 +67,7 @@ For raw authenticated protocol diagnostics, use a real MCP client or Inspector. 
 | Form requires client secret | Wrong registration mode or unsupported confidential-client requirement | Choose dynamic registration where available; OneMCP does not issue a secret |
 | `Missing authorization code` during renewal | Client attempted refresh-token grant | OneMCP currently has no downstream refresh grant; reconnect and review client compatibility |
 | PKCE, ID-token, audience, or scope-validation requirement fails | Unsupported authentication requirement | Capture the exact requirement and escalate; do not disable required verification to force rollout |
-| Wrong organization or unknown tenant | Wrong Quilr tenant path or sign-in identity | Compare the dashboard URL and company account; do not substitute an Entra tenant ID |
+| Account has no organization or shows unexpected connectors | Sign-in identity or company-domain mapping | Confirm the company account used for sign-in and its configured email domain or alias in Quilr |
 | API token rejected | Wrong backend, missing/invalid `mcpuser`, domain or agent mismatch | Use the issuing server's direct endpoint; verify employee domain and selected agent |
 | Sign-in succeeds but tools are missing | Tool visibility, disabled server, user preference, access rule, or smart mode | Check OneMCP discovery tools, user-visible connectors, Allowed Agents and effective policies |
 | Tool says connection is needed | Upstream user credentials missing/expired | Connect that provider as the same user; a successful gateway login does not grant upstream access |
