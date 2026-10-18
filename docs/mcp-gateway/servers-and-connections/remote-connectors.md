@@ -44,16 +44,37 @@ Connect MCP servers running inside a private network, VPC, Kubernetes cluster, o
 The `qrc_...` token is shown once. Save it in your secret manager or environment configuration. It encodes your gateway URL automatically, so no separate URL flag is needed.
 :::
 
-## 2. Run `quilr-connector` where your MCP servers live
+## 2. Download and run `quilr-connector`
+
+Download the latest binary from [GitHub Releases](https://github.com/quilrai/quilr-remote-connector/releases/latest) or pull the multi-arch container image (`ghcr.io/quilrai/quilr-connector:latest`):
+
+| Platform | Architecture | Direct download (`latest`) |
+|----------|--------------|----------------------------|
+| **Linux** | x86_64 (`amd64`, static musl) | [quilr-connector-x86_64-unknown-linux-musl.tar.gz](https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-x86_64-unknown-linux-musl.tar.gz) |
+| **Linux** | ARM64 (`aarch64`, static musl) | [quilr-connector-aarch64-unknown-linux-musl.tar.gz](https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-aarch64-unknown-linux-musl.tar.gz) |
+| **macOS** | Apple Silicon (`M1` / `M2` / `M3` / `M4`) | [quilr-connector-aarch64-apple-darwin.tar.gz](https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-aarch64-apple-darwin.tar.gz) |
+| **macOS** | Intel (`x86_64`) | [quilr-connector-x86_64-apple-darwin.tar.gz](https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-x86_64-apple-darwin.tar.gz) |
+| **Windows** | x86_64 (`.zip`) | [quilr-connector-x86_64-pc-windows-msvc.zip](https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-x86_64-pc-windows-msvc.zip) |
+| **Docker** | `linux/amd64`, `linux/arm64` | `docker pull ghcr.io/quilrai/quilr-connector:latest` |
 
 ### Laptop or dev machine
 
 Expose MCP servers running on `localhost` (macOS, Linux, or Windows) directly to the gateway for testing or personal development servers.
 
-**Direct binary:**
+**Direct binary (macOS / Linux one-liner):**
 
 ```bash
-quilr-connector --token qrc_your_token_here
+# macOS (Apple Silicon) - replace target for Intel macOS or Linux
+curl -fsSL https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-aarch64-apple-darwin.tar.gz | tar -xz
+./quilr-connector --token qrc_your_token_here
+```
+
+**Windows (PowerShell):**
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-x86_64-pc-windows-msvc.zip" -OutFile quilr-connector.zip
+Expand-Archive -Force quilr-connector.zip .
+.\quilr-connector.exe --token qrc_your_token_here
 ```
 
 **Docker:**
@@ -61,7 +82,7 @@ quilr-connector --token qrc_your_token_here
 ```bash
 docker run --rm \
   -e QUILR_CONNECTOR_TOKEN="qrc_your_token_here" \
-  ghcr.io/quilr/quilr-remote-connector:latest
+  ghcr.io/quilrai/quilr-connector:latest
 ```
 
 :::tip
@@ -72,6 +93,13 @@ When running `quilr-connector` inside Docker on macOS or Windows, use `http://ho
 
 Run `quilr-connector` on a VM inside your VPC or private subnet to reach any MCP server on `127.0.0.1` or your internal VPC network.
 
+**Install binary to `/usr/local/bin` (Linux x86_64):**
+
+```bash
+curl -fsSL https://github.com/quilrai/quilr-remote-connector/releases/latest/download/quilr-connector-x86_64-unknown-linux-musl.tar.gz \
+  | sudo tar -xz -C /usr/local/bin quilr-connector
+```
+
 **Docker (with automatic restart):**
 
 ```bash
@@ -79,7 +107,7 @@ docker run -d \
   --name quilr-connector \
   --restart unless-stopped \
   -e QUILR_CONNECTOR_TOKEN="qrc_your_token_here" \
-  ghcr.io/quilr/quilr-remote-connector:latest
+  ghcr.io/quilrai/quilr-connector:latest
 ```
 
 **`systemd` service (`/etc/systemd/system/quilr-connector.service`):**
@@ -138,7 +166,7 @@ spec:
     spec:
       containers:
         - name: quilr-connector
-          image: ghcr.io/quilr/quilr-remote-connector:latest
+          image: ghcr.io/quilrai/quilr-connector:latest
           env:
             - name: QUILR_CONNECTOR_TOKEN
               valueFrom:
