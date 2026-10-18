@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 8
 sidebar_label: "API tokens"
 sidebar_custom_props:
   icon: KeyRound

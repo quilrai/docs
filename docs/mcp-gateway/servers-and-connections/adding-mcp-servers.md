@@ -64,7 +64,7 @@ To change the sign-in later, open the server's **Settings > General > Upstream a
 
 Static values sent on every call to this server, regardless of its sign-in method. Agents never see them, and their values can't be read back after saving. Use them for a tenant ID, a region or a header the server needs before it will answer.
 
-For a server inside your private network, allowlist the gateway IPs listed in [MCP Library: Internal MCPs](./mcp-library#internal-mcps).
+For a server inside your private network or on a developer laptop, connect it over an outbound tunnel with [Remote Connectors](./remote-connectors) (no inbound firewall rules needed) or allowlist the gateway IPs listed in [MCP Library: Internal MCPs](./mcp-library#internal-mcps).
 
 ## Connect an OAuth server as an administrator
 
@@ -91,6 +91,7 @@ Users who can't install can click **Request**. Their requests appear under **Req
 
 ## Related
 
+- [Remote Connectors](./remote-connectors) - connect private-network, Kubernetes, VM, or localhost MCP servers over an outbound tunnel.
 - [MCP Library](./mcp-library) - filters, requests and uninstalling.
 - [API to MCP](./api-to-mcp) - add a REST API.
 - [Local MCP](../local-mcp/overview) - run an approved package on the user's computer.

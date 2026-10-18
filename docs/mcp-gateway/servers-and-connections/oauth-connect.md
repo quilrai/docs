@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 sidebar_label: "OAuth connect"
 sidebar_custom_props:
   icon: Link
