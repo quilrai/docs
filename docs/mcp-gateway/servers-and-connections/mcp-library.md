@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 sidebar_label: "MCP Library"
 sidebar_custom_props:
   icon: LibraryBig
@@ -61,7 +61,10 @@ To add an MCP that is not in the MCP Library, click **Add MCP server** to regist
 
 ## Internal MCPs
 
-To register an MCP server hosted inside your private network, allowlist these Quilr gateway IPs on your firewall, VPC security group or reverse proxy so the gateway can reach it:
+To connect an MCP server hosted inside your private network, VPC, Kubernetes cluster, or developer laptop, choose one of two options:
+
+- **Outbound tunnel (no inbound firewall rules)**: run `quilr-connector` next to your MCP server and select **Via Remote Connector** when adding the server. See [Remote Connectors](./remote-connectors).
+- **Inbound IP allowlisting**: allowlist these Quilr gateway IPs on your firewall, VPC security group or reverse proxy so the gateway can reach your server directly:
 
 ```
 132.226.119.116
@@ -76,5 +79,6 @@ Once the URL is reachable from these IPs, add it with **Add MCP server** like an
 ## Related
 
 - [Adding MCP Servers](./adding-mcp-servers) - remote servers and sign-in modes.
+- [Remote Connectors](./remote-connectors) - outbound WebSocket tunnel for private-network and localhost MCP servers.
 - [OAuth Connect](./oauth-connect) - how admins and users connect OAuth servers.
 - [Quilr-Provided MCPs](../quilr-provided-mcps/overview) - what each Quilr-built MCP does.
