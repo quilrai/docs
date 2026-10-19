@@ -98,7 +98,7 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | Identity & Network Trust | [Identity and network trust](../../llm-gateway/protect/identity-and-network-trust) |
 | Tool Controls | [Tool controls](../../llm-gateway/protect/tool-controls) |
 | Allowed Models | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |
-| Routing Groups & Fallbacks | [Routing and fallbacks](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
+| Model routing | [Policy Engine routing](../../llm-gateway/cost-and-traffic/policy-engine-routing), [Routing and fallbacks](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
 | Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
 | Rate, Token & Timeout Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
 | Token Savings | [Token saving](../../llm-gateway/cost-and-traffic/token-saving) |
@@ -183,7 +183,7 @@ The engine switch is tenant-wide. While the LLM Gateway engine is on, these sect
 | Guardian Agent | Guardian Agent |
 | Rate and Token Limits | Rate, Token & Timeout Limits |
 | Token Saving | Token Savings |
-| Routing | Routing Groups & Fallbacks |
+| Routing | Model routing |
 | Identity Aware (Enforce identity, Enforce conversation ID) | Identity & Network Trust |
 | Prompt Store (Require system prompt from store) | Prompt Store and Enforcement |
 
