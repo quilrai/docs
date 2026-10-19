@@ -3,6 +3,8 @@ sidebar_position: 1
 sidebar_label: "How integrations work"
 sidebar_custom_props:
   icon: Plug
+console_path: /settings/integrations
+aliases: [integrations, connectors, github, azure ai foundry, openai compliance, copilot studio, third-party, installed integrations, integration library, install integration, uninstall integration, federated sign-in]
 ---
 
 # How integrations work

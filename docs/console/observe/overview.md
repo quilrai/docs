@@ -4,6 +4,8 @@ sidebar_label: "Overview"
 description: "The Adoption, Agentic estate and Posture & risk tabs of the console Overview."
 sidebar_custom_props:
   icon: BarChart2
+console_path: /overview
+aliases: [home, dashboard, overview, adoption, posture, agentic estate, AI adoption, shadow AI, needs attention, control coverage]
 ---
 
 # Overview

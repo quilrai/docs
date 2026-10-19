@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: "Providers and models"
 sidebar_custom_props:
   icon: Cloud
+console_path: /settings/models
+aliases: [providers, models, model library, model prices, model api keys, model usage, playground, chat with a model, model hub, your models, add your own models, quilrai provided models]
 ---
 
 import Tabs from '@theme/Tabs';

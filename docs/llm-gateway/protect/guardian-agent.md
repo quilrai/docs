@@ -4,6 +4,7 @@ sidebar_label: "Guardian agent"
 sidebar_custom_props:
   badge: experimental
   icon: ShieldCheck
+aliases: [guardian agent]
 ---
 
 # Guardian agent

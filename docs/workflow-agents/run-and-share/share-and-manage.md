@@ -4,6 +4,7 @@ sidebar_label: "Share and manage"
 sidebar_custom_props:
   icon: Handshake
 description: "The Manage agent drawer: edit instructions, choose managers, share with groups and people, connect Slack, schedule recurring runs, restore versions, and disable or delete an agent."
+aliases: [my agents, share agent]
 ---
 
 # Share and manage

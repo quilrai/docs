@@ -3,6 +3,8 @@ sidebar_position: 5
 sidebar_label: "Custom detections and library"
 sidebar_custom_props:
   icon: LibraryBig
+console_path: /policy/detection-models/data-risks
+aliases: [detection library, detection model builder, custom detection model, precision matching, semantic similarity, intent classification]
 ---
 
 # Custom detections and library

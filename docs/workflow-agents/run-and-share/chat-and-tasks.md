@@ -4,6 +4,8 @@ sidebar_label: "Chat and tasks"
 sidebar_custom_props:
   icon: MessageSquareText
 description: "Run an agent from the console: chat with it, give it a one-off task, explore what it is made of, and choose how tool actions are approved."
+console_path: /settings/agents/chat
+aliases: [chat with agent]
 ---
 
 # Chat and tasks

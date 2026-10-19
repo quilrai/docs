@@ -3,6 +3,7 @@ sidebar_position: 3
 sidebar_label: "Token saving"
 sidebar_custom_props:
   icon: Coins
+aliases: [token saving]
 ---
 
 # Token saving

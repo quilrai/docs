@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: "Display and profile"
 sidebar_custom_props:
   icon: LayoutGrid
+console_path: [/settings/display, /settings/user-profile]
+aliases: [display, theme, dark mode, light mode, user profile, my account]
 ---
 
 # Display and profile

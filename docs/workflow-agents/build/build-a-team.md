@@ -4,6 +4,8 @@ sidebar_label: "Build a team"
 sidebar_custom_props:
   icon: Users
 description: "Combine two to six published agents under a lead model that merges their answers, running members at the same time or one after another."
+console_path: /settings/agents/team
+aliases: [agent team, agent schedule]
 ---
 
 # Build a team

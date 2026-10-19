@@ -3,6 +3,8 @@ sidebar_position: 5
 sidebar_label: "Organizational policies"
 sidebar_custom_props:
   icon: FileText
+console_path: /settings/organization/policies
+aliases: [organizational policies, policy documents, add policy]
 ---
 
 # Organizational policies

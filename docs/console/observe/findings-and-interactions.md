@@ -3,6 +3,8 @@ sidebar_position: 4
 sidebar_label: "Findings & Interactions"
 sidebar_custom_props:
   icon: Activity
+console_path: /interactions
+aliases: [findings, conversations, chats, prompts, activity, alerts, incidents, chat logs, saved views, activate agent]
 ---
 
 # Findings & Interactions

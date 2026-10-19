@@ -3,6 +3,7 @@ sidebar_position: 1
 sidebar_label: "Security guardrails"
 sidebar_custom_props:
   icon: ShieldCheck
+aliases: [guardrails, language blocking]
 ---
 
 # Security guardrails

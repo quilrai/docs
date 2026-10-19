@@ -4,6 +4,7 @@ sidebar_label: "Slack options"
 sidebar_custom_props:
   icon: BookOpen
 description: "The three ways Slack connects to QuilrAI: agents using Slack as a tool, people chatting with an agent in Slack, and QuilrAI notifications to a channel."
+aliases: [chat connector, slack bot]
 ---
 
 # Slack options

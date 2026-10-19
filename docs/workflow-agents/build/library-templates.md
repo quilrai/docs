@@ -4,6 +4,8 @@ sidebar_label: "Library templates"
 sidebar_custom_props:
   icon: LibraryBig
 description: "The Library tab: editable agent templates by category, what each one connects to and produces, and how to start an agent from one."
+console_path: /settings/agents/library
+aliases: [agent library, agent template]
 ---
 
 # Library templates

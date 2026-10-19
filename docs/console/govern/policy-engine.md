@@ -4,6 +4,8 @@ sidebar_label: "Policy Engine overview"
 sidebar_custom_props:
   icon: ListChecks
 description: "The four Policy Engine surfaces, how policies resolve, where each card is documented, and the MCP field and effect reference."
+console_path: [/policy, /policy/engine]
+aliases: [policy engine, policy studio, quilrql, llm gateway policies, mcp gateway policies, gateway controls]
 ---
 
 # Policy Engine overview

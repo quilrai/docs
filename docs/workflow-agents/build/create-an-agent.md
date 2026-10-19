@@ -4,6 +4,8 @@ sidebar_label: "Create an agent"
 sidebar_custom_props:
   icon: PenTool
 description: "The agent builder step by step: purpose and system prompt, models and specialists, MCP tools, capabilities, skills, inputs and output, engine, and run limits."
+console_path: /settings/agents/build
+aliases: [build an agent, create an agent, create agent, agent variables, agent memory]
 ---
 
 # Create an agent

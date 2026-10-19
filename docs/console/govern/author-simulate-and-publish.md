@@ -4,6 +4,8 @@ sidebar_label: "Author, simulate and publish"
 sidebar_custom_props:
   icon: Workflow
 description: "The draft, validate, simulate, replay, publish and roll back loop, plus permissions and engine limits."
+console_path: [/policy/engine/llm-gateway, /policy/engine/mcp-gateway]
+aliases: [drafts, revisions, rollback, simulate, simulation, replay recent traffic]
 ---
 
 # Author, simulate and publish

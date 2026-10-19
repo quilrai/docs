@@ -3,6 +3,8 @@ sidebar_position: 1
 sidebar_label: "Agent settings"
 sidebar_custom_props:
   icon: Wrench
+console_path: /settings/endpoint-agent
+aliases: [endpoint agent, desktop agent, endpoint sensor, fleet, device agent, remote log collection, endpoint configuration, PAC file, redirector, upstream proxy]
 ---
 
 # Agent settings

@@ -4,6 +4,8 @@ sidebar_label: "Runs, findings and schedules"
 sidebar_custom_props:
   icon: ListChecks
 description: "Track findings through review statuses with an audit history, and schedule recurring assessments."
+console_path: [/red-teaming/findings, /red-teaming/schedules]
+aliases: [red team findings, red team schedules, recurring assessments, replay, replay failed, rerun failed tests, retest fix, verify fix]
 ---
 
 # Red Team Findings and Schedules

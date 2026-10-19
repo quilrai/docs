@@ -4,6 +4,8 @@ sidebar_label: "Smart Groups"
 description: "Create Smart Groups, bulk add members from CSV, remove members, and how membership changes reach policies."
 sidebar_custom_props:
   icon: Layers
+console_path: /settings/organization/groups
+aliases: [smart groups, create smart group, import from CSV]
 ---
 
 # Smart Groups

@@ -3,6 +3,8 @@ sidebar_position: 1
 sidebar_label: "End-user popups"
 sidebar_custom_props:
   icon: MessageSquareText
+console_path: /settings/user-interaction-hub
+aliases: [user interaction hub, popup branding, popup templates, custom logo, policy links, interventions, justification options]
 ---
 
 # End-user popups

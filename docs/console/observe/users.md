@@ -3,6 +3,8 @@ sidebar_position: 6
 sidebar_label: "Users"
 sidebar_custom_props:
   icon: UserCog
+console_path: /users
+aliases: [people, employees, directory, user list, identities, flagged people, quilly, accounts, activate agent, browser deployment, endpoint deployment]
 ---
 
 # Users

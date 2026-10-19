@@ -3,6 +3,8 @@ sidebar_position: 3
 sidebar_label: "Graph"
 sidebar_custom_props:
   icon: Network
+console_path: /graph
+aliases: [relationship graph, perimeter, users and apps, topics and DLP, investigation trail, graph lens, organization graph]
 ---
 
 # Graph

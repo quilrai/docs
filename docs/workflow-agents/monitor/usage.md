@@ -4,6 +4,8 @@ sidebar_label: "Usage"
 sidebar_custom_props:
   icon: BarChart2
 description: "The Usage tab: runs, completion rate, tool attempts and average duration per agent, the flow from work to outcome, and the run history."
+console_path: /settings/agents/usage
+aliases: [agent usage]
 ---
 
 # Usage

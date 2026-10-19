@@ -4,6 +4,8 @@ sidebar_label: "Switching from classic settings"
 sidebar_custom_props:
   icon: GitBranch
 description: "The conversion review, activation, what happens to classic settings on publish, rollback, Edit anyway and disable, and a recommended first rollout."
+console_path: []
+aliases: [classic settings, switch to policy engine, conversion review, conversion preview, ENGINE ON, convert to Policy Engine, disable policy engine]
 ---
 
 # Switching from classic settings

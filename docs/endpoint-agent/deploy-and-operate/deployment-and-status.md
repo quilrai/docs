@@ -4,6 +4,8 @@ sidebar_label: "Deployment and status"
 description: "Silent install recipes for Windows and macOS, tenant binding, detection and uninstall, then coverage tracking in Users › Endpoint deployment."
 sidebar_custom_props:
   icon: Activity
+console_path: /users/endpoint-deployment
+aliases: [endpoint deployment]
 ---
 
 # Deployment and status

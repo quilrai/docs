@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: "Costs & Savings"
 sidebar_custom_props:
   icon: Coins
+console_path: /costs-savings
+aliases: [costs, spend, savings, tokens, optimization, costly models, long sessions, OpenAI costs, OpenAI credits, cost details]
 ---
 
 # Costs & Savings

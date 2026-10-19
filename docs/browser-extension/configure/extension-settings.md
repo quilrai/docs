@@ -3,6 +3,8 @@ sidebar_position: 1
 sidebar_label: "Extension settings"
 sidebar_custom_props:
   icon: Wrench
+console_path: /settings/browser-extension
+aliases: [browser extension, extension, MDM, browser plugin, domains to monitor, persona creation, persona exclusion, authentication mode]
 ---
 
 # Extension settings
