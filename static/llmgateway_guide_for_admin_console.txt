@@ -95,7 +95,14 @@ TASK -> WHERE
 - Findings across sources -> sidebar Findings & Interactions (LLM traffic shows source "LLM Gateway")
 - App as an asset -> sidebar Inventory > open the app: Analytics | Requests | Usage & cost | Settings
 - Custom charts -> sidebar Dashboards
-- Log retention / exports -> Settings > Data Settings > Data Retention | Export Center
+- Log retention -> Settings > Data management > Data Retention (/settings/data-management/data-retention):
+  LLM Gateway is the only configurable source; support for other sources is releasing soon. Default sets
+  prompt, response, log, detected-value, identity and diagnostics retention. Add scoped cards for models,
+  apps, users/smart groups or detected data; the shortest matching duration wins, including Default.
+  Zero data retention uses Never store for prompts/responses/detected values/identity; basic usage and
+  cost metadata remains. Check Default after applying a template: people cards can require identity retention.
+  Review impact > Apply and confirm; Save draft does not apply changes.
+- Exports -> Settings > Data management > Export Center
 
 POLICY ENGINE (LLM) - /policy/engine/llm-gateway
 - Surface tabs: Browser Extension | LLM Gateway | MCP Gateway | Endpoint Agent

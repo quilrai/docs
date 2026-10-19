@@ -3,93 +3,56 @@ sidebar_position: 1
 sidebar_label: "Data retention"
 sidebar_custom_props:
   icon: CalendarDays
-description: "How Data Retention deletes data once it passes the retention period, where it applies across the console, and how to set, publish and verify a retention policy."
+description: "Set LLM Gateway retention, use zero data retention, and combine cards for different apps, models, users and detected data."
 console_path: /settings/data-management/data-retention
-aliases: [data retention, retention policy, retention horizon]
+aliases: [data retention, retention policy, retention horizon, zero data retention, ZDR]
 ---
 
 # Data retention
 
-Data Retention sets how long LLM Gateway, MCP Gateway and OpenAI Compliance data is kept. Data past its retention period is deleted. You set a default horizon for each kind of data, then add ordered rules for traffic that needs a different horizon.
+Control how long LLM Gateway data is kept and how detected values are masked in stored content. **LLM Gateway is the only source configurable from the console today.** Support for other sources is releasing soon.
 
 <ConsolePath console="QuilrAI Console" path={['Settings', 'Data management', 'Data Retention']} />
 
-:::note What retention does
-- **Deletes data past its retention period.** Once data passes its horizon, it is removed from the console and deleted.
-- **Applies to existing data.** The horizon is measured from each event's time, so data collected before you published is covered too.
-- **Applies across the console**: [Overview](../observe/overview), [Costs & Savings](../observe/costs-and-savings), [Graph](../observe/graph), [Users](../observe/users), [Findings & Interactions](../observe/findings-and-interactions), [dashboards](../observe/dashboards) and [Export Center](./export-center) exports created afterwards.
-- **Files already downloaded are not affected.**
-:::
+## Choose a default
 
-## Summary tiles
+The **Default** card sets retention for **Prompt content**, **Response content**, **Log lifetime**, **Detected values (evidence)**, **User identity** and **Diagnostics**.
 
-| Tile | Shows |
+Choose **Never store**, **7 days**, **30 days**, **90 days**, **180 days**, **365 days** or **Forever**. Log lifetime does not offer Never store. It controls detailed log retention; basic usage and cost metadata remains available afterward.
+
+Templates provide starting settings:
+
+| Template | Starting point |
 |---|---|
-| **In force** | The live revision, when it was published (or **Baseline policy**), and its state: **Enforcing**, or **Applying policy** while console services load a newly published revision |
-| **Draft** | Changes staged but not yet published |
-| **Rules** | How many ordered rules exist, plus the default |
+| **Zero data retention** | Never store prompts, responses, detected values or user identity; keep diagnostics for 7 days and detailed logs for 30 days |
+| **Privacy-first** | Keep content and evidence for 7 days; hash detected values |
+| **Investigation-ready** | Keep content and evidence for 90 days; show only the last four characters of detected values |
+| **Full fidelity** | Forever retention, without template masking |
 
-Like the Policy Engine, retention uses a shared draft: edits are staged, and publishing creates the next revision.
+Templates update Default and template masking settings; existing cards remain. Review the resulting settings before applying.
 
-## Default horizon
+### How ZDR works
 
-How long each kind of data is kept when no rule matches. Each kind has its own duration, from 30 days up to 10 years.
+**Never store** removes the selected fields as requests are written. With prompt and response content set to Never store, conversation replay is unavailable. Basic usage and cost metadata remains available, so Zero data retention does not mean every record disappears.
 
-| Data kind | Covers |
-|---|---|
-| Activity metadata | Who, what app, when |
-| Identity | User identity details |
-| Request content | What was sent to the model or tool |
-| Response content | What came back |
-| Finding summary | The finding record |
-| Finding evidence | The content that triggered a finding |
-| Diagnostics | Technical diagnostics |
-| Derived insights | Analytics computed from the data |
+Cards targeting users or smart groups may require user identity to be retained. Check **User identity** in Default after applying the ZDR template. These settings control QuilrAI retention; they do not configure your model provider's retention.
 
-Shortening the horizon for **Request content** and **Response content** while keeping **Activity metadata** longer is a common way to keep usage trends without keeping prompt text.
+## Read and combine quick cards
 
-## Ordered rules
+- **Default** shows the six retention periods that apply across LLM Gateway.
+- **Scoped retention cards** show which traffic they match, any **Except** exclusions, and the **Prompts**, **Responses** and **Log** periods. Add cards for models, apps, users or smart groups, or detected categories and subcategories.
+- **Redaction cards** show the matching traffic and transformation. Hashing replaces detected values with stable tokens; partial masking keeps the last four characters. These affect detected values in stored prompts, responses and evidence.
 
-Rules give specific traffic a different horizon. An event takes the **first rule that matches**; whatever is left falls to the default.
+**The shortest matching period wins for each kind of data, including Default.** Card order does not matter. For example, Default prompts at 90 days, an app card at 30 days and a smart-group card at 7 days keep overlapping prompts for 7 days.
 
-- **Add rule** to create one. Order matters, so put the most specific rules first.
-- The default rule, **Everything else**, cannot be removed. It catches every event no rule above claimed. It has a **Preset** (for example **Full activity**) and a duration per data kind.
+Multiple selections within a card match **any** selection. **Except** excludes traffic from that card only. **Forever** on one card does not override a shorter Default or another matching card.
 
-## Review and publish
+## Review and apply
 
-Edits are staged in a draft. The **Review and publish** section shows what is staged, for example "Publishing draft 4 replaces revision 3 everywhere in the console".
+1. Edit Default or add and configure cards, then select **Done**.
+2. Select **Review impact** to save your changes and inspect affected-record counts and redaction estimates.
+3. Select **Apply** and confirm. **Save draft** lets you resume later without applying changes.
 
-1. **Save draft** to stage your edits. You must save before you can preview or publish.
-2. **Validate** checks the draft for errors.
-3. **Preview impact** shows, per data kind, how many events and characters the draft would affect and their share of the total.
-4. **Publish** makes the draft the live revision. Publishing applies the policy to everything already collected, not just to new data.
+Changes cover new requests and existing records. The page shows whether new requests are being enforced and the progress for existing records. Removal and masking cannot be undone; increasing retention later cannot restore removed data. Existing export files and downloaded copies are unaffected.
 
-### Verify a published policy
-
-1. Wait until the **In force** tile shows the new revision with **Enforcing** rather than **Applying policy**.
-2. Open [Findings & Interactions](../observe/findings-and-interactions) and look at an LLM or MCP interaction older than the horizon you shortened. The data kinds you shortened, for example request content, should no longer be shown.
-3. Compare with **Preview impact**, which estimated how many events each data kind would affect.
-
-**Discard draft** drops the staged changes and keeps the live revision.
-
-## History
-
-**Published revisions** lists every revision with its number, publish time, rule count and who published it. The live revision is marked **Enforcing**. The first entry may show **Baseline** instead of a time. History records configuration, actor and time only, never the data itself. There is no one-click rollback: to go back, edit the draft to match an earlier revision and publish it.
-
-## What retention does and does not affect
-
-| | Affected | Not affected |
-|---|---|---|
-| Data | LLM Gateway, MCP Gateway and OpenAI Compliance events | Other sources, such as Browser Extension and Endpoint Agent interactions |
-| Where | Overview, Costs & Savings, Graph, Users, Findings & Interactions, dashboards, and exports created afterwards | Files already downloaded |
-| Storage | Data past its retention period is deleted | |
-| Time | Existing and new data, measured from each event's time | |
-
-:::warning
-Files you already downloaded are not affected. Handle them under your own retention process when they must follow the new policy.
-:::
-
-## Related
-
-- [Export Center](./export-center)
-- [Data sources](../settings-organization/data-sources)
+See [Export Center](./export-center) for exports.

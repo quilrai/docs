@@ -3,6 +3,7 @@ sidebar_position: 2
 sidebar_label: "Export Center"
 sidebar_custom_props:
   icon: FileText
+description: "Create, schedule and download exports of console data from Export Center."
 console_path: /settings/data-management/exports
 aliases: [exports, export center, download data, scheduled export, quick export, JSONL, excel export, archive export]
 ---
@@ -57,7 +58,7 @@ The **Exports** table lists each export with its **Schedule**, **Next run** and 
 Every run is listed with its status, row count and size, and a download link. **Delete export run** deletes a finished run and its file. Select **Mark read** to clear new-export notifications.
 
 :::note
-Exports are a snapshot. Exports created after a [Data retention](./data-retention) policy is published follow it; files you already downloaded are not affected.
+Exports are a snapshot. Exports created after a [Data retention](./data-retention) policy is applied follow it; existing export files and downloaded copies are unaffected.
 :::
 
 ## Related

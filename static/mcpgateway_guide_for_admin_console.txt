@@ -114,7 +114,9 @@ RELATED PAGES
 - Findings & Interactions (/interactions): MCP filter fields: MCP server, tool, agent, called via, auth mode,
   input DLP, output DLP, session
 - Costs & Savings (/costs-savings): source/channel "mcp" (URL ?channels=mcp)
-- Data Retention / Export Center: Settings > Data Settings (cover LLM and MCP data; MCP usage presets)
+- Data Retention: Settings > Data management; only LLM Gateway is configurable today.
+  Console retention controls for MCP Gateway and other sources are releasing soon.
+- Export Center: Settings > Data management (includes MCP usage presets)
 - Skills Library / Workflow Agents: Settings > AI Gateway (skills list MCP dependencies; agents pick MCP tools)
 - Self Service (/self-service): end users link local MCP tools ("Connect your AI app")
 - Audit: Settings > Organization > Audit Logs
