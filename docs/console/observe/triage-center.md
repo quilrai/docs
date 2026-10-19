@@ -4,6 +4,8 @@ sidebar_label: "Triage center"
 sidebar_custom_props:
   icon: ListChecks
 description: "Close findings in bulk, undo changes, automate resolution with rules, and reduce false positives with detection tuning, including its scope and undo."
+console_path: /interactions/triage-center
+aliases: [triage center, triage, bulk close, resolve findings, resolved findings, auto-resolve, auto resolve rule, detection tuning, quick suggestions, undo triage, reopen findings, finding noise]
 ---
 
 # Triage center

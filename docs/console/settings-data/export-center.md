@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: "Export Center"
 sidebar_custom_props:
   icon: FileText
+console_path: /settings/data-management/exports
+aliases: [exports, export center, download data, scheduled export, quick export, JSONL, excel export, archive export]
 ---
 
 # Export Center

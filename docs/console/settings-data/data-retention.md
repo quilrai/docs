@@ -4,6 +4,8 @@ sidebar_label: "Data retention"
 sidebar_custom_props:
   icon: CalendarDays
 description: "How Data Retention deletes data once it passes the retention period, where it applies across the console, and how to set, publish and verify a retention policy."
+console_path: /settings/data-management/data-retention
+aliases: [data retention, retention policy, retention horizon]
 ---
 
 # Data retention

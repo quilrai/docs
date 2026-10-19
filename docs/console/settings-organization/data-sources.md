@@ -3,6 +3,8 @@ sidebar_position: 6
 sidebar_label: "Data sources"
 sidebar_custom_props:
   icon: Plug
+console_path: /settings/organization/data-sources
+aliases: [data sources]
 ---
 
 # Data sources

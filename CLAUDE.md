@@ -29,6 +29,8 @@ Read this before touching anything. This is the QuilrAI documentation site. It i
 
 8. **The Deployment SOP at `/sop/` comes from `quilrai/installdocs`, never from this repo.** `scripts/sync-install-sop.js` clones that repo's `main` and copies `static/sop/` into our `static/sop/` (gitignored) on `prestart` / `prebuild`, so every build ships its latest. Edit the SOP in installdocs; a push there fires `repository_dispatch: install-sop-updated` at `deploy.yml` (needs the `DOCS_DISPATCH_TOKEN` secret in installdocs), and a daily scheduled build catches anything missed. Link to it only through `<InstallSop track="..." />` (embed with step tabs) and `<SopLink track="..." step="..." />` (inline link); never hand-write `/sop/...` URLs. Step keys are the slugged step titles (`installing-using-mdm`), read from the synced folders by `plugins/install-sop.js`; an unknown key fails the build. Offline: an existing copy is kept with a warning (`SKIP_SOP_SYNC=1` skips the pull); with no copy the build fails. Preview SOP edits with `INSTALL_SOP_SOURCE=/path/to/installdocs npm start`. Note `npm run serve` strips `index.html` from URLs, which breaks the SOP's relative CSS locally; `npm start` and GitHub Pages are fine.
 
+9. **`/api/v1/index.json` is the docs index that Quilr Assist (the help chat in quilr-console) reads. It is generated, never hand-edited.** `plugins/llms-txt.js` builds it during the same sidebar walk as `llms.txt`: product -> sidebar group -> page (title, description, `.md` URL, H2 sections), plus the video catalog. Assist routes questions with two optional page frontmatter fields: `console_path` (the exact console route(s) the page documents, copied from quilr-console `frontend/src/lib/appPaths.ts`, e.g. `console_path: /settings/llm-gateway` or `[/policy, /policy/engine]`) and `aliases` (words admins use, e.g. `aliases: [API keys, guardrails]`). Keep both when you move or split a page, and set `console_path` on any new page that documents one console screen. Videos come from `src/data/videos.json` (`docs` links and `questions`). A bad `console_path` / `aliases` value or a video linking to a missing page fails the build. `static/api/v1/openapi.json` documents the index; update it when the index shape changes.
+
 ---
 
 ## Where everything is
@@ -72,7 +74,7 @@ Files or folders starting with `_` are ignored by Docusaurus.
 
 ### Everything else
 - **`plugins/doc-page-markdown.js`** — serves every doc as a raw `.md` file (dev: middleware; prod: written to `build/`). Powers "copy/view as markdown" and the `.md` URLs in `llms.txt`. If a page exists, `<page>.md` and a plain-text twin `<page>.txt` exist (the `.txt` is for AI tools such as ChatGPT that fail on `text/markdown`; prompts link it).
-- **`plugins/llms-txt.js`** - generates the llms.txt family (rule 7).
+- **`plugins/llms-txt.js`** - generates the llms.txt family (rule 7) and the `/api/v1/index.json` docs index for Quilr Assist (rule 9).
 - **`plugins/install-sop.js`** + **`scripts/sync-install-sop.js`** - the Deployment SOP at `/sop/` (rule 8). Component: `src/components/InstallSop` (`<InstallSop>`, `<SopLink>`); `plugins/ai-markdown.js` turns both into plain links in the `.md` / llms output. The SOP pages: `docs/endpoint-agent/deploy-and-operate/installation-sop.mdx`, `docs/browser-extension/deploy/installation-sop.mdx`.
 - **`scripts/check-sidebar-icons.js`** — the icon enforcer (rule 1). Runs on pre-commit (`--staged`) and via `npm run check-icons` (all).
 - **`static/`** — copied to site root verbatim. `img/` (referenced in docs as `/img/...`), console guides for AI agents (rule 7), `CNAME` (custom domain), `robots.txt`.
@@ -112,7 +114,8 @@ Node >= 20.
 3. Write content. Tables are auto-expandable. Use `<StepFlow>` / `<ArchitectureDiagram>` for flows (no import). Admonitions (`:::tip`, `:::note`, `:::warning`) are themed. Mermaid is enabled. Images go in `static/img/`, referenced as `/img/<file>`.
 4. Internal links are relative and have no `.md` extension in the rendered link (e.g. `[OneMCP](../onemcp)`).
 5. No em dashes.
-6. Add a one-sentence `description` to the frontmatter (it feeds `llms.txt` and the page meta description).
-7. `npm run build` — confirm no broken-link or icon errors.
+6. Add a one-sentence `description` to the frontmatter (it feeds `llms.txt`, `/api/v1/index.json` and the page meta description).
+7. If the page documents a console screen, add `console_path` (exact route from quilr-console `appPaths.ts`) and `aliases` (rule 9).
+8. `npm run build` — confirm no broken-link or icon errors.
 
 When in doubt, copy the structure of an existing neighboring page. Match the surrounding tone and frontmatter exactly.

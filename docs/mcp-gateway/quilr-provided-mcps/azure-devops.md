@@ -3,6 +3,7 @@ sidebar_position: 7
 sidebar_custom_props:
   badge: advanced
   icon: GitBranch
+aliases: [Azure DevOps]
 ---
 
 # Azure DevOps Advanced

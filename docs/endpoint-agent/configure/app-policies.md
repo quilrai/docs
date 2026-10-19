@@ -4,6 +4,8 @@ sidebar_label: "App policies"
 sidebar_custom_props:
   icon: Scale
 description: "Per-app detection and application configuration for the Endpoint Agent, and the readiness of Convert to Policy Engine."
+console_path: /policy/engine/endpoint-agent
+aliases: [endpoint agent policies, detection configurations, application configuration, application rules]
 ---
 
 # App policies

@@ -4,6 +4,8 @@ sidebar_label: "Agentic red teaming"
 sidebar_custom_props:
   icon: Target
 description: "Multi-turn adversarial assessment of a live AI agent over HTTP, WebSocket, or voice - connect, choose attack coverage (Quick scan, Full library, Select attacks, custom objectives), and launch with an evaluation policy."
+console_path: /red-teaming/agentic-red-teaming
+aliases: [agentic red teaming, red team my agent, HTTP agent, HTTP endpoint, agent endpoint, target agent, voice agent, voice transport, realtime voice model, ElevenLabs, audio HTTP endpoint, attack objectives, launch assessment, new assessment wizard, test connection, authorized assessment scope, verify with guardrail, track findings, schedules]
 ---
 
 # Agentic Red Teaming

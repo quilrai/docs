@@ -4,6 +4,8 @@ sidebar_label: "Roles and permissions"
 sidebar_custom_props:
   icon: ShieldCheck
 description: "Migrating from V1 roles, how the V2 access policy decides access, roles and assignments, and publishing access changes safely."
+console_path: /settings/organization/access-control
+aliases: [RBAC, roles, permissions, access control, platform users, console users, add user, give access, remove user, role editor, new role, migrate, access control v2, publish draft]
 ---
 
 # Roles and permissions

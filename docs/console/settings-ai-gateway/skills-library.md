@@ -3,6 +3,8 @@ sidebar_position: 1
 sidebar_label: "Skills Library"
 sidebar_custom_props:
   icon: Sparkles
+console_path: /settings/skills
+aliases: [skills, skills library, skill catalog, installed skills, discovered skills, skill sources, skill repositories]
 ---
 
 # Skills Library

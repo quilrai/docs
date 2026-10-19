@@ -3,6 +3,8 @@ sidebar_position: 4
 sidebar_label: "Detection Models"
 sidebar_custom_props:
   icon: Fingerprint
+console_path: /policy/detection-models
+aliases: [classifiers, DLP models, data risks, adversarial, detection models, prompt injection]
 ---
 
 # Detection Models

@@ -1,11 +1,17 @@
 {
-  "_comment": "Every product video, in display order within each product. Docs pages embed one with <VideoEmbed id=\"...\" />; /videos lists them all. kind: explainer (illustrated concept) or walkthrough (recorded in the console). products: first entry is where it is grouped on /videos. docs: pages that cover the feature (the first one embeds it). poster: 1280x720 under static/img/.",
+  "_comment": "Every product video, in display order within each product. Docs pages embed one with <VideoEmbed id=\"...\" />; /videos lists them all. kind: explainer (illustrated concept) or walkthrough (recorded in the console). products: first entry is where it is grouped on /videos. docs: pages that cover the feature (the first one embeds it). poster: 1280x720 under static/img/. questions: what an admin would ask that this video answers; Quilr Assist matches on them through /api/v1/index.json.",
   "videos": [
     {
       "id": "mcp-admin-overview",
       "youtube": "QxDvZjOwF9o",
       "title": "MCP Gateway: administrator overview",
       "description": "Registering servers, governing which tools agents can call, reading the audit trail, and handing the gateway to your users.",
+      "questions": [
+        "How do I set up the MCP Gateway as an admin?",
+        "How do I register an MCP server?",
+        "How do I control which tools agents can call?",
+        "Where do I see the audit trail of MCP tool calls?"
+      ],
       "kind": "walkthrough",
       "products": ["mcp"],
       "duration": "4:59",
@@ -21,6 +27,11 @@
       "youtube": "GHVeqDy2IPc",
       "title": "MCP Gateway: user dashboard",
       "description": "What a user does with this endpoint: copy it, add it to Claude, ChatGPT or Cursor, and check which tools they are allowed to call.",
+      "questions": [
+        "How do my users connect to the MCP Gateway?",
+        "How do I add the OneMCP endpoint to Claude, ChatGPT or Cursor?",
+        "How can a user see which tools they are allowed to call?"
+      ],
       "kind": "walkthrough",
       "products": ["mcp"],
       "duration": "3:33",
@@ -35,6 +46,11 @@
       "youtube": "dGTI9kq8258",
       "title": "Web security for AI agents",
       "description": "How the MCP Gateway applies your web security policy to the pages an agent opens through QuilrAI Web Search.",
+      "questions": [
+        "How do I stop agents from opening risky web pages?",
+        "Does my web security policy apply to AI agents?",
+        "How does QuilrAI Web Search protect agents?"
+      ],
       "kind": "explainer",
       "products": ["mcp"],
       "duration": "0:41",
@@ -50,6 +66,11 @@
       "youtube": "QzGha2V1vyk",
       "title": "Automatic input aliases",
       "description": "How the MCP Gateway spots recurring input mismatches, such as num_results sent where a tool expects limit, and suggests an alias that fixes the call.",
+      "questions": [
+        "Why do tool calls fail with the wrong parameter name?",
+        "What are input aliases in the MCP Gateway?",
+        "How do I fix agents sending the wrong argument names to a tool?"
+      ],
       "kind": "explainer",
       "products": ["mcp"],
       "duration": "2:19",
@@ -64,6 +85,11 @@
       "youtube": "EXEuECE3mg0",
       "title": "Local MCP: administrator setup",
       "description": "Importing a local package, reviewing its source and tool schemas, approving the version, then enabling tools and access.",
+      "questions": [
+        "How do I add a local MCP server?",
+        "How do I import and approve a local MCP package?",
+        "How do I review a local package's tools before enabling them?"
+      ],
       "kind": "walkthrough",
       "products": ["mcp"],
       "duration": "2:03",
@@ -78,6 +104,11 @@
       "youtube": "zC6GOtPPUm8",
       "title": "Local MCP: connect your computer",
       "description": "Running the connection command, approving your computer in the browser, restarting your client, and calling a local tool.",
+      "questions": [
+        "How do I connect my computer to Local MCP?",
+        "How do users approve their computer for local tools?",
+        "Why can't my AI app see local MCP tools?"
+      ],
       "kind": "walkthrough",
       "products": ["mcp"],
       "duration": "4:05",
@@ -92,6 +123,11 @@
       "youtube": "E_OajLZODrw",
       "title": "Token saving on the AI gateways",
       "description": "How the LLM Gateway and MCP Gateway rewrite JSON, HTML, Markdown and verbose text into fewer tokens before it reaches the model.",
+      "questions": [
+        "How do I reduce token usage on the gateways?",
+        "What does token saving do?",
+        "How can I lower LLM costs for tool output?"
+      ],
       "kind": "explainer",
       "products": ["llm", "mcp"],
       "duration": "1:58",

@@ -3,6 +3,8 @@ sidebar_position: 1
 sidebar_label: "General and domains"
 sidebar_custom_props:
   icon: Globe
+console_path: /settings/organization/general
+aliases: [organization, org settings, organization name, domains, unmanaged browsers, platform mfa, email and password sign-in, custom IdP page]
 ---
 
 # General and domains

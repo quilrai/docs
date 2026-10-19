@@ -4,6 +4,7 @@ sidebar_label: "Routing and fallbacks"
 sidebar_custom_props:
   icon: Route
 description: "Weighted, token-based and custom routing for LLM Gateway apps, what happens when a provider fails or is disabled, and Policy Engine routing."
+aliases: [routing]
 ---
 
 # Routing and fallbacks

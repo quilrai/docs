@@ -4,6 +4,8 @@ sidebar_label: "Inventory"
 description: "The catalog of discovered AI assets, the asset drawer, and a worked example for an MCP server running outside the gateway."
 sidebar_custom_props:
   icon: Database
+console_path: /inventory
+aliases: [apps, assets, catalog, models, agents, skills, MCP servers, shadow apps, ungoverned, browser extensions, discovered extensions, approve app, block app, app guardrails]
 ---
 
 # Inventory

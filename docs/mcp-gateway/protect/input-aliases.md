@@ -4,6 +4,7 @@ sidebar_label: "Input aliases"
 sidebar_custom_props:
   icon: Route
 description: "Review and apply quick fixes that translate mismatched AI client inputs into the inputs a tool expects."
+aliases: [input aliases]
 ---
 
 # Input aliases

@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: "Allowed domains and patterns"
 sidebar_custom_props:
   icon: Globe
+console_path: /settings/browser-extension/whitelist
+aliases: [whitelist]
 ---
 
 # Allowed domains and patterns

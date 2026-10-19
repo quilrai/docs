@@ -3,6 +3,8 @@ sidebar_position: 6
 sidebar_label: "Action requests"
 sidebar_custom_props:
   icon: Handshake
+console_path: /requests/extension-action-request
+aliases: [action request, extension action request, justification request, access request, unblock request, approve request, reject request, blocked action, grant access, revoke access, remove approval, rejection reason]
 ---
 
 # Action requests

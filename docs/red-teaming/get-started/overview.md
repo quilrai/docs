@@ -4,6 +4,8 @@ sidebar_label: "Red Teaming overview"
 sidebar_custom_props:
   icon: Target
 description: "The four Red Teaming tools, the difference between testing the model behind a gateway app and testing the live app, shared concepts and prerequisites."
+console_path: /red-teaming
+aliases: [red teaming, red team, assessments, attack my agent, security testing, adversarial testing, pen test my AI, voice agent red team, which red team tab]
 ---
 
 # Red Teaming overview

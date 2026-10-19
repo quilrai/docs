@@ -3,6 +3,8 @@ sidebar_position: 9
 sidebar_label: "Dashboards"
 sidebar_custom_props:
   icon: TrendingUp
+console_path: /dashboards
+aliases: [custom dashboards, reports, dashboard builder, my dashboards, AI dashboards, create dashboard, export dashboard, share dashboard, dashboard PDF, dashboard PowerPoint]
 ---
 
 # Dashboards

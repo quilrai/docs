@@ -4,6 +4,8 @@ sidebar_label: "Adding MCP servers"
 sidebar_custom_props:
   icon: Plug
 description: "Add a remote MCP server, choose how the gateway signs in, add custom headers, connect OAuth servers, and install from the MCP Library."
+console_path: /settings/mcp-gateway
+aliases: [MCP gateway, MCP servers, tools, tool gateway, add MCP, MCP connections, custom headers, query parameters, upstream authentication]
 ---
 
 # Adding MCP Servers

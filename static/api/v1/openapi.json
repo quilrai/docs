@@ -1,0 +1,111 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QuilrAI Docs Index",
+    "version": "1.0.0",
+    "description": "Read-only, static index of the QuilrAI documentation, generated at build time by plugins/llms-txt.js and served by GitHub Pages. Quilr Assist uses it to pick the right docs page (by console route, aliases, title or section), then fetches that page's markdown from the page's `markdown` URL (the page URL plus `.md`; a plain-text twin is at `.txt`). Responses carry an `ETag`, so clients can revalidate with `If-None-Match` and get `304 Not Modified` when nothing changed. Keep this file in step with the index shape in plugins/llms-txt.js."
+  },
+  "servers": [{"url": "https://docs.quilrai.dev"}],
+  "security": [],
+  "paths": {
+    "/api/v1/index.json": {
+      "get": {
+        "operationId": "getDocsIndex",
+        "summary": "Every docs page and product video, grouped by product and sidebar group",
+        "responses": {
+          "200": {
+            "description": "The docs index.",
+            "headers": {
+              "ETag": {"description": "Changes when the file changes.", "schema": {"type": "string"}}
+            },
+            "content": {
+              "application/json": {"schema": {"$ref": "#/components/schemas/Index"}}
+            }
+          },
+          "304": {"description": "Not modified since the ETag sent in If-None-Match."},
+          "404": {"description": "Not found (for example a future version path that is not published yet)."}
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Index": {
+        "type": "object",
+        "required": ["version", "generatedAt", "contentHash", "site", "pageCount", "products", "videos"],
+        "properties": {
+          "version": {"type": "string", "const": "v1"},
+          "generatedAt": {"type": "string", "format": "date-time", "description": "Build time. Changes on every build, including daily rebuilds of unchanged docs."},
+          "contentHash": {"type": "string", "description": "Hash of products and videos. Changes only when the content changes; use it to invalidate cached pages."},
+          "site": {"type": "string", "format": "uri", "examples": ["https://docs.quilrai.dev"]},
+          "pageCount": {"type": "integer"},
+          "products": {
+            "type": "object",
+            "description": "Keyed by product id: console, llm, mcp, agents, red, browser, endpoint, integ (src/data/products.js). Key order is sidebar order.",
+            "additionalProperties": {"$ref": "#/components/schemas/Product"}
+          },
+          "videos": {"type": "array", "items": {"$ref": "#/components/schemas/Video"}}
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": ["name", "slug", "tagline", "url", "markdown", "groups"],
+        "properties": {
+          "name": {"type": "string", "examples": ["MCP Gateway"]},
+          "slug": {"type": "string", "examples": ["mcp-gateway"]},
+          "tagline": {"type": "string"},
+          "url": {"type": "string", "format": "uri", "description": "Product landing page."},
+          "markdown": {"type": "string", "format": "uri", "description": "Landing page as markdown."},
+          "consoleGuide": {"type": "string", "format": "uri", "description": "Plain-text navigation guide for the product's console pages, when one exists."},
+          "groups": {
+            "type": "object",
+            "description": "Keyed by sidebar group folder (for example get-started, protect). Key order is sidebar order.",
+            "additionalProperties": {"$ref": "#/components/schemas/Group"}
+          }
+        }
+      },
+      "Group": {
+        "type": "object",
+        "required": ["label", "pages"],
+        "properties": {
+          "label": {"type": "string", "examples": ["Get started"]},
+          "pages": {"type": "array", "items": {"$ref": "#/components/schemas/Page"}}
+        }
+      },
+      "Page": {
+        "type": "object",
+        "required": ["id", "title", "description", "url", "markdown", "sections", "videos"],
+        "properties": {
+          "id": {"type": "string", "examples": ["mcp-gateway/get-started/quick-start"]},
+          "title": {"type": "string", "description": "Sidebar label, else the page title."},
+          "description": {"type": "string", "description": "Frontmatter description, else the first paragraph."},
+          "url": {"type": "string", "format": "uri"},
+          "markdown": {"type": "string", "format": "uri", "description": "The page as markdown (text/markdown). Swap .md for .txt to get text/plain."},
+          "sections": {"type": "array", "items": {"type": "string"}, "description": "H2 headings, in page order."},
+          "consolePaths": {"type": "array", "items": {"type": "string"}, "description": "Admin console routes this page documents (quilr-console frontend/src/lib/appPaths.ts). Absent when the page maps to no single screen.", "examples": [["/settings/mcp-gateway"]]},
+          "aliases": {"type": "array", "items": {"type": "string"}, "description": "Words admins use for what this page covers. Absent when none are set."},
+          "videos": {"type": "array", "items": {"type": "string"}, "description": "Ids of videos (see Index.videos) that cover this page."}
+        }
+      },
+      "Video": {
+        "type": "object",
+        "required": ["id", "title", "description", "kind", "duration", "published", "youtube", "watch", "embed", "products", "questions", "pages"],
+        "properties": {
+          "id": {"type": "string", "examples": ["mcp-admin-overview"]},
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "kind": {"type": "string", "enum": ["explainer", "walkthrough"], "description": "explainer: illustrated concept. walkthrough: recorded in the console, so it can go stale when the UI changes."},
+          "duration": {"type": "string", "examples": ["4:59"]},
+          "published": {"type": "string", "format": "date"},
+          "youtube": {"type": "string", "description": "YouTube video id."},
+          "watch": {"type": "string", "format": "uri"},
+          "embed": {"type": "string", "format": "uri", "description": "Privacy-enhanced (youtube-nocookie.com) player URL. Load it only after the user clicks; append autoplay=1 then."},
+          "poster": {"type": "string", "format": "uri", "description": "1280x720 thumbnail."},
+          "products": {"type": "array", "items": {"type": "string"}},
+          "questions": {"type": "array", "items": {"type": "string"}, "description": "Questions an admin might ask that this video answers."},
+          "pages": {"type": "array", "items": {"type": "string", "format": "uri"}, "description": "Docs pages that cover the same feature."}
+        }
+      }
+    }
+  }
+}

@@ -4,6 +4,8 @@ sidebar_label: "Introduction"
 sidebar_custom_props:
   icon: BookOpen
 description: "What Workflow Agents are, how an agent is made of a model, tools and an engine, and how every run is governed by your LLM Gateway and MCP Gateway."
+console_path: /settings/agents
+aliases: [workflow agent, agent builder, publish agent]
 ---
 
 # Introduction to Workflow Agents

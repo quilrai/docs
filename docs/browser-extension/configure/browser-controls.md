@@ -4,6 +4,8 @@ sidebar_label: "Browser controls"
 sidebar_custom_props:
   icon: Scale
 description: "Browser Extension controls: the controls table, the add and edit form, what Enabled, Mark ready and Save changes do, and maintaining controls."
+console_path: /policy/controls
+aliases: [policy, policies, rules, playbooks, controls, enforcement rules, DLP policies, browser policy, browser controls, export controls]
 ---
 
 # Browser controls

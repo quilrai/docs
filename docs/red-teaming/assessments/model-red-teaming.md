@@ -4,6 +4,8 @@ sidebar_label: "Model red teaming"
 sidebar_custom_props:
   icon: BrainCircuit
 description: "Red team one model or compare 2-8 models side by side, from your gateway models, QuilrAI-provided models, or manual entry, with system prompts and Tool Studio."
+console_path: /red-teaming/model-red-teaming
+aliases: [model red teaming, red team a model, attack a model, provider model, your models, QuilrAI provided models, model source, enter manually, OpenAI, Anthropic, Gemini, Hugging Face, Groq, Together, Fireworks, OpenRouter, Mistral, DeepSeek, Grok, Perplexity, Cohere, Azure OpenAI, AWS Bedrock, Vertex AI, compare models, model comparison, model id, base model assessment, prompt hardening]
 ---
 
 # Model Red Teaming

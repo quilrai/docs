@@ -4,6 +4,7 @@ sidebar_label: "Self Service"
 sidebar_custom_props:
   icon: UserCog
 description: "How people without admin access find and run the workflow agents shared with them in the Self Service portal."
+console_path: /self-service/agents
 ---
 
 # Self Service

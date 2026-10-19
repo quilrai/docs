@@ -4,6 +4,8 @@ sidebar_label: "Attack library"
 sidebar_custom_props:
   icon: LibraryBig
 description: "All 64 attack objectives by OWASP category with MITRE ATLAS technique, severity, and Quick scan membership."
+console_path: /red-teaming/attack-library
+aliases: [attack library, custom attacks, saved attacks, upload attacks, prompt injection library]
 ---
 
 # Red Team Attack Library

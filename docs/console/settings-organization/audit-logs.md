@@ -3,6 +3,8 @@ sidebar_position: 7
 sidebar_label: "Audit logs"
 sidebar_custom_props:
   icon: History
+console_path: /settings/organization/audit-logs
+aliases: [audit logs, audit trail]
 ---
 
 # Audit logs

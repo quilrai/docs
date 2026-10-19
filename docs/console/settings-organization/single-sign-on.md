@@ -4,6 +4,8 @@ sidebar_label: "Single sign-on"
 description: "Connect a SAML identity provider such as Microsoft Entra ID or Okta: values to copy, email mapping, certificate rotation and recovery."
 sidebar_custom_props:
   icon: KeyRound
+console_path: /settings/organization/single-sign-on
+aliases: [single sign on, SSO, SAML]
 ---
 
 # Single sign-on

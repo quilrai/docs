@@ -3,6 +3,8 @@ sidebar_position: 2
 sidebar_label: "MCP Threat Detection"
 sidebar_custom_props:
   icon: Network
+console_path: /red-teaming/mcp-scan
+aliases: [MCP scan, scan an MCP server, MCP assessment, MCP red teaming, MCP threat detection, MCP security, tool poisoning, MCP repository scan, live MCP server, authorized scope]
 ---
 
 # MCP Threat Detection
