@@ -4,7 +4,7 @@ sidebar_label: "Provider support matrix"
 sidebar_custom_props:
   badge: new
   icon: Handshake
-description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs."
+description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, Oracle OCI, Sarvam, Mistral AI, xAI Grok, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs."
 ---
 
 # Provider Support
@@ -37,6 +37,9 @@ One row per provider type. The type is what you select in the console and what y
 | `vertex_ai` | Google Vertex AI | ✓ | - | - | - | - | - | - | - | ✓ |
 | `gemini_chatcompletions` | Google Gemini API (OpenAI-compatible) | ✓ | - | - | - | - | - | - | - | ✓ |
 | `deepseek` | DeepSeek | ✓ | - | - | - | - | - | - | - | ✓ |
+| `mistral` | Mistral AI | ✓ | - | - | - | - | ✓ | - | ✓ (STT) | ✓ |
+| `xai` | xAI Grok | ✓ | - | - | - | - | - | - | - | ✓ |
+| `xai_responses` | xAI Grok | - | - | ✓ | - | - | - | - | - | ✓ |
 | `oracle` | Oracle OCI Generative AI | ✓ | - | - | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | - | - | ✓ | - | - | - | - | - | Manual |
 | `sarvam` | Sarvam | ✓ | - | - | - | - | - | - | ✓ | ✓ |
@@ -52,6 +55,7 @@ One row per provider type. The type is what you select in the console and what y
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
+- **Endpoint families:** moderations, images, OCR, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
 ## Endpoints
@@ -63,6 +67,7 @@ Combine a [regional base URL](../get-started/integration-guide#region) with a pa
 | Chat Completions | `/openai_compatible/v1/chat/completions` | `Authorization: Bearer <Quilr key>` |
 | Embeddings | `/openai_compatible/v1/embeddings` | `Authorization: Bearer <Quilr key>` |
 | Speech | `/openai_compatible/v1/audio/speech`, `/audio/transcriptions`, `/audio/translations` | `Authorization: Bearer <Quilr key>` |
+| Endpoint families | `/openai_compatible/v1/moderations`, `/images/*`, `/ocr`, `/completions`, `/files`, `/batches`, `/videos` | `Authorization: Bearer <Quilr key>` |
 | Anthropic Messages | `/anthropic_messages/v1/messages` | `x-api-key: <Quilr key>` |
 | Responses | `/openai_responses/v1/responses` | `Authorization: Bearer <Quilr key>` |
 | Assistants | `/openai_assistants/` | `Authorization: Bearer <Quilr key>` |
@@ -83,6 +88,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `openai`, `anthropic_messages`, `sarvam` | API key | API key (`api_key`) | - | Console, API |
 | `openai_responses`, `openai_assistants`, `openai_realtime` | API key | API key | Base URL (`base_url`, default OpenAI) | Console, API |
 | `anthropic`, `gemini_chatcompletions`, `deepseek` | API key | API key | - | Console, API |
+| `mistral`, `xai`, `xai_responses` | API key | API key | - (the upstream URL is fixed; `base_url` is ignored) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
 | `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure` | API key | API key, Azure endpoint | Azure API version (defaults `2025-03-01-preview`, `2024-05-01-preview`, `2025-04-01-preview`) | Console, API |
@@ -127,7 +133,7 @@ Rules that apply to every app:
 
 ## Chat Completions
 
-`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. It reaches providers that already support the OpenAI format (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, Oracle, Sarvam, custom endpoints) and translates for `bedrock` (Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types. Translation details: [Unified Completions](../api-reference/unified-completions).
+`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. It reaches providers that already support the OpenAI format (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, Mistral AI, xAI, Oracle, Sarvam, custom endpoints) and translates for `bedrock` (Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types. Translation details: [Unified Completions](../api-reference/unified-completions).
 
 Sarvam serves only its chat models here. Its speech and text models use the [Sarvam routes](#sarvam-speech-and-text).
 
@@ -154,7 +160,7 @@ Only Bedrock Runtime is proxied, not the Bedrock control plane or Agent Runtime.
 
 ## Embeddings
 
-`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
+`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `mistral` (for example `mistral-embed`), `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
 
 ## Rerank
 
@@ -162,7 +168,7 @@ All three rerank paths take a Cohere-compatible body (`model`, `query`, `documen
 
 ## TTS & STT
 
-`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai` and `sarvam`. Azure deployments use the `/openai/deployments/{deployment}/` prefix.
+`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai` and `sarvam`. `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
 
 On a Sarvam provider these routes adapt to Sarvam's APIs:
 
@@ -201,11 +207,30 @@ Chat models (`sarvam-105b`, `sarvam-105b-conversations`, and the beta `glm5.2`, 
 
 ## Responses API
 
-`/openai_responses/v1/responses` is a native passthrough served by `openai_responses`, `openai_responses_azure` and `oracle_responses`. Create, retrieve, cancel, delete and list input items are supported. Azure-style paths work too: `/openai_responses/openai/deployments/{deployment}/responses`. The deployment goes in `body.model`.
+`/openai_responses/v1/responses` is a native passthrough served by `openai_responses`, `openai_responses_azure`, `oracle_responses` and `xai_responses`. On `xai_responses`, cancel and list input items return `400 operation_not_supported`. Create, retrieve, cancel, delete and list input items are supported. Azure-style paths work too: `/openai_responses/openai/deployments/{deployment}/responses`. The deployment goes in `body.model`.
 
 Guardrails scan `input_text` parts and `instructions` on the request, and `output_text` on non-streaming responses. `previous_response_id` and built-in tools pass through.
 
 An `openai` or `azureopenai` provider cannot serve this endpoint. Add a Responses provider type to the app.
+
+## Endpoint families
+
+Moderations, images, OCR, completions (including Codestral and DeepSeek fill-in-the-middle), files, batches and videos are served under `/openai_compatible/v1/` for the providers that support them:
+
+| Family | Providers |
+|--------|-----------|
+| Moderations | `openai`, `mistral`, `general` |
+| Images | `openai`, `azureopenai`, `xai`, `gemini_chatcompletions`, `general` |
+| OCR | `mistral` |
+| Completions | `openai`, `azureopenai`, `mistral`, `deepseek`, `general` |
+| Files, batches (off by default) | `openai`, `azureopenai`, `mistral`, `xai` |
+| Videos (off by default) | `openai`, `xai` |
+
+These routes enforce access, model allow-lists and limits but are not scanned by guardrails. See [Endpoint Families](../api-reference/endpoint-families).
+
+## Mistral AI and xAI
+
+Both take only an API key; the gateway calls `https://api.mistral.ai/v1` or `https://api.x.ai/v1`. Setup, models and per-vendor behavior: [Mistral AI and xAI Grok](./mistral-and-xai).
 
 ## Assistants API
 

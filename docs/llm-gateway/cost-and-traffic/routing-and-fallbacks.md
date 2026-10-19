@@ -86,10 +86,10 @@ A group belongs to one API family. Providers in the same family can be mixed; pr
 
 | Group type | Endpoint | Providers you can combine |
 |------------|----------|---------------------------|
-| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock (Converse), Vertex AI Gemini, Anthropic Messages (direct, Bedrock, Azure), Anthropic (chat completions), DeepSeek, Gemini (chat completions), General LLM, Sarvam chat models |
+| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock (Converse), Vertex AI Gemini, Anthropic Messages (direct, Bedrock, Azure), Anthropic (chat completions), DeepSeek, Gemini (chat completions), Mistral AI, xAI, General LLM, Sarvam chat models |
 | **Anthropic Messages** | `/anthropic_messages/v1/messages` | Anthropic, Bedrock (Anthropic), Azure Anthropic |
 | **Vertex AI** | `/vertex_ai/` | Vertex AI |
-| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI Responses, Azure OpenAI Responses |
+| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI Responses, Azure OpenAI Responses, xAI Responses |
 | **OpenAI Realtime** | `/openai_realtime/v1/realtime` (wss) | OpenAI Realtime, Azure OpenAI Realtime |
 
 ## Without a routing group

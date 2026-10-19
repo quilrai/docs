@@ -99,7 +99,8 @@ const SURFACES = [
     auth: 'bearer',
     selector: false,
     model: 'gpt-3.5-turbo-instruct',
-    blurb: 'Legacy OpenAI text completions for upstreams that still expose /v1/completions.',
+    blurb:
+      'Text completions and fill-in-the-middle (send a suffix) for OpenAI, Azure, Mistral Codestral, DeepSeek, and custom upstreams.',
     sample: {
       model: 'gpt-3.5-turbo-instruct',
       prompt: 'Write one sentence from the QuilrAI gateway playground.',
@@ -117,10 +118,59 @@ const SURFACES = [
     auth: 'bearer',
     selector: true,
     model: 'text-embedding-3-small',
-    blurb: 'OpenAI embeddings shape, translated for OpenAI, Azure, or Bedrock embedding providers.',
+    blurb: 'OpenAI embeddings shape, translated for OpenAI, Azure, Mistral, or Bedrock embedding providers.',
     sample: {
       model: 'text-embedding-3-small',
       input: 'The quick brown fox jumps over the lazy dog.',
+    },
+  },
+  {
+    id: 'moderations',
+    group: 'editor',
+    category: 'Data',
+    label: 'Moderations',
+    path: '/openai_compatible/v1/moderations',
+    auth: 'bearer',
+    selector: true,
+    model: 'omni-moderation-latest',
+    blurb: 'OpenAI moderations shape for OpenAI, Mistral, and custom providers. Not scanned by guardrails.',
+    sample: {
+      model: 'omni-moderation-latest',
+      input: 'I want to learn how to bake bread.',
+    },
+  },
+  {
+    id: 'images',
+    group: 'editor',
+    category: 'Data',
+    label: 'Images',
+    path: '/openai_compatible/v1/images/generations',
+    auth: 'bearer',
+    selector: true,
+    model: 'gpt-image-1',
+    blurb: 'Image generation for OpenAI, Azure, xAI Grok Imagine, Gemini, and custom providers. Not scanned by guardrails.',
+    sample: {
+      model: 'gpt-image-1',
+      prompt: 'A plain white square.',
+      n: 1,
+    },
+  },
+  {
+    id: 'ocr',
+    group: 'editor',
+    category: 'Data',
+    label: 'OCR',
+    path: '/openai_compatible/v1/ocr',
+    auth: 'bearer',
+    selector: true,
+    model: 'mistral-ocr-latest',
+    blurb: 'Mistral document OCR. Send a document_url (https or data: URL). Not scanned by guardrails.',
+    sample: {
+      model: 'mistral-ocr-latest',
+      document: {
+        type: 'document_url',
+        document_url: 'https://arxiv.org/pdf/2201.04234',
+      },
     },
   },
   {
@@ -2647,6 +2697,23 @@ function buildEditorResult(surface, body) {
       kind: 'text',
       label: 'Ranking',
       text: body.results.map((r, i) => `${i + 1}. index ${r.index}  -  score ${r.relevance_score}`).join('\n'),
+    };
+  }
+  if (surface.id === 'moderations' && Array.isArray(body?.results)) {
+    return {
+      kind: 'text',
+      label: 'Moderation',
+      text: body.results.map((r, i) => {
+        const hits = Object.entries(r.categories ?? {}).filter(([, v]) => v).map(([k]) => k);
+        return `${i + 1}. ${r.flagged ? 'flagged' : 'not flagged'}${hits.length ? `: ${hits.join(', ')}` : ''}`;
+      }).join('\n'),
+    };
+  }
+  if (surface.id === 'ocr' && Array.isArray(body?.pages)) {
+    return {
+      kind: 'text',
+      label: `OCR (${body.pages.length} page${body.pages.length === 1 ? '' : 's'})`,
+      text: body.pages.map((pg) => pg.markdown ?? '').join('\n\n'),
     };
   }
   if (surface.id === 'completions') {
