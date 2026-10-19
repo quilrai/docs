@@ -14,15 +14,18 @@ Open **Settings > AI Gateway > MCP Gateway**, click **Add MCP server** and choos
 
 ## Network requirement
 
-The gateway calls the API from QuilrAI's network, so the base URL (and a spec URL, if you use one) must resolve to a public address. Destinations that resolve to private, loopback, link-local or cloud metadata addresses (and the names `localhost`, `*.localhost` and `*.internal`) are blocked: tool calls fail with **Blocked destination**, and a spec URL fails at **Load spec** (upload or paste the spec instead). Tool calls do not follow redirects.
+Choose how the gateway reaches the API under **Connection route**:
 
-For an internal API, allow QuilrAI's published egress IPs on your firewall so the gateway can reach the API. Get the IP list from your QuilrAI representative.
+- **Public internet**: the gateway calls the API directly from QuilrAI's network, so the **Base URL** (and a spec URL, if you use one) must resolve to a public address. Destinations that resolve to private, loopback, link-local or cloud metadata addresses (and the names `localhost`, `*.localhost` and `*.internal`) are blocked: tool calls fail with **Blocked destination**, and a spec URL fails at **Load spec** (select a Remote Connector, or upload or paste the spec instead).
+- **Via Remote Connector**: the gateway routes OpenAPI spec fetches at **Load spec** (and spec resyncs) and runtime REST tool calls (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`) through a deployed `quilr-connector` instance over its outbound WebSocket tunnel (see [Remote Connectors](./remote-connectors)). Internal Kubernetes service DNS (`*.svc.cluster.local`), private VPC addresses, `.internal` hosts, and `localhost` URLs are supported with no inbound firewall rules. Traffic is fail-closed and never falls back to the public internet if the connector is offline.
+
+For an internal API without a Remote Connector, you can also allowlist QuilrAI's published egress IPs on your firewall so the gateway can reach the API directly (see [MCP Library: Internal MCPs](./mcp-library#internal-mcps)). Tool calls do not follow redirects.
 
 ## When to use it
 
 | Use | When |
 |-----|------|
-| **API** | The service has a REST API but no MCP server, or you want to expose only part of an API. |
+| **API** | The service has a REST API (public or private) but no MCP server, or you want to expose only part of an API. |
 | **Remote server** | The service already runs an MCP server. See [Adding MCP servers](./adding-mcp-servers). |
 | **Local package (CLI MCP)** | The MCP must run on the user's own computer. See [Local MCP](../local-mcp/overview). |
 
@@ -34,7 +37,8 @@ For an internal API, allow QuilrAI's published egress IPs on your firewall so th
 |-------|---------------|
 | **Name** | The name people see in their AI app. |
 | **Slug** | Optional. Derived from the name when left blank. Forms the gateway URL agents call. |
-| **Base URL** | The full URL, including `https://`. Every tool call goes to a path under it. Must resolve to a public address (see [Network requirement](#network-requirement)). |
+| **Base URL** | The full URL, including `http://` or `https://`. Every tool call goes to a path under it. With **Public internet**, it must resolve to a public address; with **Via Remote Connector**, internal cluster, private network, and `localhost` addresses are supported (see [Network requirement](#network-requirement)). |
+| **Connection route** | **Public internet** for direct HTTPS egress, or **Via Remote Connector: `<name>`** to route spec fetches and tool calls through a [Remote Connector](./remote-connectors) in your private network. |
 | **Description** | Optional. Shown beside the API wherever it is listed. |
 
 ### OpenAPI spec
@@ -43,7 +47,7 @@ With a spec, each operation can become its own tool. Without one, agents get fiv
 
 | Source | How |
 |--------|-----|
-| **URL** | Paste the spec URL. Click **Add fetch header** if the spec requires authentication. |
+| **URL** | Paste the spec URL. Click **Add fetch header** if the spec requires authentication. When a **Remote Connector** is selected under **Connection route**, the gateway fetches the spec URL through that connector's tunnel. |
 | **Upload** | Select a spec file. |
 | **Paste** | Paste the spec text. |
 | **None** | Generic mode. No spec is used. |
@@ -152,12 +156,13 @@ The API MCP appears under the **API** tab of the server list. In the server's se
 
 | Section | What you do there |
 |---------|-------------------|
-| **API** | Review the base URL, timeout, spec, access rules and the tools each operation became. |
+| **API** | Review the base URL, connection route (including the bound Remote Connector and its live status), timeout, spec, access rules and the tools each operation became. |
 | **Tools** | Turn tools on or off and require confirmation. See [Tool visibility](../protect/tool-visibility). |
-| **General > Upstream authentication** | Change the API key. |
+| **General** | View the backend summary and connection route, or change the API key under **Upstream authentication**. |
 
 ## Related
 
+- [Remote Connectors](./remote-connectors) - connect internal REST APIs and MCP servers over an outbound WebSocket tunnel.
 - [Human approval](../protect/human-approval) - ask the user before a write call runs.
 - [Security guardrails](../protect/security-guardrails) - scan tool inputs and API responses.
 - [OneMCP](../get-started/onemcp) - one endpoint for every MCP, including APIs.
