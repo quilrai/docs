@@ -109,11 +109,19 @@ POLICY ENGINE (LLM) - /policy/engine/llm-gateway
 - Header when on: ENGINE ON, Revision N, "Gateway controls", "N of 12 active", History, Docs, Filter
 - "What applies to one request" > Describe a request (previews the winning value per control)
 - 12 cards (each Configure + Docs): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
-  Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Routing Groups & Fallbacks,
+  Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Model routing,
   Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement.
   Below them: "Advanced policies" (policies the cards cannot represent; Advanced workspace).
 - Edits go to one shared draft > Review changes > Publish revision.
 - History: /policy/engine/llm-gateway/history. Simulate: /policy/engine/llm-gateway/simulate
+- Model routing card: /policy/engine/llm-gateway?tile=routing-groups-fallbacks&tab=controls
+  (tabs Overview | Controls | Activity). Controls: Quick add (Send an app to a model, Split traffic across
+  models, Route by what the request is about, Route sensitive data to a model, More...), then sections
+  Conversations (Keep prompt cache warm), Content routes, Route to, Routing groups, Complexity levels,
+  and Routing activity. Deep links: &add=content-routes | complexity-levels | route-to | routing-group |
+  keep-cache-warm. Content route Match when: Request is about | Data detected | Prompt complexity |
+  Text contains | Client. Conversation behaviour: Keep destination | Upgrade when needed (complexity) |
+  Re-check every message. Responses carry x-quilr-route and x-quilr-served-model headers.
 - First time (engine off): "Enable new Policy Engine" > Review conversion > tick both checkboxes in
   "Confirm your review" > Continue to confirmation > confirm (not re-verified: engine already on)
 
@@ -170,6 +178,7 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/protect/custom-detections.md
 - https://docs.quilrai.dev/llm-gateway/protect/identity-and-network-trust.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/routing-and-fallbacks.md
+- https://docs.quilrai.dev/llm-gateway/cost-and-traffic/policy-engine-routing.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/rate-token-and-budget-limits.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/token-saving.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/prompt-store.md
