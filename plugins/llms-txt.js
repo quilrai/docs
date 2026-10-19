@@ -18,6 +18,7 @@
  *                                           ([]) = documents no single screen
  *   aliases: [API keys, guardrails]         words admins use for the page
  * Videos come from src/data/videos.json (their `docs` links and `questions`).
+ * Console V1 (docs/console/legacy-v1/) is left out of the JSON index only.
  *
  * Options: {products} from src/data/products.js, {extraLinks} per product id:
  * [{title, url, description}] for non-doc resources (e.g. console guides).
@@ -203,6 +204,10 @@ function createJsonIndex({site, siteDir, docs, markdown, describe, clean}) {
     }
   }
 
+  // Console V1 (legacy) stays on the site and in llms.txt, but Quilr Assist
+  // serves the V2 console only, so its pages are left out of the JSON index.
+  const excluded = (docId) => docId.startsWith('console/legacy-v1/');
+
   const products = {};
   const noDescription = [];
   let pageCount = 0;
@@ -219,15 +224,20 @@ function createJsonIndex({site, siteDir, docs, markdown, describe, clean}) {
     });
 
   return {
+    // null for an excluded category; its docs are skipped by addPage.
     group(product, category) {
-      const key = categorySlug(category) || category.label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const firstId = firstDocId(category);
+      if (firstId && excluded(firstId)) return null;
+      const key = firstId?.split('/')[1] || category.label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       return (productEntry(product).groups[key] ||= {label: category.label, pages: []});
     },
 
     async addPage(product, group, doc) {
-      const target = group || (productEntry(product).groups.general ||= {label: 'General', pages: []});
       const fm = doc.frontMatter || {};
       const where = doc.source.replace(/^@site\//, '');
+      if (!fm.description) noDescription.push(where); // llms.txt falls back for every page
+      if (excluded(doc.id)) return;
+      const target = group || (productEntry(product).groups.general ||= {label: 'General', pages: []});
       // An empty console_path (`[]`, '' or blank) means "no single screen": omitted.
       const emptyRoute = fm.console_path === '' || (Array.isArray(fm.console_path) && !fm.console_path.length);
       const consolePaths = emptyRoute ? undefined : stringList(fm.console_path, `${where}: console_path`);
@@ -235,7 +245,6 @@ function createJsonIndex({site, siteDir, docs, markdown, describe, clean}) {
         throw new Error(`${where}: console_path must be console routes starting with "/"`);
       }
       const aliases = stringList(fm.aliases, `${where}: aliases`);
-      if (!fm.description) noDescription.push(where);
 
       target.pages.push({
         id: doc.id,
@@ -286,14 +295,14 @@ function createJsonIndex({site, siteDir, docs, markdown, describe, clean}) {
   };
 }
 
-// Folder of a top-level category (`get-started` for docs under
-// mcp-gateway/get-started/), from the first doc inside it.
-function categorySlug(category) {
+// Id of the first doc in a category (its second segment is the category's
+// folder: `get-started` for mcp-gateway/get-started/quick-start).
+function firstDocId(category) {
   for (const item of category.items || []) {
-    if (item.type === 'doc' || item.type === 'ref') return item.id.split('/')[1];
+    if (item.type === 'doc' || item.type === 'ref') return item.id;
     if (item.type === 'category') {
-      const slug = categorySlug(item);
-      if (slug) return slug;
+      const id = firstDocId(item);
+      if (id) return id;
     }
   }
   return null;

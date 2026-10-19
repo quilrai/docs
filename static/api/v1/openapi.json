@@ -3,7 +3,7 @@
   "info": {
     "title": "QuilrAI Docs Index",
     "version": "1.0.0",
-    "description": "Read-only, static index of the QuilrAI documentation, generated at build time by plugins/llms-txt.js and served by GitHub Pages. Quilr Assist uses it to pick the right docs page (by console route, aliases, title or section), then fetches that page's markdown from the page's `markdown` URL (the page URL plus `.md`; a plain-text twin is at `.txt`). Responses carry an `ETag`, so clients can revalidate with `If-None-Match` and get `304 Not Modified` when nothing changed. Keep this file in step with the index shape in plugins/llms-txt.js."
+    "description": "Read-only, static index of the QuilrAI documentation, generated at build time by plugins/llms-txt.js and served by GitHub Pages. Quilr Assist uses it to pick the right docs page (by console route, aliases, title or section), then fetches that page's markdown from the page's `markdown` URL (the page URL plus `.md`; a plain-text twin is at `.txt`). Covers the current (V2) console and every product; Console V1 (legacy) pages are not included. Responses carry an `ETag`, so clients can revalidate with `If-None-Match` and get `304 Not Modified` when nothing changed. Keep this file in step with the index shape in plugins/llms-txt.js."
   },
   "servers": [{"url": "https://docs.quilrai.dev"}],
   "security": [],
