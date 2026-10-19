@@ -3,12 +3,12 @@ sidebar_position: 2
 sidebar_label: "Remote connectors"
 sidebar_custom_props:
   icon: Route
-description: "Connect MCP servers running inside private networks, VMs, Kubernetes clusters, or developer laptops to the gateway over an outbound WebSocket tunnel with no inbound firewall rules."
+description: "Connect MCP servers and internal REST APIs running inside private networks, VMs, Kubernetes clusters, or developer laptops to the gateway over an outbound WebSocket tunnel with no inbound firewall rules."
 ---
 
 # Remote Connectors
 
-Connect MCP servers running inside a private network, VPC, Kubernetes cluster, or developer laptop to the Quilr MCP Gateway over an outbound WebSocket tunnel (`wss://`) with no inbound firewall rules or public ingress.
+Connect MCP servers and internal REST APIs running inside a private network, VPC, Kubernetes cluster, or developer laptop to the Quilr MCP Gateway over an outbound WebSocket tunnel (`wss://`) with no inbound firewall rules or public ingress.
 
 <StepFlow steps={[
   {
@@ -26,10 +26,10 @@ Connect MCP servers running inside a private network, VPC, Kubernetes cluster, o
     ],
   },
   {
-    label: "3. Add the MCP server",
+    label: "3. Add the MCP server or API",
     items: [
-      "Network Path > Via Remote Connector",
-      "Enter the private or localhost Transport URL",
+      "Connection route > Via Remote Connector",
+      "Enter the private or localhost URL",
     ],
   },
 ]} />
@@ -37,8 +37,8 @@ Connect MCP servers running inside a private network, VPC, Kubernetes cluster, o
 ## 1. Create a Remote Connector in the console
 
 1. Go to **Settings > AI Gateway > MCP Gateway** and click **Remote Connectors**.
-2. Click **Create connector**, enter a **Name** (for example `prod-eks` or `dev-laptop`), and optionally add a **Description**.
-3. Copy the generated `qrc_...` token.
+2. Click **New remote connector**, enter a **Name** (for example `prod-eks` or `dev-laptop`), and optionally add a **Description**.
+3. Click **Create connector** and copy the generated `qrc_...` token.
 
 :::warning
 The `qrc_...` token is shown once. Save it in your secret manager or environment configuration. It encodes your gateway URL automatically, so no separate URL flag is needed.
@@ -59,7 +59,7 @@ Download the latest binary from [GitHub Releases](https://github.com/quilrai/qui
 
 ### Laptop or dev machine
 
-Expose MCP servers running on `localhost` (macOS, Linux, or Windows) directly to the gateway for testing or personal development servers.
+Expose MCP servers or local REST APIs running on `localhost` (macOS, Linux, or Windows) directly to the gateway for testing or personal development.
 
 **Direct binary (macOS / Linux one-liner):**
 
@@ -86,12 +86,12 @@ docker run --rm \
 ```
 
 :::tip
-When running `quilr-connector` inside Docker on macOS or Windows, use `http://host.docker.internal:<port>/mcp` as the MCP server's Transport URL so the container can reach a server listening on your host's `localhost`. On Linux, pass `--network host` to `docker run` and use `http://127.0.0.1:<port>/mcp`.
+When running `quilr-connector` inside Docker on macOS or Windows, use `http://host.docker.internal:<port>/mcp` (or `http://host.docker.internal:<port>/v1` for a REST API) so the container can reach a service listening on your host's `localhost`. On Linux, pass `--network host` to `docker run` and use `http://127.0.0.1:<port>/...`.
 :::
 
 ### Virtual Machine (Linux VM, EC2, or GCE)
 
-Run `quilr-connector` on a VM inside your VPC or private subnet to reach any MCP server on `127.0.0.1` or your internal VPC network.
+Run `quilr-connector` on a VM inside your VPC or private subnet to reach any MCP server or internal REST API on `127.0.0.1` or your internal VPC network.
 
 **Install binary to `/usr/local/bin` (Linux x86_64):**
 
@@ -137,7 +137,7 @@ sudo systemctl daemon-reload && sudo systemctl enable --now quilr-connector
 
 ### Kubernetes cluster
 
-One connector Deployment in your cluster can reach any MCP service across namespaces using standard cluster DNS (`http://<service>.<namespace>.svc.cluster.local:<port>/mcp`). Run 2 or more replicas for high availability.
+One connector Deployment in your cluster can reach any MCP service or internal REST API across namespaces using standard cluster DNS (`http://<service>.<namespace>.svc.cluster.local:<port>/mcp` or `http://<api-service>.<namespace>.svc.cluster.local:<port>/v1`). Run 2 or more replicas for high availability.
 
 ```yaml
 apiVersion: v1
@@ -192,19 +192,34 @@ Apply the manifest:
 kubectl apply -f deployment.yaml
 ```
 
-## 3. Add the MCP server via the Remote Connector
+## 3. Add the MCP server or REST API via the Remote Connector
 
-Once your connector shows **Connected** in **Remote Connectors**:
+Once your connector shows **Connected** in **Remote Connectors**, you can route either a **Remote server** or an **API** (REST API to MCP) through it.
+
+### Remote MCP server
 
 1. Click **Add MCP server** and choose **Remote server**.
-2. Under **Network Path**, select **Via Remote Connector** and pick your connector.
-3. Enter the server's internal **Transport URL**:
+2. Enter the server's internal **Transport URL**:
    - Localhost / VM: `http://127.0.0.1:8000/mcp` (or `http://host.docker.internal:8000/mcp` when the connector runs in Docker on macOS/Windows)
    - Private VPC host: `http://10.0.12.45:8000/mcp` or `https://mcp.internal.example.com/mcp`
    - Kubernetes service: `http://my-mcp.namespace.svc.cluster.local:8000/mcp`
+3. Under **Connection route**, select **Via Remote Connector: `<name>`**.
 4. Choose how the gateway signs in and click **Probe and continue**.
 
 All capability probes, OAuth discovery and token exchanges, [OneMCP](../get-started/onemcp) calls, and direct MCP tool calls for that server route through the selected Remote Connector.
+
+### Internal REST API (API to MCP)
+
+1. Click **Add MCP server** and choose **API**.
+2. Enter the internal **Base URL**:
+   - Localhost / VM: `http://127.0.0.1:8080/v1` (or `http://host.docker.internal:8080/v1` when the connector runs in Docker on macOS/Windows)
+   - Private VPC host: `http://10.0.12.45:8080/v1` or `https://api.internal.example.com/v1`
+   - Kubernetes service: `http://api-service.default.svc.cluster.local:8080/v1`
+3. Under **Connection route**, select **Via Remote Connector: `<name>`**.
+4. Under **OpenAPI spec**, load a spec by **URL** (fetched directly through the Remote Connector tunnel), **Upload**, or **Paste**, or choose **None** for generic HTTP tools.
+5. Configure **Credentials** and **Tools & access**, then click **Create API MCP**.
+
+All OpenAPI spec previews, spec resyncs, [OneMCP](../get-started/onemcp) calls, and runtime REST tool calls (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`) route through the selected Remote Connector. See [Turn an API into MCP tools](./api-to-mcp).
 
 ## Configuration reference
 
@@ -212,7 +227,7 @@ All capability probes, OAuth discovery and token exchanges, [OneMCP](../get-star
 |------|----------------------|---------|-------------|
 | `--token` | `QUILR_CONNECTOR_TOKEN` | Required | Self-contained `qrc_...` connector token from the console |
 | `--instance-name` | `QUILR_CONNECTOR_INSTANCE_NAME` | System hostname | Instance or pod label shown in the **Remote Connectors** drawer |
-| `--insecure-skip-tls-verify` | `QUILR_CONNECTOR_INSECURE_TLS` | `false` | Skip TLS certificate verification for internal HTTPS MCP servers with self-signed certs |
+| `--insecure-skip-tls-verify` | `QUILR_CONNECTOR_INSECURE_TLS` | `false` | Skip TLS certificate verification for internal HTTPS MCP servers or REST APIs with self-signed certs |
 | `--gateway-url` | `QUILR_GATEWAY_URL` | Decoded from token | Optional override for the gateway base URL |
 | `--ping-interval-secs` | `QUILR_CONNECTOR_PING_INTERVAL_SECS` | `20` | Heartbeat ping interval in seconds (minimum `5`) |
 
@@ -222,12 +237,13 @@ All capability probes, OAuth discovery and token exchanges, [OneMCP](../get-star
 |------------|----------|
 | **High availability** | Run multiple `quilr-connector` replicas with the same `qrc_...` token. The gateway distributes requests across healthy replicas and automatically fails over subsequent requests if a replica disconnects. |
 | **Token rotation & revocation** | Rotate a connector's token or delete the connector anytime from the **Remote Connectors** drawer. Rotating or revoking immediately disconnects active sessions using the old token. |
-| **Fail-closed routing** | Traffic for an MCP server bound to a Remote Connector never falls back to the public internet if the connector is offline or deleted. |
-| **Supported transports** | Outbound-only WebSocket (`wss://`) carrying both MCP Streamable HTTP (`POST`, `GET`, `DELETE`) and SSE upstreams. |
+| **Fail-closed routing** | Traffic for an MCP server or API backend bound to a Remote Connector never falls back to the public internet if the connector is offline or deleted. |
+| **Supported transports** | Outbound-only WebSocket (`wss://`) carrying MCP Streamable HTTP (`POST`, `GET`, `DELETE`), SSE upstreams, and REST API HTTP calls (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, query parameters, headers, and JSON/binary bodies). |
 | **Limits** | Up to 16 MB per request body, 128 concurrent streams per connector replica, and up to 64 active replicas per connector. |
 
 ## Related
 
 - [Adding MCP Servers](./adding-mcp-servers) - register a remote server and choose its sign-in mode.
+- [Turn an API into MCP tools](./api-to-mcp) - expose an internal or public REST API as governed MCP tools.
 - [MCP Library](./mcp-library#internal-mcps) - compare Remote Connectors with firewall IP allowlisting.
 - [OAuth Connect](./oauth-connect) - connect OAuth servers reachable through a Remote Connector.

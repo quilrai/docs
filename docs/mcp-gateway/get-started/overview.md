@@ -58,6 +58,7 @@ Go to **Settings > AI Gateway > MCP Gateway**.
 |--------|---------------|
 | **Overall analytics** | The MCP Gateway workspace for all servers, on the Analytics tab |
 | **OneMCP endpoint** | OneMCP settings. See [OneMCP](./onemcp#onemcp-settings). |
+| **Remote Connectors** | Outbound WebSocket tunnel tokens for private-network MCP servers and REST APIs. See [Remote Connectors](../servers-and-connections/remote-connectors). |
 | **Library** | The [MCP Library](../servers-and-connections/mcp-library). A count shows pending install requests from users. |
 | **Allowed Agents** | Which AI clients may connect, and which servers each one sees |
 | **Add MCP server** | The Add MCP drawer. See [Adding MCP Servers](../servers-and-connections/adding-mcp-servers). |
@@ -122,8 +123,8 @@ Sections vary by server. Edits are drafts until you click **Save settings**.
 
 | Section | What you set |
 |---------|--------------|
-| **General** | Name, upstream sign-in, custom headers, [Access Control](../protect/server-access), [Claims forwarding](../protect/claims-forwarding), [Web Search Policy](../protect/web-search-security) (QuilrAI Web Search only), Uninstall |
-| **API** | Base URL, spec and access rules of an [API MCP](../servers-and-connections/api-to-mcp) |
+| **General** | Name, connection route, upstream sign-in, custom headers, [Access Control](../protect/server-access), [Claims forwarding](../protect/claims-forwarding), [Web Search Policy](../protect/web-search-security) (QuilrAI Web Search only), Uninstall |
+| **API** | Base URL, connection route, spec and access rules of an [API MCP](../servers-and-connections/api-to-mcp) |
 | **Permissions** | [OAuth Permissions](../servers-and-connections/oauth-permissions): the scopes the connection requests (OAuth servers with selectable scopes) |
 | **Tools** | [Tool visibility](../protect/tool-visibility), [Human approval](../protect/human-approval), [Tool Change Watch](../protect/tool-change-watch) |
 | **Guardrails** | [Security Guardrails](../protect/security-guardrails) on tool arguments and tool results |

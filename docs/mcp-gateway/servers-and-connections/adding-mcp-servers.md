@@ -28,12 +28,13 @@ The drawer walks through **Connection > Credentials > Registered**.
 
 1. Enter a **Name**. This is what users see in their AI app.
 2. Optionally enter a **Slug**. It is derived from the name when left blank. The **Quilr gateway endpoint** preview shows the URL agents will call.
-3. Enter the **Transport URL**: the server's Streamable HTTP or SSE endpoint, including `https://`.
-4. Optionally add a **Description**. It is shown beside the server wherever it is listed.
-5. Under **How the gateway signs in**, choose a mode (see below).
-6. Optionally open **Custom headers & query parameters (optional)**.
-7. Click **Probe and continue** (or **Continue** if you chose a mode yourself).
-8. Finish the **Credentials** step if one appears, then click **Create MCP**.
+3. Enter the **Transport URL**: the server's Streamable HTTP or SSE endpoint, including `http://` or `https://`.
+4. Under **Connection route**, keep **Public internet** for a public endpoint or select **Via Remote Connector: `<name>`** to reach an internal, VPC, Kubernetes, or localhost server over its outbound tunnel (see [Remote Connectors](./remote-connectors)).
+5. Optionally add a **Description**. It is shown beside the server wherever it is listed.
+6. Under **How the gateway signs in**, choose a mode (see below).
+7. Optionally open **Custom headers & query parameters (optional)**.
+8. Click **Probe and continue** (or **Continue** if you chose a mode yourself).
+9. Finish the **Credentials** step if one appears, then click **Create MCP**.
 
 The server is registered and its settings open. Its tools stay off until you enable them in **Tools**.
 
@@ -64,7 +65,7 @@ To change the sign-in later, open the server's **Settings > General > Upstream a
 
 Static values sent on every call to this server, regardless of its sign-in method. Agents never see them, and their values can't be read back after saving. Use them for a tenant ID, a region or a header the server needs before it will answer.
 
-For a server inside your private network or on a developer laptop, connect it over an outbound tunnel with [Remote Connectors](./remote-connectors) (no inbound firewall rules needed) or allowlist the gateway IPs listed in [MCP Library: Internal MCPs](./mcp-library#internal-mcps).
+For a server or REST API inside your private network or on a developer laptop, connect it over an outbound tunnel with [Remote Connectors](./remote-connectors) (no inbound firewall rules needed) or allowlist the gateway IPs listed in [MCP Library: Internal MCPs](./mcp-library#internal-mcps).
 
 ## Connect an OAuth server as an administrator
 
@@ -91,7 +92,7 @@ Users who can't install can click **Request**. Their requests appear under **Req
 
 ## Related
 
-- [Remote Connectors](./remote-connectors) - connect private-network, Kubernetes, VM, or localhost MCP servers over an outbound tunnel.
+- [Remote Connectors](./remote-connectors) - connect private-network, Kubernetes, VM, or localhost MCP servers and REST APIs over an outbound tunnel.
 - [MCP Library](./mcp-library) - filters, requests and uninstalling.
 - [API to MCP](./api-to-mcp) - add a REST API.
 - [Local MCP](../local-mcp/overview) - run an approved package on the user's computer.

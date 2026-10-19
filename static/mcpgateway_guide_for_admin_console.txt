@@ -8,7 +8,7 @@ WHERE
 - Siblings in AI Gateway group: Workflow Agents, LLM Gateway, MCP Gateway, Models, Skills Library
 
 PAGE LAYOUT (top to bottom)
-- Header buttons: Overall analytics | OneMCP endpoint | Library (badge = pending user install requests) |
+- Header buttons: Overall analytics | OneMCP endpoint | Remote Connectors | Library (badge = pending user install requests) |
   Allowed Agents | Add MCP server | "..." (More MCP Gateway actions) > Connections | ZIA integration
 - Summary tiles (rows are clickable filters/shortcuts):
   TOOL CALLS: People calling, Tools called, Success, "% of them came through OneMCP" -> opens analytics
@@ -21,7 +21,7 @@ PAGE LAYOUT (top to bottom)
 - "Configured servers": note "Users can login at mcpgateway.quilr.ai"; help buttons "How to Use as an Admin"
   and "How Do Users Use MCP Gateway"; tabs All / Local / Remote / API with counts (API tab only when an API MCP
   exists), "Search servers", Filter (State, Auth, Source, Runtime)
-- Server card: name, tags System / Library / Local package / alias count, slug, description; QUILR GATEWAY
+- Server card: name, tags System / Library / Local package / Remote Connector / alias count, slug, description; QUILR GATEWAY
   endpoint, UPSTREAM (or API base URL), p95/failures, status (SERVING etc.), transport, auth
   Chips: Tools, Guardrails, Scoped rules, Token saving (each opens that Configure section), Show tools,
   Uninstall, enable toggle; usage stats (calls, users, tokens saved, top tools)
@@ -40,17 +40,21 @@ WORKSPACE DRAWER ("MCP Gateway workspace")
 
 TASK -> WHERE
 - Add remote MCP -> Add MCP server (dialog "Add MCP") > "Remote server" > Name, Slug (optional), Transport URL,
-  Description > "How the gateway signs in": Auto-detect (recommended) / OAuth passthrough / Upstream API key
-  > optional "Custom headers & query parameters" > Probe and continue. Steps: Connection > Credentials >
-  Registered. If the probe finds OAuth, the "Connect with OAuth" step opens (OAuth callback URL, OAuth client ID,
-  OAuth client secret). OAuth passthrough is not available through OneMCP.
+  "Connection route": Public internet / Via Remote Connector: <name>, Description > "How the gateway signs in":
+  Auto-detect (recommended) / OAuth passthrough / Upstream API key > optional "Custom headers & query parameters"
+  > Probe and continue. Steps: Connection > Credentials > Registered. If the probe finds OAuth, the "Connect with OAuth"
+  step opens (OAuth callback URL, OAuth client ID, OAuth client secret). OAuth passthrough is not available through OneMCP.
 - Add local CLI MCP -> Add MCP server > "Local package (CLI MCP)" > "Import a local MCP package" (a package
   definition you reviewed). Steps: Import > Review & approve > Configure access. Tools start disabled.
   Ready-made packages (Filesystem, Git, Playwright...) are approved from the Library instead.
-- Add REST API as MCP -> Add MCP server > "API" > Name, Slug, Base URL, Description > OpenAPI spec
-  (None/URL/Upload/Paste) or generic mode (api_get/post/put/patch/delete) > "API docs for the model" >
+- Add REST API as MCP -> Add MCP server > "API" > Name, Slug, Base URL, "Connection route": Public internet /
+  Via Remote Connector: <name>, Description > OpenAPI spec (None/URL/Upload/Paste; URL can be fetched over the
+  selected Remote Connector) or generic mode (api_get/post/put/patch/delete) > "API docs for the model" >
   Credentials > Tools & access (allow/deny path rules, per-operation Auto/On/Off, Test a request) > create.
   Steps: Connection > Credentials > Tools & access > Registered
+- Connect private MCP or REST API -> Remote Connectors (drawer "Remote Connectors") > New remote connector >
+  Name, Description > Create connector > copy qrc_... token and run quilr-connector; then select
+  "Via Remote Connector: <name>" under "Connection route" when adding a Remote server or API
 - Install from catalog -> Library (drawer "MCP Library", ~439 MCPs) > "Search by name or what it does", filters
   Status / Type / Sign-in > Install, Set up or Continue setup (OAuth apps ask client ID/secret, show callback URL)
 - Handle user install requests -> Library > "Pending install requests" > Install or Dismiss
@@ -78,7 +82,7 @@ TASK -> WHERE
 - Web Search (ZIA) policy -> QuilrAI Web Search > Configure > General > Web Search policy: ZIA check timeout,
   ZIA URL overrides (one URL or domain per line), Groups with domain exclusions.
   Tenant ZIA creds -> "..." > ZIA integration (ZIA base URL, API key, Admin username, Admin password > Connect ZIA)
-- API MCP rules after creation -> Configure > API (base URL, spec, rules)
+- API MCP rules after creation -> Configure > API (base URL, connection route, spec, rules)
 - Direct-connection tokens -> Configure > API tokens (not on OAuth servers; e.g. QuilrAI Web Search) >
   "Create a token": Token name + Agent (Add agent registers a custom one) > Create token; Tokens table with Revoke.
   Clients send the token in Authorization plus their own mcpuser email header
@@ -116,7 +120,7 @@ RELATED PAGES
 - Audit: Settings > Organization > Audit Logs
 
 DEEP LINKS (append to /settings/mcp-gateway)
-- ?manage=add-mcp | mcp-library | agents | onemcp | zia
+- ?manage=add-mcp | remote-connectors | mcp-library | agents | onemcp | zia
 - ?manage=mcp-library&integration=slack  (library prefiltered to Slack)
 - ?review=input-aliases  (Review quick fixes drawer)
 - ?workspace=analytics | activity | connections | health | settings
@@ -143,6 +147,7 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/mcp-gateway/get-started/quick-start.md
 - https://docs.quilrai.dev/mcp-gateway/get-started/onemcp.md
 - https://docs.quilrai.dev/mcp-gateway/servers-and-connections/adding-mcp-servers.md
+- https://docs.quilrai.dev/mcp-gateway/servers-and-connections/remote-connectors.md
 - https://docs.quilrai.dev/mcp-gateway/servers-and-connections/mcp-library.md
 - https://docs.quilrai.dev/mcp-gateway/servers-and-connections/api-to-mcp.md
 - https://docs.quilrai.dev/mcp-gateway/servers-and-connections/oauth-connect.md
