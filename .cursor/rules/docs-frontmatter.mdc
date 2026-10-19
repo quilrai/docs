@@ -1,0 +1,33 @@
+---
+description: Frontmatter that feeds the /api/v1/index.json docs index read by Quilr Assist
+globs: docs/**/*.md, docs/**/*.mdx
+alwaysApply: false
+---
+
+# Docs index frontmatter
+
+`plugins/llms-txt.js` builds `/api/v1/index.json` from page frontmatter. Quilr Assist (the help chat in the admin console) uses it to pick the page that answers an admin's question. See CLAUDE.md rule 9.
+
+## Every new page
+
+```yaml
+description: "One sentence on what the page covers."
+```
+
+## Pages that document a console screen
+
+Required for new pages under `docs/console/` (except `get-started/` and `legacy-v1/`). Add them in other products too when a page documents one whole console screen (for example the LLM Gateway settings page).
+
+```yaml
+console_path: /settings/organization/audit-logs     # or a list: [/policy, /policy/engine]
+aliases: [audit logs, audit trail]
+```
+
+- `console_path`: the exact route from quilr-console `frontend/src/lib/appPaths.ts`. Static routes only, never parameterised ones. Never two pages for the same route. It can be empty (`console_path: []`) when the page documents no single screen (a workflow or concept page); under `docs/console/` the key must still be present.
+- `aliases`: words admins use for the screen or feature, including old names. Quote numbers (`"429"`).
+
+## Rules
+
+- Keep `console_path` and `aliases` when a page is moved, renamed or split.
+- Enforced on new pages by `.husky/pre-commit` (`node scripts/check-doc-frontmatter.js --staged`). Check a draft with `node scripts/check-doc-frontmatter.js <file>`. `npm run check-frontmatter` lists what existing pages are missing.
+- A bad `console_path` or `aliases` value also fails `npm run build`.

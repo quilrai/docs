@@ -14,7 +14,8 @@
  *
  * Page frontmatter read for the JSON index (both optional):
  *   console_path: '/settings/llm-gateway'   exact route(s) from quilr-console
- *                                           frontend/src/lib/appPaths.ts
+ *                                           frontend/src/lib/appPaths.ts; empty
+ *                                           ([]) = documents no single screen
  *   aliases: [API keys, guardrails]         words admins use for the page
  * Videos come from src/data/videos.json (their `docs` links and `questions`).
  *
@@ -227,7 +228,9 @@ function createJsonIndex({site, siteDir, docs, markdown, describe, clean}) {
       const target = group || (productEntry(product).groups.general ||= {label: 'General', pages: []});
       const fm = doc.frontMatter || {};
       const where = doc.source.replace(/^@site\//, '');
-      const consolePaths = stringList(fm.console_path, `${where}: console_path`);
+      // An empty console_path (`[]`, '' or blank) means "no single screen": omitted.
+      const emptyRoute = fm.console_path === '' || (Array.isArray(fm.console_path) && !fm.console_path.length);
+      const consolePaths = emptyRoute ? undefined : stringList(fm.console_path, `${where}: console_path`);
       if (consolePaths?.some((route) => !route.startsWith('/'))) {
         throw new Error(`${where}: console_path must be console routes starting with "/"`);
       }
@@ -300,7 +303,7 @@ function stringList(value, what) {
   if (value === undefined || value === null) return undefined;
   const list = Array.isArray(value) ? value : [value];
   if (!list.length || list.some((s) => typeof s !== 'string' || !s.trim())) {
-    throw new Error(`${what} must be a string or a list of strings (quote numbers and yes/no)`);
+    throw new Error(`${what} must be a string or a list of strings (quote numbers, e.g. "429")`);
   }
   return list.map((s) => s.trim());
 }
