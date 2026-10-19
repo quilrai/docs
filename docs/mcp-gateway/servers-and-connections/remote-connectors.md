@@ -46,7 +46,7 @@ The `qrc_...` token is shown once. Save it in your secret manager or environment
 
 ## 2. Download and run `quilr-connector`
 
-Download the latest binary from [GitHub Releases](https://github.com/quilrai/quilr-remote-connector/releases/latest) or pull the multi-arch container image (`ghcr.io/quilrai/quilr-connector:latest`):
+Download the latest stable binary from [GitHub Releases](https://github.com/quilrai/quilr-remote-connector/releases/latest) or pull the multi-arch container image (`ghcr.io/quilrai/quilr-connector:latest`). The download links below automatically follow each new stable release:
 
 | Platform | Architecture | Direct download (`latest`) |
 |----------|--------------|----------------------------|
