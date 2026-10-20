@@ -6,8 +6,8 @@
  * plugins/ai-markdown.js also evaluates this file (plain JS: no imports) to
  * print the matrix as a markdown table in the .md / llms output.
  *
- * Feature limits on converted pairs (what returns an error, what is coming
- * soon) live in ONE table on the any-to-any page ("Limits and coming soon", #limits).
+ * Feature limits on converted pairs (what is dropped, what returns an error,
+ * what is coming soon) live in ONE table on the any-to-any page ("Limits and coming soon", #limits).
  * Cell notes here only point at it, so a limit can change without editing
  * this file.
  *
@@ -53,7 +53,7 @@ const KEPT = '✓ Text, system prompt, history, tools and tool calls, streaming,
 const BILLING = '✓ Billed on the provider’s own token usage';
 const PARAMS = 'Parameters without an equivalent are dropped. See “Parameters when converting” on this page.';
 const LIMITS =
-  'Provider-only features (stored state, hosted tools, provider file ids) are not converted. See “Limits and coming soon” on this page.';
+  'Hosted tools and provider-only settings are dropped and the request still runs; stored state and provider file ids return an error. See “Limits and coming soon” on this page.';
 const ADAPTER = [
   '✓ Text, tools and tool calls, streaming, structured output (per provider)',
   'Unknown parameters are rejected, not dropped. See “Chat Completions adapters” on this page.',

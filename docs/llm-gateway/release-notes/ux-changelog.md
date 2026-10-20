@@ -18,7 +18,7 @@ Call any conversational provider from the SDK you already use. The gateway now a
 - Otherwise, in order: an endpoint switch on the same credential (for example Responses on xAI, Messages on DeepSeek, Gemini on the Gemini API), the existing Chat Completions adapters, then two-way translation
 - Tools, streaming, structured output, images and inline files, and reasoning carry across; billing uses the provider's own token usage
 - Guardrails run on your request before conversion and on the converted-back response
-- Errors come back in your client's format; provider-only features such as stored Responses state and hosted tools stay on native pairs
+- Errors come back in your client's format; stored Responses state stays on native pairs, and hosted tools the target cannot run are dropped so the request still runs
 - Routing groups and Policy Engine routes can now mix API families, preferring the request's own family
 - Format explorer and full matrix: [Any-to-any formats](../api-reference/any-to-any-formats)
 

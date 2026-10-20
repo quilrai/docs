@@ -213,7 +213,7 @@ Chat models (`sarvam-105b`, `sarvam-105b-conversations`, and the beta `glm5.2`, 
 
 Guardrails scan `input_text` parts and `instructions` on the request, and `output_text` on non-streaming responses. On native providers, `previous_response_id` and built-in tools pass through.
 
-Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistral, DeepSeek and more) are reached by translation. Stored state and hosted tools do not carry over; see [Limits](../api-reference/any-to-any-formats#limits).
+Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistral, DeepSeek and more) are reached by translation. Stored state such as `previous_response_id` does not carry over, and hosted tools are dropped so the model answers without them; see [Limits](../api-reference/any-to-any-formats#limits).
 
 ## xAI and Mistral
 
