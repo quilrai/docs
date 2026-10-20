@@ -149,7 +149,7 @@ const config = {
                             '/docs/llm-gateway/openai-to-bedrock',
                             '/docs/llm-gateway/openai-to-bedrock.md',
                         ],
-                        to: '/llm-gateway/api-reference/unified-completions',
+                        to: '/llm-gateway/api-reference/any-to-any-formats#chat-completions-adapters',
                     },
                     {
                         from: [
