@@ -109,7 +109,7 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | Stage | Card | Docs |
 |---|---|---|
 | 1 Session | MCP Server Access | [Server access](../../mcp-gateway/protect/server-access) |
-| 1 Session | OneMCP Features | [OneMCP](../../mcp-gateway/get-started/onemcp) |
+| 1 Session | OneMCP Features | [OneMCP](../../mcp-gateway/get-started/onemcp), [Tool lists](../../mcp-gateway/protect/tool-lists) |
 | 1 Session | Claims Forwarding | [Claims forwarding](../../mcp-gateway/protect/claims-forwarding) |
 | 2 Discovery | Discovery Visibility | [Tool visibility](../../mcp-gateway/protect/tool-visibility) |
 | 3 Request | Invocation | [Tool visibility](../../mcp-gateway/protect/tool-visibility), [Group and user rules](../../mcp-gateway/protect/group-and-user-rules) |
@@ -148,7 +148,7 @@ An effect is legal only on the stages that own it. The compiler rejects a rule t
 | Human Approval | request | `tool.confirmation` none or required |
 | Data & Adversarial Risks | request, response | `dlp.action`, `dlp.category_actions`, `dlp.default_action`, `dlp.detectors`, `risk.level` |
 | Usage Quotas & Concurrency | request | `quota.minute`, `quota.hour`, `quota.day`, `quota.window`, `quota.timezone`, `quota.dimensions`, `quota.id`, `concurrency.limit`, `concurrency.ttl_seconds`, `concurrency.dimensions` |
-| OneMCP Features | session | `onemcp.dynamic_tools`, `onemcp.memory` |
+| OneMCP Features | session | `onemcp.dynamic_tools`, `onemcp.memory`, `tool_list.top_tools` (most-used tools listed), `tool_list.code` (`run_code` scripts); both `tool_list` effects are off unless a configuration turns them on |
 | Identity & Managed Authentication | session | `claims.forward`, `token.profile`, credential references |
 | Capability Cache & Isolation | session | `cache.mode`: `shared`, `tenant`, `private` or `none` |
 | Token Savings | response | `token_saving.smart_json_compression`, `html_to_text`, `markdown_to_text`, `text_compression` |

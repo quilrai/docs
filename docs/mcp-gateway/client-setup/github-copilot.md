@@ -138,7 +138,7 @@ For Quilr, use an explicitly approved automation identity and record its owner. 
 
 1. Connect as a normal allowed user, not only as a gateway administrator.
 2. Verify the gateway audit records show the expected tenant, backend, user, and client.
-3. List tools. OneMCP dynamic mode may expose router tools such as `list_mcp_connections`, `find_relevant_tools`, and `call_tool`; a short list does not necessarily mean upstream tools are missing.
+3. List tools. OneMCP dynamic mode may expose router tools such as `list_mcp_connections`, `find_relevant_tools`, and `call_tool`; a short list does not necessarily mean upstream tools are missing. Servers with [tool lists](../protect/tool-lists) on also send only their most-used tools, with the rest one search away.
 4. Perform one approved read-only operation against a test record the user is allowed to access. Verify its result against the upstream service.
 5. Test a user without access and confirm rejection. Confirm an unapproved tool is unavailable or blocked.
 6. Reconnect after restarting the client. Exercise token revocation and recovery in the pilot before documenting an operational procedure.

@@ -97,7 +97,7 @@ A rule can match on far more than the Access control card offers:
   then={[{ effect: "MCP access", value: "deny" }]}
 />
 
-The **OneMCP Features** card sits in the same Session stage. It turns OneMCP dynamic tools and memory on or off per caller. See [OneMCP](../get-started/onemcp).
+The **OneMCP Features** card sits in the same Session stage. It turns OneMCP dynamic tools and memory on or off per caller, and turns [tool lists](./tool-lists) (most-used tools listed, `run_code` scripts) on per server. See [OneMCP](../get-started/onemcp).
 
 ## Related
 

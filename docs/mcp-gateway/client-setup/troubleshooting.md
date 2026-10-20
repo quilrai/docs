@@ -46,7 +46,7 @@ After adding and authenticating the server:
 
 1. Confirm initialization completes and the tool catalog loads. Use the client's server logs/status panel if it fails.
 2. Ask for available Quilr connectors. `list_mcp_connections` reports connection state for visible MCPs.
-3. With dynamic tool calling on, use `find_relevant_tools` to discover a suitable read-only operation, then `call_tool` with its returned schema. With it off, select the prefixed upstream tool.
+3. With dynamic tool calling on, use `find_relevant_tools` to discover a suitable read-only operation, then `call_tool` with its returned schema. With it off, select the prefixed upstream tool. A server with [tool lists](../protect/tool-lists) on lists its most-used tools directly; call those by name.
 4. Complete any upstream sign-in or personal-key connection in the gateway dashboard, connector card, or returned connection flow. Re-run the original request afterwards.
 5. Check gateway logs for the expected employee, MCP, tool, policy result, and request time.
 
@@ -70,6 +70,7 @@ For raw authenticated protocol diagnostics, use a real MCP client or Inspector. 
 | Account has no organization or shows unexpected connectors | Sign-in identity or company-domain mapping | Confirm the company account used for sign-in and its configured email domain or alias in Quilr |
 | API token rejected | Wrong backend, missing/invalid `mcpuser`, domain or agent mismatch | Use the issuing server's direct endpoint; verify employee domain and selected agent |
 | Sign-in succeeds but tools are missing | Tool visibility, disabled server, user preference, access rule, or smart mode | Check OneMCP discovery tools, user-visible connectors, Allowed Agents and effective policies |
+| A server shows only a few tools | [Tool lists](../protect/tool-lists) are on for it: its most-used tools are listed and the rest are one search away | Search with `find_relevant_tools` and run with `call_tool`, or pin the tool in the server's **Tool list** settings. Nothing is blocked |
 | Tool says connection is needed | Upstream user credentials missing/expired | Connect that provider as the same user; a successful gateway login does not grant upstream access |
 | Client refuses a tool before a gateway log appears | Client tool approval or workspace policy | Check vendor tool permissions and managed allowlists |
 | Gateway policy denies a tool | Gateway access, tool visibility, guardrail, quota, or published policy | Inspect the denial reason and change only the intended administrative rule |

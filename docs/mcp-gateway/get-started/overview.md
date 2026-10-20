@@ -91,11 +91,11 @@ Each configured server has a card.
 | Header | Name, **System**, **Library** or **Local package** tag, slug and description |
 | Endpoints | **Quilr gateway** URL (copy it for clients) and the **Upstream** URL, with upstream p95 and failures |
 | Status | **Serving**, **Awaiting connection**, **No tools found** or **Disabled**, plus transport and auth |
-| Chips | **Tools**, **Guardrails**, **Scoped rules**, **Token saving**. Each opens that section. |
+| Chips | **Tools**, **Guardrails**, **Scoped rules**, **Token saving**, and **Tool list** once a [tool list](../protect/tool-lists) switch is on (for example **Most-used · -91%**). Each opens that section. |
 | Actions | **Show tools**, **Uninstall**, and the enable toggle |
 | Traffic | Calls over time, users, tokens saved, top tools |
 | **Inspect** | **Logs** (the server's activity), **Open in Inventory** |
-| **Configure** | **General**, **API** (API servers only), **Guardrails**, **Token Saving**, **Tools**, **Group & User Rules** |
+| **Configure** | **General**, **API** (API servers only), **Guardrails**, **Token Saving**, **Tool list** (remote servers), **Tools**, **Group & User Rules** |
 
 A server waiting for an administrator OAuth sign-in shows **Connect OAuth** on its card.
 
@@ -129,12 +129,13 @@ Sections vary by server. Edits are drafts until you click **Save settings**.
 | **Tools** | [Tool visibility](../protect/tool-visibility), [Human approval](../protect/human-approval), [Tool Change Watch](../protect/tool-change-watch) |
 | **Guardrails** | [Security Guardrails](../protect/security-guardrails) on tool arguments and tool results |
 | **Token saving** | [Token Saving](../protect/token-saving) strategies |
+| **Tool list** | [Tool lists](../protect/tool-lists): send the server's most-used tools and keep the rest one search away, optional `run_code` (remote servers only) |
 | **Input aliases** | [Input Aliases](../protect/input-aliases): translate mismatched inputs from AI clients |
 | **Group & User Rules** | [Group & User Rules](../protect/group-and-user-rules): overrides for a smart group or a single user |
 | **API tokens** | [API Tokens](../servers-and-connections/api-tokens) for direct connections (not on OAuth servers) |
 
 :::note Policy Engine
-When the [Policy Engine](../../console/govern/policy-engine) is on, Settings shows **Policy Engine active** and marks Tools, Guardrails, Token saving and Group & User Rules with its icon. Those sections follow published policies instead of these settings. General and API tokens are still managed here.
+When the [Policy Engine](../../console/govern/policy-engine) is on, Settings shows **Policy Engine active** and marks Tools, Guardrails, Token saving, Tool list and Group & User Rules with its icon. Those sections follow published policies instead of these settings. General and API tokens are still managed here.
 :::
 
 ![Tools section showing the Controlled by Policy Engine banner with View policies and Edit anyway, and the Policy Engine active badge with its revision](/img/mcp-gateway/ui/settings-policy-engine-banner.png)
