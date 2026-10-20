@@ -16,7 +16,7 @@ Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base 
 MCP endpoints, authentication methods, and connection examples for integrating AI agents with MCP Gateway.
 
 :::tip Administrator rollout guides
-For detailed prerequisites, organization controls, OAuth fields, and troubleshooting, start with [AI client setup](../client-setup/overview). Choose [GitHub Copilot](../client-setup/github-copilot), [Copilot Studio / Microsoft 365](../client-setup/copilot-studio), [Claude and Claude Code](../client-setup/claude), [Cursor](../client-setup/cursor), or [ChatGPT and Codex](../client-setup/openai).
+For detailed prerequisites, organization controls, OAuth fields, and troubleshooting, start with [AI client setup](../client-setup/overview). Choose [GitHub Copilot](../client-setup/github-copilot), [Copilot Studio / Microsoft 365](../client-setup/copilot-studio), [Claude and Claude Code](../client-setup/claude), [Cursor](../client-setup/cursor), [ChatGPT and Codex](../client-setup/openai), or [Gemini Enterprise and Gemini CLI](../client-setup/gemini).
 :::
 
 ## MCP Endpoint URL
