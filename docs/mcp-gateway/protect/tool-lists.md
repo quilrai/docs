@@ -128,11 +128,25 @@ A server is recommended when the short list saves at least 2,000 tokens per turn
 | **Est. saved (30 days)** | Tokens and cost not sent, or **/ month if turned on** for a server that is off. |
 | **Through search** | Share of short-list calls that went through `find_relevant_tools` and `call_tool`. **pin more** means the listed tools miss common work; pin the tools found most often. |
 
-Estimates count tool descriptions at about four characters per token, treat each tool call as one model turn, and price tokens at a reference rate of $3 per million input tokens.
+### Measured and estimated
+
+The savings figures are estimates built on real usage. They are not read from a model provider's bill.
+
+| Part | Source |
+|------|--------|
+| Which calls were made with a short list, and through search or `run_code` | **Measured**: counted from the gateway's tool call logs. |
+| Tool list size, full and short | **Measured** from the server's real tool descriptions, then converted to tokens at about four characters per token. |
+| Tokens not sent | **Estimated**: the per-turn cut times the calls made with a short list, treating each tool call as one model turn. A chat that makes several calls in one turn, or many turns without calls, saves more or less than this. |
+| Cost avoided | **Estimated** at a reference rate of $3 per million input tokens, not your provider's price or any caching it applies. |
+| Recommended and "if turned on" figures | **Projected** from the last 30 days of calls made with the full list. |
+
+Tool list savings show only in the places above. The **Tokens saved** figures on the MCP Gateway page and in Costs & Savings count [token saving](./token-saving) strategies.
 
 ## Going further with the Policy Engine
 
 When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **OneMCP Features** card (stage 1, Session) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). Pins always come from the server settings.
+
+![Tool list section marked with the Policy Engine icon, the Controlled by Policy Engine banner with View policies and Edit anyway, and the switches locked](/img/mcp-gateway/ui/settings-tool-list-policy-engine.png)
 
 The card has two effects for tool lists, both **Off** for everyone until a configuration turns them on:
 

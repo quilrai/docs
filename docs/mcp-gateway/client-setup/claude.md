@@ -131,7 +131,7 @@ Pilot the exact Claude Code release and launch surface you will distribute. A wo
 Use an ordinary employee account, an approved read-only tool, and a record the employee is allowed to access.
 
 1. Confirm Claude reports the connector connected, or Claude Code reports a healthy server after OAuth.
-2. Inspect available tools. OneMCP's dynamic mode can advertise routing tools such as `list_mcp_connections`, `find_relevant_tools`, and `call_tool`; it need not expose every upstream tool as a separate Claude tool.
+2. Inspect available tools. OneMCP's dynamic mode can advertise routing tools such as `list_mcp_connections`, `find_relevant_tools`, and `call_tool`; it need not expose every upstream tool as a separate Claude tool. Servers with [tool lists](../protect/tool-lists) on add their most-used tools directly.
 3. Ask: **List my available Quilr MCP connections. Do not modify anything.**
 4. If the selected upstream connection requires sign-in, complete it in Quilr. This is separate from signing Claude into the gateway.
 5. Ask for one authorized read operation and verify the returned record. Confirm the matching gateway event has the expected user, client, backend, and outcome.

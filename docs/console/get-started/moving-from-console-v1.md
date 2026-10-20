@@ -41,8 +41,8 @@ control surfaces, conversion review, simulation, replay and rollback.
    scope-by-scope changes.
 4. **Activate and change nothing.** Revision 1 is your current behaviour. Let
    it run for a few days.
-5. **Repeat for MCP Gateway.** Tools, Guardrails, Token saving and Group & User
-   Rules from each server arrive as sentences in the MCP Gateway cards.
+5. **Repeat for MCP Gateway.** Tools, Guardrails, Token saving, Tool list and
+   Group & User Rules from each server arrive as sentences in the MCP Gateway cards.
 6. **Add new controls on monitor**, then **replay before you enforce**.
 
 Full detail is in
