@@ -61,6 +61,8 @@ When dynamic tool calling is on, OneMCP returns a compact set of gateway tools:
 | `call_tool` | Calls a tool returned by `find_relevant_tools`. |
 | `quilr_platform_helper` | Tenant administrators only. Queries MCP Gateway usage and discovery data; with no arguments, returns a 7-day overview. |
 
+When an administrator turns on [tool lists](../protect/tool-lists) for a server, its most-used tools are also listed directly, named `<server-slug>_<tool>` (for example `mcp-query_llm_alert_scan`), and `run_code` is added when a server allows scripts. Tool lists are off by default, so without them the list is just the tools above.
+
 The usual flow is:
 
 1. Call `find_relevant_tools` with a short task description.

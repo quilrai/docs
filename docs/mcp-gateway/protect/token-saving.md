@@ -58,6 +58,8 @@ Token saving runs after guardrails, so detections are made on the full tool resu
 
 Set it with the **OneMCP endpoint** button in the MCP Gateway header, under **Dynamic tool calling** (**User preference**, **Always on** or **Always off**).
 
+To shorten the tool list itself, per server and on the server's own address too, see [Tool lists](./tool-lists): the server's most-used tools in full and every other tool one search away.
+
 ## Going further with the Policy Engine
 
 When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Token Savings** card (stage 4, Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). The card has one effect per strategy: **smart JSON compression**, **HTML to text**, **Markdown to text** and **text compression**.
@@ -85,6 +87,7 @@ The OneMCP side has its own card. **OneMCP Features** (stage 1, Session) sets On
 
 - [Group and user rules](./group-and-user-rules) - turn strategies on or off for a smart group or user.
 - [Security guardrails](./security-guardrails) - scan tool results before they are shortened.
+- [Tool lists](./tool-lists) - send a server's most-used tools and keep the rest one search away.
 - [OneMCP](../get-started/onemcp) - one endpoint with dynamic tool calling.
 - [LLM Gateway token saving](../../llm-gateway/cost-and-traffic/token-saving) - the shared compression methods.
 - [Policy Engine overview](../../console/govern/policy-engine) - how cards, stages and priorities work.
