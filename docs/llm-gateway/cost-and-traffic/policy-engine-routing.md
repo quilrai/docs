@@ -36,18 +36,17 @@ Every form adds to one shared draft. Nothing changes for live traffic until you 
 
 ## How a request is routed
 
-```mermaid
-flowchart LR
-    A["Request"] --> B["Allowed Models<br/>check"]
-    B -->|"rejected"| X["403<br/>model_access_denied"]
-    B --> C["Pinned<br/>conversation?"]
-    C -->|"yes"| P["Same model<br/>(cache warm)"]
-    C -->|"no or re-check"| D["Content routes<br/>(top of list first)"]
-    D -->|"match"| E["Route's<br/>destination"]
-    D -->|"no match"| F["Route to /<br/>Routing group"]
-    F -->|"match"| G["Targets or<br/>weighted split"]
-    F -->|"no match"| H["Requested<br/>model"]
-```
+<DecisionLadder
+  label="How a request is routed"
+  steps={[
+    { id: 'allowed', question: 'Allowed Models rejects the model?', yes: { label: '403 model_access_denied', tone: 'danger' } },
+    { id: 'pinned', question: 'Conversation already pinned?', hint: 'Unless the pin is re-checked', yes: { label: 'Same model', detail: 'Keeps the provider cache warm', tone: 'success' } },
+    { id: 'content', question: 'A content route matches?', hint: 'Top of the list first', yes: { label: "Route's destination", tone: 'info' } },
+    { id: 'route', question: 'Route to or a routing group matches?', yes: { label: 'Targets or weighted split', tone: 'accent' } },
+  ]}
+  fallback={{ label: 'Requested model', tone: 'neutral' }}
+  yesLabel="match"
+/>
 
 - **Content routes** are checked in list order. Higher in the list wins. A complexity setup counts as one route.
 - **Route to** and **Routing groups** decide only when no content route matches.
@@ -100,6 +99,8 @@ An ordered fallback list of provider credential and model pairs. The first targe
 Targets are skipped only when their credential is disabled or unavailable. An upstream error on target 1 is not retried on target 2.
 :::
 
+Targets can be in a different API family from the request. With [any-to-any formats](../api-reference/any-to-any-formats), a Responses or Anthropic Messages request can be sent to, say, GPT on Azure OpenAI or Claude on Bedrock. A target that is reachable only by conversion is used when no target of the request's own family is available, so a route that worked before keeps its destination. If no target can serve the request, it uses normal routing.
+
 ```text
 policy support_copilot_route priority 650 {
   request where application.group_key == "support-copilot"
@@ -127,6 +128,8 @@ Weights split new conversations, not requests: a conversation stays on the model
 ## Content routes
 
 Content routes send a conversation to a model based on what it contains. They all use one form, **Add a content route**: choose who it applies to, what to look for under **Match when**, then where it goes under **Send to** (**Ordered targets** or **Routing group**).
+
+A content route's destination follows the same [any-to-any](../api-reference/any-to-any-formats) rule as **Route to**: a target or group member from another API family is used when no same-family target is available, and a destination that cannot serve the request falls back to normal routing.
 
 ### Request is about (description routing)
 
@@ -265,14 +268,11 @@ Each content route has a **Conversation behaviour** (called **Switching** in the
 | **Upgrade when needed** (default for complexity) | Each message is checked; the conversation moves up a level when needed, never back down. | One cache rebuild per upgrade. "hi" > Low; hard question > High; "thanks" > stays High. |
 | **Re-check every message** | Each message routes on its own. With AI judging, that is an AI check per message. | Can switch model on any message, losing the cache each time. |
 
-```mermaid
-flowchart LR
-    M1["1: hi"] -->|"Low"| H["Haiku<br/>cache built"]
-    H --> M2["2: design a ledger"]
-    M2 -->|"upgrade to High"| O["Opus<br/>cache rebuilt once"]
-    O --> M3["3: thanks"]
-    M3 -->|"stays High"| O2["Opus<br/>cache hit"]
-```
+<StepFlow steps={[
+  { label: "Message 1: hi", items: ["Low", "Haiku", "Cache built"] },
+  { label: "Message 2: design a ledger", items: ["Upgrade to High", "Opus", "Cache rebuilt once"] },
+  { label: "Message 3: thanks", items: ["Stays High", "Opus", "Cache hit ✓"] },
+]} />
 
 How caching behaves per routing type:
 
@@ -340,7 +340,7 @@ curl -sD - -o /dev/null https://guardrails-usa-2.quilr.ai/openai_compatible/v1/c
 ## Rules and limits
 
 - The requested model must be allowed for the app. A name such as `auto` that only exists for routing is rejected with `model_access_denied` before routing runs unless the app's allowed models include it.
-- A destination must support the request's API. When it cannot (for example an OpenAI model for an Anthropic Messages request), those requests use normal routing and the editor warns before you publish.
+- A destination must be reachable from the request's API, natively or by [conversion](../api-reference/any-to-any-formats). When it is not (for example a pair that is [coming soon](../api-reference/any-to-any-formats#limits)), those requests use normal routing and the editor warns before you publish.
 - Two overlapping routing rules cannot share a priority.
 - **Upgrade when needed** is only for complexity routes. **Observe only** cannot be combined with a conversation behaviour.
 - **Request is about** cannot be negated, and its route can only set a destination.

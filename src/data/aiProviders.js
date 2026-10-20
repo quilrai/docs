@@ -123,7 +123,7 @@ export function buildDocPageAiPrompt(pageTitle, pageMarkdownUrl, {site, product}
     `- ${pageMarkdownUrl.replace(/\.md$/, '')} (the same page on the web)`,
   ];
   // Management API pages render their reference from the OpenAPI file
-  // (not Unified Completions or Log Export, which are separate APIs).
+  // (not Log Export, which is a separate API).
   if (site && /\/llm-gateway\/api-reference\/(management|apps-and-credentials|providers-and-configuration|prompts|policy)-api\b/.test(pageMarkdownUrl)) {
     lines.push(`- OpenAPI definition (every operation and schema): ${site}/openapi/llm-gateway-management-v1.json`);
   }

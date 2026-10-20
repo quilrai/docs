@@ -1,0 +1,313 @@
+---
+sidebar_position: 0.5
+sidebar_label: "Any-to-any formats"
+sidebar_custom_props:
+  badge: new
+  icon: ArrowLeftRight
+description: "Call any conversational provider from any client format (Chat Completions, Responses, Anthropic Messages, Gemini generateContent, Bedrock Converse and InvokeModel): native first, endpoint switch, adapter, or two-way translation, with guardrails and real usage billing on every path."
+aliases: [any to any, format translation, native passthrough, cross-format, api translation, use claude with openai sdk, use gpt with claude code]
+---
+
+import formatSupport from '@site/src/data/formatSupport';
+
+# Any-to-any formats
+
+**Keep the SDK you have, call the model you want.** The LLM Gateway accepts every major conversational API format and reaches every conversational provider from it: an OpenAI Agents SDK app on Responses can call Claude on Bedrock, Claude Code on Anthropic Messages can call GPT on Azure, and a Gemini SDK app can call OpenAI, all with no code change beyond the base URL and the model name.
+
+Your client keeps its own format end to end: requests, streams, tool calls, usage and errors all come back exactly as your SDK expects them.
+
+| Client format | Gateway path | Typical clients |
+|---|---|---|
+| OpenAI Chat Completions | `/openai_compatible/v1/chat/completions` | OpenAI SDKs, LangChain, LiteLLM, most frameworks |
+| OpenAI Responses | `/openai_responses/v1/responses` | OpenAI Agents SDK, Codex |
+| Anthropic Messages | `/anthropic_messages/v1/messages` | Anthropic SDKs, Claude Code |
+| Gemini generateContent | `/vertex_ai/...` | Google GenAI SDK, Vertex AI SDK |
+| Bedrock Converse | `/bedrock-runtime/model/{id}/converse` | boto3 `bedrock-runtime` |
+| Bedrock InvokeModel (Claude body) | `/bedrock-runtime/model/{id}/invoke` | boto3 `bedrock-runtime`, Anthropic Bedrock SDK |
+
+Combine a path with your [regional base URL](../get-started/integration-guide#region) and authenticate with your Quilr key as usual.
+
+## How the gateway reaches a provider
+
+After the gateway picks the provider and model (routing group, provider selector, Policy Engine route), it asks these questions in order. The first yes wins.
+
+<DecisionLadder
+  label="How a request reaches the selected provider"
+  steps={[
+    { id: 'native', question: 'Does the provider speak your format?', hint: 'Anthropic Messages to Anthropic, Responses to OpenAI', yes: { label: 'Native: forwarded as sent', detail: 'Nothing is converted', tone: 'success' } },
+    { id: 'switch', question: 'Does the same provider have an endpoint that speaks it?', hint: 'Responses to xAI, Messages to DeepSeek, Gemini to the Gemini API', yes: { label: 'Endpoint switch', detail: 'Same credential, body unchanged', tone: 'info' } },
+    { id: 'adapter', question: 'Is there a built-in Chat Completions adapter?', hint: 'Chat Completions to Bedrock Converse, Vertex Gemini or Anthropic', yes: { label: 'Adapter', detail: 'See Chat Completions adapters', tone: 'accent' } },
+    { id: 'translate', question: 'Can the request be converted without losing provider-held state?', hint: 'Responses to Claude on Bedrock, Messages to GPT on Azure', yes: { label: 'Translate both ways', detail: 'Request out, response back', tone: 'warning' } },
+  ]}
+  fallback={{ label: "Error in your client's format", tone: 'danger' }}
+/>
+
+Conversion happens only when the native path cannot serve the request. A request that worked before this release takes exactly the same path it always did.
+
+## Format explorer
+
+Pick what you send and where it goes, or click any cell in the matrix. Cells marked `*` depend on the model; pick the model family above the ladder.
+
+<FormatExplorer data={formatSupport} />
+
+## Native first: why it matters
+
+When the provider already speaks your format, the gateway forwards your request as sent and returns the provider's response as received. Nothing is rewritten, so:
+
+- **Every provider feature works**, including ones the gateway does not know about yet: new parameters, beta headers, stored conversations, hosted tools.
+- **Prompt caching is untouched.** The bytes the provider caches are the bytes you sent.
+- **Nothing is lost** in a round trip, and there is no conversion latency.
+
+Guardrails, logging, quotas and routing still run on native requests, as they always have.
+
+## Endpoint switch: same provider, the right endpoint
+
+Many providers expose more than one API with the same credential. When your format is not the provider's main one but the provider has an endpoint that speaks it, the gateway sends your request there unchanged. Only the URL and envelope change.
+
+| You send | Provider | Sent to |
+|---|---|---|
+| Responses | xAI | xAI `/v1/responses` |
+| Chat Completions | xAI (Responses type) | xAI `/v1/chat/completions` |
+| Anthropic Messages | DeepSeek | DeepSeek's Anthropic-compatible endpoint |
+| Gemini generateContent | Google Gemini API | Gemini API `generateContent`, same API key |
+| Chat Completions | Azure OpenAI with a `/openai/v1` base URL | Azure OpenAI v1 Chat Completions |
+| Chat Completions | Vertex AI, Model Garden open models | Vertex AI OpenAI-compatible chat |
+| Bedrock InvokeModel (Claude body) | Anthropic, Azure AI Foundry Anthropic, DeepSeek | Their Messages endpoint; only the Bedrock envelope changes |
+| Responses | AWS Bedrock, OpenAI models (gpt-oss) | Bedrock Mantle Responses, when the Runtime endpoint does not serve the model |
+| Anthropic Messages, Bedrock InvokeModel (Claude body) | xAI, Custom OpenAI-compatible | The provider's `/v1/messages` endpoint, only when the provider settings list Anthropic Messages (opt-in); otherwise translated to Chat Completions |
+
+An OpenAI or Azure OpenAI key also serves Responses requests directly, and a Responses-type key serves Chat Completions, so you no longer need a separate provider for each OpenAI API. The body is not converted, so every parameter you send reaches the provider; [Parameters when converting](#parameters) does not apply.
+
+## What is kept when converting
+
+This applies to every client format and provider on an adapter or translated pair. Parameter mapping is in [Parameters when converting](#parameters), and what comes back in [Responses you get back](#responses).
+
+| Area | Behaviour on adapter and translated pairs |
+|---|---|
+| Text, system prompts and history | Kept, including multi-turn conversations. |
+| Tools | Function and custom tools, tool choice and full tool loops, including parallel tool results. |
+| Streaming | Re-framed into your client's stream format (SSE events or the Bedrock event stream). |
+| Images and inline files | Carried and fitted to the provider's format on translated pairs. The Vertex AI and Anthropic Chat Completions adapters are text only; see [Limits](#limits). |
+| Prompt caching | Your cache markers are carried where the provider supports them (see [Parameters](#parameters)). Responses and Gemini clients, which cannot send markers, get cache breakpoints added automatically on Claude. |
+| Guardrails | Request-side checks (DLP, redaction, OCR, token saving, Guardian) run on your request in your format, before conversion. Response-side checks run on the converted-back response or stream, the same way they run on a native request in your format. |
+
+## Parameters when converting {#parameters}
+
+When a request is translated, each parameter is mapped to the target API's field, or dropped when the target has no equivalent. A dropped parameter is removed and the request still runs. Columns are the API the request is sent to (the explorer's wire line shows it for each pair):
+
+- **Chat Completions targets:** OpenAI, Azure OpenAI, Gemini API, xAI, Mistral, DeepSeek, custom OpenAI-compatible, Bedrock OpenAI models, Vertex AI Model Garden.
+- **Responses targets:** OpenAI and Azure OpenAI Responses-type keys and Responses-only models, xAI Responses.
+- **Anthropic targets:** Anthropic, Azure AI Foundry Anthropic, Claude on Bedrock InvokeModel.
+- **Gemini targets:** Gemini models on Vertex AI.
+- **Converse targets:** non-Claude models on AWS Bedrock (such as Nova).
+
+| Parameter | Chat Completions | Responses | Anthropic | Gemini | Converse |
+|---|---|---|---|---|---|
+| Max output tokens | `max_completion_tokens` | `max_output_tokens` | `max_tokens` (4096 when not set) | `maxOutputTokens` | `maxTokens` |
+| `temperature` | Mapped | Mapped | Capped at 1 (a) | Mapped | Capped at 1 |
+| `top_p` | Mapped | Mapped | Mapped (a) | Mapped | Mapped |
+| `top_k` | Dropped | Dropped | Mapped (a) | Mapped | Claude models only |
+| Stop sequences | Mapped (b) | Dropped | Mapped | Mapped | Mapped |
+| Frequency and presence penalty, `seed` | Mapped (b) | Dropped | Dropped | Mapped | Dropped |
+| `logit_bias` | Mapped (b) | Dropped | Dropped | Dropped | Dropped |
+| `logprobs` | Mapped | `top_logprobs` only | Dropped | Dropped | Dropped |
+| `n` above 1 | Mapped | Dropped | Dropped | `candidateCount` | Dropped |
+| Tools and tool choice | Mapped | Mapped | Mapped | Mapped | Mapped; a forced tool choice is dropped on models that accept only automatic |
+| Parallel tool calls switch | Mapped | Mapped | `disable_parallel_tool_use` | Dropped | Dropped |
+| JSON schema output | Mapped | `text.format` | Structured outputs | `responseJsonSchema` | `outputConfig` |
+| JSON mode (`json_object`) | Mapped | Mapped | Dropped | `application/json` | Dropped |
+| Reasoning effort or thinking | `reasoning_effort` (b) | `reasoning.effort`; a token budget is dropped | `thinking` (adaptive or budget) and effort | Thinking config | Claude models only |
+| End-user id (`user`, `metadata.user_id`) | `user` (not on Mistral) | `user` | `metadata.user_id` (not on Bedrock) | Dropped | Dropped |
+| Prompt-cache breakpoints | Not sent; `prompt_cache_key` is mapped | Not sent; `prompt_cache_key` is mapped | Up to 4 breakpoints | Not sent | Up to 4 `cachePoint` blocks |
+| Bedrock Converse options (`additionalModelRequestFields`, `performanceConfig` ...) | Dropped | Dropped | Dropped | Dropped | Mapped |
+| Other fields (`metadata`, `store`, `service_tier`, ...) | Dropped | Dropped | Dropped | Dropped | Dropped |
+
+Effort values are moved to the nearest value the target accepts. Streams sent to a Chat Completions target always ask for usage, so billing has it; a Chat Completions client gets the usage chunk only when it sets `stream_options.include_usage`. A Converse `guardrailConfig` sent to a non-Bedrock provider is dropped and the request still runs; QuilrAI guardrails on the app still apply (see [Limits](#limits)).
+
+Per-model rules, applied only to translated requests:
+
+- **(a) Claude:** combinations a Claude model rejects are dropped: `temperature` with `top_p` (`top_p` dropped), `temperature` other than 1 or `top_k` with thinking, and `temperature`, `top_p` and `top_k` on models that deprecate them.
+- **(b) OpenAI reasoning models:** sampling parameters, penalties and `logprobs` are dropped (unless reasoning is off), `stop` and `logit_bias` are dropped on Chat Completions, and the effort is fitted to what the model accepts.
+- **(b) xAI:** `logit_bias` is dropped on every model; reasoning models drop penalties and `stop`. Efforts: grok-4.3 takes `none` to `xhigh`, grok-4.5 and later `minimal` to `xhigh`, grok-4.20 and grok-build none.
+- **Mistral:** `seed` is sent as `random_seed`; `user`, `logit_bias`, `store`, `verbosity` and `safety_identifier` are dropped; `developer` messages become `system`; tool call ids are rewritten to Mistral's 9-character format; inline PDF parts are sent as Mistral documents. Codestral, Ministral and Voxtral models drop reasoning effort and `logprobs`.
+
+### Chat Completions adapters {#chat-completions-adapters}
+
+The adapter step takes a Chat Completions request on `/openai_compatible/v1/chat/completions` straight to a provider's own chat API, without the translator:
+
+| Provider type | Models | Upstream call | Images and files |
+|---|---|---|---|
+| `bedrock` | Models Bedrock serves through Converse (such as Nova) | Bedrock `Converse` / `ConverseStream` | Embedded (data URL) images and documents |
+| `vertex_ai` | Gemini models | Vertex AI `generateContent` / `streamGenerateContent` | Text only |
+| `anthropic_messages`, `anthropic_messages_azure` | Claude models | Anthropic Messages (direct or Azure AI Foundry) | Text only |
+| `anthropic_messages_bedrock` | Claude models | Bedrock `InvokeModel` with the Claude Messages body | Text only |
+
+On `bedrock`, a model that supports Bedrock's own OpenAI-compatible Chat Completions is called there natively; the Converse adapter serves the rest, application inference profiles, and requests that carry Converse options. Send the provider's own model name as `model`.
+
+Where the adapters differ from the table above:
+
+- **Unknown parameters are rejected, not dropped.** The adapters accept `max_tokens` / `max_completion_tokens`, `temperature`, `top_p`, `stop`, `tools`, `tool_choice`, `functions`, `parallel_tool_calls`, `response_format`, `stream_options`, `metadata`, `user` and `n` of 1. Vertex AI also accepts penalties and `seed`; Bedrock also accepts Converse options (such as `guardrailConfig` and `additionalModelRequestFields`), top level or in `extra_body`. Anything else, including `reasoning_effort`, `logprobs` and `logit_bias`, returns `unsupported_<provider>_openai_parameter` (`<provider>` is `bedrock`, `vertex` or `anthropic`).
+- **`response_format`:** Bedrock takes `json_schema` only, Vertex AI takes `json_object` and `json_schema` (the schema is reduced to what Gemini accepts), Anthropic takes `text` only.
+- **`parallel_tool_calls: false`** is accepted but not enforced. **`user`** is sent as `metadata.user_id` on Anthropic only.
+- **Tool calls** need an `id` on every `assistant.tool_calls` entry for Bedrock and Anthropic.
+- **Cache markers** (`cache_control`) become Converse `cachePoint` blocks on Bedrock and stay `cache_control` on Anthropic.
+- **Bedrock reasoning** comes back as `message.reasoning_content`, and the original Converse content as `message.bedrock_content` when it holds reasoning or citations, so the next turn can send it back.
+- **Validation errors** use the codes `unsupported_<provider>_openai_parameter`, `invalid_<provider>_openai_parameter`, `unsupported_<provider>_openai_content`, `invalid_<provider>_openai_messages` and `invalid_<provider>_openai_tools`.
+
+## Responses you get back {#responses}
+
+On every adapter and translated pair, the response is rebuilt in your client's format, streamed or not:
+
+| Area | What you get |
+|---|---|
+| Ids | Your format's usual id shape (`chatcmpl-`, `msg_`). Responses ids are minted by the gateway and start with `resp_qtx_`; they cannot be retrieved or chained (see [Limits](#limits)). |
+| Usage and billing | Token usage in your format's usage fields. Cost is always computed from the provider's own usage, never from the converted body. |
+| Finish reason | Mapped to your format's equivalent; see the table below. |
+| Streaming | Re-framed as your format's stream: Chat Completions chunks ending in `[DONE]`, Anthropic and Responses SSE events, Gemini chunks, or Bedrock event-stream frames. |
+| Reasoning | Returned in your format's reasoning field: Chat Completions `reasoning_content`, Responses reasoning items, Anthropic thinking blocks, Gemini thought parts, Converse `reasoningContent`. |
+| Errors | In your client's format with the provider's status code: a 429 stays a 429 with its retry headers. A stream that fails midway ends with your format's error event, never a fake success. Shapes and codes are in [Limits](#limits). |
+
+| Outcome | Chat Completions | Responses `status` | Anthropic `stop_reason` | Gemini `finishReason` | Converse `stopReason` |
+|---|---|---|---|---|---|
+| Finished | `stop` | `completed` | `end_turn` | `STOP` | `end_turn` |
+| Output token limit | `length` | `incomplete` (`max_output_tokens`) | `max_tokens` | `MAX_TOKENS` | `max_tokens` |
+| Tool call | `tool_calls` | `completed` | `tool_use` | `STOP` | `tool_use` |
+| Blocked by the provider's safety filter | `content_filter` | `incomplete` (`content_filter`) | `refusal` | `SAFETY` | `content_filtered` |
+
+## Limits and coming soon {#limits}
+
+Some features live inside one provider, such as a stored conversation or a hosted tool the provider runs. They work on native pairs. When converting, settings and tools the target cannot carry are dropped and the request still runs: the model answers without that tool or setting, and nothing else changes in the response you get back. State the conversation depends on, such as a stored conversation or a provider file, returns an error instead. This is the single list for every format; the explorer's cell notes point here.
+
+| Feature | When converting | Error code |
+|---|---|---|
+| Responses stored state: `previous_response_id`, `conversation`, stored `prompt`, item references, compaction items | Not supported. Works on native Responses pairs only. | `translation_unsupported_state` or `state_not_portable` |
+| Responses `background: true` | Dropped, request still runs. The request runs synchronously and the completed response is returned. | None |
+| Retrieve, cancel, delete or list input items of a converted response (ids starting `resp_qtx_`) | Not supported. Converted responses are not stored. | `response_not_found` (404) |
+| Hosted and server tool definitions: Responses `web_search`, `file_search`, `code_interpreter`, computer use, MCP, image generation, shell; Chat `web_search_options`; Anthropic server tools (web search, web fetch, code execution, MCP toolset, tool search); Gemini built-in tools (Google Search, code execution, URL context, file search, Maps) | Dropped, request still runs. The model answers without the hosted tool; your function tools are kept. A `tool_choice` that forces a dropped tool becomes `auto`. | None |
+| Hosted-tool history: earlier hosted tool calls and their results in the conversation | Dropped, request still runs. The call and result structures are removed; their readable text output (such as MCP results or code output) is kept in the conversation as plain text. | None |
+| Anthropic `container` and `mcp_servers` to providers outside the Anthropic family | Dropped, request still runs. | None |
+| Bedrock Converse `guardrailConfig` on non-Bedrock providers | Dropped, request still runs. QuilrAI guardrails on the app still apply. | None |
+| Anthropic-schema client tools (`bash`, `text_editor`, `computer`, `memory`) on non-Anthropic providers | Not supported. These tools use a schema only Claude understands. | `translation_unsupported_state` |
+| Provider file ids (OpenAI `file_id`, Anthropic Files API, Gemini Files URIs) | Not supported. The file lives in one provider account. | `state_not_portable` |
+| Gemini `cachedContent` on non-Google providers | Coming soon. Today returns an error. | `translation_unsupported_state` |
+| Bedrock InvokeModel with a Nova, Llama or Cohere body to a non-Bedrock provider | Coming soon. Works on Bedrock providers today. | Error in Bedrock format |
+| Office and scanned files (docx, xlsx, scanned PDF) to providers that cannot read them | Coming soon. Today the file is dropped with a warning. | None |
+| Anthropic document citations, `redacted_thinking`, Responses encrypted reasoning, Converse response image or document blocks, Chat `verbosity` | Dropped on cross-format pairs. | None |
+| Claude on Vertex AI, from any client format | Coming soon. Gemini and Model Garden models on Vertex AI work today. | - |
+| Claude models served only through Bedrock Mantle (such as Claude Mythos) | Coming soon. Other Claude models on Bedrock work today. | - |
+| Oracle OCI from other formats | Coming soon. Native OCI Chat Completions and Responses work today. | - |
+| Sarvam from other formats | Coming soon. Native Sarvam Chat Completions work today. | - |
+| Images and files on the Vertex AI and Anthropic [Chat Completions adapters](#chat-completions-adapters) (Chat Completions to Gemini on `vertex_ai` or Claude on `anthropic_messages*`) | Not supported. These adapters are text only; send images from another client format or use a native route. The Bedrock Converse adapter carries embedded images and documents. | `unsupported_<provider>_openai_content` |
+| Embeddings, rerank, audio, images, moderations, Realtime and Assistants | Never converted. These APIs are not conversational; call them on their own endpoints. | `provider_not_conversational` |
+
+Other errors you may see on a converted pair:
+
+| Error code | Meaning |
+|---|---|
+| `upstream_api_unsupported` | No endpoint of the selected provider can serve this request. |
+| `translation_unconvertible_request` | The request has a field or value that cannot be expressed in the provider's format. |
+| `translation_response_failed` (502) | The provider answered, but its response could not be converted back. |
+
+Error bodies follow your client's format:
+
+| Client format | Error shape |
+|---|---|
+| Chat Completions, Responses | `{"error": {"message", "type": "invalid_request_error", "code"}}` |
+| Anthropic Messages | `{"type": "error", "error": {"type": "invalid_request_error", "message"}}` |
+| Gemini | `{"error": {"code": 400, "message", "status": "INVALID_ARGUMENT"}}` |
+| Bedrock | `{"message"}` with header `x-amzn-ErrorType: ValidationException` |
+
+## How to tell which path ran
+
+- **`x-quilr-served-model`** on every response names the model that served it, and **`x-quilr-route`** the Policy Engine route (or `default`).
+- **Converted Responses ids** start with `resp_qtx_`. Native Responses ids keep the provider's own format.
+- **`count_tokens`** on Anthropic Messages returns the header `x-quilr-token-count-source: estimate` when the model sits behind a converted path and the count is a local estimate.
+- **Error codes** from the tables above name the reason a pair was refused.
+
+## Routing across formats
+
+Conversion happens after the gateway picks a provider, so it works with every routing feature:
+
+- **Routing groups can mix API families.** A Responses group can hold Claude on Bedrock next to GPT on Azure. The group needs at least one member of its own family; while any own-family member is usable, only those members take traffic, and the others are reached by conversion when they are not. See [Routing and fallbacks](../cost-and-traffic/routing-and-fallbacks#which-providers-a-group-can-mix).
+- **Policy Engine Route to and content routes** use a newly reachable target only when no target of the request's own family is available. If no target can serve the request, normal routing applies. See [Policy Engine routing](../cost-and-traffic/policy-engine-routing#route-to).
+- **A request that worked before keeps its target.** Any-to-any never moves working traffic; it only adds targets that were unreachable before.
+- **Conversation pinning** keeps a conversation on its first provider, whatever the format.
+- **Bedrock clients** (Converse, InvokeModel) reach a non-Bedrock provider when a routing group picks it (Converse only), when you select it with `X-Provider-Name` / `X-Provider-Label`, or when it is the only provider on the app with the model. Bedrock credentials always get the signed request unchanged.
+
+## Examples
+
+### OpenAI Agents SDK or Codex (Responses) to Claude on Bedrock
+
+App provider: Anthropic on AWS Bedrock (`anthropic_messages_bedrock`) with a Claude model enabled.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://guardrails-usa-2.quilr.ai/openai_responses/v1",
+    api_key="sk-quilr-xxx",
+)
+
+response = client.responses.create(
+    model="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    instructions="You are a concise assistant.",
+    input="Summarize the release in two sentences.",
+)
+print(response.output_text)
+```
+
+Tools, streaming and multi-turn input work. Keep the conversation in `input` rather than `previous_response_id`, since the conversation is not stored on Bedrock. Hosted tools such as Codex's web search are dropped on this pair, so the model answers without them.
+
+### Claude Code (Anthropic Messages) to GPT on Azure OpenAI
+
+App provider: Azure OpenAI with a GPT deployment enabled. Point Claude Code at the gateway and name the deployment as the model:
+
+```bash
+export ANTHROPIC_BASE_URL="https://guardrails-usa-2.quilr.ai/anthropic_messages"
+export ANTHROPIC_API_KEY="sk-quilr-xxx"
+export ANTHROPIC_MODEL="gpt-4.1"
+claude
+```
+
+Claude Code's tool loop and streaming come back in Anthropic format. Anthropic server tools such as web search are dropped on this pair, so the model answers without them (see [Limits](#limits)).
+
+### Google GenAI SDK (Gemini) to OpenAI
+
+App provider: OpenAI with `gpt-4.1-mini` enabled. Configure the Gemini client as in the [integration guide](../get-started/integration-guide#vertex-ai), then send the OpenAI model name:
+
+```python
+response = client.models.generate_content(
+    model="gpt-4.1-mini",
+    contents="Write a haiku about gateways.",
+)
+print(response.text)
+```
+
+### boto3 Converse to Mistral
+
+App provider: Mistral with `ministral-8b-latest` enabled, as the only provider on the app with that model.
+
+```python
+import boto3
+
+bedrock = boto3.client(
+    "bedrock-runtime",
+    endpoint_url="https://guardrails-usa-2.quilr.ai/bedrock-runtime",
+    aws_access_key_id="sk-quilr-xxx",
+    aws_secret_access_key="sk-quilr-xxx",
+    region_name="us-east-1",
+)
+
+response = bedrock.converse(
+    modelId="ministral-8b-latest",
+    messages=[{"role": "user", "content": [{"text": "Hello!"}]}],
+)
+print(response["output"]["message"]["content"][0]["text"])
+```
+
+## Related
+
+- [Provider support](../apps-and-providers/provider-support) - provider types, endpoints and credentials
+- [Routing and fallbacks](../cost-and-traffic/routing-and-fallbacks) - groups that mix providers
+- [Policy Engine routing](../cost-and-traffic/policy-engine-routing) - Route to and content routes
+- [Integration guide](../get-started/integration-guide) - base URLs and SDK setup
