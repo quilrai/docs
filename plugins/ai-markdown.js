@@ -17,11 +17,16 @@
  *     SOP pages synced into /sop/ (see plugins/install-sop.js).
  *   - Videos (<VideoEmbed id="..."/>, from src/data/videos.json) become a
  *     link to the video with its length and description.
+ *   - Diagrams whose content is a JS-literal prop: <DecisionLadder> becomes a
+ *     numbered list of its checks, <StepFlow> a numbered list of its steps,
+ *     and <FormatExplorer data={x} /> (x imported from src/data/) the ladder
+ *     plus a providers x formats table built from that data file.
  *
  * Plain CommonJS: loaded by Docusaurus plugins in Node.
  */
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const OPENAPI_PATH = '/openapi/llm-gateway-management-v1.json';
 const MAGIC = '(?:diff-add|diff-remove|highlight-next-line|highlight-start|highlight-end)';
@@ -183,8 +188,165 @@ function videoComponents(text) {
   });
 }
 
+// ── JSX components with JS-literal props ─────────────────────────────────
+
+// Index just past the balanced {...} starting at `i` (text[i] === '{'),
+// skipping over quoted strings and template literals.
+function skipBraces(text, i) {
+  let depth = 0;
+  for (; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"' || c === "'" || c === '`') {
+      for (i++; i < text.length && text[i] !== c; i++) if (text[i] === '\\') i++;
+      continue;
+    }
+    if (c === '{') depth++;
+    else if (c === '}' && --depth === 0) return i + 1;
+  }
+  throw new Error('Unbalanced braces in a JSX prop');
+}
+
+// Every self-closing <Name .../> in `text`: {start, end, props} where props maps
+// a prop name to {string} or {expr} (the source inside the braces).
+function findComponents(text, name) {
+  const found = [];
+  const open = new RegExp(`<${name}\\b`, 'g');
+  let m;
+  while ((m = open.exec(text))) {
+    const props = {};
+    let i = m.index + m[0].length;
+    for (;;) {
+      while (/\s/.test(text[i])) i++;
+      if (text.startsWith('/>', i)) {
+        i += 2;
+        break;
+      }
+      const attr = /^([A-Za-z_][\w-]*)(=?)/.exec(text.slice(i));
+      if (!attr) throw new Error(`Cannot parse <${name}> props near: ${text.slice(i, i + 40)}`);
+      i += attr[0].length;
+      if (!attr[2]) {
+        props[attr[1]] = {expr: 'true'};
+      } else if (text[i] === '{') {
+        const end = skipBraces(text, i);
+        props[attr[1]] = {expr: text.slice(i + 1, end - 1)};
+        i = end;
+      } else {
+        const q = text[i];
+        const end = text.indexOf(q, i + 1);
+        props[attr[1]] = {string: text.slice(i + 1, end)};
+        i = end + 1;
+      }
+    }
+    found.push({start: m.index, end: i, props});
+    open.lastIndex = i;
+  }
+  return found;
+}
+
+const evalExpr = (expr, scope = {}) => vm.runInNewContext(`(${expr})`, {...scope});
+const propValue = (prop, scope) => (!prop ? undefined : 'string' in prop ? prop.string : evalExpr(prop.expr, scope));
+
+function replaceComponents(text, name, render) {
+  const hits = findComponents(text, name);
+  let out = text;
+  for (const hit of hits.reverse()) out = out.slice(0, hit.start) + render(hit.props) + out.slice(hit.end);
+  return out;
+}
+
+// Loads a src/data/*.js module (an `export default` of plain JS, no imports).
+function loadDataModule(file) {
+  const source = fs.readFileSync(file, 'utf-8').replace(/^export default/m, 'module.exports =');
+  const sandbox = {module: {exports: {}}};
+  vm.runInNewContext(source, sandbox, {filename: file});
+  return sandbox.module.exports;
+}
+
+// The value an MDX `import x from '...'` binds, for data imports only.
+function importedData(fullText, ident, siteDir) {
+  const m = fullText.match(new RegExp(`^import\\s+${ident}\\s+from\\s+['"]([^'"]+)['"]`, 'm'));
+  if (!m) throw new Error(`No import for "${ident}"`);
+  let file = m[1].replace(/^@site\//, `${siteDir}/`);
+  if (!path.extname(file)) file += '.js';
+  if (/\.json$/.test(file)) return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  return loadDataModule(file);
+}
+
+const cellText = (t) => String(t).replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+
+function ladderMarkdown({steps = [], fallback, yesLabel = 'yes', label}) {
+  const lines = [`${label || 'Checks'} (in order, first match wins):`, ''];
+  steps.forEach((step, i) => {
+    const out = step.yes ? `${step.yes.label}${step.yes.detail ? ` (${step.yes.detail})` : ''}` : '';
+    lines.push(`${i + 1}. ${step.question}${step.hint ? ` (${step.hint})` : ''} -> ${yesLabel}: ${out}`);
+  });
+  if (fallback) lines.push(`${steps.length + 1}. None of the above -> ${fallback.label}${fallback.detail ? ` (${fallback.detail})` : ''}`);
+  return lines.join('\n');
+}
+
+function formatExplorerMarkdown(data) {
+  const modes = {...data.modes, soon: data.modes?.soon || {label: 'Coming soon'}};
+  const modeOf = (c) => (!c ? 'none' : c.soon || c.mode === 'soon' ? 'soon' : c.mode || 'none');
+  const one = (c) => {
+    const mode = modeOf(c);
+    const label = modes[mode]?.label || mode;
+    return mode === 'none' || mode === 'soon' || !c.wire ? label : `${label} (${c.wire})`;
+  };
+  const cell = (c) =>
+    c?.variants?.length ? c.variants.map((v) => `${v.when}: ${one(v)}`).join('; ') : one(c || {mode: 'none'});
+  const lines = [
+    ladderMarkdown({steps: data.ladder, fallback: data.fallback, label: 'How a client format reaches a provider'}),
+    '',
+    'Modes:',
+    '',
+    ...Object.entries(modes).map(([id, m]) => `- ${m.label}${m.description ? `: ${m.description}` : ''}`),
+    '',
+    'Format support by provider (rows: provider; columns: the format you send; cell: mode and the upstream API actually called):',
+    '',
+    `| Group | Provider | ${data.formats.map((f) => `${cellText(f.label)} (\`${f.endpoint}\`)`).join(' | ')} |`,
+    `|---|---|${data.formats.map(() => '---').join('|')}|`,
+  ];
+  for (const p of data.providers) {
+    const row = data.cells?.[p.id] || {};
+    lines.push(`| ${cellText(p.group || '')} | ${cellText(p.label)} | ${data.formats.map((f) => cellText(cell(row[f.id]))).join(' | ')} |`);
+  }
+  return lines.join('\n');
+}
+
+function diagramComponents(text, {siteDir, fullText}) {
+  let t = text;
+  if (/<DecisionLadder\b/.test(t)) {
+    t = replaceComponents(t, 'DecisionLadder', (props) =>
+      ladderMarkdown({
+        steps: propValue(props.steps),
+        fallback: propValue(props.fallback),
+        yesLabel: propValue(props.yesLabel),
+        label: propValue(props.label),
+      }),
+    );
+  }
+  if (/<StepFlow\b/.test(t)) {
+    t = replaceComponents(t, 'StepFlow', (props) =>
+      (propValue(props.steps) || [])
+        .map((step, i) => `${i + 1}. **${step.label}**${step.items?.length ? `: ${step.items.join('; ')}` : ''}`)
+        .join('\n'),
+    );
+  }
+  if (/<FormatExplorer\b/.test(t)) {
+    t = replaceComponents(t, 'FormatExplorer', (props) => {
+      const expr = props.data?.expr?.trim();
+      const data = /^[A-Za-z_$][\w$]*$/.test(expr || '')
+        ? importedData(fullText || text, expr, siteDir)
+        : propValue(props.data);
+      return formatExplorerMarkdown(data);
+    });
+  }
+  return t;
+}
+
 function cleanProse(text, ctx) {
-  let t = text
+  // Before imports are dropped: <FormatExplorer data={x} /> resolves x from them.
+  let t = diagramComponents(text, ctx);
+  t = t
     // MDX imports / exports of components (outside code fences only).
     .replace(/^import\s+(?:[\w*{}, \t]+\s+from\s+)?['"][^'"]+['"];?[ \t]*$/gm, '')
     // MDX comments and HTML comments (TODO and screenshot notes).
@@ -201,8 +363,9 @@ function cleanProse(text, ctx) {
  * @param {{site: string, siteDir: string}} ctx
  */
 function toAiMarkdown(content, ctx) {
+  const full = {...ctx, fullText: content};
   const out = segments(content).map((seg) =>
-    seg.code ? finalStateCode(seg.lines).join('\n') : cleanProse(seg.lines.join('\n'), ctx),
+    seg.code ? finalStateCode(seg.lines).join('\n') : cleanProse(seg.lines.join('\n'), full),
   );
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }

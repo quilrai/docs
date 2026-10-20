@@ -43,6 +43,7 @@ import {
   TrendingUp,
   Users,
   CalendarClock,
+  ArrowLeftRight,
 } from "lucide-react";
 
 const iconMap = {
@@ -89,6 +90,7 @@ const iconMap = {
   Cloud,
   Users,
   CalendarClock,
+  ArrowLeftRight,
 };
 
 export function getSidebarIcon(name) {

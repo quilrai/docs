@@ -12,6 +12,8 @@ import VideoEmbed from '@site/src/components/VideoEmbed';
 import ProductLanding from '@site/src/components/ProductLanding';
 import ZoomImage from '@site/src/components/ZoomImage';
 import InstallSop, {SopLink} from '@site/src/components/InstallSop';
+import DecisionLadder from '@site/src/components/DecisionLadder';
+import FormatExplorer from '@site/src/components/FormatExplorer';
 
 export default {
   ...MDXComponents,
@@ -31,4 +33,6 @@ export default {
   ProductLanding,
   InstallSop,
   SopLink,
+  DecisionLadder,
+  FormatExplorer,
 };
