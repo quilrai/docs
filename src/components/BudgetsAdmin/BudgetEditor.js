@@ -51,7 +51,14 @@ function amount(value, metric) {
   return Number(value);
 }
 
-export default function BudgetEditor({ api, id, run, version, onClose }) {
+export default function BudgetEditor({
+  api,
+  id,
+  run,
+  version,
+  onClose,
+  canEditPolicy = false,
+}) {
   const state = useLoad(
     () => (id ? api.getBudget(id) : Promise.resolve(null)),
     [api, id],
@@ -144,6 +151,7 @@ export default function BudgetEditor({ api, id, run, version, onClose }) {
     return output;
   }
   async function dryRun(remove = false) {
+    if (!canEditPolicy) return;
     const generation = ++previewGeneration.current;
     setError(null);
     setPreview(null);
@@ -165,6 +173,7 @@ export default function BudgetEditor({ api, id, run, version, onClose }) {
     }
   }
   async function publish() {
+    if (!canEditPolicy) return;
     const result = await run(
       () =>
         id
@@ -180,10 +189,14 @@ export default function BudgetEditor({ api, id, run, version, onClose }) {
       else state.reload();
     }
   }
-  const canEdit = !id || !!budget;
+  const canEdit = canEditPolicy && (!id || !!budget);
   return (
     <Panel
-      title={id ? `Edit budget · ${id}` : 'Create API-managed budget'}
+      title={
+        id
+          ? `${canEditPolicy ? 'Edit' : 'View'} budget · ${id}`
+          : 'Create API-managed budget'
+      }
       actions={
         <div className={styles.actions}>
           {id && (
@@ -207,6 +220,14 @@ export default function BudgetEditor({ api, id, run, version, onClose }) {
     >
       {id && <LoadState state={state} />}
       <ErrorView error={error} />
+      {!canEditPolicy && (
+        <>
+          <p className={styles.notice}>
+            This management key cannot edit budget policy.
+          </p>
+          {budget && <Json value={budget} />}
+        </>
+      )}
       {canEdit && (
         <>
           <p className={styles.muted}>

@@ -190,7 +190,7 @@ function GrantResult({ result }) {
   );
 }
 
-export default function Grants({ api, run, version, period }) {
+export default function Grants({ api, run, version, period, canGrant = false }) {
   const budgets = useLoad(() => api.allPages('listBudgets'), [api, version]);
   const [filter, setFilter] = useState({
     budget_id: '',
@@ -290,6 +290,7 @@ export default function Grants({ api, run, version, period }) {
   }
 
   async function createGrant() {
+    if (!canGrant) return;
     const response = await run(() => {
       const subject =
         subjectMode === 'json'
@@ -303,6 +304,7 @@ export default function Grants({ api, run, version, period }) {
   }
 
   async function bulkGrants() {
+    if (!canGrant) return;
     const response = await run(() => {
       const body = defaults();
       if (bulkMode === 'group') {
@@ -327,6 +329,7 @@ export default function Grants({ api, run, version, period }) {
   }
 
   async function patchGrant() {
+    if (!canGrant) return;
     const pinned = selected;
     setWriting(true);
     try {
@@ -356,6 +359,7 @@ export default function Grants({ api, run, version, period }) {
   }
 
   async function revokeGrant() {
+    if (!canGrant) return;
     const pinned = selected;
     setWriting(true);
     try {
@@ -491,7 +495,7 @@ export default function Grants({ api, run, version, period }) {
                       disabled={detailLoading || writing}
                       onClick={() => readGrant(row.id)}
                     >
-                      Manage grant
+                      {canGrant ? 'Manage grant' : 'View grant'}
                     </button>
                   ),
                 },
@@ -508,7 +512,7 @@ export default function Grants({ api, run, version, period }) {
 
       {(detailLoading || detailError || selected) && (
         <Panel
-          title="Extend, change or revoke a grant"
+          title={canGrant ? 'Extend, change or revoke a grant' : 'Grant details'}
           actions={
             <button
               type="button"
@@ -545,11 +549,18 @@ export default function Grants({ api, run, version, period }) {
                   Reload grant & reset draft
                 </button>
               </div>
-              <p className={styles.muted}>
-                Saving uses this version. A concurrent edit is shown as an API
-                conflict; reload explicitly to review the latest grant.
-              </p>
-              {terminal ? (
+              {canGrant && (
+                <p className={styles.muted}>
+                  Saving uses this version. A concurrent edit is shown as an API
+                  conflict; reload explicitly to review the latest grant.
+                </p>
+              )}
+              {!canGrant ? (
+                <p className={styles.notice}>
+                  This management key can read grants but cannot create, extend
+                  or revoke them.
+                </p>
+              ) : terminal ? (
                 <p className={styles.notice}>
                   This grant is {selected.grant.status}. Create a new grant for
                   the subject to replace it.
@@ -628,6 +639,11 @@ export default function Grants({ api, run, version, period }) {
 
       <Panel title="Create grants">
         <LoadState state={budgets} />
+        {!canGrant && (
+          <p className={styles.notice}>
+            This management key cannot create grants.
+          </p>
+        )}
         <p className={styles.muted}>
           Grants set an absolute effective limit for one budget bucket. Creating
           another grant for the same bucket supersedes the existing active
@@ -696,7 +712,7 @@ export default function Grants({ api, run, version, period }) {
             <MutationForm
               onSubmit={createGrant}
               submitLabel="Create grant"
-              disabled={!budget?.adjustments}
+              disabled={!canGrant || !budget?.adjustments}
             >
               <Field label="Subject type">
                 <select
@@ -745,7 +761,7 @@ export default function Grants({ api, run, version, period }) {
             <MutationForm
               onSubmit={bulkGrants}
               submitLabel="Create bulk grants"
-              disabled={!budget?.adjustments}
+              disabled={!canGrant || !budget?.adjustments}
             >
               <Field label="Subjects source">
                 <select

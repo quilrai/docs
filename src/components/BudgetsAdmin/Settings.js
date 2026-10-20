@@ -3,6 +3,7 @@ import {
   Badge,
   ErrorView,
   Field,
+  Freshness,
   Json,
   JsonEditor,
   LoadState,
@@ -20,9 +21,14 @@ const words = (text) =>
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
-const secondsUtc = (value) =>
-  new Date(value).toISOString().replace(/\.\d{3}Z$/, 'Z');
 const dollars = (value) => (value == null ? 'Unpriced' : `$${value}`);
+const rateText = (value) =>
+  typeof value === 'number'
+    ? value.toLocaleString('en-US', {
+        useGrouping: false,
+        maximumSignificantDigits: 21,
+      })
+    : value;
 const emptyRate = {
   provider: '',
   model: '',
@@ -41,7 +47,14 @@ const rateMeta = new Set([
   'priority',
 ]);
 
-function RateEditor({ api, run, pricing, selection, onClose }) {
+function RateEditor({
+  api,
+  run,
+  pricing,
+  selection,
+  onClose,
+  canEditPolicy = false,
+}) {
   const [form, setForm] = useState(emptyRate);
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState(null);
@@ -84,13 +97,14 @@ function RateEditor({ api, run, pricing, selection, onClose }) {
     if (!advanced || typeof advanced !== 'object' || Array.isArray(advanced))
       throw new Error('Advanced rate fields must be a JSON object.');
     const body = { ...advanced };
-    if (form.input !== '') body.input_usd_per_1m = Number(form.input);
-    if (form.output !== '') body.output_usd_per_1m = Number(form.output);
+    if (form.input !== '') body.input_usd_per_1m = form.input;
+    if (form.output !== '') body.output_usd_per_1m = form.output;
     if (form.providerLabel.trim())
       body.provider_label = form.providerLabel.trim();
     return body;
   };
   const check = async () => {
+    if (!canEditPolicy) return;
     const requestGeneration = ++generation.current;
     setBusy(true);
     setError(null);
@@ -133,7 +147,7 @@ function RateEditor({ api, run, pricing, selection, onClose }) {
       <MutationForm
         onSubmit={check}
         submitLabel="Preview rate change"
-        disabled={busy}
+        disabled={busy || !canEditPolicy}
       >
         <div className={styles.grid}>
           <Field label="Provider">
@@ -161,19 +175,17 @@ function RateEditor({ api, run, pricing, selection, onClose }) {
           </Field>
           <Field label="Input USD / 1M">
             <input
-              type="number"
-              min="0"
-              step="any"
-              value={form.input}
+              inputMode="decimal"
+              pattern="[0-9]{1,12}([.][0-9]{1,12})?"
+              value={rateText(form.input)}
               onChange={(event) => change('input', event.target.value)}
             />
           </Field>
           <Field label="Output USD / 1M">
             <input
-              type="number"
-              min="0"
-              step="any"
-              value={form.output}
+              inputMode="decimal"
+              pattern="[0-9]{1,12}([.][0-9]{1,12})?"
+              value={rateText(form.output)}
               onChange={(event) => change('output', event.target.value)}
             />
           </Field>
@@ -184,6 +196,12 @@ function RateEditor({ api, run, pricing, selection, onClose }) {
           onChange={(value) => change('advanced', value)}
           rows={5}
         />
+        <small>
+          Plain decimal strings preserve the amount you enter. Advanced fields
+          also accept them, for example{' '}
+          <code>{'{"cache_read_usd_per_1m":"0.15"}'}</code>. Token rates use
+          USD / 1M; tool fees use the units in their field names.
+        </small>
       </MutationForm>
       <ErrorView error={error} />
       {preview && (
@@ -193,8 +211,9 @@ function RateEditor({ api, run, pricing, selection, onClose }) {
           <button
             type="button"
             className={styles.primary}
-            disabled={busy || !preview.result.would_publish}
+            disabled={busy || !canEditPolicy || !preview.result.would_publish}
             onClick={async () => {
+              if (!canEditPolicy) return;
               setBusy(true);
               const result = await run(
                 () =>
@@ -215,7 +234,7 @@ function RateEditor({ api, run, pricing, selection, onClose }) {
   );
 }
 
-export function ModelsPanel({ api, run, version }) {
+export function ModelsPanel({ api, run, version, canEditPolicy = false }) {
   const state = useLoad(() => api.getPricing(), [api, version]);
   const [query, setQuery] = useState('');
   const [source, setSource] = useState('');
@@ -350,7 +369,9 @@ export function ModelsPanel({ api, run, version }) {
                     <>
                       <button
                         type="button"
+                        disabled={!canEditPolicy}
                         onClick={() => {
+                          if (!canEditPolicy) return;
                           const rate = rateFor(row);
                           setSelection({
                             ...row,
@@ -367,7 +388,9 @@ export function ModelsPanel({ api, run, version }) {
                       {rateFor(row) && (
                         <button
                           type="button"
+                          disabled={!canEditPolicy}
                           onClick={() =>
+                            canEditPolicy &&
                             run(
                               () =>
                                 api.deleteRate(row.provider, row.model, {
@@ -436,7 +459,9 @@ export function ModelsPanel({ api, run, version }) {
                       <div className={styles.actions}>
                         <button
                           type="button"
+                          disabled={!canEditPolicy}
                           onClick={() =>
+                            canEditPolicy &&
                             setSelection({
                               ...row,
                               rate: row,
@@ -448,7 +473,9 @@ export function ModelsPanel({ api, run, version }) {
                         </button>
                         <button
                           type="button"
+                          disabled={!canEditPolicy}
                           onClick={() =>
+                            canEditPolicy &&
                             run(
                               () =>
                                 api.deleteRate(row.provider, row.model, {
@@ -470,7 +497,7 @@ export function ModelsPanel({ api, run, version }) {
           </>
         )}
       </Panel>
-      {pricing && (
+      {pricing && canEditPolicy && (
         <>
           <RateEditor
             api={api}
@@ -478,6 +505,7 @@ export function ModelsPanel({ api, run, version }) {
             pricing={pricing}
             selection={selection}
             onClose={() => setSelection(null)}
+            canEditPolicy={canEditPolicy}
           />
           <Panel title="Unpriced models">
             <p>
@@ -485,9 +513,10 @@ export function ModelsPanel({ api, run, version }) {
               blocked. Inherit removes the explicit tenant-wide setting.
             </p>
             <MutationForm
-              disabled={busy}
+              disabled={busy || !canEditPolicy}
               submitLabel="Preview unpriced-model setting"
               onSubmit={async () => {
+                if (!canEditPolicy) return;
                 const requestGeneration = ++modeGeneration.current;
                 setBusy(true);
                 setModeError(null);
@@ -532,8 +561,11 @@ export function ModelsPanel({ api, run, version }) {
                 <button
                   type="button"
                   className={styles.primary}
-                  disabled={busy || !modePreview.result.would_publish}
+                  disabled={
+                    busy || !canEditPolicy || !modePreview.result.would_publish
+                  }
                   onClick={async () => {
+                    if (!canEditPolicy) return;
                     setBusy(true);
                     const result = await run(
                       () =>
@@ -557,9 +589,10 @@ export function ModelsPanel({ api, run, version }) {
   );
 }
 
-export function ExemptionsPanel({ api, run, version }) {
+export function ExemptionsPanel({ api, run, version, canEditPolicy = false }) {
   const state = useLoad(() => api.listExemptions(), [api, version]);
   const [query, setQuery] = useState('');
+  const [conflict, setConflict] = useState('');
   const [form, setForm] = useState({
     users: '',
     apps: '',
@@ -575,6 +608,23 @@ export function ExemptionsPanel({ api, run, version }) {
   const rows = (state.data?.items || []).filter((row) =>
     JSON.stringify(row).toLowerCase().includes(query.toLowerCase()),
   );
+  const publish = (write, message) => {
+    if (!canEditPolicy || state.loading || !state.data?.etag) return;
+    setConflict('');
+    return run(async () => {
+      try {
+        return await write(state.data.etag);
+      } catch (failure) {
+        if (failure.status === 412) {
+          setConflict(
+            'Exemptions changed since this list was loaded. Your change was not published. Reloading the latest list; review it before submitting again.',
+          );
+          state.reload();
+        }
+        throw failure;
+      }
+    }, message);
+  };
   return (
     <>
       <Panel
@@ -586,6 +636,9 @@ export function ExemptionsPanel({ api, run, version }) {
         }
       >
         <LoadState state={state} />
+        {conflict && (
+          <p className={styles.notice} role="alert">{conflict}</p>
+        )}
         <p>
           Review every policy exemption. Only API-managed exemptions can be
           removed here.
@@ -651,10 +704,12 @@ export function ExemptionsPanel({ api, run, version }) {
               render: (row) => (
                 <button
                   type="button"
-                  disabled={!row.managed}
+                  disabled={
+                    !row.managed || !canEditPolicy || state.loading || !state.data?.etag
+                  }
                   onClick={() =>
-                    run(
-                      () => api.deleteExemption(row.exemption_id),
+                    publish(
+                      (etag) => api.deleteExemption(row.exemption_id, { etag }),
                       'Exemption removed.',
                     )
                   }
@@ -666,106 +721,112 @@ export function ExemptionsPanel({ api, run, version }) {
           ]}
         />
       </Panel>
-      <Panel title="Add exemption">
-        <p>
-          Subject lists are comma separated. Leaving all three subject lists
-          empty applies the exemption to everyone.
-        </p>
-        <MutationForm
-          submitLabel="Create exemption"
-          onSubmit={() =>
-            run(() => {
-              const appliesTo = {};
-              if (words(form.users).length) appliesTo.users = words(form.users);
-              if (words(form.apps).length) appliesTo.apps = words(form.apps);
-              if (words(form.groups).length)
-                appliesTo.smart_groups = words(form.groups);
-              const body = {
-                quotas:
-                  form.quotas.trim().toLowerCase() === 'all'
-                    ? 'all'
-                    : words(form.quotas),
-                reason: form.reason.trim(),
-              };
-              if (Object.keys(appliesTo).length) body.applies_to = appliesTo;
-              if (form.kinds) body.kinds = [form.kinds];
-              if (words(form.families).length)
-                body.families = words(form.families);
-              if (form.expires) body.expires_at = secondsUtc(form.expires);
-              return api.createExemption(body);
-            }, 'Exemption created.')
-          }
-        >
-          <div className={styles.grid}>
-            <Field label="Users">
-              <input
-                placeholder="alice@example.com, bob@example.com"
-                value={form.users}
-                onChange={(event) => change('users', event.target.value)}
-              />
-            </Field>
-            <Field label="Apps">
-              <input
-                placeholder="App names"
-                value={form.apps}
-                onChange={(event) => change('apps', event.target.value)}
-              />
-            </Field>
-            <Field label="Smart groups">
-              <input
-                value={form.groups}
-                onChange={(event) => change('groups', event.target.value)}
-              />
-            </Field>
-            <Field label="Budget IDs or all">
+      {canEditPolicy && (
+        <Panel title="Add exemption">
+          <p>
+            Subject lists are comma separated. Leaving all three subject lists
+            empty applies the exemption to everyone.
+          </p>
+          <MutationForm
+            submitLabel="Create exemption"
+            disabled={state.loading || !state.data?.etag || !canEditPolicy}
+            onSubmit={() =>
+              publish((etag) => {
+                const appliesTo = {};
+                if (words(form.users).length) appliesTo.users = words(form.users);
+                if (words(form.apps).length) appliesTo.apps = words(form.apps);
+                if (words(form.groups).length)
+                  appliesTo.smart_groups = words(form.groups);
+                const body = {
+                  quotas:
+                    form.quotas.trim().toLowerCase() === 'all'
+                      ? 'all'
+                      : words(form.quotas),
+                  reason: form.reason.trim(),
+                };
+                if (Object.keys(appliesTo).length) body.applies_to = appliesTo;
+                if (form.kinds) body.kinds = [form.kinds];
+                if (words(form.families).length)
+                  body.families = words(form.families);
+                if (form.expires)
+                  body.expires_at = new Date(form.expires).toISOString();
+                return api.createExemption(body, { etag });
+              }, 'Exemption created.')
+            }
+          >
+            <div className={styles.grid}>
+              <Field label="Users">
+                <input
+                  placeholder="alice@example.com, bob@example.com"
+                  value={form.users}
+                  onChange={(event) => change('users', event.target.value)}
+                />
+              </Field>
+              <Field label="Apps">
+                <input
+                  placeholder="App names"
+                  value={form.apps}
+                  onChange={(event) => change('apps', event.target.value)}
+                />
+              </Field>
+              <Field label="Smart groups">
+                <input
+                  value={form.groups}
+                  onChange={(event) => change('groups', event.target.value)}
+                />
+              </Field>
+              <Field label="Budget IDs or all">
+                <input
+                  required
+                  value={form.quotas}
+                  onChange={(event) => change('quotas', event.target.value)}
+                />
+              </Field>
+              <Field label="Kinds">
+                <select
+                  value={form.kinds}
+                  onChange={(event) => change('kinds', event.target.value)}
+                >
+                  <option value="">All kinds</option>
+                  <option value="budget">budget</option>
+                  <option value="rate">rate</option>
+                </select>
+              </Field>
+              <Field label="Families (optional)">
+                <input
+                  value={form.families}
+                  onChange={(event) => change('families', event.target.value)}
+                />
+              </Field>
+              <Field label="Expires (local time, optional)">
+                <input
+                  type="datetime-local"
+                  step="0.001"
+                  value={form.expires}
+                  onChange={(event) => change('expires', event.target.value)}
+                />
+              </Field>
+            </div>
+            <Field label="Reason">
               <input
                 required
-                value={form.quotas}
-                onChange={(event) => change('quotas', event.target.value)}
+                maxLength={300}
+                value={form.reason}
+                onChange={(event) => change('reason', event.target.value)}
               />
             </Field>
-            <Field label="Kinds">
-              <select
-                value={form.kinds}
-                onChange={(event) => change('kinds', event.target.value)}
-              >
-                <option value="">All kinds</option>
-                <option value="budget">budget</option>
-                <option value="rate">rate</option>
-              </select>
-            </Field>
-            <Field label="Families (optional)">
-              <input
-                value={form.families}
-                onChange={(event) => change('families', event.target.value)}
-              />
-            </Field>
-            <Field label="Expires (local time, optional)">
-              <input
-                type="datetime-local"
-                value={form.expires}
-                onChange={(event) => change('expires', event.target.value)}
-              />
-            </Field>
-          </div>
-          <Field label="Reason">
-            <input
-              required
-              maxLength={300}
-              value={form.reason}
-              onChange={(event) => change('reason', event.target.value)}
-            />
-          </Field>
-        </MutationForm>
-      </Panel>
+          </MutationForm>
+        </Panel>
+      )}
     </>
   );
 }
 
-function Destinations({ api, run, version }) {
+function Destinations({ api, run, version, canEditPolicy = false }) {
   const state = useLoad(() => api.getDestinations(), [api, version]);
   const [rows, setRows] = useState([]);
   const [dirty, setDirty] = useState(false);
+  const [conflict, setConflict] = useState('');
   useEffect(() => {
     if (state.data) {
       setRows(
@@ -773,6 +834,7 @@ function Destinations({ api, run, version }) {
           ...row,
           target: '',
           redacted: row.target,
+          stored: true,
           localKey: row.id || index,
         })),
       );
@@ -797,6 +859,9 @@ function Destinations({ api, run, version }) {
       }
     >
       <LoadState state={state} />
+      {conflict && (
+        <p className={styles.notice} role="alert">{conflict}</p>
+      )}
       <p>
         Webhook targets are write only. Leave an existing target blank to
         preserve its secret. Publishing replaces the destination list; removing
@@ -805,21 +870,34 @@ function Destinations({ api, run, version }) {
       {state.data && (
         <MutationForm
           submitLabel="Publish destinations"
-          disabled={!dirty}
-          onSubmit={() =>
-            run(
-              () =>
-                api.putDestinations({
-                  destinations: rows.map((row) => ({
-                    ...(row.id ? { id: row.id } : {}),
-                    kind: 'webhook',
-                    enabled: row.enabled,
-                    ...(row.target.trim() ? { target: row.target.trim() } : {}),
-                  })),
-                }),
-              'Alert destinations updated.',
-            )
-          }
+          disabled={!dirty || !canEditPolicy || state.loading || !state.data.etag}
+          onSubmit={() => {
+            if (!canEditPolicy || state.loading || !state.data.etag) return;
+            setConflict('');
+            return run(async () => {
+              try {
+                return await api.putDestinations(
+                  {
+                    destinations: rows.map((row) => ({
+                      id: row.id,
+                      kind: 'webhook',
+                      enabled: row.enabled,
+                      ...(row.target.trim() ? { target: row.target.trim() } : {}),
+                    })),
+                  },
+                  { etag: state.data.etag },
+                );
+              } catch (failure) {
+                if (failure.status === 412) {
+                  setConflict(
+                    'Alert destinations changed since they were loaded. Your draft was not published. Reloading the latest destinations; review them and re-enter any changes before publishing.',
+                  );
+                  state.reload();
+                }
+                throw failure;
+              }
+            }, 'Alert destinations updated.');
+          }}
         >
           {rows.map((row, index) => (
             <div key={row.localKey} className={styles.panel}>
@@ -827,18 +905,19 @@ function Destinations({ api, run, version }) {
                 <Field
                   label={`Webhook ${index + 1}`}
                   hint={
-                    row.id
+                    row.stored
                       ? `ID: ${row.id}. Current: ${row.redacted}`
-                      : 'New destination; provide a full https URL.'
+                      : `New destination ${row.id}; provide a full https URL.`
                   }
                 >
                   <input
                     type="password"
                     autoComplete="new-password"
-                    required={!row.id}
+                    required={!row.stored}
+                    disabled={!canEditPolicy}
                     value={row.target}
                     placeholder={
-                      row.id
+                      row.stored
                         ? 'Keep existing target'
                         : 'https://alerts.example.com/webhook'
                     }
@@ -850,6 +929,7 @@ function Destinations({ api, run, version }) {
                 <label className={styles.check}>
                   <input
                     type="checkbox"
+                    disabled={!canEditPolicy}
                     checked={row.enabled}
                     onChange={(event) =>
                       change(index, 'enabled', event.target.checked)
@@ -860,7 +940,9 @@ function Destinations({ api, run, version }) {
                 <div className={styles.actions}>
                   <button
                     type="button"
+                    disabled={!canEditPolicy}
                     onClick={() => {
+                      if (!canEditPolicy) return;
                       setRows((current) =>
                         current.filter((_, position) => position !== index),
                       );
@@ -879,15 +961,18 @@ function Destinations({ api, run, version }) {
           <div className={styles.actions}>
             <button
               type="button"
-              disabled={rows.length >= 20}
+              disabled={!canEditPolicy || rows.length >= 20}
               onClick={() => {
+                if (!canEditPolicy) return;
+                const id = `webhook-${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
                 setRows((current) => [
                   ...current,
                   {
                     kind: 'webhook',
+                    id,
                     enabled: true,
                     target: '',
-                    localKey: `new-${Date.now()}-${Math.random()}`,
+                    localKey: id,
                   },
                 ]);
                 setDirty(true);
@@ -900,6 +985,71 @@ function Destinations({ api, run, version }) {
         </MutationForm>
       )}
     </Panel>
+  );
+}
+
+const isRecord = (value) =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+
+function changedFields(before, after, path = []) {
+  if (JSON.stringify(before) === JSON.stringify(after)) return [];
+  const objects = (isRecord(before) || before == null) &&
+    (isRecord(after) || after == null);
+  const keys = objects
+    ? [...new Set([
+        ...Object.keys(isRecord(before) ? before : {}),
+        ...Object.keys(isRecord(after) ? after : {}),
+      ])].filter((key) => !['truncated', 'changed'].includes(key) || path.length)
+    : [];
+  if (keys.length)
+    return keys.flatMap((key) =>
+      changedFields(before?.[key], after?.[key], [...path, key]),
+    );
+  return [{ field: path.join(' / ') || 'Record', before, after }];
+}
+
+function ChangeDiff({ before, after }) {
+  const truncated = before?.truncated || after?.truncated;
+  const rows = truncated ? [] : changedFields(before, after);
+  const value = (item) =>
+    item == null ? (
+      <small>Not set</small>
+    ) : isRecord(item) || Array.isArray(item) ? (
+      <Json value={item} />
+    ) : (
+      <span>{String(item)}</span>
+    );
+  return (
+    <>
+      {truncated ? (
+        <>
+          <p>
+            The API omitted field values because this change exceeded its diff
+            size limit.
+          </p>
+          {(after?.changed || before?.changed) && (
+            <>
+              <strong>Changed entries</strong>
+              <Json value={after?.changed || before?.changed} />
+            </>
+          )}
+        </>
+      ) : (
+        <Table
+          rows={rows}
+          empty="No field values were recorded for this event."
+          columns={[
+            { label: 'Field', key: 'field' },
+            { label: 'Before', render: (row) => value(row.before) },
+            { label: 'After', render: (row) => value(row.after) },
+          ]}
+        />
+      )}
+      <details>
+        <summary>Raw before / after</summary>
+        <Json value={{ before, after }} />
+      </details>
+    </>
   );
 }
 
@@ -978,8 +1128,8 @@ function History({ api, version, events = false }) {
             if (draft.type.trim()) query.type = draft.type.trim();
             if (draft.grant.trim()) query.grant_id = draft.grant.trim();
           } else {
-            if (draft.since) query.since = secondsUtc(draft.since);
-            if (draft.until) query.until = secondsUtc(draft.until);
+            if (draft.since) query.since = new Date(draft.since).toISOString();
+            if (draft.until) query.until = new Date(draft.until).toISOString();
           }
           setFilters(query);
           setCursors([null]);
@@ -1052,6 +1202,7 @@ function History({ api, version, events = false }) {
         </div>
       </MutationForm>
       <LoadState state={state} />
+      <Freshness data={data} />
       <ErrorView error={pagingError} />
       {data?.available === false && (
         <div className={styles.notice}>
@@ -1088,10 +1239,7 @@ function History({ api, version, events = false }) {
                 {
                   label: 'Change',
                   render: (row) => (
-                    <details>
-                      <summary>Before / after</summary>
-                      <Json value={{ before: row.before, after: row.after }} />
-                    </details>
+                    <ChangeDiff before={row.before} after={row.after} />
                   ),
                 },
               ]

@@ -130,6 +130,8 @@ export default function BudgetsAdmin() {
   const [key, setKey] = useState('');
   const [remember, setRemember] = useState(false);
   const [connection, setConnection] = useState(null);
+  const [caller, setCaller] = useState(null);
+  const [permissionsVerified, setPermissionsVerified] = useState(false);
   const [tab, setTab] = useState('budgets');
   const [period, setPeriod] = useState('current');
   const [version, setVersion] = useState(0);
@@ -156,6 +158,23 @@ export default function BudgetsAdmin() {
         : null,
     [connection],
   );
+  const inventory = useLoad(
+    () => (api ? api.allPages('listBudgets') : Promise.resolve(null)),
+    [api, version],
+  );
+  useEffect(() => {
+    if (inventory.data) {
+      setCaller(inventory.data.caller || null);
+      setPermissionsVerified(true);
+    } else if (inventory.error) {
+      setPermissionsVerified(false);
+    }
+  }, [inventory.data, inventory.error]);
+  const canRead = caller?.can_read === true;
+  const canGrant =
+    canRead && permissionsVerified && !inventory.error && caller?.can_grant === true;
+  const canEditPolicy =
+    canRead && permissionsVerified && !inventory.error && caller?.can_edit_policy === true;
   async function run(fn, message = 'Change saved.') {
     setError(null);
     setNotice('');
@@ -177,7 +196,7 @@ export default function BudgetsAdmin() {
     setConnecting(true);
     try {
       const next = createBudgetsClient({ baseUrl: url, key });
-      await next.listBudgets({ limit: 1 });
+      const initial = await next.listBudgets({ limit: 1 });
       if (generation !== connectGeneration.current) return;
       try {
         if (remember)
@@ -187,6 +206,8 @@ export default function BudgetsAdmin() {
         /* Connection still works without storage. */
       }
       setConnection({ url, key, id: generation });
+      setCaller(initial.caller || null);
+      setPermissionsVerified(true);
       setVersion((v) => v + 1);
     } catch (e) {
       if (generation === connectGeneration.current) setError(e);
@@ -198,6 +219,8 @@ export default function BudgetsAdmin() {
     connectGeneration.current += 1;
     setConnecting(false);
     setConnection(null);
+    setCaller(null);
+    setPermissionsVerified(false);
     setKey('');
     setRemember(false);
     setError(null);
@@ -206,7 +229,7 @@ export default function BudgetsAdmin() {
       sessionStorage.removeItem(storageKey);
     } catch {}
   }
-  const props = { api, run, version, period };
+  const props = { api, run, version, period, canGrant, canEditPolicy };
   return (
     <main className={styles.studio}>
       <header className={styles.hero}>
@@ -281,9 +304,9 @@ export default function BudgetsAdmin() {
         </label>
       </form>
       <p className={styles.muted}>
-        Requires budgets:read, budgets:grant and budgets:policy. Requests go
-        directly to the gateway. Credentials stay in memory unless you enable
-        tab session storage.
+        Requires budgets:read to view data. Grant and policy actions depend on
+        the key's permissions. Requests go directly to the gateway. Credentials
+        stay in memory unless you enable tab session storage.
       </p>
       <ErrorView error={error} />
       {notice && (
@@ -302,6 +325,9 @@ export default function BudgetsAdmin() {
         <>
           <div className={styles.toolbar}>
             <Badge>Connected · {connection.url}</Badge>
+            {caller && (
+              <Badge>Scopes: {caller.scopes?.join(', ') || 'None'}</Badge>
+            )}
             <Field label="Usage period">
               <select
                 value={period}
@@ -315,6 +341,24 @@ export default function BudgetsAdmin() {
               <RefreshCw size={13} /> Refresh
             </button>
           </div>
+          <LoadState state={inventory} />
+          {inventory.data && !canRead && (
+            <p className={styles.notice}>
+              This key cannot read budgets. Connect with a key that has
+              budgets:read.
+            </p>
+          )}
+          {canRead && (!permissionsVerified || inventory.error) ? (
+            <p className={styles.notice}>
+              Current permissions could not be verified. Refresh budgets before
+              making changes.
+            </p>
+          ) : canRead && (!canGrant || !canEditPolicy) && (
+            <p className={styles.notice}>
+              {!canGrant && 'Grant changes require budgets:grant. '}
+              {!canEditPolicy && 'Policy changes require budgets:policy.'}
+            </p>
+          )}
           {period === 'previous' && (
             <p className={styles.notice}>
               Previous-period usage shows base limits. Grants and configuration
@@ -337,10 +381,16 @@ export default function BudgetsAdmin() {
               </button>
             ))}
           </nav>
-          {tab === 'budgets' && <Budgets key={connection.id} {...props} />}
-          {tab === 'subjects' && <Subjects key={connection.id} {...props} />}
-          {tab === 'grants' && <Grants key={connection.id} {...props} />}
-          {['models', 'exemptions', 'alerts'].includes(tab) && (
+          {canRead && tab === 'budgets' && (
+            <Budgets key={connection.id} budgets={inventory} {...props} />
+          )}
+          {canRead && tab === 'subjects' && (
+            <Subjects key={connection.id} {...props} />
+          )}
+          {canRead && tab === 'grants' && (
+            <Grants key={connection.id} {...props} />
+          )}
+          {canRead && ['models', 'exemptions', 'alerts'].includes(tab) && (
             <Settings key={`${connection.id}-${tab}`} tab={tab} {...props} />
           )}
         </>
@@ -382,8 +432,7 @@ export default function BudgetsAdmin() {
   );
 }
 
-function Budgets({ api, run, version, period }) {
-  const budgets = useLoad(() => api.allPages('listBudgets'), [api, version]);
+function Budgets({ api, run, version, period, budgets, canEditPolicy }) {
   const summary = useLoad(
     () => api.getSummary({ period }),
     [api, version, period],
@@ -395,7 +444,6 @@ function Budgets({ api, run, version, period }) {
   const total = (field) => sums.reduce((n, r) => n + Number(r[field] || 0), 0);
   return (
     <>
-      <LoadState state={budgets} />
       <LoadState state={summary} />
       {budgets.data && (
         <>
@@ -412,6 +460,7 @@ function Budgets({ api, run, version, period }) {
             </span>
             <button
               type="button"
+              disabled={!canEditPolicy}
               onClick={() => {
                 setCreating(true);
                 setSelected('');
@@ -542,6 +591,7 @@ function Budgets({ api, run, version, period }) {
           api={api}
           run={run}
           version={version}
+          canEditPolicy={canEditPolicy}
           onClose={() => setCreating(false)}
         />
       )}
@@ -553,6 +603,7 @@ function Budgets({ api, run, version, period }) {
             api={api}
             run={run}
             version={version}
+            canEditPolicy={canEditPolicy}
             onClose={() => setSelected('')}
           />
           <BudgetUsage

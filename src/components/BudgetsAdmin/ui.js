@@ -82,6 +82,7 @@ export function Freshness({ data }) {
           <span>As of {data.as_of}</span>
         </>
       )}
+      {data.snapshot && <span>Snapshot: {data.snapshot}</span>}
       {data.period && <span>Period: {data.period}</span>}
       {data.window?.start && (
         <span>
@@ -135,6 +136,7 @@ export function MutationForm({
       className={styles.form}
       onSubmit={async (e) => {
         e.preventDefault();
+        if (disabled || busy) return;
         setBusy(true);
         try {
           await onSubmit();
@@ -203,6 +205,9 @@ export function Pager({ data, onNext, onReset }) {
           ? `${data.total} matching records`
           : 'Paginated results'}
       </small>
+      {data?.snapshot && (
+        <small>Rows may move between pages when usage changes.</small>
+      )}
       <button type="button" onClick={onReset}>
         First page
       </button>
