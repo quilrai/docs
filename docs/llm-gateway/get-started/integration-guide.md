@@ -50,7 +50,7 @@ Combine a region with a path, for example:
 https://guardrails-usa-2.quilr.ai/openai_compatible/
 ```
 
-Each path is served only by matching provider types on the app. For example, an `openai` provider cannot serve `/openai_responses/`; add an `openai_responses` provider. See the [capability matrix](../apps-and-providers/provider-support#capability-matrix).
+Pick the path that matches your SDK, not your provider: every conversational path reaches every conversational provider on the app, natively when the provider speaks that format and by conversion when it does not. See [any-to-any formats](../api-reference/any-to-any-formats) and the [capability matrix](../apps-and-providers/provider-support#capability-matrix).
 
 `sk-quilr-xxx` stands for your Quilr key. Copy it from the app's **API Integration** section (see [Applications and Keys](../apps-and-providers/applications-and-keys#api-integration)). The `model` you send must be enabled on the app.
 
@@ -138,7 +138,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
 
 ### Bedrock, Vertex AI and Anthropic through OpenAI-compatible chat
 
-Keep the OpenAI client and send a provider-native model name. The gateway translates the request to Bedrock `Converse`, Vertex AI `generateContent` or Anthropic Messages. This path is text-only; see [Unified Completions](../api-reference/unified-completions) for supported parameters, tools and streaming.
+Keep the OpenAI client and send a provider-native model name. The gateway translates the request to Bedrock `Converse`, Vertex AI `generateContent` or Anthropic Messages. See [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters) for supported parameters, content, tools and streaming. The same works from every other client format; see [any-to-any formats](../api-reference/any-to-any-formats).
 
 <Tabs>
 <TabItem value="bedrock" label="AWS Bedrock">
@@ -573,7 +573,7 @@ print(response["output"]["message"]["content"][0]["text"])
 
 ### OpenAI Responses
 
-App provider: `openai_responses` or `openai_responses_azure`. For Azure, send the deployment name as `model`.
+App provider: `openai`, `azureopenai`, `openai_responses` or `openai_responses_azure` natively, or any other conversational provider through [any-to-any formats](../api-reference/any-to-any-formats) (for example Claude on Bedrock). For Azure, send the deployment name as `model`.
 
 <Tabs groupId="lang">
 <TabItem value="python" label="Python">

@@ -80,26 +80,41 @@ Route by request size within one API surface. Pick a surface tab, then fill the 
 
 Request size is measured in words. Under the Policy Engine, size and AI-judged complexity are set as **Complexity levels** on the **Model routing** card; see [Policy Engine routing](./policy-engine-routing#complexity-routing). OpenAI Realtime sessions always use weighted routing.
 
-## Which surfaces a group can mix
+## Which providers a group can mix
 
-A group belongs to one API family. Providers in the same family can be mixed; providers from different families cannot, because their request and response formats differ.
+A group serves one API surface (its kind), but its members can come from any API family. With [any-to-any formats](../api-reference/any-to-any-formats), the gateway converts requests for members that do not speak the group's format, so a Responses group can hold Claude on Bedrock next to GPT on Azure OpenAI.
 
-| Group type | Endpoint | Providers you can combine |
-|------------|----------|---------------------------|
-| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock (Converse), Vertex AI Gemini, Anthropic Messages (direct, Bedrock, Azure), Anthropic (chat completions), DeepSeek, Gemini (chat completions), General LLM, Sarvam chat models |
+- **At least one member must be from the group's own family.** For example, a Responses group needs at least one provider that serves Responses natively.
+- **Own-family members are preferred.** While any of them is enabled and usable, only they take traffic, split by their weights. Members from other families serve when no own-family member can.
+- **Every member must be reachable** from the group's surface for its model. A pair that is not supported or is [coming soon](../api-reference/any-to-any-formats#limits) cannot be added.
+- **Realtime groups** stay within OpenAI Realtime and Azure OpenAI Realtime.
+
+| Group kind | Endpoint | Own family (serves natively) |
+|------------|----------|------------------------------|
+| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock, Anthropic (chat completions), DeepSeek, Gemini (chat completions), xAI, Mistral, Oracle, General LLM, Sarvam chat models; also the Chat adapters for Vertex AI Gemini and Anthropic Messages |
 | **Anthropic Messages** | `/anthropic_messages/v1/messages` | Anthropic, Bedrock (Anthropic), Azure Anthropic |
 | **Vertex AI** | `/vertex_ai/` | Vertex AI |
-| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI Responses, Azure OpenAI Responses |
+| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI, Azure OpenAI and their Responses types, xAI (Responses), Oracle (Responses) |
 | **OpenAI Realtime** | `/openai_realtime/v1/realtime` (wss) | OpenAI Realtime, Azure OpenAI Realtime |
 
-## Without a routing group
+## How the gateway picks a provider
 
-You do not need a group for the gateway to choose a provider. When a request names a real model and no provider selector:
+You do not need a group for the gateway to choose a provider. For every request, the gateway checks these in order; the first yes decides. Then it reaches the chosen provider [natively or by conversion](../api-reference/any-to-any-formats#how-the-gateway-reaches-a-provider).
 
-- If exactly one enabled provider serves that model, the gateway uses it.
-- If several enabled providers serve it, the gateway picks one at random for each request.
+<DecisionLadder
+  label="How the gateway picks a provider"
+  steps={[
+    { id: 'group', question: 'Is the model a routing group name?', hint: 'Weighted or token-based group', yes: { label: 'A group member', detail: 'By weight, own-family members first', tone: 'accent' } },
+    { id: 'selector', question: 'Does the request name a provider?', hint: 'provider, provider_label, X-Provider-Name or X-Provider-Label', yes: { label: 'That provider', tone: 'info' } },
+    { id: 'one', question: 'Does exactly one enabled provider serve the model?', yes: { label: 'That provider', tone: 'success' } },
+    { id: 'several', question: 'Do several enabled providers serve it?', yes: { label: 'One of them, at random', detail: 'Then kept for the conversation', tone: 'warning' } },
+  ]}
+  fallback={{ label: 'Error: the model is not on the app', tone: 'danger' }}
+/>
 
-For deterministic selection, send `provider`, `provider_label`, `X-Provider-Name` or `X-Provider-Label`.
+- A group choice and a random choice are made once per conversation and kept, so the provider's prompt cache stays warm. Disabling a provider, or repeated upstream errors, moves the conversation.
+- For deterministic selection, send `provider`, `provider_label`, `X-Provider-Name` or `X-Provider-Label`.
+- With the Policy Engine on, the **Model routing** card decides first; see [How a request is routed](./policy-engine-routing#how-a-request-is-routed).
 
 ## When a provider fails
 

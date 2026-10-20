@@ -10,6 +10,29 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Any-to-any API formats (2026-10-20)
+
+Call any conversational provider from the SDK you already use. The gateway now accepts Chat Completions, Responses, Anthropic Messages, Gemini generateContent and Bedrock Converse / InvokeModel requests and reaches every conversational provider from each of them.
+
+- Native first: when the provider speaks your format, the request is forwarded as sent, nothing converted
+- Otherwise, in order: an endpoint switch on the same credential (for example Responses on xAI, Messages on DeepSeek, Gemini on the Gemini API), the existing Chat Completions adapters, then two-way translation
+- Tools, streaming, structured output, images and inline files, and reasoning carry across; billing uses the provider's own token usage
+- Guardrails run on your request before conversion and on the converted-back response
+- Errors come back in your client's format; provider-only features such as stored Responses state and hosted tools stay on native pairs
+- Routing groups and Policy Engine routes can now mix API families, preferring the request's own family
+- Format explorer and full matrix: [Any-to-any formats](../api-reference/any-to-any-formats)
+
+## xAI and Mistral providers (2026-10-20)
+
+- New provider types `xai`, `xai_responses` and `mistral`, with an API key and a fixed endpoint
+- xAI: Chat Completions and Responses natively, plus images, videos, batches and files
+- Mistral: Chat Completions natively, plus embeddings, transcription, moderations, fill-in-the-middle, OCR, batches and files
+- Every other client format reaches both through any-to-any formats - see [Provider Support](../apps-and-providers/provider-support#xai-and-mistral)
+
+## Anthropic on Azure AI Foundry from every format (2026-10-20)
+
+- `anthropic_messages_azure` now serves Responses, Gemini and Bedrock clients as well as Anthropic Messages and Chat Completions
+
 ## OpenAI Realtime API
 
 Native websocket passthrough for OpenAI's Realtime API (voice and text).
