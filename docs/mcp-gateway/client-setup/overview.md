@@ -11,7 +11,7 @@ description: "Choose an MCP client, prepare gateway authentication and access, a
 
 Use this section to connect employee AI applications to Quilr MCP Gateway. Start with the exact product and runtime: GitHub Copilot in VS Code, GitHub's cloud agent, and Microsoft Copilot Studio have different configuration and authentication requirements.
 
-Client documentation was checked on **15 October 2026**. These guides describe vendor-documented setup and the gateway implementation; they are not a claim that every client version has passed a live interoperability test. Complete the pilot below for your deployed gateway and client version.
+Claude, ChatGPT, and Gemini documentation was checked on **20 October 2026**; the other client guides were checked on **15 October 2026**. These guides describe vendor-documented setup and the gateway implementation; they are not a claim that every client version has passed a live interoperability test. Complete the pilot below for your deployed gateway and client version.
 
 ## Choose a guide
 
@@ -21,6 +21,7 @@ Client documentation was checked on **15 October 2026**. These guides describe v
 | GitHub Copilot cloud agent / code review | [GitHub Copilot](./github-copilot) | Direct non-OAuth MCP with API-token headers; remote OAuth is unsupported by GitHub |
 | Microsoft Copilot Studio / Microsoft 365 delivery | [Copilot Studio](./copilot-studio) | Streamable HTTP and OAuth dynamic discovery; pilot required |
 | Claude web, Desktop, Cowork, Claude Code | [Claude](./claude) | Remote connector or CLI HTTP configuration; user OAuth |
+| Gemini Enterprise, Business edition, Gemini CLI | [Gemini](./gemini) | Manual OAuth fields for Enterprise; discovery and DCR for CLI |
 | Cursor | [Cursor](./cursor) | Remote URL in MCP configuration; user OAuth |
 | ChatGPT custom MCP / Codex local clients | [ChatGPT and Codex](./openai) | Separate hosted-plugin and local-client setup paths |
 | Another MCP client | [Authentication reference](./authentication) | Confirm transport, discovery, public-client auth, and token lifecycle compatibility |
@@ -62,7 +63,7 @@ Approving an integration for an organization does not sign in every user. Access
 
 1. In **Settings > AI Gateway > MCP Gateway**, install the required MCPs and verify their configuration. See [adding servers](../servers-and-connections/adding-mcp-servers).
 2. Configure shared upstream credentials or require personal credentials as appropriate. See [OAuth connections](../servers-and-connections/oauth-connect) and [provider setup](../provider-setup/overview).
-3. Permit the intended client in [Allowed Agents](../servers-and-connections/allowed-agents). Verify the actual client identity in gateway logs; a browser product name may differ from its MCP runtime's User-Agent.
+3. Permit the intended client in [Allowed Agents](../servers-and-connections/allowed-agents). Verify the actual client identity in gateway logs; a browser product name may differ from its MCP runtime's User-Agent. The Gemini connection described in this guide required a custom `google-adk` keyword; enabling the built-in `gemini` keyword alone did not cover it. See [Gemini agent access](./gemini#allow-the-gemini-runtime-in-quilr).
 4. Set [server access](../protect/server-access), [tool visibility](../protect/tool-visibility), and [group/user rules](../protect/group-and-user-rules), or the published policies used by your tenant.
 5. For OneMCP, choose **Dynamic tool calling** and **Memories enabled** according to your rollout requirements. See [OneMCP](../get-started/onemcp).
 6. Confirm that the pilot user can sign in to the gateway dashboard and connect the intended upstream service.
@@ -98,7 +99,9 @@ Workspace / organization:
 Gateway base URL (exact HTTPS hostname):
 MCP server URL (complete path):
 Endpoint type: OneMCP / direct MCP
-Authentication: OAuth dynamic registration / approved direct API token
+Authentication: OAuth dynamic registration / manual public OAuth client / approved direct API token
+Manual OAuth, if required: authorization URL, token URL, registered client ID, PKCE S256, client authentication none
+Observed User-Agent and allowed-agent rule:
 Client administrator contact:
 Quilr administrator contact:
 Allowed users / groups:

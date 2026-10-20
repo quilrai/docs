@@ -42,6 +42,27 @@ The client uses `/quilrone/mcp`. Quilr identifies the organization from the auth
 
 For **direct MCP**, start at `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/mcp` and follow its challenge and metadata. Gateway-managed flows generally use `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/authorize`, `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/token`, and `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/register`. OAuth-passthrough servers can advertise upstream issuer URLs and credentials instead. Do not construct manual values without inspecting that server's discovery response.
 
+### Manual fields for a direct MCP
+
+Use this table when the client requires explicit OAuth values, as in [Gemini Enterprise](./gemini). It applies to a **gateway-managed public client** whose registration returns `token_endpoint_auth_method: none`. Keep the backend path identical in every URL.
+
+| Field | Direct MCP value |
+| --- | --- |
+| MCP server URL | `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/mcp` |
+| Authorization URL | `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/authorize` |
+| Token URL | `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/token` |
+| Registration URL | `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/register` |
+| Gateway-managed client ID | `gateway-<backend-id-or-slug>`; confirm the registration response |
+| Client secret | None issued; leave blank where the client permits it |
+| Token endpoint client authentication | `none`; turn **Use HTTP Basic Auth** off |
+| PKCE | Enable **S256** when offered by the endpoint; Claude and ChatGPT send it automatically |
+
+For example, the `lucidchart` path on `https://mcpgateway.quilrai.com` returned client ID `gateway-lucidchart` and authentication method `none` when checked on **20 October 2026**. Its [discovery document](https://mcpgateway.quilrai.com/lucidchart/.well-known/oauth-authorization-server) advertises S256. The complete copyable values are in the [Gemini guide](./gemini#oauth-values-for-the-lucidchart-example).
+
+Use the registration response to choose client authentication even if discovery lists several supported methods. A server advertising `client_secret_basic` does not mean that a particular public client has a secret. PKCE is separate from client authentication: enabling PKCE does not require Basic Auth. Where the client asks, put the public `client_id` in the token request body.
+
+These values do not apply automatically to OAuth passthrough or a provider-issued client. If the client requires a secret for a registration that has none, resolve that compatibility requirement before rollout. Do not invent a secret or substitute an upstream provider credential. Advertising S256 also does not establish server-side PKCE enforcement; see the compatibility boundary below.
+
 ### Recommended client registration
 
 Choose **OAuth with discovery / dynamic client registration (DCR)** when the client offers it. Registration supplies a public client ID; the OneMCP flow does not issue a confidential-client secret. Do not invent a secret or reuse a gateway administrator token as a client secret.
@@ -65,7 +86,7 @@ Clients that offer published client identity / Client ID Metadata Documents (CIM
 Upstream OAuth refresh is separate: the gateway can refresh an upstream provider's token without giving the MCP client a refresh token.
 
 :::note Compatibility boundary
-Current OneMCP metadata advertises `S256`, but the downstream token exchange does not enforce the client's PKCE verifier or client-bound grants. It is not a full OpenID Connect provider. Do not describe this integration as fully OAuth 2.1/PKCE compliant, or promise compatibility with clients requiring those features, signed ID tokens, confidential-client authentication, or refresh grants. Escalate those requirements to the gateway operator before rollout.
+Current OneMCP metadata advertises `S256`, but the downstream token exchange does not enforce the client's PKCE verifier or client-bound grants. The direct MCP platform-sign-in path that returns a gateway proxy token also does not verify the client's PKCE challenge. This is separate from PKCE used for upstream provider authorization. It is not a full OpenID Connect provider. Do not describe this integration as fully OAuth 2.1/PKCE compliant, or promise compatibility with clients requiring those features, signed ID tokens, confidential-client authentication, or refresh grants. Escalate those requirements to the gateway operator before rollout.
 :::
 
 ## Callback URLs: which direction?
