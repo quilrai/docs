@@ -47,6 +47,7 @@ export const products = [
     tasks: [
       {title: 'Send your first request', desc: 'Create an app, copy its key, call the gateway', to: '/llm-gateway/get-started/quick-start'},
       {title: 'Connect a provider', desc: 'OpenAI, Anthropic, Azure, Bedrock, Vertex, OCI', to: '/llm-gateway/apps-and-providers/providers-and-models'},
+      {title: 'Any-to-any formats', desc: 'Compare client formats and provider support, and see how requests are converted', to: '/llm-gateway/api-reference/any-to-any-formats'},
       {title: 'Turn on guardrails', desc: 'Block or redact sensitive data and attacks', to: '/llm-gateway/protect/security-guardrails'},
       {title: 'Automate apps and keys', desc: 'Manage apps, keys and configuration with the Management API', to: '/llm-gateway/api-reference/management-api'},
     ],

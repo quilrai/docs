@@ -366,3 +366,76 @@
 @media (prefers-reduced-motion: reduce) {
   .cell { transition: none; }
 }
+
+/* The matrix uses a native modal dialog for viewport width and keyboard focus. */
+.matrixToolbar,
+.dialogToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.expandButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--docs-light-border-strong);
+  border-radius: 0.5rem;
+  background: var(--docs-light-surface);
+  color: var(--docs-light-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.expandButton:hover { background: var(--qd-brand-soft); }
+.expandButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.dialog {
+  width: calc(100vw - 2rem);
+  max-width: none;
+  height: calc(100dvh - 2rem);
+  max-height: none;
+  box-sizing: border-box;
+  padding: 1rem;
+  margin: auto;
+  border: 1px solid var(--docs-light-border-strong);
+  border-radius: 0.75rem;
+  background: var(--docs-light-surface);
+  color: var(--docs-light-text);
+}
+
+.dialog[open] { display: flex; flex-direction: column; }
+.dialog::backdrop { background: rgb(0 0 0 / 65%); }
+.dialogToolbar { margin-top: 0; justify-content: space-between; }
+.dialogToolbar h2 { margin: 0; font-size: 1rem; }
+.dialogHint { margin: 0.5rem 0 0; color: var(--qd-muted); }
+.dialog .legend { margin-top: 0.75rem; }
+.dialog .gridScroll { min-height: 0; overflow: auto; }
+.dialog .grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--docs-light-surface);
+}
+
+:global([data-theme="dark"]) .expandButton,
+:global([data-theme="dark"]) .dialog {
+  border-color: var(--docs-dark-border-strong);
+  background: var(--docs-dark-surface);
+  color: var(--docs-dark-text);
+}
+
+:global([data-theme="dark"]) .expandButton:hover { background: var(--qd-brand-soft); }
+:global([data-theme="dark"]) .dialog .grid thead th { background: var(--docs-dark-surface); }
+
+@media (max-width: 700px) {
+  .dialog { width: calc(100vw - 1rem); height: calc(100dvh - 1rem); padding: 0.75rem; }
+}

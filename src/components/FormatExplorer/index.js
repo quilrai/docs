@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Maximize2, X } from 'lucide-react';
 import DecisionLadder from '@site/src/components/DecisionLadder';
 import styles from './styles.module.css';
 
@@ -145,6 +146,22 @@ export default function FormatExplorer({ data }) {
   const modes = useMemo(() => withSoon(data?.modes || {}), [data]);
   const uid = useId();
   const pickerRef = useRef(null);
+  const dialogRef = useRef(null);
+  const expandRef = useRef(null);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!expanded) return undefined;
+    const dialog = dialogRef.current;
+    const originalOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.close();
+      document.body.style.overflow = originalOverflow;
+      expandRef.current?.focus({ preventScroll: true });
+    };
+  }, [expanded]);
 
   const [selection, setSelection] = useState(() => defaultSelection(data || {}));
   const [variantIndex, setVariantIndex] = useState(0);
@@ -200,66 +217,8 @@ export default function FormatExplorer({ data }) {
 
   if (!formats.length || !providers.length) return null;
 
-  return (
-    <div className={`${styles.explorer} not-prose`}>
-      <div className={styles.picker} ref={pickerRef}>
-        <div className={styles.sentence}>
-          <label htmlFor={`${uid}-from`}>I send</label>
-          <select
-            id={`${uid}-from`}
-            className={styles.select}
-            value={selection.from}
-            onChange={(e) => select({ from: e.target.value })}
-          >
-            {formats.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-          <label htmlFor={`${uid}-to`}>to</label>
-          <select
-            id={`${uid}-to`}
-            className={styles.select}
-            value={selection.to}
-            onChange={(e) => select({ to: e.target.value })}
-          >
-            {providers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {variants.length > 1 ? (
-          <div className={styles.variants} role="group" aria-label="Depends on the model">
-            <span className={styles.variantsLabel}>Depends on the model:</span>
-            {variants.map((v, i) => (
-              <button
-                type="button"
-                key={i}
-                className={`${styles.chip} ${i === variantIndex ? styles.chipOn : ''}`}
-                aria-pressed={i === variantIndex}
-                onClick={() => setVariantIndex(i)}
-              >
-                {v.when}
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        <div aria-live="polite">
-          <DecisionLadder
-            label={`How ${format?.label || 'this format'} reaches ${provider?.label || 'this provider'}`}
-            steps={data.ladder || []}
-            fallback={fallback}
-            active={activeStep}
-            activeDetail={<Detail format={format} outcome={outcome} cell={cell} modes={modes} />}
-          />
-        </div>
-      </div>
-
+  const matrix = (
+    <>
       <div className={styles.legend} aria-label="Legend">
         {Object.entries(modes).map(([id, m]) => (
           <span
@@ -323,7 +282,10 @@ export default function FormatExplorer({ data }) {
                             c.variants?.length ? ', depends on the model' : ''
                           }${c.gated ? ', off by default' : ''}${c.preview ? ', preview' : ''}`}
                           title={modes[mode]?.label || mode}
-                          onClick={() => select({ from: f.id, to: row.provider.id }, { scroll: true })}
+                          onClick={() => {
+                            setExpanded(false);
+                            select({ from: f.id, to: row.provider.id }, { scroll: true });
+                          }}
                         >
                           <span className={styles.sym} aria-hidden="true">
                             {SYMBOLS[mode] || '?'}
@@ -347,6 +309,110 @@ export default function FormatExplorer({ data }) {
           </tbody>
         </table>
       </div>
+    </>
+  );
+
+  return (
+    <div className={`${styles.explorer} not-prose`}>
+      <div className={styles.picker} ref={pickerRef}>
+        <div className={styles.sentence}>
+          <label htmlFor={`${uid}-from`}>I send</label>
+          <select
+            id={`${uid}-from`}
+            className={styles.select}
+            value={selection.from}
+            onChange={(e) => select({ from: e.target.value })}
+          >
+            {formats.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <label htmlFor={`${uid}-to`}>to</label>
+          <select
+            id={`${uid}-to`}
+            className={styles.select}
+            value={selection.to}
+            onChange={(e) => select({ to: e.target.value })}
+          >
+            {providers.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {variants.length > 1 ? (
+          <div className={styles.variants} role="group" aria-label="Depends on the model">
+            <span className={styles.variantsLabel}>Depends on the model:</span>
+            {variants.map((v, i) => (
+              <button
+                type="button"
+                key={i}
+                className={`${styles.chip} ${i === variantIndex ? styles.chipOn : ''}`}
+                aria-pressed={i === variantIndex}
+                onClick={() => setVariantIndex(i)}
+              >
+                {v.when}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div aria-live="polite">
+          <DecisionLadder
+            label={`How ${format?.label || 'this format'} reaches ${provider?.label || 'this provider'}`}
+            steps={data.ladder || []}
+            fallback={fallback}
+            active={activeStep}
+            activeDetail={<Detail format={format} outcome={outcome} cell={cell} modes={modes} />}
+          />
+        </div>
+      </div>
+
+      <div className={styles.matrixToolbar}>
+        <button
+          ref={expandRef}
+          type="button"
+          className={styles.expandButton}
+          aria-haspopup="dialog"
+          onClick={() => setExpanded(true)}
+        >
+          <Maximize2 size={15} aria-hidden="true" /> Expand table
+        </button>
+      </div>
+      {!expanded && matrix}
+      <dialog
+        ref={dialogRef}
+        className={styles.dialog}
+        aria-labelledby={`${uid}-matrix-title`}
+        onCancel={() => setExpanded(false)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            const rect = event.currentTarget.getBoundingClientRect();
+            if (event.clientX < rect.left || event.clientX > rect.right ||
+                event.clientY < rect.top || event.clientY > rect.bottom) {
+              setExpanded(false);
+            }
+          }
+        }}
+      >
+        <div className={styles.dialogToolbar}>
+          <h2 id={`${uid}-matrix-title`}>Format support by provider</h2>
+          <button
+            type="button"
+            className={styles.expandButton}
+            onClick={() => setExpanded(false)}
+            autoFocus
+          >
+            <X size={17} aria-hidden="true" /> Close table
+          </button>
+        </div>
+        <p className={styles.dialogHint}>Select a cell to return to its format and provider details.</p>
+        {expanded && matrix}
+      </dialog>
     </div>
   );
 }
