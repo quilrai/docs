@@ -13,11 +13,11 @@ Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base 
 
 Choose the runtime before configuring access. A hosted ChatGPT custom MCP integration and a local Codex MCP server definition are separate setup paths. Use the deployment base URL from your Quilr dashboard.
 
-**Documentation checked: 15 October 2026.** OpenAI product names and administration surfaces evolve. Follow the current official links if a menu has moved, and complete a deployment-specific pilot. This page does not claim a live interoperability test.
+**Documentation checked: 20 October 2026.** OpenAI product names and administration surfaces evolve. Follow the current official links if a menu has moved, and complete a deployment-specific pilot. This page does not claim a live interoperability test.
 
 ## ChatGPT hosted custom MCP integration
 
-The current official flow starts at [ChatGPT Plugins](https://chatgpt.com/plugins): select **+ > Add custom MCP server**, enter a name and description, choose the public endpoint connection, configure authentication, then **Create as a plugin**. Review the discovered tools, install the result, and select it with `@` in a new conversation. Account and workspace policies control availability. [OpenAI connection and testing guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
+The current official flow starts at [ChatGPT Plugins](https://chatgpt.com/plugins): select **+ > Add custom MCP server**, enter a name and description, choose the public endpoint connection, configure authentication, acknowledge the displayed warning, then **Create as a plugin**. Review the discovered tools, install the result, and select it with `@` in a new conversation. Account and workspace policies control availability. [OpenAI connection and testing guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
 | Field | Quilr configuration |
 | --- | --- |
@@ -30,13 +30,20 @@ The current official flow starts at [ChatGPT Plugins](https://chatgpt.com/plugin
 
 Use `/quilrone/mcp` on your assigned gateway hostname. Complete user sign-in; Quilr resolves the organization from that account. Then connect any upstream services that require personal authorization.
 
+For a single gateway-managed MCP, use its direct URL instead. The verified Lucidchart example is `https://mcpgateway.quilrai.com/lucidchart/mcp`; use the same discovery/DCR flow. Keep manual client ID and secret fields unset when using DCR so registration supplies the public client. If selecting a preconfigured client, use the [gateway-issued values](./authentication#manual-fields-for-a-direct-mcp), not Lucidchart's upstream application credentials.
+
+ChatGPT uses authorization-code OAuth with **S256 PKCE automatically** and expects discovery to advertise S256. The gateway registration in this guide uses client authentication `none`, with no secret or HTTP Basic Auth. Client configuration does not establish server-side PKCE enforcement; review the [gateway compatibility boundary](./authentication#scopes-refresh-and-token-format). [OpenAI OAuth requirements](https://developers.openai.com/plugins/build/auth).
+
 ### Workspace administrator tasks
 
-1. Confirm that the intended workspace allows adding and using a custom MCP integration. If the add action is missing, resolve the account role/workspace policy through the current OpenAI administration documentation.
+1. In **Workspace apps** and **Permissions & roles**, confirm that the intended roles can add and use the integration. If the add action is missing, resolve the workspace permission before proceeding. See [OpenAI enterprise plugin controls](https://learn.chatgpt.com/docs/enterprise/apps-and-connectors).
 2. Use a pilot audience and approved tool set. A descriptive name does not restrict access; configure the actual permissions in Quilr.
 3. Confirm that the hosted runtime can reach the gateway's public HTTPS endpoint and OAuth metadata. A private corporate browser route is not enough.
 4. Test fresh authentication and a read-only operation with two different users. Verify their separate identities in gateway logs.
-5. Review write-tool confirmation behavior and any workspace distribution controls before wider sharing.
+5. Review **Action control** and **App permissions** where available. Limit actions to the intended operations and review confirmation behavior. These client controls are separate from Quilr's server/tool access rules.
+6. To distribute the tested plugin, a workspace admin opens **Plugins > Personal**, selects its three-dot menu, then **Publish** and the permitted workspace roles. Review **Share plugins** and **Publish plugins to workspace** permissions for the intended distribution method. This publishes within the workspace; it is not public-directory publication. Users need the plugin installed, either individually or by an administrator, and must complete any required account connection. See [workspace publication](https://developers.openai.com/plugins/build/plugins#publish-a-local-plugin-to-your-workspace) and [sharing permissions](https://learn.chatgpt.com/docs/build-plugins#share-the-plugin-with-your-team).
+
+Custom MCP integrations can expose read and write tools; they do not require tools named `search` and `fetch`. Write actions require confirmation by default, and tools without `readOnlyHint` are treated as write actions. Account for that when testing OneMCP's generic `call_tool`, and validate an actual permitted operation. [OpenAI custom MCP behavior](https://developers.openai.com/api/docs/guides/custom-mcp-server).
 
 OpenAI also documents Secure MCP Tunnel for private servers. That is a separate networking integration, not something this guide configures or verifies. An externally reachable Quilr deployment does not require a tunnel. [OpenAI endpoint requirements](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 

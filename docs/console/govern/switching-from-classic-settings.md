@@ -55,7 +55,9 @@ suppress a block on another.
 ### What the MCP Gateway conversion compares
 
 Tenant-wide Smart Mode and Memory, plus each backend's access, capabilities,
-tool controls, request and response DLP, scoped overrides, token saving, claims
+tool controls, request and response DLP, scoped overrides, token saving, tool
+lists (a server with **List most-used tools** or **Add Code mode** on becomes a
+`tool_list.top_tools` / `tool_list.code` configuration), claims
 and cache behaviour, Web Search and managed-auth presence. Capability-source
 fallbacks and unconvertible categories are attention items.
 
@@ -92,7 +94,7 @@ The governed sections of the settings screens lock and show **Controlled by Poli
 | Gateway | Locked once the engine is on | Still managed in Settings |
 |---|---|---|
 | LLM Gateway | Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving, Routing, Identity Aware (identity and conversation ID requirements), Prompt Store (store-prompt enforcement) | Applications, keys, providers and credentials, custom detections, alerts, self-service, audit |
-| MCP Gateway | Tools, Guardrails, Token saving, Group & User Rules per server | Server register, connections, OneMCP operation, API tokens |
+| MCP Gateway | Tools, Guardrails, Token saving, Tool list, Group & User Rules per server | Server register, connections, OneMCP operation, API tokens |
 
 The LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card.
 

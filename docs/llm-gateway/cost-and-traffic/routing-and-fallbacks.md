@@ -3,7 +3,7 @@ sidebar_position: 1
 sidebar_label: "Routing and fallbacks"
 sidebar_custom_props:
   icon: Route
-description: "Weighted, token-based and custom routing for LLM Gateway apps, what happens when a provider fails or is disabled, and Policy Engine routing."
+description: "Weighted, token-based and custom routing for LLM Gateway apps, and what happens when a provider fails or is disabled."
 aliases: [routing]
 ---
 
@@ -78,28 +78,43 @@ Route by request size within one API surface. Pick a surface tab, then fill the 
 | Vertex AI | |
 | Bedrock Runtime | Converse and ConverseStream only. InvokeModel stays direct. |
 
-Request size is measured in words. Under the Policy Engine the thresholds are set on the **Routing Groups & Fallbacks** card (see below). OpenAI Realtime sessions always use weighted routing.
+Request size is measured in words. Under the Policy Engine, size and AI-judged complexity are set as **Complexity levels** on the **Model routing** card; see [Policy Engine routing](./policy-engine-routing#complexity-routing). OpenAI Realtime sessions always use weighted routing.
 
-## Which surfaces a group can mix
+## Which providers a group can mix
 
-A group belongs to one API family. Providers in the same family can be mixed; providers from different families cannot, because their request and response formats differ.
+A group serves one API surface (its kind), but its members can come from any API family. With [any-to-any formats](../api-reference/any-to-any-formats), the gateway converts requests for members that do not speak the group's format, so a Responses group can hold Claude on Bedrock next to GPT on Azure OpenAI.
 
-| Group type | Endpoint | Providers you can combine |
-|------------|----------|---------------------------|
-| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock (Converse), Vertex AI Gemini, Anthropic Messages (direct, Bedrock, Azure), Anthropic (chat completions), DeepSeek, Gemini (chat completions), Mistral AI, xAI, General LLM, Sarvam chat models |
+- **At least one member must be from the group's own family.** For example, a Responses group needs at least one provider that serves Responses natively.
+- **Own-family members are preferred.** While any of them is enabled and usable, only they take traffic, split by their weights. Members from other families serve when no own-family member can.
+- **Every member must be reachable** from the group's surface for its model. A pair that is not supported or is [coming soon](../api-reference/any-to-any-formats#limits) cannot be added.
+- **Realtime groups** stay within OpenAI Realtime and Azure OpenAI Realtime.
+
+| Group kind | Endpoint | Own family (serves natively) |
+|------------|----------|------------------------------|
+| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock, Anthropic (chat completions), DeepSeek, Gemini (chat completions), xAI, Mistral, Oracle, General LLM, Sarvam chat models; also the Chat adapters for Vertex AI Gemini and Anthropic Messages |
 | **Anthropic Messages** | `/anthropic_messages/v1/messages` | Anthropic, Bedrock (Anthropic), Azure Anthropic |
 | **Vertex AI** | `/vertex_ai/` | Vertex AI |
-| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI Responses, Azure OpenAI Responses, xAI Responses |
+| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI, Azure OpenAI and their Responses types, xAI (Responses), Oracle (Responses) |
 | **OpenAI Realtime** | `/openai_realtime/v1/realtime` (wss) | OpenAI Realtime, Azure OpenAI Realtime |
 
-## Without a routing group
+## How the gateway picks a provider
 
-You do not need a group for the gateway to choose a provider. When a request names a real model and no provider selector:
+You do not need a group for the gateway to choose a provider. For every request, the gateway checks these in order; the first yes decides. Then it reaches the chosen provider [natively or by conversion](../api-reference/any-to-any-formats#how-the-gateway-reaches-a-provider).
 
-- If exactly one enabled provider serves that model, the gateway uses it.
-- If several enabled providers serve it, the gateway picks one at random for each request.
+<DecisionLadder
+  label="How the gateway picks a provider"
+  steps={[
+    { id: 'group', question: 'Is the model a routing group name?', hint: 'Weighted or token-based group', yes: { label: 'A group member', detail: 'By weight, own-family members first', tone: 'accent' } },
+    { id: 'selector', question: 'Does the request name a provider?', hint: 'provider, provider_label, X-Provider-Name or X-Provider-Label', yes: { label: 'That provider', tone: 'info' } },
+    { id: 'one', question: 'Does exactly one enabled provider serve the model?', yes: { label: 'That provider', tone: 'success' } },
+    { id: 'several', question: 'Do several enabled providers serve it?', yes: { label: 'One of them, at random', detail: 'Then kept for the conversation', tone: 'warning' } },
+  ]}
+  fallback={{ label: 'Error: the model is not on the app', tone: 'danger' }}
+/>
 
-For deterministic selection, send `provider`, `provider_label`, `X-Provider-Name` or `X-Provider-Label`.
+- A group choice and a random choice are made once per conversation and kept, so the provider's prompt cache stays warm. Disabling a provider, or repeated upstream errors, moves the conversation.
+- For deterministic selection, send `provider`, `provider_label`, `X-Provider-Name` or `X-Provider-Label`.
+- With the Policy Engine on, the **Model routing** card decides first; see [How a request is routed](./policy-engine-routing#how-a-request-is-routed).
 
 ## When a provider fails
 
@@ -112,7 +127,7 @@ The gateway fails over automatically. When the primary model or provider fails, 
 
 A request blocked by a guardrail is not failed over; the client gets the guardrail response for the app's action.
 
-Weighted groups pick the model whose actual share is furthest below its weight, so traffic converges on the configured split rather than being random per request. The gateway records the routing group and mode with each request in its logs; it does not add a response header naming the provider that served it.
+Weighted groups pick the model whose actual share is furthest below its weight, so traffic converges on the configured split rather than being random per request. The gateway records the routing group and mode with each request in its logs, and every response carries `x-quilr-served-model` (the model that served it) and `x-quilr-route` (`default`, or the Policy Engine route id).
 
 ## Call a routing group
 
@@ -140,30 +155,15 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
 
 ## Going further with the Policy Engine
 
-Routing is also the **Routing Groups & Fallbacks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Routing tab freezes and the card decides where requests go; converted app groups are scoped with **Requested model** set to the group name. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+When the Policy Engine is on for the LLM Gateway, the app's Routing tab freezes and the **Model routing** card in **Policy Engine > LLM Gateway** decides where requests go. Converted app groups are scoped with **Requested model** set to the group name. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
-The card decides in this order: [Allowed Models](../protect/gateway-access-and-allowed-models) filters what may be used, then the highest-priority **Route to** (first target with an enabled credential, failing over to the next target in order), then the highest-priority **Routing group** (weighted split), then the app's provider default.
+The card adds what app settings cannot:
 
-| Section | What it does | Applies on | Empty state |
-|---|---|---|---|
-| **Route to** | An ordered fallback list of provider credential and model pairs, whatever model the client asked for. Drag the handle or use the arrow keys to reorder targets. | `bedrock`, `chat`, `responses`, `vertex` | Requests keep the model they asked for. |
-| **Routing groups** | A weighted split across models. Weights total 100. | `bedrock`, `chat`, `realtime`, `responses`, `vertex` | No split. |
-| **Complexity thresholds** | Word counts that classify a prompt Low, Medium or High for the **Prompt complexity** scope. Thresholds cannot themselves be scoped by Prompt complexity. | `bedrock`, `chat`, `responses`, `vertex` | 6 words or fewer are Low, 7 to 10 Medium, longer High. |
-
-A policy routing group has these settings:
-
-| Setting | Options | Default |
-|---|---|---|
-| Name | Text, required. A policy-only alias. | - |
-| Kind | Chat completion, Anthropic messages, Vertex AI, Responses, Realtime, Bedrock (the API shape the group serves) | Chat completion |
-| Mode | Split by requests, Split by tokens | Split by requests |
-| Models | **Add model** per provider credential and model, each with a weight. **Balance evenly** splits the weights equally. | - |
-
-Scenarios the card supports that app settings cannot:
-
-- **Failover for one app.** Route Support Copilot to `openai_primary / gpt-4.1`, falling back to `azureopenai_primary / gpt-4.1` when the first target fails or its credential is disabled.
-- **Cheap model for short prompts, tenant-wide.** Route requests whose Prompt complexity is Low to a smaller model, and tune what counts as short with **Complexity thresholds**.
-- **Different routes per group or environment.** Scope a route or group to People, a Smart group, App tag, Requested model, Provider, API surface, Environment, Prompt text, Tool or Source network. Highest priority wins where scopes overlap.
+- **Route to:** an ordered list of provider and model targets for an app or group, whatever model the client asked for.
+- **Content routes:** pick the model by what the request is about (AI matches a description you write), the data detected, prompt complexity, words in the prompt, or the coding tool that sent it.
+- **Complexity routing:** small, medium and large models by AI-judged difficulty or by length only.
+- **Conversation pinning and Keep prompt cache warm:** keep each conversation on one model so provider prompt caches hit.
+- **Scopes:** People, Smart group, App tag, Requested model, Provider, API surface, Environment, Prompt text, Tool or Source network.
 
 <PolicyCard
   name="cheap_short_prompts"
@@ -173,10 +173,11 @@ Scenarios the card supports that app settings cannot:
   then={[{ effect: "Route to", value: "openai_primary / gpt-4.1-mini", tone: "info" }]}
 />
 
-Rejected models on the Allowed Models card still win over a route or group target. A routing group name on the card is a policy-only alias and never affects a live app routing group with the same name.
+Rejected models on the Allowed Models card still win over a route or group target. Setup, screenshots and caching behaviour: [Policy Engine routing](./policy-engine-routing).
 
 ## Related
 
+- [Policy Engine routing](./policy-engine-routing)
 - [Providers and models](../apps-and-providers/providers-and-models)
 - [Provider support](../apps-and-providers/provider-support)
 - [Gateway access and allowed models](../protect/gateway-access-and-allowed-models)

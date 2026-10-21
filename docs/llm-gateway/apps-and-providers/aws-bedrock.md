@@ -1,6 +1,7 @@
 ---
 sidebar_position: 4
 sidebar_label: "AWS Bedrock"
+description: "Connect AWS Bedrock to the LLM Gateway with an IAM role and call Bedrock models through the gateway with boto3 or any supported client format."
 sidebar_custom_props:
   icon: KeyRound
 ---
@@ -258,7 +259,7 @@ If the first call succeeds, the trust policy is missing the ExternalId condition
 
 This mode is for applications that already use `bedrock-runtime` directly and want to keep AWS request shapes such as `converse`, `converse_stream`, and `invoke_model`.
 
-If your application uses OpenAI-compatible clients, you can use the same `bedrock` provider key with `/openai_compatible/v1/chat/completions` instead. QuilrAI translates the OpenAI-compatible chat request to Bedrock `Converse`, so OpenAI SDKs and wrappers can call selected Bedrock models without boto3. See [Unified Completions](../api-reference/unified-completions) for the compatibility contract.
+If your application uses OpenAI-compatible clients, you can use the same `bedrock` provider key with `/openai_compatible/v1/chat/completions` instead. Models that support Bedrock's own OpenAI-compatible Chat Completions are called there natively, and the rest go through the Converse adapter, so OpenAI SDKs and wrappers can call selected Bedrock models without boto3. See [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters) for the compatibility contract. Responses, Anthropic Messages and Gemini clients can call Bedrock models too, and boto3 `converse` can reach providers outside Bedrock; see [any-to-any formats](../api-reference/any-to-any-formats).
 
 ### What is supported
 

@@ -113,7 +113,7 @@ The key is an ordinary gateway credential, so everything in the main gateway doc
 |-------------|------|
 | Find your base URL and see examples for other SDKs and languages | [Integration Guide](../get-started/integration-guide) |
 | Know which providers, endpoints, and API shapes the app supports | [Provider Support](../apps-and-providers/provider-support) |
-| Call OpenAI, Anthropic, Bedrock, and Vertex through one request format | [Unified Completions](../api-reference/unified-completions) |
+| Call any provider from the SDK you already use (OpenAI, Anthropic, Gemini or Bedrock format) | [Any-to-any formats](../api-reference/any-to-any-formats) |
 | Target a routing group or pick a provider on a multi-provider key | [Request Routing](../cost-and-traffic/routing-and-fallbacks) |
 | Scan content from your code without proxying an LLM call | [SDK Mode](../apps-and-providers/sdk-mode) |
 
@@ -179,7 +179,7 @@ If your admin runs an [LLM Intelligence Assessment](../../red-teaming/assessment
 | A request was blocked or came back redacted | A guardrail fired. Check the **Findings** tab for the category and action - see [Security Guardrails](../protect/security-guardrails). |
 | Rate limit or token limit errors from the gateway | The app's [Rate and Token Limits](../cost-and-traffic/rate-token-and-budget-limits) are being hit. Request a change if the limit is too tight for your workload. |
 | The model is not the one you asked for | The app routes that model name through a routing group - see [Request Routing](../cost-and-traffic/routing-and-fallbacks). |
-| The model does not accept your request shape | Check what the provider and endpoint support in [Provider Support](../apps-and-providers/provider-support) and [Unified Completions](../api-reference/unified-completions). |
+| The model does not accept your request shape | Check what the provider and endpoint support in [Provider Support](../apps-and-providers/provider-support) and the format explorer in [Any-to-any formats](../api-reference/any-to-any-formats#format-explorer). |
 | A change request sits at `stale` | The app's config moved after you submitted. Reopen the editor and resubmit - see [Audit Log](../monitor/app-audit-log#change-requests). |
 
 ## Related
@@ -195,7 +195,8 @@ If your admin runs an [LLM Intelligence Assessment](../../red-teaming/assessment
 - [Quick Start](../get-started/quick-start) - the four steps to a working call.
 - [Integration Guide](../get-started/integration-guide) - endpoint URLs and code examples per SDK.
 - [Provider Support](../apps-and-providers/provider-support) - providers, endpoints, and API formats.
-- [Unified Completions](../api-reference/unified-completions) - one request format across providers.
+- [Any-to-any formats](../api-reference/any-to-any-formats) - any client format to any provider.
+- [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters) - the adapters for Bedrock, Vertex AI and Anthropic in detail.
 - [SDK Mode](../apps-and-providers/sdk-mode) - scan content from your code without proxying an LLM call.
 
 **Settings you can request**

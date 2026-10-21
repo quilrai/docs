@@ -10,7 +10,7 @@ aliases: [mistral, mistral ai, xai, grok, codestral, voxtral, grok imagine]
 
 # Mistral AI and xAI Grok
 
-Mistral AI and xAI (Grok) are direct providers. You paste one API key and the gateway calls the vendor's own API. Your code keeps using a Quilr key and the standard gateway endpoints, so there is no Mistral- or xAI-specific path or model prefix.
+Mistral AI and xAI (Grok) are direct providers. You paste one API key and the gateway calls the vendor's own API. Your code keeps using a Quilr key and the standard gateway endpoints, so there is no Mistral- or xAI-specific path or model prefix. Clients on other formats (Responses, Anthropic Messages, Gemini, Bedrock) reach both through [any-to-any formats](../api-reference/any-to-any-formats).
 
 | Provider type | Console tile and API | Upstream | What one key serves |
 |---------------|----------------------|----------|---------------------|
@@ -47,7 +47,8 @@ Use a [regional base URL](../get-started/integration-guide#region) and your Quil
 | What you want | Endpoint | Mistral | xAI | Example model |
 |---------------|----------|:-------:|:---:|---------------|
 | Chat | `/openai_compatible/v1/chat/completions` | ✓ | ✓ | `mistral-large-latest`, `ministral-8b-latest`, `grok-4.20-0309-non-reasoning` |
-| Responses | `/openai_responses/v1/responses` | - | ✓ (`xai_responses`) | `grok-4.20-0309-non-reasoning` |
+| Responses | `/openai_responses/v1/responses` | Translated to chat | ✓ (`xai_responses`, or `xai` by endpoint switch) | `grok-4.20-0309-non-reasoning` |
+| Anthropic Messages, Gemini, Bedrock Converse | Their native paths | Translated | Translated | - |
 | Embeddings | `/openai_compatible/v1/embeddings` | ✓ | - | `mistral-embed` |
 | Speech to text | `/openai_compatible/v1/audio/transcriptions` | ✓ | - | `voxtral-mini-latest` |
 | Moderation | `/openai_compatible/v1/moderations` | ✓ | - | `mistral-moderation-latest` |
@@ -110,7 +111,7 @@ If an app has several providers that serve the same model, pick one with `provid
 | FIM | `seed` becomes `random_seed`. `n`, `best_of`, `echo`, `logprobs`, `logit_bias`, penalties and `user` are dropped. The response uses OpenAI's `choices[].text`. | Not available: xAI rejects `/v1/completions` for every current model. |
 | Images | - | `size`, `quality`, `style`, `background`, `moderation`, `output_compression`, `output_format` and `user` are dropped. Image edits take a JSON body, not multipart. |
 | Responses | - | Create, retrieve and delete. `cancel` and `input_items` return `400 operation_not_supported`. |
-| Not available | Audio translations, Anthropic Messages endpoint. | Legacy completions, Anthropic Messages endpoint. |
+| Not available | Audio translations. | Legacy completions. |
 
 Dropped fields are recorded on the request log.
 
@@ -118,7 +119,7 @@ Dropped fields are recorded on the request log.
 
 - **Chat, Responses, embeddings and transcription** get the same [guardrails](../protect/security-guardrails#endpoint-coverage) as any other provider.
 - **Moderation, OCR, FIM, images, files, batches and videos** are not scanned by DLP. Access controls, model allow-lists, rate and token limits and quotas still apply. See [Endpoint Families](../api-reference/endpoint-families#what-applies-on-family-routes).
-- **Routing groups:** `mistral` and `xai` join **Chat Completions** groups; `xai_responses` joins **OpenAI Responses** groups. See [Routing and Fallbacks](../cost-and-traffic/routing-and-fallbacks#which-surfaces-a-group-can-mix).
+- **Routing groups:** `mistral` and `xai` are own-family members of **Chat Completions** groups; `xai_responses` of **OpenAI Responses** groups. See [Routing and Fallbacks](../cost-and-traffic/routing-and-fallbacks#which-providers-a-group-can-mix).
 
 ## Related
 

@@ -1,5 +1,5 @@
 QUILR ADMIN CONSOLE (v2): MCP GATEWAY GUIDE FOR BROWSING AGENTS
-Last verified: 2026-10-07 against web.quilr.ai
+Last verified: 2026-10-20 against web.quilr.ai
 Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
@@ -35,7 +35,8 @@ WORKSPACE DRAWER ("MCP Gateway workspace")
 - Analytics: Summary, Traffic, Guardrails, People & tools, Servers, Agents & clients, Workflow graph, Topics
 - Activity sub-tabs: Tool calls | Interactions | Findings
 - Settings (one server): header strip Tools / Calls / Scoped rules / Endpoint; section list General, Tools,
-  Guardrails, Token saving, Input aliases, Group & User Rules, plus conditional API, Permissions, API tokens;
+  Guardrails, Token saving, Tool list (remote servers), Input aliases, Group & User Rules, plus conditional API,
+  Permissions, API tokens;
   footer Discard changes | Save settings; Smart Assist panel at the bottom
 
 TASK -> WHERE
@@ -72,6 +73,10 @@ TASK -> WHERE
 - Guardrails (DLP/adversarial) -> Configure > Guardrails > Data risk / Adversarial categories, actions
   block / redact / partial-redact / monitor, separate Request (tool arguments) and Response (tool results), Default action
 - Token saving -> Configure > Token saving > smart JSON compression, HTML to text, Markdown to text, text compression
+- Shorter tool lists -> Configure > Tool list > "What AI apps get": List most-used tools / Add Code mode (both off
+  by default) > Save tool list; Preview card (tokens per turn before -> after, Listed in full, "N tools one search
+  away" with Pin, Refresh usage). Page card "Savings opportunity" > Review (drawer "Send AI apps shorter tool lists":
+  Open settings / Turn on). Savings: Overall analytics > Servers & tools > "Tool list savings"
 - Fix wrong tool inputs -> banner Review fixes (drawer "Review quick fixes": Show example, Apply, Dismiss,
   Apply all) or Configure > Input aliases
 - Per group/user overrides -> Configure > Group & User Rules > rule applies to A smart group / A single user;
@@ -105,7 +110,9 @@ POLICY ENGINE (MCP) - /policy/engine/mcp-gateway  (also /history, /simulate, /co
   "Advanced policies & classifications". One shared draft > Review changes > Publish revision
 - Card anchors #policy-surface-<id>: server-access, onemcp, discovery-visibility, invocation, human-approval,
   usage-limits, data-risks, token-saving, ...
-- When on, the server's Tools, Guardrails, Token saving and Group & User Rules sections are tagged
+- OneMCP Features card also holds "Most-used tools listed" (tool_list.top_tools) and "Scripts (run_code)"
+  (tool_list.code), both Off for everyone by default; Quick add > Applies to: MCP server > On
+- When on, the server's Tools, Guardrails, Token saving, Tool list and Group & User Rules sections are tagged
   "Controlled by Policy Engine"; the panel shows "Policy Engine active - Revision N" and "Controlled by Policy
   Engine. Live requests follow the published ... policies." > View policies or Edit anyway (edits the legacy
   per-server values used only when the engine is off). General, Input aliases and API tokens stay editable
@@ -114,7 +121,9 @@ RELATED PAGES
 - Findings & Interactions (/interactions): MCP filter fields: MCP server, tool, agent, called via, auth mode,
   input DLP, output DLP, session
 - Costs & Savings (/costs-savings): source/channel "mcp" (URL ?channels=mcp)
-- Data Retention / Export Center: Settings > Data Settings (cover LLM and MCP data; MCP usage presets)
+- Data Retention: Settings > Data management; only LLM Gateway is configurable today.
+  Console retention controls for MCP Gateway and other sources are releasing soon.
+- Export Center: Settings > Data management (includes MCP usage presets)
 - Skills Library / Workflow Agents: Settings > AI Gateway (skills list MCP dependencies; agents pick MCP tools)
 - Self Service (/self-service): end users link local MCP tools ("Connect your AI app")
 - Audit: Settings > Organization > Audit Logs

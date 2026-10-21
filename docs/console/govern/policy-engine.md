@@ -98,7 +98,7 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | Identity & Network Trust | [Identity and network trust](../../llm-gateway/protect/identity-and-network-trust) |
 | Tool Controls | [Tool controls](../../llm-gateway/protect/tool-controls) |
 | Allowed Models | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |
-| Routing Groups & Fallbacks | [Routing and fallbacks](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
+| Model routing | [Policy Engine routing](../../llm-gateway/cost-and-traffic/policy-engine-routing), [Routing and fallbacks](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
 | Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
 | Rate, Token & Timeout Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
 | Token Savings | [Token saving](../../llm-gateway/cost-and-traffic/token-saving) |
@@ -109,7 +109,7 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | Stage | Card | Docs |
 |---|---|---|
 | 1 Session | MCP Server Access | [Server access](../../mcp-gateway/protect/server-access) |
-| 1 Session | OneMCP Features | [OneMCP](../../mcp-gateway/get-started/onemcp) |
+| 1 Session | OneMCP Features | [OneMCP](../../mcp-gateway/get-started/onemcp), [Tool lists](../../mcp-gateway/protect/tool-lists) |
 | 1 Session | Claims Forwarding | [Claims forwarding](../../mcp-gateway/protect/claims-forwarding) |
 | 2 Discovery | Discovery Visibility | [Tool visibility](../../mcp-gateway/protect/tool-visibility) |
 | 3 Request | Invocation | [Tool visibility](../../mcp-gateway/protect/tool-visibility), [Group and user rules](../../mcp-gateway/protect/group-and-user-rules) |
@@ -148,7 +148,7 @@ An effect is legal only on the stages that own it. The compiler rejects a rule t
 | Human Approval | request | `tool.confirmation` none or required |
 | Data & Adversarial Risks | request, response | `dlp.action`, `dlp.category_actions`, `dlp.default_action`, `dlp.detectors`, `risk.level` |
 | Usage Quotas & Concurrency | request | `quota.minute`, `quota.hour`, `quota.day`, `quota.window`, `quota.timezone`, `quota.dimensions`, `quota.id`, `concurrency.limit`, `concurrency.ttl_seconds`, `concurrency.dimensions` |
-| OneMCP Features | session | `onemcp.dynamic_tools`, `onemcp.memory` |
+| OneMCP Features | session | `onemcp.dynamic_tools`, `onemcp.memory`, `tool_list.top_tools` (most-used tools listed), `tool_list.code` (`run_code` scripts); both `tool_list` effects are off unless a configuration turns them on |
 | Identity & Managed Authentication | session | `claims.forward`, `token.profile`, credential references |
 | Capability Cache & Isolation | session | `cache.mode`: `shared`, `tenant`, `private` or `none` |
 | Token Savings | response | `token_saving.smart_json_compression`, `html_to_text`, `markdown_to_text`, `text_compression` |
@@ -183,7 +183,7 @@ The engine switch is tenant-wide. While the LLM Gateway engine is on, these sect
 | Guardian Agent | Guardian Agent |
 | Rate and Token Limits | Rate, Token & Timeout Limits |
 | Token Saving | Token Savings |
-| Routing | Routing Groups & Fallbacks |
+| Routing | Model routing |
 | Identity Aware (Enforce identity, Enforce conversation ID) | Identity & Network Trust |
 | Prompt Store (Require system prompt from store) | Prompt Store and Enforcement |
 

@@ -47,7 +47,7 @@ Each product folder has an `overview.mdx` landing and category subfolders (each 
 | Path | Product | Groups |
 |------|---------|--------|
 | `docs/console/` | Console (V2) | Mirrors the console menu: `get-started/`, `observe/` (one page per Observe page), `govern/` (Policy Engine, Detection Models, Action requests), `settings-ai-gateway/` (Skills Library; Workflow Agents is its own product), `settings-organization/`, `settings-data/`, `settings-sensors/`, and `legacy-v1/` (collapsed Console V1 guide). |
-| `docs/llm-gateway/` | LLM Gateway | `get-started/`, `apps-and-providers/`, `protect/`, `cost-and-traffic/`, `monitor/`, `self-service/`, `api-reference/` (Management API, unified completions, log export), `release-notes/`. |
+| `docs/llm-gateway/` | LLM Gateway | `get-started/`, `apps-and-providers/`, `protect/`, `cost-and-traffic/`, `monitor/`, `self-service/`, `api-reference/` (Management API, any-to-any formats, log export), `release-notes/`. |
 | `docs/mcp-gateway/` | MCP Gateway | `get-started/`, `servers-and-connections/`, `protect/`, `local-mcp/`, `provider-setup/` (vendors needing an OAuth app), `quilr-provided-mcps/` (QuilrAI-built servers, one page per vendor), `api-reference/`. |
 | `docs/workflow-agents/` | Workflow Agents | `get-started/`, `build/` (builder, Library templates, teams), `run-and-share/` (chat and tasks, Manage agent drawer, Self Service), `slack/` (Slack options, Slack as a tool, chat from Slack), `monitor/` (Usage). |
 | `docs/red-teaming/` | Red Teaming | `get-started/`, `assessments/` (one page per console tab), `operate/`. |

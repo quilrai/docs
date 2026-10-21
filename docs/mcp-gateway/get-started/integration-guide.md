@@ -16,7 +16,7 @@ Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base 
 MCP endpoints, authentication methods, and connection examples for integrating AI agents with MCP Gateway.
 
 :::tip Administrator rollout guides
-For detailed prerequisites, organization controls, OAuth fields, and troubleshooting, start with [AI client setup](../client-setup/overview). Choose [GitHub Copilot](../client-setup/github-copilot), [Copilot Studio / Microsoft 365](../client-setup/copilot-studio), [Claude and Claude Code](../client-setup/claude), [Cursor](../client-setup/cursor), or [ChatGPT and Codex](../client-setup/openai).
+For detailed prerequisites, organization controls, OAuth fields, and troubleshooting, start with [AI client setup](../client-setup/overview). Choose [GitHub Copilot](../client-setup/github-copilot), [Copilot Studio / Microsoft 365](../client-setup/copilot-studio), [Claude and Claude Code](../client-setup/claude), [Cursor](../client-setup/cursor), [ChatGPT and Codex](../client-setup/openai), or [Gemini Enterprise and Gemini CLI](../client-setup/gemini).
 :::
 
 ## MCP Endpoint URL
@@ -195,7 +195,7 @@ Clients without OAuth can call a single non-OAuth MCP's URL with an [API token](
      -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
    ```
 
-2. After signing in, list the client's tools. With OneMCP and [dynamic tool calling](./onemcp#smart-tools) on, expect `list_mcp_connections`, `find_relevant_tools` and `call_tool`, plus the memory tools when **Memories enabled** is on. With it off, expect each allowed MCP's tools, prefixed with the MCP's name.
+2. After signing in, list the client's tools. With OneMCP and [dynamic tool calling](./onemcp#smart-tools) on, expect `list_mcp_connections`, `find_relevant_tools` and `call_tool`, plus the memory tools when **Memories enabled** is on, and the most-used tools of any server with [tool lists](../protect/tool-lists) on. With it off, expect each allowed MCP's tools, prefixed with the MCP's name.
 3. Ask the client to list available connectors. MCPs under **Connection needed** still need a one-time connect.
 
 If sign-in succeeds but calls are refused, check that the client is allowed under [Allowed Agents](../servers-and-connections/allowed-agents) and that you can reach the MCP under [access control](../protect/server-access).

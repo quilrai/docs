@@ -12,7 +12,7 @@ Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base 
 
 Connect Claude to the **Quilr gateway URL** copied from your dashboard. This guide covers hosted Claude custom connectors and a separately configured Claude Code HTTP connection. Use the [client overview](./overview) to choose an endpoint and the [authentication reference](./authentication) for the gateway's supported flows.
 
-Official client documentation checked **15 October 2026**. These instructions combine the documented client setup with Quilr's implementation; they are not a record of a live customer interoperability test. Complete the pilot checks below before a broad rollout.
+Official client documentation checked **20 October 2026**. These instructions combine the documented client setup with Quilr's implementation; they are not a record of a live customer interoperability test. Complete the pilot checks below before a broad rollout.
 
 ## Administrator handoff
 
@@ -28,6 +28,8 @@ Give the person configuring Claude these values:
 | Transport | Streamable HTTP |
 | Recommended gateway authentication | Interactive OAuth with automatic client registration |
 | OAuth client secret | None for the gateway's public DCR client |
+| PKCE | S256, sent automatically by Claude |
+| Token endpoint client authentication | `none` for this public registration; no HTTP Basic Auth |
 | Sign-in identity | The user's authorized company account |
 | Support details | Organization name, endpoint owner, approved upstream connectors, permitted tools, and pilot users |
 
@@ -47,6 +49,10 @@ Custom connectors support Free (one connector), Pro, Max, Team, and Enterprise. 
 
 **Register automatically** selects the DCR path used by this Quilr configuration. Claude also offers its published client identity and a customer-supplied OAuth client. Do not switch to either merely because it appears recommended in Claude's generic dialog; compatibility of those alternatives with the deployed Quilr endpoint needs separate confirmation.
 
+Some organizations still see a single form with **Advanced settings** instead of the multi-step authentication dialog. Use automatic registration where available and leave optional credentials blank for DCR. If explicitly using a preconfigured public client, enter the gateway-issued client ID and leave the secret blank. For the verified Lucidchart example, those values are `gateway-lucidchart` and no secret, with server URL `https://mcpgateway.quilrai.com/lucidchart/mcp`. See [manual gateway OAuth values](./authentication#manual-fields-for-a-direct-mcp) and [Anthropic's current authentication UI](https://claude.com/docs/connectors/custom/add-unlisted#choose-authentication-settings).
+
+Permit the actual Claude runtime in Quilr [Allowed Agents](../servers-and-connections/allowed-agents) and verify the match in gateway logs before distribution.
+
 Do not select **No sign in** for OneMCP, paste a gateway API token into the URL, or enter an upstream application's secret. If Claude demands a secret, check that you selected automatic registration and the correct endpoint before changing authentication.
 
 ### Network and Desktop distinctions
@@ -58,6 +64,8 @@ Allow the exact gateway host and its OAuth discovery, registration, authorizatio
 Web and Desktop remain the primary setup path for custom connectors. Anthropic also documents mobile connector availability, with mobile installation in beta; pilot mobile separately if employees need it. [Connector availability](https://support.claude.com/en/articles/11176164-use-connectors-to-extend-claude-s-capabilities).
 
 ### OAuth and session behavior
+
+Claude automatically sends **S256 PKCE**; the documented connector setup does not require a separate PKCE toggle. Keep the gateway public client's secret blank and do not configure HTTP Basic client authentication. This describes the client request; the gateway's [authentication compatibility boundary](./authentication#scopes-refresh-and-token-format) still applies. [Anthropic authentication reference](https://claude.com/docs/connectors/building/authentication).
 
 The hosted Claude callback is `https://claude.ai/api/mcp/auth_callback`. Claude Code instead uses a local callback. If redirect policies are enforced, confirm the applicable callback from the actual authorization request. Claude requires a `401` challenge for discovery and expects the protected resource metadata to match the server URL. Its token exchange uses form-encoded data, whereas registration uses JSON. [Anthropic OAuth requirements](https://claude.com/docs/connectors/building/authentication).
 
@@ -131,7 +139,7 @@ Pilot the exact Claude Code release and launch surface you will distribute. A wo
 Use an ordinary employee account, an approved read-only tool, and a record the employee is allowed to access.
 
 1. Confirm Claude reports the connector connected, or Claude Code reports a healthy server after OAuth.
-2. Inspect available tools. OneMCP's dynamic mode can advertise routing tools such as `list_mcp_connections`, `find_relevant_tools`, and `call_tool`; it need not expose every upstream tool as a separate Claude tool.
+2. Inspect available tools. OneMCP's dynamic mode can advertise routing tools such as `list_mcp_connections`, `find_relevant_tools`, and `call_tool`; it need not expose every upstream tool as a separate Claude tool. Servers with [tool lists](../protect/tool-lists) on add their most-used tools directly.
 3. Ask: **List my available Quilr MCP connections. Do not modify anything.**
 4. If the selected upstream connection requires sign-in, complete it in Quilr. This is separate from signing Claude into the gateway.
 5. Ask for one authorized read operation and verify the returned record. Confirm the matching gateway event has the expected user, client, backend, and outcome.

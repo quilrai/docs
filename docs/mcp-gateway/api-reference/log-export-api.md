@@ -430,7 +430,7 @@ The export redacts common credential fields and token patterns inside payloads, 
 |-------|------|-------------|
 | `user_email` | string or null | End-user email associated with the tool call, when provided. |
 | `agent` | string or null | Agent identity extracted from the request `User-Agent` header. |
-| `extra_data` | object | Additional request metadata, with credential fields redacted. |
+| `extra_data` | object | Additional request metadata, with credential fields redacted. Calls made with a [short tool list](../protect/tool-lists) carry `tool_exposure`: `smart` (`true`), `via` (`call_tool` or `run_code`) and, for calls inside a script, `run_id`. A `run_code` call carries `code_mode`: `run_id`, the number of tool `calls` inside it, its run time in `ms`, `error` (or `null`), and, when the script stopped with tool calls still running, `unfinished` and `outcome_unknown` counts. |
 
 ### `checkpoint`
 

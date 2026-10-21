@@ -46,7 +46,7 @@ After adding and authenticating the server:
 
 1. Confirm initialization completes and the tool catalog loads. Use the client's server logs/status panel if it fails.
 2. Ask for available Quilr connectors. `list_mcp_connections` reports connection state for visible MCPs.
-3. With dynamic tool calling on, use `find_relevant_tools` to discover a suitable read-only operation, then `call_tool` with its returned schema. With it off, select the prefixed upstream tool.
+3. With dynamic tool calling on, use `find_relevant_tools` to discover a suitable read-only operation, then `call_tool` with its returned schema. With it off, select the prefixed upstream tool. A server with [tool lists](../protect/tool-lists) on lists its most-used tools directly; call those by name.
 4. Complete any upstream sign-in or personal-key connection in the gateway dashboard, connector card, or returned connection flow. Re-run the original request afterwards.
 5. Check gateway logs for the expected employee, MCP, tool, policy result, and request time.
 
@@ -64,12 +64,14 @@ For raw authenticated protocol diagnostics, use a real MCP client or Inspector. 
 | Metadata points to another hostname | Gateway canonical-origin configuration | Have the operator check `GATEWAY_BASE_URL`; use the configured deployment consistently |
 | Initial `401` before login | Normal discovery | Follow the Bearer resource-metadata challenge and sign in |
 | Repeated `401` after sign-in | Revoked/wrong token, lost header, endpoint-family mismatch | Check proxy header forwarding; reconnect the exact MCP URL; verify the token's resource and tenant compatibility |
-| Form requires client secret | Wrong registration mode or unsupported confidential-client requirement | Choose dynamic registration where available; OneMCP does not issue a secret |
+| Form requires client secret | Wrong registration mode or unsupported confidential-client requirement | Choose DCR where available. Gateway public clients issue no secret; for Gemini's mandatory-field variants, confirm compatibility rather than inventing a secret or enabling Basic Auth |
 | `Missing authorization code` during renewal | Client attempted refresh-token grant | OneMCP currently has no downstream refresh grant; reconnect and review client compatibility |
 | PKCE, ID-token, audience, or scope-validation requirement fails | Unsupported authentication requirement | Capture the exact requirement and escalate; do not disable required verification to force rollout |
 | Account has no organization or shows unexpected connectors | Sign-in identity or company-domain mapping | Confirm the company account used for sign-in and its configured email domain or alias in Quilr |
 | API token rejected | Wrong backend, missing/invalid `mcpuser`, domain or agent mismatch | Use the issuing server's direct endpoint; verify employee domain and selected agent |
+| Gemini signs in but MCP discovery or tools are denied | Runtime User-Agent differs from the product name | If logs show `google-adk`, configure that custom agent and allow the intended servers, or publish the matching Policy Engine rule; reconnect. See [Gemini agent access](./gemini#allow-the-gemini-runtime-in-quilr) |
 | Sign-in succeeds but tools are missing | Tool visibility, disabled server, user preference, access rule, or smart mode | Check OneMCP discovery tools, user-visible connectors, Allowed Agents and effective policies |
+| A server shows only a few tools | [Tool lists](../protect/tool-lists) are on for it: its most-used tools are listed and the rest are one search away | Search with `find_relevant_tools` and run with `call_tool`, or pin the tool in the server's **Tool list** settings. Nothing is blocked |
 | Tool says connection is needed | Upstream user credentials missing/expired | Connect that provider as the same user; a successful gateway login does not grant upstream access |
 | Client refuses a tool before a gateway log appears | Client tool approval or workspace policy | Check vendor tool permissions and managed allowlists |
 | Gateway policy denies a tool | Gateway access, tool visibility, guardrail, quota, or published policy | Inspect the denial reason and change only the intended administrative rule |

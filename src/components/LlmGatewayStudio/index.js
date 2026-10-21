@@ -1997,6 +1997,7 @@ export default function LlmGatewayStudio() {
           <h1 className={styles.title}>LLM Gateway Studio</h1>
         </div>
         <div className={styles.topbarMeta}>
+          <a href="/llm-gateway-budgets-playground">Budgets admin</a>
           <code className={styles.endpointPath} title={requestUrl}>
             {requestMethod} {surfacePath}
           </code>

@@ -10,16 +10,19 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
-## Mistral AI and xAI Grok providers
+## Any-to-any API formats (2026-10-20)
 
-Two new direct providers, each configured with a single API key. See [Mistral AI and xAI Grok](../apps-and-providers/mistral-and-xai).
+Call any conversational provider from the SDK you already use. The gateway now accepts Chat Completions, Responses, Anthropic Messages, Gemini generateContent and Bedrock Converse / InvokeModel requests and reaches every conversational provider from each of them.
 
-- **Mistral AI** (`mistral`): chat, embeddings, speech to text (Voxtral), moderation, document OCR and Codestral fill-in-the-middle
-- **xAI** (`xai`, `xai_responses`): Grok chat, the Responses API, and Grok Imagine image generation and edits
-- The upstream URL is fixed by QuilrAI, so there is no Base URL field
-- New **Search provider types** box in the provider picker filters tiles by vendor or API name
+- Native first: when the provider speaks your format, the request is forwarded as sent, nothing converted
+- Otherwise, in order: an endpoint switch on the same credential (for example Responses on xAI, Messages on DeepSeek, Gemini on the Gemini API), the existing Chat Completions adapters, then two-way translation
+- Tools, streaming, structured output, images and inline files, and reasoning carry across; billing uses the provider's own token usage
+- Guardrails run on your request before conversion and on the converted-back response
+- Errors come back in your client's format; stored Responses state stays on native pairs, and hosted tools the target cannot run are dropped so the request still runs
+- Routing groups and Policy Engine routes can now mix API families, preferring the request's own family
+- Format explorer and full matrix: [Any-to-any formats](../api-reference/any-to-any-formats)
 
-## Endpoint families
+## Endpoint families (2026-10-21)
 
 Shared OpenAI-compatible endpoints beyond chat, served for several providers under `/openai_compatible/v1/`. See [Endpoint Families](../api-reference/endpoint-families).
 
@@ -27,6 +30,19 @@ Shared OpenAI-compatible endpoints beyond chat, served for several providers und
 - Off by default: `/files`, `/batches`, `/videos`
 - Existing providers gain endpoints: OpenAI (all families), Azure OpenAI (images, completions, files, batches), Gemini (image generation), DeepSeek (FIM), custom endpoints (moderations, images, completions)
 - Access, model allow-lists, limits and quotas apply; DLP guardrails do not run on these routes yet
+
+## xAI and Mistral providers (2026-10-20)
+
+- New provider types `xai`, `xai_responses` and `mistral`, with an API key and a fixed endpoint
+- xAI: Chat Completions and Responses natively, plus images, videos, batches and files
+- Mistral: Chat Completions natively, plus embeddings, transcription, moderations, fill-in-the-middle, OCR, batches and files
+- Every other client format reaches both through any-to-any formats - see [Provider Support](../apps-and-providers/provider-support#xai-and-mistral)
+- Setup guide with examples: [Mistral AI and xAI Grok](../apps-and-providers/mistral-and-xai)
+- New **Search provider types** box in the provider picker filters tiles by vendor or API name
+
+## Anthropic on Azure AI Foundry from every format (2026-10-20)
+
+- `anthropic_messages_azure` now serves Responses, Gemini and Bedrock clients as well as Anthropic Messages and Chat Completions
 
 ## OpenAI Realtime API
 

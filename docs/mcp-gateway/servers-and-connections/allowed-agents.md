@@ -71,6 +71,14 @@ Custom agents show a **Custom** tag. To remove one, click its delete icon and co
 
 Custom agents also appear when you create an [API token](./api-tokens) or set **Allowed agents** on a server.
 
+## Gemini Enterprise and Google ADK
+
+The Gemini Enterprise connection documented in the [Gemini setup guide](../client-setup/gemini) sent a User-Agent containing `google-adk`. The built-in Gemini keyword is `gemini`; it does not match `google-adk` by itself.
+
+For a runtime sending that header, add a custom agent named **Gemini Enterprise / Google ADK** with keyword **`google-adk`**, then allow the intended MCP servers in that agent's row. Start a new client session and retry tool discovery. If MCP Gateway is governed by the Policy Engine, update and publish the applicable agent policy instead of relying on these server switches.
+
+This is an observed deployment requirement, not a guarantee that every Google client sends the same header. Confirm the actual User-Agent and denial reason in gateway logs. Retain user authentication and server/tool permissions; agent matching does not authenticate the caller.
+
 ## Related
 
 - [Access control](../protect/server-access) - allow or deny smart groups and users on one server.
