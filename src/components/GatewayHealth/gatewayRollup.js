@@ -100,10 +100,24 @@ const ROW_HOSTS = { mcp: 'mcpgateway.quilr.ai' };
 
 function mapRollup(data) {
   const byGroup = { mcp: [], llm: [] };
+  const hasIndia2 = (data?.components || []).some((c) => c.host === 'guardrails-india-2.quilr.ai');
   for (const c of data?.components || []) {
     const buckets = c.buckets || [];
+    // Both Mumbai endpoints belong on the regional row while the rollup only
+    // reports India 1. Keep the measured host explicit until India 2 has its own row.
+    const showMumbaiEndpoints = c.group === 'llm' && c.host === 'guardrails-india-1.quilr.ai' && !hasIndia2;
     const row = {
-      comp: { id: c.id, kind: c.kind, label: c.label, host: c.host || ROW_HOSTS[c.group], note: c.note },
+      comp: {
+        id: c.id,
+        kind: c.kind,
+        label: c.label,
+        host: showMumbaiEndpoints
+          ? 'guardrails-india-1.quilr.ai · guardrails-india-2.quilr.ai'
+          : c.host || ROW_HOSTS[c.group],
+        note: showMumbaiEndpoints
+          ? 'Health history measures guardrails-india-1.quilr.ai. Separate monitoring data for guardrails-india-2.quilr.ai is not yet available.'
+          : c.note,
+      },
       buckets,
       stats: summarize(buckets),
     };
