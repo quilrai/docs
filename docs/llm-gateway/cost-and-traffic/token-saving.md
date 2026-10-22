@@ -4,11 +4,14 @@ sidebar_label: "Token saving"
 sidebar_custom_props:
   icon: Coins
 aliases: [token saving]
+description: "Reduce request tokens with automatic gateway transforms, or use the standalone SDK endpoint to choose methods and receive optimized text with savings estimates."
 ---
 
 # Token saving
 
 Rewrite request content into fewer tokens before it reaches the provider. Responses are returned untouched, and your code does not change.
+
+For optimization from your own application code, use [standalone SDK token savings](../apps-and-providers/sdk-token-savings). It accepts a text string and an explicit choice of seven methods, returns the final text and savings estimates, and supports deterministic, cache-friendly prompt preparation without routing an LLM call through the gateway.
 
 <VideoEmbed id="ai-gateway-token-saving" />
 
@@ -85,6 +88,7 @@ Each strategy is a section with a **Turn on** button; all four apply on `chat`, 
 
 ## Related
 
+- [Standalone SDK token savings](../apps-and-providers/sdk-token-savings)
 - [MCP Gateway token saving](../../mcp-gateway/protect/token-saving)
 - [Prompt store](./prompt-store)
 - [Costs and savings](../../console/observe/costs-and-savings)

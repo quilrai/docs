@@ -1,0 +1,228 @@
+---
+sidebar_position: 6.1
+sidebar_label: "SDK token savings"
+sidebar_custom_props:
+  badge: new
+  icon: Coins
+description: "Optimize text with seven caller-selected token-saving methods, return the final text and savings estimates, and keep repeated prompt content deterministic and cache friendly."
+aliases: [sdk token savings, standalone token saving, text optimization, hash stable, cache friendly]
+---
+
+# Standalone SDK token savings
+
+**Send text, choose the methods, get back the optimized text.** Call `POST /sdk/v1/token-savings` wherever your application prepares prompts, retrieved content, API results or tool output. You decide what to send to your LLM afterward.
+
+The endpoint runs without an LLM call or provider credentials. It returns the final text, before-and-after token estimates, total savings and a breakdown by method. Your SDK authentication, access restrictions and request limits still apply.
+
+<ArchitectureDiagram
+  source={{ label: 'Your application', code: 'Original text + explicit methods list\nOptional: producing tool name and command' }}
+  gateway={{
+    label: 'QuilrAI SDK · POST /sdk/v1/token-savings',
+    phases: [{ stages: [
+      { label: 'Choose', items: ['Only the methods you request', 'Consistent execution order'] },
+      { label: 'Optimize', items: ['Preserve protected file contents', 'Apply eligible transformations'] },
+      { label: 'Measure', items: ['Original and final token estimates', 'Savings for each method'] },
+    ] }],
+    footer: 'Deterministic text processing · No LLM request',
+  }}
+  destination={{ label: 'Back in your application', items: ['Final text', 'Savings metrics', 'Your choice of LLM or next step'] }}
+/>
+
+[Try token savings in the playground](/llm-gateway-playground?surface=sdk&sdk_operation=token_savings) or start with the examples below.
+
+## Make a request
+
+Use a dedicated **Quilr SDK** app key, as described in [SDK mode authentication](./sdk-mode#authentication). Authenticate with `Authorization: Bearer sk-quilr-xxx` or `Api-Key: sk-quilr-xxx`, and use your [regional gateway URL](../get-started/integration-guide#region).
+
+This example removes display noise from a build report:
+
+```bash
+curl https://guardrails-usa-2.quilr.ai/sdk/v1/token-savings \
+  -H "Authorization: Bearer $QUILR_SDK_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Requirement already satisfied: example-alpha in /opt/python/site-packages\nRequirement already satisfied: example-beta in /opt/python/site-packages\nRequirement already satisfied: example-gamma in /opt/python/site-packages\nRequirement already satisfied: example-delta in /opt/python/site-packages\nERROR: missing required configuration",
+    "methods": ["tool_output_cleanup"],
+    "tool_name": "Bash",
+    "tool_command": "pip install -r requirements.txt"
+  }'
+```
+
+### Request fields
+
+| Field | Type | What to send |
+|---|---|---|
+| `text` | String, required | One piece of original text. An empty string is valid. To optimize JSON data, serialize it into this string. |
+| `methods` | Array of strings, required | At least one method from the table below. Each name must be known and appear once. |
+| `tool_name` | String, optional | The tool that produced the text, for example `Bash` or `read_file`. Include this for tool results. |
+| `tool_command` | String, optional | The command that produced the text, for example `pytest -q`. Include this when available. |
+| `metadata` | JSON metadata, optional | Caller context, as on other SDK requests. |
+
+The endpoint accepts text only. `messages` and `json` envelope fields are rejected. To optimize a conversation, call it for each eligible text slot in your application, then put the returned text back into the original message structure.
+
+Your `methods` list controls selection directly. App token-saving switches do not add or remove methods, and rearranging the list does not change the execution order.
+
+## Choose your methods
+
+Combine methods that fit your content. You do not need to enable all seven.
+
+| Method | Best for | Effect |
+|---|---|---|
+| `smart_json_compression` | JSON API results and structured context | Converts eligible JSON to a compact TOON representation. The result may no longer be JSON. |
+| `html_to_text` | Scraped pages, rich emails and HTML reports | Removes markup to produce readable plain text. |
+| `markdown_to_text` | Markdown notes, reports and retrieved snippets | Removes formatting syntax to produce plain text. |
+| `text_compression` | Verbose prose and separator noise | Compresses prose and removes low-value text. Review the output for your use case. |
+| `tool_output_cleanup` | Build logs, test output and installation reports | Removes terminal display noise and compacts repeated routine output while retaining errors and summaries. |
+| `base64_blob_elision` | Tool results containing large inline encoded blobs | Replaces eligible base64 blobs with an omission marker. Use when the encoded data is not needed by the model. |
+| `json_minification` | A complete JSON document that must stay JSON | Removes insignificant whitespace while preserving the JSON value and text inside strings. |
+
+HTML, Markdown, prose compression and blob elision remove information or formatting. Keep the original when your application needs exact source content. If JSON must remain parseable, select `json_minification` without `smart_json_compression` or other text-rewriting methods.
+
+Selected methods execute in this fixed order:
+
+<StepFlow steps={[
+  { label: 'Structured text', items: ['1. Smart JSON compression', '2. HTML to text', '3. Markdown to text'] },
+  { label: 'Prose', items: ['4. Text compression'] },
+  { label: 'Tool output', items: ['5. Tool output cleanup', '6. Base64 blob elision', '7. JSON minification'] },
+]} />
+
+Only selected methods run. A method can leave text unchanged when the content is too short, ineligible or protected. Zero savings is a valid result.
+
+### Preserve file contents
+
+Tool results can contain exact source code or file bytes that a coding agent needs for later edits. Supply `tool_name` and `tool_command` so the endpoint can preserve outputs from file-reading, editing and search tools. Recognized file listings are also protected. Protected content is returned unchanged across all selected methods.
+
+For example, a request with `"tool_name": "Bash"` and `"tool_command": "cat src/app.py"` preserves the supplied file content. Choose methods based on the original source of the text, and retain that provenance when replaying history.
+
+## Read the result
+
+Every successful response contains:
+
+| Field | Meaning |
+|---|---|
+| `text` | The final text to use in your application. |
+| `methods` | Your selected methods in execution order, including those with no effect. |
+| `original_tokens` | Estimated token count of the input text. |
+| `final_tokens` | Estimated token count of the returned text. |
+| `tokens_saved` | `original_tokens - final_tokens`. |
+| `savings_percent` | Percentage reduction, rounded to two decimal places. Zero for empty input. |
+| `tokens_saved_by_method` | Each selected method's token-count change at its step. These values sum to `tokens_saved`. |
+
+Token counts use the GPT-4o tokenizer as a common estimate for this text. They are not your provider's billed usage, and token differences can vary by model. Cleanup can occasionally increase the token count, so total and per-method savings can be negative.
+
+### Python
+
+This example creates a multirow JSON result so the whitespace reduction is visible:
+
+```python
+import json
+import os
+import requests
+
+original_text = json.dumps({
+    "results": [
+        {"id": i, "name": f"Example item {i}", "status": "ready"}
+        for i in range(12)
+    ]
+}, indent=2)
+
+response = requests.post(
+    "https://guardrails-usa-2.quilr.ai/sdk/v1/token-savings",
+    headers={"Authorization": f"Bearer {os.environ['QUILR_SDK_KEY']}"},
+    json={
+        "text": original_text,
+        "methods": ["json_minification"],
+        "tool_name": "search_catalog",
+    },
+    timeout=30,
+)
+response.raise_for_status()
+result = response.json()
+
+print(result["text"])
+print(f"Estimated tokens: {result['original_tokens']} -> {result['final_tokens']}")
+print(f"Saved: {result['tokens_saved']} ({result['savings_percent']}%)")
+print(result["tokens_saved_by_method"])
+```
+
+### JavaScript
+
+```javascript
+const originalText = JSON.stringify({
+  results: Array.from({ length: 12 }, (_, id) => ({
+    id,
+    name: `Example item ${id}`,
+    status: "ready",
+  })),
+}, null, 2);
+
+const response = await fetch(
+  "https://guardrails-usa-2.quilr.ai/sdk/v1/token-savings",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.QUILR_SDK_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: originalText,
+      methods: ["json_minification"],
+      tool_name: "search_catalog",
+    }),
+  },
+);
+if (!response.ok) throw new Error(await response.text());
+const result = await response.json();
+
+console.log(result.text);
+console.log({
+  before: result.original_tokens,
+  after: result.final_tokens,
+  saved: result.tokens_saved,
+  percent: result.savings_percent,
+  byMethod: result.tokens_saved_by_method,
+});
+```
+
+## Deterministic, hash stable and cache friendly
+
+For the same **original text, selected methods, tool provenance and QuilrAI implementation**, the endpoint returns the same optimized bytes. A content hash you calculate from that output stays stable under those conditions. Optimization changes the source text, so the optimized text can have a different hash from the original.
+
+<StepFlow steps={[
+  { label: 'Same source', items: ['Keep the original text', 'Keep the producing tool context'] },
+  { label: 'Same settings', items: ['Select the same methods', 'Apply consistently across turns'] },
+  { label: 'Stable prefix', items: ['Repeat the same optimized bytes', 'Reuse unchanged history'] },
+]} />
+
+This is useful for provider prompt caching: repeated content can remain identical as a conversation grows. Apply the same settings to every eligible text slot throughout the history you send, including earlier turns. Always optimize the original text, then reuse or rebuild the conversation from that result.
+
+Keep methods and provenance consistent across turns. Changing either, or a QuilrAI transformation update, can change the optimized prefix and cause a cache miss. Provider cache hits also depend on the rest of your request and the provider's caching requirements.
+
+The endpoint returns optimized text and metrics. SDK content checks have a separate [placeholder hashing mode](./sdk-mode#placeholder-masking-and-hashing-mode) for redacted entities.
+
+## Use it with guardrails
+
+Token savings prepares text for your next step. To detect sensitive data, redact content or get an allow/block decision, also call [`POST /sdk/v1/check`](./sdk-mode). The token-savings response does not contain a safety verdict.
+
+You can also enable [gateway token saving](../cost-and-traffic/token-saving) when you want optimization applied automatically as requests pass through the gateway.
+
+## Errors
+
+| Status | Meaning |
+|---|---|
+| `400` | Invalid JSON or request fields, a configured input-token maximum was exceeded, or required conversation context is missing. Check that `text` is a string and `methods` is a nonempty list of distinct supported names. Optional provenance fields must be strings when supplied. |
+| `401` / `403` | Authentication or access restrictions rejected the request. Use an SDK credential and satisfy your app's identity and source restrictions. |
+| `429` | Request limits or quotas rejected the request. |
+| `500` | Processing failed. Inspect the returned error and retry as appropriate. |
+
+For invalid token-saving fields, the error code is `invalid_token_saving_input`; an exceeded input-token maximum returns `max_tokens_per_request_exceeded`. An unchanged successful result is not an error. Streaming is not supported.
+
+## Try it in the playground
+
+Open the [LLM Gateway Playground](/llm-gateway-playground?surface=sdk&sdk_operation=token_savings), select **Quilr SDK**, then **Token savings**. Enter your text, choose one or more methods, and include tool provenance for tool results. Run the request to inspect the final text, total savings and the per-method breakdown. The cURL, Python and JavaScript tabs generate the matching request.
+
+## Related
+
+- [SDK mode: content checks](./sdk-mode)
+- [Gateway token saving](../cost-and-traffic/token-saving)
+- [Integration guide](../get-started/integration-guide)
