@@ -53,7 +53,8 @@ TASK -> WHERE
   Log export key, All-apps log key > Done. "Smart Assist" in the dialog header answers setup questions.
 - Add/edit a shared (platform) provider -> Provider configuration (drawer: Search providers, View in Models)
   > Add your own models. Steps Connect > Models > Pricing > Review & save; "Add provider" adds another
-  to the same batch. Provider types: OpenAI, Anthropic, Azure, Amazon Bedrock, Google, DeepSeek, Sarvam,
+  to the same batch. "Search provider types" filters tiles by vendor or API. Provider types: OpenAI, Anthropic, Azure,
+  Amazon Bedrock, Google, DeepSeek, Mistral AI, xAI (Chat completions | Responses), Sarvam,
   Cohere / Jina / Voyage (rerank only), Oracle OCI, Custom endpoint. OpenAI asks "Which API does the
   gateway talk to?" (Chat completions | Responses | Assistants | Realtime). Same flow: Models > Add your own models
 - Change an app's providers/models/fallbacks -> app card > Configure > Providers (LLM Providers section)

@@ -22,12 +22,23 @@ Call any conversational provider from the SDK you already use. The gateway now a
 - Routing groups and Policy Engine routes can now mix API families, preferring the request's own family
 - Format explorer and full matrix: [Any-to-any formats](../api-reference/any-to-any-formats)
 
+## Endpoint families (2026-10-21)
+
+Shared OpenAI-compatible endpoints beyond chat, served for several providers under `/openai_compatible/v1/`. See [Endpoint Families](../api-reference/endpoint-families).
+
+- On by default: `/moderations`, `/images/generations` and `/images/edits`, `/ocr`, `/completions` (including Mistral and DeepSeek fill-in-the-middle, with streaming)
+- Off by default: `/files`, `/batches`, `/videos`
+- Existing providers gain endpoints: OpenAI (all families), Azure OpenAI (images, completions, files, batches), Gemini (image generation), DeepSeek (FIM), custom endpoints (moderations, images, completions)
+- Access, model allow-lists, limits and quotas apply; DLP guardrails do not run on these routes yet
+
 ## xAI and Mistral providers (2026-10-20)
 
 - New provider types `xai`, `xai_responses` and `mistral`, with an API key and a fixed endpoint
 - xAI: Chat Completions and Responses natively, plus images, videos, batches and files
 - Mistral: Chat Completions natively, plus embeddings, transcription, moderations, fill-in-the-middle, OCR, batches and files
 - Every other client format reaches both through any-to-any formats - see [Provider Support](../apps-and-providers/provider-support#xai-and-mistral)
+- Setup guide with examples: [Mistral AI and xAI Grok](../apps-and-providers/mistral-and-xai)
+- New **Search provider types** box in the provider picker filters tiles by vendor or API name
 
 ## Anthropic on Azure AI Foundry from every format (2026-10-20)
 

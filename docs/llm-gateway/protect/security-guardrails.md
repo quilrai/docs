@@ -186,6 +186,7 @@ Accept gateway calls only from listed networks. Turn on **Enabled** and enter **
 | Sarvam translation, transliteration, language detection | Yes | Yes |
 | Copilot Studio | User context and tool inputs | - |
 | OpenAI Realtime (websocket) | Not scanned | Not scanned |
+| [Endpoint families](../api-reference/endpoint-families) (moderations, images, OCR, completions, files, batches, videos) | Not scanned | Not scanned |
 
 - **Streaming:** request-side checks run as normal. Response-side redaction and blocking apply only when the gateway holds the full response, so streamed chunks pass through unmodified.
 - **Copilot Studio** cannot accept rewritten tool input, so Redact and Partial redact become Block. See [Copilot Studio](../../integrations/pull-ai-usage-and-inventory/microsoft-copilot-studio).

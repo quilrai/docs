@@ -67,7 +67,7 @@ Click **Add your own models**. Nothing is saved until the last step. Use **+ Add
 
 ![Add your own models, Connect step, with provider tiles and the API options for Amazon Bedrock](/img/llm-gateway/ui/models-add-provider-picker.png)
 
-1. Select the provider tile.
+1. Select the provider tile. Use **Search provider types** at the top to filter tiles by vendor or API name (for example `grok`, `ocr` or `rerank`).
 2. Under **Which API does the gateway talk to?**, select the API your apps call. This sets the gateway provider type.
 3. Set the **Provider label**. The console suggests one such as `openai_02_oct_2026_1150`. The label is permanent once saved.
 4. Fill in the credentials. See [Provider Support](./provider-support#credentials-by-provider) for each provider's fields.
@@ -81,6 +81,8 @@ Click **Add your own models**. Nothing is saved until the last step. Use **+ Add
 | Amazon Bedrock | Converse (`bedrock`), Anthropic messages (`anthropic_messages_bedrock`), Embeddings (`bedrock_embeddings`), Rerank (`bedrock_rerank`) |
 | Google | Vertex AI (`vertex_ai`), Gemini OpenAI-compatible (`gemini_chatcompletions`) |
 | DeepSeek | Chat completions (`deepseek`) |
+| Mistral AI | Chat completions (`mistral`) |
+| xAI | Chat completions (`xai`), Responses (`xai_responses`) |
 | Sarvam | Speech, text & chat (`sarvam`) |
 | Cohere, Jina, Voyage | Rerank (`cohere_rerank`, `jina_rerank`, `voyage_rerank`) |
 | Custom endpoint | Chat completions (`general`), Rerank (`general_rerank`) |

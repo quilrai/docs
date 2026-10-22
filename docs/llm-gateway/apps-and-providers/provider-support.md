@@ -59,6 +59,7 @@ One row per provider type. The type is what you select in the console and what y
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
+- **Endpoint families:** moderations, images, OCR, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
 ## Endpoints
@@ -70,6 +71,7 @@ Combine a [regional base URL](../get-started/integration-guide#region) with a pa
 | Chat Completions | `/openai_compatible/v1/chat/completions` | `Authorization: Bearer <Quilr key>` |
 | Embeddings | `/openai_compatible/v1/embeddings` | `Authorization: Bearer <Quilr key>` |
 | Speech | `/openai_compatible/v1/audio/speech`, `/audio/transcriptions`, `/audio/translations` | `Authorization: Bearer <Quilr key>` |
+| Endpoint families | `/openai_compatible/v1/moderations`, `/images/*`, `/ocr`, `/completions`, `/files`, `/batches`, `/videos` | `Authorization: Bearer <Quilr key>` |
 | Anthropic Messages | `/anthropic_messages/v1/messages` | `x-api-key: <Quilr key>` |
 | Responses | `/openai_responses/v1/responses` | `Authorization: Bearer <Quilr key>` |
 | Assistants | `/openai_assistants/` | `Authorization: Bearer <Quilr key>` |
@@ -162,7 +164,7 @@ Converse and Claude-body InvokeModel requests can also reach providers that are 
 
 ## Embeddings
 
-`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
+`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `mistral` (for example `mistral-embed`), `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
 
 ## Rerank
 
@@ -170,7 +172,7 @@ All three rerank paths take a Cohere-compatible body (`model`, `query`, `documen
 
 ## TTS & STT
 
-`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai` and `sarvam`. Azure deployments use the `/openai/deployments/{deployment}/` prefix.
+`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai` and `sarvam`. `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
 
 On a Sarvam provider these routes adapt to Sarvam's APIs:
 
@@ -217,7 +219,7 @@ Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistr
 
 ## xAI and Mistral
 
-`xai` and `xai_responses` call `https://api.x.ai/v1`; `mistral` calls `https://api.mistral.ai/v1`. Both take an API key; the base URL is fixed.
+`xai` and `xai_responses` call `https://api.x.ai/v1`; `mistral` calls `https://api.mistral.ai/v1`. Both take an API key; the base URL is fixed. Setup, example models and vendor behavior: [Mistral AI and xAI Grok](./mistral-and-xai).
 
 | Surface | xAI | Mistral |
 |---------|-----|---------|
@@ -226,7 +228,7 @@ Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistr
 | Anthropic Messages, Gemini, Bedrock Converse | Translated | Translated |
 | PDF and file parts | Chat requests with files go to xAI Responses, which reads them | Sent as document URLs |
 
-Both also serve these APIs on the OpenAI-compatible base, without format conversion:
+Both also serve these APIs on the OpenAI-compatible base, without format conversion (see [Endpoint families](#endpoint-families)):
 
 | API | Path | xAI | Mistral |
 |-----|------|:---:|:-------:|
@@ -241,6 +243,21 @@ Both also serve these APIs on the OpenAI-compatible base, without format convers
 | Files | `/openai_compatible/v1/files` | ✓ | ✓ |
 
 When a converted request reaches xAI or Mistral, the gateway adapts parameters the provider does not accept (for example, Mistral's `random_seed` for `seed`; unsupported penalties and `logit_bias` are dropped for xAI).
+
+## Endpoint families
+
+Moderations, images, OCR, completions (including Codestral and DeepSeek fill-in-the-middle), files, batches and videos are served under `/openai_compatible/v1/` for the providers that support them:
+
+| Family | Providers |
+|--------|-----------|
+| Moderations | `openai`, `mistral`, `general` |
+| Images | `openai`, `azureopenai`, `xai`, `gemini_chatcompletions`, `general` |
+| OCR | `mistral` |
+| Completions | `openai`, `azureopenai`, `mistral`, `deepseek`, `general` |
+| Files, batches (off by default) | `openai`, `azureopenai`, `mistral`, `xai` |
+| Videos (off by default) | `openai`, `xai` |
+
+These routes enforce access, model allow-lists and limits but are not scanned by guardrails. See [Endpoint Families](../api-reference/endpoint-families).
 
 ## Assistants API
 
