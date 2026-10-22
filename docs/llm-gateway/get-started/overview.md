@@ -63,6 +63,7 @@ Go to **Settings > AI Gateway > LLM Gateway**. The page has two tabs: **Applicat
 | **Self-service usage** | Who can use self-service in each app, and whether they do |
 | **Audit log** | The gateway workspace on its Audit tab |
 | **Provider configuration** | Your platform providers and their models, with **Add your own models**. The same list as **Settings > AI Gateway > Models > Your models**. See [Providers and Models](../apps-and-providers/providers-and-models). |
+| **Remote Connectors** | Connectors for reaching private model endpoints. See [Remote Connectors](../apps-and-providers/remote-connectors). |
 | **Create App** | The Create App wizard. See [Quick Start](./quick-start). |
 | **...** | **Copy all-apps log key**, a read-only key for the [Log Export API](../api-reference/log-export-api) across every app |
 

@@ -73,6 +73,8 @@ Click **Add your own models**. Nothing is saved until the last step. Use **+ Add
 4. Fill in the credentials. See [Provider Support](./provider-support#credentials-by-provider) for each provider's fields.
 5. Click **Check key and list models**.
 
+For a model endpoint inside a private network, use a [Remote Connector](./remote-connectors) and select it under **Connection route**.
+
 | Tile | API options (gateway provider type) |
 |------|-------------------------------------|
 | OpenAI | Chat completions (`openai`), Responses (`openai_responses`), Assistants (`openai_assistants`), Realtime (`openai_realtime`) |

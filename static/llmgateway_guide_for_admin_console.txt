@@ -10,7 +10,7 @@ WHERE
 
 PAGE LAYOUT (Applications tab, top to bottom)
 - Header buttons: Overall analytics | Provider health | Self-service usage | Audit log |
-  Provider configuration | Create App (primary) | "..." (More LLM Gateway actions) > Copy all-apps log key
+  Provider configuration | Remote Connectors | Create App (primary) | "..." (More LLM Gateway actions) > Copy all-apps log key
 - Metric strip: REQUESTS (People calling, Models in use, Success; click = analytics) |
   APPLICATIONS (click Active/Inactive/Expired = filter) |
   NEEDS ATTENTION (Not routable / No guardrails / Expiring in 30d = filter) |
@@ -58,6 +58,10 @@ TASK -> WHERE
   Cohere / Jina / Voyage (rerank only), Oracle OCI, Custom endpoint. OpenAI asks "Which API does the
   gateway talk to?" (Chat completions | Responses | Assistants | Realtime). Same flow: Models > Add your own models
 - Change an app's providers/models/fallbacks -> app card > Configure > Providers (LLM Providers section)
+- Connect a private model endpoint -> LLM Gateway > Remote Connectors > create a connector and copy its
+  qrc_... token (shown once). Run the shared quilr-connector binary or container in the private network.
+  In Provider configuration, set the provider's private Base URL and Connection route > Via Remote Connector,
+  then choose the connected connector. Binary, Docker and Kubernetes examples are in the remote connector docs.
 - Set guardrails (PII, secrets, prompt injection, hallucination, source IPs) -> Configure > Guardrails
   (Action mix, Default action, DATA RISKS / adversarial categories; "Copy from another app")
 - Guardian Agent (coding/task adherence) -> Configure > Guardian
@@ -175,6 +179,7 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/get-started/integration-guide.md
 - https://docs.quilrai.dev/llm-gateway/apps-and-providers/applications-and-keys.md
 - https://docs.quilrai.dev/llm-gateway/apps-and-providers/providers-and-models.md
+- https://docs.quilrai.dev/llm-gateway/apps-and-providers/remote-connectors.md
 - https://docs.quilrai.dev/llm-gateway/protect/security-guardrails.md
 - https://docs.quilrai.dev/llm-gateway/protect/guardian-agent.md
 - https://docs.quilrai.dev/llm-gateway/protect/custom-detections.md
