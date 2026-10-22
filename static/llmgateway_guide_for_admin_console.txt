@@ -119,7 +119,8 @@ POLICY ENGINE (LLM) - /policy/engine/llm-gateway
   (tabs Overview | Controls | Activity). Controls: Quick add (Send an app to a model, Split traffic across
   models, Route by what the request is about, Route sensitive data to a model, More...), then sections
   Conversations (Keep prompt cache warm), Content routes, Route to, Routing groups, Complexity levels,
-  and Routing activity. Deep links: &add=content-routes | complexity-levels | route-to | routing-group |
+  Failover (Move failed requests to another model, Where it can go, Backup models, Fail over on, Max tries,
+  Same-model retries, Time budget, Failover preview; per route: Set failover for this route), and Routing activity. Deep links: &add=content-routes | complexity-levels | route-to | routing-group |
   keep-cache-warm. Content route Match when: Request is about | Data detected | Prompt complexity |
   Text contains | Client. Conversation behaviour: Keep destination | Upgrade when needed (complexity) |
   Re-check every message. Responses carry x-quilr-route and x-quilr-served-model headers.
@@ -179,7 +180,6 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/protect/custom-detections.md
 - https://docs.quilrai.dev/llm-gateway/protect/identity-and-network-trust.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/routing-and-fallbacks.md
-- https://docs.quilrai.dev/llm-gateway/cost-and-traffic/policy-engine-routing.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/rate-token-and-budget-limits.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/token-saving.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/prompt-store.md
