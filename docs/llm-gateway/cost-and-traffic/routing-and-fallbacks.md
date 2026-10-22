@@ -340,12 +340,12 @@ When the chosen provider fails, the gateway retries it or moves the request to a
 
 | Setting | Default | Values |
 |---|---|---|
-| **Move failed requests to another model** | On | Off: failed requests are only retried on the same model. |
+| **Move failed requests to another model** | On | Off: failed requests are only retried on the same model, for the errors in **Fail over on**. |
 | **Where it can go** | **+ same model on other connections** | **Route models only**, **+ same model on other connections**, **+ other app models** |
 | **Backup models** | None | Up to 8 provider label and model pairs, tried after the route's own models. |
 | **Fail over on** | Timeouts, Connection errors, Rate limits (429), Provider errors (5xx) | Opt in: Rejected credentials (401/403), Model not found (404), Prompt too long for the model, Provider content filter |
 | **Max tries** | 3 | 1 to 3. Counts every send to a provider, retries included. |
-| **Same-model retries** | 2 | 0 to 2. |
+| **Same-model retries** | 2 | 0 to 2. Only for errors in **Fail over on**. |
 | **Time budget (s)** | 60 | 1 to 600. Only stops new tries from starting; a try in flight is never cut. Starts when the gateway first sends upstream, after its own guardrail checks. |
 | **Cut off slow tries** / **Per-try timeout (s)** | Off | 1 to 300. |
 | **Advanced > App model ranking** | None | Order for **+ other app models**. |
@@ -384,15 +384,15 @@ Because **Max tries** is at most 3 and includes the first send, a request reache
     { id: 'quilr', question: 'Was it a QuilrAI block or a gateway error?', hint: 'Guardrail, quota, access, conversion, configuration', yes: { label: 'Returned to the client', detail: 'Never retried', tone: 'danger' } },
     { id: 'budget', question: 'Are Max tries or the Time budget used up?', yes: { label: "Last provider's error", tone: 'danger' } },
     { id: 'move', question: 'Is the error in Fail over on, and is a backup left?', hint: 'A 429 with Retry-After of 2 s or less retries in place instead', yes: { label: 'Next backup', detail: 'Same-model retry count resets', tone: 'info' } },
-    { id: 'retry', question: 'Is it a timeout, connection error, 429 or 5xx, with same-model retries left?', yes: { label: 'Retry the same model', detail: '0.5 s, then 1 s, or Retry-After up to 10 s', tone: 'warning' } },
+    { id: 'retry', question: 'Is it a timeout, connection error, 429 or 5xx in Fail over on, with same-model retries left?', yes: { label: 'Retry the same model', detail: '0.5 s, then 1 s, or Retry-After up to 10 s', tone: 'warning' } },
   ]}
   fallback={{ label: "The provider's error, unchanged", tone: 'danger' }}
 />
 
-- Same-model retries apply to timeouts, connection errors, 429 and 5xx even when **Fail over on** leaves them out.
+- **Fail over on** controls both moving and same-model retries: an error left out of it is returned to the client on the first try.
 - A retry is made only if its delay fits in the remaining time budget.
 - When every try fails, the client gets the last provider's error with its own status, body and `Retry-After`, exactly as if failover did not exist.
-- When nothing could be sent (every candidate marked down, over quota or cooling down), the client gets `503 all_targets_unavailable` with `x-quilr-error-source: gateway` and, when known, `Retry-After`.
+- When nothing could be sent (every candidate marked down or over quota, or the time budget already used up), the client gets `503 all_targets_unavailable` with `x-quilr-error-source: gateway` and, when known, `Retry-After`.
 - With **Provider content filter** on, a successful response that the provider refused or filtered is also sent to another provider.
 
 ### Requests that never move
@@ -418,10 +418,12 @@ The gateway tracks the health of every provider credential and model it calls:
 |---|---|
 | 429 | Cooling down for the provider's `Retry-After`, or 10 s, between 1 and 120 s. |
 | Timeout, connection error, 5xx | After 3 failures within 60 s: cooling down for 30 s, doubling on each repeat up to 300 s (with jitter). |
-| 401, 403, 404 | Cooling down for 300 s, whether or not these are in **Fail over on**. |
+| 401, 403, 404 | Cooling down for 300 s. |
 | Prompt too long, content filter | Never. |
 
-A cooling target is skipped while a healthy backup exists. When its cooldown ends, one request at a time is sent to it as a probe; success clears it, failure starts a longer cooldown. If every candidate is cooling, one request goes to the one that recovers first and the others get `503 all_targets_unavailable` with `Retry-After`. This also applies to a route with a single target: after a 429, concurrent requests can briefly get a 503 from the gateway instead of the provider's response. Requests that cannot move are always sent.
+A cooldown only affects requests whose **Fail over on** includes the error that caused it, and each kind of error cools down on its own: a 401 cooldown does not hide a later run of 5xx errors from requests that only fail over on 5xx.
+
+A cooldown routes around a provider; it never refuses a request. A cooling target is skipped while a healthy backup exists. When its cooldown ends, one request at a time is sent to it as a probe; success clears it, failure starts a longer cooldown. If every candidate is cooling, including a route with a single target, the request is still sent, to the one that recovers first.
 
 ### Failover, pinning and quotas
 
