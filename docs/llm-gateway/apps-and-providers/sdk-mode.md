@@ -4,18 +4,25 @@ sidebar_label: "SDK mode"
 sidebar_custom_props:
   badge: new
   icon: Wrench
-description: "Scan text, messages, or structured JSON directly from application code. Documents hashing_mode, processed_json, JSON Pointer locations, placeholder mappings, and advisory similar_entities."
+description: "Use standalone SDK endpoints to check text, messages or JSON for sensitive data, or optimize text with caller-selected token-saving methods."
 ---
 
 # SDK Mode
 
-Scan content directly from your application code - no LLM proxy required.
+Check content and optimize text directly from your application code - no LLM proxy required.
 
 ## Overview
 
 SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages, text, or structured JSON for sensitive data and adversarial inputs.
 
-To test a key before integrating it into your app, open the [LLM Gateway Playground](/llm-gateway-playground) and select **Quilr SDK**. Choose **Text**, **Messages**, or **JSON**, select the request/response check type and hashing mode, then run the check. The playground shows processed content, placeholder mappings, detected JSON paths, and similar names, and generates matching cURL, Python, and JavaScript.
+For text optimization, use the separate [`POST /sdk/v1/token-savings`](./sdk-token-savings) endpoint. Select any of seven token-saving methods and receive the final text plus savings estimates. Its deterministic output helps keep repeated prompt content hash stable and cache friendly when you apply it consistently.
+
+| SDK endpoint | Use it to | Input |
+|---|---|---|
+| `POST /sdk/v1/check` | Detect, redact or block content | Text, messages or JSON |
+| [`POST /sdk/v1/token-savings`](./sdk-token-savings) | Optimize text with explicit method selection | Text only |
+
+To test a key before integrating it into your app, open the [LLM Gateway Playground](/llm-gateway-playground) and select **Quilr SDK**, then **Guardrail check** or **Token savings**. For checks, choose **Text**, **Messages**, or **JSON** and select the check type and hashing mode. For token savings, enter text and select your methods. Both operations generate matching cURL, Python and JavaScript.
 
 Common uses:
 
@@ -23,12 +30,13 @@ Common uses:
 - Scan LLM responses before returning them to users
 - Scan file uploads, form fields, or other non-LLM content
 - Integrate with a self-hosted LiteLLM proxy
+- Optimize retrieved content, API results and tool output before sending them to your LLM
 
 ## Authentication
 
 SDK mode requires a dedicated **SDK key** - regular LLM proxy keys are rejected with `403`.
 
-Create an app in **Settings > AI Gateway > LLM Gateway > Create App**, choose **App-only credentials** and select the **Quilr SDK** tile. It is a guardrails-only provider: it has no models and cannot be combined with other providers. Use the app's Quilr key as a Bearer token:
+Create an app in **Settings > AI Gateway > LLM Gateway > Create App**, choose **App-only credentials** and select the **Quilr SDK** tile. It provides standalone content checks and token savings, has no models, and cannot be combined with other providers. Use the app's Quilr key as a Bearer token:
 
 ```
 Authorization: Bearer sk-quilr-xxx
@@ -261,7 +269,7 @@ This example assumes `NAME` is detected and its configured action is `redact`:
 
 Every completed check includes `placeholder_masking`, an additional view with full placeholders for entities whose effective action is redact, partial-redact, or block. Monitor-only values remain unchanged. Use `placeholder_masking.messages` for request messages, `.text` for raw text, or `.json` for JSON input. Text and JSON checks set `.messages` to `null`.
 
-Tokens have the format `<qe-{16-char-hash}>`: the first 16 hexadecimal characters of an unsalted SHA-256 hash of the UTF-8 value. `placeholders[]` retains original values and detection metadata so your application can restore values using the mapping; the hash itself is not reversible.
+Tokens have the format `<qe-{16-char-hash}>`. The same source value and hashing mode produce the same placeholder, so the identifier for that value stays stable. `placeholders[]` retains original values and detection metadata so your application can restore values using the mapping.
 
 | `hashing_mode` | Hash input | Example |
 |----------------|------------|---------|

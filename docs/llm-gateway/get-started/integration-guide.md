@@ -43,6 +43,8 @@ Use the regional endpoint closest to your application for production traffic. Us
 | **Sarvam** (speech and text) | `/sarvam/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | Quilr key in the path |
 | **TrueFoundry custom guardrail** | `/sdk/v1/check/truefoundry` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
+| **Standalone SDK content check** | `/sdk/v1/check` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
+| **Standalone SDK token savings** | `/sdk/v1/token-savings` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
 
 Combine a region with a path, for example:
 
@@ -51,6 +53,8 @@ https://guardrails-usa-2.quilr.ai/openai_compatible/
 ```
 
 Pick the path that matches your SDK, not your provider: every conversational path reaches every conversational provider on the app, natively when the provider speaks that format and by conversion when it does not. See [any-to-any formats](../api-reference/any-to-any-formats) and the [capability matrix](../apps-and-providers/provider-support#capability-matrix).
+
+The standalone SDK paths return [content-check results](../apps-and-providers/sdk-mode) or [optimized text and token-savings estimates](../apps-and-providers/sdk-token-savings) directly. Use them without a provider or model selection.
 
 `sk-quilr-xxx` stands for your Quilr key. Copy it from the app's **API Integration** section (see [Applications and Keys](../apps-and-providers/applications-and-keys#api-integration)). The `model` you send must be enabled on the app.
 

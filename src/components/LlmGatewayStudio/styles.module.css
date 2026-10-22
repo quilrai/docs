@@ -1046,6 +1046,141 @@
   cursor: pointer;
 }
 
+.sdkOperation {
+  padding: 0.9rem 0.9rem 0;
+}
+
+.sdkOperation .sdkToggle {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.sdkOperation .sdkToggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.sdkDocLink {
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.sdkMethods {
+  min-width: 0;
+  border: 0;
+  margin: 0.9rem 0.9rem 0;
+  padding: 0;
+}
+
+.sdkMethods legend {
+  margin-bottom: 0.5rem;
+}
+
+.sdkMethodGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 0.45rem;
+}
+
+.sdkMethod {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 0.6rem;
+  border: 1px solid var(--docs-light-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.sdkMethod input {
+  margin: 0.15rem 0 0;
+  accent-color: var(--ifm-color-primary);
+}
+
+.sdkMethod strong,
+.sdkMethod small {
+  display: block;
+  line-height: 1.45;
+}
+
+.sdkMethod strong {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.sdkMethod small {
+  margin-top: 0.15rem;
+  font-size: 0.73rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+:global([data-theme="dark"]) .sdkMethod {
+  border-color: var(--docs-dark-border);
+}
+
+.sdkMethodSelected,
+:global([data-theme="dark"]) .sdkMethodSelected {
+  border-color: var(--ifm-color-primary);
+  background: rgba(5, 150, 105, 0.05);
+}
+
+.sdkProvenance {
+  margin: 0.9rem 0.9rem 0;
+  font-size: 0.8rem;
+}
+
+.sdkProvenance summary {
+  cursor: pointer;
+}
+
+.sdkProvenance .sdkHint,
+.sdkProvenance .sdkOptions {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.sdkMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.9rem 0.9rem 0;
+}
+
+.sdkMetrics > div {
+  display: grid;
+  gap: 0.2rem;
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+  background: rgba(5, 150, 105, 0.07);
+}
+
+.sdkMetrics span {
+  font-size: 0.7rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+.sdkMetrics strong {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sdkMethodResults > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.3rem 0.75rem;
+  padding: 0.4rem 0;
+  font-size: 0.78rem;
+}
+
+.sdkMethodResults strong {
+  font-variant-numeric: tabular-nums;
+}
+
 .sdkToggleActive {
   background: var(--ifm-color-primary) !important;
   color: #ffffff !important;

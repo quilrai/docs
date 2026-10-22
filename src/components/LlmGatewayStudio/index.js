@@ -20,6 +20,7 @@ import {
   Send,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   Square,
   Table2,
   Terminal,
@@ -216,11 +217,11 @@ const SURFACES = [
     id: 'sdk',
     group: 'sdk',
     category: 'Guardrails',
-    label: 'Guardrail check',
+    label: 'Quilr SDK',
     path: '/sdk/v1/check',
     auth: 'bearer',
     selector: false,
-    blurb: 'Standalone guardrail check. Needs a quilr_sdk key, not a provider key.',
+    blurb: 'Standalone guardrail checks and token savings. Needs a quilr_sdk key.',
   },
   {
     id: 'logs',
@@ -238,6 +239,16 @@ const SURFACES = [
 // Left-rail surface switcher only covers the model-call surfaces.
 // Guardrails and Log Export are distinct tools, promoted to top-level tabs.
 const GATEWAY_CATEGORIES = ['Conversation', 'Data'];
+
+const SDK_TOKEN_SAVING_METHODS = [
+  { id: 'smart_json_compression', label: 'Smart JSON compression', description: 'Convert JSON into compact TOON notation.' },
+  { id: 'html_to_text', label: 'HTML to text', description: 'Keep readable text from HTML.' },
+  { id: 'markdown_to_text', label: 'Markdown to text', description: 'Remove Markdown formatting.' },
+  { id: 'text_compression', label: 'Text compression', description: 'Shorten prose. Review the result before use.' },
+  { id: 'tool_output_cleanup', label: 'Tool output cleanup', description: 'Reduce terminal formatting and repetitive output.' },
+  { id: 'base64_blob_elision', label: 'Base64 blob elision', description: 'Replace large encoded blobs with a short marker.' },
+  { id: 'json_minification', label: 'JSON minification', description: 'Remove unnecessary whitespace from a JSON document.' },
+];
 
 const STUDIO_TABS = [
   { id: 'gateway', label: 'Gateway', Icon: Terminal, surface: 'chat' },
@@ -1127,6 +1138,53 @@ const safe = Object.prototype.hasOwnProperty.call(judgement, "processed_json")
 `;
 }
 
+function buildSdkTokenSavingsPython(url, payload, key) {
+  return `import json
+import requests
+
+response = requests.post(
+    ${JSON.stringify(url)},
+    headers={"Authorization": "Bearer " + ${JSON.stringify(key)}, "Content-Type": "application/json"},
+    json=json.loads(${JSON.stringify(JSON.stringify(payload))}),
+    timeout=15,
+)
+response.raise_for_status()
+result = response.json()
+
+optimized_text = result["text"]
+print(optimized_text)
+print(json.dumps({field: result[field] for field in (
+    "methods", "original_tokens", "final_tokens", "tokens_saved",
+    "savings_percent", "tokens_saved_by_method",
+)}, indent=2))
+`;
+}
+
+function buildSdkTokenSavingsJs(url, payload, key) {
+  return `const response = await fetch(${JSON.stringify(url)}, {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer " + ${JSON.stringify(key)},
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(${formatJson(payload)}),
+});
+if (!response.ok) throw new Error(\`Token savings failed: \${response.status}\`);
+const result = await response.json();
+
+const optimizedText = result.text;
+console.log(optimizedText);
+console.log({
+  methods: result.methods,
+  original_tokens: result.original_tokens,
+  final_tokens: result.final_tokens,
+  tokens_saved: result.tokens_saved,
+  savings_percent: result.savings_percent,
+  tokens_saved_by_method: result.tokens_saved_by_method,
+});
+`;
+}
+
 let idCounter = 0;
 function nextId() {
   idCounter += 1;
@@ -1160,6 +1218,11 @@ export default function LlmGatewayStudio() {
   const [threadId, setThreadId] = useState(null);
 
   const [payloadText, setPayloadText] = useState('');
+  const [sdkOperation, setSdkOperation] = useState('check');
+  const [sdkTokenText, setSdkTokenText] = useState(() => '# CI report\n\n' + Array.from({ length: 8 }, (_, index) => `- **check ${index + 1}** [passed](https://example.invalid/ci/checks/${index + 1})`).join('\n'));
+  const [sdkTokenMethods, setSdkTokenMethods] = useState(['markdown_to_text', 'text_compression']);
+  const [sdkToolName, setSdkToolName] = useState('');
+  const [sdkToolCommand, setSdkToolCommand] = useState('');
   const [sdkCheckType, setSdkCheckType] = useState('request');
   const [sdkInputFormat, setSdkInputFormat] = useState('text');
   const [sdkHashingMode, setSdkHashingMode] = useState('case_sensitive');
@@ -1206,6 +1269,7 @@ export default function LlmGatewayStudio() {
   const isConversation = surface.group === 'chat';
   const isEditor = surface.group === 'editor';
   const isSdk = surface.group === 'sdk';
+  const isSdkTokenSavings = isSdk && sdkOperation === 'token-savings';
   const isLogs = surface.group === 'logs';
   const topTab = getTopTab(surface.group);
 
@@ -1222,7 +1286,7 @@ export default function LlmGatewayStudio() {
   };
 
   const requestMethod = surface.method ?? 'POST';
-  const surfacePath = isLogs ? logGatewayConfig.path : surface.path;
+  const surfacePath = isLogs ? logGatewayConfig.path : isSdkTokenSavings ? '/sdk/v1/token-savings' : surface.path;
   const normalizedBase = normalizeBaseUrl(baseUrl);
   const requestUrl = normalizedBase ? `${normalizedBase}${surfacePath}` : surfacePath;
   const activeRegion = REGIONS.find((r) => r.value === normalizedBase) ?? null;
@@ -1251,6 +1315,11 @@ export default function LlmGatewayStudio() {
     const initial = getInitialLogWindow();
     setLogStartTime(initial.start);
     setLogEndTime(initial.end);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('surface') === 'sdk') {
+      setSurfaceId('sdk');
+      if (params.get('sdk_operation') === 'token_savings') setSdkOperation('token-savings');
+    }
   }, []);
 
   // The Assistants handles belong to a specific key + endpoint; drop them when
@@ -1287,12 +1356,27 @@ export default function LlmGatewayStudio() {
     isEditor && (editorParse.error || (!isPlainObject(editorParse.value) ? 'Request body must be a JSON object.' : null));
 
   const sdkParse = useMemo(() => parseSdkContent(sdkContent, sdkInputFormat), [sdkContent, sdkInputFormat]);
-  const sdkPayload = useMemo(() => sdkParse.error ? null : ({
-    type: sdkCheckType,
-    [sdkInputFormat]: sdkParse.value,
-    hashing_mode: sdkHashingMode,
-    metadata: { caller: 'docs-playground' },
-  }), [sdkCheckType, sdkInputFormat, sdkParse, sdkHashingMode]);
+  const sdkValidationError = isSdkTokenSavings
+    ? sdkTokenMethods.length === 0 ? 'Select at least one method.' : null
+    : sdkParse.error;
+  const sdkPayload = useMemo(() => {
+    if (sdkValidationError) return null;
+    if (isSdkTokenSavings) {
+      return {
+        text: sdkTokenText,
+        methods: sdkTokenMethods,
+        ...(sdkToolName ? { tool_name: sdkToolName } : {}),
+        ...(sdkToolCommand ? { tool_command: sdkToolCommand } : {}),
+      };
+    }
+    return {
+      type: sdkCheckType,
+      [sdkInputFormat]: sdkParse.value,
+      hashing_mode: sdkHashingMode,
+      metadata: { caller: 'docs-playground' },
+    };
+  }, [sdkValidationError, isSdkTokenSavings, sdkTokenText, sdkTokenMethods, sdkToolName, sdkToolCommand,
+    sdkCheckType, sdkInputFormat, sdkParse, sdkHashingMode]);
 
   const effectivePayload = useMemo(() => {
     if (isSdk) return sdkPayload;
@@ -1338,7 +1422,9 @@ export default function LlmGatewayStudio() {
       return buildLogCurl(requestUrl, snippetKeyValue, logQueryPreview);
     }
     if (isSdk) {
-      if (!sdkPayload) return 'Enter valid content to generate a request example.';
+      if (!sdkPayload) return isSdkTokenSavings ? 'Select at least one method to generate a request example.' : 'Enter valid content to generate a request example.';
+      if (isSdkTokenSavings && codeTab === 'python') return buildSdkTokenSavingsPython(requestUrl, sdkPayload, snippetKeyValue);
+      if (isSdkTokenSavings && codeTab === 'javascript') return buildSdkTokenSavingsJs(requestUrl, sdkPayload, snippetKeyValue);
       if (codeTab === 'python') return buildSdkPython(requestUrl, sdkPayload, snippetKeyValue);
       if (codeTab === 'javascript') return buildSdkJs(requestUrl, sdkPayload, snippetKeyValue);
       return buildSdkCurl(requestUrl, sdkPayload, snippetKeyValue);
@@ -1364,6 +1450,7 @@ export default function LlmGatewayStudio() {
   }, [
     isLogs,
     isSdk,
+    isSdkTokenSavings,
     codeTab,
     requestUrl,
     sdkPayload,
@@ -1951,7 +2038,7 @@ export default function LlmGatewayStudio() {
           const detail = json?.error?.message || json?.detail || json?.message || text || `HTTP ${response.status}`;
           const hint =
             isSdk && (response.status === 403 || String(detail).includes('sdk_mode_required'))
-              ? ' Guardrail check needs a quilr_sdk key. Use a Conversation or Data surface for normal provider keys.'
+              ? ' Quilr SDK operations need a quilr_sdk key. Use a Conversation or Data surface for normal provider keys.'
               : '';
           setError(`${detail}${hint}`);
         }
@@ -2205,7 +2292,52 @@ export default function LlmGatewayStudio() {
           )}
 
           {isSdk && (
-            <SdkPane
+            <>
+              <div className={styles.sdkOperation}>
+                <div className={styles.sdkToggle} role="group" aria-label="SDK operation">
+                  {[
+                    { id: 'check', label: 'Guardrail check', Icon: ShieldCheck },
+                    { id: 'token-savings', label: 'Token savings', Icon: Sparkles },
+                  ].map((operation) => (
+                    <button
+                      key={operation.id}
+                      type="button"
+                      className={sdkOperation === operation.id ? styles.sdkToggleActive : ''}
+                      onClick={() => {
+                        setSdkOperation(operation.id);
+                        resetRunState();
+                      }}
+                      disabled={isRunning}
+                      aria-pressed={sdkOperation === operation.id}
+                    >
+                      <operation.Icon size={14} aria-hidden /> {operation.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {isSdkTokenSavings ? (
+                <SdkTokenSavingsPane
+                  text={sdkTokenText}
+                  setText={(value) => { setSdkTokenText(value); resetRunState(); }}
+                  methods={sdkTokenMethods}
+                  toggleMethod={(id) => {
+                    setSdkTokenMethods((selected) => selected.includes(id)
+                      ? selected.filter((method) => method !== id)
+                      : SDK_TOKEN_SAVING_METHODS.filter((method) => selected.includes(method.id) || method.id === id).map((method) => method.id));
+                    resetRunState();
+                  }}
+                  toolName={sdkToolName}
+                  setToolName={(value) => { setSdkToolName(value); resetRunState(); }}
+                  toolCommand={sdkToolCommand}
+                  setToolCommand={(value) => { setSdkToolCommand(value); resetRunState(); }}
+                  validationError={sdkValidationError}
+                  onRun={runSingle}
+                  isRunning={isRunning}
+                  canRun={canRun}
+                  lastResponse={lastResponse}
+                  error={error}
+                />
+              ) : <SdkPane
               styles={styles}
               checkType={sdkCheckType}
               setCheckType={(t) => {
@@ -2233,7 +2365,8 @@ export default function LlmGatewayStudio() {
               canRun={canRun}
               lastResponse={lastResponse}
               error={error}
-            />
+              />}
+            </>
           )}
 
           {isLogs && (
@@ -2725,6 +2858,111 @@ function buildEditorResult(surface, body) {
 }
 
 /* ────────────────────────────────── SDK pane ───────────────────────── */
+
+function SdkTokenSavingsPane({
+  text, setText, methods, toggleMethod, toolName, setToolName, toolCommand, setToolCommand,
+  validationError, onRun, isRunning, canRun, lastResponse, error,
+}) {
+  const result = lastResponse?.ok ? lastResponse.body : null;
+  const displayCount = (value) => typeof value === 'number' ? value.toLocaleString() : '-';
+
+  return (
+    <>
+      <div className={styles.centerHeader}>
+        <div>
+          <h2 className={styles.editorTitle}>Token savings</h2>
+          <code className={styles.editorPath}>POST /sdk/v1/token-savings</code>
+        </div>
+        <a className={styles.sdkDocLink} href="/llm-gateway/apps-and-providers/sdk-token-savings">API guide</a>
+      </div>
+      <p className={styles.sdkHint}>
+        Optimize one text string before sending it to your model. Choose your methods, then review the final text and estimated savings. No model selection or provider call is needed.
+      </p>
+      <fieldset className={styles.sdkMethods} disabled={isRunning} aria-describedby="sdk-methods-hint">
+        <legend className={styles.fieldLabel}>Methods to apply</legend>
+        <div className={styles.sdkMethodGrid}>
+          {SDK_TOKEN_SAVING_METHODS.map((method) => (
+            <label key={method.id} className={`${styles.sdkMethod} ${methods.includes(method.id) ? styles.sdkMethodSelected : ''}`}>
+              <input type="checkbox" checked={methods.includes(method.id)} onChange={() => toggleMethod(method.id)} />
+              <span><strong>{method.label}</strong><small>{method.description}</small></span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <p id="sdk-methods-hint" className={styles.sdkHint}>
+        Select at least one. Selected methods run in a fixed order; ineligible text can remain unchanged. Some methods remove formatting or content, so choose them for your use case.
+      </p>
+      <label className={styles.sdkField}>
+        <span className={styles.fieldLabel}>Text to optimize</span>
+        <textarea
+          className={styles.sdkText}
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          rows={8}
+          spellCheck={false}
+          disabled={isRunning}
+          aria-describedby="sdk-token-text-hint"
+        />
+      </label>
+      <p id="sdk-token-text-hint" className={styles.sdkHint}>
+        Paste plain text, HTML, Markdown, JSON as a string, or tool output. Empty text is supported. The endpoint accepts text only.
+      </p>
+      <details className={styles.sdkProvenance}>
+        <summary>Passing tool output? Add its source</summary>
+        <p className={styles.sdkHint}>Include the producing tool and command when available. File-reading output is preserved to protect exact source content.</p>
+        <div className={styles.sdkOptions}>
+          <label>
+            <span className={styles.fieldLabel}>Tool name (optional)</span>
+            <input className={styles.input} value={toolName} onChange={(event) => setToolName(event.target.value)} placeholder="Bash" disabled={isRunning} />
+          </label>
+          <label>
+            <span className={styles.fieldLabel}>Tool command (optional)</span>
+            <input className={`${styles.input} ${styles.mono}`} value={toolCommand} onChange={(event) => setToolCommand(event.target.value)} placeholder="pytest -q" spellCheck={false} disabled={isRunning} />
+          </label>
+        </div>
+      </details>
+      <p className={styles.sdkHint}>
+        <strong>Hash-stable and cache-friendly:</strong> identical original text, selected methods, and tool source produce identical output for the same service version, keeping content hashes you compute stable. Use the same settings on each original history segment across turns. Provider cache hits depend on the provider and request.
+      </p>
+      {validationError && <div className={styles.composerError} role="alert">{validationError}</div>}
+      {error && <div className={styles.composerError} role="alert"><AlertTriangle size={14} aria-hidden /> {error}</div>}
+      {result && (
+        <>
+          <div className={styles.sdkMetrics} aria-label="Estimated token savings">
+            {[
+              ['Original tokens', displayCount(result.original_tokens)],
+              ['Final tokens', displayCount(result.final_tokens)],
+              ['Tokens saved', displayCount(result.tokens_saved)],
+              ['Savings', `${displayCount(result.savings_percent)}%`],
+            ].map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
+          </div>
+          <p className={styles.sdkHint}>Estimates describe this text, not provider billing. Savings can be zero or negative.</p>
+          <div className={styles.resultCard}>
+            <div className={styles.previewLabel}>Optimized text</div>
+            <pre className={styles.resultBody}>{result.text === '' ? '(empty text)' : result.text}</pre>
+          </div>
+          <div className={styles.resultCard}>
+            <div className={styles.previewLabel}>Savings by method</div>
+            <div className={styles.sdkMethodResults}>
+              {(result.methods ?? []).map((method) => (
+                <div key={method}>
+                  <span>{SDK_TOKEN_SAVING_METHODS.find((item) => item.id === method)?.label ?? method}</span>
+                  <strong>{displayCount(result.tokens_saved_by_method?.[method])} tokens</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+      <div className={styles.composer}>
+        <div className={styles.editorRunNote}>Needs a quilr_sdk key. Returns optimized text and savings estimates.</div>
+        <button type="button" className={styles.sendBtn} onClick={onRun} disabled={!canRun || Boolean(validationError)}>
+          {isRunning ? <Loader2 size={15} className={styles.spin} aria-hidden /> : <Sparkles size={15} aria-hidden />} Optimize text
+        </button>
+      </div>
+    </>
+  );
+}
 
 function SdkPane({
   styles, checkType, setCheckType, inputFormat, setInputFormat, hashingMode, setHashingMode,
