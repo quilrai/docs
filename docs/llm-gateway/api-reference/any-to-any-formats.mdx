@@ -229,7 +229,7 @@ Error bodies follow your client's format:
 Conversion happens after the gateway picks a provider, so it works with every routing feature:
 
 - **Routing groups can mix API families.** A Responses group can hold Claude on Bedrock next to GPT on Azure. The group needs at least one member of its own family; while any own-family member is usable, only those members take traffic, and the others are reached by conversion when they are not. See [Routing and fallbacks](../cost-and-traffic/routing-and-fallbacks#which-providers-a-group-can-mix).
-- **Policy Engine Route to and content routes** use a newly reachable target only when no target of the request's own family is available. If no target can serve the request, normal routing applies. See [Policy Engine routing](../cost-and-traffic/policy-engine-routing#route-to).
+- **Policy Engine Route to and content routes** use a newly reachable target only when no target of the request's own family is available. If no target can serve the request, normal routing applies. See [Route to](../cost-and-traffic/routing-and-fallbacks#route-to).
 - **A request that worked before keeps its target.** Any-to-any never moves working traffic; it only adds targets that were unreachable before.
 - **Conversation pinning** keeps a conversation on its first provider, whatever the format.
 - **Bedrock clients** (Converse, InvokeModel) reach a non-Bedrock provider when a routing group picks it (Converse only), when you select it with `X-Provider-Name` / `X-Provider-Label`, or when it is the only provider on the app with the model. Bedrock credentials always get the signed request unchanged.
@@ -308,6 +308,5 @@ print(response["output"]["message"]["content"][0]["text"])
 ## Related
 
 - [Provider support](../apps-and-providers/provider-support) - provider types, endpoints and credentials
-- [Routing and fallbacks](../cost-and-traffic/routing-and-fallbacks) - groups that mix providers
-- [Policy Engine routing](../cost-and-traffic/policy-engine-routing) - Route to and content routes
+- [Routing and failover](../cost-and-traffic/routing-and-fallbacks) - routes, pinning, failover and groups that mix providers
 - [Integration guide](../get-started/integration-guide) - base URLs and SDK setup
