@@ -80,7 +80,40 @@ Members from the request's own API family are preferred. Members that can only b
 
 ## Conversations and caching {#conversations-and-caching}
 
-Providers cache the start of a prompt (system prompt, tools, earlier turns). The cache belongs to one provider credential and model, and every move to another model starts a cold cache. So routing decisions are made per conversation, not per request.
+Providers cache the start of a prompt (system prompt, tools, earlier turns). The cache belongs to one provider credential and model, and every move to another model starts a cold cache: full input price and slower first tokens. So routing decisions are made per conversation, not per request.
+
+A gateway that routes each request on its own spreads one conversation across providers and pays for a cold cache every time it moves:
+
+<StepFlow steps={[
+  { label: "Turn 1", items: ["Provider A", "Cache written"] },
+  { label: "Turn 2", items: ["Provider B", "✗ Cold cache"] },
+  { label: "Turn 3", items: ["Provider A", "✗ Cold again"] },
+  { label: "Turn 4", items: ["Provider C", "✗ Cold again"] },
+]} />
+
+The LLM Gateway keeps the conversation where its cache is:
+
+<StepFlow steps={[
+  { label: "Turn 1", items: ["Route decided", "Provider A", "Cache written"] },
+  { label: "Turn 2", items: ["Pinned", "Provider A", "✓ Cache hit"] },
+  { label: "Turn 3", items: ["Pinned", "Provider A", "✓ Cache hit"] },
+  { label: "Turn 4", items: ["Pinned", "Provider A", "✓ Cache hit"] },
+]} />
+
+### Cache-aware by design
+
+| Where a move could cost the cache | What the gateway does |
+|---|---|
+| Choosing a route | Decided on the first message and kept (**Keep destination** is the default). |
+| Weighted splits | Weights split **new conversations**, not requests; each conversation stays on its member. |
+| Several providers for one model | One is picked once and pinned. |
+| Writing the pin | Only after a successful response, so an error never pins a conversation somewhere new. |
+| Complexity routing | **Upgrade when needed** only moves up, so a conversation rebuilds its cache at most once per level. |
+| Failover | The conversation stays on the backup that answered, instead of moving back and paying for a second cold cache. |
+| Provider-held state | Requests that continue a stored response or cached content are never moved to another credential. |
+| Keeping caches alive | [Keep prompt cache warm](#keep-prompt-cache-warm) extends or refreshes caches without moving the conversation. |
+| The request body | Native requests are forwarded byte for byte, and cache markers are carried across [format conversion](../api-reference/any-to-any-formats), so the cached prefix still matches. |
+| Helper models | Each requested model is pinned on its own, so a coding tool's small model does not drag the main conversation along. |
 
 ### How the gateway identifies a conversation
 
@@ -379,7 +412,7 @@ For a stream, the gateway waits for the provider's first event before it starts 
 
 ### Provider health and cooldown
 
-Each gateway node tracks the health of every provider credential and model it calls:
+The gateway tracks the health of every provider credential and model it calls:
 
 | Failure | Effect |
 |---|---|
