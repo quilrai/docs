@@ -41,6 +41,7 @@ Use the regional endpoint closest to your application for production traffic. Us
 | **OpenAI Assistants** | `/openai_assistants/` | `Authorization: Bearer sk-quilr-xxx` |
 | **OpenAI Realtime** (wss) | `/openai_realtime/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Sarvam** (speech and text) | `/sarvam/` | `Authorization: Bearer sk-quilr-xxx` |
+| **TypeSafe System One** (decision models) | `/typesafe/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | Quilr key in the path |
 | **TrueFoundry custom guardrail** | `/sdk/v1/check/truefoundry` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
 | **Standalone SDK content check** | `/sdk/v1/check` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
@@ -304,6 +305,55 @@ curl https://guardrails-usa-2.quilr.ai/rerank/v2/rerank \
       "The Eiffel Tower is in Paris."
     ],
     "top_n": 2
+  }'
+```
+
+</TabItem>
+</Tabs>
+
+### Decision models
+
+Microsoft-Decision-1 deployments on an Azure provider answer typed questions with probabilities. Send the OpenAI Decisions format to `/openai_compatible/v1/decisions` or the System One format to `/typesafe/v1/systemone`; `model` is your Azure deployment name. See [Decision models](../apps-and-providers/provider-support#decision-models).
+
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
+
+```python
+import requests
+
+response = requests.post(
+    # diff-add
+    'https://guardrails-usa-2.quilr.ai/openai_compatible/v1/decisions',
+    # diff-add
+    headers={'Authorization': 'Bearer sk-quilr-xxx'},
+    json={
+        'model': 'decision-1',
+        'input': 'I was charged twice for my plan.',
+        'questions': [
+            {'type': 'predicate', 'name': 'billing', 'instructions': 'Is this about billing?'},
+            {'type': 'choice', 'name': 'team', 'instructions': 'Which team should handle it?',
+             'choices': [{'value': 'billing'}, {'value': 'engineering'}]},
+        ],
+    },
+)
+for answer in response.json()['answers']:
+    print(answer)
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```bash
+# System One format
+curl https://guardrails-usa-2.quilr.ai/typesafe/v1/systemone \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -d '{
+    "model": "decision-1",
+    "state": "I was charged twice for my plan.",
+    "questions": {
+      "billing": {"type": "noul", "instructions": "Is this about billing?"}
+    }
   }'
 ```
 

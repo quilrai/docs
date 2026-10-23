@@ -4,7 +4,7 @@ sidebar_label: "Provider support matrix"
 sidebar_custom_props:
   badge: new
   icon: Handshake
-description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs."
+description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and Microsoft-Decision-1 decision models on Azure AI Foundry through the OpenAI Decisions and System One APIs."
 ---
 
 # Provider Support
@@ -60,6 +60,7 @@ One row per provider type. The type is what you select in the console and what y
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
 - **Endpoint families:** moderations, images, OCR, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families).
+- `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes. See [Decision models](#decision-models).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
 ## Endpoints
@@ -80,6 +81,7 @@ Combine a [regional base URL](../get-started/integration-guide#region) with a pa
 | Vertex AI | `/vertex_ai/` | `Authorization: Bearer <Quilr key>` |
 | Rerank | `/rerank/v2/rerank`, `/rerank/v1/rerank`, `/rerank/rerank` | `Authorization: Bearer <Quilr key>` |
 | Sarvam native | `/sarvam/...` | `Authorization: Bearer <Quilr key>` |
+| Decision models | `/openai_compatible/v1/decisions`, `/typesafe/v1/systemone` | `Authorization: Bearer <Quilr key>` |
 | QuilrAI SDK | `/sdk/v1/check` | `Authorization: Bearer <Quilr key>` |
 | Copilot Studio | `/copilot_studio/{Quilr key}` | Quilr key in the path |
 
@@ -259,6 +261,62 @@ Moderations, images, OCR, completions (including Codestral and DeepSeek fill-in-
 
 These routes enforce access, model allow-lists and limits but are not scanned by guardrails. See [Endpoint Families](../api-reference/endpoint-families).
 
+## Decision models
+
+Microsoft-Decision-1 on Azure AI Foundry answers typed questions about text or JSON with probabilities instead of generated text. Use it for classification, routing, ranking and yes/no gates. Call it in either format:
+
+| Format | Path | Questions | Answers |
+|--------|------|-----------|---------|
+| OpenAI Decisions | `/openai_compatible/v1/decisions` | `input` and a `questions` array of `predicate`, `choice` and `score` | An `answers` array in question order |
+| System One | `/typesafe/v1/systemone` | `state` and a `questions` map of `noul`, `choice` and `score` | An `answers` map keyed by question name |
+
+Set up:
+
+1. In Azure AI Foundry, deploy **Microsoft-Decision-1** under a name of your choice (Azure does not allow the name `Microsoft-Decision-1` itself), for example `decision-1`.
+2. Add an Azure provider (`azureopenai`) with the resource endpoint and key from the deployment details page, and add the deployment name as a model. Model validation checks it on the decision route, since the model has no chat route.
+3. Send the deployment name as `model`.
+
+```bash
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/decisions \
+  -H "Authorization: Bearer <Quilr key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "decision-1",
+    "input": "The API returns 500 on every call.",
+    "questions": [
+      {"type": "choice", "name": "team", "instructions": "Which team should handle this ticket?",
+       "choices": [{"value": "billing", "description": "Charges and refunds"},
+                   {"value": "engineering", "description": "Bugs and outages"}]}
+    ]
+  }'
+```
+
+The same question in System One format:
+
+```bash
+curl https://guardrails-usa-2.quilr.ai/typesafe/v1/systemone \
+  -H "Authorization: Bearer <Quilr key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "decision-1",
+    "state": "The API returns 500 on every call.",
+    "questions": {
+      "team": {"type": "choice", "instructions": "Which team should handle this ticket?",
+               "criteria": {"billing": "Charges and refunds", "engineering": "Bugs and outages"}}
+    }
+  }'
+```
+
+| Topic | Behavior |
+|-------|----------|
+| Upstream | `<resource>/providers/microsoft/v1/systemone`. Any endpoint copied from the portal works (`/openai/v1`, `/models` and project URLs are trimmed to the resource). |
+| Format conversion | OpenAI Decisions requests are converted to System One and the answers converted back. Text parts of `input` join into the state; `safety_identifier` is dropped. |
+| Guardrails | Scan the input or state and every question field before conversion, including object keys. Answers are probabilities and your own labels, so they are not scanned. |
+| Not covered | Images, Box questions, audio and video (the model reads text and JSON only). No streaming. |
+| Routing | Decision routes serve only Azure providers. They never join a routing group or route. |
+| Model access | A request reaches only deployments listed in the serving provider's models; any other deployment is refused with `403 model_access_denied`. A provider with no models listed serves every deployment. |
+| Billing | Input tokens are charged ($0.042 per 1M on Azure); output tokens are free. Token, quota and budget limits apply as on other routes. |
+
 ## Assistants API
 
 `/openai_assistants/` serves the OpenAI Assistants API (threads, runs, file search) through `openai_assistants` and `openai_assistants_azure`. Use it only for apps already built on Assistants.
@@ -279,7 +337,7 @@ When an app has several providers that can serve a request, choose one by provid
 
 | Endpoint | Body field | Header | Query parameter |
 |----------|-----------|--------|-----------------|
-| Chat Completions, Anthropic Messages, Vertex AI, Embeddings, Rerank, Responses | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
+| Chat Completions, Anthropic Messages, Vertex AI, Embeddings, Rerank, Responses, Decision models | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Sarvam native (multipart routes: as a form field) | `provider` or `provider_label` | `X-Provider-Name` / `X-Provider-Label` | - |
 | Realtime | - | `X-Provider-Name` / `X-Provider-Label` | `provider` or `provider_label` |
 
