@@ -10,6 +10,13 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Decision models on Azure AI Foundry (2026-10-23)
+
+- Call Microsoft-Decision-1 deployments on an Azure provider through `/openai_compatible/v1/decisions` (OpenAI Decisions format) or `/typesafe/v1/systemone` (System One format)
+- Guardrails scan the input and every question; answers come back in the format you called
+- Requests reach only the deployments listed on the provider
+- Decision deployments now pass model validation in the Azure provider form - see [Provider Support](../apps-and-providers/provider-support#decision-models)
+
 ## Any-to-any API formats (2026-10-20)
 
 Call any conversational provider from the SDK you already use. The gateway now accepts Chat Completions, Responses, Anthropic Messages, Gemini generateContent and Bedrock Converse / InvokeModel requests and reaches every conversational provider from each of them.
