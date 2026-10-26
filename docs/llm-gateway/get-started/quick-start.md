@@ -145,7 +145,7 @@ Open the app card's **Configure** buttons to change any of these settings later.
 | [Rate and Token Limits](../cost-and-traffic/rate-token-and-budget-limits) | Timeouts, concurrency, request rates, token ceilings |
 | [Routing](../cost-and-traffic/routing-and-fallbacks) | Weighted and token-based groups, failover, routing by request size |
 | [Token Saving](../cost-and-traffic/token-saving) | JSON, HTML, Markdown and text compression |
-| [Prompt Store](../cost-and-traffic/prompt-store) | Reusable system prompts |
+| [Prompt Store](../cost-and-traffic/prompt-store) | Reusable system prompts and a universal system prompt for every request |
 | [Identity Aware](../protect/identity-and-network-trust) | Required user identity, conversation IDs, JWT verification |
 | [Self-Service](../self-service/overview) | What developers can see and change themselves |
 

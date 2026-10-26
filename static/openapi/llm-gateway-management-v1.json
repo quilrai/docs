@@ -216,7 +216,8 @@
                       "self_service"
                     ],
                     "prompts": [
-                      "require_system_from_store"
+                      "require_system_from_store",
+                      "universal_system_prompt"
                     ]
                   },
                   "app_top_level_fields": [
@@ -14290,6 +14291,20 @@
             "properties": {
               "require_system_from_store": {
                 "type": "boolean"
+              },
+              "universal_system_prompt": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "content": {
+                    "type": "string",
+                    "maxLength": 100000
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Prepended to the system prompt of every request when enabled; partial objects merge onto the stored value."
               }
             },
             "additionalProperties": false
@@ -14756,6 +14771,20 @@
             "properties": {
               "require_system_from_store": {
                 "type": "boolean"
+              },
+              "universal_system_prompt": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "content": {
+                    "type": "string",
+                    "maxLength": 100000
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Prepended to the system prompt of every request when enabled; partial objects merge onto the stored value."
               }
             },
             "additionalProperties": false

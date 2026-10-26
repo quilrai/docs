@@ -96,7 +96,7 @@ The governed sections of the settings screens lock and show **Controlled by Poli
 | LLM Gateway | Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving, Routing, Identity Aware (identity and conversation ID requirements), Prompt Store (store-prompt enforcement) | Applications, keys, providers and credentials, custom detections, alerts, self-service, audit |
 | MCP Gateway | Tools, Guardrails, Token saving, Tool list, Group & User Rules per server | Server register, connections, OneMCP operation, API tokens |
 
-The LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card.
+The LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card. An app's prompts and its [universal system prompt](../../llm-gateway/cost-and-traffic/prompt-store#universal-system-prompt) stay managed in the app and keep applying.
 
 ## What happens to classic settings
 

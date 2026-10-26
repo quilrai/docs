@@ -71,7 +71,10 @@ TASK -> WHERE
 - Routing (weighted, token-based, custom) -> Configure > Routing
 - Failure-rate alerts (email/webhook) -> workspace Settings > Alerts
 - Identity / JWT / conversation ID enforcement -> workspace Settings > Identity Aware
-- Prompt Store (approved prompts + enforcement) -> Configure > Prompts
+- Prompt Store (approved prompts + Universal system prompt + enforcement) -> Configure > Prompts
+- One prompt added to every request of an app -> Configure > Prompts > "Universal system prompt" card:
+  type the Prompt, turn on "Apply to every request" > Save settings (no Prompt ID; added before the request's
+  own system prompt)
 - Self-service for developers -> Configure > Self-Service > Self-service Enabled switch, then Capabilities grid
   (per capability: Allow all users / Allow emails / Allow smart groups / Deny emails / Deny smart groups) > Save settings
 - Approve self-service change requests -> Configure > Audit Log > Change requests
@@ -159,10 +162,12 @@ CONFIGURATION NOTES
   ... policies." > View policies (edit in Policy Engine) or Edit anyway > dialog "Edit legacy settings?"
   > Cancel | Edit legacy settings (saved values apply only if the Policy Engine is turned off).
 - Partly governed: Custom Detections (on/off, Applies to, Action), Identity Aware (Enforce identity /
-  Enforce conversation ID switches), Prompt Store (Enforcement). Definitions, identity sources, prompts stay live here.
+  Enforce conversation ID switches), Prompt Store (Enforcement). Definitions, identity sources, prompts and the
+  Universal system prompt stay live here.
 - Not governed: LLM Providers, Self-Service, Alerts, API Keys, API Integration, Audit Log.
 - Settings save only on "Save settings"; Discard changes reverts. Prompts and custom detection
-  definitions save immediately.
+  definitions save immediately. The Universal system prompt and its "Apply to every request" switch save
+  with "Save settings".
 - Radio cards (provider source): click the visible card label text ("Platform providers" /
   "App-only credentials"), not a hidden input. This choice can't be changed after the app is created.
 - Create App is 2 steps (Application and providers, then Integration); keys are shown once, copy them.
