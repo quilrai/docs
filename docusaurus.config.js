@@ -172,6 +172,11 @@ const config = {
                         to: '/llm-gateway-playground',
                     },
                     {
+                        // The budgets playground is now a workspace of the management playground.
+                        from: ['/llm-gateway-budgets-playground'],
+                        to: '/llm-gateway-management-playground?tab=budgets',
+                    },
+                    {
                         from: [
                             '/llm-gateway/features/self-service',
                             '/llm-gateway/features/self-service.md',
@@ -248,9 +253,20 @@ const config = {
                     // Videos and Open source are rendered from src/data/featured.js
                     // as highlighted buttons (src/theme/Navbar/Content).
                     {
+                        type: 'dropdown',
                         to: '/llm-gateway-playground',
                         label: 'Playground',
                         position: 'right',
+                        items: [
+                            {
+                                to: '/llm-gateway-playground',
+                                label: 'LLM Gateway playground',
+                            },
+                            {
+                                to: '/llm-gateway-management-playground',
+                                label: 'Management API playground',
+                            },
+                        ],
                     },
                     {
                         to: '/health',

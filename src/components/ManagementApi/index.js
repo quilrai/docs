@@ -2,15 +2,25 @@ import React, {useId, useMemo, useState} from 'react';
 import Link from '@docusaurus/Link';
 import CodeBlock from '@theme/CodeBlock';
 import useBrokenLinks from '@docusaurus/useBrokenLinks';
-import {ArrowUpRight, BookOpen, Download, KeyRound, Layers, Search, ShieldCheck, SlidersHorizontal, Terminal, Workflow} from 'lucide-react';
+import {ArrowUpRight, BookOpen, Boxes, Download, FlaskConical, KeyRound, Layers, Play, Search, ShieldCheck, SlidersHorizontal, Terminal, Wallet, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 
 const base = '/llmgateway/management/v1';
 const adminBase = '/llmgateway/management-admin/v1';
 const download = '/openapi/llm-gateway-management-v1.json';
-const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
-const operations = Object.entries(spec.paths).flatMap(([path, methods]) => Object.entries(methods).map(([method, op]) => ({...op, path, method:method.toUpperCase()})));
+const playground = '/llm-gateway-management-playground';
+const tryIt = operationId => `${playground}?tab=explorer&op=${encodeURIComponent(operationId)}`;
+const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
+// Examples use the same regional host as the inference examples in the integration guide.
+const host = (spec.servers || []).find(s => s.url.includes('usa-1'))?.url || spec.servers?.[0]?.url || 'https://guardrails-usa-1.quilr.ai';
+const scopeDescriptions = spec['x-scope-descriptions'] || {};
+const allOperations = Object.entries(spec.paths).flatMap(([path, methods]) => Object.entries(methods).map(([method, op]) => ({...op, path, method:method.toUpperCase()})));
+// Query-locator aliases (/app?app_name=...) duplicate a canonical operation; list each operation once.
+const operations = allOperations.filter(op => !op['x-alias-of']);
+const aliasFor = Object.fromEntries(allOperations.filter(op => op['x-alias-of']).map(op => [op['x-alias-of'], op]));
+const aliasCount = allOperations.length - operations.length;
+const shortPath = path => path.replace(adminBase,'/admin').replace(base,'');
 const resolve = (schema = {}) => schema.$ref ? {...spec.components.schemas[schema.$ref.split('/').pop()], ...Object.fromEntries(Object.entries(schema).filter(([k]) => k !== '$ref'))} : schema;
 const print = value => JSON.stringify(value, null, 2);
 const typeName = original => {
@@ -27,8 +37,8 @@ export function ManagementHero() {
   return <section className={styles.hero}>
     <div className={styles.eyebrow}><span className={styles.dot} /> LLM GATEWAY / MANAGEMENT V1</div>
     <h2>Configure your gateway.<br/><span>Keep every change intentional.</span></h2>
-    <p>Manage apps, shared providers, access keys and configuration from one tenant-scoped API. Start with a workflow, then explore every request field.</p>
-    <div className={styles.heroActions}><Link className={styles.primaryLink} to="./management-api#quick-start">Start with an example <ArrowUpRight size={16}/></Link><a className={styles.downloadLink} href={download} download><Download size={16}/> OpenAPI reference</a></div>
+    <p>Manage apps, shared providers, quota pools, access keys, prompts and budgets from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.</p>
+    <div className={styles.heroActions}><Link className={styles.primaryLink} to="./management-api#quick-start">Start with an example <ArrowUpRight size={16}/></Link><Link className={styles.downloadLink} to={playground}><Play size={16}/> Open the playground</Link><a className={styles.downloadLink} href={download} download><Download size={16}/> OpenAPI reference</a></div>
     <div className={styles.heroFacts}><span><ShieldCheck size={16}/> Tenant-bound keys</span><span><SlidersHorizontal size={16}/> Explicit scopes</span><span><Workflow size={16}/> Central configuration</span></div>
   </section>;
 }
@@ -36,7 +46,9 @@ export function ManagementHero() {
 export function ResourceCards() {
   const cards = [
     ['Apps','Create, read, configure and pause applications.','apps-and-credentials-api',Layers],
-    ['Providers & catalogs','Configure shared credentials, test models, and read catalogs and config history.','providers-and-configuration-api',SlidersHorizontal],
+    ['Providers & catalogs','Configure shared credentials, test and discover models, and read catalogs and config history.','providers-and-configuration-api',SlidersHorizontal],
+    ['Quota pools','Describe upstream limits that several providers or models share.','providers-and-configuration-api#quota-pools',Boxes],
+    ['Budgets','Set spend, request and token budgets, track usage and issue grants.','budgets-api',Wallet],
     ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
     ['Gateway credentials','Issue, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
     ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
@@ -51,11 +63,11 @@ export function EndpointDirectory() {
   const [search,setSearch]=useState('');
   const [tag,setTag]=useState('All resources');
   const id=useId();
-  const filtered=operations.filter(op=>(tag==='All resources'||op.tags.includes(tag)) && `${op.summary} ${op.path} ${op.method}`.toLowerCase().includes(search.toLowerCase()));
+  const filtered=operations.filter(op=>(tag==='All resources'||op.tags.includes(tag)) && `${op.summary} ${op.path} ${op.method} ${op.tags.join(' ')}`.toLowerCase().includes(search.toLowerCase()));
   return <section className={styles.directory} aria-label="Search API endpoints">
     <div className={styles.directoryTools}><label className={styles.search}><Search size={17}/><span className={styles.srOnly}>Search endpoints</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find an endpoint..."/></label><label htmlFor={id} className={styles.srOnly}>Resource</label><select id={id} value={tag} onChange={e=>setTag(e.target.value)}>{['All resources',...spec.tags.map(t=>t.name)].map(t=><option key={t}>{t}</option>)}</select></div>
-    <p className={styles.resultCount} role="status">{filtered.length} of {operations.length} operations</p>
-    <div className={styles.endpointRows}>{filtered.map(op=><Link key={op.operationId} className={styles.endpointRow} to={`./${pageFor[op.tags[0]]}#${op.operationId}`}><Method method={op.method}/><div><code>{op.path.replace(adminBase,'/admin').replace(base,'')}</code><span>{op.summary}</span></div><ArrowUpRight size={16}/></Link>)}</div>
+    <p className={styles.resultCount} role="status">{filtered.length} of {operations.length} operations{aliasCount>0 && <> (plus {aliasCount} <Link to="./management-api#names-and-pagination"><code>/app?app_name=</code> aliases</Link> for app names that contain <code>/</code> or <code>%</code>)</>}</p>
+    <div className={styles.endpointRows}>{filtered.map(op=><Link key={op.operationId} className={styles.endpointRow} to={`./${pageFor[op.tags[0]] || 'management-api'}#${op.operationId}`}><Method method={op.method}/><div><code>{shortPath(op.path)}</code><span>{op.summary}</span></div><ArrowUpRight size={16}/></Link>)}</div>
     {!filtered.length && <div className={styles.empty}>No matching endpoints. Try a resource name, HTTP method or path.</div>}
   </section>;
 }
@@ -105,7 +117,7 @@ function curlFor(op,body) {
   let path=op.path;
   op.parameters.filter(p=>p.in==='path').forEach(p=>{path=path.replace('{'+p.name+'}',encodeURIComponent(p.example ?? 'example'));});
   const queries=op.parameters.filter(p=>p.in==='query'&&(p.required || p.name==='limit')).map(p=>`${p.name}=${encodeURIComponent(p.example ?? 'example')}`);
-  const lines=[`curl --request ${op.method} \\`, `  'https://management.example.com${path}${queries.length?'?'+queries.join('&'):''}' \\`, `  --header 'Authorization: Bearer ${op.tags.includes('Administration')?'<verified-admin-token>':'<management-key>'}'`];
+  const lines=[`curl --request ${op.method} \\`, `  '${host}${path}${queries.length?'?'+queries.join('&'):''}' \\`, `  --header 'Authorization: Bearer ${op['x-scopes'].length?'<management-key>':'<tenant-admin-token>'}'`];
   op.parameters.filter(p=>p.in==='header'&&(p.required||p.name==='If-Match')).forEach(p=>{lines[lines.length-1]+=' \\';lines.push(`  --header '${p.name}: ${p.example ?? '<value>'}'`);});
   if(body !== undefined){lines[lines.length-1]+=' \\';lines.push("  --header 'Content-Type: application/json' \\");lines.push("  --data '"+print(body).replace(/'/g,"'\\''")+"'");}
   return lines.join('\n');
@@ -118,18 +130,20 @@ function Operation({op}) {
   const examples=content?.examples ? Object.entries(content.examples).map(([name,e])=>[name,e.value]) : [['Example',content?.example]];
   const [selected,setSelected]=useState(examples[0][0]);
   const chosen=examples.find(([name])=>name===selected)?.[1];
-  const success=Object.entries(op.responses).find(([status])=>status.startsWith('2'));
+  const successes=Object.entries(op.responses).filter(([status])=>status.startsWith('2'));
+  const success=successes.find(([,r])=>r.content?.['application/json']?.example!==undefined) || successes[0];
   const response=success?.[1]?.content?.['application/json']?.example;
+  const alias=aliasFor[op.operationId];
   const tabs=['cURL',...(content?['JSON body']:[]),'Response'];
   const parameterSchema=objFromParameters(op.parameters);
   return <article className={styles.operation} id={op.operationId}>
-    <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{op.path.replace(adminBase,'/admin').replace(base,'')}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p><div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope}>{scope}</code>) : <code>Verified tenant administrator</code>}</div></header>
+    <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{shortPath(op.path)}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p><div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : <code>Verified tenant administrator</code>}</div>{alias&&<p className={styles.aliasNote}>Also at <code>{shortPath(alias.path)}?app_name=...</code> for app names that contain <code>/</code> or <code>%</code>.</p>}</header>
     <div className={styles.operationBody}>
       {op.parameters.length>0&&<details className={styles.parameterPanel}><summary>Path, query &amp; header parameters <span>{op.parameters.length}</span></summary><SchemaFields schema={parameterSchema}/></details>}
       {content ? <details className={styles.parameterPanel}><summary>Full request body specification <span>application/json</span></summary><p className={styles.schemaIntro}>{resolve(content.schema).description}</p><SchemaFields schema={content.schema}/></details> : <p className={styles.noBody}>No request body.</p>}
       <div className={styles.exampleBar}><div className={styles.tabs} aria-label="Example format">{tabs.map(t=><button type="button" aria-pressed={tab===t} className={tab===t?styles.activeTab:''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>{examples.length>1&&<label><span className={styles.srOnly}>Request example for {op.summary}</span><select value={selected} onChange={e=>setSelected(e.target.value)}>{examples.map(([name])=><option key={name}>{name}</option>)}</select></label>}</div>
-      <div className={styles.codeExample}><CodeBlock language={tab==='cURL'?'bash':'json'} title={tab==='Response'?`${success[0]} response example`:undefined}>{tab==='cURL'?curlFor(op,chosen):tab==='JSON body'?print(chosen):response?print(response):'// See the response schema for this operation.'}</CodeBlock></div>
-      <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./management-api#conventions">Authentication, errors &amp; retry rules</Link></p>
+      <div className={styles.codeExample}><CodeBlock language={tab==='cURL'?'bash':'json'} title={tab==='Response'&&success?`${success[0]} response example`:undefined}>{tab==='cURL'?curlFor(op,chosen):tab==='JSON body'?print(chosen):response?print(response):'// See the response schema for this operation.'}</CodeBlock></div>
+      <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./management-api#conventions">Authentication, errors &amp; retry rules</Link><span aria-hidden="true">·</span><FlaskConical size={13}/> <Link to={tryIt(op.operationId)}>Try it in the playground</Link></p>
     </div>
   </article>;
 }

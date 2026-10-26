@@ -94,8 +94,9 @@ TASK -> WHERE
 - Log export key -> card Copy logs key; all apps: header "..." > Copy all-apps log key
 - Management API keys -> Management API tab > "Allow management keys for this organization" switch
   (off = every key suspended), then "Issue a management key": Key name*, Expiry, Scopes (Read, Configure apps,
-  Manage providers, Issue app keys, Reveal app keys) > Issue key. Table: Name, Scopes, Status, Created,
-  Expires, Last used, Actions. The key value is shown once.
+  Manage providers, Issue app keys, Reveal app keys, Read budgets, Manage budget grants, Configure budgets)
+  > Issue key. Table: Name, Scopes, Status, Created, Expires, Last used, Actions. The key value is shown once.
+  Try the key from the browser: https://docs.quilrai.dev/llm-gateway-management-playground
 - Quilr-provided models / model API keys -> Settings > Models: tabs Models | API keys | Usage | Playground
   (/settings/models/models, /settings/models/api-keys). Models tab sources: "QuilrAI provided models" |
   "Your models"; Search models, Sort by price. API keys > Create API key (shown once).
@@ -202,4 +203,5 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/self-service/admin-guide.md
 - https://docs.quilrai.dev/llm-gateway/monitor/app-audit-log.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/management-api.md
+- https://docs.quilrai.dev/llm-gateway/api-reference/budgets-api.md
 - Policy Engine: https://docs.quilrai.dev/console/govern/policy-engine.md

@@ -96,3 +96,4 @@ Limits and budgets cannot be scoped by Prompt complexity, Prompt text or Tool. F
 - [Providers and models](../apps-and-providers/providers-and-models) - model prices for cost reporting.
 - [Costs and savings](../../console/observe/costs-and-savings) - spend across sources.
 - [Alerts](../monitor/alerts) - get notified when calls start failing.
+- [Budgets API](../api-reference/budgets-api) - manage budgets, usage and grants from scripts.

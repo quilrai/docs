@@ -391,3 +391,7 @@
     padding: 10px 12px;
   }
 }
+.embedded {
+  max-width: none;
+  padding: 0;
+}
