@@ -10,6 +10,14 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Universal system prompt (2026-10-25)
+
+- New **Universal system prompt** card in an app's **Configure > Prompts**: one prompt, with no Prompt ID, that the gateway adds to every request once **Apply to every request** is on
+- Added before the system prompt your app sends, or used as the system prompt when a request has none; works in Chat Completions, Responses, Anthropic Messages, Gemini / Vertex and Bedrock formats
+- Applied after guardrails and Prompt Store references, right before the provider call; request logs keep the request as your app sent it
+- Saved with **Save settings**, versioned and audited like other app settings, and settable through the Management API as `prompts.universal_system_prompt`
+- Details: [Universal system prompt](../cost-and-traffic/prompt-store#universal-system-prompt)
+
 ## Decision models on Azure AI Foundry (2026-10-23)
 
 - Call Microsoft-Decision-1 deployments on an Azure provider through `/openai_compatible/v1/decisions` (OpenAI Decisions format) or `/typesafe/v1/systemone` (System One format)

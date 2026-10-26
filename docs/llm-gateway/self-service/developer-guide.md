@@ -132,7 +132,7 @@ If you have **Settings Request Access**, use **Request settings change** on the 
 | Routing | Routing groups and custom routing | [Request Routing](../cost-and-traffic/routing-and-fallbacks) |
 | Alerts | Failure-rate alerts and channels | [Alerts](../monitor/alerts) |
 | Identity Aware | Per-user identity, JWT, domain controls | [Identity Aware](../protect/identity-and-network-trust) |
-| Prompt Store | Stored system prompts referenced at request time | [Prompt Store](../cost-and-traffic/prompt-store) |
+| Prompt Store | Stored system prompts referenced at request time, and the universal system prompt added to every request | [Prompt Store](../cost-and-traffic/prompt-store) |
 
 Nothing you edit here is live. The footer says it plainly: **submitted changes require admin approval before they apply**. Choose **Submit Request** to send it for review.
 
@@ -207,7 +207,7 @@ If your admin runs an [LLM Intelligence Assessment](../../red-teaming/assessment
 - [Token Saving](../cost-and-traffic/token-saving) - the compression transforms and what they save.
 - [Rate and Token Limits](../cost-and-traffic/rate-token-and-budget-limits) - timeouts, concurrency, request and token limits.
 - [Request Routing](../cost-and-traffic/routing-and-fallbacks) - routing groups, load balancing, and failover.
-- [Prompt Store](../cost-and-traffic/prompt-store) - stored system prompts referenced by ID.
+- [Prompt Store](../cost-and-traffic/prompt-store) - stored system prompts referenced by ID, and the universal system prompt.
 - [Identity Aware](../protect/identity-and-network-trust) - identifying the users of the app you build.
 
 **Logs and monitoring**

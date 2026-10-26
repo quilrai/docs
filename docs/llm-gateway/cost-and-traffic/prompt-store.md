@@ -3,11 +3,12 @@ sidebar_position: 4
 sidebar_label: "Prompt store"
 sidebar_custom_props:
   icon: MessageSquareText
+description: "Store reusable system prompts, reference them at request time, and give an app a universal system prompt that the gateway adds to every request."
 ---
 
 # Prompt store
 
-Store reusable system prompts centrally, then reference one or more of them and add inline instructions at request time.
+Store reusable system prompts centrally, then reference one or more of them and add inline instructions at request time. You can also give an app one universal system prompt that the gateway adds to every request.
 
 ## Turn it on for an app
 
@@ -23,6 +24,8 @@ Enter a **Prompt ID** and **Prompt content**, then click **Save prompt**. Prompt
 ![Prompt editor with the Prompt content box, the variable syntax help text and the Save prompt button](/img/llm-gateway/ui/app-prompt-store.png)
 
 Variable names can contain letters, numbers, underscores and hyphens. Callers must supply every variable as a string.
+
+To add one prompt to every request without a Prompt ID, use the [universal system prompt](#universal-system-prompt) in the same section.
 
 ## How it works
 
@@ -100,6 +103,75 @@ Only review the security-sensitive files in this diff.
 References and inline text are combined from top to bottom in the order they appear. Put foundational prompts first and request-specific instructions last so the model reads them in a natural order.
 :::
 
+## Universal system prompt
+
+A universal system prompt is one prompt per app, with no Prompt ID, that the gateway adds to every request. Callers do not reference it, so it reaches the model even when an app sends its own system prompt or none at all.
+
+<ConsolePath
+  console="QuilrAI console"
+  href="https://web.quilr.ai"
+  path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
+  action="Prompts"
+/>
+
+1. In the **Universal system prompt** card, write the text in **Prompt**.
+2. Turn on **Apply to every request**.
+3. Click **Save settings**.
+
+Unlike stored prompts, which apply immediately, the universal system prompt is part of the app's settings. It applies when you click **Save settings**, is kept in the app's configuration versions (so **Roll back** restores it), and is recorded in the app's [Audit Log](../monitor/app-audit-log) as a configuration change (`update_config`). Self-service editors change it through the normal settings save or change request. It can be up to 100,000 characters, and it cannot be turned on while **Prompt** is empty.
+
+### What the model receives
+
+The gateway adds the universal system prompt before the system prompt your app sends, separated by a blank line. A request with no system prompt gets the universal system prompt as its system prompt. Prompt Store references in your app's system message are resolved first, so the universal system prompt sits in front of the resolved text.
+
+**Universal system prompt:**
+
+```
+You are Acme's support assistant. Never share internal URLs.
+```
+
+**System message your app sends:**
+
+```
+Answer in Spanish.
+```
+
+**Sent to the LLM:**
+
+```
+You are Acme's support assistant. Never share internal URLs.
+
+Answer in Spanish.
+```
+
+When the request has no system message, the LLM receives only `You are Acme's support assistant. Never share internal URLs.` as its system prompt.
+
+### Where it goes in each format
+
+| Request format | Where the universal system prompt is added |
+|---|---|
+| Chat Completions | Merged into the first message when it is a `system` or `developer` message, otherwise added as a new first `system` message |
+| Responses | Prepended to `instructions`, which is set when absent |
+| Anthropic Messages | Prepended to `system`: in front of a string, or as a new first text block when `system` is a list of blocks |
+| Gemini / Vertex `generateContent` | The first part of `systemInstruction`, which is created when absent. Not applied when the request uses `cachedContent`, because Gemini does not accept a system instruction with cached content |
+| Bedrock Converse and ConverseStream | The first `system` block |
+| Bedrock InvokeModel | Claude models (`system`), Nova models (`system` blocks) and OpenAI models (`messages`). Other model families are sent unchanged |
+
+It is not applied to embeddings, legacy completions, images, moderations, Realtime, Assistants or Anthropic token counting.
+
+### How it behaves
+
+- **Sent as written.** Prompt Store references and `{{variables}}` inside the universal system prompt are not resolved.
+- **Applied after guardrails.** The gateway adds it after guardrails run and Prompt Store references are resolved, right before the request goes to the provider, so guardrails never scan or redact it. It is added to the request in the format your client sent, so it also works with [any-to-any formats](../api-reference/any-to-any-formats).
+- **Not in request logs.** Logs keep the request exactly as your app sent it.
+- **Counts toward token limits.** Its length is part of the token estimate for [rate and token limits](./rate-token-and-budget-limits).
+- **Fresh cache entries.** Changing it starts fresh entries in the app's response cache.
+- **Covered by leakage checks.** The **System Prompt, Tool & Model Leakage** category checks responses against it, along with the rest of the system prompt.
+- **Enforcement is unchanged.** [Enforce system prompts from store](#enforce-system-prompts) checks only the system prompt your app sends.
+- **Not a Policy Engine control.** It stays editable and keeps applying when the [Policy Engine](#going-further-with-the-policy-engine) is on.
+
+To set it from automation, use the [Management API](../api-reference/prompts-api).
+
 ## Template variables
 
 Prompts support `{{variable}}` placeholders. Pass values via the `X-Prompt-Variables` header, keyed by the reference each set of values belongs to.
@@ -137,10 +209,12 @@ When a system message references several prompts, give each one its own entry - 
 
 | Mode | Behavior |
 |------|----------|
-| **Enabled** | Every system message must contain at least one valid Prompt Store reference (`quilrai-prompt-store-<id>`). You can list multiple references and add your own inline instructions around them - the request is accepted as long as a valid reference is present. A system message with freeform text but no valid reference, or no system message at all, is rejected with a 400 (`system_prompt_not_found`). |
+| **Enabled** | Every system message must contain at least one valid Prompt Store reference (`quilrai-prompt-store-<id>`). You can list multiple references and add your own inline instructions around them - the request is accepted as long as a valid reference is present. A system message with freeform text but no valid reference, or no system message at all, is rejected with a 400 (`system_prompt_not_from_store`). |
 | **Disabled** (default) | Both stored references and fully freeform system prompts are accepted. |
 
 This applies uniformly across Chat Completions, Anthropic Messages (both the top-level `system` field and any `system`-role messages), Vertex/Gemini, and the OpenAI Responses API. Useful when every system prompt should build on a reviewed base from the Prompt Store while still allowing per-request instructions.
+
+The [universal system prompt](#universal-system-prompt) does not count as a reference. Enforcement checks only the system prompt your app sends, so with enforcement on, a request without a valid reference is still rejected even when the universal system prompt is on.
 
 ## Code examples
 
@@ -191,7 +265,7 @@ message = client.messages.create(
 
 ## Going further with the Policy Engine
 
-The **Prompt Store and Enforcement** card in **Policy Engine > LLM Gateway** holds two things: the organization-wide Global Prompt Store, and the **Require store prompt** policy. When the engine is on for the LLM Gateway, the app's store-prompt enforcement freezes and the card's policies decide it. App prompts themselves stay editable. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+The **Prompt Store and Enforcement** card in **Policy Engine > LLM Gateway** holds two things: the organization-wide Global Prompt Store, and the **Require store prompt** policy. When the engine is on for the LLM Gateway, the app's store-prompt enforcement freezes and the card's policies decide it. App prompts themselves stay editable, and so does the [universal system prompt](#universal-system-prompt): it is an app setting, not a Policy Engine control, so it keeps applying when the engine is on. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
 ### Global Prompt Store {#global-prompt-store-v2-console}
 
