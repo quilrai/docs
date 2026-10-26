@@ -125,11 +125,17 @@ function SnapshotTable({ rows }) {
   );
 }
 
-export default function BudgetsAdmin() {
+/**
+ * Standalone, it renders its own connection form. Embedded (for example in the
+ * management playground) it receives `connection` ({url, key, id}) and reports
+ * every call through `onResponse`.
+ */
+export default function BudgetsAdmin({ connection: shared, onResponse, embedded = false } = {}) {
   const [url, setUrl] = useState('http://127.0.0.1:28080');
   const [key, setKey] = useState('');
   const [remember, setRemember] = useState(false);
-  const [connection, setConnection] = useState(null);
+  const [localConnection, setConnection] = useState(null);
+  const connection = shared || localConnection;
   const [caller, setCaller] = useState(null);
   const [permissionsVerified, setPermissionsVerified] = useState(false);
   const [tab, setTab] = useState('budgets');
@@ -140,6 +146,7 @@ export default function BudgetsAdmin() {
   const [connecting, setConnecting] = useState(false);
   const connectGeneration = useRef(0);
   useEffect(() => {
+    if (shared) return;
     try {
       const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
       if (saved) {
@@ -154,9 +161,13 @@ export default function BudgetsAdmin() {
   const api = useMemo(
     () =>
       connection
-        ? createBudgetsClient({ baseUrl: connection.url, key: connection.key })
+        ? createBudgetsClient({
+            baseUrl: connection.url,
+            key: connection.key,
+            onResponse,
+          })
         : null,
-    [connection],
+    [connection?.url, connection?.key, connection?.id, onResponse],
   );
   const inventory = useLoad(
     () => (api ? api.allPages('listBudgets') : Promise.resolve(null)),
@@ -231,7 +242,9 @@ export default function BudgetsAdmin() {
   }
   const props = { api, run, version, period, canGrant, canEditPolicy };
   return (
-    <main className={styles.studio}>
+    <main className={`${styles.studio} ${embedded ? styles.embedded : ''}`}>
+      {!embedded && (
+        <>
       <header className={styles.hero}>
         <div>
           <div className={styles.eyebrow}>LLM GATEWAY / FINOPS WORKSPACE</div>
@@ -308,6 +321,8 @@ export default function BudgetsAdmin() {
         the key's permissions. Requests go directly to the gateway. Credentials
         stay in memory unless you enable tab session storage.
       </p>
+        </>
+      )}
       <ErrorView error={error} />
       {notice && (
         <div role="status" className={styles.success}>

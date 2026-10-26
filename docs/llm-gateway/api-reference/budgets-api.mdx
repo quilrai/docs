@@ -1,0 +1,81 @@
+---
+title: "Budgets API"
+sidebar_position: 6.5
+sidebar_label: "Budgets API"
+sidebar_custom_props:
+  icon: Coins
+description: "LLM Gateway Management API v1: spend, request and token budgets, usage, per-subject grants, pricing, exemptions and alerts, with typed inputs and examples."
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Budgets API
+
+Manage the same spend, request and token budgets that the Policy Engine's **Budgets & Usage Limits** card configures, from scripts and internal tools. For what a budget counts, how it resets and what happens at the limit, see [Rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits#budgets--usage-limits-card).
+
+<StepFlow steps={[
+  {label: 'Budgets', items: ['Limit, metric, window', 'Who it applies to']},
+  {label: 'Usage & subjects', items: ['Used vs limit per subject', 'Tightest budget first']},
+  {label: 'Grants', items: ['Time-boxed per-subject limit', 'Up to the budget ceiling']},
+  {label: 'Pricing & exemptions', items: ['Model rates for spend', 'Skip budgets for some users']},
+  {label: 'Alerts', items: ['Webhook destinations', 'Fired alerts and events']},
+]} />
+
+| Resource | What you can do | Scope |
+| --- | --- | --- |
+| Budgets | List, read, create, update and delete budgets; apply up to 100 changes as one batch. | `budgets:read`, `budgets:policy` |
+| Usage and subjects | Read usage per subject in the current or a past calendar window, a per-budget summary, and every budget that counts a user, app, key or smart group. | `budgets:read` |
+| Grants | Give one subject (or every member of a smart group) a temporary limit, then change or revoke it. | `budgets:read`, `budgets:grant` |
+| Pricing | Read the effective price of every configured model, set or remove tenant-wide rates, and choose how unpriced models are charged. | `budgets:read`, `budgets:policy` |
+| Exemptions | List, add and remove exemptions for users, apps or smart groups. | `budgets:read`, `budgets:policy` |
+| Alerts and events | Read and replace alert webhooks, list fired alerts, and poll grant and budget change events. | `budgets:read`, `budgets:policy` |
+
+Try every operation with your own key in the [Management API playground](/llm-gateway-management-playground?tab=budgets).
+
+## Before you start
+
+- **The Policy Engine must be on** for the LLM Gateway. Budgets live in the active policy. With it off, `GET /budgets` returns an empty list with `note: "policy_engine_disabled"`, and writes are refused.
+- **Issue a key with budget scopes.** In **Settings > AI Gateway > LLM Gateway > Management API**, pick the scopes below. Budget scopes are independent of `read`: a key with only `budgets:read` can read budgets but not apps.
+
+| Console scope | API scope | Grants |
+| --- | --- | --- |
+| **Read budgets** | `budgets:read` | Read budgets, usage, subjects, grants, pricing, exemptions, alerts and events. |
+| **Manage budget grants** | `budgets:grant` | Issue, change and revoke budget grants. |
+| **Configure budgets** | `budgets:policy` | Edit budgets, pricing, exemptions and alert destinations. Each budget, pricing or exemption edit publishes a policy revision. |
+
+`GET /budgets` also returns `caller`, describing what the calling key may do, so a tool can hide actions it cannot perform.
+
+## How writes work
+
+| Write | Effect |
+| --- | --- |
+| Budget, pricing and exemption edits | Validated like a console publish, then published as **one new policy revision**. Policy text outside the edited budget is kept as is. |
+| Batch (`POST /budgets/_batch`) | Up to 100 budget, rate and exemption operations published as one revision, all or nothing. |
+| Grants | Stored outside the policy. Issuing, changing or revoking a grant never publishes a revision. |
+| Alert destinations | Replaces the whole webhook list. Stored targets are redacted on read; send the redacted value back to keep a stored URL. |
+
+- **Preview first.** Budget, pricing and exemption writes accept `?dry_run=true` and return the policy diff, diagnostics and the impact on current usage (subjects newly over the limit, newly blocked or unblocked) without publishing. Grant and alert-destination writes do not support `dry_run`.
+- **Versions.** Read a budget or grant to get its ETag, then send it quoted in `If-Match`. Budget ETags look like `"r<revision>-<budget_id>"`, so any publish can make them stale (`412`).
+- **Creates take an `Idempotency-Key`.** Budget, batch, exemption and grant creation replay the original result for the same key.
+- **API-managed vs hand-written.** Budgets created here go into an API-managed policy. Budgets written by hand in the policy editor can have their limit, label, mode, alerts and adjustments changed, but cannot be deleted or re-scoped (`409 budget_not_api_managed`). The same applies to exemptions (`409 exemption_not_api_managed`).
+- **Identity fields are fixed.** `id`, `metric`, grouping (`per`) and `window` cannot change (`422 identity_field_immutable`), because usage is tracked against them. Create a new budget instead.
+
+## Usage, grants and prices
+
+- **Amounts.** Spend amounts are decimal USD strings such as `"12.50"`. Request and token amounts are numbers.
+- **Usage is a snapshot.** Usage responses carry `as_of` and `stale`; the snapshot refreshes periodically. `period` selects `current` (default), `previous` or the start of a past calendar window. Rolling and lifetime windows only show the current period.
+- **Row state.** Each usage row is `blocked` (at the hard stop), `overflow` (in the soft band), `alerting` (past the lowest alert threshold), `granted` or `ok`.
+- **Grants need an adjustable budget.** A budget accepts grants only when it has an `adjustments` ceiling (`409 budget_not_adjustable` otherwise), and a grant cannot exceed that ceiling (`422 grant_above_ceiling`). A new grant for the same subject supersedes the active one; the response returns it as `superseded`.
+- **Subjects.** Name a grant subject by `user` (email), `app`, `smart_group` or `model`, or by the budget's grouping field. Every grouping field of the budget must be supplied (`422 subject_unresolved`).
+- **Prices.** `GET /budget-pricing` shows where each price comes from: `policy` (a tenant-wide rate set here), `provider` (the provider's model costs), `catalog` (QuilrAI catalog), `mixed` or `unpriced`. A tenant-wide rate wins over the provider's cost, which wins over the catalog.
+
+## Endpoints
+
+<ApiReference tags={['Budgets']} />
+
+## Related
+
+- [Rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits) - how budgets count usage and what happens at the limit.
+- [Management API](./management-api) - authentication, errors and retry rules for every endpoint.
+- [Providers and configuration API](./providers-and-configuration-api) - provider model costs that price spend budgets.
+- [QuilrQL behavior](./policy-api) - how the management API behaves while the Policy Engine is on.

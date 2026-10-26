@@ -9,7 +9,7 @@ description: "How the LLM Gateway management API behaves while the Policy Engine
 
 # QuilrQL behavior
 
-QuilrQL is the policy language behind the console's [Policy Engine](../../console/govern/policy-engine), so "QuilrQL authority enabled" in API responses means the Policy Engine is on for the LLM Gateway. This page describes how the management API behaves while it is on; it is not a policy-editing API.
+QuilrQL is the policy language behind the console's [Policy Engine](../../console/govern/policy-engine), so "QuilrQL authority enabled" in API responses means the Policy Engine is on for the LLM Gateway. This page describes how the management API behaves while it is on. The management API does not author general policy; the [Budgets API](./budgets-api) is its only policy-backed write.
 
 Management APIs can configure apps while tenant-wide QuilrQL authority is enabled. The response distinguishes stored app settings from the policy that governs runtime behavior.
 
@@ -32,6 +32,10 @@ App creation freezes the new app's degraded fallback baseline. Later stored-sett
 - Add shared-provider attachments. Removing providers while authority is enabled returns `409 policy_dependency` and requires separate policy dependency review.
 - Roll back eligible app configuration. This restores stored app settings only (inactive for governed fields while authority is enabled); it does not roll back policy revisions.
 
+## Budget and pricing edits
+
+Budgets, model prices for budgets and budget exemptions live in the active policy. With a key that has `budgets:policy`, each create, update or delete through the [Budgets API](./budgets-api) is validated like a console publish and published as one new policy revision; `?dry_run=true` previews the diff without publishing. The rest of the policy text is kept as is. Budget writes need the Policy Engine to be on. Budget grants are stored outside the policy and never publish a revision.
+
 ## Not Generally Available
 
 The following policy lifecycle features are **Not Generally Available** through management v1. They are not implemented management endpoints and are excluded from the callable OpenAPI reference.
@@ -45,6 +49,6 @@ The following policy lifecycle features are **Not Generally Available** through 
 | Enable/disable tenant-wide policy authority | **Not Generally Available** |
 | `policy:write` and `policy:publish` management scopes | **Not Generally Available**; issuing a key with these scopes is rejected |
 
-The supported authority metadata is embedded in app/capabilities responses. The new-app allowed-models behavior described above is implemented and does not grant general policy-editing access.
+The supported authority metadata is embedded in app/capabilities responses. The new-app allowed-models behavior and the budget edits described above are implemented and do not grant general policy-editing access.
 
 Use the existing [policy authoring and publishing workflow](../../console/govern/author-simulate-and-publish) for policy lifecycle operations, and the [LLM Gateway policy guide](../../console/govern/policy-engine) for language behavior.

@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaRe
 
 Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
 
-Use the Management API to configure LLM Gateway apps, shared providers, credentials, prompts and stored configuration. Explore complete input specifications and examples, or download the OpenAPI reference.
+Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets and stored configuration. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
 
 ## Enable in the console
 
@@ -29,15 +29,18 @@ Use the Management API to configure LLM Gateway apps, shared providers, credenti
 3. Under **Issue a management key**, enter a **Key name**, an optional **Expiry**, and the **Scopes** it needs.
 4. Click **Issue key** and store the value. It is shown only once.
 
-![Issue a management key form with Key name, Expiry and the five scope checkboxes](/img/llm-gateway/ui/management-api-issue-key.png)
+![Issue a management key form with Key name, Expiry and the scope checkboxes](/img/llm-gateway/ui/management-api-issue-key.png)
 
 | Console scope | API scope | Grants |
 | --- | --- | --- |
-| **Read** | `read` | App, provider and key metadata, prompts, history, audit and reference lists |
+| **Read** | `read` | Apps, providers, quota pools, key metadata, prompts, catalogs, history and the OpenAPI document |
 | **Configure apps** | `config:write` | Create apps and change their settings, availability, providers and prompts |
-| **Manage providers** | `providers:write` | Create, update, rotate, enable, disable and test shared providers |
+| **Manage providers** | `providers:write` | Create, update, delete and test shared providers and quota pools, and discover models |
 | **Issue app keys** | `credentials:write` | Issue, extend and revoke Quilr keys for apps |
 | **Reveal app keys** | `credentials:read` | Read the value of an active app key. Every reveal is audited. |
+| **Read budgets** | `budgets:read` | Budgets, usage, subjects, grants, pricing, exemptions, alerts and events |
+| **Manage budget grants** | `budgets:grant` | Issue, change and revoke budget grants |
+| **Configure budgets** | `budgets:policy` | Edit budgets, pricing, exemptions and alert destinations |
 
 A key acts for the whole organization within its scopes and cannot be limited to one app. Revoke a key from the keys table on the same tab. See [Authentication and management keys](#authentication) for details.
 
@@ -51,15 +54,17 @@ A key acts for the whole organization within its scopes and cannot be limited to
   {label: 'Enable', items: ['Deployment switch', 'Tenant opt-in']},
   {label: 'Authorize', items: ['One tenant per key', 'Explicit scopes']},
   {label: 'Configure', items: ['Central management API', 'Validated changes']},
-  {label: 'Apply', items: ['Gateway configuration sync', 'Policy-aware runtime']},
+  {label: 'Apply', items: ['Configuration reaches gateways', 'Policy-aware runtime']},
 ]} />
 
 | Resource | What you can do | What stays separate |
 | --- | --- | --- |
 | Apps | Create, read, configure, disable and enable; address by app name. | App deletion/rename: **Not Generally Available**. |
-| Shared providers | Create, read, rotate credentials, configure models, disable, enable and explicitly test. | Provider deletion: **Not Generally Available**. Detaching affects one app only. |
+| Shared providers | Create, read, filter, rotate credentials, configure models, disable, enable, delete, test and discover models. | Deleting needs every app detached first. Detaching affects one app only. |
+| Quota pools | Register, read, update and delete shared upstream ceilings; assign providers and models to them. | Pools describe limits; they do not enforce them. |
 | Gateway keys | Issue, list metadata, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
-| QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | Policy lifecycle endpoints/scopes: **Not Generally Available**. |
+| Budgets | Create and edit spend, request and token budgets, read usage, issue grants, set prices and exemptions. | Each budget, pricing or exemption edit publishes a policy revision. Needs the Policy Engine on. |
+| QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
 | Smart groups and custom definitions | Read and use existing resources in app configuration. | Definition/membership editing: **Not Generally Available**. |
 | History | Read redacted config versions and audit, restore eligible app settings. | Traffic logs, usage, health and red-team jobs: **Not Generally Available** through management v1. |
@@ -70,14 +75,13 @@ A key acts for the whole organization within its scopes and cannot be limited to
 
 | Feature | Availability | Current behavior |
 | --- | --- | --- |
-| Policy schema/catalog, preview, validation, simulation, drafts, publication, policy rollback and authority changes | **Not Generally Available** | Use the existing policy workflow. Management keys cannot use policy scopes or policy lifecycle endpoints. |
-| App rename/deletion and shared-provider deletion | **Not Generally Available** | Enable/disable existing resources; app-local provider detachment is supported. |
+| Policy schema/catalog, preview, validation, simulation, drafts, publication, policy rollback and authority changes | **Not Generally Available** | Use the existing policy workflow. Management keys cannot use policy scopes or policy lifecycle endpoints. The [Budgets API](./budgets-api) is the only policy-backed write. |
+| App rename and deletion | **Not Generally Available** | Enable/disable existing apps. Shared providers can be deleted once no app attaches them. |
 | Custom-definition authoring and smart-group/membership writes | **Not Generally Available** | Read and reference existing resources. |
 | Dedicated key rotation and individual management-key pause/resume | **Not Generally Available** | Issue a replacement and revoke the old key; tenant-wide suspension is supported. |
 | Later management-key secret retrieval and expired/revoked gateway-key reveal | **Not Generally Available** | Management secrets are returned on issuance/replay; explicit gateway-key reveal requires an active key. |
-| Connection-only provider tests | **Not Generally Available** | Requests return `unsupported_test_kind`. Model tests support the provider types advertised by capabilities. |
 | Create-only prompt preconditions | **Not Generally Available** | PUT uses the current app ETag and creates or replaces. |
-| Provider filters, catalog search and audit app/key/time filters | **Not Generally Available** | Use documented pagination; app list name/tag/enabled filters are supported. |
+| Catalog search and audit app/key/time filters | **Not Generally Available** | Use documented pagination. App lists filter by name, tag and enabled state; provider lists by type, enabled state, tag and model. |
 | App-restricted management-key scopes, traffic/usage/health reporting and red-team job APIs | **Not Generally Available** | Management scopes apply tenant-wide; these reporting/job operations are outside this API. |
 
 ## Defaults
@@ -86,8 +90,8 @@ A key acts for the whole organization within its scopes and cannot be limited to
 - Creating an app issues one gateway key, named **Default** unless specified.
 - Disabling tenant management suspends its keys. Unexpired, unrevoked keys work again when the tenant is re-enabled.
 - Disabling an app preserves its keys, settings and history. Disabling a shared provider preserves its attachments.
-- Provider saves validate locally. Supported **model tests are separate explicit requests**; connection tests currently return unsupported.
-- Configuration writes go to the **central management service**. Customer gateway nodes receive synchronized changes.
+- Provider saves validate the input but never contact the provider. **Connection tests, model tests and model discovery are separate explicit requests.**
+- Saved configuration reaches every gateway region asynchronously.
 
 :::info Policy authority
 When QuilrQL is enabled, updates to governed app settings still save. The response identifies the fields that remain inactive until QuilrQL authority is disabled. Creating an eligible app under existing authority can publish an app-specific allowed-models default. See [QuilrQL behavior](./policy-api).
@@ -101,54 +105,58 @@ Search by resource, path, action or HTTP method. Open an endpoint to see its sco
 
 ## Continue
 
-Start with the [end-to-end example](#quick-start), inspect the [full app configuration schema](./providers-and-configuration-api#configuration), or review [errors, concurrency and retry semantics](#conventions). Download the [OpenAPI 3.1 reference](/openapi/llm-gateway-management-v1.json) for all operations and input schemas.
+Start with the [end-to-end example](#quick-start), inspect the [full app configuration schema](./providers-and-configuration-api#configuration), or review [errors, concurrency and retry semantics](#conventions). Download the [OpenAPI 3.1 reference](/openapi/llm-gateway-management-v1.json) for all operations and input schemas, or open the [Management API playground](/llm-gateway-management-playground) to connect with your key and send any operation from the browser. Every endpoint below has a **Try it in the playground** link.
 
 ## Quick start {#quick-start}
 
-This workflow checks access, creates a shared provider, creates an app, reads it, then disables it without losing configuration.
+This workflow checks access, creates a shared provider, creates an app, reads it, then disables it without losing configuration. To try the same steps without a terminal, use the [Management API playground](/llm-gateway-management-playground).
 
 ### 1. Prepare access
 
-Management requests go to the **management origin**: the central QuilrAI service for your organization, not the regional inference URLs such as `guardrails-usa-2.quilr.ai`. Regional gateway nodes reject management requests with `503 central_service_required`.
+Management requests go to the same regional hosts as inference traffic. Use the region your organization uses for the gateway:
 
-| Deployment | Where the management origin comes from |
+| Region | Base URL |
 | --- | --- |
-| QuilrAI cloud (SaaS) | The console does not show it. Ask your QuilrAI representative for your organization's management origin. |
-| Self-hosted | The URL of your central gateway service (the one without regional node settings). Your platform team knows it. |
+| **India** | `https://guardrails-india-1.quilr.ai` |
+| **Europe** | `https://guardrails-europe-1.quilr.ai` |
+| **USA** | `https://guardrails-usa-1.quilr.ai` |
+| **Japan** | `https://guardrails-jp-1.quilr.ai` |
+
+Self-hosted deployments use their own gateway URL. A self-hosted node that is connected to a QuilrAI-hosted service answers management calls with `503 central_service_required`; call the regional host instead.
 
 In the console, turn on **Allow management keys for this organization** and issue a key (see [Enable in the console](#enable-in-the-console)). For this workflow, the key needs `read`, `providers:write`, `config:write` and `credentials:write`.
 
 ```bash
-export MANAGEMENT_ORIGIN='<management-origin>'   # from the table above, e.g. https://...
+export MANAGEMENT_URL='https://guardrails-usa-1.quilr.ai'   # your region from the table above
 export MANAGEMENT_KEY='<management-key>'
 export PROVIDER_API_KEY='<provider-api-key>'
 ```
 
 Keep secrets in your automation secret store. These example values are placeholders, not live credentials.
 
-Check the origin and key with a read-only call. It changes nothing and needs only the `read` scope:
+Check the URL and key with a read-only call. It changes nothing and needs only the `read` scope:
 
 ```bash
 curl --fail-with-body \
-  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/capabilities" \
+  "$MANAGEMENT_URL/llmgateway/management/v1/capabilities" \
   --header "Authorization: Bearer $MANAGEMENT_KEY"
 ```
 
-A `200` response lists `scopes`, `provider_types`, `app_fields` and `writes_available`. If it fails:
+A `200` response lists every `scopes` value, your key's own scopes in `caller.scopes`, `provider_types`, `app_fields`, `writes_available` and which provider types support tests and model discovery. If it fails:
 
 | Response | Meaning |
 | --- | --- |
 | `401 invalid_management_key` | The key is missing, wrong, expired or revoked. |
 | `403 insufficient_scope` | The key lacks `read`. |
 | `403 management_disabled_for_tenant` | **Allow management keys for this organization** is off. |
-| `404` | Management is not enabled on this service, or the origin or path is wrong. |
-| `503 central_service_required` | You called a regional gateway node. Use the management origin. |
+| `404` | Management is turned off for this deployment, or the URL or path is wrong. |
+| `503 central_service_required` | You called a self-hosted node connected to a QuilrAI-hosted service. Use the regional host. |
 
 ### 2. Create a shared provider
 
 ```bash
 curl --request POST \
-  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/providers" \
+  "$MANAGEMENT_URL/llmgateway/management/v1/providers" \
   --header "Authorization: Bearer $MANAGEMENT_KEY" \
   --header 'Content-Type: application/json' \
   --header 'Idempotency-Key: support-provider-001' \
@@ -161,7 +169,7 @@ A `201` response returns `provider` metadata with `credential_configured` and an
 
 ```bash
 curl --request POST \
-  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps" \
+  "$MANAGEMENT_URL/llmgateway/management/v1/apps" \
   --header "Authorization: Bearer $MANAGEMENT_KEY" \
   --header 'Content-Type: application/json' \
   --header 'Idempotency-Key: support-app-001' \
@@ -208,7 +216,7 @@ When tenant-wide QuilrQL authority is already enabled, app creation captures the
 
 ```bash
 curl --include \
-  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps/Support%20Bot" \
+  "$MANAGEMENT_URL/llmgateway/management/v1/apps/Support%20Bot" \
   --header "Authorization: Bearer $MANAGEMENT_KEY"
 ```
 
@@ -218,7 +226,7 @@ Use the returned `ETag` in updates. The example below assumes it is `"app-v1"`; 
 
 ```bash
 curl --request PATCH \
-  "$MANAGEMENT_ORIGIN/llmgateway/management/v1/apps/Support%20Bot" \
+  "$MANAGEMENT_URL/llmgateway/management/v1/apps/Support%20Bot" \
   --header "Authorization: Bearer $MANAGEMENT_KEY" \
   --header 'Content-Type: application/json' \
   --header 'If-Match: "app-v1"' \
@@ -238,6 +246,8 @@ To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expir
 | Issue a separate automation key | [Gateway credentials](./apps-and-credentials-api#credentials) |
 | Understand new-app policy defaults | [QuilrQL behavior](./policy-api) |
 | Add a system prompt | [Prompt Store](./prompts-api) |
+| Set spend or usage budgets | [Budgets API](./budgets-api) |
+| Try any call from the browser | [Management API playground](/llm-gateway-management-playground) |
 
 ## Authentication and management keys {#authentication}
 
@@ -259,7 +269,7 @@ The key establishes the tenant. Caller-supplied tenant headers cannot expand tha
 
 ### Enablement and lifecycle
 
-1. Self-hosted only: management is on by default on the central service. Setting `LLMGATEWAY_MANAGEMENT_API_ENABLED=false` turns it off.
+1. Self-hosted only: management is on by default. Your operator can turn it off for the whole deployment; every management route then returns `404`.
 2. An authorized administrator enables management for the tenant.
 3. The administrator creates a named key with explicit scopes and, optionally, an expiry.
 4. Store the returned secret. Issue a replacement key before revoking a key used by an existing integration.
@@ -274,19 +284,22 @@ All scopes listed for an operation are required. No scope implies another.
 
 | Scope | Grants |
 | --- | --- |
-| `read` | Capabilities/OpenAPI, app/provider/key metadata, prompts, configuration history, management audit, existing groups/definitions and operation status. |
-| `config:write` | App create/update/enable/disable, provider attachments/conversion, app controls, prompt changes eligible app rollback and configuration recovery. |
-| `providers:write` | Shared-provider create/update/enable/disable, credential rotation and explicit upstream tests. |
-| `credentials:write` | Issue/revoke gateway app keys and change supported expiry. |
-| `credentials:read` | Explicitly reveal a retained gateway app credential. |
+| `read` | Read apps, providers, quota pools, credentials metadata, prompts, catalogs, history, operation status and the OpenAPI document. |
+| `config:write` | Change app settings, attachments and prompts; roll back and recover app writes. |
+| `providers:write` | Create, update and delete shared providers and quota pools; run provider tests and model discovery. |
+| `credentials:write` | Issue, change expiry of and revoke gateway keys. |
+| `credentials:read` | Reveal the secret of an active gateway key. |
+| `budgets:read` | Read budgets, usage, subjects, grants, pricing, exemptions, alerts and events. Does not need `read`. |
+| `budgets:grant` | Issue, change and revoke budget grants. |
+| `budgets:policy` | Edit budgets, pricing, exemptions and alert destinations. Each budget, pricing or exemption edit publishes a policy revision. |
 
-App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`.
+App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`. `GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
 
-Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The five scopes above are the accepted scopes and apply tenant-wide.
+Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The eight scopes above are the accepted scopes and apply tenant-wide.
 
 ### Administration boundary
 
-The `/llmgateway/management-admin/v1` routes require `Authorization: Bearer <Quilr tenant-admin JWT>`. The verified JWT must include the selected tenant in `tenantIds`, an `Admin` or `Super Admin` role, and an identifying `sub`, `userId` or `email`. Tenant headers alone do not authorize access. A management key cannot grant itself permissions or enable its tenant.
+The `/llmgateway/management-admin/v1` routes require `Authorization: Bearer <Quilr user JWT>`, the signed token of a console user. The verified JWT must include the selected tenant in `tenantIds` and identify the user with `sub`, `userId` or `email`. Tenant headers and other credentials do not authorize access. A management key cannot grant itself permissions or enable its tenant.
 
 GET/PATCH tenant settings controls `{ "enabled": true }`. GET/POST tenant keys lists metadata or creates a management key. PATCH/DELETE a key changes its name/scopes/expiry or revokes it. Dedicated rotation and per-key pause/resume are **Not Generally Available**; issue a replacement and then revoke the old key.
 
@@ -300,15 +313,15 @@ Key creation requires `Idempotency-Key`. The same administrator can replay the c
 
 ### Enablement and authentication
 
-Management v1 runs on the central service. Self-hosted operators can turn it off with `LLMGATEWAY_MANAGEMENT_API_ENABLED=false` (it defaults on); both route families then return `404`. Deployments using `CLICKHOUSE_MASTER_URL` reject management with `503 central_service_required`.
+Call the [regional host](#1-prepare-access) your organization uses. Self-hosted deployments can turn management off; both route families then return `404`. Self-hosted nodes connected to a QuilrAI-hosted service return `503 central_service_required`.
 
 Resource routes use `/llmgateway/management/v1` and `Authorization: Bearer <qlmgmt_...>`. The key establishes the tenant. Administrator routes use `/llmgateway/management-admin/v1` and a verified tenant-admin JWT; see [authentication](#authentication).
 
-Send JSON bodies with `Content-Type: application/json`. Requests are capped at 1 MiB, with a 10-second body-read timeout and 32 admitted management requests per HTTP worker. Model probes have a 20-second timeout. Secret-bearing values are omitted from ordinary reads. Responses use `Cache-Control: no-store` and `X-Request-ID`.
+Send JSON bodies with `Content-Type: application/json`. Requests are capped at 1 MiB, request bodies must arrive within a bounded time (`408` otherwise), and concurrent management requests are limited (`429` when reached). Provider tests and model discovery are time-bounded. Secret-bearing values are omitted from ordinary reads. Responses use `Cache-Control: no-store` and `X-Request-ID`.
 
 ### Names and pagination
 
-Use URL-encoded paths for simple names. For app names containing `/`, `%` or other proxy-sensitive characters, use the `/app` query aliases and encode `app_name` once. Every app subresource supports the same alias.
+Use URL-encoded paths for simple names. For app names containing `/`, `%` or other proxy-sensitive characters, use the `/app` query aliases and encode `app_name` once. Every app subresource supports the same alias, for example `/app/keys?app_name=Team%20%2F%20Support`. The reference lists each operation once, in its path form; the aliases take the same inputs and are marked `x-alias-of` in the OpenAPI document.
 
 Paginated lists accept `limit` (1-200, default 50) and `cursor`:
 
@@ -316,7 +329,7 @@ Paginated lists accept `limit` (1-200, default 50) and `cursor`:
 {"items": [], "next_cursor": null, "request_id": "req_example"}
 ```
 
-There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider/group/definition/audit lists support no additional filters. App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
+There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider lists support [type, enabled, tag and model filters](./providers-and-configuration-api#list-filters). Group, definition and audit lists support no additional filters. Budget lists have their own filters and accept `limit` up to 500 (default 100). App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
 
 ### Versions and preconditions
 
@@ -328,7 +341,7 @@ Prompt creation also requires the app ETag; `If-None-Match` has no create-only s
 
 ### Idempotency and recovery
 
-App/provider/gateway-key/management-key creation and app rollback require a distinct `Idempotency-Key` per intended operation. Reusing it with different input returns `409`. Completed responses are encrypted and replayable for 24 hours to the same principal. Expiry does not permit duplicate issuance using that token.
+App, provider, quota-pool, gateway-key and management-key creation and app rollback require a distinct `Idempotency-Key` per intended operation. Reusing it with different input returns `409`. Completed responses are encrypted and replayable for 24 hours to the same principal. Expiry does not permit duplicate issuance using that token. Budget, exemption and grant creates also take an `Idempotency-Key`; see the [Budgets API](./budgets-api#how-writes-work).
 
 A timeout or `503` does not prove that nothing changed. `503 operation_pending` includes `error.operation_id` when a configuration/creation operation remains incomplete. Configuration recovery uses `/operations/{operation_id}` and `/operations/{operation_id}/recover` with the initiating key. Creation recovery retries the original POST and token. See [operation recovery](./providers-and-configuration-api#operation-recovery).
 
@@ -338,7 +351,7 @@ Provider/credential PATCH and revocation, and provider conversion, have no idemp
 
 Request `expires_at` values are future RFC 3339 timestamps with a timezone, or null. Gateway credential expiry responses also use RFC 3339. Management-key metadata, management audit, operation creation and provider-test completion times use Unix seconds, potentially fractional. Treat opaque IDs, versions and fingerprints as strings.
 
-Capabilities fields are at the response root, including `schema_version`, `scopes`, `app_fields`, `writes_available`, `policy_updates`, `policy_authority` and model-test support. There is no wrapping `capabilities` object. Configuration history detail uses `version_record`. All ordinary JSON responses include `request_id`; `/openapi.json` returns an OpenAPI document directly.
+Capabilities fields are at the response root, including `schema_version`, `scopes`, `caller`, `app_fields`, `writes_available`, `policy_updates`, `policy_authority`, `provider_list_filters` and the provider types that support tests and model discovery. There is no wrapping `capabilities` object. Configuration history detail uses `version_record`. All ordinary JSON responses include `request_id`; the OpenAPI document is returned as is, without `request_id`.
 
 ### Errors
 
@@ -367,18 +380,20 @@ Capabilities fields are at the response root, including `schema_version`, `scope
 | `413` | Request exceeds 1 MiB. |
 | `428` | Required `If-Match` missing. |
 | `429` | Management concurrency limit reached. |
-| `503` | Central service/storage unavailable or operation pending. |
+| `503` | Storage unavailable, operation pending, or a node that does not accept management calls. |
 
-Deletes return JSON with `200`, not `204`. Provider tests return `200` with an explicit `passed`, `failed` or `unsupported` outcome; inspect `test.code` and `test.configuration_version`. Connection tests currently return `unsupported_test_kind`.
+Deletes return JSON with `200`, not `204`. Provider tests and model discovery always return `200` with the outcome in the body; inspect `outcome` and `code`. See [tests and model discovery](./providers-and-configuration-api#tests-and-discovery).
 
 ### Propagation and deployment
 
-Central writes synchronize asynchronously to gateway nodes. Whole-app disable rejects new admissions after each node observes the change; existing requests and streams finish. Management-key revocation and tenant suspension are checked against central authority on each admitted management request.
+Saved configuration reaches the gateway asynchronously. Whole-app disable rejects new admissions once the change takes effect; existing requests and streams finish.
 
-Central HTTP workers and the tenant watcher share persistent `DLP_SERVER_DATA_DIR`. Management authority, keys, audit and encrypted replay data are central-only; back up `DATABASES/llmgateway_management.db` and `llmgateway_management.replay.key` together. Independent replicas with independent data directories are unsupported.
+A management key works on every regional host. New keys, revocations and tenant suspension propagate asynchronously, so a change may not be visible everywhere at once.
+
+Use one base URL per automation run. Retry a create with the same base URL and the same `Idempotency-Key`, and recover an operation through the same base URL as the original request. Send writes for the same resource through one base URL.
 
 ### Capability and schema reference
 
-Features marked **Not Generally Available** in the [availability table](#availability) are not currently supported. The static downloadable reference adds examples to the current implemented routes. The authenticated `/openapi.json` endpoint returns the backend-generated contract. Use `/capabilities` for deployed fields/provider types and test support.
+Features marked **Not Generally Available** in the [availability table](#availability) are not currently supported. The server publishes its OpenAPI 3.1 document at `GET /llmgateway_management_apis/v1/openapi.json` (management key with `read`). It is generated from the deployed routes, carries the required scopes of every operation in `x-scopes`, and is the same document as the [download on this site](/openapi/llm-gateway-management-v1.json). Use `/capabilities` for deployed fields, provider types and test support.
 
 <ApiReference tags={['Reference']} />

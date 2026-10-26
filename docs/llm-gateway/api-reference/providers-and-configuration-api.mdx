@@ -4,7 +4,7 @@ sidebar_position: 5
 sidebar_label: "Providers and configuration API"
 sidebar_custom_props:
   icon: Plug
-description: "LLM Gateway Management API v1: shared providers, model tests, app configuration, catalogs and history, with typed inputs and examples."
+description: "LLM Gateway Management API v1: shared providers, connection and model tests, model discovery, quota pools, app configuration, catalogs and history, with typed inputs and examples."
 ---
 
 import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
@@ -17,7 +17,7 @@ A shared provider is a reusable tenant-owned connection. Apps hold references to
 
 ### Provider inputs
 
-Creation requires `label`, `provider_name` and credentials for the selected provider type in `provider_settings`. Optional `selected_models`, `model_costs` and `enabled` configure availability. Use the provider-settings field reference below and the credential requirements for your provider family. Managed QuilrAI providers do not require customer credentials.
+Creation requires `label`, `provider_name` and credentials for the selected provider type in `provider_settings`. Optional `selected_models`, `model_costs` and `enabled` configure availability. Optional `tags`, `upstream_limits` and per-model `model_metadata` describe the provider (region, service tier, context window, capabilities, known upstream limits and shared [quota pools](#quota-pools)); they are descriptive and do not change routing or limit enforcement. Use the provider-settings field reference below and the credential requirements for your provider family. Managed QuilrAI providers do not require customer credentials.
 
 | Family | Provider types | Credential choices |
 | --- | --- | --- |
@@ -35,30 +35,67 @@ SDK and Copilot Studio are app modes, not shared-provider types. Provider/protoc
 
 `selected_models` is a full replacement list, with at most 1,000 names of up to 512 characters each. An empty list follows the existing unrestricted-provider convention where supported; it does not necessarily mean zero models are allowed. Use explicit model lists for finite allowlists.
 
-`model_costs` is keyed by a selected model. Values are nullable, non-negative USD rates per million input/output/cache tokens. Null removes a rate override. These values are configuration, not a quotation of provider pricing.
+`model_costs` is keyed by a selected model. Each item needs `input_per_1m` and `output_per_1m` (USD per million tokens) and can add cache, reasoning, tiered and per-unit rates; expand the `ModelCost` schema in the endpoint reference for every field. A supplied item replaces that model's stored item, a `null` item removes it, and other models keep theirs. These prices are used for request cost and spend [budgets](./budgets-api), after any tenant-wide budget rate for the same model.
 
 ### Rotation and disabling
 
 Omitted credentials remain unchanged on PATCH. Submit a new secret to rotate it. Do not send redacted placeholder values back. Changing authentication mode must supply required new-mode fields and removes incompatible old-mode credentials.
 
-PATCH `enabled:false` to disable a shared provider. Its record and app attachments remain; re-enabling restores normal availability. Shared-provider deletion is **Not Generally Available**. [Detaching](./apps-and-credentials-api#Detach_an_app_provider) removes a reference from one app only.
+PATCH `enabled:false` to disable a shared provider. Its record and app attachments remain; re-enabling restores normal availability.
 
-### Explicit connection/model tests
+[Delete a provider](#Delete_a_shared_provider) with its current version in `If-Match`. Deletion is refused with `409 provider_in_use`, listing the `apps`, while any app attaches it: [detach](./apps-and-credentials-api#Detach_an_app_provider) it from each app first (an app cannot drop its last provider, so attach a replacement first). A deleted provider leaves every quota pool it belonged to. `GET /providers?include_deleted=true` still lists deleted providers.
 
-Saving configuration never contacts the upstream provider. Use a separate test request when you want to:
+### Tests and model discovery {#tests-and-discovery}
 
-- Run a minimal configured-model check for a provider type listed in `capabilities.model_test_provider_types`; it may incur usage.
-- Connection-only tests are **Not Generally Available**. A `kind:"connection"` request is recognized but returns `outcome:"unsupported"` and `code:"unsupported_test_kind"` for every provider.
+Saving configuration never contacts the upstream provider. Run a test or a discovery when you want to check credentials or find model IDs. Every probe needs `providers:write`, can incur upstream usage, always answers `200` with the result in the body, and saves nothing: no provider change, no new version.
 
-Tests use stored credentials and endpoints; they accept no arbitrary payload, URL or credential overrides. Testing a disabled provider does not enable it. A private endpoint unreachable from the central service returns a diagnostic, not a failed configuration save.
+| Operation | Use it to | Result |
+| --- | --- | --- |
+| [Test a saved provider](#Test_connection_or_model) | `kind:"model"` sends one small request to a selected model. `kind:"connection"` probes the given model, or the first 10 selected models. | `test` with `outcome` `passed`, `failed` or `unsupported`, a `code`, and for connection tests one entry per model in `models[]`. A connection passes when any model probe passes. |
+| [Test draft settings](#Test_provider_settings) | Try new settings on a saved provider before saving them. Draft settings merge onto the stored ones; a blank secret keeps the stored value. | `test` with `connection` and `models[]`; outcomes `passed`, `failed`, `timeout`, `skipped` or `unsupported`. |
+| [Test an unsaved provider](#Test_draft_provider_settings) | Check a provider type and credentials before creating it. | Same as draft settings. |
+| [Discover models](#Discover_provider_models) | List the models the provider's credentials can reach, for a saved provider or [unsaved settings](#Discover_models_for_draft_settings). `validate:true` also probes each listed model. | `discovery` with `outcome` (`passed`, `manual_entry` for providers without a model list, `failed`, `timeout`, `skipped` or `unsupported`), `models[]` and `count`. |
 
-Completed tests return `test.configuration_version`, `kind`, `model`, `outcome`, `code` and `completed_at` (Unix seconds). `latency_ms` is present when a supported model probe runs. Outcomes are `passed`, `failed` or `unsupported`. A connection test never becomes a model call. Model tests are unavailable in a deployment with `COMPLETELY_NO_GPU`; there are no automatic billable retries.
+- Tests and discovery are bounded in both the number of models they probe and the time they take. When more models are selected than a connection test probes, `models_truncated` is true. A probe that runs out of time reports `timeout`.
+- Tests use stored or supplied settings only. They take no arbitrary URL or request payload. Testing a disabled provider does not enable it.
+- Secrets in upstream messages are replaced with `[redacted]`, and discovered models are reduced to non-secret fields such as `id`, `owned_by` and modalities.
+- Endpoints the management service cannot reach, such as a provider on a private network, are not probed: the saved-provider test reports `code: private_endpoint_unreachable`, and the other probes report `skipped` or `unsupported`. For such providers, use the console to test or discover models, or enter model IDs manually.
+- `GET /capabilities` lists the provider types each probe supports: `model_test_provider_types`, `connection_test_provider_types` and `model_discovery_provider_types`.
 
-Provider lists support `limit` and `cursor`; filtering by `enabled` or `provider_name` is **Not Generally Available**. Saves and reads return `{ "provider": { ... }, "request_id": "..." }`; ordinary responses omit upstream secrets.
+### List filters
+
+`GET /providers` supports `limit` and `cursor`, plus these filters (all combined with AND):
+
+| Filter | Matches |
+| --- | --- |
+| `provider_name` | Exact provider type, for example `openai`. |
+| `enabled` | `true` or `false`. |
+| `model` | Repeatable. The exact ID is in `selected_models`. |
+| `tag` | Repeatable. `key` matches any non-empty tag value; `key:value` matches a string, a list member, or a boolean or number by its JSON text. Matches provider tags or any selected model's tags, for example `tag=region:us-east-1` or `tag=canonical_model:gpt-4.1-mini`. |
+| `include_deleted` | `true` adds deleted providers. |
+
+Saves and reads return `{ "provider": { ... }, "request_id": "..." }`; ordinary responses omit upstream secrets.
 
 ### Provider endpoints
 
 <ApiReference tags={['Providers']} />
+
+## Quota pools {#quota-pools}
+
+A quota pool names an upstream ceiling that several providers or models share, such as one provider organization's tokens-per-minute limit used by two credentials. Pools are descriptive: they document limits and membership, and do not change routing or enforce limits.
+
+<StepFlow steps={[
+  {label: 'Register', items: ['POST /quota-pools', 'pool_id, name, limits']},
+  {label: 'Assign', items: ['Provider or model upstream_limits', 'shared_quota_pool_ids']},
+  {label: 'Review', items: ['GET /quota-pools', 'members per pool']},
+]} />
+
+- **Register before you assign.** A provider write that names an unregistered pool ID returns `400 invalid_provider` naming the unknown IDs. `GET /quota-pools` returns `unregistered`, the pool IDs that providers already reference but that were never registered; create a pool with that `pool_id` to adopt it.
+- **Membership lives on providers.** Set `upstream_limits.shared_quota_pool_ids` on a provider, or on one model in `model_metadata`. Each pool's `members` lists the providers and `{provider_label, model}` pairs that reference it.
+- **IDs and limits.** New `pool_id` values use lowercase letters, digits, `.`, `_`, `:` and `-` (up to 128 characters) and cannot change. `limits` (`rpm`, `rpd`, `input_tpm`, `output_tpm`, `max_inflight_requests` and more) are positive integers; `null` means unknown. PATCH merges limit keys.
+- **Writes** need `providers:write`. Creation takes an `Idempotency-Key`; updates and deletes take the pool `version` in `If-Match`. Deleting a pool that still has members returns `409 quota_pool_in_use` unless you pass `detach=true`, which removes it from every member first.
+
+<ApiReference tags={['Quota pools']} />
 
 ## Full app configuration input {#configuration}
 
@@ -171,7 +208,7 @@ Rollback requires the current **app ETag** and `Idempotency-Key`. It restores el
 
 ### Audit
 
-`GET /audit` returns tenant management events with `event_id`, `actor`, `operation`, `resource`, `request_id`, `result`, `created_at` and `changes`. `created_at` uses Unix seconds. Only `limit` and `cursor` are supported; app-name, operation, management-key and time-range filters are **Not Generally Available**.
+`GET /audit` returns tenant management events, newest first, with `event_id`, `actor`, `operation`, `resource`, `request_id`, `result`, `created_at` and `changes`. Rejected writes are recorded with their error code, and provider tests and discovery with their outcome only. `created_at` uses Unix seconds. Events are kept for 90 days. New events never invalidate a cursor; they appear on a fresh listing. Only `limit` and `cursor` are supported; app-name, operation, management-key and time-range filters are **Not Generally Available**.
 
 ### Operation recovery
 
