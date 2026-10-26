@@ -47,6 +47,6 @@ The universal system prompt is an app setting rather than a prompt resource. Set
 }
 ```
 
-A partial object merges with the stored value: `{"prompts": {"universal_system_prompt": {"enabled": false}}}` turns it off and keeps the text. `content` is at most 100,000 characters, and enabling it with empty content returns `400` (`invalid_configuration`). App reads return `prompts.universal_system_prompt` as `{"enabled": ..., "content": ...}`, and rollback restores it with the rest of the app configuration. For how the gateway applies it, see [Universal system prompt](../cost-and-traffic/prompt-store#universal-system-prompt).
+A partial object merges with the stored value: `{"prompts": {"universal_system_prompt": {"enabled": false}}}` turns it off and keeps the text. `content` is at most 100,000 characters, and enabling it with empty content returns `400` (`invalid_configuration`). App reads return `prompts.universal_system_prompt` as `{"enabled": ..., "content": ...}`, and rollback restores it with the rest of the app configuration. While the Policy Engine is on for the LLM Gateway, the write is saved but not enforced: the response carries an `inactive_under_quilrql` warning naming `prompts.universal_system_prompt`, and [policies decide the prompt](../cost-and-traffic/prompt-store#universal-system-prompt-policies). For how the gateway applies it, see [Universal system prompt](../cost-and-traffic/prompt-store#universal-system-prompt).
 
 <ApiReference tags={['Prompts']} />

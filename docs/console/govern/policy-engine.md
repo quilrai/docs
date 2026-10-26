@@ -185,7 +185,7 @@ The engine switch is tenant-wide. While the LLM Gateway engine is on, these sect
 | Token Saving | Token Savings |
 | Routing | Model routing |
 | Identity Aware (Enforce identity, Enforce conversation ID) | Identity & Network Trust |
-| Prompt Store (Require system prompt from store) | Prompt Store and Enforcement |
+| Prompt Store (Require system prompt from store, Universal system prompt) | Prompt Store and Enforcement |
 
 Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls and Budgets & Usage Limits exist only in the engine. See [Switching from classic settings](./switching-from-classic-settings).
 

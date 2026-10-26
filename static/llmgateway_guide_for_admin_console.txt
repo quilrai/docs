@@ -74,7 +74,8 @@ TASK -> WHERE
 - Prompt Store (approved prompts + Universal system prompt + enforcement) -> Configure > Prompts
 - One prompt added to every request of an app -> Configure > Prompts > "Universal system prompt" card:
   type the Prompt, turn on "Apply to every request" > Save settings (no Prompt ID; added before the request's
-  own system prompt)
+  own system prompt). With the Policy Engine on, set it on the Policy Engine "Prompt Store and Enforcement"
+  card instead (see POLICY ENGINE)
 - Self-service for developers -> Configure > Self-Service > Self-service Enabled switch, then Capabilities grid
   (per capability: Allow all users / Allow emails / Allow smart groups / Deny emails / Deny smart groups) > Save settings
 - Approve self-service change requests -> Configure > Audit Log > Change requests
@@ -120,6 +121,11 @@ POLICY ENGINE (LLM) - /policy/engine/llm-gateway
   Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Model routing,
   Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement.
   Below them: "Advanced policies" (policies the cards cannot represent; Advanced workspace).
+- Prompt Store and Enforcement card: Prompt Store button (Global Prompt Store drawer), "Require store prompt",
+  and "Universal system prompt" (section's Custom > "New universal system prompt": choose who it applies to >
+  On with "Write the prompt" ("Prompt text", up to 8,192 characters) or "Use a Global Prompt Store prompt"
+  ("Global Prompt Store prompt" picker), or Off). Rows read "On · N characters", "On · Global prompt <id>"
+  or "Off". Highest priority wins; one prompt per request; edits join the shared draft.
 - Edits go to one shared draft > Review changes > Publish revision.
 - History: /policy/engine/llm-gateway/history. Simulate: /policy/engine/llm-gateway/simulate
 - Model routing card: /policy/engine/llm-gateway?tile=routing-groups-fallbacks&tab=controls
@@ -162,8 +168,8 @@ CONFIGURATION NOTES
   ... policies." > View policies (edit in Policy Engine) or Edit anyway > dialog "Edit legacy settings?"
   > Cancel | Edit legacy settings (saved values apply only if the Policy Engine is turned off).
 - Partly governed: Custom Detections (on/off, Applies to, Action), Identity Aware (Enforce identity /
-  Enforce conversation ID switches), Prompt Store (Enforcement). Definitions, identity sources, prompts and the
-  Universal system prompt stay live here.
+  Enforce conversation ID switches), Prompt Store (Enforcement and the Universal system prompt card).
+  Definitions, identity sources and prompts stay live here.
 - Not governed: LLM Providers, Self-Service, Alerts, API Keys, API Integration, Audit Log.
 - Settings save only on "Save settings"; Discard changes reverts. Prompts and custom detection
   definitions save immediately. The Universal system prompt and its "Apply to every request" switch save
