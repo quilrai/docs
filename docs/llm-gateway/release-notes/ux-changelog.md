@@ -10,6 +10,12 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Universal system prompt policies (2026-10-26)
+
+- With the Policy Engine on, a **Universal system prompt** control on the **Prompt Store and Enforcement** card decides the universal system prompt by Application, Smart group, user, model or request metadata: write the prompt (up to 8,192 characters), use a Global Prompt Store prompt, or turn it **Off** for a narrower scope
+- The app's own setting freezes while the engine is on, and turning the engine on converts each app's prompt into a configuration for that app
+- Details: [Universal system prompt policies](../cost-and-traffic/prompt-store#universal-system-prompt-policies)
+
 ## Universal system prompt (2026-10-25)
 
 - New **Universal system prompt** card in an app's **Configure > Prompts**: one prompt, with no Prompt ID, that the gateway adds to every request once **Apply to every request** is on
