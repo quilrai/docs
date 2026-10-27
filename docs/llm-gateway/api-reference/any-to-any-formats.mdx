@@ -95,7 +95,7 @@ This applies to every client format and provider on an adapter or translated pai
 
 When a request is translated, each parameter is mapped to the target API's field, or dropped when the target has no equivalent. A dropped parameter is removed and the request still runs. Columns are the API the request is sent to (the explorer's wire line shows it for each pair):
 
-- **Chat Completions targets:** OpenAI, Azure OpenAI, Gemini API, xAI, Mistral, DeepSeek, custom OpenAI-compatible, Bedrock OpenAI models, Vertex AI Model Garden.
+- **Chat Completions targets:** OpenAI, Azure OpenAI, Gemini API, xAI, Mistral, Cerebras, DeepSeek, custom OpenAI-compatible, Bedrock OpenAI models, Vertex AI Model Garden.
 - **Responses targets:** OpenAI and Azure OpenAI Responses-type keys and Responses-only models, xAI Responses.
 - **Anthropic targets:** Anthropic, Azure AI Foundry Anthropic, Claude on Bedrock InvokeModel.
 - **Gemini targets:** Gemini models on Vertex AI.
@@ -130,6 +130,7 @@ Per-model rules, applied only to translated requests:
 - **(b) OpenAI reasoning models:** sampling parameters, penalties and `logprobs` are dropped (unless reasoning is off), `stop` and `logit_bias` are dropped on Chat Completions, and the effort is fitted to what the model accepts.
 - **(b) xAI:** `logit_bias` is dropped on every model; reasoning models drop penalties and `stop`. Efforts: grok-4.3 takes `none` to `xhigh`, grok-4.5 and later `minimal` to `xhigh`, grok-4.20 and grok-build none.
 - **Mistral:** `seed` is sent as `random_seed`; `user`, `logit_bias`, `store`, `verbosity` and `safety_identifier` are dropped; `developer` messages become `system`; tool call ids are rewritten to Mistral's 9-character format; inline PDF parts are sent as Mistral documents. Codestral, Ministral and Voxtral models drop reasoning effort and `logprobs`.
+- **Cerebras:** reasoning effort is fitted to `low` to `high`. Reasoning returned by the model reaches the client as its own reasoning format, and earlier reasoning in a multi-turn conversation is sent back in Cerebras' `reasoning` field; an assistant `refusal` is sent as the message text.
 
 ### Chat Completions adapters {#chat-completions-adapters}
 

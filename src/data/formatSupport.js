@@ -101,6 +101,8 @@ const SARVAM_SOON = 'Converting other formats to Sarvam is coming soon. Native S
 const VERTEX_CLAUDE_SOON = 'Claude models on Vertex AI are coming soon for every client format.';
 const MISTRAL_RULES =
   'seed is sent as random_seed, OpenAI-only fields (user, logit_bias, store) are dropped and tool call ids are rewritten to Mistral’s 9-character format.';
+const CEREBRAS_RULES =
+  'reasoning effort is fitted to low to high; reasoning comes back in the client’s format and earlier reasoning is sent back in Cerebras’s reasoning field.';
 const XAI_RULES = 'logit_bias is dropped; reasoning effort is fitted to what the Grok model accepts.';
 const MANTLE_SOON = 'Claude models served only through Bedrock Mantle (such as Claude Mythos) are coming soon.';
 
@@ -129,6 +131,7 @@ export default {
     { id: 'xai', label: 'xAI', group: 'More providers' },
     { id: 'xai_responses', label: 'xAI (Responses type)', group: 'More providers' },
     { id: 'mistral', label: 'Mistral', group: 'More providers' },
+    { id: 'cerebras', label: 'Cerebras', group: 'More providers' },
     { id: 'deepseek', label: 'DeepSeek', group: 'More providers' },
     { id: 'oracle', label: 'Oracle OCI (Chat)', group: 'More providers' },
     { id: 'oracle_responses', label: 'Oracle OCI (Responses)', group: 'More providers' },
@@ -422,6 +425,18 @@ export default {
       gemini: tr('Mistral Chat Completions', MISTRAL_RULES),
       converse: trConverse('Mistral Chat Completions', MISTRAL_RULES),
       invoke: trInvoke('Mistral Chat Completions', MISTRAL_RULES),
+    },
+    cerebras: {
+      chat: native('Cerebras Chat Completions'),
+      responses: tr(
+        'Cerebras Chat Completions',
+        'Cerebras has no Responses or Anthropic-compatible endpoint, so every other format is translated to Chat.',
+        CEREBRAS_RULES,
+      ),
+      messages: tr('Cerebras Chat Completions', CEREBRAS_RULES),
+      gemini: tr('Cerebras Chat Completions', CEREBRAS_RULES),
+      converse: trConverse('Cerebras Chat Completions', CEREBRAS_RULES),
+      invoke: trInvoke('Cerebras Chat Completions', CEREBRAS_RULES),
     },
     deepseek: {
       chat: native('DeepSeek Chat Completions'),

@@ -10,6 +10,14 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Cerebras provider (2026-10-27)
+
+- New provider type `cerebras` on a **Cerebras** tile, with an API key and a fixed endpoint (`https://api.cerebras.ai/v1`)
+- Chat Completions natively, including streaming and tool calls, plus legacy completions on `/openai_compatible/v1/completions`
+- Responses, Anthropic Messages, Gemini and Bedrock clients reach it through any-to-any formats, with model reasoning returned in each client's format
+- **Get available models** lists the models your Cerebras key can call
+- Details: [Cerebras](../apps-and-providers/provider-support#cerebras)
+
 ## Universal system prompt policies (2026-10-26)
 
 - With the Policy Engine on, a **Universal system prompt** control on the **Prompt Store and Enforcement** card decides the universal system prompt by Application, Smart group, user, model or request metadata: write the prompt (up to 8,192 characters), use a Global Prompt Store prompt, or turn it **Off** for a narrower scope
@@ -23,6 +31,16 @@ Recent interface improvements and quality-of-life changes.
 - Applied after guardrails and Prompt Store references, right before the provider call; request logs keep the request as your app sent it
 - Saved with **Save settings**, versioned and audited like other app settings, and settable through the Management API as `prompts.universal_system_prompt`
 - Details: [Universal system prompt](../cost-and-traffic/prompt-store#universal-system-prompt)
+
+## Mistral and xAI vendor routes (2026-10-23)
+
+Each vendor's own APIs now have their own route, in the vendor's own format, for that vendor's connections only. See [Vendor routes](../apps-and-providers/provider-support#vendor-routes).
+
+- `/xai/v1/responses`: xAI's Responses API with its server-side tools (web search, X search); retrieve and delete by id
+- `/xai/v1/images/generations` and `/images/edits` with xAI's own fields (`aspect_ratio`, `resolution`)
+- `/xai/v1/videos/...` and `/xai/v1/batches/...` (including adding batch requests), off by default like their families
+- `/mistral/v1/ocr` and `/mistral/v1/fim/completions` (Mistral's own FIM request and response, with streaming)
+- Mistral AI and xAI setup now lives on [Provider Support](../apps-and-providers/provider-support#xai-and-mistral)
 
 ## Decision models on Azure AI Foundry (2026-10-23)
 
@@ -58,7 +76,7 @@ Shared OpenAI-compatible endpoints beyond chat, served for several providers und
 - xAI: Chat Completions and Responses natively, plus images, videos, batches and files
 - Mistral: Chat Completions natively, plus embeddings, transcription, moderations, fill-in-the-middle, OCR, batches and files
 - Every other client format reaches both through any-to-any formats - see [Provider Support](../apps-and-providers/provider-support#xai-and-mistral)
-- Setup guide with examples: [Mistral AI and xAI Grok](../apps-and-providers/mistral-and-xai)
+- Setup guide with examples: [xAI and Mistral](../apps-and-providers/provider-support#xai-and-mistral)
 - New **Search provider types** box in the provider picker filters tiles by vendor or API name
 
 ## Anthropic on Azure AI Foundry from every format (2026-10-20)

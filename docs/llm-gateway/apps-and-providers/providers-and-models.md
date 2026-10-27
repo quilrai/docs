@@ -84,6 +84,7 @@ For a model endpoint inside a private network, use a [Remote Connector](./remote
 | Google | Vertex AI (`vertex_ai`), Gemini OpenAI-compatible (`gemini_chatcompletions`) |
 | DeepSeek | Chat completions (`deepseek`) |
 | Mistral AI | Chat completions (`mistral`) |
+| Cerebras | Chat completions (`cerebras`) |
 | xAI | Chat completions (`xai`), Responses (`xai_responses`) |
 | Sarvam | Speech, text & chat (`sarvam`) |
 | Cohere, Jina, Voyage | Rerank (`cohere_rerank`, `jina_rerank`, `voyage_rerank`) |

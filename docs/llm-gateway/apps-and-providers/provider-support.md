@@ -4,7 +4,8 @@ sidebar_label: "Provider support matrix"
 sidebar_custom_props:
   badge: new
   icon: Handshake
-description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and Microsoft-Decision-1 decision models on Azure AI Foundry through the OpenAI Decisions and System One APIs."
+description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, Cerebras, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and Microsoft-Decision-1 decision models on Azure AI Foundry through the OpenAI Decisions and System One APIs, and the Mistral and xAI vendor routes (/mistral/v1/ocr, /mistral/v1/fim/completions, /xai/v1/responses, /xai/v1/images, videos and batches)."
+aliases: [mistral, mistral ai, xai, grok, codestral, voxtral, grok imagine]
 ---
 
 # Provider Support
@@ -42,6 +43,7 @@ One row per provider type. The type is what you select in the console and what y
 | `xai` | xAI | ✓ | ↻ | ↻ | - | - | - | - | - | ✓ |
 | `xai_responses` | xAI | ↻ | ↻ | ✓ | - | - | - | - | - | ✓ |
 | `mistral` | Mistral | ✓ | ↻ | ↻ | - | - | ✓ | - | ✓ | ✓ |
+| `cerebras` | Cerebras | ✓ | ↻ | ↻ | - | - | - | - | - | ✓ |
 | `oracle` | Oracle OCI Generative AI | ✓ | Soon | Soon | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | Soon | Soon | ✓ | - | - | - | - | - | Manual |
 | `sarvam` | Sarvam | ✓ | Soon | Soon | - | - | - | - | ✓ | ✓ |
@@ -55,11 +57,11 @@ One row per provider type. The type is what you select in the console and what y
 
 - **Gemini generateContent and Bedrock Converse / InvokeModel** clients reach the same conversational providers. The [format explorer](../api-reference/any-to-any-formats#format-explorer) shows how each client format reaches each provider, model by model.
 - **Chat** on `vertex_ai` and the `anthropic_messages*` types uses the built-in adapters described in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters).
-- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral).
+- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras).
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
-- **Endpoint families:** moderations, images, OCR, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families).
+- **Endpoint families:** moderations, images, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families). Mistral and xAI also have [vendor routes](#vendor-routes).
 - `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes. See [Decision models](#decision-models).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
@@ -72,7 +74,9 @@ Combine a [regional base URL](../get-started/integration-guide#region) with a pa
 | Chat Completions | `/openai_compatible/v1/chat/completions` | `Authorization: Bearer <Quilr key>` |
 | Embeddings | `/openai_compatible/v1/embeddings` | `Authorization: Bearer <Quilr key>` |
 | Speech | `/openai_compatible/v1/audio/speech`, `/audio/transcriptions`, `/audio/translations` | `Authorization: Bearer <Quilr key>` |
-| Endpoint families | `/openai_compatible/v1/moderations`, `/images/*`, `/ocr`, `/completions`, `/files`, `/batches`, `/videos` | `Authorization: Bearer <Quilr key>` |
+| Endpoint families | `/openai_compatible/v1/moderations`, `/images/*`, `/completions`, `/files`, `/batches`, `/videos` | `Authorization: Bearer <Quilr key>` |
+| Mistral vendor routes | `/mistral/v1/ocr`, `/mistral/v1/fim/completions` | `Authorization: Bearer <Quilr key>` |
+| xAI vendor routes | `/xai/v1/responses`, `/xai/v1/images/*`, `/xai/v1/videos/*`, `/xai/v1/batches/*` | `Authorization: Bearer <Quilr key>` |
 | Anthropic Messages | `/anthropic_messages/v1/messages` | `x-api-key: <Quilr key>` |
 | Responses | `/openai_responses/v1/responses` | `Authorization: Bearer <Quilr key>` |
 | Assistants | `/openai_assistants/` | `Authorization: Bearer <Quilr key>` |
@@ -95,6 +99,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `openai_responses`, `openai_assistants`, `openai_realtime` | API key | API key | Base URL (`base_url`, default OpenAI) | Console, API |
 | `anthropic`, `gemini_chatcompletions`, `deepseek` | API key | API key | - | Console, API |
 | `xai`, `xai_responses`, `mistral` | API key | API key | - (the endpoint is fixed: `https://api.x.ai/v1` or `https://api.mistral.ai/v1`) | Console, API |
+| `cerebras` | API key | API key | - (the endpoint is fixed: `https://api.cerebras.ai/v1`) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
 | `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure` | API key | API key, Azure endpoint | Azure API version (defaults `2025-03-01-preview`, `2024-05-01-preview`, `2025-04-01-preview`) | Console, API |
@@ -139,7 +144,7 @@ Rules that apply to every app:
 
 ## Chat Completions
 
-`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. Providers that already speak the OpenAI format (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, xAI, Mistral, Oracle, Sarvam, custom endpoints) get the request natively. `bedrock` (native Bedrock chat or Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types use the built-in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters); every other provider is reached through [any-to-any formats](../api-reference/any-to-any-formats).
+`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. Providers that already speak the OpenAI format (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, xAI, Mistral, Cerebras, Oracle, Sarvam, custom endpoints) get the request natively. `bedrock` (native Bedrock chat or Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types use the built-in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters); every other provider is reached through [any-to-any formats](../api-reference/any-to-any-formats).
 
 Sarvam serves only its chat models here. Its speech and text models use the [Sarvam routes](#sarvam-speech-and-text).
 
@@ -217,49 +222,168 @@ Chat models (`sarvam-105b`, `sarvam-105b-conversations`, and the beta `glm5.2`, 
 
 Guardrails scan `input_text` parts and `instructions` on the request, and `output_text` on non-streaming responses. On native providers, `previous_response_id` and built-in tools pass through.
 
-Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistral, DeepSeek and more) are reached by translation. Stored state such as `previous_response_id` does not carry over, and hosted tools are dropped so the model answers without them; see [Limits](../api-reference/any-to-any-formats#limits).
+Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistral, Cerebras, DeepSeek and more) are reached by translation. Stored state such as `previous_response_id` does not carry over, and hosted tools are dropped so the model answers without them; see [Limits](../api-reference/any-to-any-formats#limits).
 
 ## xAI and Mistral
 
-`xai` and `xai_responses` call `https://api.x.ai/v1`; `mistral` calls `https://api.mistral.ai/v1`. Both take an API key; the base URL is fixed. Setup, example models and vendor behavior: [Mistral AI and xAI Grok](./mistral-and-xai).
+`xai` and `xai_responses` call `https://api.x.ai/v1`; `mistral` calls `https://api.mistral.ai/v1`. Each takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored.
 
-| Surface | xAI | Mistral |
-|---------|-----|---------|
-| Chat Completions | Native (`xai`); switch on `xai_responses` | Native |
-| Responses | Native (`xai_responses`); switch on `xai`. The multi-agent model is Responses only. | Translated to Chat |
-| Anthropic Messages, Gemini, Bedrock Converse | Translated | Translated |
-| PDF and file parts | Chat requests with files go to xAI Responses, which reads them | Sent as document URLs |
+| Provider type | Console tile and API | What one key serves |
+|---------------|----------------------|---------------------|
+| `mistral` | **Mistral AI** › Chat completions | Chat, embeddings, transcription, moderation, document OCR, Codestral fill-in-the-middle (FIM). Files and batch jobs when enabled. |
+| `xai` | **xAI** › Chat completions | Chat, Grok Imagine image generation and edits. Video generation and batches when enabled. |
+| `xai_responses` | **xAI** › Responses | xAI's Responses API, which xAI recommends for new integrations. |
 
-Both also serve these APIs on the OpenAI-compatible base, without format conversion (see [Endpoint families](#endpoint-families)):
+### Add the provider
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Search for `mistral`, `grok` or `xai` and select the **Mistral AI** or **xAI** tile. For xAI, choose **Chat completions** or **Responses** under **Which API does the gateway talk to?**.
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+Mistral lists models from `/v1/models` and sorts each into chat, embedding, moderation, OCR, transcription or FIM from its capability flags. xAI lists language models, plus image and video models your key can reach; `xai_responses` lists language models only. Enable every model you call, on every API.
+
+### Vendor routes
+
+Each vendor's own APIs have their own route under `/mistral/` or `/xai/`. These take and return the vendor's own request format, unchanged, and serve only that vendor's connections:
+
+| API | Path | Provider types |
+|-----|------|----------------|
+| Mistral document OCR | `/mistral/v1/ocr` | `mistral` |
+| Mistral fill-in-the-middle | `/mistral/v1/fim/completions` | `mistral` |
+| xAI Responses, with xAI's server-side tools (web search, X search) | `/xai/v1/responses`; `GET`, `DELETE /xai/v1/responses/{response_id}` | `xai_responses`, `xai` |
+| xAI image generation and edits | `/xai/v1/images/generations`, `/xai/v1/images/edits` (JSON body) | `xai` |
+| xAI video generation (off by default) | `/xai/v1/videos/generations`, `/edits`, `/extensions`; `GET /xai/v1/videos/{request_id}` | `xai` |
+| xAI batches (off by default) | `/xai/v1/batches` (create, list); `/xai/v1/batches/{batch_id}` (get); `/xai/v1/batches/{batch_id}/requests` (add, list); `/xai/v1/batches/{batch_id}/results`; `/xai/v1/batches/{batch_id}:cancel` | `xai` |
+
+The shared endpoints serve them too:
 
 | API | Path | xAI | Mistral |
 |-----|------|:---:|:-------:|
+| Chat Completions | `/openai_compatible/v1/chat/completions` | ✓ (`xai`; switch on `xai_responses`) | ✓ |
+| Responses | `/openai_responses/v1/responses` | ✓ (`xai_responses`; switch on `xai`). The multi-agent model is Responses only. | Translated to Chat |
+| Anthropic Messages, Gemini, Bedrock Converse | Their native paths | Translated | Translated |
 | Embeddings | `/openai_compatible/v1/embeddings` | - | ✓ |
 | Transcription | `/openai_compatible/v1/audio/transcriptions` | - | ✓ |
 | Moderations | `/openai_compatible/v1/moderations` | - | ✓ |
-| Fill-in-the-middle | `/openai_compatible/v1/completions` | - | ✓ |
-| OCR | `/openai_compatible/v1/ocr` | - | ✓ |
-| Images | `/openai_compatible/v1/images/generations`, `/images/edits` | ✓ | - |
-| Videos | `/openai_compatible/v1/videos`, `/videos/edits`, `/videos/{video_id}` | ✓ | - |
-| Batches | `/openai_compatible/v1/batches` (create, list, retrieve, cancel; `/results` on xAI) | ✓ | ✓ |
-| Files | `/openai_compatible/v1/files` | ✓ | ✓ |
+| Files, batches (off by default) | `/openai_compatible/v1/files`, `/batches` | Files | ✓ |
+
+Chat requests with PDF or file parts on an `xai` key go to xAI Responses, which reads them; Mistral receives them as document URLs. Files, batches and videos are off by default; see [Endpoint Families](../api-reference/endpoint-families#enabling-families).
+
+### xAI and Mistral examples
+
+```bash
+# xAI Responses with xAI's own web search tool
+curl https://guardrails-usa-2.quilr.ai/xai/v1/responses \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "grok-4.20-0309-non-reasoning", "input": "What is new at xAI?", "tools": [{"type": "web_search"}]}'
+
+# xAI image generation with xAI's own fields
+curl https://guardrails-usa-2.quilr.ai/xai/v1/images/generations \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "grok-imagine-image", "prompt": "A plain white square.", "aspect_ratio": "16:9"}'
+
+# Codestral fill-in-the-middle (Mistral's own request and response; streaming works too)
+curl https://guardrails-usa-2.quilr.ai/mistral/v1/fim/completions \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "codestral-latest", "prompt": "def add(a, b):\n    return", "suffix": "\n\nprint(add(1, 2))", "max_tokens": 32}'
+
+# Mistral document OCR
+curl https://guardrails-usa-2.quilr.ai/mistral/v1/ocr \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "mistral-ocr-latest", "document": {"type": "document_url", "document_url": "https://example.com/invoice.pdf"}}'
+```
+
+The OpenAI SDK works against the xAI route: set `base_url` to `https://guardrails-usa-2.quilr.ai/xai/v1` and call `client.responses.create(...)` with your Quilr key.
+
+### Provider behavior
+
+| Topic | Mistral AI | xAI |
+|-------|-----------|-----|
+| Vendor routes | Request and response are Mistral's own (FIM `random_seed`, chat-shaped FIM choices). | Request and response are xAI's own (`aspect_ratio`, `resolution`, `duration`, xAI video and batch objects). |
+| Output limit on chat | Send `max_tokens`. Mistral has no `max_completion_tokens` and no `stream_options`. | `max_completion_tokens` is accepted. The gateway requests streaming usage for you. |
+| Rejected fields | Unsupported fields come back as Mistral's own HTTP 422. | Reasoning models reject `presence_penalty`, `frequency_penalty` and `stop`; the error is passed through. |
+| Streaming | Chat and FIM. | Chat and Responses. |
+| Moderation | The response gets OpenAI's per-result `flagged` field. | - |
+| Responses | - | Create, retrieve and delete. `cancel` and `input_items` return `400 operation_not_supported`. |
+| Not available | Audio translations. | Legacy completions: xAI rejects `/v1/completions` for every current model. |
 
 When a converted request reaches xAI or Mistral, the gateway adapts parameters the provider does not accept (for example, Mistral's `random_seed` for `seed`; unsupported penalties and `logit_bias` are dropped for xAI).
 
+### Guardrails, routing and limits
+
+- **Chat, Responses (including `/xai/v1/responses`), embeddings and transcription** get the same [guardrails](../protect/security-guardrails#endpoint-coverage) as any other provider.
+- **OCR, FIM, images, moderation, files, batches and videos** are not scanned by DLP, on the vendor routes as on the shared ones. Access controls, model allow-lists, rate and token limits and quotas apply. See [Endpoint Families](../api-reference/endpoint-families#what-applies-on-family-routes).
+- **A vendor route serves only its vendor's connections.** On an app with several providers it picks the vendor's connection for the model; another provider is refused with `400` (`unsupported_provider_for_<family>`, or `provider_not_supported_on_route` on `/xai/v1/responses`).
+- **Routing groups:** `mistral` and `xai` are own-family members of **Chat Completions** groups; `xai_responses` of **OpenAI Responses** groups. On `/xai/v1/responses`, group members of other provider types are skipped. See [Routing and Fallbacks](../cost-and-traffic/routing-and-fallbacks#which-providers-a-group-can-mix).
+
+## Cerebras
+
+`cerebras` calls `https://api.cerebras.ai/v1`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored.
+
+| Provider type | Console tile and API | What one key serves |
+|---------------|----------------------|---------------------|
+| `cerebras` | **Cerebras** › Chat completions | Chat and legacy text completions on open-weight models such as gpt-oss and Qwen. |
+
+### Add the provider
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Search for `cerebras` and select the **Cerebras** tile.
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+Cerebras lists models from `/v1/models`; every model is a chat model. Enable every model you call.
+
+| API | Path | Cerebras | Example model |
+|-----|------|:--------:|---------------|
+| Chat Completions | `/openai_compatible/v1/chat/completions` | ✓ | `gpt-oss-120b` |
+| Legacy completions | `/openai_compatible/v1/completions` | ✓ | `gpt-oss-120b` |
+| Responses | `/openai_responses/v1/responses` | Translated to Chat | `gpt-oss-120b` |
+| Anthropic Messages, Gemini, Bedrock Converse | Their native paths | Translated to Chat | - |
+| Embeddings, images, speech, moderations | - | - (Cerebras does not serve them) | - |
+| Files, batches | - | - (Cerebras Batch is a private preview) | - |
+
+### Cerebras examples
+
+```bash
+# Chat Completions (streaming and tool calls work too)
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "gpt-oss-120b", "messages": [{"role": "user", "content": "Say hello."}], "max_completion_tokens": 256}'
+
+# Legacy text completions
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/completions \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "gpt-oss-120b", "prompt": "The capital of France is", "max_tokens": 16}'
+
+# Anthropic Messages client, translated to Cerebras Chat Completions
+curl https://guardrails-usa-2.quilr.ai/anthropic_messages/v1/messages \
+  -H "x-api-key: <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "gpt-oss-120b", "max_tokens": 256, "messages": [{"role": "user", "content": "Say hello."}]}'
+```
+
+### Cerebras behavior
+
+| Topic | Cerebras |
+|-------|----------|
+| Reasoning | Reasoning models such as `gpt-oss-120b` return their reasoning to every client format: `thinking` blocks for Anthropic Messages, `reasoning` items for Responses. Reasoning effort is fitted to `low`, `medium` or `high`. |
+| Tool loops | Multi-turn tool calls work from every client format; earlier reasoning is sent back in Cerebras' `reasoning` field. |
+| Rejected fields | Cerebras rejects unknown fields; the error comes back as Cerebras' own HTTP 400 (`wrong_api_format`). |
+| Streaming | Chat and legacy completions. |
+| Context window | An over-long request is classified as a context-length error, so [routing failover](../cost-and-traffic/routing-and-fallbacks) can move it to a model with a larger window. |
+
 ## Endpoint families
 
-Moderations, images, OCR, completions (including Codestral and DeepSeek fill-in-the-middle), files, batches and videos are served under `/openai_compatible/v1/` for the providers that support them:
+Moderations, images, completions (including DeepSeek fill-in-the-middle), files, batches and videos are served under `/openai_compatible/v1/` in the OpenAI shape for the providers that support them:
 
 | Family | Providers |
 |--------|-----------|
 | Moderations | `openai`, `mistral`, `general` |
-| Images | `openai`, `azureopenai`, `xai`, `gemini_chatcompletions`, `general` |
-| OCR | `mistral` |
-| Completions | `openai`, `azureopenai`, `mistral`, `deepseek`, `general` |
-| Files, batches (off by default) | `openai`, `azureopenai`, `mistral`, `xai` |
-| Videos (off by default) | `openai`, `xai` |
+| Images | `openai`, `azureopenai`, `gemini_chatcompletions`, `general` |
+| Completions | `openai`, `azureopenai`, `deepseek`, `cerebras`, `general` |
+| Files (off by default) | `openai`, `azureopenai`, `mistral`, `xai` |
+| Batches (off by default) | `openai`, `azureopenai`, `mistral` |
+| Videos (off by default) | `openai` |
 
-These routes enforce access, model allow-lists and limits but are not scanned by guardrails. See [Endpoint Families](../api-reference/endpoint-families).
+Mistral OCR and FIM, and xAI images, videos and batches, have their own [vendor routes](#vendor-routes) under `/mistral/` and `/xai/`. These routes enforce access, model allow-lists and limits but are not scanned by guardrails. See [Endpoint Families](../api-reference/endpoint-families).
 
 ## Decision models
 

@@ -176,7 +176,7 @@ Accept gateway calls only from listed networks. Turn on **Enabled** and enter **
 |---------|---------|----------|
 | Chat completions, including Bedrock Converse, Vertex Gemini and Anthropic models reached through translation | Yes | Yes |
 | Native Anthropic Messages | Yes | Yes |
-| OpenAI Responses | Yes | Yes |
+| OpenAI Responses (including xAI's `/xai/v1/responses`) | Yes | Yes |
 | Bedrock Runtime (boto3) | Yes | Yes. `converse_stream` is request only. |
 | Native Vertex / Gemini `generateContent` | Yes | Yes |
 | Embeddings, text-to-speech | Input | - |
@@ -186,7 +186,7 @@ Accept gateway calls only from listed networks. Turn on **Enabled** and enter **
 | Sarvam translation, transliteration, language detection | Yes | Yes |
 | Copilot Studio | User context and tool inputs | - |
 | OpenAI Realtime (websocket) | Not scanned | Not scanned |
-| [Endpoint families](../api-reference/endpoint-families) (moderations, images, OCR, completions, files, batches, videos) | Not scanned | Not scanned |
+| [Endpoint families](../api-reference/endpoint-families) (moderations, images, OCR, completions, files, batches, videos), including the Mistral and xAI [vendor routes](../apps-and-providers/provider-support#vendor-routes) | Not scanned | Not scanned |
 
 - **Streaming:** request-side checks run as normal. Response-side redaction and blocking apply only when the gateway holds the full response, so streamed chunks pass through unmodified.
 - **Copilot Studio** cannot accept rewritten tool input, so Redact and Partial redact become Block. See [Copilot Studio](../../integrations/pull-ai-usage-and-inventory/microsoft-copilot-studio).
