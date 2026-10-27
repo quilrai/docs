@@ -1,0 +1,335 @@
+---
+title: "Routing and failover API"
+sidebar_position: 6.6
+sidebar_label: "Routing and failover API"
+sidebar_custom_props:
+  badge: new
+  icon: Route
+description: "LLM Gateway Management API v1: typed routes, weighted and ordered destinations, failover profiles, rules and default, routing constraints and model access, with dry runs, ETags, revision history, restore and routing diagnostics."
+aliases: [routing api, failover api, routes api, destinations, weighted routing api, model alias api, routing constraints api, model access api, gradual migration, canary routing]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Routing and failover API
+
+Configure the same routing and failover that the Policy Engine's **Model routing** card owns, as typed resources: a route sends a requested model to a destination, a destination is a weighted pool or an ordered list of provider models, and failover says where a failed request may go. **You never write QuilrQL.** Each write is validated, turned into policy rules for you, and published as one policy revision. For what routing and failover do at runtime, see [Routing and failover](../cost-and-traffic/routing-and-fallbacks).
+
+<StepFlow steps={[
+  {label: 'Destinations', items: ['Weighted pool', 'Ordered targets']},
+  {label: 'Routes', items: ['Requested model + scope', 'Rank, mode']},
+  {label: 'Failover', items: ['Profiles, rules', 'Tenant default']},
+  {label: 'Guard rails', items: ['Routing constraints', 'Model access']},
+  {label: 'Verify', items: ['Revision rollout', 'Explain, dry-run test']},
+]} />
+
+| Resource | What it is | Read scope | Write scope |
+| --- | --- | --- | --- |
+| Destinations | A named weighted pool (weights total 100) or an ordered target list. Routes reference it by id. Quick operations: `:set-weights`, `:replace-member`. | `routing:read` | `routing:write` |
+| Routes | Which destination serves a requested model, for which apps, smart groups, users or app tags. Quick operation: `:set-mode`. | `routing:read` | `routing:write` |
+| Failover profiles | Reusable failover settings (tier, backups, tries, retries, timeouts). | `routing:read` | `routing:write` |
+| Failover rules | Failover for a scope when the deciding route has none. | `routing:read` | `routing:write` |
+| Failover default | One tenant-wide failover setting; deleting it returns to the built-in default. | `routing:read` | `routing:write` |
+| Routing constraints | Hard limits on where requests may go: provider tags such as `provider.geo`, required capabilities, allowed or excluded provider labels. | `routing:read` | `routing:constraints` |
+| Model access | Allow and deny lists of requested models for a scope. | `routing:read` | `routing:write` |
+| References, revisions, diagnostics | Find everything that uses a provider, revision history and restore, rollout status, explain a route, dry-run test. | `routing:read` | write scope of each restored collection |
+
+`routing:read` does not need `read`. Try every operation with your own key in the [Management API playground](/llm-gateway-management-playground?tab=routing).
+
+## Before you start
+
+- **The Policy Engine must be on** for the LLM Gateway. While it is off, every call answers `409 policy_not_enabled`. `GET /capabilities` reports `managed_controls.enabled` and which collections are available.
+- **Issue a key** with `routing:read` and `routing:write` (add `routing:constraints` for constraints). See [Scopes](./management-api#scopes).
+- **Provider labels** in destinations and failover must be shared providers or provider labels of an app. Unknown labels are `422 invalid_named_reference`.
+
+## How a request is routed
+
+The resources map onto the gateway's routing steps. Routing constraints and model access are not a step of their own: they filter every candidate, at selection and at every failover tier.
+
+<ArchitectureDiagram
+  source={{
+    label: "Client request",
+    code: `POST /openai_compatible/v1/chat/completions
+{ "model": "smart", "messages": [...] }
+app: support-bot   user: dana@example.com`,
+  }}
+  gateway={{
+    label: "QuilrAI LLM Gateway",
+    phases: [
+      {
+        label: "Admit",
+        stages: [
+          { label: "Model access", items: ["Allow / deny requested models", "Deny wins: 403 model_access_denied"] },
+        ],
+      },
+      {
+        label: "Select route",
+        stages: [
+          { label: "Matching routes", items: ["Requested model + scope", "Highest rank wins", "Observe-mode routes only report"] },
+          { label: "Destination", items: ["Weighted: share of conversations", "Ordered: first usable target", "Conversation pin kept"] },
+        ],
+      },
+      {
+        label: "Filter",
+        stages: [
+          { label: "Routing constraints", items: ["Every matching constraint applies", "Tags, capabilities, providers", "Unknown facts exclude"] },
+        ],
+      },
+      {
+        label: "Send and fail over",
+        stages: [
+          { label: "Same-target retry", items: ["Timeouts, 429, 5xx", "Up to same_target_retries"] },
+          { label: "Failover tiers", items: ["1. Rest of the route", "2. Backup models (fallbacks)", "3. Same model, other connections", "4. Other app models"] },
+        ],
+      },
+    ],
+    footer: "Mark-downs and cooldowns skip unhealthy targets  ·  max_attempts counts every send",
+  }}
+  destination={{
+    label: "Provider models",
+    items: ["azure-eu / gpt-4.1", "bedrock-eu / claude-sonnet", "openai / gpt-4.1-mini"],
+  }}
+/>
+
+A tier is used only when the tiers before it have no usable candidate left. The failover object's `scope` (`route`, `same_model` or `app`) is how far down this list a request may go. On reads it is also returned as `candidate_scope`, so it is not confused with the resource `scope` (apps, smart groups, users, app tags).
+
+### Who owns a request's failover
+
+<DecisionLadder
+  label="Which failover setting applies"
+  steps={[
+    { id: 'route', question: 'Does the deciding route have its own failover?', yes: { label: 'Route failover', detail: 'failover_owner.kind: route', tone: 'success' } },
+    { id: 'rule', question: 'Does a failover rule match the request?', hint: 'Highest rank first', yes: { label: 'Failover rule', detail: 'kind: failover_rule', tone: 'info' } },
+    { id: 'default', question: 'Is a failover default set?', yes: { label: 'Failover default', detail: 'kind: failover_default', tone: 'accent' } },
+  ]}
+  fallback={{ label: 'Built-in default', detail: 'kind: built_in_default', tone: 'neutral' }}
+/>
+
+The winner supplies the whole failover object; settings from different levels are not merged. `failover` on a route, rule or default is either inline settings or `{"ref": "<profile id>"}`. A profile in use cannot be deleted (`409 failover_profile_in_use`), and neither can a destination (`409 destination_in_use`).
+
+## Rank and precedence
+
+- **Higher rank wins** where routes overlap. Ranks go from 1 to 9999. Omit `rank` on create and the API assigns the highest overlapping rank plus 10, returned with `rank_source: "assigned"`.
+- **Routes and failover rules share one rank space.** An overlapping route and failover rule cannot have the same rank (`422 route_rank_conflict`, listing the conflicts).
+- **Overlap is decided by literals.** Two rules are disjoint only when their app lists, requested-model lists or client API lists (`surface_family` as a list) cannot intersect. Scopes made only of smart groups, users or app tags always overlap, because membership changes, so they need different ranks.
+- **Console rules.** API-managed routes sit at Policy Engine priority 400. A console routing rule at a higher priority overrides them where it overlaps (write warning `console_overrides_managed`); a lower one loses; one at 400 takes part in the rank check. Routing constraints accumulate and have no rank.
+- Route reads carry `shadowed_by`: the higher-ranked routes and console rules that win where they overlap, with `coverage: full` (this route never routes) or `partial`.
+
+**Worked example.** One tenant, three managed rules:
+
+| Rule | Scope | Requested model | Rank |
+| --- | --- | --- | --- |
+| Route `eu-smart` | smart group `eu-staff` | `smart` | 120 |
+| Route `smart-default` | everyone | `smart` | 20 |
+| Failover rule `eu-staff-failover` | smart group `eu-staff` | any | 30 |
+
+- An `eu-staff` user asking for `smart` matches both routes: `eu-smart` (120) wins. `/routing/effective` lists `smart-default` under `shadowed`, and `smart-default` reads `shadowed_by: [{route_id: "eu-smart", coverage: "partial"}]`.
+- Another `eu-staff` route for `smart` at rank 120 is `422 route_rank_conflict`; omit the rank to get 130.
+- A failover rule for `eu-staff` at rank 120 also conflicts (shared rank space); 30 is fine.
+- If `eu-smart` has no failover of its own, `eu-staff-failover` supplies it (`failover_owner.kind: failover_rule`). If it has one, the route's wins (`kind: route`).
+
+## Writes, versions and idempotency
+
+<StepFlow steps={[
+  {label: 'Read', items: ['ETag per resource', '"r<rev>-<id>-<hash>"']},
+  {label: 'Dry run', items: ['?dry_run=true', 'diff, impact, warnings']},
+  {label: 'Write', items: ['If-Match / Idempotency-Key', 'One validated revision']},
+  {label: 'Live', items: ['Revision status', 'Explain the route']},
+]} />
+
+| Rule | Detail |
+| --- | --- |
+| PUT is content-idempotent | `PUT /controls/{collection}/{id}` creates (`201`) or replaces (`200`). A PUT whose content equals what is stored returns `200` with `changed: false` and publishes nothing, so a pipeline can apply the same file every run. |
+| Create only | `If-None-Match: *` makes a PUT create-only: `412` when the id exists with other content. |
+| Changing needs the ETag | Changing or deleting an existing resource needs `If-Match` with the resource ETag (`428` without, `412` when stale). The collection ETag `"r<revision>"` is also accepted. A publish elsewhere in the tenant does not invalidate a resource's ETag. |
+| PATCH | JSON merge patch: `null` removes a field. Read-only fields echoed from a read are ignored. |
+| POST needs a key | Quick operations, `_batch` and restore need `Idempotency-Key` (`400 idempotency_key_required`). A retry with the same key replays the original result for 24 hours, including a no-op; the same key with another body is `409 idempotency_conflict`. |
+| Dry run | `?dry_run=true` returns `diff.spec` (one `{collection, id, op, before, after}` per changed resource), `diagnostics`, `warnings`, `impact` (`apps`, `routes`, `models`, `routes_without_candidates`, `pins`) and `capacity`, and publishes nothing. |
+| Batch | `POST /controls/_batch` applies up to 100 operations across collections as one revision, all or nothing. Each op is `{op, collection, id, body?, if_match?, if_none_match?}`; a failure names `op_index`. |
+| Capacity | `GET /controls/_capacity` shows rules, policies and policy size against the tenant caps; a write past them is `422 policy_capacity_exceeded`. |
+| Console rows | Lists show console-authored rules of the same kind as read-only rows (`source: "console"`). Writing one is `409 rule_not_api_managed`. |
+
+Ids match `^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$`. Lists take `limit` (1-500, default 100), `cursor`, and filters `source`, `app`, `requested_model`, `mode` and `references=<provider_label>[/<model>]`. A cursor read after another publish is `409 collection_changed`; restart from the first page.
+
+Every write response carries `revision`, `changed`, `resource`, `etag`, `warnings`, `impact`, `operation_id` and `propagation {poll_seconds, status, session_pins}`.
+
+### Routes: mode and client APIs
+
+- `mode` is `active`, `observe` (evaluated and reported, never routes) or `disabled` (kept, not applied). `enabled: false` is an alias for `disabled`. `POST /controls/routes/{id}:set-mode` switches it without resending the route.
+- `surface_family` names the client API family: `chat_completion`, `anthropic_messages`, `vertex_ai`, `responses`, `realtime` or `bedrock_runtime`. It is required for weighted destinations. A list makes one rule per family, each matching only that API; `chat_completion` and `anthropic_messages` cannot share a list (`422 surface_family_overlap`).
+- `session.route_decision` is `per_conversation` (default) or `per_message`.
+
+## Conversations and repin
+
+Routing changes apply to **new conversations**. An existing conversation stays on its pinned target while that target is still eligible: a weight change, or adding members to a destination, keeps it (`propagation.session_pins: "kept"`). Removing a member from the destination, or a change that makes the pinned target unusable, re-routes those conversations on their next request.
+
+To move existing conversations too, send `?repin=drop` on the write. It drops the session pins of the affected apps once per operation and reports `session_pins: "dropped"`. A change that is not limited to named apps would drop every pin of the tenant; that needs `?repin=drop&repin_scope=tenant`, otherwise `422 repin_scope_confirmation_required`. A dry run shows the apps under `impact.pins.apps` (`"*"` for every app).
+
+:::warning Dropping pins costs cache
+A dropped conversation routes again and its next request starts with a cold provider prompt cache. Prefer `repin=keep` (the default) unless existing conversations must move now.
+:::
+
+## Check that a change is live
+
+1. **Rollout.** `GET /controls/revisions/{revision}/status` counts gateway processes that served the tenant in the last hour: `processes_reporting`, `processes_on_rev`, `lagging`, and `complete` (at least one reports and none lags). `processes_reporting: 0` means no recent traffic, not "not applied"; an idle gateway picks the revision up on its next request.
+2. **Explain.** `GET /routing/effective?app=&requested_model=&user=&surface=` shows the route that wins, its destination, `failover_owner` and resolved failover, the rules it outranked (`shadowed`), constraints, candidates left and active mark-downs, for the evaluated revision (`revision_current`). Nothing is sent upstream.
+3. **Test a proposal.** `POST /routing/test` runs the routing dry run for a sample body, optionally with `proposed` controls (`{collection: {id: resource | null}}`) rendered in memory. Nothing is published, pinned or sent upstream. `POST /routing/target-check` says whether each provider model can serve each client API (native, converted or not at all).
+4. **Watch traffic.** `GET /routing/summary` shows traffic per route and destination member against its weight; `GET /failover/summary` shows retries, failovers and outcomes per target.
+
+## Revision history and restore
+
+`GET /controls/revisions` lists revisions newest first with `actor`, `operation_id`, `kind` (`managed`, `console`, `budgets`, `restore`, ...) and `domains_changed`. `GET /controls/revisions/{revision}/resources/{collection}/{id}` reads one resource as it was.
+
+`POST /controls/revisions/{revision}:restore` puts the managed collections (all that differ, or the ones in `domains`) back to that revision, in **one new revision**. Console rules are untouched. It needs `If-Match` with the collection ETag `"r<active revision>"`, an `Idempotency-Key` (unless `dry_run`), and the write scope of every restored collection. If a restored resource would fail validation now, for example it names a deleted provider, the restore is `409 restore_conflict` with `problems`; a dry run shows the same list.
+
+## Workflows
+
+Set these once. Responses are JSON; the examples use `jq` to read ETags.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY" -H 'Content-Type: application/json')
+```
+
+### Day 0: a model alias with a fallback
+
+Clients ask for `smart`; it is served by Azure, with the mini model as backup. The requested model must be allowed for the app; if the app restricts models, add a [model access](#Set_model_access_rule) rule that allows `smart`.
+
+```bash
+# 1. Where "smart" goes: an ordered target list
+curl -X PUT "$API/controls/destinations/smart-pool" "${auth[@]}" \
+  -d '{"type": "ordered", "targets": [{"provider_label": "azure-eu", "model": "gpt-4.1"}]}'
+
+# 2. How it fails over: two tries, then the mini model, then the same model elsewhere
+curl -X PUT "$API/controls/failover-profiles/standard" "${auth[@]}" \
+  -d '{"scope": "same_model", "max_attempts": 2, "fallbacks": [{"provider_label": "azure-eu", "model": "gpt-4.1-mini"}]}'
+
+# 3. Preview the route, then publish it
+body='{"match": {"requested_models": ["smart"]}, "scope": {"apps": ["support-bot"]},
+       "destination": {"ref": "smart-pool"}, "failover": {"ref": "standard"}, "mode": "active"}'
+curl -X PUT "$API/controls/routes/smart?dry_run=true" "${auth[@]}" -d "$body" | jq '{diff, warnings, impact}'
+curl -X PUT "$API/controls/routes/smart" "${auth[@]}" -d "$body" | jq '{revision, etag, propagation}'
+
+# 4. Confirm
+curl "$API/routing/effective?app=support-bot&requested_model=smart" "${auth[@]}" | jq '{route, destination, failover_owner}'
+```
+
+Steps 1 to 3 can be one revision with [`POST /controls/_batch`](#Apply_a_controls_batch).
+
+### Gradual migration: 5%, 50%, 100%, with abort
+
+Move `chat-pool` from `azure-eu` to `bedrock-eu`. Record the revision before you start; it is your abort point.
+
+```bash
+START=$(curl -s "$API/controls/revisions?limit=1" "${auth[@]}" | jq -r .active_revision)
+
+# 5%: add the new member (adding a member keeps existing conversations where they are)
+ETAG=$(curl -s "$API/controls/destinations/chat-pool" "${auth[@]}" | jq -r .etag)
+curl -X PUT "$API/controls/destinations/chat-pool" "${auth[@]}" -H "If-Match: $ETAG" \
+  -d '{"type": "weighted", "members": [{"provider_label": "azure-eu", "model": "gpt-4.1", "weight": 95},
+                                       {"provider_label": "bedrock-eu", "model": "anthropic.claude-sonnet-4", "weight": 5}]}'
+
+# 50%: check /routing/summary and /failover/summary, then change only the weights
+ETAG=$(curl -s "$API/controls/destinations/chat-pool" "${auth[@]}" | jq -r .etag)
+curl -X POST "$API/controls/destinations/chat-pool:set-weights" "${auth[@]}" \
+  -H "If-Match: $ETAG" -H "Idempotency-Key: chat-pool-50" \
+  -d '{"members": [{"provider_label": "azure-eu", "model": "gpt-4.1", "weight": 50},
+                   {"provider_label": "bedrock-eu", "model": "anthropic.claude-sonnet-4", "weight": 50}]}'
+
+# 100%: replace the destination with the new member only (conversations on azure-eu route again)
+ETAG=$(curl -s "$API/controls/destinations/chat-pool" "${auth[@]}" | jq -r .etag)
+curl -X PUT "$API/controls/destinations/chat-pool" "${auth[@]}" -H "If-Match: $ETAG" \
+  -d '{"type": "weighted", "members": [{"provider_label": "bedrock-eu", "model": "anthropic.claude-sonnet-4", "weight": 100}]}'
+
+# Abort at any step: put destinations back to the starting revision
+COLL=$(curl -s "$API/controls/revisions?limit=1" "${auth[@]}" | jq -r '"\"r\(.active_revision)\""')
+curl -X POST "$API/controls/revisions/$START:restore" "${auth[@]}" \
+  -H "If-Match: $COLL" -H "Idempotency-Key: chat-pool-abort" -d '{"domains": ["destinations"]}'
+```
+
+Weights must total 100 and each weight must be above 0. Add `?repin=drop` to a step if conversations already running should follow the new weights immediately.
+
+### Provider swap with replace-member
+
+Swap one provider model for another in a destination, and so in every route that uses it, in one revision:
+
+```bash
+ETAG=$(curl -s "$API/controls/destinations/eu-pool" "${auth[@]}" | jq -r .etag)
+curl -X POST "$API/controls/destinations/eu-pool:replace-member?dry_run=true" "${auth[@]}" \
+  -H "If-Match: $ETAG" -H "Idempotency-Key: swap-bedrock-eu" \
+  -d '{"from": {"provider_label": "bedrock-eu", "model": "anthropic.claude-sonnet-4"},
+       "to":   {"provider_label": "azure-eu",   "model": "gpt-4.1-mini"}}' | jq '{diff, impact}'
+# Same call without dry_run=true to publish. "from" must be a member (422 member_not_found).
+```
+
+### Find everything that uses a provider
+
+Before deleting, renaming or rotating a provider, list every control and console rule that names it (or one of its models), following destination and failover-profile references:
+
+```bash
+curl "$API/controls/references?provider_label=azure-eu" "${auth[@]}" | jq '.items[] | {collection, id, source, fields}'
+# Narrow a list instead: GET /controls/routes?references=azure-eu/gpt-4.1
+```
+
+With `limits:read` the answer also includes rate limits and model limits.
+
+### Undo a change with restore
+
+```bash
+curl "$API/controls/revisions?limit=5" "${auth[@]}" | jq '.items[] | {revision, kind, domains_changed, actor}'
+COLL=$(curl -s "$API/controls/revisions?limit=1" "${auth[@]}" | jq -r '"\"r\(.active_revision)\""')
+curl -X POST "$API/controls/revisions/41:restore?dry_run=true" "${auth[@]}" -H "If-Match: $COLL" -d '{"domains": ["routes"]}'
+curl -X POST "$API/controls/revisions/41:restore" "${auth[@]}" -H "If-Match: $COLL" \
+  -H "Idempotency-Key: undo-routes-41" -d '{"domains": ["routes"]}'
+```
+
+## Errors
+
+| Status | Codes |
+| --- | --- |
+| 400 | `invalid_request`, `idempotency_key_required` |
+| 403 | `insufficient_scope` |
+| 404 | `not_found`, `revision_not_found`, `app_not_found` |
+| 409 | `policy_not_enabled`, `managed_controls_disabled` (writes turned off for the deployment; dry runs still answer), `rule_not_api_managed`, `destination_in_use`, `failover_profile_in_use`, `idempotency_conflict`, `collection_changed`, `managed_controls_changed`, `policy_conflict`, `restore_conflict` |
+| 412 | `version_conflict` |
+| 422 | `validation_failed`, `route_rank_conflict`, `policy_capacity_exceeded`, `invalid_named_reference`, `invalid_weights`, `member_not_found`, `surface_family_required`, `surface_family_overlap`, `invalid_route_decision`, `too_many_resources`, `routing_constraint_no_candidates` (with `?strict=true`; otherwise a warning), `repin_scope_confirmation_required`, `surface_not_supported_for_explain`, `time_range_not_supported` |
+| 428 | `precondition_required` |
+| 429 | `test_routing_busy` |
+| 503 | `central_service_required`, `revision_status_unavailable`, `test_routing_unavailable` |
+
+## Endpoints
+
+### Destinations
+
+<ApiReference tags={['Routing']} paths={['/controls/destinations']} />
+
+### Routes
+
+<ApiReference tags={['Routing']} paths={['/controls/routes']} />
+
+### Failover
+
+<ApiReference tags={['Routing']} paths={['/controls/failover-profiles', '/controls/failover-rules', '/controls/failover-default']} />
+
+### Routing constraints and model access
+
+<ApiReference tags={['Routing']} paths={['/controls/routing-constraints', '/controls/model-access']} />
+
+### References, batch and capacity
+
+<ApiReference tags={['Routing']} paths={['/controls/references', '/controls/_batch', '/controls/_capacity']} />
+
+### Revisions
+
+<ApiReference tags={['Routing']} paths={['/controls/revisions']} />
+
+### Diagnostics
+
+<ApiReference tags={['Routing']} paths={['/routing', '/failover']} />
+
+## Related
+
+- [Routing and failover](../cost-and-traffic/routing-and-fallbacks) - what routing, pinning and failover do at runtime.
+- [Incidents API](./incidents-api) - take a provider out of routing during an outage without a policy change.
+- [Rate limits API](./rate-limits-api) - request and token limits, request guards and temporary raises.
+- [Management API](./management-api) - authentication, scopes, errors and retry rules.

@@ -2,7 +2,7 @@ import React, {useId, useMemo, useState} from 'react';
 import Link from '@docusaurus/Link';
 import CodeBlock from '@theme/CodeBlock';
 import useBrokenLinks from '@docusaurus/useBrokenLinks';
-import {ArrowUpRight, BookOpen, Boxes, Download, FlaskConical, KeyRound, Layers, Play, Search, ShieldCheck, SlidersHorizontal, Terminal, Wallet, Workflow} from 'lucide-react';
+import {ArrowUpRight, BookOpen, Boxes, Download, FlaskConical, KeyRound, Layers, Play, Route, Search, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Wallet, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 
@@ -11,7 +11,9 @@ const adminBase = '/llmgateway/management-admin/v1';
 const download = '/openapi/llm-gateway-management-v1.json';
 const playground = '/llm-gateway-management-playground';
 const tryIt = operationId => `${playground}?tab=explorer&op=${encodeURIComponent(operationId)}`;
-const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
+// Operations whose scope depends on the collections they touch (batch, restore, history reads).
+const scopeNote = op => op['x-scopes-per-op'] ? 'Write (or read) scope of each collection it touches' : null;
+const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Routing:'routing-and-failover-api', Limits:'rate-limits-api', Incidents:'incidents-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
 // Examples use the same regional host as the inference examples in the integration guide.
 const host = (spec.servers || []).find(s => s.url.includes('usa-1'))?.url || spec.servers?.[0]?.url || 'https://guardrails-usa-1.quilr.ai';
 const scopeDescriptions = spec['x-scope-descriptions'] || {};
@@ -37,7 +39,7 @@ export function ManagementHero() {
   return <section className={styles.hero}>
     <div className={styles.eyebrow}><span className={styles.dot} /> LLM GATEWAY / MANAGEMENT V1</div>
     <h2>Configure your gateway.<br/><span>Keep every change intentional.</span></h2>
-    <p>Manage apps, shared providers, quota pools, access keys, prompts and budgets from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.</p>
+    <p>Manage apps, shared providers, quota pools, access keys, prompts, budgets, routing, rate limits and incidents from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.</p>
     <div className={styles.heroActions}><Link className={styles.primaryLink} to="./management-api#quick-start">Start with an example <ArrowUpRight size={16}/></Link><Link className={styles.downloadLink} to={playground}><Play size={16}/> Open the playground</Link><a className={styles.downloadLink} href={download} download><Download size={16}/> OpenAPI reference</a></div>
     <div className={styles.heroFacts}><span><ShieldCheck size={16}/> Tenant-bound keys</span><span><SlidersHorizontal size={16}/> Explicit scopes</span><span><Workflow size={16}/> Central configuration</span></div>
   </section>;
@@ -49,6 +51,9 @@ export function ResourceCards() {
     ['Providers & catalogs','Configure shared credentials, test and discover models, and read catalogs and config history.','providers-and-configuration-api',SlidersHorizontal],
     ['Quota pools','Describe upstream limits that several providers or models share.','providers-and-configuration-api#quota-pools',Boxes],
     ['Budgets','Set spend, request and token budgets, track usage and issue grants.','budgets-api',Wallet],
+    ['Routing and failover','Routes, weighted destinations, failover and constraints, with dry runs, history and restore.','routing-and-failover-api',Route],
+    ['Rate limits','Request and token rate limits, request guards, temporary raises and effective limits.','rate-limits-api',Timer],
+    ['Incidents','Mark a provider down during an outage, check it applied, then restore it.','incidents-api',Siren],
     ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
     ['Gateway credentials','Issue, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
     ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
@@ -117,7 +122,7 @@ function curlFor(op,body) {
   let path=op.path;
   op.parameters.filter(p=>p.in==='path').forEach(p=>{path=path.replace('{'+p.name+'}',encodeURIComponent(p.example ?? 'example'));});
   const queries=op.parameters.filter(p=>p.in==='query'&&(p.required || p.name==='limit')).map(p=>`${p.name}=${encodeURIComponent(p.example ?? 'example')}`);
-  const lines=[`curl --request ${op.method} \\`, `  '${host}${path}${queries.length?'?'+queries.join('&'):''}' \\`, `  --header 'Authorization: Bearer ${op['x-scopes'].length?'<management-key>':'<tenant-admin-token>'}'`];
+  const lines=[`curl --request ${op.method} \\`, `  '${host}${path}${queries.length?'?'+queries.join('&'):''}' \\`, `  --header 'Authorization: Bearer ${op['x-scopes'].length||op['x-scopes-per-op']?'<management-key>':'<tenant-admin-token>'}'`];
   op.parameters.filter(p=>p.in==='header'&&(p.required||p.name==='If-Match')).forEach(p=>{lines[lines.length-1]+=' \\';lines.push(`  --header '${p.name}: ${p.example ?? '<value>'}'`);});
   if(body !== undefined){lines[lines.length-1]+=' \\';lines.push("  --header 'Content-Type: application/json' \\");lines.push("  --data '"+print(body).replace(/'/g,"'\\''")+"'");}
   return lines.join('\n');
@@ -137,7 +142,7 @@ function Operation({op}) {
   const tabs=['cURL',...(content?['JSON body']:[]),'Response'];
   const parameterSchema=objFromParameters(op.parameters);
   return <article className={styles.operation} id={op.operationId}>
-    <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{shortPath(op.path)}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p><div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : <code>Verified tenant administrator</code>}</div>{alias&&<p className={styles.aliasNote}>Also at <code>{shortPath(alias.path)}?app_name=...</code> for app names that contain <code>/</code> or <code>%</code>.</p>}</header>
+    <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{shortPath(op.path)}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p><div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : scopeNote(op) ? <code>{scopeNote(op)}</code> : <code>Verified tenant administrator</code>}</div>{alias&&<p className={styles.aliasNote}>Also at <code>{shortPath(alias.path)}?app_name=...</code> for app names that contain <code>/</code> or <code>%</code>.</p>}</header>
     <div className={styles.operationBody}>
       {op.parameters.length>0&&<details className={styles.parameterPanel}><summary>Path, query &amp; header parameters <span>{op.parameters.length}</span></summary><SchemaFields schema={parameterSchema}/></details>}
       {content ? <details className={styles.parameterPanel}><summary>Full request body specification <span>application/json</span></summary><p className={styles.schemaIntro}>{resolve(content.schema).description}</p><SchemaFields schema={content.schema}/></details> : <p className={styles.noBody}>No request body.</p>}
@@ -152,7 +157,9 @@ function objFromParameters(parameters) {
   return {type:'object',properties:Object.fromEntries(parameters.map(p=>[`${p.name} (${p.in})`,{...p.schema,description:p.description||p.schema.description}])),required:parameters.filter(p=>p.required).map(p=>`${p.name} (${p.in})`)};
 }
 
-export function ApiReference({tags}) {
-  const list=useMemo(()=>operations.filter(op=>op.tags.some(t=>tags.includes(t))),[tags.join(',')]);
+// paths: optional path prefixes (after /llmgateway/management/v1) that narrow the list, so a page can show
+// one collection per section, e.g. paths={['/controls/routes']}. Each operation keeps its operationId anchor.
+export function ApiReference({tags, paths}) {
+  const list=useMemo(()=>operations.filter(op=>op.tags.some(t=>tags.includes(t)) && (!paths || paths.some(p=>{const rest=shortPath(op.path); return rest===p || rest.startsWith(p+'/') || rest.startsWith(p+':');}))),[tags.join(','), (paths||[]).join(',')]);
   return <div className={styles.reference}>{list.map(op=><Operation key={op.operationId} op={op}/>)}</div>;
 }

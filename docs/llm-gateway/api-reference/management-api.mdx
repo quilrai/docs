@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaRe
 
 Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
 
-Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets and stored configuration. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
+Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets, routing and failover, rate limits, incident controls and stored configuration. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
 
 ## Enable in the console
 
@@ -42,6 +42,8 @@ Use the Management API to configure LLM Gateway apps, shared providers, quota po
 | **Manage budget grants** | `budgets:grant` | Issue, change and revoke budget grants |
 | **Configure budgets** | `budgets:policy` | Edit budgets, pricing, exemptions and alert destinations |
 
+Routing, rate limit and incident scopes (`routing:*`, `limits:*`, `incidents:*`) are described under [Scopes](#scopes).
+
 A key acts for the whole organization within its scopes and cannot be limited to one app. Revoke a key from the keys table on the same tab. See [Authentication and management keys](#authentication) for details.
 
 ## Choose a resource
@@ -64,7 +66,10 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Quota pools | Register, read, update and delete shared upstream ceilings; assign providers and models to them. | Pools describe limits; they do not enforce them. |
 | Gateway keys | Issue, list metadata, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
 | Budgets | Create and edit spend, request and token budgets, read usage, issue grants, set prices and exemptions. | Each budget, pricing or exemption edit publishes a policy revision. Needs the Policy Engine on. |
-| QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. |
+| Routing and failover | Routes, weighted and ordered destinations, failover profiles, rules and default, routing constraints and model access; dry runs, revision history and restore, routing diagnostics. | Each write publishes a policy revision with no QuilrQL to write. Needs the Policy Engine on. |
+| Rate limits | Request and token rate limits, temporary raises, request guards, model limits, exemptions, custom limit responses, live usage and effective limits. | Counters are regional. Each limit write publishes a policy revision; raises do not. Needs the Policy Engine on. |
+| Incidents | Mark a provider down for every app or chosen apps with an expiry, preview, restore, reset cooldowns and drop session pins. | Not a policy change; works with the Policy Engine on or off. |
+| QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. The typed budgets, routing and limits APIs cover those cards without QuilrQL. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
 | Smart groups and custom definitions | Read and use existing resources in app configuration. | Definition/membership editing: **Not Generally Available**. |
 | History | Read redacted config versions and audit, restore eligible app settings. | Traffic logs, usage, health and red-team jobs: **Not Generally Available** through management v1. |
@@ -75,7 +80,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 
 | Feature | Availability | Current behavior |
 | --- | --- | --- |
-| Policy schema/catalog, preview, validation, simulation, drafts, publication, policy rollback and authority changes | **Not Generally Available** | Use the existing policy workflow. Management keys cannot use policy scopes or policy lifecycle endpoints. The [Budgets API](./budgets-api) is the only policy-backed write. |
+| Policy schema/catalog, preview, validation, simulation, drafts, publication, policy rollback and authority changes | **Not Generally Available** | Use the existing policy workflow. Management keys cannot use policy scopes or policy lifecycle endpoints. The policy-backed writes are typed: the [Budgets API](./budgets-api), the [Routing and failover API](./routing-and-failover-api) and the [Rate limits API](./rate-limits-api). |
 | App rename and deletion | **Not Generally Available** | Enable/disable existing apps. Shared providers can be deleted once no app attaches them. |
 | Custom-definition authoring and smart-group/membership writes | **Not Generally Available** | Read and reference existing resources. |
 | Dedicated key rotation and individual management-key pause/resume | **Not Generally Available** | Issue a replacement and revoke the old key; tenant-wide suspension is supported. |
@@ -247,6 +252,9 @@ To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expir
 | Understand new-app policy defaults | [QuilrQL behavior](./policy-api) |
 | Add a system prompt | [Prompt Store](./prompts-api) |
 | Set spend or usage budgets | [Budgets API](./budgets-api) |
+| Route a model alias, shift traffic or set failover | [Routing and failover API](./routing-and-failover-api) |
+| Set request and token rate limits | [Rate limits API](./rate-limits-api) |
+| Take a provider out of routing during an outage | [Incidents API](./incidents-api) |
 | Try any call from the browser | [Management API playground](/llm-gateway-management-playground) |
 
 ## Authentication and management keys {#authentication}
@@ -292,10 +300,18 @@ All scopes listed for an operation are required. No scope implies another.
 | `budgets:read` | Read budgets, usage, subjects, grants, pricing, exemptions, alerts and events. Does not need `read`. |
 | `budgets:grant` | Issue, change and revoke budget grants. |
 | `budgets:policy` | Edit budgets, pricing, exemptions and alert destinations. Each budget, pricing or exemption edit publishes a policy revision. |
+| `routing:read` | Read routes, destinations, failover, routing constraints, model access, provider references, revision history and rollout, and run the routing diagnostics. Does not need `read`. |
+| `routing:write` | Change routes, destinations, failover profiles, rules and default, and model access. Each write publishes a policy revision. A revision restore needs the write scope of every collection it restores. |
+| `routing:constraints` | Change routing constraints. |
+| `limits:read` | Read rate limits, request guards, model limits, exemptions, limit responses, live usage, grants and effective limits. Does not need `read`. |
+| `limits:write` | Change rate limits, request guards, model limits, exemptions and limit responses, and migrate older app limits. Each write publishes a policy revision. |
+| `limits:grant` | Issue and revoke temporary rate limit raises. |
+| `incidents:read` | Read incident mark-downs and status. `read` and `incidents:write` also allow these reads. |
+| `incidents:write` | Mark providers down, preview, restore, reset cooldowns and drop session pins. Never a policy revision. |
 
 App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`. `GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
 
-Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The eight scopes above are the accepted scopes and apply tenant-wide.
+Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The sixteen scopes above are the accepted scopes and apply tenant-wide.
 
 ### Administration boundary
 
@@ -329,7 +345,7 @@ Paginated lists accept `limit` (1-200, default 50) and `cursor`:
 {"items": [], "next_cursor": null, "request_id": "req_example"}
 ```
 
-There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider lists support [type, enabled, tag and model filters](./providers-and-configuration-api#list-filters). Group, definition and audit lists support no additional filters. Budget lists have their own filters and accept `limit` up to 500 (default 100). App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
+There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider lists support [type, enabled, tag and model filters](./providers-and-configuration-api#list-filters). Group, definition and audit lists support no additional filters. Budget lists have their own filters and accept `limit` up to 500 (default 100). Routing and limit control lists also accept `limit` up to 500 (default 100) and filter by `source`, `app`, `requested_model`, `mode` and `references`; see [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency). App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
 
 ### Versions and preconditions
 
@@ -337,11 +353,13 @@ Read the current resource version, then send its quoted value in `If-Match`. Mis
 
 App updates, provider attachments/conversion, all prompt mutations and configuration rollback use the app ETag. Provider changes use the provider ETag. Gateway credential changes use the individual credential GET version. Management-key changes use `key.version` from the admin list. Tenant enablement changes use the settings version.
 
-Prompt creation also requires the app ETag; `If-None-Match` has no create-only semantics. Lists do not return a collection ETag for editing their members.
+Prompt creation also requires the app ETag; `If-None-Match` has no create-only semantics. App and provider lists do not return a collection ETag for editing their members.
+
+Routing and limit controls are the exception: each resource has its own ETag, `If-None-Match: *` creates only, a PUT of unchanged content is a no-op, and the collection ETag `"r<revision>"` is accepted in `If-Match`. Incident mark-downs use `mark_down.version`. See the [Routing and failover API](./routing-and-failover-api#writes-versions-and-idempotency).
 
 ### Idempotency and recovery
 
-App, provider, quota-pool, gateway-key and management-key creation and app rollback require a distinct `Idempotency-Key` per intended operation. Reusing it with different input returns `409`. Completed responses are encrypted and replayable for 24 hours to the same principal. Expiry does not permit duplicate issuance using that token. Budget, exemption and grant creates also take an `Idempotency-Key`; see the [Budgets API](./budgets-api#how-writes-work).
+App, provider, quota-pool, gateway-key and management-key creation and app rollback require a distinct `Idempotency-Key` per intended operation. Reusing it with different input returns `409`. Completed responses are encrypted and replayable for 24 hours to the same principal. Expiry does not permit duplicate issuance using that token. Budget, exemption and grant creates also take an `Idempotency-Key`; see the [Budgets API](./budgets-api#how-writes-work). Routing and limit quick operations, batches, restores and grants, and incident resets and pin drops, require one; it is optional on control PUT, PATCH and DELETE and on mark-down PUT.
 
 A timeout or `503` does not prove that nothing changed. `503 operation_pending` includes `error.operation_id` when a configuration/creation operation remains incomplete. Configuration recovery uses `/operations/{operation_id}` and `/operations/{operation_id}/recover` with the initiating key. Creation recovery retries the original POST and token. See [operation recovery](./providers-and-configuration-api#operation-recovery).
 
@@ -351,7 +369,7 @@ Provider/credential PATCH and revocation, and provider conversion, have no idemp
 
 Request `expires_at` values are future RFC 3339 timestamps with a timezone, or null. Gateway credential expiry responses also use RFC 3339. Management-key metadata, management audit, operation creation and provider-test completion times use Unix seconds, potentially fractional. Treat opaque IDs, versions and fingerprints as strings.
 
-Capabilities fields are at the response root, including `schema_version`, `scopes`, `caller`, `app_fields`, `writes_available`, `policy_updates`, `policy_authority`, `provider_list_filters` and the provider types that support tests and model discovery. There is no wrapping `capabilities` object. Configuration history detail uses `version_record`. All ordinary JSON responses include `request_id`; the OpenAPI document is returned as is, without `request_id`.
+Capabilities fields are at the response root, including `schema_version`, `scopes`, `caller`, `app_fields`, `writes_available`, `policy_updates`, `policy_authority`, `managed_controls` (`enabled`, the available `domains`, and policy capacity used against the caps), `provider_list_filters` and the provider types that support tests and model discovery. There is no wrapping `capabilities` object. Configuration history detail uses `version_record`. All ordinary JSON responses include `request_id`; the OpenAPI document is returned as is, without `request_id`.
 
 ### Errors
 
@@ -375,7 +393,7 @@ Capabilities fields are at the response root, including `schema_version`, `scope
 | `403` | Tenant suspended or insufficient permission. |
 | `404` | Deployment disabled or resource missing/outside tenant. |
 | `408` | Request body read timed out. |
-| `409` | Identity/dependency/idempotency conflict, changed collection or terminal key state. |
+| `409` | Identity/dependency/idempotency conflict, changed collection, terminal key state, or `policy_not_enabled` for routing and limit controls while the Policy Engine is off. |
 | `412` | Stale version. |
 | `413` | Request exceeds 1 MiB. |
 | `428` | Required `If-Match` missing. |

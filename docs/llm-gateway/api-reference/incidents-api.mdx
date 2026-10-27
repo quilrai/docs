@@ -1,0 +1,113 @@
+---
+title: "Incidents API"
+sidebar_position: 6.8
+sidebar_label: "Incidents API"
+sidebar_custom_props:
+  badge: new
+  icon: Activity
+description: "LLM Gateway Management API v1: during a provider outage, preview and mark a provider down for every app or chosen apps with an expiry, check that gateways applied it, restore it, reset cooldowns and drop session pins."
+aliases: [incidents api, outage runbook, mark down provider, mark-down, provider outage, reset cooldowns, drop session pins, circuit breaker reset]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Incidents API
+
+Fast controls for a provider outage. Mark a provider (or one of its models) **down** for every app or chosen apps, and the gateway stops routing and failing over to it until it is restored or the mark-down expires. Incident controls are **not policy changes**: they work whether or not the Policy Engine is on, publish no revision, and never touch your routes.
+
+| Action | Effect | Scope |
+| --- | --- | --- |
+| Preview | Which apps and routes use the provider, routes that would be left with no target, and where the rest would fail over. Writes nothing. | `incidents:write` |
+| Mark down | Takes the provider out of routing and failover for the chosen apps until an expiry, at most 72 hours ahead. Conversations pinned to it route again on their next request. | `incidents:write` |
+| Status | Whether the latest change is in force on the gateway you called, and by when every gateway applies it. | `incidents:read` |
+| Restore | Removes the mark-down. | `incidents:write` |
+| Reset cooldowns | Gateways forget the cooldown and circuit-breaker state of the chosen targets, so a recovered provider takes traffic at once. | `incidents:write` |
+| Drop pins | Ongoing conversations of the chosen apps or targets route again on their next request. | `incidents:write` |
+
+Reads accept `incidents:read`, `read` or `incidents:write`. Try the runbook in the [Management API playground](/llm-gateway-management-playground?tab=incidents).
+
+## Outage runbook
+
+<StepFlow steps={[
+  {label: '1. Preview', items: ['mark-downs:preview', 'Routes left without targets']},
+  {label: '2. Mark down', items: ['apps "*" or names', 'expires_in_seconds ≤ 72 h']},
+  {label: '3. Confirm', items: ['incidents/status', 'Applied everywhere by']},
+  {label: '4. Restore', items: ['DELETE the mark-down', 'Optional: reset cooldowns']},
+]} />
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY" -H 'Content-Type: application/json')
+BODY='{"provider_label": "azure-eu", "apps": "*", "reason": "Azure EU outage", "ticket": "INC-123", "expires_in_seconds": 14400}'
+
+# 1. Preview: what loses its target, and where the rest fails over
+curl -X POST "$API/incidents/mark-downs:preview" "${auth[@]}" -d "$BODY" \
+  | jq '{apps_affected, routes_losing_all_candidates, fallback_destinations}'
+
+# 2. Mark down for every app, for 4 hours. The id is yours; reuse it to change or restore.
+curl -X PUT "$API/incidents/mark-downs/inc-123-azure-eu" "${auth[@]}" \
+  -H "Idempotency-Key: inc-123-down" -d "$BODY" | jq '{changed, mark_down, propagation}'
+
+# 3. Confirm it is in force
+curl "$API/incidents/status" "${auth[@]}" | jq '{record_version, this_server, fleet}'
+
+# 4. When the provider recovers: restore, and let gateways retry it at once
+curl -X DELETE "$API/incidents/mark-downs/inc-123-azure-eu" "${auth[@]}"
+curl -X POST "$API/incidents/reset-cooldowns" "${auth[@]}" -H "Idempotency-Key: inc-123-reset" \
+  -d '{"apps": "*", "provider_label": "azure-eu"}'
+```
+
+Restoring does not move conversations back: conversations that moved during the incident stay on their new target until they go idle. To rebalance them, [drop pins](#Drop_incident_session_pins) for the provider's apps.
+
+## Mark-downs
+
+- **Body.** `provider_label` (a shared provider or an app's provider label, else `422 unknown_provider_label`), optional `model` (`null` marks every model), `apps` (`"*"` for every app now and later, or app names, else `422 unknown_app`), `reason`, optional `ticket`, and an expiry.
+- **Expiry is required.** Send `expires_at` (RFC 3339 with a timezone, or epoch seconds) or `expires_in_seconds`, not both. It must be in the future and at most **72 hours** ahead (`422 expiry_too_far`); reads show `expires_in` (seconds left). An expired mark-down is no longer listed and no longer applies. Extend a long incident with another PUT before it expires.
+- **Ids are yours.** `PUT /incidents/mark-downs/{id}` with `^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$` creates (`201`) or replaces (`200`). The same body again is `200 changed: false`. Changing an existing one needs `If-Match` with its version (`428` / `412`).
+- **Retries are safe.** With an `Idempotency-Key`, retrying the PUT that set the current mark-down returns the same result (`replayed: true`) even with `expires_in_seconds`, which would otherwise compute a new expiry. Without a key, a new expiry is a change and needs `If-Match`.
+- **Restore.** `DELETE /incidents/mark-downs/{id}`; `If-Match` is optional and checked when sent. An id that is absent (never set, already restored or expired) is `404 mark_down_not_found`, which a restore script can treat as success.
+- **Limits.** At most 64 active mark-downs per tenant (`409 too_many_mark_downs`).
+- **Console rows.** Per-app mark-downs set in the console are listed read only, with `source: "app"`.
+
+## Reset cooldowns and drop pins
+
+Both take `{"apps": "*" | [names], "provider_label"?, "model"?}` and require an `Idempotency-Key`; a retry returns the original result without acting again.
+
+- Without `provider_label`, every target of the selected apps is reset (or every pin of those apps dropped).
+- With `provider_label` (and optionally `model`, which needs `provider_label`), only those targets are affected. `applies_to` in the response says what was covered.
+- Drop pins covers every kind of conversation pin, including pins set by routing groups, model lists and earlier failovers.
+
+## Propagation
+
+Writes go to the central configuration and then to the gateway you called. Every other gateway applies them on its next configuration sync, **within about 65 seconds**. `GET /incidents/status?record_version=N` (default: the current version) reports:
+
+| Field | Meaning |
+| --- | --- |
+| `this_server.applied` | The gateway you called runs this version. |
+| `fleet.bound_seconds` | How long after a write every gateway is guaranteed to apply it (about 65). |
+| `fleet.applied_everywhere_by` | The time by which every gateway applies it. Other gateways are not polled, so `fleet.confirmed` is always `false`. |
+
+Write responses carry `propagation` with the `record_version` to check. The preview reports health and cooldowns from the gateway you called (`health_scope: "this_node"`).
+
+## Errors
+
+| Status | Codes |
+| --- | --- |
+| 400 | `invalid_request` (body, id, expiry or `record_version` shape; `model` without `provider_label`), `idempotency_key_required` |
+| 403 | `insufficient_scope` |
+| 404 | `not_found` (read of an absent mark-down), `mark_down_not_found` (restore of an absent one), `record_version_not_found` |
+| 409 | `idempotency_conflict`, `idempotency_replay_expired`, `too_many_mark_downs` |
+| 412 | `version_conflict` |
+| 422 | `expiry_too_far`, `unknown_provider_label`, `unknown_app` |
+| 428 | `precondition_required` |
+| 503 | `central_service_required` (a self-hosted node connected to a QuilrAI-hosted service; call the regional host) |
+
+## Endpoints
+
+<ApiReference tags={['Incidents']} />
+
+## Related
+
+- [Routing and failover](../cost-and-traffic/routing-and-fallbacks#provider-health-and-cooldown) - cooldowns, failover tiers and conversation pinning.
+- [Routing and failover API](./routing-and-failover-api) - change routes permanently, with revision history.
+- [Management API](./management-api) - authentication, scopes and retry rules.

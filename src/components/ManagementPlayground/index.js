@@ -17,6 +17,9 @@ import {
   PanelRightClose,
   PanelRightOpen,
   Plug,
+  Route,
+  Siren,
+  Timer,
   Server,
   ShieldCheck,
   Unplug,
@@ -36,6 +39,9 @@ import QuotaPools from './QuotaPools';
 import Credentials from './Credentials';
 import Prompts from './Prompts';
 import Budgets from './Budgets';
+import Routing from './Routing';
+import Limits from './Limits';
+import Incidents from './Incidents';
 import Catalogs from './Catalogs';
 import HistoryWorkspace from './HistoryWorkspace';
 import Administration from './Administration';
@@ -56,6 +62,9 @@ export const WORKSPACES = [
   { id: 'credentials', label: 'Credentials', Icon: KeyRound, Component: Credentials },
   { id: 'prompts', label: 'Prompts', Icon: FileText, Component: Prompts },
   { id: 'budgets', label: 'Budgets', Icon: Wallet, Component: Budgets },
+  { id: 'routing', label: 'Routing', Icon: Route, Component: Routing },
+  { id: 'limits', label: 'Limits', Icon: Timer, Component: Limits },
+  { id: 'incidents', label: 'Incidents', Icon: Siren, Component: Incidents },
   { id: 'catalogs', label: 'Catalogs', Icon: Library, Component: Catalogs },
   { id: 'history', label: 'History', Icon: HistoryIcon, Component: HistoryWorkspace },
   { id: 'administration', label: 'Administration', Icon: Building2, Component: Administration },
@@ -162,8 +171,10 @@ export default function ManagementPlayground() {
   );
   const forgetAdminToken = useCallback(() => setAdminSession(null), []);
 
-  // budgetsOnly: the key lacks `read` but holds budgets:* scopes (see connect()).
-  const budgetsOnly = !!capabilities?.budgetsOnly;
+  // limitedAreas: the key lacks `read` but holds the read scope of some areas
+  // (budgets:*, routing:read, limits:read, incidents:read); see connect().
+  const limitedAreas = Array.isArray(capabilities?.limitedAreas) ? capabilities.limitedAreas : null;
+  const budgetsOnly = !!limitedAreas && limitedAreas.length === 1 && limitedAreas[0] === 'budgets';
   const scopes = Array.isArray(capabilities?.caller?.scopes) ? capabilities.caller.scopes : null;
   const can = useCallback(
     (required = []) => {
@@ -236,32 +247,45 @@ export default function ManagementPlayground() {
         caps = await probe.call({ path: `${MANAGEMENT_PREFIX}/capabilities`, source: 'Connect' });
       } catch (err) {
         if (err.status !== 403 || err.code !== 'insufficient_scope') throw err;
-        // Budget-only keys (budgets:* without read) cannot read capabilities.
-        // The budgets list works with budgets:read and reports the caller.
-        let budgets;
+        // Keys without `read` cannot read capabilities. Probe the read call of
+        // each area that has its own read scope; any answer other than
+        // 401/403 (for example 409 policy_not_enabled) proves the scope.
+        const areas = [];
+        let budgetScopes = null;
         try {
-          budgets = await probe.call({ path: `${MANAGEMENT_PREFIX}/budgets`, query: { limit: 1 }, source: 'Connect (budgets)' });
+          const budgets = await probe.call({ path: `${MANAGEMENT_PREFIX}/budgets`, query: { limit: 1 }, source: 'Connect (budgets)' });
+          const caller = budgets.caller || {};
+          areas.push('budgets');
+          budgetScopes = Array.isArray(caller.scopes)
+            ? caller.scopes
+            : [
+                caller.can_read && 'budgets:read',
+                caller.can_grant && 'budgets:grant',
+                caller.can_edit_policy && 'budgets:policy',
+              ].filter(Boolean);
         } catch {
-          throw err;
+          /* no budget scopes */
         }
-        const caller = budgets.caller || {};
+        for (const [area, path] of [
+          ['routing', '/controls/_capacity'],
+          ['limits', '/controls/rate-limits?limit=1'],
+          ['incidents', '/incidents/status'],
+        ]) {
+          const res = await probe.send({ path: MANAGEMENT_PREFIX + path, source: `Connect (${area})` });
+          if (res.status && res.status !== 401 && res.status !== 403) areas.push(area);
+        }
+        if (!areas.length) throw err;
         caps = {
-          budgetsOnly: true,
-          caller: {
-            scopes: Array.isArray(caller.scopes)
-              ? caller.scopes
-              : [
-                  caller.can_read && 'budgets:read',
-                  caller.can_grant && 'budgets:grant',
-                  caller.can_edit_policy && 'budgets:policy',
-                ].filter(Boolean),
-          },
+          limitedAreas: areas,
+          // Write scopes are unknown unless only budgets answered; null keeps
+          // buttons enabled and the gateway answers 403 for a missing scope.
+          caller: { scopes: areas.length === 1 && budgetScopes ? budgetScopes : null },
         };
       }
       if (current !== generation.current) return;
       setCapabilities(caps);
       setConnection({ baseUrl: base, key, id: current });
-      if (caps.budgetsOnly) navigate('budgets');
+      if (caps.limitedAreas?.length) navigate(caps.limitedAreas[0]);
       setLiveSpec(null);
       writeStored(remember || override ? { regionId: override?.regionId ?? regionId, customUrl: override?.customUrl ?? customUrl, key } : null);
       probe
@@ -278,7 +302,7 @@ export default function ManagementPlayground() {
           err.status === 401
             ? { ...err, message: 'The gateway rejected this management key. Check that it is active and belongs to this region.' }
             : err.code === 'insufficient_scope'
-              ? { ...err, message: `${err.message} The key needs the read scope, or a budgets scope to use only the Budgets workspace.` }
+              ? { ...err, message: `${err.message} The key needs the read scope, or the read scope of one area (budgets:read, routing:read, limits:read or incidents:read) to use only that workspace.` }
             : err.status === 404
               ? { ...err, message: 'The management API is not available at this URL. Check the region, or ask your administrator to enable management for the tenant.' }
               : err,
@@ -342,6 +366,7 @@ export default function ManagementPlayground() {
     forgetAdminToken,
     capabilities,
     budgetsOnly,
+    limitedAreas,
     scopes,
     can,
     navigate,
@@ -367,8 +392,8 @@ export default function ManagementPlayground() {
             <div className={styles.eyebrow}>LLM GATEWAY / MANAGEMENT API V1</div>
             <h1>Management API playground</h1>
             <p>
-              Administer apps, providers, credentials, prompts and budgets against your live gateway, and see the exact
-              API call behind every action.
+              Administer apps, providers, credentials, prompts, budgets, routing, limits and incidents against your live
+              gateway, and see the exact API call behind every action.
             </p>
           </div>
           <nav className={styles.heroLinks} aria-label="Related pages">
@@ -454,7 +479,7 @@ export default function ManagementPlayground() {
               <span>
                 {regionLabel} <code>{connection.baseUrl}</code>
               </span>
-              {budgetsOnly && <Pill tone="warn">Budgets only</Pill>}
+              {limitedAreas && <Pill tone="warn">{budgetsOnly ? 'Budgets only' : `Limited to ${limitedAreas.join(', ')}`}</Pill>}
               {scopes ? (
                 <span className={styles.scopeList}>
                   {scopes.map((s) => (
@@ -499,14 +524,18 @@ export default function ManagementPlayground() {
             ))}
           </nav>
           <main className={styles.main} id="mgmt-workspace">
-            {budgetsOnly && !['budgets', 'explorer', 'administration'].includes(active.id) ? (
+            {limitedAreas && ![...limitedAreas, 'explorer', 'administration'].includes(active.id) ? (
               <EmptyState icon={Lock} title="This key cannot use this workspace">
-                The connected key has budget scopes ({(scopes || []).join(', ') || 'none'}) but not <code>read</code>, so
-                it can only manage budgets.{' '}
-                <button type="button" className={styles.linkBtn} onClick={() => navigate('budgets')}>
-                  Open Budgets
-                </button>{' '}
-                or connect with a key that has <code>read</code> to use {active.label}.
+                The connected key does not have <code>read</code>, so it can only use{' '}
+                {limitedAreas.map((area, i) => (
+                  <React.Fragment key={area}>
+                    {i > 0 && ', '}
+                    <button type="button" className={styles.linkBtn} onClick={() => navigate(area)}>
+                      {WORKSPACES.find((w) => w.id === area)?.label || area}
+                    </button>
+                  </React.Fragment>
+                ))}
+                . Connect with a key that has <code>read</code> to use {active.label}.
               </EmptyState>
             ) : (
               <Workspace key={`${active.id}-${connection?.id || 0}`} />

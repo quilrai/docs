@@ -20,6 +20,9 @@ const DEFAULT_TAG_ORDER = [
   'Credentials',
   'Prompts',
   'Budgets',
+  'Routing',
+  'Limits',
+  'Incidents',
   'Catalogs',
   'History',
   'Administration',
@@ -49,6 +52,42 @@ function compileTemplate(path) {
 
 function isAliasPath(path) {
   return path.startsWith(`${MANAGEMENT_PREFIX}/app/`) || path === `${MANAGEMENT_PREFIX}/app`;
+}
+
+const SUBGROUP_LABELS = {
+  _batch: 'Batch',
+  _capacity: 'Capacity',
+  destinations: 'Destinations',
+  routes: 'Routes',
+  'failover-profiles': 'Failover profiles',
+  'failover-rules': 'Failover rules',
+  'failover-default': 'Failover default',
+  'routing-constraints': 'Routing constraints',
+  'model-access': 'Model access',
+  references: 'References',
+  revisions: 'Revisions and restore',
+  routing: 'Routing diagnostics',
+  failover: 'Routing diagnostics',
+  'rate-limits': 'Rate limits, usage and grants',
+  'request-guards': 'Request guards',
+  'model-limits': 'Model limits',
+  'limit-exemptions': 'Limit exemptions',
+  'limit-responses': 'Limit responses',
+  limits: 'Effective limits',
+  'mark-downs': 'Mark-downs',
+  incidents: 'Incident actions and status',
+};
+
+/**
+ * Resource family of a management path, used to sub-group large tags in the
+ * explorer: /controls/destinations/{id}:set-weights -> Destinations.
+ */
+export function subgroupOf(path) {
+  const rest = path.startsWith(MANAGEMENT_PREFIX) ? path.slice(MANAGEMENT_PREFIX.length) : path;
+  const parts = rest.split('/').filter(Boolean);
+  let key = parts[0] === 'controls' ? parts[1] : parts[0] === 'incidents' && parts[1]?.startsWith('mark-downs') ? 'mark-downs' : parts[0];
+  key = String(key || '').split(':')[0];
+  return SUBGROUP_LABELS[key] || null;
 }
 
 export function buildIndex(spec) {
@@ -83,6 +122,7 @@ export function buildIndex(spec) {
         requestBody: resolveRef(spec, op.requestBody),
         responses: op.responses || {},
         template: compileTemplate(path),
+        subgroup: subgroupOf(path),
       });
     }
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Braces, Building2, Layers, Server, Wallet } from 'lucide-react';
+import { Braces, Building2, Layers, Route, Server, Siren, Timer, Wallet } from 'lucide-react';
 import { ApiChips, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from './ui';
 import styles from './styles.module.css';
 
@@ -12,6 +12,14 @@ export const SCOPES = [
   ['budgets:read', 'Budgets, usage, subjects, grants, pricing, exemptions, alerts and budget events.'],
   ['budgets:policy', 'Budget, pricing and exemption edits (each publishes a policy revision) and alert destinations.'],
   ['budgets:grant', 'Create, change and revoke time-boxed budget grants.'],
+  ['routing:read', 'Routes, destinations, failover, routing constraints, model access, provider references, revision history and rollout, and the routing diagnostics. Does not need read.'],
+  ['routing:write', 'Change routes, destinations, failover profiles, rules and default, and model access (each write publishes a policy revision).'],
+  ['routing:constraints', 'Change routing constraints.'],
+  ['limits:read', 'Rate limits, request guards, model limits, exemptions, limit responses, live usage, grants and effective limits. Does not need read.'],
+  ['limits:write', 'Change rate limits, request guards, model limits, exemptions and limit responses (each write publishes a policy revision).'],
+  ['limits:grant', 'Issue and revoke temporary rate limit raises.'],
+  ['incidents:read', 'Read incident mark-downs and status (read or incidents:write also allow these reads).'],
+  ['incidents:write', 'Mark providers down, preview, restore, reset cooldowns and drop session pins. Never a policy revision.'],
 ];
 
 const yesNo = (v) => (v === undefined || v === null ? '-' : v ? 'yes' : 'no');
@@ -32,6 +40,9 @@ export default function Overview() {
               ['apps', Layers, 'Apps and credentials', 'Create apps, change settings, attach providers, issue and revoke gateway keys.'],
               ['providers', Server, 'Providers and quota pools', 'Configure shared providers, test models and discover what an upstream offers.'],
               ['budgets', Wallet, 'Budgets', 'Review spend, adjust limits and grant temporary headroom.'],
+              ['routing', Route, 'Routing and failover', 'Routes, weighted destinations, failover and constraints, with dry runs, history and restore.'],
+              ['limits', Timer, 'Rate limits', 'Request and token limits, request guards, temporary raises and effective limits.'],
+              ['incidents', Siren, 'Incidents', 'Mark a provider down during an outage, check it applied, then restore it.'],
               ['administration', Building2, 'Bootstrap access', 'No management key yet? Enable management and issue one with a tenant-admin token.'],
               ['explorer', Braces, 'API Explorer', 'Browse every operation with its schema, then send it and copy cURL, Python or JavaScript.'],
             ].map(([id, Icon, title, text]) => (

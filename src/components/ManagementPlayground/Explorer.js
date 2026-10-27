@@ -78,30 +78,60 @@ function initialForm(spec, op) {
   };
 }
 
+function OpButton({ op, selectedId, onSelect }) {
+  return (
+    <li>
+      <button
+        type="button"
+        className={op.id === selectedId ? styles.opActive : ''}
+        aria-current={op.id === selectedId ? 'true' : undefined}
+        onClick={() => onSelect(op.id)}
+      >
+        <MethodBadge method={op.method} small />
+        <span>
+          {op.summary}
+          {op.aliasOf && <em> alias</em>}
+        </span>
+      </button>
+    </li>
+  );
+}
+
 function Group({ tag, ops, selectedId, onSelect, description }) {
+  // Large tags (Routing, Limits) are split by resource family so each
+  // collection's list, read, write and quick operations sit together.
+  const families = [];
+  if (ops.length > 12 && ops.some((op) => op.subgroup)) {
+    for (const op of ops) {
+      const name = op.subgroup || 'Other';
+      let family = families.find((f) => f.name === name);
+      if (!family) families.push((family = { name, ops: [] }));
+      family.ops.push(op);
+    }
+  }
   return (
     <details className={styles.opGroup} open>
       <summary title={description || tag}>
         {tag} <span>{ops.length}</span>
       </summary>
-      <ul>
-        {ops.map((op) => (
-          <li key={op.id}>
-            <button
-              type="button"
-              className={op.id === selectedId ? styles.opActive : ''}
-              aria-current={op.id === selectedId ? 'true' : undefined}
-              onClick={() => onSelect(op.id)}
-            >
-              <MethodBadge method={op.method} small />
-              <span>
-                {op.summary}
-                {op.aliasOf && <em> alias</em>}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {families.length > 1 ? (
+        families.map((family) => (
+          <div key={family.name} className={styles.opSubgroup}>
+            <div className={styles.opSubgroupTitle}>{family.name}</div>
+            <ul>
+              {family.ops.map((op) => (
+                <OpButton key={op.id} op={op} selectedId={selectedId} onSelect={onSelect} />
+              ))}
+            </ul>
+          </div>
+        ))
+      ) : (
+        <ul>
+          {ops.map((op) => (
+            <OpButton key={op.id} op={op} selectedId={selectedId} onSelect={onSelect} />
+          ))}
+        </ul>
+      )}
     </details>
   );
 }
@@ -244,7 +274,8 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
     setEtagBusy(true);
     try {
       // Try this path's GET, then each parent resource (prompts and attachments use the app ETag).
-      const segments = op.path.split('/');
+      // Quick operations (".../{id}:set-weights") use the resource's own ETag.
+      const segments = op.path.replace(/:[a-z-]+$/, '').split('/');
       for (let n = segments.length; n > 3; n -= 1) {
         const template = segments.slice(0, n).join('/');
         const getOp = pg.index.operations.find((o) => o.method === 'GET' && o.path === template);
@@ -252,7 +283,19 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
         const names = getOp.template.names;
         if (names.some((name) => !form.path[name])) continue;
         const res = await activeClient.send({ path: fillPath(template, form.path), query: queryValues.app_name ? { app_name: queryValues.app_name } : {}, source: 'Fetch ETag' });
-        const tag = res.ok && (res.headers.etag || versionOf(res.data));
+        const lastName = op.template.names[op.template.names.length - 1];
+        const item =
+          res.ok && n < segments.length && Array.isArray(res.data?.items) && lastName
+            ? res.data.items.find((row) => row && String(row.id) === String(form.path[lastName]))
+            : null;
+        // Listing a sub-resource (a grant) yields that item's own version;
+        // the revisions list yields the collection ETag "r<active revision>".
+        const tag =
+          res.ok &&
+          ((item && (item.etag || (item.version && `"${item.version}"`))) ||
+            res.headers.etag ||
+            versionOf(res.data) ||
+            (res.data?.active_revision != null ? `"r${res.data.active_revision}"` : null));
         if (tag) {
           setForm((f) => ({ ...f, headers: { ...f.headers, [Object.keys(f.headers).find((h) => /^if-match$/i.test(h)) || 'If-Match']: tag } }));
           return;
@@ -283,6 +326,15 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
     if (!activeClient) {
       setFormError(op.isAdmin ? 'Enter a tenant-admin token in the Administration workspace first.' : 'Connect with a management key first.');
       return;
+    }
+    if (queryValues.repin === 'drop' && queryValues.repin_scope === 'tenant' && queryValues.dry_run !== 'true') {
+      const ok = await pg.confirm({
+        title: 'Drop every session pin of the tenant?',
+        body: 'repin=drop with repin_scope=tenant makes every ongoing conversation of every app route again on its next request. Provider prompt caches start cold for those conversations.',
+        confirmLabel: 'Send and drop all pins',
+        tone: 'danger',
+      });
+      if (!ok) return;
     }
     setSending(true);
     const res = await activeClient.send({
@@ -535,7 +587,13 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
 
 function ParamInput({ spec, param, value, onChange, extra }) {
   const schema = resolveRef(spec, param.schema) || {};
-  const enumValues = Array.isArray(schema.enum) ? schema.enum : schema.type === 'boolean' ? [true, false] : null;
+  const enumValues = Array.isArray(schema.enum)
+    ? schema.enum
+    : schema.const !== undefined
+      ? [schema.const]
+      : schema.type === 'boolean'
+        ? [true, false]
+        : null;
   const label = `${param.name}${param.required ? '' : ' (optional)'}`;
   const hint = [param.description || schema.description, schema.type === 'array' ? 'Comma separated; sent as repeated parameters.' : '']
     .filter(Boolean)
