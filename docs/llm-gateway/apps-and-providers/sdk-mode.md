@@ -592,11 +592,29 @@ See [TrueFoundry Integration](../../integrations/pull-ai-usage-and-inventory/tru
 
 ## LiteLLM Guardrails Integration
 
-If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can integrate QuilrAI guardrails as a native guardrail plugin. The plugin calls `/sdk/v1/check` automatically on every request and/or response - no changes needed in your application code.
+If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can add QuilrAI as a native LiteLLM guardrail. The plugin calls `/sdk/v1/check` for you on requests, responses, tool calls and MCP tool calls. No changes are needed in your application code.
+
+**At a glance** (`QuilrUnifiedGuardrail`):
+
+- **Supported:** prompts and answers on OpenAI Chat Completions, Anthropic Messages, the Responses API, text completion and Gemini; embeddings; image generation prompts; text to speech; rerank queries; tool calls; MCP tool calls; streaming; guardrail records in Langfuse and other LiteLLM logging integrations; fail-open or fail-closed
+- **Not checked:** images, tool definitions sent to the model, and transcribed audio text (a LiteLLM limit)
+
+Details are in [What is supported](#what-is-supported) and [Limits](#limits).
+
+### Which class to use
+
+The plugin file has two classes. Use `QuilrUnifiedGuardrail` for new setups.
+
+| Class | Covers | Use it when |
+|---|---|---|
+| `QuilrUnifiedGuardrail` (recommended) | All the API formats listed below, tool calls, MCP tool calls, streaming, logging records, fail-closed | New setups, or anything beyond plain chat |
+| `QuilrGuardrail` | Request and response text of OpenAI Chat Completions and the Responses API | Existing setups that already use it. It is kept unchanged |
+
+`QuilrUnifiedGuardrail` uses LiteLLM's unified guardrail interface, so LiteLLM extracts the text from each API format and the plugin checks it. Tested with LiteLLM 1.106.2.
 
 ### Prerequisites
 
-- A Quilr guardrails API key, from either Quilr-hosted guardrails or a self-hosted Quilr guardrails deployment
+- A Quilr guardrails API key (a `quilr_sdk` key), from either Quilr-hosted guardrails or a self-hosted Quilr guardrails deployment
 - Download [quilr_litellm_guardrails.py](https://github.com/quilrbusiness/quilr-sdks/blob/main/python-sdks/litellm_guardrails/quilr_litellm_guardrails.py) and place it in the same directory as your LiteLLM `config.yaml`
 
 :::note
@@ -608,83 +626,183 @@ LiteLLM resolves custom guardrails by module path relative to the proxy working 
 ```bash
 QUILR_GUARDRAILS_KEY=sk-quilr-XXXXXXXXX
 QUILR_GUARDRAILS_BASE_URL=<QUILR GUARDRAILS BASE URL>
-QUILR_GUARDRAILS_TIMEOUT=3  # Optional: timeout in seconds (default: 3). On timeout or API error, the request passes through.
+QUILR_GUARDRAILS_TIMEOUT=3          # Optional: seconds before a check times out (default: 3)
+QUILR_GUARDRAILS_FAIL_CLOSED=false  # Optional: block when Quilr can't be reached (QuilrUnifiedGuardrail only)
 ```
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `QUILR_GUARDRAILS_KEY` | Yes | - | Your `quilr_sdk` API key |
 | `QUILR_GUARDRAILS_BASE_URL` | No | `https://guardrails.quilr.ai` | Override with the closest regional endpoint for production or with a self-hosted deployment URL |
-| `QUILR_GUARDRAILS_TIMEOUT` | No | `3` | Seconds before the check times out (request passes on timeout) |
+| `QUILR_GUARDRAILS_TIMEOUT` | No | `3` | Seconds before a check times out |
+| `QUILR_GUARDRAILS_FAIL_CLOSED` | No | `false` | `true` blocks requests when Quilr can't be reached (`QuilrUnifiedGuardrail` only). See [When Quilr can't be reached](#when-quilr-cant-be-reached) |
 | `APPLY_QUILR_GUARDRAILS_FOR_MODELS` | No | (all) | Comma-separated list of models to restrict guardrails to |
 | `APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES` | No | (all) | Comma-separated list of LiteLLM key names to restrict guardrails to |
 
-### Choosing a mode
+### What is supported
 
-Add guardrails to your LiteLLM `config.yaml` using the modes you need:
+All of this applies to `QuilrUnifiedGuardrail`.
 
-| Mode | When it runs | What it checks | Pros | Cons |
-|------|-------------|----------------|------|------|
-| `pre_call` | Before the LLM call (sequential) | Input | Can block malicious requests before they reach the LLM, prevents data leakage | Adds minimal latency |
-| `during_call` | In parallel with the LLM call | Input | No added latency | Cannot prevent data leakage or attacks, since the LLM processes the request before the guardrail completes |
-| `post_call` | After the LLM call | Output | Can check LLM responses for policy violations | Adds guardrail latency. Only needed if the response has to be checked |
+#### Modes
 
-**When to use `during_call` vs `pre_call`:**
+Set the mode per guardrail in `config.yaml`. You can add the same class several times with different modes.
 
-- Use `during_call` for better latency, since the guardrail runs concurrently with the LLM
-- Use `pre_call` to avoid using LLM compute for blocked requests
+| Mode | When it runs | What it checks | Can block | Can redact |
+|------|-------------|----------------|-----------|------------|
+| `pre_call` | Before the LLM call | Prompt, chat history, tool-call arguments in the history | Yes | Yes |
+| `during_call` | In parallel with the LLM call | Prompt | Yes | No |
+| `post_call` | After the LLM call | Answer, tool calls in the answer, streamed answers | Yes | Yes |
+| `logging_only` | After the call, on copies | Prompt and answer | No (records the result only) | No |
+| `pre_mcp_call` | Before an MCP tool runs, and when clients list tools | Tool arguments, tool descriptions | Yes | Yes (arguments) |
+| `during_mcp_call` | In parallel with the MCP tool | Tool arguments | Yes | No |
+| `post_mcp_call` | After the MCP tool runs, before the result reaches the model | Tool result | Yes | Yes |
+
+**`pre_call` or `during_call`?** `during_call` adds no latency, but the LLM has already received the prompt when the check finishes, so it can only block, not redact. Use `pre_call` to stop data before it reaches the LLM.
+
+#### API formats and endpoints
+
+| Endpoint | What is checked |
+|---|---|
+| OpenAI Chat Completions (`/v1/chat/completions`) | Prompt, answer, tool calls, streaming |
+| Anthropic Messages (`/v1/messages`) | Prompt, answer, streaming (block only), tool calls (block only) |
+| OpenAI Responses API (`/v1/responses`) | Input and output |
+| Text completion (`/v1/completions`) | Prompt and answer |
+| Gemini (`generateContent`) | Prompt and answer |
+| Embeddings (`/v1/embeddings`) | All inputs, checked together |
+| Image generation (`/v1/images/generations`) | Prompt |
+| Text to speech (`/v1/audio/speech`) | Input text |
+| Rerank (`/v1/rerank`) | Query (LiteLLM does not pass the documents to guardrails) |
+| MCP (`/mcp`, `/mcp-rest`, tool search) | Tool arguments, results and descriptions |
+
+#### What content is checked
+
+| Content | How it is checked |
+|---|---|
+| Prompts and answers | As text, or as chat messages when LiteLLM provides roles |
+| Tool-call arguments | All tool calls of a request or answer in one JSON check. Each argument value is checked, and redacted values are written back into the arguments |
+| MCP tool arguments, results and descriptions | One JSON check per call, so every value is checked |
+| Several inputs without roles (for example an embeddings batch) | One JSON check, so every input is checked |
+| Images | Not checked |
+| Tool definitions sent to the model (`tools`) | Not checked |
+
+#### Streaming
+
+With `post_call`, streamed answers are checked while they stream: every few chunks, and once at the end. A block ends the stream cleanly with the block message (`finish_reason: content_filter` in OpenAI format). Optional settings, under `litellm_params`:
+
+| Setting | Default | What it does |
+|---------|---------|--------------|
+| `streaming_sampling_rate` | `5` | Check the answer so far every Nth chunk. Each check is a Quilr call |
+| `streaming_end_of_stream_only` | `false` | `true`: check once, after the whole answer has streamed (1 Quilr call, but the answer is already delivered) |
+| `streaming_buffer_until_moderated` | `false` | `true`: send nothing to the client until the check passes |
+| `streaming_buffer_release_on_scan` | `false` | With buffering: release the held chunks after each passing check |
+| `streaming_transform_mode` | `block_only` | `incremental_diff`: also redact while streaming (OpenAI Chat Completions format only) |
+| `stream_holdback_chars` | `64` with `incremental_diff` | Characters held back so a value split across chunks can still be redacted |
+
+Which setup to use:
+
+- Sensitive values must be redacted: `streaming_transform_mode: incremental_diff`
+- Block only, and nothing may reach the client before the check: `streaming_buffer_until_moderated: true`
+- Fewest Quilr calls (monitoring): `streaming_end_of_stream_only: true`, or a higher `streaming_sampling_rate`
+
+:::note
+Only `incremental_diff` redacts while streaming. In the other setups, if Quilr redacts, LiteLLM drops the redaction and the client gets the original text. Use them to block.
+:::
+
+#### Logging and tracing
+
+Each check adds a guardrail record to LiteLLM's logs, so it shows in Langfuse, Datadog and the other LiteLLM logging integrations:
+
+- `guardrail_provider`: `quilr`
+- `guardrail_status`: `success`, `guardrail_intervened` (blocked), `guardrail_flagged` (categories found, allowed) or `guardrail_failed_to_respond` (Quilr unreachable)
+- `guardrail_response`: Quilr's status, action and categories
+- `masked_entity_count`: how many checks redacted each category
+
+The record never contains the checked content.
+
+To group checks by conversation and user in Quilr, the plugin sends:
+
+- `X-Conversation-Id`: the request's `metadata.session_id` (or LiteLLM's session ID)
+- `X-User-Email`: the first value that looks like an email from `metadata.trace_user_id`, the request's `user`, the end user, or the LiteLLM key owner's email. If Quilr rejects the email (domain not allowed on the app), the check is retried without it
+- The session and trace IDs in the check's metadata, to match Quilr logs with LiteLLM or Langfuse traces
+
+#### When Quilr can't be reached
+
+By default the plugin fails open: if Quilr times out or returns an error, the content passes unchecked, a warning is logged, and the logging record shows `guardrail_failed_to_respond`. To block instead, set `quilr_fail_closed: true` on each guardrail that should fail closed, or `QUILR_GUARDRAILS_FAIL_CLOSED=true` for all of them. Blocked requests return HTTP 503.
+
+If you use fail-closed, consider a higher `QUILR_GUARDRAILS_TIMEOUT` so slow responses aren't blocked.
 
 ### LiteLLM `config.yaml`
 
-**Input guardrail only (`pre_call`)**
+**Input and output guardrails**
 
 ```yaml
 guardrails:
   - guardrail_name: "quilr-input"
     litellm_params:
-      guardrail: quilr_litellm_guardrails.QuilrGuardrail
+      guardrail: quilr_litellm_guardrails.QuilrUnifiedGuardrail
       mode: "pre_call"
-    default_on: true
+      default_on: true
+
+  - guardrail_name: "quilr-output"
+    litellm_params:
+      guardrail: quilr_litellm_guardrails.QuilrUnifiedGuardrail
+      mode: "post_call"
+      default_on: true
 ```
 
-**Input guardrail with lower latency (`during_call`)**
+**Input guardrail with lower latency (`during_call`, block only)**
 
 ```yaml
 guardrails:
   - guardrail_name: "quilr-input-duringcall"
     litellm_params:
-      guardrail: quilr_litellm_guardrails.QuilrGuardrail
+      guardrail: quilr_litellm_guardrails.QuilrUnifiedGuardrail
       mode: "during_call"
-    default_on: true
+      default_on: true
 ```
 
-**Output guardrail only (`post_call`)**
+**Redaction while streaming**
 
 ```yaml
 guardrails:
   - guardrail_name: "quilr-output"
     litellm_params:
-      guardrail: quilr_litellm_guardrails.QuilrGuardrail
+      guardrail: quilr_litellm_guardrails.QuilrUnifiedGuardrail
       mode: "post_call"
-    default_on: true
+      default_on: true
+      streaming_transform_mode: "incremental_diff"
 ```
 
-**Both input and output guardrails**
+**MCP tool calls (LiteLLM as an MCP gateway)**
+
+```yaml
+guardrails:
+  - guardrail_name: "quilr-mcp-input"
+    litellm_params:
+      guardrail: quilr_litellm_guardrails.QuilrUnifiedGuardrail
+      mode: "pre_mcp_call"
+      default_on: true
+
+  - guardrail_name: "quilr-mcp-output"
+    litellm_params:
+      guardrail: quilr_litellm_guardrails.QuilrUnifiedGuardrail
+      mode: "post_mcp_call"
+      default_on: true
+```
+
+**Block when Quilr can't be reached**
 
 ```yaml
 guardrails:
   - guardrail_name: "quilr-input"
     litellm_params:
-      guardrail: quilr_litellm_guardrails.QuilrGuardrail
+      guardrail: quilr_litellm_guardrails.QuilrUnifiedGuardrail
       mode: "pre_call"
-    default_on: true
-
-  - guardrail_name: "quilr-output"
-    litellm_params:
-      guardrail: quilr_litellm_guardrails.QuilrGuardrail
-      mode: "post_call"
-    default_on: true
+      default_on: true
+      quilr_fail_closed: true
 ```
+
+For an existing `QuilrGuardrail` setup, use `guardrail: quilr_litellm_guardrails.QuilrGuardrail` with the `pre_call`, `during_call` or `post_call` modes.
 
 ### Optional filtering
 
@@ -699,6 +817,11 @@ APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES=production-key,user-facing-key
 ```
 
 If neither variable is set, guardrails apply to all requests. If both are set, a request must match both filters (AND logic) for guardrails to be applied.
+
+:::note
+- LiteLLM gives MCP checks the model name `mcp-tool-call`, so `APPLY_QUILR_GUARDRAILS_FOR_MODELS` skips MCP checks unless you add `mcp-tool-call` to the list.
+- When `APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES` is set, requests on routes where LiteLLM does not pass the key name (for example `/v1/messages`) are not checked.
+:::
 
 ### Enabling guardrails per request
 
@@ -719,8 +842,24 @@ curl -X POST http://localhost:4000/v1/chat/completions \
 
 | Mode | What happens on `blocked` | What happens on `redacted` |
 |------|--------------------------|----------------------------|
-| `pre_call` | Request rejected before LLM is called | Messages replaced with redacted version before LLM call |
-| `during_call` | LLM response discarded, error returned | Messages updated (LLM call already in flight) |
-| `post_call` | Response rejected, error returned to caller | Response content replaced with redacted version |
+| `pre_call` | Request rejected before the LLM is called | Prompt replaced with the redacted version before the LLM call |
+| `during_call` | Request rejected, LLM response discarded | Not applied (the LLM call is already in flight) |
+| `post_call` | Response rejected; a stream ends with the block message | Answer and tool-call arguments replaced with the redacted version (for streams, only with `incremental_diff`) |
+| `logging_only` | Not blocked, recorded in the logs | Not applied, recorded in the logs |
+| `pre_mcp_call` | Tool does not run | Tool runs with the redacted arguments |
+| `during_mcp_call` | Tool call rejected | Not applied |
+| `post_mcp_call` | Result withheld from the model | Model receives the redacted result |
 
-On timeout or any unexpected error from the Quilr API, the request passes through unchanged.
+### Limits
+
+Not checked by the plugin:
+
+- Images in prompts (Quilr checks text only)
+- Tool definitions sent to the model (the `tools` list)
+
+Limits that come from LiteLLM:
+
+- Redaction while streaming works only in the OpenAI Chat Completions format. Other formats can block a stream but not redact it.
+- Anthropic Messages (`/v1/messages`) answers: LiteLLM does not apply changed tool calls, so tool-call arguments can be blocked but not redacted.
+- Audio transcription (`/v1/audio/transcriptions`): LiteLLM's proxy does not run post-call guardrails on transcriptions, so the transcribed text is not checked.
+- Rerank: only the query is checked.
