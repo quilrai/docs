@@ -233,7 +233,7 @@ export default function BudgetEditor({
           <p className={styles.muted}>
             {id
               ? `Changes publish a policy revision. Version: ${etag}. Identity fields cannot change.`
-              : 'Creates a budget in quilr_managed_budgets. Each scope creates a managed rule. Spend is in USD; token and request limits are whole numbers.'}
+              : 'Creates an API-managed budget and publishes a policy revision. Spend is in USD; token and request limits are whole numbers.'}
           </p>
           <MutationForm
             onSubmit={() => dryRun(false)}

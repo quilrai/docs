@@ -45,6 +45,18 @@ With the Policy Engine on for the LLM Gateway, the **Model routing** card owns a
 
 Every form adds to one shared draft. Live traffic changes only after **Review & publish**.
 
+### From scripts and pipelines {#management-api}
+
+Everything on this card can also be managed with the [Management API](../api-reference/management-api), as typed resources: routes, weighted and ordered destinations, failover profiles, rules and default, routing constraints and model access. **Admins never need to write QuilrQL for these**: each API write is validated, turned into policy rules and published as one revision, with dry runs, ETags, revision history and restore.
+
+| Task | API |
+| --- | --- |
+| Model aliases, weighted splits, gradual migrations, failover | [Routing and failover API](../api-reference/routing-and-failover-api) |
+| Request and token limits, request guards, temporary raises | [Rate limits API](../api-reference/rate-limits-api) |
+| Take a provider out of routing during an outage, reset cooldowns, drop pins | [Incidents API](../api-reference/incidents-api) |
+
+Rules written in the console appear in API lists as read-only rows; API-managed routes and console rules are ordered as described in [Rank and precedence](../api-reference/routing-and-failover-api#rank-and-precedence).
+
 While the Policy Engine is on, the app's **Routing** tab is frozen: app routing groups and custom routing are ignored. Converted app groups become policy groups scoped by **Requested model**; see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings). Provider credentials, endpoints and the enabled switch stay live and are looked up by provider label.
 
 ## How a request is routed {#how-a-request-is-routed}
@@ -423,6 +435,8 @@ The gateway tracks the health of every provider credential and model it calls:
 
 A cooldown only affects requests whose **Fail over on** includes the error that caused it, and each kind of error cools down on its own: a 401 cooldown does not hide a later run of 5xx errors from requests that only fail over on 5xx.
 
+During an outage you can also mark a provider down for every app, with an expiry, and reset cooldowns once it recovers, with the [Incidents API](../api-reference/incidents-api).
+
 A cooldown routes around a provider; it never refuses a request. A cooling target is skipped while a healthy backup exists. When its cooldown ends, one request at a time is sent to it as a probe; success clears it, failure starts a longer cooldown. If every candidate is cooling, including a route with a single target, the request is still sent, to the one that recovers first.
 
 ### Failover, pinning and quotas
@@ -541,6 +555,8 @@ Without the Policy Engine, [Failover](#failover) runs with its defaults: the gro
 
 ## Related
 
+- [Routing and failover API](../api-reference/routing-and-failover-api) - manage routes, destinations and failover from scripts, without QuilrQL
+- [Incidents API](../api-reference/incidents-api) - outage mark-downs, cooldown resets and pin drops
 - [Any-to-any formats](../api-reference/any-to-any-formats) - how a chosen provider is reached
 - [Gateway access and allowed models](../protect/gateway-access-and-allowed-models)
 - [Token saving](./token-saving) - response cache and prompt compression

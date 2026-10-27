@@ -1,0 +1,175 @@
+---
+title: "Rate limits API"
+sidebar_position: 6.7
+sidebar_label: "Rate limits API"
+sidebar_custom_props:
+  badge: new
+  icon: Gauge
+description: "LLM Gateway Management API v1: request and token rate limits, temporary raises, request guards, model limits, limit exemptions, custom limit responses, live usage and effective limits."
+aliases: [rate limits api, rate limit, requests per minute, tokens per minute, request guards, model limits, limit exemptions, 429 message, temporary raise, effective limits]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Rate limits API
+
+Manage the request and token limits that the Policy Engine's **Rate, Token & Timeout Limits** card configures, as typed resources. **You never write QuilrQL**: each write is validated and published as one policy revision. For what a limit counts and what clients see when they hit one, see [Rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits).
+
+This page covers rate limits (requests and tokens over a window). Spend budgets, budget grants and pricing are in the [Budgets API](./budgets-api): they have their own scopes (`budgets:*`), are priced in USD and report usage from a periodic snapshot, while rate limits count live.
+
+<StepFlow steps={[
+  {label: 'Rate limits', items: ['Requests or tokens', 'Per user, app, model...']},
+  {label: 'Raises', items: ['Temporary, per subject', 'Up to a ceiling']},
+  {label: 'Guards', items: ['Tokens per request', 'Timeout, per model']},
+  {label: 'Exemptions', items: ['Users, apps, groups', 'Until an expiry']},
+  {label: 'Responses', items: ['Custom 429 message', 'Help link, retry hint']},
+]} />
+
+| Resource | What it is | Read scope | Write scope |
+| --- | --- | --- | --- |
+| Rate limits | A counter of `requests`, `input_tokens`, `output_tokens` or `total_tokens` over a rolling or calendar window, one counter per `group_by` combination. | `limits:read` | `limits:write` |
+| Grants | A temporary raise of one subject's rate limit, until `expires_at`. Not a policy revision. | `limits:read` | `limits:grant` |
+| Request guards | Maximum total tokens per request and a request timeout, for a scope. The strictest value wins. | `limits:read` | `limits:write` |
+| Model limits | Per-model tokens-per-request and timeout caps, optionally for one provider label. | `limits:read` | `limits:write` |
+| Limit exemptions | Skip some or all rate limits for users, apps, smart groups or app tags, until an expiry. | `limits:read` | `limits:write` |
+| Limit responses | The message, help link and retry hint clients get when a limit blocks them, per app scope. | `limits:read` | `limits:write` |
+| Usage and effective limits | Live counters of one rate limit, and every limit that applies to an app, user and model. | `limits:read` | - |
+
+`limits:read` does not need `read`. Try every operation in the [Management API playground](/llm-gateway-management-playground?tab=limits).
+
+## Before you start
+
+- **The Policy Engine must be on** for the LLM Gateway. While it is off, every call answers `409 policy_not_enabled`.
+- **Limits are regional.** Every gateway in a region shares the same counters, so a limit of 60 requests per minute is 60 for the region, not per gateway. Usage reads report `scope: "regional"`.
+- Writes follow the same rules as routing controls: content-idempotent PUT, `If-Match` ETags, `If-None-Match: *` for create only, `?dry_run=true`, console rows read only, and `POST /controls/_batch` for several changes in one revision. See [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency).
+
+## Rate limits
+
+```json
+{
+  "label": "Support requests per minute",
+  "metric": "requests",
+  "limit": 60,
+  "window": {"kind": "rolling", "unit": "minute"},
+  "group_by": ["user"],
+  "scope": {"apps": ["support-bot"]},
+  "mode": "enforce",
+  "adjustments": {"ceiling": 120, "max_duration": "2d"},
+  "alerts": [{"at_pct": 80}]
+}
+```
+
+| Field | Values |
+| --- | --- |
+| `metric` | `requests`, `input_tokens`, `output_tokens`, `total_tokens`. Spend is a budget. |
+| `window` | Rolling: `{"kind": "rolling", "unit": "minute" \| "hour" \| "day" \| "week" \| "month" \| "year", "size": n}`. Calendar: `{"kind": "calendar", "unit": "day" \| "week" \| "month" \| "year", "timezone": "Europe/Berlin"}` (UTC by default). Lifetime windows are budgets. |
+| `group_by` | One counter per distinct combination; `[]` is one shared counter. |
+| `scope` | `apps`, `smart_groups`, `users`, `app_tags`. Every non-empty list must match; empty lists do not restrict. |
+| `mode` | `enforce` (default), `alert` (count and alert, never block) or `paused`. |
+| `adjustments` | Needed for grants: `ceiling` (highest limit a grant may set), `max_duration` (for example `2d`, default `366d`), optional `auto_approve`, `overflow` and `requestable`. |
+| `overrides` | Rate limit ids this one replaces where both apply. |
+
+`group_by` accepts short aliases; responses return the full field name:
+
+| Alias | Counts per |
+| --- | --- |
+| `user` / `user_id` | user email / user id |
+| `app` / `app_key` | app / gateway key |
+| `smart_group` | the user's active smart group |
+| `model` / `provider` / `provider_label` | served model / provider type / provider label |
+| `method_type` | client API family (Chat Completions, Responses, ...) |
+| `tenant` | the whole organization |
+
+:::warning metric, group_by and window are the counter's identity
+They cannot change in place (`422 identity_field_immutable`), because usage is counted against them. To change one, create a rate limit with a new id and delete the old one. An id used before with another identity is `422 quota_id_reused`.
+:::
+
+`POST /controls/rate-limits:migrate-legacy` converts an app's older per-app window limits into rate limits in one revision; `?dry_run=true` shows the result first.
+
+### Temporary raises (grants)
+
+A grant raises one subject's limit until `expires_at`: `extra` adds to the limit, `limit` sets it (exactly one). Name the subject by the rate limit's grouping, for example `{"user": "alex@example.com"}`.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY" -H 'Content-Type: application/json')
+
+curl -X POST "$API/controls/rate-limits/support-rpm/grants" "${auth[@]}" -H "Idempotency-Key: launch-alex" \
+  -d '{"subject": {"user": "alex@example.com"}, "extra": 60, "expires_at": "2026-11-01T00:00:00Z", "reason": "launch"}'
+```
+
+- The rate limit needs `adjustments` (`409 rate_limit_not_adjustable`). A grant above `ceiling` is `422 grant_above_ceiling`; longer than `max_duration` is `422 grant_too_long`.
+- A new grant for the same subject supersedes the active one (returned as `superseded`).
+- Revoke with `DELETE /controls/rate-limits/{id}/grants/{grant_id}?reason=...` and the grant ETag in `If-Match`.
+- Grants never publish a policy revision.
+
+### Usage
+
+`GET /controls/rate-limits/{id}/usage` returns live counters: one subject's bucket with `subject.user=` or `subject.app=` (or `bucket=`), or the busiest buckets (`top`, default 20).
+
+## Request guards and model limits
+
+- **Request guards** cap `max_tokens_per_request` and `timeout_s` for a scope. When several apply at one priority, the strictest value wins.
+- **Model limits** set the same caps per model: `{"limits": [{"model": "gpt-4.1", "max_tokens_per_request": 4000}]}`, with optional `provider_label` per entry. For requests or tokens per window per model, use a rate limit with `group_by: ["model"]`; the older window keys on model limits are `422 deprecated_field`.
+
+## Exemptions
+
+`{"scope": {"users": ["oncall@example.com"]}, "quotas": "all", "reason": "on call", "expires_at": "2027-01-01T00:00:00Z"}` skips every rate limit for that user until the expiry. `quotas` can instead list rate limit ids. Exemptions here cover rate limits only; budget exemptions are in the Budgets API (`422 budget_exemption_not_supported`). `expires_at` must be in the future.
+
+## Custom limit responses
+
+A limit response replaces the default message of a blocked request for its scope:
+
+```json
+{"scope": {"apps": ["support-bot"]}, "message": "Limit {limit} reached; resets {reset}", "url": "https://help.example.com/limits", "retry": "never"}
+```
+
+`message` may use `{limit}`, `{reset}` and `{budget}`. `url` must be `https://`. `retry: "never"` tells clients not to retry; `default` keeps the normal retry hint. Two limit responses must name app lists with no app in common, otherwise `422 limit_response_conflict`, so each app gets exactly one message.
+
+## Effective limits
+
+`GET /limits/effective?app=&user=&requested_model=&model=&provider_label=` returns every rate limit, request guard and model limit that applies, the one that binds first (`tightest`, `tightest_tokens_per_request`), exemptions, grants and the limit response, with live counters unless `include_usage=false`. `unknown_facts` lists inputs the active policy reads that the query did not supply (for example a user id); they count as empty.
+
+## Errors
+
+| Status | Codes |
+| --- | --- |
+| 400 | `invalid_request`, `invalid_cursor`, `invalid_resource_id`, `idempotency_key_required` |
+| 404 | `rate_limit_not_found`, `grant_not_found` |
+| 409 | `policy_not_enabled`, `rate_limit_not_adjustable`, `grant_not_active`, `rule_not_api_managed` |
+| 412 | `version_conflict` |
+| 422 | `validation_failed`, `identity_field_immutable`, `quota_id_reused`, `quota_id_conflict`, `kind_not_supported`, `grant_above_ceiling`, `grant_too_long`, `invalid_grant`, `invalid_subject`, `subject_unresolved`, `subject_not_in_budget`, `duplicate_subject`, `invalid_quota_adjustments`, `override_target_not_allowed`, `limit_response_conflict`, `budget_exemption_not_supported`, `exemption_expired`, `deprecated_field`, `unsupported_fields` |
+| 428 | `precondition_required` (revoking a grant needs `If-Match`) |
+
+## Endpoints
+
+### Rate limits, usage and grants
+
+<ApiReference tags={['Limits']} paths={['/controls/rate-limits']} />
+
+### Request guards
+
+<ApiReference tags={['Limits']} paths={['/controls/request-guards']} />
+
+### Model limits
+
+<ApiReference tags={['Limits']} paths={['/controls/model-limits']} />
+
+### Limit exemptions
+
+<ApiReference tags={['Limits']} paths={['/controls/limit-exemptions']} />
+
+### Limit responses
+
+<ApiReference tags={['Limits']} paths={['/controls/limit-responses']} />
+
+### Effective limits
+
+<ApiReference tags={['Limits']} paths={['/limits']} />
+
+## Related
+
+- [Rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits) - what limits count and what clients see.
+- [Budgets API](./budgets-api) - spend, request and token budgets with pricing and budget grants.
+- [Routing and failover API](./routing-and-failover-api) - the write, ETag and restore rules shared by every control.
+- [Management API](./management-api) - authentication, scopes, errors and retry rules.
