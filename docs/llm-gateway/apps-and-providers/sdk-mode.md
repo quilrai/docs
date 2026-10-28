@@ -596,7 +596,7 @@ If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quic
 
 **At a glance** (`QuilrUnifiedGuardrail`):
 
-- **Supported:** prompts and answers on OpenAI Chat Completions, Anthropic Messages, the Responses API, text completion and Gemini; embeddings; image generation prompts; text to speech; rerank queries; tool calls; MCP tool calls; streaming; guardrail records in Langfuse and other LiteLLM logging integrations; fail-open or fail-closed
+- **Supported:** prompts and answers on OpenAI Chat Completions, Anthropic Messages, the Responses API, text completion and Gemini; embeddings; image generation prompts; text to speech; rerank queries; tool calls; MCP tool calls (all tools, or only the ones you choose); streaming; guardrail records in Langfuse and other LiteLLM logging integrations; fail-open or fail-closed
 - **Not checked:** images, tool definitions sent to the model, and transcribed audio text (a LiteLLM limit)
 
 Details are in [What is supported](#what-is-supported) and [Limits](#limits).
@@ -628,6 +628,7 @@ QUILR_GUARDRAILS_KEY=sk-quilr-XXXXXXXXX
 QUILR_GUARDRAILS_BASE_URL=<QUILR GUARDRAILS BASE URL>
 QUILR_GUARDRAILS_TIMEOUT=3          # Optional: seconds before a check times out (default: 3)
 QUILR_GUARDRAILS_FAIL_CLOSED=false  # Optional: block when Quilr can't be reached (QuilrUnifiedGuardrail only)
+QUILR_GUARDRAILS_SCAN_MCP_TOOLS=all # Optional: which MCP tools to check (QuilrUnifiedGuardrail only)
 ```
 
 | Variable | Required | Default | Description |
@@ -636,6 +637,7 @@ QUILR_GUARDRAILS_FAIL_CLOSED=false  # Optional: block when Quilr can't be reache
 | `QUILR_GUARDRAILS_BASE_URL` | No | `https://guardrails.quilr.ai` | Override with the closest regional endpoint for production or with a self-hosted deployment URL |
 | `QUILR_GUARDRAILS_TIMEOUT` | No | `3` | Seconds before a check times out |
 | `QUILR_GUARDRAILS_FAIL_CLOSED` | No | `false` | `true` blocks requests when Quilr can't be reached (`QuilrUnifiedGuardrail` only). See [When Quilr can't be reached](#when-quilr-cant-be-reached) |
+| `QUILR_GUARDRAILS_SCAN_MCP_TOOLS` | No | `all` | Which MCP tools to check: `all`, `none`, or a comma-separated mix of `readonly`, `writeonly`, `destructive` and tool names (`QuilrUnifiedGuardrail` only). See [Choosing which MCP tools to check](#choosing-which-mcp-tools-to-check) |
 | `APPLY_QUILR_GUARDRAILS_FOR_MODELS` | No | (all) | Comma-separated list of models to restrict guardrails to |
 | `APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES` | No | (all) | Comma-separated list of LiteLLM key names to restrict guardrails to |
 
@@ -713,7 +715,7 @@ Only `incremental_diff` redacts while streaming. In the other setups, if Quilr r
 Each check adds a guardrail record to LiteLLM's logs, so it shows in Langfuse, Datadog and the other LiteLLM logging integrations:
 
 - `guardrail_provider`: `quilr`
-- `guardrail_status`: `success`, `guardrail_intervened` (blocked), `guardrail_flagged` (categories found, allowed) or `guardrail_failed_to_respond` (Quilr unreachable)
+- `guardrail_status`: `success`, `guardrail_intervened` (blocked), `guardrail_flagged` (categories found, allowed), `guardrail_failed_to_respond` (Quilr unreachable) or `not_run` (MCP tool skipped by `QUILR_GUARDRAILS_SCAN_MCP_TOOLS`)
 - `guardrail_response`: Quilr's status, action and categories
 - `masked_entity_count`: how many checks redacted each category
 
@@ -730,6 +732,42 @@ To group checks by conversation and user in Quilr, the plugin sends:
 By default the plugin fails open: if Quilr times out or returns an error, the content passes unchecked, a warning is logged, and the logging record shows `guardrail_failed_to_respond`. To block instead, set `quilr_fail_closed: true` on each guardrail that should fail closed, or `QUILR_GUARDRAILS_FAIL_CLOSED=true` for all of them. Blocked requests return HTTP 503.
 
 If you use fail-closed, consider a higher `QUILR_GUARDRAILS_TIMEOUT` so slow responses aren't blocked.
+
+#### Choosing which MCP tools to check
+
+By default every MCP tool is checked. To check only some, set `QUILR_GUARDRAILS_SCAN_MCP_TOOLS` for all guardrails, or `quilr_scan_mcp_tools` under one guardrail's `litellm_params`.
+
+| Value | Tools checked |
+|-------|---------------|
+| `all` (default, also when not set) | Every tool |
+| `none` | No MCP tools |
+| `readonly` | Tools labeled read-only (MCP `readOnlyHint: true`) |
+| `writeonly` | Tools not labeled read-only |
+| `destructive` | Tools that may delete or overwrite data (not read-only, and MCP `destructiveHint` not `false`) |
+| `run_sql,read_logs` | These tools only |
+| `writeonly,run_sql` | A mix: a tool is checked if any item matches |
+
+For example, with tools `read_logs` (read-only), `run_sql` (read-only), `delete_file` (destructive), `send_email` (`destructiveHint: false`) and `get_time` (no labels):
+
+| Setting | Checked | Skipped |
+|---------|---------|---------|
+| `writeonly` | `delete_file`, `send_email`, `get_time` | `read_logs`, `run_sql` |
+| `destructive` | `delete_file`, `get_time` | `read_logs`, `run_sql`, `send_email` |
+| `writeonly,run_sql` | `delete_file`, `send_email`, `get_time`, `run_sql` | `read_logs` |
+| `run_sql,send_email` | `run_sql`, `send_email` | `read_logs`, `delete_file`, `get_time` |
+
+- Applies to `pre_mcp_call`, `during_mcp_call`, `post_mcp_call` and the tool list check.
+- Give tool names as the MCP server names them (`run_sql`) or with LiteLLM's server prefix (`myserver-run_sql`). Names are case-sensitive. Label words are not, and can be written with `-` or `_` (`read-only`, `write_only`). In `config.yaml` the value can also be a YAML list.
+- A tool without labels counts as `writeonly` and `destructive` (the MCP spec's defaults), so it is still checked by those.
+- The labels are read from the MCP server's tool list and cached for 5 minutes (a failed read is retried after 30 seconds). If the list can't be read, the tool counts as unlabeled.
+- MCP servers that need each caller's own login (a per-user token; OAuth servers are expected to behave the same): the plugin can't read their tool list, so their tools count as unlabeled. `writeonly` and `destructive` then check all of them, and `readonly` checks none. Use tool names for these servers. Servers whose login is set in the LiteLLM config work normally.
+- In `during_mcp_call`, LiteLLM doesn't pass the server name, so the labels are looked up on every MCP server. A tool name that exists on several servers counts as read-only only if it is read-only on all of them.
+- `none` together with other values is treated as `all`, with a warning in the log.
+- A skipped tool passes through unchanged. Its logging record has `guardrail_status: not_run`.
+
+:::warning
+The labels are set by the MCP server itself and are not verified. Read-only tools such as SQL or log readers often return the most sensitive data, so skip them only when you are sure.
+:::
 
 ### LiteLLM `config.yaml`
 
@@ -863,3 +901,4 @@ Limits that come from LiteLLM:
 - Anthropic Messages (`/v1/messages`) answers: LiteLLM does not apply changed tool calls, so tool-call arguments can be blocked but not redacted.
 - Audio transcription (`/v1/audio/transcriptions`): LiteLLM's proxy does not run post-call guardrails on transcriptions, so the transcribed text is not checked.
 - Rerank: only the query is checked.
+- MCP tool labels (`readonly`, `writeonly`, `destructive` in `QUILR_GUARDRAILS_SCAN_MCP_TOOLS`): LiteLLM does not pass them to guardrails, so the plugin reads them from the server's tool list. For servers that need each caller's own login this isn't possible; use tool names there. See [Choosing which MCP tools to check](#choosing-which-mcp-tools-to-check).
