@@ -10,6 +10,16 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Model visibility (2026-10-27)
+
+- New **Model Visibility** card in **Policy Engine > LLM Gateway** decides what model lists show: `GET /v1/models` (OpenAI and Anthropic formats) and **Get available models** / **List models** in the console
+- Turn listing off, show only some providers, provider labels or model patterns (`*` and `?` wildcards), hide models, or hide undated aliases such as `gpt-4o` next to `gpt-4o-2024-08-06`, for everyone or by Application, App tag, Smart group or person
+- Hidden models stay callable by name; to block a model, reject it on **Allowed Models**
+- **Hidden models** lets the people you choose ask for hidden entries with `include_hidden=true`, marked `"quilr_visibility": "hidden"`; in the console, people who can view LLM Gateway policies get **Show models hidden by policy**
+- Console lookups skip the provider check for hidden models, and ask for model names when listing is off
+- `GET /openai_compatible/v1/models/{id}` now runs the same identity, source IP and Policy Engine checks as the model list: a model Allowed Models rejects returns 404 `model_not_found`
+- Details: [Model visibility](../protect/model-visibility)
+
 ## Universal system prompt policies (2026-10-26)
 
 - With the Policy Engine on, a **Universal system prompt** control on the **Prompt Store and Enforcement** card decides the universal system prompt by Application, Smart group, user, model or request metadata: write the prompt (up to 8,192 characters), use a Global Prompt Store prompt, or turn it **Off** for a narrower scope

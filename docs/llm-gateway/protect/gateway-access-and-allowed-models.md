@@ -61,6 +61,8 @@ The model picker is grouped by provider credential and lists only enabled creden
 
 Both sections apply on the `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `models`, `realtime`, `rerank`, `responses`, `sdk_check`, `stt`, `text`, `tts` and `vertex` API surfaces.
 
+On `models`, `GET /v1/models` lists only the models a caller may use, and `GET /v1/models/{id}` returns 404 for a model this card rejects. To take a model off those lists without blocking it, use [Model visibility](./model-visibility).
+
 :::warning Everyone lists affect every app
 An allowed list scoped to **Everyone** restricts every application and user to that list. Choose **Application** or another scope to limit who it affects.
 :::
@@ -92,6 +94,7 @@ For limiting models, an allowed list is usually easier to maintain than a deny r
 ## Related
 
 - [Providers and models](../apps-and-providers/providers-and-models)
+- [Model visibility](./model-visibility)
 - [Routing and fallbacks](../cost-and-traffic/routing-and-fallbacks)
 - [Tool controls](./tool-controls)
 - [Policy Engine overview](../../console/govern/policy-engine)

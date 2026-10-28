@@ -98,6 +98,7 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | Identity & Network Trust | [Identity and network trust](../../llm-gateway/protect/identity-and-network-trust) |
 | Tool Controls | [Tool controls](../../llm-gateway/protect/tool-controls) |
 | Allowed Models | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |
+| Model Visibility | [Model visibility](../../llm-gateway/protect/model-visibility) |
 | Model routing | [Routing and failover](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
 | Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
 | Rate, Token & Timeout Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
@@ -187,7 +188,7 @@ The engine switch is tenant-wide. While the LLM Gateway engine is on, these sect
 | Identity Aware (Enforce identity, Enforce conversation ID) | Identity & Network Trust |
 | Prompt Store (Require system prompt from store, Universal system prompt) | Prompt Store and Enforcement |
 
-Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls and Budgets & Usage Limits exist only in the engine. See [Switching from classic settings](./switching-from-classic-settings).
+Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls, Budgets & Usage Limits and Model Visibility exist only in the engine. See [Switching from classic settings](./switching-from-classic-settings).
 
 ## Related
 
