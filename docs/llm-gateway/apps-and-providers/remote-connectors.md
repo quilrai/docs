@@ -52,6 +52,15 @@ On Windows (PowerShell):
 .\quilr-connector.exe --token qrc_your_token_here
 ```
 
+To run it in the background as a service that starts at boot on Linux:
+
+```bash
+sudo ./quilr-connector service install --token qrc_your_token_here
+sudo quilr-connector service logs -f
+```
+
+See [MCP Gateway remote connectors](../../mcp-gateway/servers-and-connections/remote-connectors#virtual-machine-linux-vm-ec2-or-gce) for service management, [logs](../../mcp-gateway/servers-and-connections/remote-connectors#logs), and [sizing](../../mcp-gateway/servers-and-connections/remote-connectors#sizing).
+
 ### Docker
 
 Use the shared container image, available for `linux/amd64` and `linux/arm64`:

@@ -110,30 +110,19 @@ docker run -d \
   ghcr.io/quilrai/quilr-connector:latest
 ```
 
-**`systemd` service (`/etc/systemd/system/quilr-connector.service`):**
-
-```ini
-[Unit]
-Description=Quilr Remote Connector
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-Environment="QUILR_CONNECTOR_TOKEN=qrc_your_token_here"
-ExecStart=/usr/local/bin/quilr-connector
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start the service:
+**Run as a service (starts at boot, restarts on failure):**
 
 ```bash
-sudo systemctl daemon-reload && sudo systemctl enable --now quilr-connector
+sudo quilr-connector service install --token qrc_your_token_here
+sudo quilr-connector service status
+sudo quilr-connector service logs -f
 ```
+
+`service install` writes the token to `/etc/quilr-connector/connector.env` (readable only by root) and installs a sandboxed `quilr-connector` systemd unit. It also accepts every flag in the [configuration reference](#configuration-reference), for example `--instance-name`. The other subcommands are `start`, `stop`, `restart`, and `uninstall`.
+
+- **Upgrade:** download the new binary and re-run `sudo ./quilr-connector service install`. Existing settings are kept unless you pass `--token`.
+- **Without `sudo`:** installs a per-user service instead. Run `sudo loginctl enable-linger $USER` so it starts at boot.
+- **macOS:** the same commands manage a launchd agent. Logs go to `~/Library/Logs/quilr-connector/`.
 
 ### Kubernetes cluster
 
@@ -230,6 +219,41 @@ All OpenAPI spec previews, spec resyncs, [OneMCP](../get-started/onemcp) calls, 
 | `--insecure-skip-tls-verify` | `QUILR_CONNECTOR_INSECURE_TLS` | `false` | Skip TLS certificate verification for internal HTTPS MCP servers or REST APIs with self-signed certs |
 | `--gateway-url` | `QUILR_GATEWAY_URL` | Decoded from token | Optional override for the gateway base URL |
 | `--ping-interval-secs` | `QUILR_CONNECTOR_PING_INTERVAL_SECS` | `20` | Heartbeat ping interval in seconds (minimum `5`) |
+| `--log-level` | `QUILR_LOG_LEVEL` | `info` | `error`, `warn`, `info`, or `debug` |
+| `--log-format` | `QUILR_LOG_FORMAT` | `auto` | `json`, `text`, or `auto` (text on a terminal, JSON otherwise) |
+| `--log-file` | `QUILR_LOG_FILE` | stdout | Write logs to a file, rotated daily with 7 files kept. For the system service, use a path under `/var/log/quilr-connector/` |
+| `--heartbeat-log-secs` | `QUILR_HEARTBEAT_LOG_SECS` | `300` | Interval for the status summary log line (`0` disables it) |
+
+Upstream HTTPS servers are verified against both the bundled public roots and the system CA store (for example `/etc/ssl/certs`), so internal CAs installed on the host are trusted.
+
+## Logs
+
+The connector writes one JSON object per line, each with an `event` field. Logs never include the token, request or response headers, bodies, or query strings. URL paths are only logged at `debug` level.
+
+| `event` | Meaning |
+|---------|---------|
+| `startup`, `connected`, `shutdown`, `stopped` | Lifecycle |
+| `connect_failed`, `disconnected`, `auth_rejected` | Gateway connectivity problems, with `reason` and `retry_in_ms` |
+| `request` | One line per forwarded call: `method`, `target` (host:port), `status`, `duration_ms`, `bytes`, `sse`, `outcome` (`ok`, `cancelled`, `error`), and `error_kind` on failure |
+| `request_rejected` | The 128 concurrent stream limit was reached |
+| `heartbeat` | Every 5 minutes: `connected`, `active_streams`, and `requests`, `errors`, and `disconnects` since the previous heartbeat |
+
+```json
+{"timestamp":"2026-10-28T10:01:02.123456Z","level":"INFO","message":"Request completed","event":"request","method":"POST","target":"mcp.internal:8080","status":200,"duration_ms":184,"bytes":912,"sse":false,"outcome":"ok"}
+```
+
+## Sizing
+
+Use **2 vCPU and 3 GB RAM** per connector instance. If requests never carry multi-megabyte bodies, 1 vCPU and 1 GB is enough.
+
+| Load | Peak memory | CPU |
+|------|-------------|-----|
+| Idle, connected | 5 MiB | ~0% |
+| Small JSON requests, 128 concurrent (~30k requests/s) | 14 MiB | 2 cores |
+| 128 open SSE streams | 16 MiB | under 1% of a core |
+| Worst case: 128 concurrent 16 MB uploads to a slow upstream | ~2.1 GiB | - |
+
+Typical MCP, REST, and LLM traffic uses well under one core. The worst case is bounded by the 16 MB request body and 128 concurrent stream limits. The Kubernetes example above caps memory at `256Mi`, which suits small JSON traffic; raise it to `3Gi` if large uploads are expected.
 
 ## High availability, token rotation, and limits
 
