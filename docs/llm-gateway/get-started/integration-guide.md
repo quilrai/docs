@@ -362,7 +362,7 @@ curl https://guardrails-usa-2.quilr.ai/mistral/v1/fim/completions \
 
 ### Decision models
 
-Microsoft-Decision-1 deployments on an Azure provider answer typed questions with probabilities. Send the OpenAI Decisions format to `/openai_compatible/v1/decisions` or the System One format to `/typesafe/v1/systemone`; `model` is your Azure deployment name. See [Decision models](../apps-and-providers/provider-support#decision-models).
+Decision models answer typed questions with probabilities: Microsoft-Decision-1 deployments on an Azure provider, and TypeSafe Jev models on a TypeSafe provider. Send the OpenAI Decisions format to `/openai_compatible/v1/decisions` or the System One format to `/typesafe/v1/systemone`; `model` is your Azure deployment name or a Jev model such as `jev-latest`. See [Decision models](../apps-and-providers/provider-support#decision-models).
 
 <Tabs groupId="lang">
 <TabItem value="python" label="Python">
@@ -387,6 +387,28 @@ response = requests.post(
 )
 for answer in response.json()['answers']:
     print(answer)
+```
+
+</TabItem>
+<TabItem value="typesafe" label="TypeSafe SDK">
+
+```python
+from typesafe_sdk import TypeSafeClient, Noul
+
+client = TypeSafeClient(
+    # diff-add
+    api_key='sk-quilr-xxx',
+    # diff-add
+    base_url='https://guardrails-usa-2.quilr.ai/typesafe',
+    model='jev-latest',
+    # diff-add
+    compression=False,  # the gateway refuses zstd-compressed bodies
+)
+response = client.system_one(
+    state='I was charged twice for my plan.',
+    questions={'billing': Noul(instructions='Is this about billing?')},
+)
+print(response.answers['billing'].noul)
 ```
 
 </TabItem>

@@ -10,6 +10,14 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## TypeSafe decision models (2026-10-28)
+
+- New provider type `typesafe` on a **TypeSafe** tile ("Decision models · Direct API"), with an API key and a fixed endpoint (`https://api.typesafe.ai/v1`)
+- Jev decision models (`jev-latest`, `jev-preview`, `jev-1.14.0`, `jev-1.13.0`) answer typed questions with probabilities through `/typesafe/v1/systemone` (System One format) and `/openai_compatible/v1/decisions` (OpenAI Decisions format)
+- The TypeSafe SDK works with the gateway as its base URL: `system_one()` and `models.list()` (new `GET /typesafe/v1/models`); pass `compression=False`
+- **Check key and list models** lists the Jev models as decision models and validates each one
+- Details: [Decision models](../apps-and-providers/provider-support#typesafe)
+
 ## Cerebras provider (2026-10-27)
 
 - New provider type `cerebras` on a **Cerebras** tile, with an API key and a fixed endpoint (`https://api.cerebras.ai/v1`)

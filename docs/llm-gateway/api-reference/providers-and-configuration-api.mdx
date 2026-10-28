@@ -21,7 +21,7 @@ Creation requires `label`, `provider_name` and credentials for the selected prov
 
 | Family | Provider types | Credential choices |
 | --- | --- | --- |
-| API key | OpenAI, Anthropic/native Messages, DeepSeek, Gemini Chat Completions, Responses, Assistants, Realtime, Cohere/Jina/Voyage rerank, Sarvam, Mistral AI (`mistral`), xAI (`xai`, `xai_responses`), Cerebras (`cerebras`). | `api_key`; optional compatible base URL/version where supported. Mistral, xAI and Cerebras ignore `base_url`. |
+| API key | OpenAI, Anthropic/native Messages, DeepSeek, Gemini Chat Completions, Responses, Assistants, Realtime, Cohere/Jina/Voyage rerank, Sarvam, Mistral AI (`mistral`), xAI (`xai`, `xai_responses`), Cerebras (`cerebras`), TypeSafe (`typesafe`). | `api_key`; optional compatible base URL/version where supported. Mistral, xAI, Cerebras and TypeSafe ignore `base_url`. |
 | Azure | `azureopenai`, `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure`. | `api_key`, `azure_endpoint`, optional `azure_api_version`. |
 | Custom endpoint | `general`, `general_rerank`, `anthropic_messages_azure`. | `api_key` and `base_url`. |
 | AWS | `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `bedrock_rerank`. | Static keys or assume-role; fields from different modes cannot be mixed. |
