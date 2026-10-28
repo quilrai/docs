@@ -101,6 +101,8 @@ TASK -> WHERE
   (/settings/models/models, /settings/models/api-keys). Models tab sources: "QuilrAI provided models" |
   "Your models"; Search models, Sort by price. API keys > Create API key (shown once).
 - Govern all apps with policies -> sidebar Policy Engine > LLM Gateway tab (/policy/engine/llm-gateway)
+- Hide models from GET /v1/models and Get available models (still callable by name) -> Policy Engine >
+  LLM Gateway > Model Visibility card (see POLICY ENGINE)
 - Costs across gateway -> sidebar Costs & Savings: Overview | Attribution | Savings | Habits | Providers
 - Findings across sources -> sidebar Findings & Interactions (LLM traffic shows source "LLM Gateway")
 - App as an asset -> sidebar Inventory > open the app: Analytics | Requests | Usage & cost | Settings
@@ -116,12 +118,23 @@ TASK -> WHERE
 
 POLICY ENGINE (LLM) - /policy/engine/llm-gateway
 - Surface tabs: Browser Extension | LLM Gateway | MCP Gateway | Endpoint Agent
-- Header when on: ENGINE ON, Revision N, "Gateway controls", "N of 12 active", History, Docs, Filter
+- Header when on: ENGINE ON, Revision N, "Gateway controls", "N of 13 active", History, Docs, Filter
 - "What applies to one request" > Describe a request (previews the winning value per control)
-- 12 cards (each Configure + Docs): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
-  Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Model routing,
+- 13 cards (each Configure + Docs): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
+  Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Model Visibility, Model routing,
   Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement.
   Below them: "Advanced policies" (policies the cards cannot represent; Advanced workspace).
+- Model Visibility card (what GET /v1/models and the console's Get available models / List models show;
+  never what can be called): Quick add (Hide preview models, Only show approved providers, Turn off model
+  listing, Let admins list hidden models) or a control's add button > "New model visibility rule": choose who
+  it applies to > Model lists (Both | API (GET /v1/models) | Console), Model listing (On | Off), Show only
+  ("Show only some models") and Hide ("Hide some models") with grants (Providers = exact provider type,
+  Provider labels, Model patterns with * and ?; Add grant), Undated aliases ("Hide undated aliases"),
+  Hidden models (Not set | Never | On request | Always) > Add to draft. Grants from every matching rule add
+  up and a hide wins. Hidden models stay callable by name; block a model on Allowed Models instead.
+  On request: callers add ?include_hidden=true or header X-Quilr-Include-Hidden: true. In the console a
+  lookup shows "N models hidden by policy." and, for people who can view LLM Gateway policies, a
+  "Show models hidden by policy" checkbox.
 - Prompt Store and Enforcement card: Prompt Store button (Global Prompt Store drawer), "Require store prompt",
   and "Universal system prompt" (section's Custom > "New universal system prompt": choose who it applies to >
   On with "Write the prompt" ("Prompt text", up to 8,192 characters) or "Use a Global Prompt Store prompt"
@@ -160,7 +173,7 @@ DEEP LINKS (query parameters on /settings/llm-gateway)
 - Models: /settings/models/models?action=add-models ; ?source=quilr|yours ; ?q=<search>
 - Policy card anchor: /policy/engine/llm-gateway#policy-surface-<id>; ids: data-risks, guardian,
   hallucination, gateway-access, identity-network, tool-controls, allowed-models,
-  routing-groups-fallbacks, budgets, limits, token-saving, prompt-store
+  model-visibility, routing-groups-fallbacks, budgets, limits, token-saving, prompt-store
 
 CONFIGURATION NOTES
 - Policy Engine on (tenant-wide): Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving,
@@ -196,6 +209,7 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/protect/guardian-agent.md
 - https://docs.quilrai.dev/llm-gateway/protect/custom-detections.md
 - https://docs.quilrai.dev/llm-gateway/protect/identity-and-network-trust.md
+- https://docs.quilrai.dev/llm-gateway/protect/model-visibility.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/routing-and-fallbacks.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/rate-token-and-budget-limits.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/token-saving.md

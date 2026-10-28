@@ -50,6 +50,7 @@
   "/policy-engine/llm-controls/identity-and-network-trust": "/llm-gateway/protect/identity-and-network-trust",
   "/policy-engine/llm-controls/gateway-access": "/llm-gateway/protect/gateway-access-and-allowed-models#gateway-access-card",
   "/policy-engine/llm-controls/allowed-models": "/llm-gateway/protect/gateway-access-and-allowed-models#allowed-models-card",
+  "/policy-engine/llm-controls/model-visibility": "/llm-gateway/protect/model-visibility",
   "/policy-engine/llm-controls/tool-controls": "/llm-gateway/protect/tool-controls",
   "/policy-engine/llm-controls/workspace-tools": "/llm-gateway/protect/tool-controls#test-before-you-publish",
   "/llm-gateway/features/request-routing": "/llm-gateway/cost-and-traffic/routing-and-fallbacks",

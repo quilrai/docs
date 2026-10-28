@@ -44,6 +44,7 @@ import {
   Users,
   CalendarClock,
   ArrowLeftRight,
+  EyeOff,
 } from "lucide-react";
 
 const iconMap = {
@@ -91,6 +92,7 @@ const iconMap = {
   Users,
   CalendarClock,
   ArrowLeftRight,
+  EyeOff,
 };
 
 export function getSidebarIcon(name) {
