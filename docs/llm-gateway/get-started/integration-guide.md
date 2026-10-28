@@ -42,6 +42,8 @@ Use the regional endpoint closest to your application for production traffic. Us
 | **OpenAI Realtime** (wss) | `/openai_realtime/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Sarvam** (speech and text) | `/sarvam/` | `Authorization: Bearer sk-quilr-xxx` |
 | **TypeSafe System One** (decision models) | `/typesafe/` | `Authorization: Bearer sk-quilr-xxx` |
+| **Mistral AI** (OCR, fill-in-the-middle) | `/mistral/` | `Authorization: Bearer sk-quilr-xxx` |
+| **xAI** (Responses with xAI tools, images, videos, batches) | `/xai/` | `Authorization: Bearer sk-quilr-xxx` |
 | **Copilot Studio** | `/copilot_studio/{sk-quilr-xxx}` | Quilr key in the path |
 | **TrueFoundry custom guardrail** | `/sdk/v1/check/truefoundry` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
 | **Standalone SDK content check** | `/sdk/v1/check` | `Authorization: Bearer sk-quilr-xxx` from a `quilr_sdk` app |
@@ -305,6 +307,53 @@ curl https://guardrails-usa-2.quilr.ai/rerank/v2/rerank \
       "The Eiffel Tower is in Paris."
     ],
     "top_n": 2
+  }'
+```
+
+</TabItem>
+</Tabs>
+
+### Mistral and xAI APIs
+
+Mistral's and xAI's own APIs have their own routes, in each vendor's own format: `/mistral/v1/ocr`, `/mistral/v1/fim/completions`, `/xai/v1/responses`, `/xai/v1/images/generations` and more. Their chat goes through the OpenAI-compatible path like any provider. See [Vendor routes](../apps-and-providers/provider-support#vendor-routes).
+
+<Tabs groupId="lang">
+<TabItem value="python" label="Python">
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    # diff-add
+    base_url='https://guardrails-usa-2.quilr.ai/xai/v1',
+    # diff-remove
+    api_key='xai-xxx',
+    # diff-add
+    api_key='sk-quilr-xxx',
+)
+
+# xAI's Responses API, including xAI's server-side tools
+response = client.responses.create(
+    model='grok-4.20-0309-non-reasoning',
+    input='What is new at xAI?',
+    tools=[{'type': 'web_search'}],
+)
+print(response.output_text)
+```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+```bash
+# Codestral fill-in-the-middle, Mistral's own format
+curl https://guardrails-usa-2.quilr.ai/mistral/v1/fim/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-quilr-xxx" \
+  -d '{
+    "model": "codestral-latest",
+    "prompt": "def add(a, b):\n    return",
+    "suffix": "\n\nprint(add(1, 2))",
+    "max_tokens": 32
   }'
 ```
 

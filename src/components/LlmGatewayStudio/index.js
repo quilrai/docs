@@ -101,7 +101,7 @@ const SURFACES = [
     selector: false,
     model: 'gpt-3.5-turbo-instruct',
     blurb:
-      'Text completions and fill-in-the-middle (send a suffix) for OpenAI, Azure, Mistral Codestral, DeepSeek, and custom upstreams.',
+      'Text completions and fill-in-the-middle (send a suffix) for OpenAI, Azure, Mistral Codestral, DeepSeek, Cerebras, and custom upstreams.',
     sample: {
       model: 'gpt-3.5-turbo-instruct',
       prompt: 'Write one sentence from the QuilrAI gateway playground.',
@@ -149,7 +149,7 @@ const SURFACES = [
     auth: 'bearer',
     selector: true,
     model: 'gpt-image-1',
-    blurb: 'Image generation for OpenAI, Azure, xAI Grok Imagine, Gemini, and custom providers. Not scanned by guardrails.',
+    blurb: 'Image generation for OpenAI, Azure, Gemini, and custom providers (xAI Grok Imagine: /xai/v1/images/generations). Not scanned by guardrails.',
     sample: {
       model: 'gpt-image-1',
       prompt: 'A plain white square.',
