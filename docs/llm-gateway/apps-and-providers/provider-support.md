@@ -4,8 +4,8 @@ sidebar_label: "Provider support matrix"
 sidebar_custom_props:
   badge: new
   icon: Handshake
-description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, Cerebras, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and Microsoft-Decision-1 decision models on Azure AI Foundry through the OpenAI Decisions and System One APIs, and the Mistral and xAI vendor routes (/mistral/v1/ocr, /mistral/v1/fim/completions, /xai/v1/responses, /xai/v1/images, videos and batches)."
-aliases: [mistral, mistral ai, xai, grok, codestral, voxtral, grok imagine]
+description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, Cerebras, TypeSafe, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and decision models (Microsoft-Decision-1 on Azure AI Foundry and TypeSafe Jev) through the OpenAI Decisions and System One APIs, and the Mistral and xAI vendor routes (/mistral/v1/ocr, /mistral/v1/fim/completions, /xai/v1/responses, /xai/v1/images, videos and batches)."
+aliases: [mistral, mistral ai, xai, grok, codestral, voxtral, grok imagine, typesafe, jev, system one]
 ---
 
 # Provider Support
@@ -44,6 +44,7 @@ One row per provider type. The type is what you select in the console and what y
 | `xai_responses` | xAI | ↻ | ↻ | ✓ | - | - | - | - | - | ✓ |
 | `mistral` | Mistral | ✓ | ↻ | ↻ | - | - | ✓ | - | ✓ | ✓ |
 | `cerebras` | Cerebras | ✓ | ↻ | ↻ | - | - | - | - | - | ✓ |
+| `typesafe` | TypeSafe (decision models only) | - | - | - | - | - | - | - | - | ✓ |
 | `oracle` | Oracle OCI Generative AI | ✓ | Soon | Soon | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | Soon | Soon | ✓ | - | - | - | - | - | Manual |
 | `sarvam` | Sarvam | ✓ | Soon | Soon | - | - | - | - | ✓ | ✓ |
@@ -62,7 +63,7 @@ One row per provider type. The type is what you select in the console and what y
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
 - **Endpoint families:** moderations, images, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families). Mistral and xAI also have [vendor routes](#vendor-routes).
-- `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes. See [Decision models](#decision-models).
+- `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes, and `typesafe` serves only those routes. See [Decision models](#decision-models).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
 ## Endpoints
@@ -100,6 +101,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `anthropic`, `gemini_chatcompletions`, `deepseek` | API key | API key | - | Console, API |
 | `xai`, `xai_responses`, `mistral` | API key | API key | - (the endpoint is fixed: `https://api.x.ai/v1` or `https://api.mistral.ai/v1`) | Console, API |
 | `cerebras` | API key | API key | - (the endpoint is fixed: `https://api.cerebras.ai/v1`) | Console, API |
+| `typesafe` | API key | API key | - (the endpoint is fixed: `https://api.typesafe.ai/v1`) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
 | `openai_responses_azure`, `openai_assistants_azure`, `openai_realtime_azure` | API key | API key, Azure endpoint | Azure API version (defaults `2025-03-01-preview`, `2024-05-01-preview`, `2025-04-01-preview`) | Console, API |
@@ -387,18 +389,70 @@ Mistral OCR and FIM, and xAI images, videos and batches, have their own [vendor 
 
 ## Decision models
 
-Microsoft-Decision-1 on Azure AI Foundry answers typed questions about text or JSON with probabilities instead of generated text. Use it for classification, routing, ranking and yes/no gates. Call it in either format:
+Decision models answer typed questions about text or JSON with probabilities instead of generated text. Use them for classification, routing, ranking and yes/no gates. Two providers serve them:
+
+| Provider | Provider type | Models | `model` value |
+|----------|---------------|--------|---------------|
+| Microsoft-Decision-1 on Azure AI Foundry | `azureopenai` | Your Microsoft-Decision-1 deployment | The deployment name |
+| TypeSafe | `typesafe` | Jev: `jev-latest`, `jev-preview`, `jev-1.14.0`, `jev-1.13.0` | A Jev model id or alias |
+
+Call either provider in either format:
 
 | Format | Path | Questions | Answers |
 |--------|------|-----------|---------|
 | OpenAI Decisions | `/openai_compatible/v1/decisions` | `input` and a `questions` array of `predicate`, `choice` and `score` | An `answers` array in question order |
 | System One | `/typesafe/v1/systemone` | `state` and a `questions` map of `noul`, `choice` and `score` | An `answers` map keyed by question name |
 
-Set up:
+The three question types:
+
+| OpenAI Decisions | System One | Answer |
+|------------------|------------|--------|
+| `predicate` | `noul` | A probability from 0 to 1 that the statement is true |
+| `choice` with `choices` | `choice` with a `criteria` map | The chosen option, a probability per option and a confidence |
+| `score` with `levels` | `score` with a `criteria` list | A score on the levels, a probability per level and a confidence |
+
+### Microsoft-Decision-1 on Azure
 
 1. In Azure AI Foundry, deploy **Microsoft-Decision-1** under a name of your choice (Azure does not allow the name `Microsoft-Decision-1` itself), for example `decision-1`.
 2. Add an Azure provider (`azureopenai`) with the resource endpoint and key from the deployment details page, and add the deployment name as a model. Model validation checks it on the decision route, since the model has no chat route.
 3. Send the deployment name as `model`.
+
+### TypeSafe
+
+`typesafe` calls `https://api.typesafe.ai/v1`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored. TypeSafe serves only decision models, so the provider is available on the decision routes and nowhere else.
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Search for `typesafe` and select the **TypeSafe** tile ("Decision models · Direct API"). It has one API, **System One**.
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+TypeSafe lists the aliases `jev-latest` and `jev-preview`; the gateway also lists the versioned `jev-1.14.0` and `jev-1.13.0` so an app can pin a version. All four are decision models. Model validation sends a one-question System One request for each, which costs a few input tokens. Answers name the version that answered, for example `jev-1.14.0` for `jev-latest`.
+
+**TypeSafe SDK:** point the SDK at the gateway and use your Quilr key. Pass `compression=False`: the SDK compresses request bodies of 1 KB or more with zstd on Python 3.14 and later or with the `typesafe-sdk[zstd]` extra, and the gateway refuses zstd bodies with `415`.
+
+```python
+from typesafe_sdk import TypeSafeClient, Noul, Choice
+
+client = TypeSafeClient(
+    api_key="<Quilr key>",
+    base_url="https://guardrails-usa-2.quilr.ai/typesafe",
+    model="jev-latest",
+    compression=False,
+)
+response = client.system_one(
+    state="I was charged twice for my plan. Please refund the duplicate charge.",
+    questions={
+        "refund": Noul(instructions="Is the customer asking for a refund?"),
+        "team": Choice(instructions="Which team should handle this ticket?",
+                       criteria={"billing": "Charges and refunds", "engineering": "Bugs and outages"}),
+    },
+)
+print(response.answers["refund"].noul, response.answers["team"].choice)
+print([model.name for model in client.models.list().models])
+```
+
+`client.models.list()` calls `GET /typesafe/v1/models`, which returns the decision models the app may use in TypeSafe's format. It is answered from the app's configuration, so `release_date` is empty.
+
+### Decision model examples
 
 ```bash
 curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/decisions \
@@ -415,14 +469,14 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/decisions \
   }'
 ```
 
-The same question in System One format:
+The same question in System One format, on TypeSafe:
 
 ```bash
 curl https://guardrails-usa-2.quilr.ai/typesafe/v1/systemone \
   -H "Authorization: Bearer <Quilr key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "decision-1",
+    "model": "jev-latest",
     "state": "The API returns 500 on every call.",
     "questions": {
       "team": {"type": "choice", "instructions": "Which team should handle this ticket?",
@@ -431,15 +485,32 @@ curl https://guardrails-usa-2.quilr.ai/typesafe/v1/systemone \
   }'
 ```
 
+```json
+{
+  "model": "jev-1.14.0",
+  "answers": {
+    "team": {"type": "choice", "choice": "engineering", "confidence": 0.9,
+             "probabilities": {"billing": 0.05, "engineering": 0.95}}
+  },
+  "usage": {"input_tokens": 120, "output_tokens": 3}
+}
+```
+
+Use your Azure deployment name or a Jev model as `model` in either format.
+
+### Decision model behavior
+
 | Topic | Behavior |
 |-------|----------|
-| Upstream | `<resource>/providers/microsoft/v1/systemone`. Any endpoint copied from the portal works (`/openai/v1`, `/models` and project URLs are trimmed to the resource). |
-| Format conversion | OpenAI Decisions requests are converted to System One and the answers converted back. Text parts of `input` join into the state; `safety_identifier` is dropped. |
+| Upstream | Azure: `<resource>/providers/microsoft/v1/systemone`. Any endpoint copied from the portal works (`/openai/v1`, `/models` and project URLs are trimmed to the resource). TypeSafe: `https://api.typesafe.ai/v1/systemone` with the stored key as a bearer token. |
+| Format conversion | OpenAI Decisions requests are converted to System One and the answers converted back. Text parts of `input` join into the state; `safety_identifier` is dropped. System One requests are forwarded as sent. |
 | Guardrails | Scan the input or state and every question field before conversion, including object keys. Answers are probabilities and your own labels, so they are not scanned. |
-| Not covered | Images, Box questions, audio and video (the model reads text and JSON only). No streaming. |
-| Routing | Decision routes serve only Azure providers. They never join a routing group or route. |
-| Model access | A request reaches only deployments listed in the serving provider's models; any other deployment is refused with `403 model_access_denied`. A provider with no models listed serves every deployment. |
-| Billing | Input tokens are charged ($0.042 per 1M on Azure); output tokens are free. Token, quota and budget limits apply as on other routes. |
+| Not covered | Images, Box questions, audio and video, refused with `400 decision_media_not_supported` (Microsoft-Decision-1 reads text and JSON only; TypeSafe's image support is a preview). No streaming. |
+| Compression | Request bodies may be gzip or deflate encoded. zstd is refused with `415 invalid_content_encoding`. |
+| Routing | Decision routes serve only Azure and TypeSafe providers. They never join a routing group or route. Chat Completions refuses TypeSafe models. |
+| Model access | A request reaches only models listed in the serving provider's models; any other model is refused with `403 model_access_denied`. An Azure provider with no models listed serves every deployment. |
+| Billing | Input tokens are charged ($0.042 per 1M on Azure and TypeSafe); output tokens are free. Token, quota and budget limits apply as on other routes. |
+| Errors | Gateway errors use the OpenAI `{"error": {...}}` shape. TypeSafe's own errors are returned as TypeSafe sent them (`{"detail": ...}`). |
 
 ## Assistants API
 
