@@ -20,7 +20,16 @@ What changed in Red Teaming, newest first.
 - Discovery only reads from the host you pasted, with at most 30 requests in 45 seconds, and sends one test message to the endpoint it picks
 - Details: [Connect your agent](../assessments/agentic-red-teaming#01-connect-your-agent)
 
-## Run page coverage panel (2026-10-29)
+## Pass rate by framework on the run page (2026-10-29)
 
-- The **Standards & Framework Coverage** panel shows how many test cases passed out of the total, for example **Tests passed 12/14**
+- Each framework card on the **Standards & Framework Coverage** panel now shows the pass rate of the run's tests under that framework: green when they passed, red when they failed. A test that maps to several controls counts once, and tests that errored are left out
+- A large **Overall pass rate** ring sits beside the framework cards
+- The panel header shows how many test cases passed out of the total, for example **Tests passed 12/14**
+- The line under each ring shows how much of the framework the run reached, for example **7 / 18 techniques tested**. A **Quick scan** reaches less than the **Full library**
 - Framework cards use the same icon tiles as the **New assessment** cards
+- Details: [Reading a report](../get-started/reading-a-report)
+
+## AI Workflow assessments (2026-10-29)
+
+- The **AI Workflow** card on **New assessment** can now be started: test a document, image or structured-data workflow that processes inputs and returns a result or takes an action
+- **Test connection** checks the workflow endpoint before you launch
