@@ -1,0 +1,69 @@
+name: Red Teaming changelog entry
+
+# quilrbusiness/quilr-console fires this when a PR labelled `changelog` merges
+# into quilr-preprod (its .github/workflows/red-teaming-docs-changelog.yml).
+# The entry goes to a PR, never straight to main: main deploys the public site.
+# Opening the PR needs "Allow GitHub Actions to create and approve pull
+# requests" in this repo's Actions settings.
+on:
+  repository_dispatch:
+    types: [red-teaming-changelog]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: red-teaming-changelog
+  cancel-in-progress: false
+
+jobs:
+  entry:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: '0'
+      # Payload values reach the shell only through env, never interpolated into scripts.
+      NOTE: ${{ github.event.client_payload.note }}
+      DATE: ${{ github.event.client_payload.date }}
+      PR_NUMBER: ${{ github.event.client_payload.pr }}
+    steps:
+      - name: Validate payload
+        run: |
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || { echo "client_payload.pr must be a number"; exit 1; }
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add the entry
+        run: node scripts/add-red-teaming-changelog-entry.js
+
+      - name: Check the page and build the site
+        run: |
+          node scripts/check-doc-frontmatter.js docs/red-teaming/release-notes/changelog.md
+          npm run build
+
+      - name: Open a PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="changelog/red-teaming-pr-$PR_NUMBER"
+          heading="$(grep -m1 '^## ' docs/red-teaming/release-notes/changelog.md | sed 's/^## //')"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add docs/red-teaming/release-notes/changelog.md
+          git commit -m "docs(red-teaming): changelog - $heading"
+          git push --force origin "$branch"
+          if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head "$branch" \
+              --title "docs(red-teaming): changelog - $heading" \
+              --body "Adds a Red Teaming changelog entry from quilr-console PR #$PR_NUMBER, merged into quilr-preprod. Review the wording before merging: main deploys docs.quilrai.dev."
+          fi
