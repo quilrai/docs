@@ -10,6 +10,23 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Detect AI workflows from a URL (2026-10-30)
+
+- On a new AI Workflow assessment, paste the workflow's upload URL or host and click Detect, or choose Advanced / configure manually to fill in every setting yourself
+- Detect reads the workflow's API description and uploads a harmless sample document to fill in the upload settings, including polling for workflows that run as jobs
+- Check the filled-in settings, add the credential if the workflow needs one, then test and launch
+
+## See how many runs are in progress (2026-10-30)
+
+- The Recent runs list on the Red Teaming Assessments page shows how many runs are running right now
+- Click the count to show only the running runs
+
+## Forward a run's summary to Slack or email (2026-10-30)
+
+- **Forward summary** on a run's page sends the pass rate, findings by severity and the top findings to a Slack channel, to email addresses, or both
+- Each message links to the full results in the console, and people sign in to see them
+- Nothing is saved: paste a Slack incoming-webhook URL and up to 10 email addresses each time
+
 ## Detect finds your agent's API and sign-in (2026-10-29)
 
 - Paste a web page or a bare host and **Detect** follows the host's own leads to the agent's API: A2A agent cards, OpenAI plugin manifests, OpenAPI and Swagger documents, OpenAI-compatible `/v1/models` listings, the scripts on the page, and common chat paths
