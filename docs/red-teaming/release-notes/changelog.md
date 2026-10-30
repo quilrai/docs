@@ -10,6 +10,12 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Coverage rings match what was tested (2026-10-30)
+
+- Each framework ring on a run's Standards & Framework Coverage panel now shows how much of that framework the run tested, matching the count beside it
+- The large ring shows the average coverage across the frameworks
+- The run's pass rate is still shown as Tests passed
+
 ## Detect AI workflows from a URL (2026-10-30)
 
 - On a new AI Workflow assessment, paste the workflow's upload URL or host and click Detect, or choose Advanced / configure manually to fill in every setting yourself
