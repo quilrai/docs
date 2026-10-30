@@ -53,6 +53,8 @@ xAI is not in the `completions` family: xAI rejects `/v1/completions` for every 
 
 Cerebras serves `completions` only. Its files and batches APIs are a private preview, so the `files` and `batches` families do not route to `cerebras`. See [Cerebras](../apps-and-providers/provider-support#cerebras).
 
+Groq is not in any endpoint family yet: its files and batches are not routed, and Groq has no legacy `/completions`. See [Groq](../apps-and-providers/provider-support#groq).
+
 ## Vendor routes
 
 A vendor's own APIs have their own route under its prefix. The same family engine serves them, for that vendor's provider type only, and forwards the vendor's own request and response unchanged (no OpenAI-shape conversion), so vendor-only fields such as xAI's `aspect_ratio` and `resolution` or Mistral's `random_seed` pass through. Defaults, limits, logging and errors are the family's.
