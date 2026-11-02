@@ -10,6 +10,12 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Framework rings show the run's pass rate (2026-11-02)
+
+- Each framework ring on a run's Standards & Framework Coverage panel now shows the average pass rate of that framework's categories, matching the Categories table: CIS Controls categories at 72.7%, 50%, 80%, 100% and 100% show 81%
+- The large ring is now **Average pass rate**, the average of the framework rings
+- The count beside each ring still shows how much of the framework the run tested, for example **4 / 6 safeguards tested**
+
 ## Scheduled runs open their schedule and follow your timezone (2026-11-02)
 
 - On the **Schedules** tab, click a run on **Next 7 days**, the **+N more runs** line, or the first run under **Runs in the next 24h** to open that schedule's settings, with its recent runs shown behind
