@@ -10,6 +10,10 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## OWASP card subtitle shortened (2026-11-02)
+
+- On a run's Standards & Framework Coverage panel, the OWASP card's subtitle now reads **LLM and Agentic**
+
 ## Framework rings show the run's pass rate (2026-11-02)
 
 - Each framework ring on a run's Standards & Framework Coverage panel now shows the average pass rate of that framework's categories, matching the Categories table: CIS Controls categories at 72.7%, 50%, 80%, 100% and 100% show 81%
