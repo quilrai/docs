@@ -533,10 +533,10 @@ A group serves one API surface (its kind), but its members can come from any API
 
 | Group kind | Endpoint | Own family (serves natively) |
 |------------|----------|------------------------------|
-| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock, Anthropic (chat completions), DeepSeek, Gemini (chat completions), xAI, Mistral, Cerebras, Oracle, General LLM, Sarvam chat models; also the Chat adapters for Vertex AI Gemini and Anthropic Messages |
+| **Chat Completions** | `/openai_compatible/v1/chat/completions` | OpenAI, Azure OpenAI, Bedrock, Anthropic (chat completions), DeepSeek, Gemini (chat completions), xAI, Mistral, Cerebras, Groq, Oracle, General LLM, Sarvam chat models; also the Chat adapters for Vertex AI Gemini and Anthropic Messages |
 | **Anthropic Messages** | `/anthropic_messages/v1/messages` | Anthropic, Bedrock (Anthropic), Azure Anthropic |
 | **Vertex AI** | `/vertex_ai/` | Vertex AI |
-| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI, Azure OpenAI and their Responses types, xAI (Responses), Oracle (Responses) |
+| **OpenAI Responses** | `/openai_responses/v1/responses` | OpenAI, Azure OpenAI and their Responses types, xAI (Responses), Oracle (Responses), Groq |
 | **OpenAI Realtime** | `/openai_realtime/v1/realtime` (wss) | OpenAI Realtime, Azure OpenAI Realtime |
 
 ### When a provider fails {#when-a-provider-fails}

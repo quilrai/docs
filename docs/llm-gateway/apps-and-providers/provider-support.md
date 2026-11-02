@@ -4,7 +4,7 @@ sidebar_label: "Provider support matrix"
 sidebar_custom_props:
   badge: new
   icon: Handshake
-description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, Cerebras, TypeSafe, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and decision models (Microsoft-Decision-1 on Azure AI Foundry and TypeSafe Jev) through the OpenAI Decisions and System One APIs, and the Mistral and xAI vendor routes (/mistral/v1/ocr, /mistral/v1/fim/completions, /xai/v1/responses, /xai/v1/images, videos and batches)."
+description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, Cerebras, Groq, TypeSafe, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and decision models (Microsoft-Decision-1 on Azure AI Foundry and TypeSafe Jev) through the OpenAI Decisions and System One APIs, and the Mistral and xAI vendor routes (/mistral/v1/ocr, /mistral/v1/fim/completions, /xai/v1/responses, /xai/v1/images, videos and batches), and Groq (Chat Completions, native Responses, Whisper speech to text and translation, Orpheus text to speech)."
 aliases: [mistral, mistral ai, xai, grok, codestral, voxtral, grok imagine, typesafe, jev, system one]
 ---
 
@@ -44,6 +44,7 @@ One row per provider type. The type is what you select in the console and what y
 | `xai_responses` | xAI | ↻ | ↻ | ✓ | - | - | - | - | - | ✓ |
 | `mistral` | Mistral | ✓ | ↻ | ↻ | - | - | ✓ | - | ✓ | ✓ |
 | `cerebras` | Cerebras | ✓ | ↻ | ↻ | - | - | - | - | - | ✓ |
+| `groq` | Groq | ✓ | ↻ | ✓ | - | - | - | - | ✓ | ✓ |
 | `typesafe` | TypeSafe (decision models only) | - | - | - | - | - | - | - | - | ✓ |
 | `oracle` | Oracle OCI Generative AI | ✓ | Soon | Soon | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | Soon | Soon | ✓ | - | - | - | - | - | Manual |
@@ -58,7 +59,7 @@ One row per provider type. The type is what you select in the console and what y
 
 - **Gemini generateContent and Bedrock Converse / InvokeModel** clients reach the same conversational providers. The [format explorer](../api-reference/any-to-any-formats#format-explorer) shows how each client format reaches each provider, model by model.
 - **Chat** on `vertex_ai` and the `anthropic_messages*` types uses the built-in adapters described in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters).
-- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras).
+- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), and Groq in [Groq](#groq).
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
@@ -101,6 +102,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `anthropic`, `gemini_chatcompletions`, `deepseek` | API key | API key | - | Console, API |
 | `xai`, `xai_responses`, `mistral` | API key | API key | - (the endpoint is fixed: `https://api.x.ai/v1` or `https://api.mistral.ai/v1`) | Console, API |
 | `cerebras` | API key | API key | - (the endpoint is fixed: `https://api.cerebras.ai/v1`) | Console, API |
+| `groq` | API key | API key | - (the endpoint is fixed: `https://api.groq.com/openai/v1`) | Console, API |
 | `typesafe` | API key | API key | - (the endpoint is fixed: `https://api.typesafe.ai/v1`) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
@@ -146,7 +148,7 @@ Rules that apply to every app:
 
 ## Chat Completions
 
-`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. Providers that already speak the OpenAI format (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, xAI, Mistral, Cerebras, Oracle, Sarvam, custom endpoints) get the request natively. `bedrock` (native Bedrock chat or Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types use the built-in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters); every other provider is reached through [any-to-any formats](../api-reference/any-to-any-formats).
+`/openai_compatible/v1/chat/completions` works with OpenAI SDKs and OpenAI-compatible wrappers. Providers that already speak the OpenAI format (OpenAI, Azure OpenAI, Anthropic OpenAI-compatible, DeepSeek, Gemini, xAI, Mistral, Cerebras, Groq, Oracle, Sarvam, custom endpoints) get the request natively. `bedrock` (native Bedrock chat or Converse), `vertex_ai` (Gemini `generateContent`) and the `anthropic_messages*` types use the built-in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters); every other provider is reached through [any-to-any formats](../api-reference/any-to-any-formats).
 
 Sarvam serves only its chat models here. Its speech and text models use the [Sarvam routes](#sarvam-speech-and-text).
 
@@ -181,7 +183,7 @@ All three rerank paths take a Cohere-compatible body (`model`, `query`, `documen
 
 ## TTS & STT
 
-`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai` and `sarvam`. `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
+`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai`, `sarvam` and `groq` (Whisper and Orpheus models; see [Groq](#groq)). `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
 
 On a Sarvam provider these routes adapt to Sarvam's APIs:
 
@@ -220,7 +222,7 @@ Chat models (`sarvam-105b`, `sarvam-105b-conversations`, and the beta `glm5.2`, 
 
 ## Responses API
 
-`/openai_responses/v1/responses` is a native passthrough for `openai`, `openai_responses`, `azureopenai`, `openai_responses_azure`, `xai_responses`, `oracle_responses`, `bedrock` and `general` endpoints that serve `/responses`; `xai` switches to xAI's Responses endpoint with the same key. Create, retrieve, cancel, delete and list input items are supported. Azure-style paths work too: `/openai_responses/openai/deployments/{deployment}/responses`. The deployment goes in `body.model`.
+`/openai_responses/v1/responses` is a native passthrough for `openai`, `openai_responses`, `azureopenai`, `openai_responses_azure`, `xai_responses`, `oracle_responses`, `bedrock`, `groq` and `general` endpoints that serve `/responses`; `xai` switches to xAI's Responses endpoint with the same key. Create, retrieve, cancel, delete and list input items are supported; Groq's Responses API is stateless, so `groq` serves create only. Azure-style paths work too: `/openai_responses/openai/deployments/{deployment}/responses`. The deployment goes in `body.model`.
 
 Guardrails scan `input_text` parts and `instructions` on the request, and `output_text` on non-streaming responses. On native providers, `previous_response_id` and built-in tools pass through.
 
@@ -371,6 +373,70 @@ curl https://guardrails-usa-2.quilr.ai/anthropic_messages/v1/messages \
 | Rejected fields | Cerebras rejects unknown fields; the error comes back as Cerebras' own HTTP 400 (`wrong_api_format`). |
 | Streaming | Chat and legacy completions. |
 | Context window | An over-long request is classified as a context-length error, so [routing failover](../cost-and-traffic/routing-and-fallbacks) can move it to a model with a larger window. |
+
+## Groq
+
+`groq` calls `https://api.groq.com/openai/v1`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored.
+
+| Provider type | Console tile and API | What one key serves |
+|---------------|----------------------|---------------------|
+| `groq` | **Groq** › Chat completions and Responses | Chat, Responses, speech to text and text to speech on open-weight models such as gpt-oss, Qwen, Whisper and Orpheus. |
+
+### Add the provider
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Search for `groq` and select the **Groq** tile.
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+Groq lists models from `/models`. Whisper models are listed as speech to text, Orpheus models as text to speech, and every other model as chat; inactive models are left out. Enable every model you call.
+
+| API | Path | Groq | Example model |
+|-----|------|:----:|---------------|
+| Chat Completions | `/openai_compatible/v1/chat/completions` | ✓ | `openai/gpt-oss-20b` |
+| Responses (create only) | `/openai_responses/v1/responses` | ✓ | `openai/gpt-oss-20b` |
+| Speech to text | `/openai_compatible/v1/audio/transcriptions` | ✓ | `whisper-large-v3-turbo` |
+| Speech translation to English | `/openai_compatible/v1/audio/translations` | ✓ | `whisper-large-v3` |
+| Text to speech | `/openai_compatible/v1/audio/speech` | ✓ (WAV) | `canopylabs/orpheus-v1-english` |
+| Anthropic Messages, Gemini, Bedrock Converse | Their native paths | Translated to Chat | - |
+| Legacy completions, embeddings, images, moderations, files, batches | - | - (not routed to Groq) | - |
+
+### Groq examples
+
+```bash
+# Chat Completions (streaming and tool calls work too)
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "openai/gpt-oss-20b", "messages": [{"role": "user", "content": "Say hello."}], "max_completion_tokens": 256}'
+
+# Responses (Groq stores nothing: leave store unset or false)
+curl https://guardrails-usa-2.quilr.ai/openai_responses/v1/responses \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "openai/gpt-oss-20b", "input": "Say hello."}'
+
+# Speech to text
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/transcriptions \
+  -H "Authorization: Bearer <Quilr key>" \
+  -F model=whisper-large-v3-turbo -F file=@meeting.wav
+
+# Text to speech (WAV)
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/speech \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "canopylabs/orpheus-v1-english", "voice": "autumn", "input": "Hello from Groq."}' \
+  --output hello.wav
+```
+
+### Groq behavior
+
+| Topic | Groq |
+|-------|------|
+| Responses | Groq's Responses API is a stateless beta. `store` must be unset or `false` and `previous_response_id` is not supported; Groq's own HTTP 400 comes back. Retrieve, cancel, delete and list input items return `400` (`operation_not_supported`). |
+| Reasoning | Reasoning models such as `openai/gpt-oss-20b` return their reasoning to every client format: `thinking` blocks for Anthropic Messages, `reasoning` items for Responses. Translated requests fit reasoning effort to `low`, `medium` or `high`. |
+| Tool loops | Multi-turn tool calls work from every client format; earlier reasoning is sent back in Groq's `reasoning` field. Give reasoning models enough output tokens (for example 1024), or the tool call can fail with Groq's `tool_use_failed`. |
+| History from other providers | Groq rejects some fields other providers return, so Chat history is fitted before it is sent: OpenAI's `refusal`, `annotations` and `audio` and any field set to `null` are removed, and `reasoning_content` is sent as `reasoning`. A conversation can move to Groq from OpenAI or DeepSeek, for example by failover. |
+| Speech | Orpheus returns WAV only; the gateway asks for WAV when you send no `response_format`. Each Orpheus model's terms must be accepted once in the Groq console for the key's organization, or Groq answers `model_terms_required` (also shown by **Check key and list models**). `/audio/translations` works on `whisper-large-v3` only. |
+| Streaming | Chat and Responses. Streams always carry usage, so billing has it. |
+| Capacity | Groq's `498` `capacity_exceeded` (flex tier full) is treated as a rate limit, so [routing failover](../cost-and-traffic/routing-and-fallbacks) can retry or move the request. |
+| Billing | Chat by tokens, Whisper by audio seconds, Orpheus by characters. Groq's browser search tool (`{"type": "browser_search"}` on gpt-oss models) adds $5 per 1,000 searches and $1 per 1,000 page visits, on Chat and Responses. |
 
 ## Endpoint families
 

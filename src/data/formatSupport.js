@@ -103,6 +103,8 @@ const MISTRAL_RULES =
   'seed is sent as random_seed, OpenAI-only fields (user, logit_bias, store) are dropped and tool call ids are rewritten to Mistral’s 9-character format.';
 const CEREBRAS_RULES =
   'reasoning effort is fitted to low to high; reasoning comes back in the client’s format and earlier reasoning is sent back in Cerebras’s reasoning field.';
+const GROQ_RULES =
+  'reasoning effort is fitted to low to high; reasoning comes back in the client’s format and earlier reasoning is sent back in Groq’s reasoning field.';
 const XAI_RULES = 'logit_bias is dropped; reasoning effort is fitted to what the Grok model accepts.';
 const MANTLE_SOON = 'Claude models served only through Bedrock Mantle (such as Claude Mythos) are coming soon.';
 
@@ -132,6 +134,7 @@ export default {
     { id: 'xai_responses', label: 'xAI (Responses type)', group: 'More providers' },
     { id: 'mistral', label: 'Mistral', group: 'More providers' },
     { id: 'cerebras', label: 'Cerebras', group: 'More providers' },
+    { id: 'groq', label: 'Groq', group: 'More providers' },
     { id: 'deepseek', label: 'DeepSeek', group: 'More providers' },
     { id: 'oracle', label: 'Oracle OCI (Chat)', group: 'More providers' },
     { id: 'oracle_responses', label: 'Oracle OCI (Responses)', group: 'More providers' },
@@ -437,6 +440,24 @@ export default {
       gemini: tr('Cerebras Chat Completions', CEREBRAS_RULES),
       converse: trConverse('Cerebras Chat Completions', CEREBRAS_RULES),
       invoke: trInvoke('Cerebras Chat Completions', CEREBRAS_RULES),
+    },
+    groq: {
+      chat: {
+        mode: 'native',
+        wire: 'Groq Chat Completions',
+        notes: [
+          '✓ Forwarded as sent, except history fields Groq rejects: OpenAI’s refusal, annotations and audio and any null field are removed, and reasoning_content is sent as reasoning',
+        ],
+      },
+      responses: native(
+        'Groq Responses',
+        '✗ Stateless beta: store must be unset or false, previous_response_id is not supported, and retrieve, cancel, delete and input items return an error',
+        '✓ If Groq answers that a model does not support Responses, the gateway retries once with translation to Chat Completions, before anything reaches your client',
+      ),
+      messages: tr('Groq Chat Completions', 'Groq has no Anthropic-compatible endpoint, so Messages is translated to Chat.', GROQ_RULES),
+      gemini: tr('Groq Chat Completions', GROQ_RULES),
+      converse: trConverse('Groq Chat Completions', GROQ_RULES),
+      invoke: trInvoke('Groq Chat Completions', GROQ_RULES),
     },
     deepseek: {
       chat: native('DeepSeek Chat Completions'),

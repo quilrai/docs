@@ -10,6 +10,17 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Groq provider (2026-10-29)
+
+- New provider type `groq` on a **Groq** tile, with an API key and a fixed endpoint (`https://api.groq.com/openai/v1`)
+- Chat Completions and Groq's Responses API (stateless beta) natively, including streaming and tool calls
+- Conversations can move to Groq from other providers: Chat history fields Groq rejects are fitted before sending
+- Groq's browser search tool is billed per search and page visit
+- Whisper speech to text and speech translation, and Orpheus text to speech (WAV) on the `/openai_compatible/v1/audio/*` routes
+- Anthropic Messages, Gemini and Bedrock clients reach it through any-to-any formats, with model reasoning returned in each client's format
+- **Check key and list models** lists chat, speech to text and text to speech models, and tells you when an Orpheus model's terms still need accepting in the Groq console
+- Details: [Groq](../apps-and-providers/provider-support#groq)
+
 ## TypeSafe decision models (2026-10-28)
 
 - New provider type `typesafe` on a **TypeSafe** tile ("Decision models · Direct API"), with an API key and a fixed endpoint (`https://api.typesafe.ai/v1`)
