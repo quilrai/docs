@@ -3,7 +3,8 @@ sidebar_position: 1
 sidebar_label: "Security guardrails"
 sidebar_custom_props:
   icon: ShieldCheck
-aliases: [guardrails, language blocking]
+description: "Configure sensitive-text, image and adversarial risk detections, their actions, and the request and response surfaces they protect."
+aliases: [guardrails, language blocking, image risks]
 ---
 
 # Security guardrails
@@ -19,12 +20,13 @@ Detect sensitive data and adversarial input in prompts and responses, then monit
   action="Guardrails"
 />
 
-The Guardrails tab has six parts:
+The Security Guardrails section includes:
 
 | Part | What it does |
 |------|--------------|
 | [Default action](#actions) | The action used where a category does not set its own. |
 | [Data risks](#data-risks) | Sensitive data such as PII, PHI, card data and secrets. |
+| [Image Risks](./attachment-scanning#image-risks) | Visual categories such as payment cards, ID documents and faces in request attachments. |
 | [Adversarial risks](#adversarial-risks) | Prompt injection, jailbreaks and harmful content. |
 | [Precision detections](#precision-detections) | Exact-match identifiers such as SSN, Aadhaar or IBAN. |
 | [Hallucination check](#hallucination-check) | Flags responses that score as likely fabricated. |
@@ -42,6 +44,7 @@ The Guardrails tab has six parts:
 | Data risk scope | Request and response |
 | Precision detections, hallucination check, source IP restrictions | Off |
 | Guardian Agent | Off. See [Guardian Agent](./guardian-agent). |
+| Attachment scanning and Image Risks | Off. See [Attachment scanning](./attachment-scanning). |
 
 Because the default action is Monitor, a new app records detections without changing traffic. Review findings before you change any category to Redact or Block.
 
@@ -59,7 +62,9 @@ Because the default action is Monitor, a new app records detections without chan
 - **Adversarial risks and the hallucination check support Block or Monitor only.** There is no value to redact.
 - **Action resolution:** the category's own action takes precedence, then the app's default action, then Monitor.
 - **Set everything to default** clears per-category actions so every category follows the default action.
-- The **Action mix** panel counts how many of the 20 categories (7 data + 13 adversarial) use each action or are off.
+- The **Action mix** panel counts categories by action, including categories that are off.
+
+**Image Risks** uses Monitor, Strip or Block. Strip removes the whole image. Text redaction and partial redaction inside an attachment also remove that attachment, rather than editing the original file. See [attachment actions](./attachment-scanning#actions-and-unreadable-files).
 
 ## Data risks
 
@@ -74,8 +79,9 @@ Because the default action is Monitor, a new app records detections without chan
 | Insurance Data | Health insurance, insurance policy |
 | Auth & Secrets | Username, username or alias, access token, API key, AWS credentials, password, other secret |
 | Code Scripts and Queries (off by default) | Shell, database queries, YAML/config, Python, JavaScript/TypeScript, Java/Kotlin/Scala, Go, Rust, C/C++/C#, PHP/Ruby, Swift, other code |
+| [Image Risks](./attachment-scanning#image-risks) (off by default) | Nudity or Sexual Image, Weapons Image, Human Face Image, ID Document Image, Payment Card Image, Code or Terminal Screenshot, Medical Image |
 
-Each category has these settings:
+Each text data-risk category has these settings:
 
 | Setting | Options | Default |
 |---------|---------|---------|
@@ -84,6 +90,8 @@ Each category has these settings:
 | Applies to | Request only, Request & response, Response only | Request & response |
 | Action | Redact, Partial redact, Block, Monitor | App default action |
 | Sub-category sensitivity | Low, Medium, High per sub-category | Set per sub-category |
+
+Image Risks applies to request images and has a switch and action per image type. It requires **Scan attachments** and **Classify images** in the app's **Attachments** section, or the equivalent published Policy Engine configuration. [Document extraction and OCR](./attachment-scanning#document-text-and-ocr) let the text data types above inspect supported files as well as message text.
 
 ### Risk level and sub-category sensitivity
 
@@ -171,6 +179,8 @@ Accept gateway calls only from listed networks. Turn on **Enabled** and enter **
 ![Hallucination check with Action and Risk level, and Source IP restrictions, both switched off](/img/llm-gateway/ui/app-guardrails-hallucination-source-ip.png)
 
 ## Endpoint coverage
+
+The table below describes the text guardrails. [Attachment scanning](./attachment-scanning#coverage-and-availability) adds request-file protection on supported conversational surfaces and SDK Mode when enabled; it does not scan model-generated files.
 
 | Surface | Request | Response |
 |---------|---------|----------|

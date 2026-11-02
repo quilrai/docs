@@ -89,7 +89,7 @@ This applies to every client format and provider on an adapter or translated pai
 | Streaming | Re-framed into your client's stream format (SSE events or the Bedrock event stream). |
 | Images and inline files | Carried and fitted to the provider's format on translated pairs. The Vertex AI and Anthropic Chat Completions adapters are text only; see [Limits](#limits). |
 | Prompt caching | Your cache markers are carried where the provider supports them (see [Parameters](#parameters)). Responses and Gemini clients, which cannot send markers, get cache breakpoints added automatically on Claude. |
-| Guardrails | Request-side checks (DLP, redaction, OCR, token saving, Guardian) run on your request in your format, before conversion. Response-side checks run on the converted-back response or stream, the same way they run on a native request in your format. |
+| Guardrails | Request-side checks (DLP, redaction, [attachment scanning](../protect/attachment-scanning), token saving, Guardian) run on your request in your format, before conversion. Attachment protection includes document text, OCR and enabled Image Risks; it must be turned on. Response-side checks run on the converted-back response or stream, the same way they run on a native request in your format. |
 
 ## Parameters when converting {#parameters}
 
