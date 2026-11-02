@@ -86,6 +86,7 @@ For a model endpoint inside a private network, use a [Remote Connector](./remote
 | Mistral AI | Chat completions (`mistral`) |
 | Cerebras | Chat completions (`cerebras`) |
 | Groq | Chat completions and Responses (`groq`) |
+| Perplexity | Agent API, decision and embedding models (`perplexity`) |
 | TypeSafe | System One decision models (`typesafe`) |
 | xAI | Chat completions (`xai`), Responses (`xai_responses`) |
 | Sarvam | Speech, text & chat (`sarvam`) |

@@ -106,6 +106,7 @@ const CEREBRAS_RULES =
 const GROQ_RULES =
   'reasoning effort is fitted to low to high; reasoning comes back in the client’s format and earlier reasoning is sent back in Groq’s reasoning field.';
 const XAI_RULES = 'logit_bias is dropped; reasoning effort is fitted to what the Grok model accepts.';
+const PERPLEXITY_AGENT = 'Perplexity Agent API (Responses)';
 const MANTLE_SOON = 'Claude models served only through Bedrock Mantle (such as Claude Mythos) are coming soon.';
 
 export default {
@@ -135,6 +136,7 @@ export default {
     { id: 'mistral', label: 'Mistral', group: 'More providers' },
     { id: 'cerebras', label: 'Cerebras', group: 'More providers' },
     { id: 'groq', label: 'Groq', group: 'More providers' },
+    { id: 'perplexity', label: 'Perplexity', group: 'More providers' },
     { id: 'deepseek', label: 'DeepSeek', group: 'More providers' },
     { id: 'oracle', label: 'Oracle OCI (Chat)', group: 'More providers' },
     { id: 'oracle_responses', label: 'Oracle OCI (Responses)', group: 'More providers' },
@@ -458,6 +460,17 @@ export default {
       gemini: tr('Groq Chat Completions', GROQ_RULES),
       converse: trConverse('Groq Chat Completions', GROQ_RULES),
       invoke: trInvoke('Groq Chat Completions', GROQ_RULES),
+    },
+    perplexity: {
+      chat: tr(PERPLEXITY_AGENT, 'Perplexity’s Sonar chat completions are closed to new accounts, so Chat is translated to the Agent API.'),
+      responses: native(
+        PERPLEXITY_AGENT,
+        '✗ No stored-response routes: retrieve, cancel, delete and input items return an error; previous_response_id works',
+      ),
+      messages: tr(PERPLEXITY_AGENT),
+      gemini: tr(PERPLEXITY_AGENT),
+      converse: trConverse(PERPLEXITY_AGENT),
+      invoke: trInvoke(PERPLEXITY_AGENT),
     },
     deepseek: {
       chat: native('DeepSeek Chat Completions'),
