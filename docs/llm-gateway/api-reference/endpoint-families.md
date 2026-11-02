@@ -27,7 +27,7 @@ Mistral OCR and fill-in-the-middle, and xAI images, videos and batches, are serv
 | `batches` | Off | `POST`, `GET /batches`; `GET /batches/{batch_id}`; `POST /batches/{batch_id}/cancel` | `openai`, `azureopenai`, `mistral` | - |
 | `videos` | Off | `POST /videos`; `GET /videos`; `GET`, `DELETE /videos/{video_id}`; `GET /videos/{video_id}/content` | `openai` | - |
 
-Every path also works without `/v1` (for example `/openai_compatible/moderations`).
+Every path also works without `/v1` (for example `/openai_compatible/moderations`). The [Inference API reference](./inference-api#openai-compatible) documents every endpoint's parameters, bodies and responses.
 
 ### What changed for each provider
 
@@ -157,6 +157,7 @@ Errors use the OpenAI shape `{"error": {"message", "type", "code"}}`. Errors fro
 
 ## Related
 
+- [Inference API](./inference-api) - OpenAPI reference for every family route, with headers and error codes
 - [xAI and Mistral](../apps-and-providers/provider-support#xai-and-mistral)
 - [Provider Support](../apps-and-providers/provider-support)
 - [Security Guardrails - Endpoint coverage](../protect/security-guardrails#endpoint-coverage)

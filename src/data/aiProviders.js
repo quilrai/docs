@@ -127,6 +127,10 @@ export function buildDocPageAiPrompt(pageTitle, pageMarkdownUrl, {site, product}
   if (site && /\/llm-gateway\/api-reference\/(management|apps-and-credentials|providers-and-configuration|prompts|policy)-api\b/.test(pageMarkdownUrl)) {
     lines.push(`- OpenAPI definition (every operation and schema): ${site}/openapi/llm-gateway-management-v1.json`);
   }
+  // The Inference API page renders from its own OpenAPI file.
+  if (site && /\/llm-gateway\/api-reference\/inference-api\b/.test(pageMarkdownUrl)) {
+    lines.push(`- OpenAPI definition (every inference operation, header and error code): ${site}/openapi/llm-gateway-inference-v1.json`);
+  }
   if (site) lines.push('', 'For related context:', ...productSources(site, product));
   lines.push('', ANSWER_RULES);
   return lines.join('\n');

@@ -1,0 +1,5299 @@
+{
+  "components": {
+    "headers": {
+      "Age": {
+        "description": "Seconds since the cached response was stored (cache hits only).",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "Link": {
+        "description": "`<url>; rel=\"help\"`: help link an administrator attached to this error (buffered responses only).",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RateLimit": {
+        "description": "IETF RateLimit for the tightest quota: `limit=<n>, remaining=<n>, reset=<seconds>` (`reset` omitted for lifetime windows). Present when a quota or budget applies to the request (on success, on later errors and on streams). Values are a snapshot taken before the upstream call: this request's request count is included, its tokens and spend are not.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RateLimit-Policy": {
+        "description": "IETF RateLimit-Policy: one item per enforced quota, `<limit>;w=<window seconds>;qu=\"<metric>\";id=\"<quota id>\"` (`w` omitted for lifetime windows; spend in USD). Present when a quota or budget applies to the request (on success, on later errors and on streams). Values are a snapshot taken before the upstream call: this request's request count is included, its tokens and spend are not.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Retry-After": {
+        "description": "Seconds to wait before retrying (quota and limit refusals, no available target, or relayed from the provider).",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "X-Quilr-Attempts": {
+        "description": "Number of upstream sends made, same-target retries included. Only sent when greater than 1; also on errors.",
+        "schema": {
+          "minimum": 2,
+          "type": "integer"
+        }
+      },
+      "X-Quilr-Budget-Overflow": {
+        "description": "`true` when a quota admitted this request inside its overflow band (at or over its limit but under the hard stop).",
+        "schema": {
+          "enum": [
+            "true"
+          ],
+          "type": "string"
+        }
+      },
+      "X-Quilr-Cache": {
+        "description": "`HIT` or `MISS` when the app's response cache is on and the request was eligible (non-streaming Chat Completions, Anthropic Messages, Embeddings). Absent on bypass. Send `Cache-Control: no-cache` to skip the lookup (the response is still stored) or `no-store` to skip both.",
+        "schema": {
+          "enum": [
+            "HIT",
+            "MISS"
+          ],
+          "type": "string"
+        }
+      },
+      "X-Quilr-Error-Code": {
+        "description": "The error code (see `x-quilr-error-codes`). Sent on upstream failures, routing and translation errors, and Bedrock and Google-format errors that carry a gateway code; elsewhere the code is in the body.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Error-Source": {
+        "description": "`upstream` when the provider failed (status and scrubbed reason relayed), `gateway` for the gateway's own routing refusals.",
+        "schema": {
+          "enum": [
+            "upstream",
+            "gateway"
+          ],
+          "type": "string"
+        }
+      },
+      "X-Quilr-Failover": {
+        "description": "Failover tier of the target that served, when it was not the first choice: `route` (another member of the route), `fallback` (an explicit fallback), `same_model` (the same model on another provider) or `app` (another target of the app). Also on errors.",
+        "schema": {
+          "enum": [
+            "route",
+            "fallback",
+            "same_model",
+            "app"
+          ],
+          "type": "string"
+        }
+      },
+      "X-Quilr-Quota-Blocked-By": {
+        "description": "Comma-separated ids of every quota that refused the request (429).",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Quota-Id": {
+        "description": "Id of the primary exhausted quota (429 `quota_exceeded`).",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Quota-Remaining": {
+        "description": "Remaining allowance of the tightest quota (USD for spend). Present when a quota or budget applies to the request (on success, on later errors and on streams). Values are a snapshot taken before the upstream call: this request's request count is included, its tokens and spend are not.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Quota-Reset": {
+        "description": "Reset time of the tightest quota (ISO 8601 UTC); omitted for lifetime windows. Present when a quota or budget applies to the request (on success, on later errors and on streams). Values are a snapshot taken before the upstream call: this request's request count is included, its tokens and spend are not.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Quota-Scope": {
+        "description": "`node`: quota counters are kept per gateway node; `shared`: counters are shared by every gateway node in the region. Sent whenever any quota header is.",
+        "schema": {
+          "enum": [
+            "node",
+            "shared"
+          ],
+          "type": "string"
+        }
+      },
+      "X-Quilr-Quota-Warning": {
+        "description": "`id=<quota id>; pct=<used percent>`: the most-used quota at or past one of its alert thresholds.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Request-ID": {
+        "description": "Gateway request id (UUID). Quote it to support. Sent on every response of Chat Completions, Anthropic Messages, Embeddings and Bedrock Runtime, and on streams the gateway had to commit early; on other APIs only on errors rewritten by an administrator's friendly-error rule.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Route": {
+        "description": "Opaque, stable id of the routing rule that chose the upstream: `r_` plus 16 hex digits, or `default`. Never a rule name; administrators map it to a rule in the routing summary. Sent on successful responses (status below 400) that reached routing, cached responses included.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-Quilr-Served-Model": {
+        "description": "Upstream model id the gateway actually called (on a cache hit, the model of the cached response). Same condition as `X-Quilr-Route`; omitted when the deployment hides model identity, and on streams the gateway had to commit early.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "X-RateLimit-Limit": {
+        "description": "Limit of the exhausted quota or app limit (429).",
+        "schema": {
+          "type": "number"
+        }
+      },
+      "X-RateLimit-Remaining": {
+        "description": "Remaining allowance of the exhausted quota or app limit (429).",
+        "schema": {
+          "type": "number"
+        }
+      },
+      "X-RateLimit-Reset": {
+        "description": "Unix time (seconds) the exhausted quota or limit resets (429).",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "X-Should-Retry": {
+        "description": "`false` when retrying cannot help (a budget is exhausted, a zero allowance, or the administrator chose so). OpenAI and Anthropic SDKs honour it.",
+        "schema": {
+          "enum": [
+            "false"
+          ],
+          "type": "string"
+        }
+      },
+      "x-amzn-ErrorType": {
+        "description": "Bedrock APIs: AWS exception name of the error, e.g. `ThrottlingException`.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "x-amzn-RequestId": {
+        "description": "Bedrock APIs: request id (the gateway's on gateway errors, AWS's on success).",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "AnthropicError400": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Invalid request, a request the target provider cannot serve, or blocked by a guardrail (sensitive data, prompt attack, custom intent, language, task adherence, hallucination).",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError401": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Missing or invalid Quilr credential, or a required user identity could not be verified.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError403": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Denied by gateway policy or access rules (model, tool, source IP, routing constraints), or an attachment was blocked.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError404": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Unknown model, deployment or resource.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError408": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Timed out.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError409": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "The request depends on state held by an upstream it may not use.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError413": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Request body or attachment too large.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError415": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Unsupported media type, content encoding or attachment type.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError422": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Request is well formed but cannot be processed, e.g. an attachment cannot be scanned.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError429": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Rate limit, budget or quota exceeded (gateway or provider). Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Blocked-By": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Blocked-By"
+          },
+          "X-Quilr-Quota-Id": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Id"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "X-Should-Retry": {
+            "$ref": "#/components/headers/X-Should-Retry"
+          }
+        }
+      },
+      "AnthropicError500": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Gateway error or configuration problem.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError502": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Upstream provider error, or a provider response the gateway could not read. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError503": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "No upstream target is available, or a required check could not complete. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError504": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Upstream provider timed out. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "AnthropicError529": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicError"
+            }
+          }
+        },
+        "description": "Upstream provider overloaded. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "BedrockError400": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Invalid request, a request the target provider cannot serve, or blocked by a guardrail (sensitive data, prompt attack, custom intent, language, task adherence, hallucination).",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError401": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Missing or invalid Quilr credential, or a required user identity could not be verified.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError403": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Denied by gateway policy or access rules (model, tool, source IP, routing constraints), or an attachment was blocked.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError404": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Unknown model, deployment or resource.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError408": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Timed out.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError409": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "The request depends on state held by an upstream it may not use.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError413": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Request body or attachment too large.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError415": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Unsupported media type, content encoding or attachment type.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError422": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Request is well formed but cannot be processed, e.g. an attachment cannot be scanned.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError429": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Rate limit, budget or quota exceeded (gateway or provider). Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Blocked-By": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Blocked-By"
+          },
+          "X-Quilr-Quota-Id": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Id"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "X-Should-Retry": {
+            "$ref": "#/components/headers/X-Should-Retry"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError500": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Gateway error or configuration problem.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError502": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Upstream provider error, or a provider response the gateway could not read. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError503": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "No upstream target is available, or a required check could not complete. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError504": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Upstream provider timed out. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "BedrockError529": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BedrockError"
+            }
+          }
+        },
+        "description": "Upstream provider overloaded. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "x-amzn-ErrorType": {
+            "$ref": "#/components/headers/x-amzn-ErrorType"
+          },
+          "x-amzn-RequestId": {
+            "$ref": "#/components/headers/x-amzn-RequestId"
+          }
+        }
+      },
+      "GoogleError400": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Invalid request, a request the target provider cannot serve, or blocked by a guardrail (sensitive data, prompt attack, custom intent, language, task adherence, hallucination).",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError401": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Missing or invalid Quilr credential, or a required user identity could not be verified.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError403": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Denied by gateway policy or access rules (model, tool, source IP, routing constraints), or an attachment was blocked.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError404": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Unknown model, deployment or resource.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError408": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Timed out.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError409": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "The request depends on state held by an upstream it may not use.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError413": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Request body or attachment too large.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError415": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Unsupported media type, content encoding or attachment type.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError422": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Request is well formed but cannot be processed, e.g. an attachment cannot be scanned.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError429": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Rate limit, budget or quota exceeded (gateway or provider). Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Blocked-By": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Blocked-By"
+          },
+          "X-Quilr-Quota-Id": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Id"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "X-Should-Retry": {
+            "$ref": "#/components/headers/X-Should-Retry"
+          }
+        }
+      },
+      "GoogleError500": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Gateway error or configuration problem.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError502": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Upstream provider error, or a provider response the gateway could not read. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError503": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "No upstream target is available, or a required check could not complete. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError504": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Upstream provider timed out. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "GoogleError529": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GoogleError"
+            }
+          }
+        },
+        "description": "Upstream provider overloaded. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError400": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Invalid request, a request the target provider cannot serve, or blocked by a guardrail (sensitive data, prompt attack, custom intent, language, task adherence, hallucination).",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError401": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Missing or invalid Quilr credential, or a required user identity could not be verified.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError403": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Denied by gateway policy or access rules (model, tool, source IP, routing constraints), or an attachment was blocked.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError404": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Unknown model, deployment or resource.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError408": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Timed out.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError409": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "The request depends on state held by an upstream it may not use.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError413": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Request body or attachment too large.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError415": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Unsupported media type, content encoding or attachment type.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError422": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Request is well formed but cannot be processed, e.g. an attachment cannot be scanned.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError429": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Rate limit, budget or quota exceeded (gateway or provider). Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Blocked-By": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Blocked-By"
+          },
+          "X-Quilr-Quota-Id": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Id"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          },
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "X-Should-Retry": {
+            "$ref": "#/components/headers/X-Should-Retry"
+          }
+        }
+      },
+      "OpenAIError500": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Gateway error or configuration problem.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError502": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Upstream provider error, or a provider response the gateway could not read. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError503": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "No upstream target is available, or a required check could not complete. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError504": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Upstream provider timed out. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      },
+      "OpenAIError529": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OpenAIError"
+            }
+          }
+        },
+        "description": "Upstream provider overloaded. Upstream errors also relay the provider's retry hints when it sent them: `retry-after`, `retry-after-ms`, `x-should-retry`, `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` and `anthropic-ratelimit-*`.",
+        "headers": {
+          "Link": {
+            "$ref": "#/components/headers/Link"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimit-Policy"
+          },
+          "X-Quilr-Attempts": {
+            "$ref": "#/components/headers/X-Quilr-Attempts"
+          },
+          "X-Quilr-Error-Code": {
+            "$ref": "#/components/headers/X-Quilr-Error-Code"
+          },
+          "X-Quilr-Error-Source": {
+            "$ref": "#/components/headers/X-Quilr-Error-Source"
+          },
+          "X-Quilr-Failover": {
+            "$ref": "#/components/headers/X-Quilr-Failover"
+          },
+          "X-Quilr-Quota-Remaining": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+          },
+          "X-Quilr-Quota-Reset": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+          },
+          "X-Quilr-Quota-Scope": {
+            "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+          },
+          "X-Quilr-Request-ID": {
+            "$ref": "#/components/headers/X-Quilr-Request-ID"
+          }
+        }
+      }
+    },
+    "schemas": {
+      "AnthropicError": {
+        "additionalProperties": true,
+        "description": "Anthropic-style error envelope. The gateway adds `code` (and the other fields listed) inside `error`; guardrail blocks keep `code` but not `details`.",
+        "properties": {
+          "error": {
+            "additionalProperties": true,
+            "properties": {
+              "blocked_by": {
+                "description": "Every quota that refused the request.",
+                "items": {
+                  "$ref": "#/components/schemas/QuotaInfo"
+                },
+                "type": "array"
+              },
+              "code": {
+                "description": "Error code: a gateway or provider code from the catalog in `x-quilr-error-codes` (codes are only ever added, never renamed), or a provider's own code passed through. Adapter-specific codes not in the catalog may also appear.",
+                "type": "string"
+              },
+              "help_url": {
+                "description": "Help link an administrator attached to this error (also appended to `message`).",
+                "format": "uri",
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "provider": {
+                "description": "Provider the gateway called (upstream errors).",
+                "type": "string"
+              },
+              "quota": {
+                "$ref": "#/components/schemas/QuotaInfo",
+                "description": "The exhausted quota (`quota_exceeded`)."
+              },
+              "source": {
+                "description": "Present when the provider failed; the gateway relays its status and a scrubbed reason.",
+                "enum": [
+                  "upstream"
+                ],
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "upstream_request_id": {
+                "description": "The provider's request id, when it sent one.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "message"
+            ],
+            "type": "object"
+          },
+          "type": {
+            "const": "error"
+          }
+        },
+        "required": [
+          "type",
+          "error"
+        ],
+        "type": "object"
+      },
+      "BedrockError": {
+        "additionalProperties": true,
+        "description": "AWS-style error body; the error type is also in the `x-amzn-ErrorType` header. Gateway decisions that have a code put it in `reason` and `X-Quilr-Error-Code`, and append `(reason: <code>)` to the message. Guardrail blocks of request or response text carry no code.",
+        "properties": {
+          "__type": {
+            "description": "Error type, e.g. `ValidationException`.",
+            "type": "string"
+          },
+          "blocked_by": {
+            "description": "Every quota that refused the request.",
+            "items": {
+              "$ref": "#/components/schemas/QuotaInfo"
+            },
+            "type": "array"
+          },
+          "code": {
+            "description": "Quota errors: `quota_exceeded`.",
+            "type": "string"
+          },
+          "help_url": {
+            "description": "Help link an administrator attached to this error (also appended to `message`).",
+            "format": "uri",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "quota": {
+            "$ref": "#/components/schemas/QuotaInfo",
+            "description": "The exhausted quota (`quota_exceeded`)."
+          },
+          "reason": {
+            "description": "Error code: a gateway or provider code from the catalog in `x-quilr-error-codes` (codes are only ever added, never renamed), or a provider's own code passed through. Adapter-specific codes not in the catalog may also appear.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "GoogleError": {
+        "additionalProperties": true,
+        "description": "Google API-style error envelope. Gateway decisions that have a code put it in `details[].reason` and `X-Quilr-Error-Code`; guardrail blocks of request or response text carry no code.",
+        "properties": {
+          "error": {
+            "additionalProperties": true,
+            "properties": {
+              "code": {
+                "type": "integer"
+              },
+              "details": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "blocked_by": {
+                      "description": "Every quota that refused the request.",
+                      "items": {
+                        "$ref": "#/components/schemas/QuotaInfo"
+                      },
+                      "type": "array"
+                    },
+                    "domain": {
+                      "description": "`quilr.ai` on gateway errors.",
+                      "type": "string"
+                    },
+                    "help_url": {
+                      "description": "Help link an administrator attached to this error (also appended to `message`).",
+                      "format": "uri",
+                      "type": "string"
+                    },
+                    "quota": {
+                      "$ref": "#/components/schemas/QuotaInfo",
+                      "description": "The exhausted quota (`quota_exceeded`)."
+                    },
+                    "reason": {
+                      "description": "Error code: a gateway or provider code from the catalog in `x-quilr-error-codes` (codes are only ever added, never renamed), or a provider's own code passed through. Adapter-specific codes not in the catalog may also appear.",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "message": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "OpenAIError": {
+        "additionalProperties": true,
+        "description": "OpenAI-style error envelope, with the gateway's additional fields.",
+        "properties": {
+          "error": {
+            "additionalProperties": true,
+            "properties": {
+              "blocked_by": {
+                "description": "Every quota that refused the request.",
+                "items": {
+                  "$ref": "#/components/schemas/QuotaInfo"
+                },
+                "type": "array"
+              },
+              "code": {
+                "description": "Error code: a gateway or provider code from the catalog in `x-quilr-error-codes` (codes are only ever added, never renamed), or a provider's own code passed through. Adapter-specific codes not in the catalog may also appear.",
+                "type": [
+                  "string",
+                  "integer",
+                  "null"
+                ]
+              },
+              "details": {
+                "description": "Guardrail blocks: a short reason (never the detected values). Legacy limits: an object.",
+                "type": [
+                  "string",
+                  "object"
+                ]
+              },
+              "help_url": {
+                "description": "Help link an administrator attached to this error (also appended to `message`).",
+                "format": "uri",
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "param": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "provider": {
+                "description": "Provider the gateway called (upstream errors).",
+                "type": "string"
+              },
+              "quota": {
+                "$ref": "#/components/schemas/QuotaInfo",
+                "description": "The exhausted quota (`quota_exceeded`)."
+              },
+              "source": {
+                "description": "Present when the provider failed; the gateway relays its status and a scrubbed reason.",
+                "enum": [
+                  "upstream"
+                ],
+                "type": "string"
+              },
+              "type": {
+                "description": "Provider error type, or a gateway type: `content_policy_violation` (guardrail block), `policy_error` (policy or routing denial), `quota_exceeded`, `policy_accounting_error`.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "upstream_request_id": {
+                "description": "The provider's request id, when it sent one.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "message"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "QuotaInfo": {
+        "additionalProperties": true,
+        "description": "A usage quota or budget as reported in quota errors.",
+        "properties": {
+          "current_usage": {
+            "type": "number"
+          },
+          "current_usage_micro_usd": {
+            "type": "integer"
+          },
+          "estimated_request_amount": {
+            "description": "This request's estimated charge, when it tipped the quota over.",
+            "type": "number"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "limit": {
+            "type": "number"
+          },
+          "limit_micro_usd": {
+            "type": "integer"
+          },
+          "metric": {
+            "description": "What is counted, e.g. requests, tokens or spend.",
+            "type": "string"
+          },
+          "reset_at": {
+            "description": "Null for lifetime windows or a zero allowance.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "unit": {
+            "description": "`usd` for spend quotas.",
+            "type": "string"
+          },
+          "window": {
+            "additionalProperties": true,
+            "type": [
+              "object",
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SarvamSpeechToTextRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "file": {
+            "description": "Audio file.",
+            "format": "binary",
+            "type": "string"
+          },
+          "language_code": {
+            "description": "BCP-47 style code such as `hi-IN`, `en-IN`, or `auto` where Sarvam accepts it.",
+            "type": "string"
+          },
+          "mode": {
+            "description": "For example `transcribe` or `translate`.",
+            "type": "string"
+          },
+          "model": {
+            "description": "Speech model (default `saaras:v3`).",
+            "type": "string"
+          },
+          "with_timestamps": {
+            "enum": [
+              "true",
+              "false"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "type": "object"
+      },
+      "SarvamSpeechToTextResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "diarized_transcript": {
+            "additionalProperties": true,
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "language_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timestamps": {
+            "additionalProperties": true,
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "transcript": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SarvamSpeechToTextTranslateRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "file": {
+            "description": "Audio file.",
+            "format": "binary",
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "type": "object"
+      },
+      "SarvamTextLidRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "input": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "type": "object"
+      },
+      "SarvamTextLidResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "language_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "script_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SarvamTextToSpeechRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "model": {
+            "description": "Voice model (default `bulbul:v3`).",
+            "type": "string"
+          },
+          "output_audio_codec": {
+            "type": "string"
+          },
+          "pace": {
+            "type": "number"
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "speech_sample_rate": {
+            "type": "integer"
+          },
+          "target_language_code": {
+            "description": "BCP-47 style code such as `hi-IN`, `en-IN`, or `auto` where Sarvam accepts it.",
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "target_language_code"
+        ],
+        "type": "object"
+      },
+      "SarvamTextToSpeechResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "audios": {
+            "description": "Base64 audio, as fragments of one payload.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SarvamTranslateRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "input": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "model": {
+            "description": "Translation model (default `mayura:v1`).",
+            "type": "string"
+          },
+          "source_language_code": {
+            "description": "BCP-47 style code such as `hi-IN`, `en-IN`, or `auto` where Sarvam accepts it.",
+            "type": "string"
+          },
+          "speaker_gender": {
+            "type": "string"
+          },
+          "target_language_code": {
+            "description": "BCP-47 style code such as `hi-IN`, `en-IN`, or `auto` where Sarvam accepts it.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "input",
+          "source_language_code",
+          "target_language_code"
+        ],
+        "type": "object"
+      },
+      "SarvamTranslateResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_language_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "translated_text": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SarvamTransliterateRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "input": {
+            "type": "string"
+          },
+          "numerals_format": {
+            "type": "string"
+          },
+          "source_language_code": {
+            "description": "BCP-47 style code such as `hi-IN`, `en-IN`, or `auto` where Sarvam accepts it.",
+            "type": "string"
+          },
+          "spoken_form": {
+            "type": "boolean"
+          },
+          "target_language_code": {
+            "description": "BCP-47 style code such as `hi-IN`, `en-IN`, or `auto` where Sarvam accepts it.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "input",
+          "source_language_code",
+          "target_language_code"
+        ],
+        "type": "object"
+      },
+      "SarvamTransliterateResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_language_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transliterated_text": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "ApigeeApiKey": {
+        "description": "Apigee style `x-apikey` header with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "x-apikey",
+        "type": "apiKey"
+      },
+      "ApimSubscriptionKey": {
+        "description": "Azure API Management style header with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "ocp-apim-subscription-key",
+        "type": "apiKey"
+      },
+      "AwsSigV4": {
+        "description": "AWS Signature Version 4 (`AWS4-HMAC-SHA256 ...`) computed by an AWS SDK configured with the gateway as its endpoint; the access key id is the Quilr API key. A Bearer Quilr API key is accepted instead.",
+        "in": "header",
+        "name": "Authorization",
+        "type": "apiKey"
+      },
+      "KongApiKey": {
+        "description": "Kong key-auth style `apikey` header with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "apikey",
+        "type": "apiKey"
+      },
+      "QuilrApiKeyHeader": {
+        "description": "Azure OpenAI style `api-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "api-key",
+        "type": "apiKey"
+      },
+      "QuilrBearer": {
+        "description": "`Authorization: Bearer` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. When present, this header decides: a malformed value is rejected and no other header is tried.",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "QuilrGoogApiKey": {
+        "description": "Gemini SDK style `x-goog-api-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "x-goog-api-key",
+        "type": "apiKey"
+      },
+      "QuilrSarvamKey": {
+        "description": "Sarvam SDK style `api-subscription-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "api-subscription-key",
+        "type": "apiKey"
+      },
+      "QuilrXApiKey": {
+        "description": "`x-api-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "x-api-key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "Sarvam's own speech-to-text, text-to-speech, translation, transliteration and language identification APIs, in Sarvam's request and response format, served for the app's Sarvam provider. Point the Sarvam SDK at `<gateway>/sarvam`; its `api-subscription-key` header carries the Quilr API key. Text and transcripts are scanned by guardrails; a blocked request answers 400.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the app's guardrails, routing, failover, limits and logging, then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway response headers.** Besides the provider's own headers (passed through), the gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
+    "title": "Quilr LLM Gateway: Sarvam",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/sarvam/speech-to-text": {
+      "post": {
+        "description": "Transcribes an uploaded audio file (`multipart/form-data`). Every form field is forwarded to Sarvam; the transcript is scanned by guardrails before it is returned.",
+        "operationId": "Sarvam_speech_to_text",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SarvamSpeechToTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SarvamSpeechToTextResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrSarvamKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Transcribe speech",
+        "tags": [
+          "Sarvam"
+        ]
+      }
+    },
+    "/sarvam/speech-to-text-translate": {
+      "post": {
+        "description": "Transcribes an uploaded audio file (`multipart/form-data`) and translates it to English. The transcript is scanned by guardrails before it is returned.",
+        "operationId": "Sarvam_speech_to_text_translate",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SarvamSpeechToTextTranslateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SarvamSpeechToTextResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrSarvamKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Transcribe and translate speech",
+        "tags": [
+          "Sarvam"
+        ]
+      }
+    },
+    "/sarvam/text-lid": {
+      "post": {
+        "description": "Returns the language and script of `input`. The input is scanned by guardrails before forwarding.",
+        "operationId": "Sarvam_identify_language",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SarvamTextLidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SarvamTextLidResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrSarvamKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Identify the language of text",
+        "tags": [
+          "Sarvam"
+        ]
+      }
+    },
+    "/sarvam/text-to-speech": {
+      "post": {
+        "description": "Converts `text` to speech and returns Sarvam's JSON with base64 audio. The text is scanned by guardrails before forwarding.",
+        "operationId": "Sarvam_text_to_speech",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SarvamTextToSpeechRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SarvamTextToSpeechResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrSarvamKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Synthesize speech",
+        "tags": [
+          "Sarvam"
+        ]
+      }
+    },
+    "/sarvam/translate": {
+      "post": {
+        "description": "Translates `input` between languages. The input and the translation are scanned by guardrails.",
+        "operationId": "Sarvam_translate",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SarvamTranslateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SarvamTranslateResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrSarvamKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Translate text",
+        "tags": [
+          "Sarvam"
+        ]
+      }
+    },
+    "/sarvam/transliterate": {
+      "post": {
+        "description": "Converts `input` to another script. The input and the result are scanned by guardrails.",
+        "operationId": "Sarvam_transliterate",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SarvamTransliterateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SarvamTransliterateResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrSarvamKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Transliterate text",
+        "tags": [
+          "Sarvam"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Quilr-hosted gateway. Pick your region; for a dedicated or on-premises gateway, replace the URL with your gateway's.",
+      "url": "https://{region}.quilr.ai",
+      "variables": {
+        "region": {
+          "default": "guardrails-usa-1",
+          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global, routed to the nearest region",
+          "enum": [
+            "guardrails-usa-1",
+            "guardrails-usa-2",
+            "guardrails-europe-1",
+            "guardrails-india-1",
+            "guardrails-india-2",
+            "guardrails-jp-1",
+            "guardrails"
+          ]
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "description": "Sarvam's own speech-to-text, text-to-speech, translation, transliteration and language identification APIs, in Sarvam's request and response format, served for the app's Sarvam provider. Point the Sarvam SDK at `<gateway>/sarvam`; its `api-subscription-key` header carries the Quilr API key. Text and transcripts are scanned by guardrails; a blocked request answers 400.",
+      "name": "Sarvam"
+    }
+  ],
+  "x-quilr-error-codes": [
+    {
+      "code": "missing_api_key",
+      "description": "No gateway API key was sent.",
+      "group": "authentication",
+      "source": "gateway",
+      "status": 401
+    },
+    {
+      "also_sent_by_providers": true,
+      "code": "invalid_api_key",
+      "description": "The gateway API key is unknown or revoked, or its app is disabled.",
+      "group": "authentication",
+      "source": "gateway",
+      "status": 401
+    },
+    {
+      "code": "expired_api_key",
+      "description": "The self-service API key has expired.",
+      "group": "authentication",
+      "source": "gateway",
+      "status": 401
+    },
+    {
+      "code": "jwt_auth_failed",
+      "description": "The bearer token could not be verified.",
+      "group": "authentication",
+      "source": "gateway",
+      "status": 401
+    },
+    {
+      "code": "self_service_identity_required",
+      "description": "A self-service app accepts only its own Quilr API keys.",
+      "group": "authentication",
+      "source": "gateway",
+      "status": 401
+    },
+    {
+      "code": "missing_provider",
+      "description": "The app has no provider configured.",
+      "group": "configuration",
+      "source": "gateway",
+      "status": 500
+    },
+    {
+      "code": "missing_provider_key",
+      "description": "The provider has no credential configured.",
+      "group": "configuration",
+      "source": "gateway",
+      "status": 500
+    },
+    {
+      "code": "unsupported_provider",
+      "description": "The app's provider cannot serve this API.",
+      "group": "configuration",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "provider_not_configured",
+      "description": "The requested provider is not configured for this app.",
+      "group": "configuration",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "sdk_mode_required",
+      "description": "This endpoint requires a Quilr SDK app key.",
+      "group": "configuration",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "internal_error",
+      "description": "An unexpected gateway error.",
+      "group": "configuration",
+      "source": "gateway",
+      "status": 500
+    },
+    {
+      "code": "policy_access_denied",
+      "description": "A Policy Engine rule denied the request.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_model_denied",
+      "description": "The model is on a rejected-models list.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_model_not_allowed",
+      "description": "The model is outside the allowed-models list that applies.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "model_access_denied",
+      "description": "The model is not enabled for this app.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_tool_access_denied",
+      "description": "A Policy Engine rule denied a tool call.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "source_ip_not_allowed",
+      "description": "The client IP address is not allowed.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_source_ip_denied",
+      "description": "A Policy Engine rule denied the client IP address.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_provider_unsupported",
+      "description": "The routed provider cannot serve this request.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_routing_group_wrong_surface",
+      "description": "The routing group cannot serve this API.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_routing_group_not_defined",
+      "description": "The requested routing group is not defined.",
+      "group": "access",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "policy_configuration_error",
+      "description": "The published policy cannot be applied.",
+      "group": "access",
+      "source": "gateway",
+      "status": 500
+    },
+    {
+      "code": "policy_evaluation_error",
+      "description": "The policy could not be evaluated.",
+      "group": "access",
+      "source": "gateway",
+      "status": 500
+    },
+    {
+      "code": "identity_check_failed",
+      "description": "The user identity could not be verified.",
+      "group": "identity",
+      "source": "gateway",
+      "status": 401
+    },
+    {
+      "code": "identity_required",
+      "description": "The app requires a user identity.",
+      "group": "identity",
+      "source": "gateway",
+      "status": 401
+    },
+    {
+      "code": "conversation_id_required",
+      "description": "The app requires a conversation id.",
+      "group": "identity",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "system_prompt_not_from_store",
+      "description": "The system prompt does not come from the Prompt Store.",
+      "group": "prompt_store",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "prompt_store_not_configured",
+      "description": "The Prompt Store is not configured for this app.",
+      "group": "prompt_store",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "prompt_store_error",
+      "description": "The Prompt Store prompt could not be used.",
+      "group": "prompt_store",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "invalid_prompt_variables",
+      "description": "The Prompt Store variables are invalid.",
+      "group": "prompt_store",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "invalid_json",
+      "description": "The request body is not valid JSON.",
+      "group": "request",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "missing_required_parameter",
+      "description": "A required request parameter is missing.",
+      "group": "request",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "invalid_extra_body",
+      "description": "The extra_body parameter is invalid.",
+      "group": "request",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "invalid_request",
+      "description": "The request is invalid for the provider adapter.",
+      "group": "request",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "also_sent_by_providers": true,
+      "code": "model_not_found",
+      "description": "The app does not offer the requested model.",
+      "group": "request",
+      "source": "gateway",
+      "status": 404
+    },
+    {
+      "also_sent_by_providers": true,
+      "code": "rate_limit_exceeded",
+      "description": "The app's request rate limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "concurrency_limit_exceeded",
+      "description": "The app's concurrency limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "input_token_limit_exceeded",
+      "description": "The app's input-token limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "output_token_limit_exceeded",
+      "description": "The app's output-token limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "max_tokens_per_request_exceeded",
+      "description": "The request asks for more tokens than one request may use.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "max_tokens_exceeded",
+      "description": "The request asks for more tokens than one request may use (Messages).",
+      "group": "limits",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "model_rate_limit_exceeded",
+      "description": "The model's request rate limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "model_concurrency_limit_exceeded",
+      "description": "The model's concurrency limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "model_input_token_limit_exceeded",
+      "description": "The model's input-token limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "model_output_token_limit_exceeded",
+      "description": "The model's output-token limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "model_max_tokens_per_request_exceeded",
+      "description": "The request asks for more tokens than the model allows per request.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "rate_or_token_limit_exceeded",
+      "description": "A rate or token limit was reached (Bedrock).",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "limit_exceeded",
+      "description": "A usage limit was reached.",
+      "group": "limits",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "quota_exceeded",
+      "description": "A usage quota or budget is exhausted.",
+      "group": "quota",
+      "source": "gateway",
+      "status": 429
+    },
+    {
+      "code": "quota_price_unavailable",
+      "description": "The model has no price for a spend budget.",
+      "group": "quota",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "quota_usage_unavailable",
+      "description": "The route cannot measure a quota's usage.",
+      "group": "quota",
+      "source": "gateway",
+      "status": 503
+    },
+    {
+      "code": "quota_accounting_error",
+      "description": "Quota usage could not be recorded.",
+      "group": "quota",
+      "source": "gateway",
+      "status": 503
+    },
+    {
+      "code": "sensitive_data_blocked",
+      "description": "Sensitive data was detected and blocked.",
+      "group": "guardrails",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "adversarial_content_blocked",
+      "description": "Adversarial content (prompt attack) was blocked.",
+      "group": "guardrails",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "custom_intent_blocked",
+      "description": "A custom intent was detected and blocked.",
+      "group": "guardrails",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "language_blocked",
+      "description": "The language of the content is blocked.",
+      "group": "guardrails",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "guardian_task_adherence_blocked",
+      "description": "Guardian blocked a request outside the app's task.",
+      "group": "guardrails",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "hallucination_blocked",
+      "description": "The response was blocked as a likely hallucination.",
+      "group": "guardrails",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "all_targets_unavailable",
+      "description": "No provider target could take the request.",
+      "group": "routing",
+      "source": "gateway",
+      "status": 503
+    },
+    {
+      "code": "embedding_dimension_mismatch",
+      "description": "A failover target returned embeddings of a different size.",
+      "group": "routing",
+      "source": "gateway",
+      "status": 502
+    },
+    {
+      "code": "routing_constraint_unsatisfied",
+      "description": "No allowed target satisfies the request's routing constraints.",
+      "group": "routing",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "routing_state_bound_conflict",
+      "description": "The request's provider-bound state lives on a target its routing constraints exclude.",
+      "group": "routing",
+      "source": "gateway",
+      "status": 409
+    },
+    {
+      "code": "routing_constraint_check_unavailable",
+      "description": "A routing-constraint check could not be completed.",
+      "group": "routing",
+      "source": "gateway",
+      "status": 503
+    },
+    {
+      "code": "translation_unconvertible_request",
+      "description": "The request cannot be converted to the provider's API.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "translation_unsupported_state",
+      "description": "The request depends on state the provider cannot use.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "upstream_api_unsupported",
+      "description": "The provider cannot serve this client API.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "state_not_portable",
+      "description": "Conversation state cannot move to this provider.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "provider_not_conversational",
+      "description": "The provider does not serve conversational requests.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "unsupported_client_api",
+      "description": "The client API is not supported.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 400
+    },
+    {
+      "code": "translation_internal_error",
+      "description": "The request could not be converted.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 500
+    },
+    {
+      "code": "translation_response_failed",
+      "description": "The provider's response could not be converted.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 502
+    },
+    {
+      "code": "translation_target_configuration_error",
+      "description": "The translated provider target is misconfigured.",
+      "group": "translation",
+      "source": "gateway",
+      "status": 500
+    },
+    {
+      "code": "attachment_type_not_allowed",
+      "description": "An attachment's detected file type is not allowed.",
+      "group": "attachments",
+      "source": "gateway",
+      "status": 415
+    },
+    {
+      "code": "attachment_too_large",
+      "description": "An attachment is larger than the allowed size.",
+      "group": "attachments",
+      "source": "gateway",
+      "status": 413
+    },
+    {
+      "code": "attachment_request_too_large",
+      "description": "The request's attachments are larger in total than allowed.",
+      "group": "attachments",
+      "source": "gateway",
+      "status": 413
+    },
+    {
+      "code": "attachment_too_many",
+      "description": "The request carries more new attachments than allowed.",
+      "group": "attachments",
+      "source": "gateway",
+      "status": 413
+    },
+    {
+      "code": "attachment_too_many_pages",
+      "description": "A document has more pages than allowed.",
+      "group": "attachments",
+      "source": "gateway",
+      "status": 413
+    },
+    {
+      "code": "attachment_unscannable",
+      "description": "An attachment is encrypted, unparseable or a remote reference, and the policy blocks unscannable files.",
+      "group": "attachments",
+      "source": "gateway",
+      "status": 422
+    },
+    {
+      "code": "attachment_blocked",
+      "description": "An attachment was blocked: a DLP finding in its text (sent with the surface's DLP block status, 400) or macros / an attachment that cannot be removed (403).",
+      "group": "attachments",
+      "source": "gateway",
+      "status": 403
+    },
+    {
+      "code": "upstream_bad_request",
+      "description": "The provider rejected the request.",
+      "group": "upstream",
+      "source": "provider",
+      "status": 400
+    },
+    {
+      "code": "upstream_unauthorized",
+      "description": "The provider rejected the gateway's credentials.",
+      "failover_class": "auth",
+      "group": "upstream",
+      "source": "provider",
+      "status": 401
+    },
+    {
+      "code": "upstream_forbidden",
+      "description": "The provider denied access.",
+      "failover_class": "auth",
+      "group": "upstream",
+      "source": "provider",
+      "status": 403
+    },
+    {
+      "code": "upstream_not_found",
+      "description": "The provider did not find the model or resource.",
+      "failover_class": "model_not_found",
+      "group": "upstream",
+      "source": "provider",
+      "status": 404
+    },
+    {
+      "code": "upstream_timeout",
+      "description": "The provider timed out.",
+      "failover_class": "timeout",
+      "group": "upstream",
+      "source": "provider",
+      "status": 504
+    },
+    {
+      "code": "upstream_conflict",
+      "description": "The provider rejected the request as a conflict.",
+      "group": "upstream",
+      "source": "provider",
+      "status": 409
+    },
+    {
+      "code": "upstream_request_too_large",
+      "description": "The provider rejected the request as too large.",
+      "group": "upstream",
+      "source": "provider",
+      "status": 413
+    },
+    {
+      "code": "upstream_rate_limited",
+      "description": "The provider rate-limited the request.",
+      "failover_class": "rate_limit",
+      "group": "upstream",
+      "source": "provider",
+      "status": 429
+    },
+    {
+      "code": "upstream_overloaded",
+      "description": "The provider is overloaded.",
+      "failover_class": "server_error",
+      "group": "upstream",
+      "source": "provider",
+      "status": 529
+    },
+    {
+      "code": "upstream_error",
+      "description": "The provider returned an error.",
+      "group": "upstream",
+      "source": "provider",
+      "status": 502
+    },
+    {
+      "code": "upstream_unreachable",
+      "description": "The provider could not be reached.",
+      "failover_class": "connection",
+      "group": "upstream",
+      "source": "provider",
+      "status": 502
+    },
+    {
+      "code": "upstream_stream_truncated",
+      "description": "The provider's stream ended early.",
+      "group": "upstream",
+      "source": "provider",
+      "status": 502
+    },
+    {
+      "code": "upstream_stream_malformed",
+      "description": "The provider's stream could not be read.",
+      "group": "upstream",
+      "source": "provider",
+      "status": 502
+    },
+    {
+      "code": "upstream_stream_error",
+      "description": "The provider's stream reported an error.",
+      "group": "upstream",
+      "source": "provider",
+      "status": 502
+    },
+    {
+      "code": "remote_connector_unreachable",
+      "description": "The provider could not be reached through its remote connector.",
+      "failover_class": "connection",
+      "group": "upstream",
+      "source": "provider",
+      "status": 503
+    }
+  ]
+}

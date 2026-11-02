@@ -55,6 +55,8 @@ Combine a region with a path, for example:
 https://guardrails-usa-2.quilr.ai/openai_compatible/
 ```
 
+Every path, its parameters, the headers the gateway adds and its error codes are in the [Inference API reference](../api-reference/inference-api), with an OpenAPI document you can import into your own API gateway.
+
 Pick the path that matches your SDK, not your provider: every conversational path reaches every conversational provider on the app, natively when the provider speaks that format and by conversion when it does not. See [any-to-any formats](../api-reference/any-to-any-formats) and the [capability matrix](../apps-and-providers/provider-support#capability-matrix).
 
 The standalone SDK paths return [content-check results](../apps-and-providers/sdk-mode) or [optimized text and token-savings estimates](../apps-and-providers/sdk-token-savings) directly. Use them without a provider or model selection.

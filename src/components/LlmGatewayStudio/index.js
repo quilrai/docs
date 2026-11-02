@@ -1316,9 +1316,13 @@ export default function LlmGatewayStudio() {
     setLogStartTime(initial.start);
     setLogEndTime(initial.end);
     const params = new URLSearchParams(window.location.search);
-    if (params.get('surface') === 'sdk') {
+    const requestedSurface = params.get('surface');
+    if (requestedSurface === 'sdk') {
       setSurfaceId('sdk');
       if (params.get('sdk_operation') === 'token_savings') setSdkOperation('token-savings');
+    } else if (requestedSurface && SURFACES.some((s) => s.id === requestedSurface)) {
+      // Deep links from the Inference API reference (?surface=chat, ?surface=rerank, ...).
+      selectSurface(requestedSurface);
     }
   }, []);
 

@@ -10,7 +10,10 @@
  *     copied from the markdown runs.
  *   - Management API components (<ApiReference>, <SchemaReference>, ...) that
  *     render from the OpenAPI file become a link to that file plus a compact
- *     list of the operations / fields they show.
+ *     list of the operations / fields they show. On the Inference API page
+ *     (components imported from ManagementApi/inference) they read the
+ *     inference spec, and its tables (<ErrorCodeTable>, <ResponseHeaderTable>,
+ *     <CredentialTable>, <SpecDownloads>, <RegionTable>) become markdown tables.
  *   - Product landing pages (<ProductLanding product="..."/>) become a real
  *     page: name, tagline, tasks and the section map from the sidebar.
  *   - Deployment SOP components (<InstallSop>, <SopLink>) become links to the
@@ -29,22 +32,25 @@ const path = require('path');
 const vm = require('vm');
 
 const OPENAPI_PATH = '/openapi/llm-gateway-management-v1.json';
+// The Inference API page imports the same components from ManagementApi/inference (its own spec).
+const INFERENCE_OPENAPI_PATH = '/openapi/llm-gateway-inference-v1.json';
+const INFERENCE_IMPORT = /from\s+['"]@site\/src\/components\/ManagementApi\/inference['"]/;
 const MAGIC = '(?:diff-add|diff-remove|highlight-next-line|highlight-start|highlight-end)';
 // A line holding only a magic comment, in any comment syntax Prism uses.
 const MAGIC_LINE = new RegExp(
   `^\\s*(?:(?://|#|--|%|;)\\s*${MAGIC}|/\\*\\s*${MAGIC}\\s*\\*/|<!--\\s*${MAGIC}\\s*-->|\\{/\\*\\s*${MAGIC}\\s*\\*/\\})\\s*$`,
 );
 
-let specCache;
-function loadSpec(siteDir) {
-  if (specCache === undefined) {
+const specCache = {};
+function loadSpec(siteDir, specPath = OPENAPI_PATH) {
+  if (specCache[specPath] === undefined) {
     try {
-      specCache = JSON.parse(fs.readFileSync(path.join(siteDir, 'static', OPENAPI_PATH), 'utf-8'));
+      specCache[specPath] = JSON.parse(fs.readFileSync(path.join(siteDir, 'static', specPath), 'utf-8'));
     } catch {
-      specCache = null;
+      specCache[specPath] = null;
     }
   }
-  return specCache;
+  return specCache[specPath];
 }
 
 function operations(spec) {
@@ -121,9 +127,69 @@ function schemaMarkdown(spec, name) {
   return lines.join('\n');
 }
 
+// Inference API page: the same components over the inference spec, plus its tables.
+function inferenceComponents(text, {site, siteDir}) {
+  const spec = loadSpec(siteDir, INFERENCE_OPENAPI_PATH);
+  const specUrl = `${site}${INFERENCE_OPENAPI_PATH}`;
+  if (!spec) return text;
+  const data = loadDataModule(path.join(siteDir, 'src', 'data', 'inferenceApiFamilies.js'));
+  const familyByTag = Object.fromEntries(data.families.flatMap((f) => f.tags.map((t) => [t, f])));
+  const familyOf = (op) => familyByTag[(op.tags || [])[0]] || data.other;
+  const all = operations(spec);
+  const aliasKey = (op) => op['x-quilr-alias-of'] && `${op.method} ${op['x-quilr-alias-of']}`;
+  const canonical = all.filter((op) => !aliasKey(op));
+  const aliases = {};
+  for (const op of all) if (aliasKey(op)) (aliases[aliasKey(op)] ||= []).push(op);
+  const schemes = spec.components?.securitySchemes || {};
+  const header = (name) => {
+    const s = schemes[name] || {};
+    if (name === 'AwsSigV4') return 'Authorization: AWS4-HMAC-SHA256 (SigV4)';
+    return s.type === 'http' && s.scheme === 'bearer' ? 'Authorization: Bearer' : s.name || name;
+  };
+  const line = (op) => {
+    const also = (aliases[`${op.method} ${op.path}`] || []).map((a) => `\`${a.method} ${a.path}\``);
+    const ws = op['x-quilr-websocket'] ? ' (WebSocket)' : '';
+    return `${opLine(op)}${ws}${also.length ? ` (also at ${also.join(', ')})` : ''}`;
+  };
+  const accepts = (ops) => [...new Set(ops.flatMap((op) => (op.security || []).flatMap((r) => Object.keys(r))))].map((n) => `\`${header(n)}\``).join(', ');
+  const cell = (t) => String(t ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+  const server = spec.servers?.[0];
+  const host = server ? server.url.replace(/\{(\w+)\}/g, (m, n) => server.variables?.[n]?.default ?? m) : '';
+  const familyKeys = all.find((op) => op.operationId === 'Get_inference_openapi')?.parameters?.find((p) => p.name === 'family')?.schema?.enum
+    || data.families.filter((f) => !f.noDownload).map((f) => f.key);
+  return text
+    .replace(/<ManagementHero\s*\/>/g, `OpenAPI reference for the LLM Gateway Inference API v1: ${specUrl}`)
+    .replace(/<ResourceCards\s*\/>/g, () =>
+      ['API families:', '', ...[...data.families, data.other].map((f) => [f, canonical.filter((op) => familyOf(op).key === f.key).length])
+        .filter(([, n]) => n > 0).map(([f, n]) => `- ${f.label}${f.desc ? `: ${f.desc}` : ''} (${n} operation${n === 1 ? '' : 's'})`)].join('\n'))
+    .replace(/<RegionTable\s*\/>/g, () => {
+      const v = server?.variables?.region;
+      if (!v) return `Base URL: ${host}`;
+      return [`Base URL: \`${server.url}\` (region variable, default \`${v.default}\`). Regions: ${v.description || ''}`, '', ...(v.enum || []).map((r) => `- ${server.url.replace('{region}', r)}`)].join('\n');
+    })
+    .replace(/<CredentialTable\s*\/>/g, () =>
+      ['| Header | Details |', '|---|---|', ...Object.keys(schemes).map((n) => `| \`${header(n)}\` | ${cell(schemes[n].description)} |`)].join('\n'))
+    .replace(/<ResponseHeaderTable\s*\/>/g, () =>
+      ['| Header | Meaning |', '|---|---|', ...Object.entries(spec.components?.headers || {}).map(([n, h]) => `| \`${n}\` | ${cell(h.description)} |`)].join('\n'))
+    .replace(/<ErrorCodeTable\s*\/>/g, () =>
+      ['| Code | Source | Status | Group | Description |', '|---|---|---|---|---|', ...(spec['x-quilr-error-codes'] || []).map((c) =>
+        `| \`${c.code}\` | ${c.source} | ${c.status} | ${c.group} | ${cell(c.description)}${c.failover_class ? ` Failover class: \`${c.failover_class}\`.` : ''}${c.also_sent_by_providers ? ' Also sent by providers.' : ''} |`)].join('\n'))
+    .replace(/<SpecDownloads\s*\/>/g, () =>
+      [`- All families: ${specUrl} (live: \`GET /llmgateway_inference_apis/v1/openapi.json\`)`,
+        ...familyKeys.map((k) => `- ${data.families.find((f) => f.key === k)?.label || k}: ${site}/openapi/llm-gateway-inference-v1-${k}.json (live: \`?family=${k}\`)`)].join('\n'))
+    .replace(/<EndpointDirectory\s*\/>/g, () =>
+      [`Every operation (full definitions: ${specUrl}; base URL ${host}):`, '', ...canonical.map(line)].join('\n'))
+    .replace(/<ApiReference\s+family=["']([\w-]+)["']\s*\/>/g, (_, key) => {
+      const shown = canonical.filter((op) => familyOf(op).key === key);
+      if (!shown.length) return '';
+      return [`Operations. Accepted credential headers: ${accepts(shown)}. Request and response schemas: ${specUrl}`, '', ...shown.map(line)].join('\n');
+    });
+}
+
 // Replaces the Management API components with markdown.
-function apiComponents(text, {site, siteDir}) {
-  if (!/<(ApiReference|SchemaReference|EndpointDirectory|ResourceCards|ManagementHero)\b/.test(text)) return text;
+function apiComponents(text, {site, siteDir, fullText}) {
+  if (!/<(ApiReference|SchemaReference|EndpointDirectory|ResourceCards|ManagementHero|ResponseHeaderTable|ErrorCodeTable|CredentialTable|SpecDownloads|RegionTable)\b/.test(text)) return text;
+  if (INFERENCE_IMPORT.test(fullText || '')) return inferenceComponents(text, {site, siteDir});
   const spec = loadSpec(siteDir);
   const ops = operations(spec);
   const specUrl = `${site}${OPENAPI_PATH}`;
@@ -458,4 +524,4 @@ function firstParagraph(markdown) {
   return '';
 }
 
-module.exports = {toAiMarkdown, landingProductId, landingMarkdown, firstParagraph, OPENAPI_PATH};
+module.exports = {toAiMarkdown, landingProductId, landingMarkdown, firstParagraph, OPENAPI_PATH, INFERENCE_OPENAPI_PATH};
