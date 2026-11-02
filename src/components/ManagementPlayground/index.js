@@ -29,6 +29,7 @@ import {
 import bundledSpec from '@site/static/openapi/llm-gateway-management-v1.json';
 import { LIVE_SPEC_PATH, MANAGEMENT_PREFIX, createClient, normalizeBaseUrl, setSpecSecretFields } from './client.mjs';
 import { buildIndex } from './spec.mjs';
+import { regionsOf } from '../ManagementApi/servers';
 import { PlaygroundContext, Btn, Checkbox, EmptyState, Field, ErrorBox, Pill } from './ui';
 import ActivityPanel from './ActivityPanel';
 import Explorer from './Explorer';
@@ -47,12 +48,13 @@ import HistoryWorkspace from './HistoryWorkspace';
 import Administration from './Administration';
 import styles from './styles.module.css';
 
-export const REGIONS = [
-  { id: 'india-1', label: 'India', url: 'https://guardrails-india-1.quilr.ai' },
-  { id: 'europe-1', label: 'Europe', url: 'https://guardrails-europe-1.quilr.ai' },
-  { id: 'usa-1', label: 'USA', url: 'https://guardrails-usa-1.quilr.ai' },
-  { id: 'jp-1', label: 'Japan', url: 'https://guardrails-jp-1.quilr.ai' },
-];
+// Regions from the spec's server variable (https://{region}.quilr.ai). Ids drop the
+// `guardrails-` prefix (usa-1, europe-1, ...) so remembered sessions keep working.
+export const REGIONS = regionsOf(bundledSpec).map(({ value, label, url }) => ({
+  id: value === 'guardrails' ? 'global' : value.replace(/^guardrails-/, ''),
+  label,
+  url,
+}));
 
 export const WORKSPACES = [
   { id: 'overview', label: 'Overview', Icon: Gauge, Component: Overview },

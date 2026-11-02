@@ -10,7 +10,7 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
-## Perplexity provider (2026-10-30)
+## Perplexity provider (2026-11-02)
 
 - New provider type `perplexity` on a **Perplexity** tile ("Web-grounded answers · Direct API"), with an API key and a fixed endpoint (`https://api.perplexity.ai`)
 - Perplexity's Agent API on the Responses route: OpenAI, Anthropic, Google, xAI and Perplexity models (including `perplexity/sonar`) with Perplexity's built-in web search
@@ -20,6 +20,17 @@ Recent interface improvements and quality-of-life changes.
 - **Check key and list models** lists the Agent API, decision and embedding models
 - Agent API cache writes and web search calls are billed
 - Details: [Perplexity](../apps-and-providers/provider-support#perplexity)
+
+## Inference API reference (2026-11-02)
+
+- New [Inference API](../api-reference/inference-api) page: an OpenAPI 3.1 reference for every client-facing model API (OpenAI-compatible, Responses, Azure OpenAI, Realtime, Assistants, Anthropic Messages, Bedrock Runtime, Gemini and Vertex AI, rerank, Mistral, xAI, Sarvam, TypeSafe), searchable by family
+- Documents what the gateway adds: accepted credential headers, `X-Quilr-*` routing, failover, cache and quota response headers, the error code catalog, and guardrail block and redaction behavior
+- Download the combined spec or one per family, or fetch it live from `GET /llmgateway_inference_apis/v1/openapi.json?family=<key>`
+- Each operation lists the gateway features on its route (guardrails, Guardian, routing, failover, limits, Prompt Store, response cache and more), with a [Gateway features by route](../api-reference/inference-api#gateway-features-by-route) table
+- Pin a spec to one region with `?region=<value>` on the live spec routes (Inference and Management), for example `?region=guardrails-europe-1`; the spec has a single `https://{region}.quilr.ai` server so a Kong import never mixes regions
+- Import it into Kong with `deck file openapi2kong`, with the route settings streaming, Realtime, Bedrock SigV4 and Vertex AI need
+- New [Management API behind Kong](../api-reference/management-api#management-api-behind-kong) section: one region per import, upstream retries off, credentials and conditional-request headers passed through
+- Details: [Import into your API gateway (Kong)](../api-reference/inference-api#import-into-your-api-gateway-kong)
 
 ## Groq provider (2026-10-29)
 

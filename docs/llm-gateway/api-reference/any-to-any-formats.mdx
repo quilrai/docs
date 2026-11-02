@@ -25,7 +25,7 @@ Your client keeps its own format end to end: requests, streams, tool calls, usag
 | Bedrock Converse | `/bedrock-runtime/model/{id}/converse` | boto3 `bedrock-runtime` |
 | Bedrock InvokeModel (Claude body) | `/bedrock-runtime/model/{id}/invoke` | boto3 `bedrock-runtime`, Anthropic Bedrock SDK |
 
-Combine a path with your [regional base URL](../get-started/integration-guide#region) and authenticate with your Quilr key as usual.
+Combine a path with your [regional base URL](../get-started/integration-guide#region) and authenticate with your Quilr key as usual. Every operation, parameter and response of these paths is in the [Inference API reference](./inference-api).
 
 ## How the gateway reaches a provider
 
@@ -239,6 +239,8 @@ Conversion happens after the gateway picks a provider, so it works with every ro
 
 ## Examples
 
+The examples use US East (`guardrails-usa-2.quilr.ai`); replace it with your region's host.
+
 ### OpenAI Agents SDK or Codex (Responses) to Claude on Bedrock
 
 App provider: Anthropic on AWS Bedrock (`anthropic_messages_bedrock`) with a Claude model enabled.
@@ -310,6 +312,7 @@ print(response["output"]["message"]["content"][0]["text"])
 
 ## Related
 
+- [Inference API](./inference-api) - OpenAPI reference for every client format's operations, headers and error codes
 - [Provider support](../apps-and-providers/provider-support) - provider types, endpoints and credentials
 - [Routing and failover](../cost-and-traffic/routing-and-fallbacks) - routes, pinning, failover and groups that mix providers
 - [Integration guide](../get-started/integration-guide) - base URLs and SDK setup

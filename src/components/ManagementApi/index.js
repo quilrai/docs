@@ -1,10 +1,13 @@
-import React, {useId, useMemo, useState} from 'react';
+import React from 'react';
 import Link from '@docusaurus/Link';
-import CodeBlock from '@theme/CodeBlock';
-import useBrokenLinks from '@docusaurus/useBrokenLinks';
-import {ArrowUpRight, BookOpen, Boxes, Download, FlaskConical, KeyRound, Layers, Play, Route, Search, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Wallet, Workflow} from 'lucide-react';
+import {BookOpen, Boxes, Download, FlaskConical, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Wallet, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
+import {createApiReference} from './core';
+import {serverUrl} from './servers';
+
+// Management API v1 reference components. The Inference API page uses the same
+// components built for its own spec: ./inference.js.
 
 const base = '/llmgateway/management/v1';
 const adminBase = '/llmgateway/management-admin/v1';
@@ -14,109 +17,11 @@ const tryIt = operationId => `${playground}?tab=explorer&op=${encodeURIComponent
 // Operations whose scope depends on the collections they touch (batch, restore, history reads).
 const scopeNote = op => op['x-scopes-per-op'] ? 'Write (or read) scope of each collection it touches' : null;
 const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Routing:'routing-and-failover-api', Limits:'rate-limits-api', Incidents:'incidents-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
-// Examples use the same regional host as the inference examples in the integration guide.
-const host = (spec.servers || []).find(s => s.url.includes('usa-1'))?.url || spec.servers?.[0]?.url || 'https://guardrails-usa-1.quilr.ai';
+// Examples use the server's default region (https://{region}.quilr.ai with region at its default).
+const host = serverUrl(spec);
 const scopeDescriptions = spec['x-scope-descriptions'] || {};
-const allOperations = Object.entries(spec.paths).flatMap(([path, methods]) => Object.entries(methods).map(([method, op]) => ({...op, path, method:method.toUpperCase()})));
-// Query-locator aliases (/app?app_name=...) duplicate a canonical operation; list each operation once.
-const operations = allOperations.filter(op => !op['x-alias-of']);
-const aliasFor = Object.fromEntries(allOperations.filter(op => op['x-alias-of']).map(op => [op['x-alias-of'], op]));
-const aliasCount = allOperations.length - operations.length;
 const shortPath = path => path.replace(adminBase,'/admin').replace(base,'');
-const resolve = (schema = {}) => schema.$ref ? {...spec.components.schemas[schema.$ref.split('/').pop()], ...Object.fromEntries(Object.entries(schema).filter(([k]) => k !== '$ref'))} : schema;
 const print = value => JSON.stringify(value, null, 2);
-const typeName = original => {
-  const schema = resolve(original);
-  if (schema.const !== undefined) return JSON.stringify(schema.const);
-  if (schema.oneOf) return 'one of '+schema.oneOf.length+' variants';
-  if (schema.anyOf) return schema.anyOf.map(typeName).join(' | ');
-  if (schema.type === 'array') return 'array<'+typeName(schema.items)+'>';
-  if (schema.type === 'object' && schema.additionalProperties && !schema.properties) return 'map<string, '+typeName(schema.additionalProperties)+'>';
-  return Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type || 'object';
-};
-
-export function ManagementHero() {
-  return <section className={styles.hero}>
-    <div className={styles.eyebrow}><span className={styles.dot} /> LLM GATEWAY / MANAGEMENT V1</div>
-    <h2>Configure your gateway.<br/><span>Keep every change intentional.</span></h2>
-    <p>Manage apps, shared providers, quota pools, access keys, prompts, budgets, routing, rate limits and incidents from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.</p>
-    <div className={styles.heroActions}><Link className={styles.primaryLink} to="./management-api#quick-start">Start with an example <ArrowUpRight size={16}/></Link><Link className={styles.downloadLink} to={playground}><Play size={16}/> Open the playground</Link><a className={styles.downloadLink} href={download} download><Download size={16}/> OpenAPI reference</a></div>
-    <div className={styles.heroFacts}><span><ShieldCheck size={16}/> Tenant-bound keys</span><span><SlidersHorizontal size={16}/> Explicit scopes</span><span><Workflow size={16}/> Central configuration</span></div>
-  </section>;
-}
-
-export function ResourceCards() {
-  const cards = [
-    ['Apps','Create, read, configure and pause applications.','apps-and-credentials-api',Layers],
-    ['Providers & catalogs','Configure shared credentials, test and discover models, and read catalogs and config history.','providers-and-configuration-api',SlidersHorizontal],
-    ['Quota pools','Describe upstream limits that several providers or models share.','providers-and-configuration-api#quota-pools',Boxes],
-    ['Budgets','Set spend, request and token budgets, track usage and issue grants.','budgets-api',Wallet],
-    ['Routing and failover','Routes, weighted destinations, failover and constraints, with dry runs, history and restore.','routing-and-failover-api',Route],
-    ['Rate limits','Request and token rate limits, request guards, temporary raises and effective limits.','rate-limits-api',Timer],
-    ['Incidents','Mark a provider down during an outage, check it applied, then restore it.','incidents-api',Siren],
-    ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
-    ['Gateway credentials','Issue, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
-    ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
-    ['Prompts','Manage Prompt Store content.','prompts-api',BookOpen],
-  ];
-  return <nav className={styles.cards} aria-label="Management API resources">{cards.map(([title,desc,page,Icon])=><Link to={'./'+page} className={styles.card} key={page}><div className={styles.cardTop}><Icon size={21}/><ArrowUpRight size={17}/></div><strong>{title}</strong><p>{desc}</p><span>Explore reference</span></Link>)}</nav>;
-}
-
-export function Method({method}) {return <span className={`${styles.method} ${styles[method.toLowerCase()] || ''}`}>{method}</span>;}
-
-export function EndpointDirectory() {
-  const [search,setSearch]=useState('');
-  const [tag,setTag]=useState('All resources');
-  const id=useId();
-  const filtered=operations.filter(op=>(tag==='All resources'||op.tags.includes(tag)) && `${op.summary} ${op.path} ${op.method} ${op.tags.join(' ')}`.toLowerCase().includes(search.toLowerCase()));
-  return <section className={styles.directory} aria-label="Search API endpoints">
-    <div className={styles.directoryTools}><label className={styles.search}><Search size={17}/><span className={styles.srOnly}>Search endpoints</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find an endpoint..."/></label><label htmlFor={id} className={styles.srOnly}>Resource</label><select id={id} value={tag} onChange={e=>setTag(e.target.value)}>{['All resources',...spec.tags.map(t=>t.name)].map(t=><option key={t}>{t}</option>)}</select></div>
-    <p className={styles.resultCount} role="status">{filtered.length} of {operations.length} operations{aliasCount>0 && <> (plus {aliasCount} <Link to="./management-api#names-and-pagination"><code>/app?app_name=</code> aliases</Link> for app names that contain <code>/</code> or <code>%</code>)</>}</p>
-    <div className={styles.endpointRows}>{filtered.map(op=><Link key={op.operationId} className={styles.endpointRow} to={`./${pageFor[op.tags[0]] || 'management-api'}#${op.operationId}`}><Method method={op.method}/><div><code>{shortPath(op.path)}</code><span>{op.summary}</span></div><ArrowUpRight size={16}/></Link>)}</div>
-    {!filtered.length && <div className={styles.empty}>No matching endpoints. Try a resource name, HTTP method or path.</div>}
-  </section>;
-}
-
-function Constraints({schema}) {
-  const parts=[];
-  for (const [key,label] of [['minLength','min length'],['maxLength','max length'],['minimum','min'],['maximum','max'],['exclusiveMinimum','greater than'],['minItems','min items'],['maxItems','max items'],['minProperties','min fields'],['format','format'],['pattern','pattern']]) {
-    if (schema[key] !== undefined) parts.push(`${label}: ${schema[key]}`);
-  }
-  if (schema.uniqueItems) parts.push('unique items');
-  if (schema.writeOnly) parts.push('write only');
-  if (schema.default !== undefined) parts.push('default: '+JSON.stringify(schema.default));
-  return parts.length ? <div className={styles.constraints}>{parts.map(p=><span key={p}>{p}</span>)}</div> : null;
-}
-
-function NestedSchema({schema,depth}) {
-  if (schema.oneOf || schema.anyOf) return <div className={styles.variants}>{(schema.oneOf||schema.anyOf).map((variant,i)=>{
-    const v=resolve(variant);
-    if(v.type==='null') return <p className={styles.nullNote} key={i}>Also accepts <code>null</code>.</p>;
-    return <details key={i} className={styles.nested}><summary>{v.title || (variant.$ref ? variant.$ref.split('/').pop() : `Variant ${i+1}`)} <span>{typeName(v)}</span></summary><SchemaFields schema={v} depth={depth+1}/></details>;
-  })}</div>;
-  const nested=schema.type==='array' ? resolve(schema.items) : schema.additionalProperties && typeof schema.additionalProperties==='object' ? resolve(schema.additionalProperties) : schema;
-  if (nested.properties || nested.oneOf || nested.anyOf || schema.type==='array' || (schema.additionalProperties && typeof schema.additionalProperties==='object')) return <details className={styles.nested}><summary>{schema.type==='array' ? 'Array item specification' : schema.additionalProperties && !schema.properties ? 'Map value specification' : 'Object fields'}</summary><SchemaFields schema={nested} depth={depth+1}/></details>;
-  return null;
-}
-
-function SchemaFields({schema:original,depth=0}) {
-  const schema=resolve(original);
-  if (schema.oneOf||schema.anyOf) return <NestedSchema schema={schema} depth={depth}/>;
-  if (!schema.properties) return <div className={styles.scalar}><code>{typeName(schema)}</code>{schema.description&&<p>{schema.description}</p>}<Constraints schema={schema}/>{schema.enum&&<p>Values: {schema.enum.map(v=><code className={styles.enumValue} key={v}>{JSON.stringify(v)}</code>)}</p>}</div>;
-  return <div className={styles.fields}>
-    {Object.entries(schema.properties).map(([name,originalProp])=>{
-      const prop=resolve(originalProp);
-      return <div className={styles.field} key={name}><div className={styles.fieldTitle}><code>{name}</code><span className={styles.fieldType}>{typeName(prop)}</span><span className={schema.required?.includes(name)?styles.required:styles.optional}>{schema.required?.includes(name)?'required':'optional'}</span></div>{prop.description&&<p>{prop.description}</p>}<Constraints schema={prop}/>{prop.enum&&<div className={styles.enums}>{prop.enum.map(value=><code key={value}>{JSON.stringify(value)}</code>)}</div>}<NestedSchema schema={prop} depth={depth}/></div>;
-    })}
-    {schema.additionalProperties===false && <p className={styles.closedObject}>Unknown fields are rejected in this object.</p>}
-    {schema.allOf && <details className={styles.nested}><summary>Conditional requirements</summary><CodeBlock language="json">{print(schema.allOf)}</CodeBlock></details>}
-  </div>;
-}
-
-export function SchemaReference({name}) {
-  const schema=spec.components.schemas[name];
-  return <section className={styles.schemaPanel}><div className={styles.schemaTitle}><span>INPUT SCHEMA</span><code>{name}</code></div>{schema.description&&<p className={styles.schemaIntro}>{schema.description}</p>}<SchemaFields schema={schema}/></section>;
-}
 
 function curlFor(op,body) {
   let path=op.path;
@@ -128,38 +33,43 @@ function curlFor(op,body) {
   return lines.join('\n');
 }
 
-function Operation({op}) {
-  useBrokenLinks().collectAnchor(op.operationId);
-  const [tab,setTab]=useState('cURL');
-  const content=op.requestBody?.content?.['application/json'];
-  const examples=content?.examples ? Object.entries(content.examples).map(([name,e])=>[name,e.value]) : [['Example',content?.example]];
-  const [selected,setSelected]=useState(examples[0][0]);
-  const chosen=examples.find(([name])=>name===selected)?.[1];
-  const successes=Object.entries(op.responses).filter(([status])=>status.startsWith('2'));
-  const success=successes.find(([,r])=>r.content?.['application/json']?.example!==undefined) || successes[0];
-  const response=success?.[1]?.content?.['application/json']?.example;
-  const alias=aliasFor[op.operationId];
-  const tabs=['cURL',...(content?['JSON body']:[]),'Response'];
-  const parameterSchema=objFromParameters(op.parameters);
-  return <article className={styles.operation} id={op.operationId}>
-    <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{shortPath(op.path)}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p><div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : scopeNote(op) ? <code>{scopeNote(op)}</code> : <code>Verified tenant administrator</code>}</div>{alias&&<p className={styles.aliasNote}>Also at <code>{shortPath(alias.path)}?app_name=...</code> for app names that contain <code>/</code> or <code>%</code>.</p>}</header>
-    <div className={styles.operationBody}>
-      {op.parameters.length>0&&<details className={styles.parameterPanel}><summary>Path, query &amp; header parameters <span>{op.parameters.length}</span></summary><SchemaFields schema={parameterSchema}/></details>}
-      {content ? <details className={styles.parameterPanel}><summary>Full request body specification <span>application/json</span></summary><p className={styles.schemaIntro}>{resolve(content.schema).description}</p><SchemaFields schema={content.schema}/></details> : <p className={styles.noBody}>No request body.</p>}
-      <div className={styles.exampleBar}><div className={styles.tabs} aria-label="Example format">{tabs.map(t=><button type="button" aria-pressed={tab===t} className={tab===t?styles.activeTab:''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>{examples.length>1&&<label><span className={styles.srOnly}>Request example for {op.summary}</span><select value={selected} onChange={e=>setSelected(e.target.value)}>{examples.map(([name])=><option key={name}>{name}</option>)}</select></label>}</div>
-      <div className={styles.codeExample}><CodeBlock language={tab==='cURL'?'bash':'json'} title={tab==='Response'&&success?`${success[0]} response example`:undefined}>{tab==='cURL'?curlFor(op,chosen):tab==='JSON body'?print(chosen):response?print(response):'// See the response schema for this operation.'}</CodeBlock></div>
-      <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./management-api#conventions">Authentication, errors &amp; retry rules</Link><span aria-hidden="true">·</span><FlaskConical size={13}/> <Link to={tryIt(op.operationId)}>Try it in the playground</Link></p>
-    </div>
-  </article>;
-}
+const api = createApiReference({
+  spec,
+  hero: {
+    eyebrow: 'LLM GATEWAY / MANAGEMENT V1',
+    title: 'Configure your gateway.',
+    subtitle: 'Keep every change intentional.',
+    text: 'Manage apps, shared providers, quota pools, access keys, prompts, budgets, routing, rate limits and incidents from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.',
+    actions: [
+      {label: 'Start with an example', to: './management-api#quick-start', primary: true},
+      {label: 'Open the playground', to: playground, Icon: Play},
+      {label: 'OpenAPI reference', href: download, Icon: Download, download: true},
+    ],
+    facts: [{label: 'Tenant-bound keys', Icon: ShieldCheck}, {label: 'Explicit scopes', Icon: SlidersHorizontal}, {label: 'Central configuration', Icon: Workflow}],
+  },
+  cardsLabel: 'Management API resources',
+  cards: [
+    ['Apps','Create, read, configure and pause applications.','apps-and-credentials-api',Layers],
+    ['Providers & catalogs','Configure shared credentials, test and discover models, and read catalogs and config history.','providers-and-configuration-api',SlidersHorizontal],
+    ['Quota pools','Describe upstream limits that several providers or models share.','providers-and-configuration-api#quota-pools',Boxes],
+    ['Budgets','Set spend, request and token budgets, track usage and issue grants.','budgets-api',Wallet],
+    ['Routing and failover','Routes, weighted destinations, failover and constraints, with dry runs, history and restore.','routing-and-failover-api',Route],
+    ['Rate limits','Request and token rate limits, request guards, temporary raises and effective limits.','rate-limits-api',Timer],
+    ['Incidents','Mark a provider down during an outage, check it applied, then restore it.','incidents-api',Siren],
+    ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
+    ['Gateway credentials','Issue, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
+    ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
+    ['Prompts','Manage Prompt Store content.','prompts-api',BookOpen],
+  ].map(([title,desc,page,Icon]) => ({title, desc, to: './'+page, Icon})),
+  // Query-locator aliases (/app?app_name=...) duplicate a canonical operation; list each operation once.
+  aliasOf: op => op['x-alias-of'],
+  shortPath,
+  directoryNote: ({aliasCount}) => aliasCount>0 && <> (plus {aliasCount} <Link to="./management-api#names-and-pagination"><code>/app?app_name=</code> aliases</Link> for app names that contain <code>/</code> or <code>%</code>)</>,
+  href: op => `./${pageFor[op.tags[0]] || 'management-api'}#${op.operationId}`,
+  requirements: op => <div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : scopeNote(op) ? <code>{scopeNote(op)}</code> : <code>Verified tenant administrator</code>}</div>,
+  aliasNote: (op, [alias]) => <p className={styles.aliasNote}>Also at <code>{shortPath(alias.path)}?app_name=...</code> for app names that contain <code>/</code> or <code>%</code>.</p>,
+  curl: curlFor,
+  footer: op => <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./management-api#conventions">Authentication, errors &amp; retry rules</Link><span aria-hidden="true">·</span><FlaskConical size={13}/> <Link to={tryIt(op.operationId)}>Try it in the playground</Link></p>,
+});
 
-function objFromParameters(parameters) {
-  return {type:'object',properties:Object.fromEntries(parameters.map(p=>[`${p.name} (${p.in})`,{...p.schema,description:p.description||p.schema.description}])),required:parameters.filter(p=>p.required).map(p=>`${p.name} (${p.in})`)};
-}
-
-// paths: optional path prefixes (after /llmgateway/management/v1) that narrow the list, so a page can show
-// one collection per section, e.g. paths={['/controls/routes']}. Each operation keeps its operationId anchor.
-export function ApiReference({tags, paths}) {
-  const list=useMemo(()=>operations.filter(op=>op.tags.some(t=>tags.includes(t)) && (!paths || paths.some(p=>{const rest=shortPath(op.path); return rest===p || rest.startsWith(p+'/') || rest.startsWith(p+':');}))),[tags.join(','), (paths||[]).join(',')]);
-  return <div className={styles.reference}>{list.map(op=><Operation key={op.operationId} op={op}/>)}</div>;
-}
+export const {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference, Method} = api;

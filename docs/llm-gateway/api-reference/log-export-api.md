@@ -16,6 +16,8 @@ The API returns newline-delimited JSON. Each response line is one complete JSON 
 GET https://guardrails.quilr.ai/llmgateway/logs/export
 ```
 
+The examples on this page use `guardrails.quilr.ai`; replace it with your region's host from the [integration guide](../get-started/integration-guide#region).
+
 Response content type:
 
 ```http
