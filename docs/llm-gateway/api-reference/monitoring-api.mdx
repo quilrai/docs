@@ -1,0 +1,152 @@
+---
+title: "Monitoring API"
+sidebar_position: 6.91
+sidebar_label: "Monitoring API"
+sidebar_custom_props:
+  badge: new
+  icon: HeartPulse
+description: "LLM Gateway Management API v1: guardrail activity by category, action and direction, provider and model health with routing state, and an explanation of why one request was routed, blocked, limited or failed over."
+aliases: [monitoring api, guardrail activity, guardrails summary, provider health, model health, success rate, latency percentiles, explain request, debug request, x-quilr-request-id, why was my request blocked]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Monitoring API
+
+Read-only views of how the gateway is behaving: what the guardrails did, how each provider and model is doing, and why one request behaved the way it did. None of them returns prompt or response text, detected values or original provider error messages.
+
+| Call | Answers | Scope |
+| --- | --- | --- |
+| [`GET /guardrails/summary`](#guardrail-activity) | How many requests were scanned, flagged, blocked, redacted or monitored, by category, action, direction, app, user, model and period. | `read` |
+| [`GET /provider-health`](#provider-health) | Success rate, error classes, latency and time to first token, failovers away and current routing state per provider and model. | `read` |
+| [`GET /requests/{request_id}/explain`](#explain-a-request) | Why one request was routed, blocked, limited or failed over. | `read` |
+
+Try all three in the [Management API playground](/llm-gateway-management-playground?tab=monitoring).
+
+## Which call to use
+
+<DecisionLadder
+  label="Which monitoring call answers your question"
+  steps={[
+    { id: 'one', question: 'Is it about one request?', hint: 'A user reports a block, an error or a slow answer', yes: { label: 'Explain a request', detail: 'GET /requests/{id}/explain', tone: 'info' } },
+    { id: 'guard', question: 'Is it about what the guardrails caught?', hint: 'Top categories, blocks per app, redactions per week', yes: { label: 'Guardrail activity', detail: 'GET /guardrails/summary', tone: 'accent' } },
+    { id: 'provider', question: 'Is it about a provider or model?', hint: 'Error spikes, latency, cooldowns, mark-downs', yes: { label: 'Provider health', detail: 'GET /provider-health', tone: 'success' } },
+    { id: 'spend', question: 'Is it about spend, tokens or request volume?', hint: 'By app, user, model, key or period', yes: { label: 'Usage API', detail: 'GET /usage', tone: 'warning' } },
+  ]}
+  fallback={{ label: 'Every request log line: Log Export API', tone: 'neutral' }}
+/>
+
+The explain call is for single requests. To pull request logs in bulk into your data platform or SIEM, use the [Log Export API](./log-export-api).
+
+## Debug a request
+
+<StepFlow steps={[
+  {label: '1. Get the id', items: ['x-quilr-request-id', 'response header']},
+  {label: '2. Explain', items: ['GET /requests/{id}/explain', 'No prompt content']},
+  {label: '3. Read the sections', items: ['summary · routing · failover', 'guardrails · limits · error']},
+  {label: '4. Act', items: ['Provider health, incidents', 'Routing, limits, budgets']},
+]} />
+
+Every gateway response carries an `x-quilr-request-id` header. Log it in your client, or ask the user who saw the problem for it.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY")
+
+# 1. Capture the id from any gateway call
+curl -si "$GATEWAY_URL/openai_compatible/v1/chat/completions" -H "Authorization: Bearer $QUILR_KEY" \
+  -H 'Content-Type: application/json' -d '{"model": "gpt-4.1", "messages": [{"role": "user", "content": "hi"}]}' \
+  | grep -i '^x-quilr-request-id'
+
+# 2. Explain it (a short time after it completes)
+curl -s "$API/requests/6f1c2a9e-1b2c-4d3e-8f90-1234567890ab/explain" "${auth[@]}" \
+  | jq '{summary, routing: .routing.source, failover: .failover.attempts, guardrails: .guardrails.outcome, error}'
+```
+
+## Explain a request
+
+`request_id` is the value of the `x-quilr-request-id` response header; provider response ids are not accepted. The last 30 days are searched. For an older request, pass `timestamp` (RFC 3339 or epoch seconds, any time within a day of the request). An explanation is available a short time after the request completes; until then, and for an id that does not belong to your organization, the answer is `404 request_not_found`. `gateway_request_id` in the answer is the explained request; the top-level `request_id` identifies the management call itself. `503 query_timeout` means the lookup exceeded its time or read limits (retry, or pass `timestamp`), and `503 data_unavailable` means request data cannot be read right now.
+
+| Section | What it tells you |
+| --- | --- |
+| `summary` | App, user, requested and served model, provider, status, `outcome` (`served`, `blocked`, `rate_limited`, `quota_refused`, `rejected`, `error`, `client_cancelled`), latency (total, upstream, guardrails, first token), tokens, cost and response cache. |
+| `routing` | How the target was chosen: `source` (a policy rule, a routing group, a context threshold, a provider model list or the default), the deciding rule and its public route id (the `x-quilr-route` header value), content-routing verdicts, routing constraints, conversation pinning and the upstream API mode. |
+| `failover` | Every attempt in order with its provider, model, tier, outcome, status and failure class (the same classes as [provider health](#provider-health)), plus totals and whether the failover chain was exhausted. |
+| `guardrails` | Categories and actions (`blocked`, `redacted`, `monitored`) per direction, and the policy rules that decided them. Categories are the same `{id, name, type}` objects as in [guardrail activity](#guardrail-activity). Detected values are never returned. |
+| `limits` | Budget charges per budget and window (`charge_status`: `complete`, `deferred` or `failed`; each charge's `mode`: `enforce`, `alert` or `paused`), and the limit or budget that refused the request, if any (`limit_type`: `budget` or `rate`). |
+| `error` | The error code, status, failure class, who raised it (`gateway` or `provider`), and whether a friendly error message replaced the original. |
+
+Values you will see in the sections:
+
+- **`summary.surface`**: the API family, such as `chat_completions` (`/v1/chat/completions`), `completions`, `openai_responses`, `anthropic_messages`, `embeddings` or `realtime`.
+- **`routing.upstream.mode`**: `native`, `endpoint_switch`, `adapter`, `translate` or `unsupported`. **`routing.session.key_source`**: `previous_response_id`, `conversation_id`, `client_session_id`, `prompt_cache_key` or `conversation_prefix`.
+- **Attempt `outcome`**: `served`, `retry`, `failover`, `final_error`, `skipped`, `cancelled`, or a same-target follow-up send (`adaptation`, `format_retry`, `agent_check_retry`). **Attempt `kind`**: `response`, `stream`, `cache_hit`, `adaptation`, `format_retry` or `agent_check_retry`.
+- **`failure_class`** (on attempts and on `error`): `rate_limited`, `timeout_or_connection`, `upstream_5xx`, `auth_or_permission`, `client_4xx` or `other`.
+
+Sections that do not apply, or that the gateway did not record for this request, are omitted. A rule with `managed: true` belongs to a control managed through this API or the console (routes, limits, budgets) rather than a policy you wrote.
+
+## Guardrail activity
+
+`GET /guardrails/summary` counts what the guardrails did to your traffic. Only counts and identifiers are returned.
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `from`, `to` | A date (`YYYY-MM-DD`) or an RFC 3339 timestamp with a timezone. `from` is inclusive (a date means UTC midnight); `to` is **exclusive**, and a date `to` includes that whole UTC day. | All history to now |
+| `granularity` | `total` (one row per group), `month`, `week` (starts Monday) or `day`, UTC. `period_start` is the period's first day (`YYYY-MM-DD`). | `total` |
+| `group_by` | Up to two of `category`, `action`, `direction`, `app`, `user`, `model`, repeated (`group_by=category&group_by=action`) or comma-separated (`group_by=category,action`). | No breakdown |
+| `app`, `user`, `model` | Exact app name or email (case-insensitive), or served model. | None |
+| `category` | A category id or display name, a custom definition's id or name, or `unattributed`. | None |
+| `action`, `direction` | `blocked`, `redacted`, `monitored`; `request`, `response`. | None |
+| `limit`, `cursor` | 1 to 200 rows per page (default 50) and the previous `next_cursor`. | `50` |
+
+- **Counts.** `requests_flagged` counts requests with at least one detection the guardrails acted on; `requests_blocked`, `requests_redacted` (masked or partially masked) and `requests_monitored` (allowed and recorded, including advisory notes) split it by action. `detections` counts each distinct category, action and direction on a request once. On rows grouped by `category`, `action` or `direction`, one request with two matching categories counts in both rows, so do not add `requests_flagged` across those rows: for flagged requests per period, run the same query without those dimensions (`group_by` empty or `app`, `user`, `model`), or chart `detections`.
+- **Scanned.** `requests_scanned` counts every scanned request in the app, user, model and time scope. Category, action and direction filters do not narrow it, and it is `null` on rows grouped by category, action or direction.
+- **Categories.** Each category is `{id, name, type}`: the id and display name from app settings and policies, or a custom definition's id and name. A redaction type such as `EMAIL` comes back as `{"id": "EMAIL", "name": "Email Address", "type": "data_risk"}`.
+- **Not counted.** Requests refused by rate limits, quotas or access rules before they were scanned, the background cache-refresh requests, and requests of apps with guardrails off.
+- **Totals and pages.** `totals` always covers the whole selection. Rows are ordered by period, then group keys. A cursor stops working (`409`) when the result changes between pages; start again from the first page. `truncated: true` means more than 5,000 rows matched.
+- **Freshness and cost.** Results can be up to 60 seconds old, and recent requests appear within a few minutes. `generated_at` is when the data was read and `data_through` the effective end of the range (your `to`, or the time of the read). A summary that exceeds its 20-second time or read limits returns `503 query_timeout`; narrow the range or add filters and retry. `503 data_unavailable` means the data cannot be read right now.
+
+```bash
+# Blocks and redactions per category, last 30 days, for one app
+FROM=$(date -u -d '30 days ago' +%F 2>/dev/null || date -u -v-30d +%F)
+curl -s "$API/guardrails/summary?from=$FROM&group_by=category,action&app=Support%20Bot" "${auth[@]}" \
+  | jq -r '.rows[] | [.category.name, .action, .requests_flagged] | @tsv'
+```
+
+## Provider health
+
+`GET /provider-health` reports, per provider label and model, traffic outcomes over a window and how routing treats each target right now.
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `window` | `1h`, `24h`, `7d` or `30d`, ending now. Not combined with `from` / `to`. | `24h` |
+| `from`, `to` | A date (`YYYY-MM-DD`) or an RFC 3339 timestamp with a timezone. `from` is inclusive; `to` is **exclusive**, and a date `to` includes that whole UTC day. At most 30 days, starting within the last year. | `to`: now |
+| `provider`, `model`, `app` | Exact provider label, exact model id, app name (case-insensitive). | None |
+
+| Field | Meaning |
+| --- | --- |
+| `requests`, `failures`, `success_rate_pct` | Requests whose final attempt used this target, those that ended in an error, and `100 x (requests - failures) / requests`. |
+| `errors` | Error counts by class: `rate_limited` (429), `upstream_5xx`, `timeout_or_connection`, `auth_or_permission` (401, 403), `client_4xx` (other 4xx: invalid request, unknown model, context length, content filter), `other`. Request explanations report the same classes. |
+| `failovers_away` | Failed attempts on this target that moved the request to another target. The request then counts under the target that served it. |
+| `latency_ms`, `time_to_first_token_ms` | p50 and p95 upstream latency of successful requests, and time to first token of successful streamed requests. On a provider, percentiles are set only when it has one model; read the models otherwise. |
+| `routing_state.state` | `healthy`, `unknown` (this server's routing state could not be read for the target; see `routing_state_scope`), `half_open` (a probe request is allowed), `cooling_down` (paused after rate limiting), `circuit_open` (skipped after repeated failures) or `marked_down` (an admin [mark-down](./incidents-api) applies), with `until` and the active `mark_downs`. |
+
+- **Excluded traffic.** Guardrail blocks, limit rejections and background cache-refresh requests are not provider traffic.
+- **Configured providers without traffic** are listed with zero requests; `configured: false` marks a label seen only in traffic (renamed or deleted since).
+- **Routing state is per server.** Cooldowns and circuit state are what routing on the server you called sees now, and every gateway server keeps its own (`routing_state_scope`). Admin mark-downs apply on every server. State is read through each app's routing preview (at most 25 apps within 5 seconds): `routing_state_scope` reports `apps_total`, `apps_attempted`, `apps_evaluated` (read) and `apps_failed`, and `complete` is `true` only when every app was read. When it is `false`, a target without a state read shows `unknown`, never `healthy`.
+- Results can be up to 60 seconds old; `generated_at` is when the traffic outcomes were read. `truncated: true` means more than 500 provider and model pairs had traffic; the busiest are returned.
+- **Errors.** Queries are limited to 20 seconds: `503 query_timeout` means the query exceeded its time or read limits (narrow it and retry), and `503 data_unavailable` means the data cannot be read right now.
+
+For failover totals and recovery, see [Read failover summary](./routing-and-failover-api#Read_failover_summary). To take a target out of rotation, use the [Incidents API](./incidents-api).
+
+## Endpoints
+
+<ApiReference tags={['Monitoring']} />
+
+## Related
+
+- [Usage API](./usage-api) - requests, tokens and cost by any dimension.
+- [Incidents API](./incidents-api) - mark a provider down during an outage.
+- [Routing and failover API](./routing-and-failover-api) - routes, failover and routing diagnostics.
+- [Log Export API](./log-export-api) - every request log line, for your own data platform.
+- [Management API](./management-api) - authentication, errors and retry rules.

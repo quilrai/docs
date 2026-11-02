@@ -1682,3 +1682,77 @@
   font-weight: 600;
   color: var(--mp-muted);
 }
+
+/* ── Usage and monitoring: stat tiles and a small bar chart ──────────────── */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.stat {
+  border: 1px solid var(--mp-border);
+  border-radius: 8px;
+  background: var(--mp-bg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stat span {
+  color: var(--mp-muted);
+  font-size: 12px;
+}
+
+.stat strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 150px;
+  padding: 8px 4px 0;
+  border-bottom: 1px solid var(--mp-border-strong);
+  overflow-x: auto;
+}
+
+.chartBar {
+  flex: 1 0 8px;
+  max-width: 40px;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.chartBar span {
+  display: block;
+  width: 100%;
+  min-height: 1px;
+  border-radius: 3px 3px 0 0;
+  background: var(--mp-primary);
+}
+
+.chartBar:hover span {
+  background: color-mix(in srgb, var(--mp-primary) 70%, var(--ifm-font-color-base));
+}
+
+.chartAxis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--mp-muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+

@@ -159,6 +159,12 @@ function AppKeys({ app }) {
           { label: 'Created', render: (r) => when(r.created_at) },
           { label: 'Expires', render: (r) => (r.expires_at ? when(r.expires_at) : 'never') },
           {
+            label: 'Last used',
+            render: (r) =>
+              !r.usage ? '-' : r.usage.last_used_at ? when(r.usage.last_used_at) : <Pill tone="warn">not in 90 days</Pill>,
+          },
+          { label: 'Requests (30 d)', render: (r) => (r.usage ? r.usage.requests_30d : '-') },
+          {
             label: 'Actions',
             render: (r) =>
               r.status === 'active' || !r.status ? (

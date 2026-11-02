@@ -45,6 +45,7 @@ import {
   CalendarClock,
   ArrowLeftRight,
   EyeOff,
+  HeartPulse,
 } from "lucide-react";
 
 const iconMap = {
@@ -93,6 +94,7 @@ const iconMap = {
   CalendarClock,
   ArrowLeftRight,
   EyeOff,
+  HeartPulse,
 };
 
 export function getSidebarIcon(name) {

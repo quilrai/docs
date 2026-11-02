@@ -10694,6 +10694,32 @@
         ],
         "type": "object"
       },
+      "ExplainRule": {
+        "additionalProperties": true,
+        "description": "A policy rule that decided part of this request.",
+        "properties": {
+          "managed": {
+            "description": "The rule belongs to a typed control (routes, limits, budgets) rather than a policy you wrote.",
+            "type": "boolean"
+          },
+          "policy": {
+            "description": "Name of your policy that holds the rule. Absent for controls managed through this API or the console (managed: true).",
+            "type": "string"
+          },
+          "route_id": {
+            "description": "Opaque route id, the value clients see in the x-quilr-route response header. Present for routing rules.",
+            "type": "string"
+          },
+          "rule_index": {
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "FailoverSummary": {
         "description": "The console failover summary.",
         "type": "object"
@@ -10735,6 +10761,28 @@
               "revoked"
             ],
             "type": "string"
+          },
+          "usage": {
+            "description": "Only on reads (list and get). Null only when usage is temporarily unavailable. Results can be up to 60 seconds old.",
+            "properties": {
+              "last_used_at": {
+                "description": "Most recent request in the last 90 days; null if none.",
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "requests_30d": {
+                "description": "Requests in the last 30 days; 0 when there were none.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
           }
         },
         "required": [
@@ -10837,6 +10885,605 @@
         "required": [
           "key"
         ],
+        "type": "object"
+      },
+      "GatewayUser": {
+        "properties": {
+          "all_apps": {
+            "description": "Every app is listed for this person in the console, because of an all-apps assignment or because no app-specific assignment names them.",
+            "type": "boolean"
+          },
+          "apps": {
+            "description": "Apps granted to this person specifically: allowed-user lists, self-service access or an active personal key. An app saved without a name is listed as \"Unnamed app\".",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "cost_usd_30d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Logged cost in the last 30 days; null when usage is unavailable."
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "directory_groups": {
+            "description": "Identity-provider groups from your directory.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "email": {
+            "description": "Lower-cased identity email.",
+            "type": "string"
+          },
+          "last_active_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Latest gateway request or personal-key use."
+          },
+          "requests_30d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Served requests in the last 30 days; 0 without traffic; null when usage is unavailable."
+          },
+          "self_service_keys": {
+            "description": "Active personal keys.",
+            "type": "integer"
+          },
+          "smart_groups": {
+            "description": "Enabled smart groups this person belongs to, highest priority first.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "source": {
+            "description": "directory: in your synced identity directory. configured: named in gateway configuration (allowed users, smart groups, self-service access or personal keys) but not in the directory. traffic: known only from gateway requests.",
+            "enum": [
+              "directory",
+              "configured",
+              "traffic"
+            ]
+          },
+          "sources": {
+            "description": "Where the gateway knows this person from: directory (your synced identity directory), app_access_list (an app's allowed users, or a per-person app assignment), smart_group (a member of an enabled smart group), self_service_access (named in an app's self-service access rules), self_service_key (owns a personal key) and traffic (has made gateway requests).",
+            "items": {
+              "enum": [
+                "directory",
+                "app_access_list",
+                "smart_group",
+                "self_service_access",
+                "self_service_key",
+                "traffic"
+              ]
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "email",
+          "source",
+          "sources"
+        ],
+        "type": "object"
+      },
+      "GatewayUserAppAccess": {
+        "properties": {
+          "app": {
+            "description": "App name; \"Unnamed app\" for an app saved without a name (no management link is given for it).",
+            "type": "string"
+          },
+          "domain_allowed": {
+            "description": "false: the app accepts only other email domains, so requests with this identity are refused.",
+            "type": "boolean"
+          },
+          "granted_by": {
+            "items": {
+              "properties": {
+                "key_ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "kind": {
+                  "description": "all_apps_assignment: assigned to every app. app_allowed_users: listed in the app's allowed users. default_visibility: no app-specific assignment, so every app is listed for this person. self_service: self-service access to the app (role and via say how). self_service_key: owns an active personal key for the app.",
+                  "enum": [
+                    "all_apps_assignment",
+                    "app_allowed_users",
+                    "default_visibility",
+                    "self_service",
+                    "self_service_key"
+                  ]
+                },
+                "role": {
+                  "description": "self_service only: the role that grants access (requesters and direct editors can also view).",
+                  "enum": [
+                    "self_service_viewer",
+                    "settings_update_requester",
+                    "settings_update_direct"
+                  ]
+                },
+                "smart_groups": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "via": {
+                  "description": "self_service only: listed by email, through smart groups, or open to all users.",
+                  "enum": [
+                    "email",
+                    "smart_group",
+                    "all_users"
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "self_service_denied": {
+            "description": "A self-service deny rule names this person.",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "GatewayUserDetail": {
+        "properties": {
+          "active_smart_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The highest-priority group; group policies use it."
+          },
+          "all_apps": {
+            "type": "boolean"
+          },
+          "app_access": {
+            "items": {
+              "$ref": "#/components/schemas/GatewayUserAppAccess"
+            },
+            "type": "array"
+          },
+          "directory": {
+            "anyOf": [
+              {
+                "properties": {
+                  "alias": {
+                    "description": "This address is an alias of another directory entry.",
+                    "type": "boolean"
+                  },
+                  "department": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "groups": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "first_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_active_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "links": {
+            "properties": {
+              "apps": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "budget_subject": {
+                "properties": {
+                  "kind": {
+                    "const": "user"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "smart_groups": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "self_service_keys": {
+            "items": {
+              "$ref": "#/components/schemas/GatewayUserKey"
+            },
+            "type": "array"
+          },
+          "smart_groups": {
+            "items": {
+              "properties": {
+                "display_name": {
+                  "type": "string"
+                },
+                "group_name": {
+                  "type": "string"
+                },
+                "priority": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "source": {
+            "description": "directory: in your synced identity directory. configured: named in gateway configuration (allowed users, smart groups, self-service access or personal keys) but not in the directory. traffic: known only from gateway requests.",
+            "enum": [
+              "directory",
+              "configured",
+              "traffic"
+            ]
+          },
+          "sources": {
+            "description": "Where the gateway knows this person from: directory (your synced identity directory), app_access_list (an app's allowed users, or a per-person app assignment), smart_group (a member of an enabled smart group), self_service_access (named in an app's self-service access rules), self_service_key (owns a personal key) and traffic (has made gateway requests).",
+            "items": {
+              "enum": [
+                "directory",
+                "app_access_list",
+                "smart_group",
+                "self_service_access",
+                "self_service_key",
+                "traffic"
+              ]
+            },
+            "type": "array"
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "properties": {
+                  "all_time": {
+                    "$ref": "#/components/schemas/GatewayUserUsageTotals",
+                    "description": "Every recorded request of this person."
+                  },
+                  "by_app": {
+                    "description": "Per-app totals over the last 30 days (the same window as last_30d), busiest first; app is null for an app that no longer exists.",
+                    "items": {
+                      "properties": {
+                        "app": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "cost_usd": {
+                          "type": "number"
+                        },
+                        "last_active_at": {
+                          "anyOf": [
+                            {
+                              "format": "date-time",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Latest request to the app in the last 30 days."
+                        },
+                        "requests": {
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "complete": {
+                    "description": "false: this person's history exceeded its read limit (5,000 app, model and window groups), so the totals are partial.",
+                    "type": "boolean"
+                  },
+                  "last_30d": {
+                    "$ref": "#/components/schemas/GatewayUserUsageTotals",
+                    "description": "The last 30 days, ending now."
+                  },
+                  "top_models": {
+                    "description": "Up to 5 most-used models in the last 30 days.",
+                    "items": {
+                      "properties": {
+                        "cost_usd": {
+                          "type": "number"
+                        },
+                        "model": {
+                          "type": "string"
+                        },
+                        "requests": {
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "window_days": {
+                    "description": "Length of the recent window, in days (30): last_30d, top_models and by_app cover it.",
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when request history is unavailable."
+          }
+        },
+        "required": [
+          "email",
+          "source",
+          "sources"
+        ],
+        "type": "object"
+      },
+      "GatewayUserKey": {
+        "description": "Personal key metadata; the key value is never returned.",
+        "properties": {
+          "app": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "key_id": {
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "active",
+              "expired",
+              "revoked"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "GatewayUserList": {
+        "properties": {
+          "generated_at": {
+            "description": "When the oldest of the data behind this response (configuration and request history) was read (UTC).",
+            "format": "date-time",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GatewayUser"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "description": "People matching the filters.",
+            "type": "integer"
+          },
+          "truncated": {
+            "description": "true: the identity directory or the personal keys exceeded their read limit, so some people or keys may be missing.",
+            "type": "boolean"
+          },
+          "usage": {
+            "properties": {
+              "available": {
+                "description": "false: request history was unavailable, so requests_30d and cost_usd_30d are null.",
+                "type": "boolean"
+              },
+              "complete": {
+                "description": "false: the request history exceeded its read limit (200,000 person and app pairs), so usage, last activity and traffic-only people are partial. Also false when usage is unavailable.",
+                "type": "boolean"
+              },
+              "window_days": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "GatewayUserResponse": {
+        "properties": {
+          "generated_at": {
+            "description": "When the oldest of the data behind this response (configuration and request history) was read (UTC).",
+            "format": "date-time",
+            "type": "string"
+          },
+          "truncated": {
+            "description": "true: the identity directory or the personal keys exceeded their read limit, so this person's directory entry or keys may be missing.",
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/GatewayUserDetail"
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "type": "object"
+      },
+      "GatewayUserUsageTotals": {
+        "properties": {
+          "cost_usd": {
+            "description": "Logged cost of priced requests, in US dollars (the background cache-refresh requests the provider bills included).",
+            "type": "number"
+          },
+          "input_tokens": {
+            "type": "integer"
+          },
+          "output_tokens": {
+            "type": "integer"
+          },
+          "requests": {
+            "description": "Served requests (rejected requests and background cache-refresh requests excluded).",
+            "type": "integer"
+          },
+          "unpriced_requests": {
+            "description": "Served requests with no price, not in cost_usd.",
+            "type": "integer"
+          }
+        },
         "type": "object"
       },
       "GroupPolicy": {
@@ -11006,6 +11653,266 @@
             "type": "object"
           }
         },
+        "type": "object"
+      },
+      "GuardrailActivityRow": {
+        "description": "One aggregate. Holds `period_start` when granularity is not total and one key per group_by dimension.",
+        "properties": {
+          "action": {
+            "enum": [
+              "blocked",
+              "redacted",
+              "monitored"
+            ]
+          },
+          "app": {
+            "description": "App name.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category": {
+            "$ref": "#/components/schemas/GuardrailCategory"
+          },
+          "detections": {
+            "description": "Matching detections: each distinct category, action and direction on a request counts once.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "direction": {
+            "description": "request: the prompt sent to the model; response: the model's answer; unknown: an action recorded without a direction.",
+            "enum": [
+              "request",
+              "response",
+              "unknown"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period_start": {
+            "description": "First UTC day of the period (weeks start Monday); absent when granularity is total.",
+            "format": "date",
+            "type": "string"
+          },
+          "requests_blocked": {
+            "description": "Requests with a matching detection that was blocked.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_flagged": {
+            "description": "Requests with at least one matching detection that the guardrails acted on (blocked, redacted or monitored). On rows grouped by category, action or direction a request counts once in each row it matches, so those rows do not add up to totals; query without those dimensions for flagged requests per period.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_monitored": {
+            "description": "Requests with a matching detection that was allowed and recorded (monitor mode, advisory notes).",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_redacted": {
+            "description": "Requests with a matching detection that was redacted (masked or partially masked) before it was sent on.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_scanned": {
+            "description": "Requests the guardrails checked. Counts every scanned request in the app, user, model and time scope; category, action and direction filters do not narrow it. Null on rows grouped by category, action or direction: those rows count detections, and a scanned request without a detection has no category, action or direction to be grouped under. Read totals.requests_scanned instead.",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "user": {
+            "description": "User email; null when the request carried no user identity or its identity was removed by data retention.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "requests_scanned",
+          "requests_flagged",
+          "requests_blocked",
+          "requests_redacted",
+          "requests_monitored",
+          "detections"
+        ],
+        "type": "object"
+      },
+      "GuardrailActivitySummary": {
+        "properties": {
+          "data_through": {
+            "description": "Effective exclusive end of the data counted: the requested `to`, or the time of the read when `to` is omitted. Requests are written a few seconds to minutes after they finish, so the most recent ones can be missing.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "filters": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The filters applied, as normalized.",
+            "type": "object"
+          },
+          "from": {
+            "description": "Inclusive start; null for all available history.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "generated_at": {
+            "description": "When the data behind this response was read from storage (UTC). Results are cached, so this can be up to 60 seconds before the response.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "granularity": {
+            "enum": [
+              "total",
+              "month",
+              "week",
+              "day"
+            ]
+          },
+          "group_by": {
+            "items": {
+              "enum": [
+                "category",
+                "action",
+                "direction",
+                "app",
+                "user",
+                "model"
+              ]
+            },
+            "maxItems": 2,
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/GuardrailActivityRow"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "const": "UTC"
+          },
+          "to": {
+            "description": "Exclusive end; null for now.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "totals": {
+            "$ref": "#/components/schemas/GuardrailActivityTotals"
+          },
+          "truncated": {
+            "description": "More than 5000 rows matched; only the first 5000 (in row order) are returned. Narrow the query.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "granularity",
+          "timezone",
+          "group_by",
+          "totals",
+          "rows",
+          "next_cursor",
+          "truncated",
+          "generated_at",
+          "data_through"
+        ],
+        "type": "object"
+      },
+      "GuardrailActivityTotals": {
+        "properties": {
+          "detections": {
+            "description": "Matching detections: each distinct category, action and direction on a request counts once.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_blocked": {
+            "description": "Requests with a matching detection that was blocked.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_flagged": {
+            "description": "Requests with at least one matching detection that the guardrails acted on (blocked, redacted or monitored). On rows grouped by category, action or direction a request counts once in each row it matches, so those rows do not add up to totals; query without those dimensions for flagged requests per period.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_monitored": {
+            "description": "Requests with a matching detection that was allowed and recorded (monitor mode, advisory notes).",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_redacted": {
+            "description": "Requests with a matching detection that was redacted (masked or partially masked) before it was sent on.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests_scanned": {
+            "description": "Requests the guardrails checked in the app, user, model and time scope.",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requests_scanned",
+          "requests_flagged",
+          "requests_blocked",
+          "requests_redacted",
+          "requests_monitored",
+          "detections"
+        ],
+        "type": "object"
+      },
+      "GuardrailCategory": {
+        "properties": {
+          "id": {
+            "description": "Category id as used in app settings and policies; a custom definition's id; a redaction type (for example EMAIL); `unattributed` for an action recorded without a category.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name shown in the console: the category name, a custom definition's name, or for a redaction type its data-risk subcategory name (for example Email Address).",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "data_risk",
+              "adversarial",
+              "custom",
+              "insider_risk",
+              "hallucination",
+              "guardian",
+              "policy",
+              "other"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type"
+        ],
         "type": "object"
       },
       "IncidentAction": {
@@ -13881,7 +14788,8 @@
               "xai_responses",
               "cerebras",
               "typesafe",
-              "groq"
+              "groq",
+              "perplexity"
             ],
             "type": "string"
           },
@@ -14493,7 +15401,8 @@
               "xai_responses",
               "cerebras",
               "typesafe",
-              "groq"
+              "groq",
+              "perplexity"
             ],
             "type": "string"
           },
@@ -14829,6 +15738,714 @@
         ],
         "type": "object"
       },
+      "ProviderHealth": {
+        "additionalProperties": true,
+        "properties": {
+          "filters": {
+            "additionalProperties": true,
+            "properties": {
+              "app": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "model": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "provider": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "from": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "generated_at": {
+            "description": "When the traffic outcomes were read from storage (UTC; cached up to 60 seconds). routing_state is read at response time.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderHealthProvider"
+            },
+            "type": "array"
+          },
+          "routing_state_scope": {
+            "additionalProperties": true,
+            "properties": {
+              "apps_attempted": {
+                "description": "Apps whose routing state was requested (at most 25, within 5 seconds).",
+                "type": "integer"
+              },
+              "apps_evaluated": {
+                "description": "Apps whose routing state was read.",
+                "type": "integer"
+              },
+              "apps_failed": {
+                "description": "Attempted apps whose routing state could not be read.",
+                "type": "integer"
+              },
+              "apps_total": {
+                "description": "Apps in scope.",
+                "type": "integer"
+              },
+              "complete": {
+                "description": "True only when every app's routing state was read. When false, targets without a state read from some app report `unknown`.",
+                "type": "boolean"
+              },
+              "note": {
+                "type": "string"
+              },
+              "scope": {
+                "const": "this_server"
+              }
+            },
+            "type": "object"
+          },
+          "to": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "truncated": {
+            "description": "More than 500 provider and model pairs had traffic; the busiest are returned. Filter to see the rest.",
+            "type": "boolean"
+          },
+          "window": {
+            "enum": [
+              "1h",
+              "24h",
+              "7d",
+              "30d",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "providers",
+          "routing_state_scope",
+          "generated_at"
+        ],
+        "type": "object"
+      },
+      "ProviderHealthModel": {
+        "additionalProperties": true,
+        "properties": {
+          "errors": {
+            "additionalProperties": true,
+            "description": "Failed requests by failure class, the same classes request explanations use: rate_limited (429 rate limits), timeout_or_connection (timeouts and unreachable upstreams), upstream_5xx (other provider server errors), auth_or_permission (401 and 403), client_4xx (other 4xx: invalid request, unknown model, context length, content filter) or other.",
+            "properties": {
+              "auth_or_permission": {
+                "description": "401 and 403.",
+                "type": "integer"
+              },
+              "client_4xx": {
+                "description": "Other 4xx (invalid request, unknown model, context length, content filter).",
+                "type": "integer"
+              },
+              "other": {
+                "description": "Failures no class above covers.",
+                "type": "integer"
+              },
+              "rate_limited": {
+                "description": "429 responses.",
+                "type": "integer"
+              },
+              "timeout_or_connection": {
+                "description": "Timeouts and unreachable upstreams.",
+                "type": "integer"
+              },
+              "upstream_5xx": {
+                "description": "Other provider server errors.",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "rate_limited",
+              "timeout_or_connection",
+              "upstream_5xx",
+              "auth_or_permission",
+              "client_4xx",
+              "other"
+            ],
+            "type": "object"
+          },
+          "failovers_away": {
+            "description": "Attempts on this target that failed and moved the request to another target (the request then counts under the target that served it).",
+            "type": "integer"
+          },
+          "failures": {
+            "description": "Of those, requests that ended in an error status.",
+            "type": "integer"
+          },
+          "last_request_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latency_ms": {
+            "additionalProperties": true,
+            "description": "Upstream latency of successful requests.",
+            "properties": {
+              "p50": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "p95": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "model": {
+            "type": "string"
+          },
+          "requests": {
+            "description": "Served requests whose final attempt used this target.",
+            "type": "integer"
+          },
+          "routing_state": {
+            "additionalProperties": true,
+            "properties": {
+              "mark_downs": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "apps": {
+                      "oneOf": [
+                        {
+                          "const": "*"
+                        },
+                        {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      ]
+                    },
+                    "expires_at": {
+                      "format": "date-time",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "source": {
+                      "enum": [
+                        "tenant",
+                        "app"
+                      ]
+                    },
+                    "ticket": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "state": {
+                "description": "healthy; unknown (this server's routing state could not be read for the target because some apps' routing previews failed or were not reached; see routing_state_scope); half_open (a probe request is allowed); cooling_down (paused after rate limiting); circuit_open (skipped after repeated failures); marked_down (an admin mark-down applies).",
+                "enum": [
+                  "healthy",
+                  "unknown",
+                  "half_open",
+                  "cooling_down",
+                  "circuit_open",
+                  "marked_down"
+                ]
+              },
+              "until": {
+                "description": "When the cooldown or open circuit is due to end.",
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "state",
+              "mark_downs"
+            ],
+            "type": "object"
+          },
+          "success_rate_pct": {
+            "description": "100 x (requests - failures) / requests; null without traffic.",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "time_to_first_token_ms": {
+            "additionalProperties": true,
+            "description": "Successful streamed requests only.",
+            "properties": {
+              "p50": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "p95": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "streamed_requests": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "model",
+          "requests",
+          "success_rate_pct",
+          "errors",
+          "routing_state"
+        ],
+        "type": "object"
+      },
+      "ProviderHealthProvider": {
+        "additionalProperties": true,
+        "properties": {
+          "configured": {
+            "description": "False for a label seen only in traffic (renamed or deleted since).",
+            "type": "boolean"
+          },
+          "errors": {
+            "additionalProperties": true,
+            "description": "Failed requests by failure class, the same classes request explanations use: rate_limited (429 rate limits), timeout_or_connection (timeouts and unreachable upstreams), upstream_5xx (other provider server errors), auth_or_permission (401 and 403), client_4xx (other 4xx: invalid request, unknown model, context length, content filter) or other.",
+            "properties": {
+              "auth_or_permission": {
+                "description": "401 and 403.",
+                "type": "integer"
+              },
+              "client_4xx": {
+                "description": "Other 4xx (invalid request, unknown model, context length, content filter).",
+                "type": "integer"
+              },
+              "other": {
+                "description": "Failures no class above covers.",
+                "type": "integer"
+              },
+              "rate_limited": {
+                "description": "429 responses.",
+                "type": "integer"
+              },
+              "timeout_or_connection": {
+                "description": "Timeouts and unreachable upstreams.",
+                "type": "integer"
+              },
+              "upstream_5xx": {
+                "description": "Other provider server errors.",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "rate_limited",
+              "timeout_or_connection",
+              "upstream_5xx",
+              "auth_or_permission",
+              "client_4xx",
+              "other"
+            ],
+            "type": "object"
+          },
+          "failovers_away": {
+            "description": "Attempts on this target that failed and moved the request to another target (the request then counts under the target that served it).",
+            "type": "integer"
+          },
+          "failures": {
+            "description": "Of those, requests that ended in an error status.",
+            "type": "integer"
+          },
+          "latency_ms": {
+            "additionalProperties": true,
+            "description": "Percentiles do not add up across models: set only when the provider has one model; read the models otherwise.",
+            "properties": {
+              "p50": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "p95": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "models": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "errors": {
+                  "additionalProperties": true,
+                  "description": "Failed requests by failure class, the same classes request explanations use: rate_limited (429 rate limits), timeout_or_connection (timeouts and unreachable upstreams), upstream_5xx (other provider server errors), auth_or_permission (401 and 403), client_4xx (other 4xx: invalid request, unknown model, context length, content filter) or other.",
+                  "properties": {
+                    "auth_or_permission": {
+                      "description": "401 and 403.",
+                      "type": "integer"
+                    },
+                    "client_4xx": {
+                      "description": "Other 4xx (invalid request, unknown model, context length, content filter).",
+                      "type": "integer"
+                    },
+                    "other": {
+                      "description": "Failures no class above covers.",
+                      "type": "integer"
+                    },
+                    "rate_limited": {
+                      "description": "429 responses.",
+                      "type": "integer"
+                    },
+                    "timeout_or_connection": {
+                      "description": "Timeouts and unreachable upstreams.",
+                      "type": "integer"
+                    },
+                    "upstream_5xx": {
+                      "description": "Other provider server errors.",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "rate_limited",
+                    "timeout_or_connection",
+                    "upstream_5xx",
+                    "auth_or_permission",
+                    "client_4xx",
+                    "other"
+                  ],
+                  "type": "object"
+                },
+                "failovers_away": {
+                  "description": "Attempts on this target that failed and moved the request to another target (the request then counts under the target that served it).",
+                  "type": "integer"
+                },
+                "failures": {
+                  "description": "Of those, requests that ended in an error status.",
+                  "type": "integer"
+                },
+                "last_request_at": {
+                  "format": "date-time",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "latency_ms": {
+                  "additionalProperties": true,
+                  "description": "Upstream latency of successful requests.",
+                  "properties": {
+                    "p50": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "p95": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "requests": {
+                  "description": "Served requests whose final attempt used this target.",
+                  "type": "integer"
+                },
+                "routing_state": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "mark_downs": {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "apps": {
+                            "oneOf": [
+                              {
+                                "const": "*"
+                              },
+                              {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              }
+                            ]
+                          },
+                          "expires_at": {
+                            "format": "date-time",
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "source": {
+                            "enum": [
+                              "tenant",
+                              "app"
+                            ]
+                          },
+                          "ticket": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "state": {
+                      "description": "healthy; unknown (this server's routing state could not be read for the target because some apps' routing previews failed or were not reached; see routing_state_scope); half_open (a probe request is allowed); cooling_down (paused after rate limiting); circuit_open (skipped after repeated failures); marked_down (an admin mark-down applies).",
+                      "enum": [
+                        "healthy",
+                        "unknown",
+                        "half_open",
+                        "cooling_down",
+                        "circuit_open",
+                        "marked_down"
+                      ]
+                    },
+                    "until": {
+                      "description": "When the cooldown or open circuit is due to end.",
+                      "format": "date-time",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "mark_downs"
+                  ],
+                  "type": "object"
+                },
+                "success_rate_pct": {
+                  "description": "100 x (requests - failures) / requests; null without traffic.",
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "time_to_first_token_ms": {
+                  "additionalProperties": true,
+                  "description": "Successful streamed requests only.",
+                  "properties": {
+                    "p50": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "p95": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "streamed_requests": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "model",
+                "requests",
+                "success_rate_pct",
+                "errors",
+                "routing_state"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "provider_label": {
+            "type": "string"
+          },
+          "provider_name": {
+            "description": "Provider type.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requests": {
+            "description": "Served requests whose final attempt used this target.",
+            "type": "integer"
+          },
+          "routing_state": {
+            "additionalProperties": true,
+            "description": "The worst model state; mark_downs lists provider-wide mark-downs.",
+            "properties": {
+              "mark_downs": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "apps": {
+                      "oneOf": [
+                        {
+                          "const": "*"
+                        },
+                        {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      ]
+                    },
+                    "expires_at": {
+                      "format": "date-time",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "source": {
+                      "enum": [
+                        "tenant",
+                        "app"
+                      ]
+                    },
+                    "ticket": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "state": {
+                "description": "healthy; unknown (this server's routing state could not be read for the target because some apps' routing previews failed or were not reached; see routing_state_scope); half_open (a probe request is allowed); cooling_down (paused after rate limiting); circuit_open (skipped after repeated failures); marked_down (an admin mark-down applies).",
+                "enum": [
+                  "healthy",
+                  "unknown",
+                  "half_open",
+                  "cooling_down",
+                  "circuit_open",
+                  "marked_down"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          "success_rate_pct": {
+            "description": "100 x (requests - failures) / requests; null without traffic.",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "time_to_first_token_ms": {
+            "additionalProperties": true,
+            "description": "Successful streamed requests only.",
+            "properties": {
+              "p50": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "p95": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "streamed_requests": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "provider_label",
+          "requests",
+          "success_rate_pct",
+          "errors",
+          "routing_state",
+          "models"
+        ],
+        "type": "object"
+      },
       "ProviderList": {
         "additionalProperties": true,
         "properties": {
@@ -14849,6 +16466,429 @@
         "required": [
           "items",
           "next_cursor"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewAppDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "app_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "models": {
+            "items": {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "status": {
+            "description": "approved: add to the app provider's model list (a new app configuration version) and close the review. rejected / pending as for shared providers.",
+            "enum": [
+              "approved",
+              "rejected",
+              "pending"
+            ]
+          }
+        },
+        "required": [
+          "app_name",
+          "status",
+          "models"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "model_costs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ModelCost"
+            },
+            "description": "Optional prices for approved models, as on PATCH /providers/{label}.",
+            "maxProperties": 1000,
+            "type": "object"
+          },
+          "models": {
+            "items": {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "status": {
+            "description": "approved: add to the provider's model list and close the review (from pending or rejected). rejected: reject a pending model. pending: restore a rejected model.",
+            "enum": [
+              "approved",
+              "rejected",
+              "pending"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "models"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewDecisionResult": {
+        "additionalProperties": true,
+        "properties": {
+          "added_to_model_list": {
+            "description": "Models newly added to the model list (approved only); models already listed are not repeated.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "app_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "provider_version": {
+            "description": "The shared provider's version after an approval (If-Match for the next PATCH).",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "approved",
+              "rejected",
+              "pending"
+            ]
+          }
+        },
+        "required": [
+          "operation_id",
+          "label",
+          "status",
+          "models",
+          "added_to_model_list"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewItem": {
+        "additionalProperties": true,
+        "properties": {
+          "app_name": {
+            "description": "The app holding this provider with its own keys; null for a shared provider.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "decided_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "decided_by": {
+            "description": "Console user email or management key id; null when undecided or added another way.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "first_seen_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "model_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_name": {
+            "type": "string"
+          },
+          "status": {
+            "description": "approved also covers a model added to the model list another way.",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "provider_name",
+          "app_name",
+          "model_id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewModel": {
+        "additionalProperties": true,
+        "properties": {
+          "decided_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "decided_by": {
+            "description": "Console user email or management key id; null when undecided or added another way.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "first_seen_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "model_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "approved also covers a model added to the model list another way.",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "model_id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewPage": {
+        "additionalProperties": true,
+        "properties": {
+          "available": {
+            "description": "False where reviews are not managed (then items is empty).",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderModelReviewItem"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pending_count": {
+            "description": "Models waiting for a decision across the matching providers (ignores status).",
+            "type": "integer"
+          },
+          "settings": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ProviderModelReviewSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "available",
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewProvider": {
+        "additionalProperties": true,
+        "properties": {
+          "provider": {
+            "additionalProperties": true,
+            "properties": {
+              "app_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "approved": {
+                "items": {
+                  "$ref": "#/components/schemas/ProviderModelReviewModel"
+                },
+                "type": "array"
+              },
+              "label": {
+                "type": "string"
+              },
+              "last_checked_at": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "last_error": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {
+                        "enum": [
+                          "auth_failed",
+                          "rate_limited",
+                          "unreachable",
+                          "no_models_listed",
+                          "manual_entry_required",
+                          "discovery_failed"
+                        ]
+                      },
+                      "message": {
+                        "description": "A fixed message for the code.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "message"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Why the last model listing failed or was incomplete, as a stable code: auth_failed, rate_limited, unreachable, no_models_listed, manual_entry_required or discovery_failed (anything else). Provider error details are not returned; null when the last listing succeeded."
+              },
+              "last_success_at": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "listing_status": {
+                "description": "Outcome of the last model listing. unrestricted: the provider has no model list, serves every model and is not reviewed.",
+                "enum": [
+                  "ok",
+                  "partial",
+                  "error",
+                  "manual",
+                  "unrestricted",
+                  "not_checked"
+                ]
+              },
+              "pending": {
+                "items": {
+                  "$ref": "#/components/schemas/ProviderModelReviewModel"
+                },
+                "type": "array"
+              },
+              "pending_count": {
+                "type": "integer"
+              },
+              "provider_name": {
+                "type": "string"
+              },
+              "rejected": {
+                "items": {
+                  "$ref": "#/components/schemas/ProviderModelReviewModel"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "label",
+              "provider_name",
+              "listing_status",
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "type": "object"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ProviderModelReviewSettings"
+          }
+        },
+        "required": [
+          "provider"
+        ],
+        "type": "object"
+      },
+      "ProviderModelReviewSettings": {
+        "additionalProperties": true,
+        "properties": {
+          "background_checks": {
+            "description": "Whether this deployment runs background checks at all; when false new models appear only after a check from the console.",
+            "type": "boolean"
+          },
+          "check_interval_seconds": {
+            "type": "integer"
+          },
+          "enabled": {
+            "description": "The tenant's switch for background checks.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled",
+          "background_checks"
         ],
         "type": "object"
       },
@@ -15374,7 +17414,8 @@
               "xai_responses",
               "cerebras",
               "typesafe",
-              "groq"
+              "groq",
+              "perplexity"
             ],
             "type": "string"
           },
@@ -16132,7 +18173,8 @@
               "xai_responses",
               "cerebras",
               "typesafe",
-              "groq"
+              "groq",
+              "perplexity"
             ],
             "type": "string"
           },
@@ -17073,6 +19115,882 @@
         ],
         "type": "object"
       },
+      "RequestExplanation": {
+        "additionalProperties": true,
+        "properties": {
+          "error": {
+            "additionalProperties": true,
+            "description": "Error code and whether a friendly error message replaced the original message. Original provider messages are never returned.",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "failure_class": {
+                "description": "The failure class of a provider error, as on attempts.",
+                "enum": [
+                  "rate_limited",
+                  "timeout_or_connection",
+                  "upstream_5xx",
+                  "auth_or_permission",
+                  "client_4xx",
+                  "other"
+                ]
+              },
+              "friendly_message": {
+                "additionalProperties": true,
+                "properties": {
+                  "mapping_id": {
+                    "type": "string"
+                  },
+                  "policy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              "friendly_message_applied": {
+                "type": "boolean"
+              },
+              "in_stream": {
+                "type": "boolean"
+              },
+              "raised_by": {
+                "enum": [
+                  "gateway",
+                  "provider"
+                ]
+              },
+              "status_code": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "failover": {
+            "additionalProperties": true,
+            "properties": {
+              "attempts": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "duration_ms": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "failure_class": {
+                      "description": "Why the attempt failed, in the classes GET /provider-health reports: rate_limited (429 rate limits), timeout_or_connection (timeouts and unreachable upstreams), upstream_5xx (other provider server errors), auth_or_permission (401 and 403), client_4xx (other 4xx: invalid request, unknown model, context length, content filter) or other.",
+                      "enum": [
+                        "rate_limited",
+                        "timeout_or_connection",
+                        "upstream_5xx",
+                        "auth_or_permission",
+                        "client_4xx",
+                        "other"
+                      ]
+                    },
+                    "index": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "kind": {
+                      "description": "What the send returned or was: response, stream, cache_hit (answered from the response cache, nothing sent), or a same-target follow-up send: adaptation (resent with parameters the model accepts), format_retry (resent in another API format), agent_check_retry (resent after an agent check). Absent on attempts that failed or were skipped.",
+                      "enum": [
+                        "response",
+                        "stream",
+                        "cache_hit",
+                        "adaptation",
+                        "format_retry",
+                        "agent_check_retry",
+                        "other"
+                      ]
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "outcome": {
+                      "description": "served, retry (sent again to the same target), failover (moved to another target), final_error (the last attempt failed), skipped (not sent: see skip_reason), cancelled (the client went away), or a follow-up send kind (adaptation, format_retry, agent_check_retry).",
+                      "enum": [
+                        "served",
+                        "retry",
+                        "failover",
+                        "final_error",
+                        "skipped",
+                        "cancelled",
+                        "adaptation",
+                        "format_retry",
+                        "agent_check_retry",
+                        "other"
+                      ]
+                    },
+                    "provider_label": {
+                      "type": "string"
+                    },
+                    "provider_type": {
+                      "type": "string"
+                    },
+                    "retry_number": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "skip_reason": {
+                      "type": "string"
+                    },
+                    "status_code": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "tier": {
+                      "description": "Candidate tier: first (the routed target), route (another member of the route), fallback (an explicit fallback), same_model (the same model on another provider), app (another app target), or other.",
+                      "enum": [
+                        "first",
+                        "route",
+                        "fallback",
+                        "same_model",
+                        "app",
+                        "other"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "configured_by": {
+                "enum": [
+                  "policy",
+                  "app",
+                  "default",
+                  "operator_disabled"
+                ]
+              },
+              "exhausted": {
+                "type": "boolean"
+              },
+              "failovers": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "retries": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "sends": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "served_tier": {
+                "description": "Tier of the attempt that served the request.",
+                "enum": [
+                  "first",
+                  "route",
+                  "fallback",
+                  "same_model",
+                  "app",
+                  "other"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "gateway_request_id": {
+            "description": "The explained request (its x-quilr-request-id). The top-level request_id identifies this management call.",
+            "type": "string"
+          },
+          "guardrails": {
+            "additionalProperties": true,
+            "description": "Detection categories and actions per direction. Detected values are never returned.",
+            "properties": {
+              "agent_checks": {
+                "additionalProperties": true,
+                "properties": {
+                  "advisories": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "finding_types": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "nudged": {
+                    "type": "boolean"
+                  },
+                  "request_blocked": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "outcome": {
+                "enum": [
+                  "blocked",
+                  "redacted",
+                  "monitored",
+                  "none"
+                ]
+              },
+              "request": {
+                "additionalProperties": true,
+                "properties": {
+                  "actions": {
+                    "items": {
+                      "additionalProperties": true,
+                      "properties": {
+                        "action": {
+                          "enum": [
+                            "blocked",
+                            "redacted",
+                            "monitored"
+                          ]
+                        },
+                        "categories": {
+                          "description": "The same category objects as GET /guardrails/summary.",
+                          "items": {
+                            "$ref": "#/components/schemas/GuardrailCategory"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "decided_by_rules": {
+                    "items": {
+                      "$ref": "#/components/schemas/ExplainRule"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              "response": {
+                "additionalProperties": true,
+                "properties": {
+                  "actions": {
+                    "items": {
+                      "additionalProperties": true,
+                      "properties": {
+                        "action": {
+                          "enum": [
+                            "blocked",
+                            "redacted",
+                            "monitored"
+                          ]
+                        },
+                        "categories": {
+                          "description": "The same category objects as GET /guardrails/summary.",
+                          "items": {
+                            "$ref": "#/components/schemas/GuardrailCategory"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "decided_by_rules": {
+                    "items": {
+                      "$ref": "#/components/schemas/ExplainRule"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              "risk_level": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "limits": {
+            "additionalProperties": true,
+            "properties": {
+              "budget_evaluation": {
+                "description": "evaluated, or why budgets did not apply: exempt_route, policy_off, not_covered, exempt_rule.",
+                "enum": [
+                  "evaluated",
+                  "exempt_route",
+                  "policy_off",
+                  "not_covered",
+                  "exempt_rule",
+                  "other"
+                ]
+              },
+              "charge_status": {
+                "description": "complete (charged), deferred (saved and applied shortly) or failed (could not be charged).",
+                "enum": [
+                  "complete",
+                  "deferred",
+                  "failed",
+                  "other"
+                ]
+              },
+              "charges": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "budget_id": {
+                      "type": "string"
+                    },
+                    "charged": {
+                      "additionalProperties": true,
+                      "properties": {
+                        "input_tokens": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "output_tokens": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "requests": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "spend_usd": {
+                          "type": "number"
+                        },
+                        "total_tokens": {
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "limit_type": {
+                      "enum": [
+                        "budget",
+                        "rate",
+                        "other"
+                      ]
+                    },
+                    "mode": {
+                      "description": "enforce (refuses requests over the limit), alert (tracked and alerted without refusing) or paused.",
+                      "enum": [
+                        "enforce",
+                        "alert",
+                        "paused",
+                        "other"
+                      ]
+                    },
+                    "over_limit": {
+                      "type": "boolean"
+                    },
+                    "window": {
+                      "description": "The budget window charged, such as calendar:month:2026-11-01T00:00:00Z.",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "rejection": {
+                "additionalProperties": true,
+                "properties": {
+                  "budget_id": {
+                    "type": "string"
+                  },
+                  "budget_ids": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "check": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "limit",
+                      "preflight"
+                    ]
+                  },
+                  "limit_type": {
+                    "description": "budget (spend or token budget) or rate (rate limit).",
+                    "enum": [
+                      "budget",
+                      "rate",
+                      "other"
+                    ]
+                  },
+                  "metric": {
+                    "type": "string"
+                  },
+                  "rule": {
+                    "$ref": "#/components/schemas/ExplainRule"
+                  },
+                  "window": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "calendar",
+                          "rolling",
+                          "lifetime",
+                          "other"
+                        ]
+                      },
+                      "size": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "unit": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "routing": {
+            "additionalProperties": true,
+            "properties": {
+              "candidates_skipped": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "model": {
+                      "type": "string"
+                    },
+                    "provider_label": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "constraints": {
+                "additionalProperties": true,
+                "properties": {
+                  "excluded": {
+                    "items": {
+                      "additionalProperties": true,
+                      "properties": {
+                        "key": {
+                          "description": "The constraint key that excluded the target; never a tag value.",
+                          "type": "string"
+                        },
+                        "model": {
+                          "type": "string"
+                        },
+                        "provider_label": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "ok",
+                      "unsatisfied",
+                      "check_unavailable",
+                      "state_bound_conflict"
+                    ]
+                  },
+                  "rules": {
+                    "items": {
+                      "$ref": "#/components/schemas/ExplainRule"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              "content": {
+                "additionalProperties": true,
+                "description": "Content-based routing verdicts. Never includes message text.",
+                "properties": {
+                  "classification": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "complexity": {
+                        "type": "string"
+                      },
+                      "reused": {
+                        "type": "boolean"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "topics_matched": {
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "complexity": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "current_level": {
+                        "type": "string"
+                      },
+                      "effective_level": {
+                        "type": "string"
+                      },
+                      "escalated": {
+                        "type": "boolean"
+                      },
+                      "stored_level": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "conversation_route": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "frozen": {
+                        "type": "boolean"
+                      },
+                      "kept": {
+                        "type": "boolean"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "data_route": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "applied": {
+                        "type": "boolean"
+                      },
+                      "data_types": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "matched": {
+                        "type": "boolean"
+                      },
+                      "rule": {
+                        "$ref": "#/components/schemas/ExplainRule"
+                      },
+                      "scan_status": {
+                        "type": "string"
+                      },
+                      "sticky": {
+                        "type": "boolean"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "fallback_reason": {
+                "type": "string"
+              },
+              "observe_only": {
+                "items": {
+                  "$ref": "#/components/schemas/ExplainRule"
+                },
+                "type": "array"
+              },
+              "route_id": {
+                "type": "string"
+              },
+              "routing_group": {
+                "type": "string"
+              },
+              "rule": {
+                "$ref": "#/components/schemas/ExplainRule"
+              },
+              "session": {
+                "additionalProperties": true,
+                "description": "Conversation pinning: whether an earlier routing decision was reused.",
+                "properties": {
+                  "age_seconds": {
+                    "type": "number"
+                  },
+                  "invalid_reason": {
+                    "type": "string"
+                  },
+                  "key_source": {
+                    "description": "What identified the conversation: previous_response_id, conversation_id (a conversation id header or field), client_session_id (a session, thread or run id the client sent), prompt_cache_key, or conversation_prefix (derived from the start of the conversation).",
+                    "enum": [
+                      "previous_response_id",
+                      "conversation_id",
+                      "client_session_id",
+                      "prompt_cache_key",
+                      "conversation_prefix"
+                    ]
+                  },
+                  "pin_kind": {
+                    "description": "failover: the pin moved to this target after a failover. Absent for a normal routing pin.",
+                    "enum": [
+                      "failover",
+                      "other"
+                    ]
+                  },
+                  "pin_target": {
+                    "type": "string"
+                  },
+                  "pinned": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "source": {
+                "enum": [
+                  "policy_rule",
+                  "routing_group",
+                  "context_threshold",
+                  "default",
+                  "provider_model_list"
+                ]
+              },
+              "upstream": {
+                "additionalProperties": true,
+                "properties": {
+                  "client_api": {
+                    "type": "string"
+                  },
+                  "fields_dropped": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "mode": {
+                    "description": "native (the provider's own API for this format), endpoint_switch (another endpoint of the same provider), adapter (a built-in provider adapter), translate (converted between API formats) or unsupported.",
+                    "enum": [
+                      "native",
+                      "endpoint_switch",
+                      "adapter",
+                      "translate",
+                      "unsupported",
+                      "other"
+                    ]
+                  },
+                  "upstream_api": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "properties": {
+              "app": {
+                "type": "string"
+              },
+              "cost": {
+                "additionalProperties": true,
+                "properties": {
+                  "status": {
+                    "description": "priced, partial (some usage had no price) or unpriced.",
+                    "enum": [
+                      "priced",
+                      "partial",
+                      "unpriced",
+                      "other"
+                    ]
+                  },
+                  "usd": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "latency_ms": {
+                "additionalProperties": true,
+                "properties": {
+                  "first_token": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "guardrails": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "total": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "upstream": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "outcome": {
+                "description": "served; blocked (by a guardrail or policy); rate_limited (a gateway rate or token limit); quota_refused (a budget or quota); rejected (a pre-flight policy or access check); error (the provider or gateway failed); client_cancelled (the client disconnected).",
+                "enum": [
+                  "served",
+                  "blocked",
+                  "rate_limited",
+                  "quota_refused",
+                  "rejected",
+                  "error",
+                  "client_cancelled"
+                ]
+              },
+              "provider_label": {
+                "type": "string"
+              },
+              "request_kind": {
+                "description": "client: sent by your client. cache_refresh: one of the background cache-refresh requests the gateway sends to keep a provider prompt cache warm.",
+                "enum": [
+                  "client",
+                  "cache_refresh"
+                ]
+              },
+              "requested_model": {
+                "type": "string"
+              },
+              "response_cache": {
+                "additionalProperties": true,
+                "properties": {
+                  "age_seconds": {
+                    "type": "number"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "hit (answered from the cache), miss, or bypass (not looked up).",
+                    "enum": [
+                      "hit",
+                      "miss",
+                      "bypass",
+                      "other"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              "served_model": {
+                "type": "string"
+              },
+              "status_code": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "stream": {
+                "type": "boolean"
+              },
+              "surface": {
+                "description": "API family of the request: chat_completions, completions, openai_responses, anthropic_messages, vertex_gemini, bedrock_runtime, embeddings, realtime, rerank, assistants, decisions, moderations, images, files, batches, videos, ocr, tts (speech), stt (transcription), sdk, copilot_studio, unknown, or other for a family added later.",
+                "enum": [
+                  "chat_completions",
+                  "completions",
+                  "openai_responses",
+                  "anthropic_messages",
+                  "vertex_gemini",
+                  "bedrock_runtime",
+                  "embeddings",
+                  "realtime",
+                  "rerank",
+                  "assistants",
+                  "decisions",
+                  "moderations",
+                  "images",
+                  "files",
+                  "batches",
+                  "videos",
+                  "ocr",
+                  "tts",
+                  "stt",
+                  "sdk",
+                  "copilot_studio",
+                  "unknown",
+                  "other"
+                ],
+                "type": "string"
+              },
+              "tokens": {
+                "additionalProperties": true,
+                "properties": {
+                  "cache_read": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "cache_write": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "input": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "output": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "reasoning": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "source": {
+                    "enum": [
+                      "provider",
+                      "estimated",
+                      "mixed"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              "user_email": {
+                "description": "Present when the gateway recorded the caller's identity.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "gateway_request_id",
+          "summary",
+          "guardrails"
+        ],
+        "type": "object"
+      },
       "ResponseCache": {
         "additionalProperties": false,
         "description": "Exact-match response cache for non-streaming requests. Partial updates merge. Under QuilrQL the policy decides enabled.",
@@ -17789,6 +20707,399 @@
           "object",
           "null"
         ]
+      },
+      "UsageMeasures": {
+        "additionalProperties": true,
+        "properties": {
+          "blocked": {
+            "description": "Requests refused by a policy check before the model call, or blocked by a guardrail.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cache_read_tokens": {
+            "description": "Input tokens read from the provider's prompt cache.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cache_write_tokens": {
+            "description": "Input tokens written to the provider's prompt cache.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cost_usd": {
+            "description": "Cost recorded with each request at request time, in USD. Never re-estimated: requests without a recorded cost add nothing (see unpriced_requests).",
+            "minimum": 0,
+            "type": "number"
+          },
+          "errors": {
+            "description": "Requests that failed upstream or in the gateway (status 400 or above), excluding blocked and rate-limited requests. Provider rate limits (429) count here.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "input_tokens": {
+            "description": "Input tokens, including cached input.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "output_tokens": {
+            "description": "Output tokens.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rate_limited": {
+            "description": "Requests refused by a gateway rate limit, token limit or quota.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "reasoning_tokens": {
+            "description": "Reasoning tokens (part of output_tokens where the provider reports them).",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests": {
+            "description": "Client requests (every outcome). The background cache-refresh requests the gateway sends on its own are not counted.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unpriced_requests": {
+            "description": "Requests with token usage but no recorded cost (for example a model missing from the price list when it was called).",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requests",
+          "errors",
+          "blocked",
+          "rate_limited",
+          "input_tokens",
+          "output_tokens",
+          "cache_read_tokens",
+          "cache_write_tokens",
+          "reasoning_tokens",
+          "cost_usd",
+          "unpriced_requests"
+        ],
+        "type": "object"
+      },
+      "UsageReport": {
+        "additionalProperties": true,
+        "properties": {
+          "currency": {
+            "const": "USD"
+          },
+          "data_through": {
+            "description": "Effective exclusive end of the data counted: the requested `to`, or the time of the read when `to` is omitted. Requests are written a few seconds to minutes after they finish, so the most recent ones can be missing.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "from": {
+            "description": "Start of the range; null when it starts at the first recorded request.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "generated_at": {
+            "description": "When the data behind this response was read from storage (UTC). Results are cached, so this can be up to 60 seconds before the response.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "granularity": {
+            "enum": [
+              "total",
+              "month",
+              "week",
+              "day"
+            ],
+            "type": "string"
+          },
+          "group_by": {
+            "items": {
+              "enum": [
+                "app",
+                "model",
+                "provider",
+                "user",
+                "key",
+                "source",
+                "outcome"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page. Follow it to the end for a complete export.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row_count": {
+            "description": "Rows across every page.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "const": "UTC"
+          },
+          "to": {
+            "description": "End of the range (exclusive): the requested end, or the time of the read.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/UsageTotals"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "granularity",
+          "timezone",
+          "group_by",
+          "currency",
+          "totals",
+          "rows",
+          "next_cursor",
+          "generated_at",
+          "data_through"
+        ],
+        "type": "object"
+      },
+      "UsageRow": {
+        "additionalProperties": true,
+        "properties": {
+          "app": {
+            "description": "App name: the app's current name while it exists, otherwise the name recorded with its requests (null when unknown).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "app_deleted": {
+            "description": "With app: the app no longer exists.",
+            "type": "boolean"
+          },
+          "blocked": {
+            "description": "Requests refused by a policy check before the model call, or blocked by a guardrail.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cache_read_tokens": {
+            "description": "Input tokens read from the provider's prompt cache.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cache_write_tokens": {
+            "description": "Input tokens written to the provider's prompt cache.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cost_usd": {
+            "description": "Cost recorded with each request at request time, in USD. Never re-estimated: requests without a recorded cost add nothing (see unpriced_requests).",
+            "minimum": 0,
+            "type": "number"
+          },
+          "errors": {
+            "description": "Requests that failed upstream or in the gateway (status 400 or above), excluding blocked and rate-limited requests. Provider rate limits (429) count here.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "input_tokens": {
+            "description": "Input tokens, including cached input.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "key": {
+            "description": "Gateway credential id (key_id of GET /apps/{app_name}/keys); null when the request did not use an app credential or predates credential tracking.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "key_name": {
+            "description": "With key: the credential's name when it still exists.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "description": "The served model (after routing and aliases), not the model name the client sent; null when not recorded.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "enum": [
+              "served",
+              "blocked",
+              "error",
+              "rate_limited"
+            ],
+            "type": "string"
+          },
+          "output_tokens": {
+            "description": "Output tokens.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "period_start": {
+            "description": "First UTC day of the period (weeks start Monday); absent when granularity is total.",
+            "format": "date",
+            "type": "string"
+          },
+          "provider": {
+            "description": "Provider label, or the provider type for providers configured inside an app; null when not recorded.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rate_limited": {
+            "description": "Requests refused by a gateway rate limit, token limit or quota.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "reasoning_tokens": {
+            "description": "Reasoning tokens (part of output_tokens where the provider reports them).",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests": {
+            "description": "Client requests (every outcome). The background cache-refresh requests the gateway sends on its own are not counted.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "gateway",
+              "sdk",
+              "copilot_studio"
+            ],
+            "type": "string"
+          },
+          "unpriced_requests": {
+            "description": "Requests with token usage but no recorded cost (for example a model missing from the price list when it was called).",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "user": {
+            "description": "User email; null when the request carried no identity or its identity was removed by data retention.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "requests",
+          "errors",
+          "blocked",
+          "rate_limited",
+          "input_tokens",
+          "output_tokens",
+          "cache_read_tokens",
+          "cache_write_tokens",
+          "reasoning_tokens",
+          "cost_usd",
+          "unpriced_requests"
+        ],
+        "type": "object"
+      },
+      "UsageTotals": {
+        "additionalProperties": true,
+        "properties": {
+          "blocked": {
+            "description": "Requests refused by a policy check before the model call, or blocked by a guardrail.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cache_read_tokens": {
+            "description": "Input tokens read from the provider's prompt cache.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cache_write_tokens": {
+            "description": "Input tokens written to the provider's prompt cache.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cost_usd": {
+            "description": "Cost recorded with each request at request time, in USD. Never re-estimated: requests without a recorded cost add nothing (see unpriced_requests).",
+            "minimum": 0,
+            "type": "number"
+          },
+          "errors": {
+            "description": "Requests that failed upstream or in the gateway (status 400 or above), excluding blocked and rate-limited requests. Provider rate limits (429) count here.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "input_tokens": {
+            "description": "Input tokens, including cached input.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "output_tokens": {
+            "description": "Output tokens.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "priced_coverage_pct": {
+            "description": "Share of billable requests with a recorded cost: 100 x (B - unpriced_requests) / B, where B is the requests that reached the pricing stage with token usage (keep-warm refreshes included, like cost_usd). Below 100, cost_usd understates spend. Null when B is 0.",
+            "maximum": 100,
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "rate_limited": {
+            "description": "Requests refused by a gateway rate limit, token limit or quota.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "reasoning_tokens": {
+            "description": "Reasoning tokens (part of output_tokens where the provider reports them).",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requests": {
+            "description": "Client requests (every outcome). The background cache-refresh requests the gateway sends on its own are not counted.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unpriced_requests": {
+            "description": "Requests with token usage but no recorded cost (for example a model missing from the price list when it was called).",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requests",
+          "errors",
+          "blocked",
+          "rate_limited",
+          "input_tokens",
+          "output_tokens",
+          "cache_read_tokens",
+          "cache_write_tokens",
+          "reasoning_tokens",
+          "cost_usd",
+          "unpriced_requests",
+          "priced_coverage_pct"
+        ],
+        "type": "object"
       },
       "VersionList": {
         "additionalProperties": true,
@@ -18965,7 +22276,7 @@
     },
     "/llmgateway/management/v1/app/keys": {
       "get": {
-        "description": "Gateway keys of the app: metadata and a short fingerprint, never the secret.\n\nQuery-locator alias of List_gateway_credentials: pass the app name in the app_name query parameter (URL-encoded once). Use it for names containing `/` or a literal `%`.",
+        "description": "Gateway keys of the app: metadata, a short fingerprint and recent usage, never the secret.\n\nQuery-locator alias of List_gateway_credentials: pass the app name in the app_name query parameter (URL-encoded once). Use it for names containing `/` or a literal `%`.",
         "operationId": "List_gateway_credentials_query",
         "parameters": [
           {
@@ -19011,7 +22322,11 @@
                       "fingerprint": "0123456789ab",
                       "key_id": "6b0e2c1a-4f3d-4c55-9a1e-0d2b7f8c9e10",
                       "name": "Default",
-                      "status": "active"
+                      "status": "active",
+                      "usage": {
+                        "last_used_at": "2026-10-30T17:42:08Z",
+                        "requests_30d": 18234
+                      }
                     }
                   ],
                   "next_cursor": null,
@@ -19318,7 +22633,7 @@
         ]
       },
       "get": {
-        "description": "Metadata of one gateway key and its version (ETag).\n\nQuery-locator alias of Get_key: pass the app name in the app_name query parameter (URL-encoded once). Use it for names containing `/` or a literal `%`.",
+        "description": "Metadata and recent usage of one gateway key, and its version (ETag).\n\nQuery-locator alias of Get_key: pass the app name in the app_name query parameter (URL-encoded once). Use it for names containing `/` or a literal `%`.",
         "operationId": "Get_key_query",
         "parameters": [
           {
@@ -19352,7 +22667,11 @@
                     "fingerprint": "0123456789ab",
                     "key_id": "6b0e2c1a-4f3d-4c55-9a1e-0d2b7f8c9e10",
                     "name": "Default",
-                    "status": "active"
+                    "status": "active",
+                    "usage": {
+                      "last_used_at": "2026-10-30T17:42:08Z",
+                      "requests_30d": 18234
+                    }
                   },
                   "request_id": "req_example",
                   "version": "7e6d5c4b3a29"
@@ -21677,7 +24996,7 @@
     },
     "/llmgateway/management/v1/apps/{app_name}/keys": {
       "get": {
-        "description": "Gateway keys of the app: metadata and a short fingerprint, never the secret.",
+        "description": "Gateway keys of the app: metadata, a short fingerprint and recent usage, never the secret.",
         "operationId": "List_gateway_credentials",
         "parameters": [
           {
@@ -21723,7 +25042,11 @@
                       "fingerprint": "0123456789ab",
                       "key_id": "6b0e2c1a-4f3d-4c55-9a1e-0d2b7f8c9e10",
                       "name": "Default",
-                      "status": "active"
+                      "status": "active",
+                      "usage": {
+                        "last_used_at": "2026-10-30T17:42:08Z",
+                        "requests_30d": 18234
+                      }
                     }
                   ],
                   "next_cursor": null,
@@ -22027,7 +25350,7 @@
         ]
       },
       "get": {
-        "description": "Metadata of one gateway key and its version (ETag).",
+        "description": "Metadata and recent usage of one gateway key, and its version (ETag).",
         "operationId": "Get_key",
         "parameters": [
           {
@@ -22061,7 +25384,11 @@
                     "fingerprint": "0123456789ab",
                     "key_id": "6b0e2c1a-4f3d-4c55-9a1e-0d2b7f8c9e10",
                     "name": "Default",
-                    "status": "active"
+                    "status": "active",
+                    "usage": {
+                      "last_used_at": "2026-10-30T17:42:08Z",
+                      "requests_30d": 18234
+                    }
                   },
                   "request_id": "req_example",
                   "version": "7e6d5c4b3a29"
@@ -39789,6 +43116,280 @@
         ]
       }
     },
+    "/llmgateway/management/v1/guardrails/summary": {
+      "get": {
+        "description": "Counts what the gateway guardrails did to the tenant's traffic: requests scanned, flagged, blocked, redacted and monitored, and the detections behind them. Group by up to two of `category`, `action`, `direction`, `app`, `user` and `model`, and bucket by `granularity`: total (the default), or UTC `month`, `week` (starting Monday) or `day`. `from` is inclusive and `to` exclusive; a date `to` includes that whole UTC day.\n\nOnly counts and identifiers are returned, never prompt or response text or the detected values. Categories are `{id, name, type}`: the ids and display names from app settings and policies; custom definitions use their id and the name you gave them. Actions are `blocked`, `redacted` (masked or partially masked) and `monitored` (allowed and recorded, including advisory notes). Requests refused by rate limits, quotas or access rules before they were scanned are not counted, and neither are the background cache-refresh requests or requests from apps with guardrails off.\n\n`totals` always covers the whole selection, whatever the page. With a category, action or direction filter, the flagged, blocked, redacted, monitored and detection counts include only matching detections, while `requests_scanned` still counts every scanned request in scope. Rows grouped by `category`, `action` or `direction` count detections, so their `requests_scanned` is null (as in the example, grouped by category and action); `totals.requests_scanned` is always set. Results can be up to 60 seconds old. Recent requests appear within a few minutes. Pages are ordered by period and then group keys; a cursor stops working (409) when the set of rows changes between pages. At most 5000 rows are returned (`truncated`). Queries are limited to 20 seconds. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now.",
+        "operationId": "Read_guardrail_activity_summary",
+        "parameters": [
+          {
+            "description": "Inclusive start: a date (YYYY-MM-DD, UTC midnight) or an RFC 3339 timestamp with a timezone. Omitted: all available history.",
+            "example": "2026-10-01",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exclusive end: an RFC 3339 timestamp with a timezone, or a date (YYYY-MM-DD) to include that whole UTC day. Omitted: now.",
+            "example": "2026-10-31",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday) or day.",
+            "in": "query",
+            "name": "granularity",
+            "schema": {
+              "default": "total",
+              "enum": [
+                "total",
+                "month",
+                "week",
+                "day"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Up to 2 of: category, action, direction, app, user, model. Repeat the parameter (group_by=a&group_by=b) or separate values with commas (group_by=a,b).",
+            "example": [
+              "category",
+              "action"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "group_by",
+            "schema": {
+              "items": {
+                "enum": [
+                  "category",
+                  "action",
+                  "direction",
+                  "app",
+                  "user",
+                  "model"
+                ],
+                "type": "string"
+              },
+              "maxItems": 2,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "style": "form"
+          },
+          {
+            "description": "Only this app (exact name, case-insensitive).",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this user email (case-insensitive).",
+            "in": "query",
+            "name": "user",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this served model (exact).",
+            "in": "query",
+            "name": "model",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only detections of this category: its id or display name (case-insensitive), a custom definition's id or name, or `unattributed`.",
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only detections handled with this action.",
+            "in": "query",
+            "name": "action",
+            "schema": {
+              "enum": [
+                "blocked",
+                "redacted",
+                "monitored"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only detections in requests (prompts) or responses.",
+            "in": "query",
+            "name": "direction",
+            "schema": {
+              "enum": [
+                "request",
+                "response"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size: 1 to 200, default 50.",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the previous page; send the same other parameters.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data_through": "2026-11-01T00:00:00Z",
+                  "filters": {
+                    "app": "Support Bot"
+                  },
+                  "from": "2026-10-01T00:00:00Z",
+                  "generated_at": "2026-11-01T09:15:02Z",
+                  "granularity": "total",
+                  "group_by": [
+                    "category",
+                    "action"
+                  ],
+                  "next_cursor": null,
+                  "request_id": "req_example",
+                  "rows": [
+                    {
+                      "action": "blocked",
+                      "category": {
+                        "id": "adversarial_risk_category_direct_prompt_injection",
+                        "name": "Direct Prompt Injection",
+                        "type": "adversarial"
+                      },
+                      "detections": 187,
+                      "requests_blocked": 187,
+                      "requests_flagged": 187,
+                      "requests_monitored": 0,
+                      "requests_redacted": 0,
+                      "requests_scanned": null
+                    },
+                    {
+                      "action": "redacted",
+                      "category": {
+                        "id": "data_risk_category_pii",
+                        "name": "Personally Identifiable Information (PII)",
+                        "type": "data_risk"
+                      },
+                      "detections": 845,
+                      "requests_blocked": 0,
+                      "requests_flagged": 812,
+                      "requests_monitored": 0,
+                      "requests_redacted": 812,
+                      "requests_scanned": null
+                    },
+                    {
+                      "action": "monitored",
+                      "category": {
+                        "id": "8f14e45f-ceea-4e7a-9f3b-2c1d5e6a7b80",
+                        "name": "Project Falcon",
+                        "type": "custom"
+                      },
+                      "detections": 96,
+                      "requests_blocked": 0,
+                      "requests_flagged": 96,
+                      "requests_monitored": 96,
+                      "requests_redacted": 0,
+                      "requests_scanned": null
+                    }
+                  ],
+                  "timezone": "UTC",
+                  "to": "2026-11-01T00:00:00Z",
+                  "totals": {
+                    "detections": 1530,
+                    "requests_blocked": 212,
+                    "requests_flagged": 1375,
+                    "requests_monitored": 301,
+                    "requests_redacted": 904,
+                    "requests_scanned": 48210
+                  },
+                  "truncated": false
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GuardrailActivitySummary"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Summarize guardrail activity",
+        "tags": [
+          "Monitoring"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/llmgateway/management/v1/incidents/drop-pins": {
       "post": {
         "description": "Every session pin (any kind) of the selected apps becomes invalid, so the next request of each conversation routes again. Same body, scoping and Idempotency-Key replay as reset-cooldowns; `provider_label` (+ `model`) narrows it to pins on those targets.",
@@ -41105,6 +44706,728 @@
         ],
         "x-scopes": [
           "config:write"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/provider-health": {
+      "get": {
+        "description": "Health of your providers and models: traffic outcomes over a window and how routing treats each target right now. Per provider label and model: served requests, success rate, errors by class (rate_limited, timeout_or_connection, upstream_5xx, auth_or_permission, client_4xx, other; the same classes request explanations report), upstream latency and time to first token (p50, p95), and how often a failed attempt moved a request to another target. Guardrail blocks, limit rejections and background cache-refresh requests are not provider traffic and are excluded. Choose window (1h, 24h, 7d, 30d; default 24h, ending now) or from and to (`from` inclusive, `to` exclusive; a date `to` includes that whole UTC day; at most 30 days, starting within the last year); filter by provider label, model or app. routing_state combines admin mark-downs with the cooldown and circuit-breaker state routing on this server sees (routing_state_scope); when some apps' state cannot be read (routing_state_scope.complete false), targets without a state report `unknown`, never healthy. `generated_at` says when the traffic outcomes were read. Configured providers without traffic are listed with zero requests. At most 500 provider and model pairs are returned (`truncated`). Results can be up to 60 seconds old. For failover totals and recovery see GET /failover/summary; to take a target out of rotation see the Incidents operations. Queries are limited to 20 seconds. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now.",
+        "operationId": "Read_provider_health",
+        "parameters": [
+          {
+            "description": "Window ending now. Not combined with from/to.",
+            "in": "query",
+            "name": "window",
+            "schema": {
+              "default": "24h",
+              "enum": [
+                "1h",
+                "24h",
+                "7d",
+                "30d"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inclusive start: a date (YYYY-MM-DD, UTC midnight) or an RFC 3339 timestamp with a timezone. Omitted: the start of window. Not combined with window; with to, at most 30 days.",
+            "example": "2026-11-01T00:00:00Z",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exclusive end: an RFC 3339 timestamp with a timezone, or a date (YYYY-MM-DD) to include that whole UTC day. Omitted: now.",
+            "example": "2026-11-02T00:00:00Z",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact provider label.",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact model id.",
+            "in": "query",
+            "name": "model",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this app's traffic, routing state and mark-downs (case-insensitive name).",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "filters": {
+                    "app": null,
+                    "model": null,
+                    "provider": null
+                  },
+                  "from": "2026-11-01T10:00:00Z",
+                  "generated_at": "2026-11-02T09:59:30Z",
+                  "providers": [
+                    {
+                      "configured": true,
+                      "errors": {
+                        "auth_or_permission": 0,
+                        "client_4xx": 2,
+                        "other": 0,
+                        "rate_limited": 14,
+                        "timeout_or_connection": 3,
+                        "upstream_5xx": 4
+                      },
+                      "failovers_away": 9,
+                      "failures": 23,
+                      "latency_ms": {
+                        "p50": 812.4,
+                        "p95": 2950.0
+                      },
+                      "models": [
+                        {
+                          "errors": {
+                            "auth_or_permission": 0,
+                            "client_4xx": 2,
+                            "other": 0,
+                            "rate_limited": 14,
+                            "timeout_or_connection": 3,
+                            "upstream_5xx": 4
+                          },
+                          "failovers_away": 9,
+                          "failures": 23,
+                          "last_request_at": "2026-11-02T09:58:41Z",
+                          "latency_ms": {
+                            "p50": 812.4,
+                            "p95": 2950.0
+                          },
+                          "model": "gpt-5.2",
+                          "requests": 1840,
+                          "routing_state": {
+                            "mark_downs": [],
+                            "state": "cooling_down",
+                            "until": "2026-11-02T10:00:20Z"
+                          },
+                          "success_rate_pct": 98.75,
+                          "time_to_first_token_ms": {
+                            "p50": 410.2,
+                            "p95": 1302.7,
+                            "streamed_requests": 1210
+                          }
+                        }
+                      ],
+                      "provider_label": "Production OpenAI",
+                      "provider_name": "openai",
+                      "requests": 1840,
+                      "routing_state": {
+                        "mark_downs": [],
+                        "state": "cooling_down"
+                      },
+                      "success_rate_pct": 98.75,
+                      "time_to_first_token_ms": {
+                        "p50": 410.2,
+                        "p95": 1302.7,
+                        "streamed_requests": 1210
+                      }
+                    }
+                  ],
+                  "request_id": "req_example",
+                  "routing_state_scope": {
+                    "apps_attempted": 3,
+                    "apps_evaluated": 3,
+                    "apps_failed": 0,
+                    "apps_total": 3,
+                    "complete": true,
+                    "note": "Cooldown and circuit state is what routing on this server sees now; every gateway server keeps its own. Admin mark-downs apply on every server.",
+                    "scope": "this_server"
+                  },
+                  "to": "2026-11-02T10:00:00Z",
+                  "truncated": false,
+                  "window": "24h"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderHealth"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read provider health",
+        "tags": [
+          "Monitoring"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/provider-model-reviews": {
+      "get": {
+        "description": "Models your providers started offering after the gateway began watching them, one item per model, with status pending, approved or rejected. A provider with a model list serves only listed models, so a pending model is not callable until approved. Providers without a model list serve every model and are not reviewed; models already offered when watching began are never listed. Filter by status, provider label or app (an app's own provider keys). Newest first; page with `limit` (1 to 200, default 50) and `cursor`. settings reports the background check switch.",
+        "operationId": "List_provider_model_reviews",
+        "parameters": [
+          {
+            "description": "Only models in this state; omit for all three.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "pending",
+                "approved",
+                "rejected"
+              ]
+            }
+          },
+          {
+            "description": "Exact provider label.",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only providers this app holds with its own keys (case-insensitive name).",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size: 1 to 200, default 50.",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the previous page; send the same other parameters.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "available": true,
+                  "items": [
+                    {
+                      "app_name": null,
+                      "decided_at": null,
+                      "decided_by": null,
+                      "display_name": "GPT-5.2 mini",
+                      "first_seen_at": "2026-10-30T08:00:00Z",
+                      "label": "Production OpenAI",
+                      "model_id": "gpt-5.2-mini",
+                      "model_type": "chat",
+                      "provider_name": "openai",
+                      "status": "pending"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "pending_count": 1,
+                  "request_id": "req_example",
+                  "settings": {
+                    "background_checks": true,
+                    "check_interval_seconds": 21600,
+                    "enabled": true
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderModelReviewPage"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List new-model reviews",
+        "tags": [
+          "Providers"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/provider-model-reviews/{label}": {
+      "get": {
+        "description": "The last model listing of one provider and its pending, approved and rejected models. Without app_name the label names a shared provider; with app_name, a provider that app holds with its own keys.",
+        "operationId": "Read_a_provider_model_review",
+        "parameters": [
+          {
+            "description": "Provider label, URL-encoded: a shared provider's label, or with app_name the label of a provider that app holds with its own keys.",
+            "example": "Production OpenAI",
+            "in": "path",
+            "name": "label",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Name of the app holding the provider with its own keys; omit for a shared provider.",
+            "in": "query",
+            "name": "app_name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "provider": {
+                    "app_name": null,
+                    "approved": [],
+                    "label": "Production OpenAI",
+                    "last_checked_at": "2026-11-02T06:00:00Z",
+                    "last_error": null,
+                    "last_success_at": "2026-11-02T06:00:00Z",
+                    "listing_status": "ok",
+                    "pending": [
+                      {
+                        "decided_at": null,
+                        "decided_by": null,
+                        "display_name": "GPT-5.2 mini",
+                        "first_seen_at": "2026-10-30T08:00:00Z",
+                        "model_id": "gpt-5.2-mini",
+                        "model_type": "chat",
+                        "status": "pending"
+                      }
+                    ],
+                    "pending_count": 1,
+                    "provider_name": "openai",
+                    "rejected": []
+                  },
+                  "request_id": "req_example",
+                  "settings": {
+                    "background_checks": true,
+                    "check_interval_seconds": 21600,
+                    "enabled": true
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderModelReviewProvider"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read one provider's new-model reviews",
+        "tags": [
+          "Providers"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/provider-model-reviews/{label}/app-decisions": {
+      "post": {
+        "description": "For a provider an app holds with its own keys: `{label}` is that provider's label and app_name the app. approved adds the models to that provider's model list in one versioned app save (a new configuration version; 409 if the app changed meanwhile), then closes the reviews. rejected and pending work as for shared providers. An app that uses shared providers has no own providers: decide on the shared provider instead. Writes need an Idempotency-Key: a retry with the same key and body replays the first result for 24 hours. Every model must be a reviewed model of this provider in a state the decision can leave (422 otherwise); a decision that already holds is accepted and changes nothing.",
+        "operationId": "Approve_or_reject_app_provider_models",
+        "parameters": [
+          {
+            "description": "The app's own provider label, URL-encoded: the label of a provider the app named by app_name holds with its own keys (not a shared provider).",
+            "example": "Production OpenAI",
+            "in": "path",
+            "name": "label",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body replays the original result for 24 hours; the same key with a different body is a 409.",
+            "example": "approve-gpt-5-2-mini-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "app_name": "Support Bot",
+                "models": [
+                  "gpt-5.2-mini"
+                ],
+                "status": "approved"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ProviderModelReviewAppDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "added_to_model_list": [
+                    "gpt-5.2-mini"
+                  ],
+                  "app_name": "Support Bot",
+                  "label": "Team OpenAI",
+                  "models": [
+                    "gpt-5.2-mini"
+                  ],
+                  "operation_id": "0d9b2f7a-1c4e-4b8f-a3d2-5e6f7a8b9c0d",
+                  "request_id": "req_example",
+                  "status": "approved"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderModelReviewDecisionResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Approve or reject new models of an app's own provider",
+        "tags": [
+          "Providers"
+        ],
+        "x-scopes": [
+          "config:write"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/provider-model-reviews/{label}/decisions": {
+      "post": {
+        "description": "approved adds the models to the shared provider's model list (optionally with prices) through the same save as updating the provider, then closes the reviews; the response carries the provider's new version. A provider without a model list cannot be approved on (409). rejected rejects pending models; pending restores rejected ones. Neither changes what the provider serves. Writes need an Idempotency-Key: a retry with the same key and body replays the first result for 24 hours. Every model must be a reviewed model of this provider in a state the decision can leave (422 otherwise); a decision that already holds is accepted and changes nothing.",
+        "operationId": "Approve_or_reject_provider_models",
+        "parameters": [
+          {
+            "description": "Shared-provider label, URL-encoded.",
+            "example": "Production OpenAI",
+            "in": "path",
+            "name": "label",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body replays the original result for 24 hours; the same key with a different body is a 409.",
+            "example": "approve-gpt-5-2-mini-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "model_costs": {
+                  "gpt-5.2-mini": {
+                    "input_per_1m": 0.25,
+                    "output_per_1m": 2.0
+                  }
+                },
+                "models": [
+                  "gpt-5.2-mini"
+                ],
+                "status": "approved"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ProviderModelReviewDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "added_to_model_list": [
+                    "gpt-5.2-mini"
+                  ],
+                  "app_name": null,
+                  "label": "Production OpenAI",
+                  "models": [
+                    "gpt-5.2-mini"
+                  ],
+                  "operation_id": "6f0c3c1e-8f3a-4c43-9d7e-2a1b5c9d0e11",
+                  "provider_version": "3f1c0a9e5b7d",
+                  "request_id": "req_example",
+                  "status": "approved"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderModelReviewDecisionResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Approve or reject new models of a shared provider",
+        "tags": [
+          "Providers"
+        ],
+        "x-scopes": [
+          "providers:write"
         ]
       }
     },
@@ -42948,6 +47271,241 @@
         ]
       }
     },
+    "/llmgateway/management/v1/requests/{request_id}/explain": {
+      "get": {
+        "description": "Why one gateway request of your tenant behaved the way it did, without prompt or response content: a summary (app, user, models, provider, status, outcome, latency, tokens, cost, response cache), how the target was chosen (route source and rule with its public route id, content-routing verdicts, routing constraints, conversation pinning, upstream API mode), every failover attempt, guardrail categories and actions per direction with the rules that decided them, limit and budget outcomes with the charged amounts, and the error code with whether a friendly error message replaced it. Detected values, message text and original provider error messages are never returned. Sections that do not apply, or that the gateway did not record for this request, are omitted. Actions use the guardrail summary's `blocked`, `redacted` and `monitored` with the same category objects, and failure classes match GET /provider-health. `gateway_request_id` is the explained request; the top-level `request_id` identifies this management call.\n\n`request_id` is the value of the `x-quilr-request-id` response header. Provider response ids are not accepted. Requests are searched in the last 30 days; for an older request pass `timestamp` (any time within a day of the request). Explanations are available a short time after the request completes. 404 `request_not_found` when no request with this id exists in your tenant within the searched window. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now.",
+        "operationId": "Explain_a_request",
+        "parameters": [
+          {
+            "description": "The gateway request id returned in the x-quilr-request-id response header.",
+            "example": "6f1c2a9e-1b2c-4d3e-8f90-1234567890ab",
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Approximate request time (RFC 3339 with a timezone, or epoch seconds). The search covers one day either side of it instead of the last 30 days.",
+            "example": "2026-11-01T14:03:22Z",
+            "in": "query",
+            "name": "timestamp",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "failover": {
+                    "attempts": [
+                      {
+                        "duration_ms": 420,
+                        "failure_class": "upstream_5xx",
+                        "index": 0,
+                        "model": "gpt-4.1",
+                        "outcome": "failover",
+                        "provider_label": "openai-primary",
+                        "provider_type": "openai",
+                        "retry_number": 0,
+                        "status_code": 500,
+                        "tier": "first"
+                      },
+                      {
+                        "duration_ms": 900,
+                        "index": 1,
+                        "kind": "response",
+                        "model": "gpt-4.1",
+                        "outcome": "served",
+                        "provider_label": "azure-eu",
+                        "provider_type": "azure",
+                        "retry_number": 0,
+                        "tier": "same_model"
+                      }
+                    ],
+                    "configured_by": "default",
+                    "exhausted": false,
+                    "failovers": 1,
+                    "retries": 0,
+                    "sends": 2,
+                    "served_tier": "same_model"
+                  },
+                  "gateway_request_id": "6f1c2a9e-1b2c-4d3e-8f90-1234567890ab",
+                  "guardrails": {
+                    "outcome": "redacted",
+                    "request": {
+                      "actions": [
+                        {
+                          "action": "redacted",
+                          "categories": [
+                            {
+                              "id": "EMAIL",
+                              "name": "Email Address",
+                              "type": "data_risk"
+                            }
+                          ]
+                        }
+                      ],
+                      "decided_by_rules": [
+                        {
+                          "managed": false,
+                          "policy": "pii_controls",
+                          "rule_index": 2
+                        }
+                      ]
+                    },
+                    "response": {
+                      "actions": [],
+                      "decided_by_rules": []
+                    }
+                  },
+                  "limits": {
+                    "budget_evaluation": "evaluated",
+                    "charge_status": "complete",
+                    "charges": [
+                      {
+                        "budget_id": "team-monthly",
+                        "charged": {
+                          "input_tokens": 812,
+                          "output_tokens": 164,
+                          "requests": 1,
+                          "spend_usd": 0.002936
+                        },
+                        "limit_type": "budget",
+                        "mode": "enforce",
+                        "over_limit": false,
+                        "window": "calendar:month:2026-11-01T00:00:00Z"
+                      }
+                    ]
+                  },
+                  "request_id": "req_example",
+                  "routing": {
+                    "content": {
+                      "complexity": {
+                        "current_level": "medium",
+                        "effective_level": "medium",
+                        "escalated": true,
+                        "stored_level": "low"
+                      }
+                    },
+                    "route_id": "r_5d1c9a7e0b3f2468",
+                    "routing_group": "eu-chat",
+                    "rule": {
+                      "managed": false,
+                      "policy": "eu_routing",
+                      "route_id": "r_5d1c9a7e0b3f2468",
+                      "rule_index": 0
+                    },
+                    "session": {
+                      "age_seconds": 0,
+                      "key_source": "conversation_id",
+                      "pin_target": "azure-eu",
+                      "pinned": false
+                    },
+                    "source": "policy_rule",
+                    "upstream": {
+                      "client_api": "chat",
+                      "fields_dropped": 0,
+                      "mode": "native",
+                      "upstream_api": "chat"
+                    }
+                  },
+                  "summary": {
+                    "app": "Support Bot",
+                    "cost": {
+                      "status": "priced",
+                      "usd": 0.002936
+                    },
+                    "endpoint": "/v1/chat/completions",
+                    "latency_ms": {
+                      "first_token": 1290,
+                      "guardrails": 210,
+                      "total": 1840,
+                      "upstream": 1310
+                    },
+                    "outcome": "served",
+                    "provider_label": "azure-eu",
+                    "request_kind": "client",
+                    "requested_model": "support-default",
+                    "response_cache": {
+                      "status": "miss"
+                    },
+                    "served_model": "gpt-4.1",
+                    "status_code": 200,
+                    "stream": false,
+                    "surface": "chat_completions",
+                    "tokens": {
+                      "cache_read": 512,
+                      "input": 812,
+                      "output": 164,
+                      "source": "provider"
+                    },
+                    "user_email": "dana@example.com"
+                  },
+                  "timestamp": "2026-11-01T14:03:22.418Z"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/RequestExplanation"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Explain a request",
+        "tags": [
+          "Monitoring"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/llmgateway/management/v1/routing/effective": {
       "get": {
         "description": "Which rule routes a sample request (app, requested model, user, surface family), its destination, the failover owner and resolved failover config from the same evaluation, other matching rules it outranked (shadowed), constraints and candidates left, active mark-downs and this server's health scope, for the evaluated revision. Content checks are not evaluated; nothing is sent upstream.",
@@ -43686,6 +48244,673 @@
         ]
       }
     },
+    "/llmgateway/management/v1/usage": {
+      "get": {
+        "description": "Requests, outcomes, tokens and cost of every app in the tenant, over all time by default (`from` inclusive, `to` exclusive; a date `to` includes that whole UTC day). Rows are per period (`granularity`: total by default, or UTC month, week starting Monday, or day) and optionally per one or two dimensions: app, model, provider, user, key (gateway credential), source or outcome. Filters narrow every number, including totals, and `totals` always equals the sum of every row across all pages. Cost is the cost recorded with each request at request time; requests without one are counted in unpriced_requests instead of being estimated. Request counts exclude the background cache-refresh requests the gateway sends on its own, while tokens and cost include them because the provider bills them. Requests whose user identity was removed by data retention are kept with user null. Periods without traffic are omitted. Credential ids are recorded from 2026-10-16; earlier requests report key null. Grouping or filtering by key reads more data, so prefer a bounded range with it. Results can be up to 60 seconds old. Page with `limit` and `cursor` while the query stays the same; a cursor answers 409 `collection_changed` when the result was recomputed and differs (restart without cursor; a fixed `to` in the past keeps results stable). Rows group by the app's current name while it exists, otherwise the name recorded with its requests, and by the served model. `generated_at` says when the data was read and `data_through` the effective end of the range; `totals.priced_coverage_pct` says how much of the billable traffic has a recorded cost. Queries are limited to {QUERY_TIMEOUT_SECONDS} seconds and 100,000 result rows (422 `result_too_large`). 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now.",
+        "operationId": "Read_usage",
+        "parameters": [
+          {
+            "description": "Inclusive start: a date (YYYY-MM-DD, UTC midnight) or an RFC 3339 timestamp with a timezone. Omitted: from the first recorded request.",
+            "example": "2026-10-01",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exclusive end: an RFC 3339 timestamp with a timezone, or a date (YYYY-MM-DD) to include that whole UTC day. Omitted: now.",
+            "example": "2026-10-31",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday) or day.",
+            "in": "query",
+            "name": "granularity",
+            "schema": {
+              "default": "total",
+              "enum": [
+                "total",
+                "month",
+                "week",
+                "day"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Up to 2 of: app, model, provider, user, key, source, outcome. Repeat the parameter (group_by=a&group_by=b) or separate values with commas (group_by=a,b).",
+            "example": [
+              "app",
+              "model"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "group_by",
+            "schema": {
+              "items": {
+                "enum": [
+                  "app",
+                  "model",
+                  "provider",
+                  "user",
+                  "key",
+                  "source",
+                  "outcome"
+                ],
+                "type": "string"
+              },
+              "maxItems": 2,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "style": "form"
+          },
+          {
+            "description": "Only these apps (names, case-insensitive). Comma-separated, at most 50 values.",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only these models. Comma-separated, at most 50 values.",
+            "in": "query",
+            "name": "model",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only these provider labels. Comma-separated, at most 50 values.",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only these user emails (case-insensitive). Comma-separated, at most 50 values.",
+            "in": "query",
+            "name": "user",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only these gateway credential ids (key_id). Comma-separated, at most 50 values.",
+            "in": "query",
+            "name": "key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only these sources: gateway, sdk, copilot_studio. Comma-separated, at most 50 values.",
+            "in": "query",
+            "name": "source",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only these outcomes: served, blocked, error, rate_limited. Comma-separated, at most 50 values.",
+            "in": "query",
+            "name": "outcome",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "period: oldest period first, then highest cost. cost, requests, tokens: highest first.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "period",
+              "enum": [
+                "period",
+                "cost",
+                "requests",
+                "tokens"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size: 1 to 5000, default 500.",
+            "example": 500,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 500,
+              "maximum": 5000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the previous page; send the same other parameters.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "currency": "USD",
+                  "data_through": "2026-11-01T00:00:00Z",
+                  "from": "2026-10-01T00:00:00Z",
+                  "generated_at": "2026-11-01T09:15:02Z",
+                  "granularity": "day",
+                  "group_by": [
+                    "app",
+                    "model"
+                  ],
+                  "next_cursor": null,
+                  "request_id": "req_example",
+                  "row_count": 2,
+                  "rows": [
+                    {
+                      "app": "Support Bot",
+                      "app_deleted": false,
+                      "blocked": 3,
+                      "cache_read_tokens": 920000,
+                      "cache_write_tokens": 64000,
+                      "cost_usd": 18.4231,
+                      "errors": 12,
+                      "input_tokens": 1830400,
+                      "model": "gpt-4.1",
+                      "output_tokens": 412800,
+                      "period_start": "2026-10-01",
+                      "rate_limited": 5,
+                      "reasoning_tokens": 51200,
+                      "requests": 1240,
+                      "unpriced_requests": 0
+                    },
+                    {
+                      "app": "Legacy Assistant",
+                      "app_deleted": true,
+                      "blocked": 0,
+                      "cache_read_tokens": 410000,
+                      "cache_write_tokens": 32000,
+                      "cost_usd": 12.5941,
+                      "errors": 4,
+                      "input_tokens": 960200,
+                      "model": "claude-sonnet-4-5",
+                      "output_tokens": 220400,
+                      "period_start": "2026-10-01",
+                      "rate_limited": 1,
+                      "reasoning_tokens": 0,
+                      "requests": 1170,
+                      "unpriced_requests": 2
+                    }
+                  ],
+                  "timezone": "UTC",
+                  "to": "2026-11-01T00:00:00Z",
+                  "totals": {
+                    "blocked": 3,
+                    "cache_read_tokens": 1330000,
+                    "cache_write_tokens": 96000,
+                    "cost_usd": 31.0172,
+                    "errors": 16,
+                    "input_tokens": 2790600,
+                    "output_tokens": 633200,
+                    "priced_coverage_pct": 99.92,
+                    "rate_limited": 6,
+                    "reasoning_tokens": 51200,
+                    "requests": 2410,
+                    "unpriced_requests": 2
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/UsageReport"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read usage",
+        "tags": [
+          "Usage"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/users": {
+      "get": {
+        "description": "Everyone the gateway knows for your tenant, one entry per email (matched case-insensitively): people in your synced identity directory, people named in gateway configuration (allowed users, smart groups, self-service access, personal keys) and people seen only in gateway requests. Each entry summarizes console app visibility, self-service grants and personal-key ownership (not a request-time authorization evaluation; policies, model access and limits can still restrict calls), active personal keys, last activity and the last 30 days of requests and cost. Filters: `q` (email or department substring), `app` (people granted that app or with requests to it), `active_since` (inclusive; a date means UTC midnight). Sort with `sort`. Page with `limit` (1 to 500, default 100) and `cursor`. Results can be up to 60 seconds old. When request history is unavailable the list is still returned with `usage.available` false and null usage fields; sorting by usage or filtering by `active_since` then answers 503 `data_unavailable`, and 503 `query_timeout` when usage exceeds its time or read limits. `usage.complete` false or `truncated` true mean the history or the configuration was larger than its read limit and the list is partial. Read-only: people are added through your identity provider or the console.",
+        "operationId": "List_users",
+        "parameters": [
+          {
+            "description": "Page size: 1 to 500, default 100.",
+            "example": 100,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the previous page; send the same other parameters.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Case-insensitive substring of the email or directory department.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "description": "App name (case-insensitive): people granted this app specifically, or with requests to it. People who see every app only by default are not included.",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "People active at or after this time (inclusive, like from on the other reports): a date (YYYY-MM-DD, UTC midnight) or an RFC 3339 timestamp with a timezone.",
+            "example": "2026-10-01",
+            "in": "query",
+            "name": "active_since",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "email (A to Z), last_active (most recent first), requests or cost (last 30 days, highest first).",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "default": "email",
+              "enum": [
+                "email",
+                "last_active",
+                "requests",
+                "cost"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "generated_at": "2026-11-01T09:15:02Z",
+                  "items": [
+                    {
+                      "all_apps": false,
+                      "apps": [
+                        "Support Bot"
+                      ],
+                      "cost_usd_30d": 18.42,
+                      "department": "Engineering",
+                      "directory_groups": [
+                        "eng-all"
+                      ],
+                      "email": "alice@example.com",
+                      "last_active_at": "2026-10-31T17:42:10Z",
+                      "requests_30d": 1284,
+                      "self_service_keys": 1,
+                      "smart_groups": [
+                        "engineering"
+                      ],
+                      "source": "directory",
+                      "sources": [
+                        "directory",
+                        "smart_group",
+                        "self_service_key",
+                        "traffic"
+                      ]
+                    },
+                    {
+                      "all_apps": true,
+                      "apps": [],
+                      "cost_usd_30d": 0.61,
+                      "department": null,
+                      "directory_groups": [],
+                      "email": "bob@example.com",
+                      "last_active_at": "2026-10-29T09:03:55Z",
+                      "requests_30d": 37,
+                      "self_service_keys": 0,
+                      "smart_groups": [],
+                      "source": "traffic",
+                      "sources": [
+                        "traffic"
+                      ]
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "req_example",
+                  "total": 2,
+                  "truncated": false,
+                  "usage": {
+                    "available": true,
+                    "complete": true,
+                    "window_days": 30
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayUserList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List gateway users",
+        "tags": [
+          "Users"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/users/{email}": {
+      "get": {
+        "description": "One person by email (case-insensitive; URL-encode it): directory details, smart groups, their console app visibility, self-service grants and personal-key ownership per app and every way each is granted, personal key metadata (never key values), usage for the last 30 days and all time, with top models and per-app totals for the last 30 days, and links to related management endpoints, such as the budget subject for GET /budget-subjects/{kind}/{value}. This is not a request-time authorization evaluation; policies, model access and limits can still restrict calls. `usage` is null when request history is unavailable, and `usage.complete` false when it was capped. Results can be up to 60 seconds old. 404 when the email is neither configured nor seen in requests. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now.",
+        "operationId": "Read_a_user",
+        "parameters": [
+          {
+            "description": "Email address, case-insensitive, URL-encoded.",
+            "example": "alice@example.com",
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "generated_at": "2026-11-01T09:15:02Z",
+                  "request_id": "req_example",
+                  "truncated": false,
+                  "user": {
+                    "active_smart_group": "engineering",
+                    "all_apps": false,
+                    "app_access": [
+                      {
+                        "app": "Support Bot",
+                        "domain_allowed": true,
+                        "granted_by": [
+                          {
+                            "kind": "app_allowed_users"
+                          },
+                          {
+                            "kind": "self_service",
+                            "role": "self_service_viewer",
+                            "smart_groups": [
+                              "engineering"
+                            ],
+                            "via": "smart_group"
+                          },
+                          {
+                            "key_ids": [
+                              "ssk_7d2f9a41"
+                            ],
+                            "kind": "self_service_key"
+                          }
+                        ],
+                        "self_service_denied": false
+                      }
+                    ],
+                    "directory": {
+                      "alias": false,
+                      "department": "Engineering",
+                      "groups": [
+                        "eng-all"
+                      ]
+                    },
+                    "email": "alice@example.com",
+                    "first_seen_at": "2026-03-11T08:20:44Z",
+                    "last_active_at": "2026-10-31T17:42:10Z",
+                    "links": {
+                      "apps": [
+                        "/llmgateway/management/v1/apps/Support%20Bot"
+                      ],
+                      "budget_subject": {
+                        "kind": "user",
+                        "path": "/llmgateway/management/v1/budget-subjects/user/alice%40example.com",
+                        "value": "alice@example.com"
+                      },
+                      "smart_groups": [
+                        "/llmgateway/management/v1/smart-groups/engineering"
+                      ]
+                    },
+                    "self_service_keys": [
+                      {
+                        "app": "Support Bot",
+                        "created_at": "2026-09-02T10:15:00Z",
+                        "expires_at": null,
+                        "key_id": "ssk_7d2f9a41",
+                        "last_used_at": "2026-10-31T17:42:10Z",
+                        "name": "laptop",
+                        "revoked_at": null,
+                        "status": "active"
+                      }
+                    ],
+                    "smart_groups": [
+                      {
+                        "display_name": "Engineering",
+                        "group_name": "engineering",
+                        "priority": 10
+                      }
+                    ],
+                    "source": "directory",
+                    "sources": [
+                      "directory",
+                      "smart_group",
+                      "self_service_key",
+                      "traffic"
+                    ],
+                    "usage": {
+                      "all_time": {
+                        "cost_usd": 131.07,
+                        "input_tokens": 6021877,
+                        "output_tokens": 1388120,
+                        "requests": 9120,
+                        "unpriced_requests": 12
+                      },
+                      "by_app": [
+                        {
+                          "app": "Support Bot",
+                          "cost_usd": 18.42,
+                          "last_active_at": "2026-10-31T17:42:10Z",
+                          "requests": 1284
+                        }
+                      ],
+                      "complete": true,
+                      "last_30d": {
+                        "cost_usd": 18.42,
+                        "input_tokens": 912340,
+                        "output_tokens": 204118,
+                        "requests": 1284,
+                        "unpriced_requests": 0
+                      },
+                      "top_models": [
+                        {
+                          "cost_usd": 9.8,
+                          "model": "gpt-4.1-mini",
+                          "requests": 1100
+                        },
+                        {
+                          "cost_usd": 8.62,
+                          "model": "claude-sonnet-4-5",
+                          "requests": 184
+                        }
+                      ],
+                      "window_days": 30
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GatewayUserResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a gateway user",
+        "tags": [
+          "Users"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/llmgateway_management_apis/v1/openapi.json": {
       "get": {
         "description": "This OpenAPI 3.1 document, generated by the server from its route table, so it always matches the deployed API. Requires a management key with the read scope.",
@@ -43826,6 +49051,18 @@
     {
       "description": "Spend, request and token budgets: definitions, usage, per-subject grants, pricing, exemptions, alerts and events.",
       "name": "Budgets"
+    },
+    {
+      "description": "Requests, tokens and spend over any period, from all time down to single days, broken down by app, model, provider, user, key, source and outcome.",
+      "name": "Usage"
+    },
+    {
+      "description": "Read-only views of how the gateway is behaving: guardrail activity, provider and model health, and why a single request was routed, blocked or failed over.",
+      "name": "Monitoring"
+    },
+    {
+      "description": "People who use the gateway: their app access, keys, last activity and usage.",
+      "name": "Users"
     },
     {
       "description": "Tenant-wide incident controls: mark a provider down for every app or chosen apps (with an expiry), preview the impact, restore it, reset cooldowns and drop session pins. These are not policy revisions.",

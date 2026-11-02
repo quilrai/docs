@@ -4,7 +4,7 @@ sidebar_position: 5
 sidebar_label: "Providers and configuration API"
 sidebar_custom_props:
   icon: Plug
-description: "LLM Gateway Management API v1: shared providers, connection and model tests, model discovery, quota pools, app configuration, catalogs and history, with typed inputs and examples."
+description: "LLM Gateway Management API v1: shared providers, connection and model tests, model discovery, new-model reviews, quota pools, app configuration, catalogs and history, with typed inputs and examples."
 ---
 
 import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference} from '@site/src/components/ManagementApi';
@@ -78,7 +78,47 @@ Saves and reads return `{ "provider": { ... }, "request_id": "..." }`; ordinary 
 
 ### Provider endpoints
 
-<ApiReference tags={['Providers']} />
+<ApiReference tags={['Providers']} paths={['/providers']} />
+
+## Review new models {#model-reviews}
+
+When a provider starts offering a model after the gateway began watching it, the model is held for an admin decision. A provider with a model list serves only listed models, so a pending model is not callable until you approve it. Providers without a model list serve every model and are not reviewed, and models already offered when watching began are never listed.
+
+<StepFlow steps={[
+  {label: 'Discovered', items: ['Provider lists a new model', 'status: pending']},
+  {label: 'Review', items: ['GET /provider-model-reviews', '?status=pending']},
+  {label: 'Decide', items: ['approved: added to the model list', 'rejected: kept off the list']},
+  {label: 'Serve', items: ['Approved models are callable', 'Rejected models stay off']},
+]} />
+
+| Action | Call | Scope |
+| --- | --- | --- |
+| List reviews across providers, newest first (`status`: `pending`, `approved` or `rejected`) | [`GET /provider-model-reviews`](#List_provider_model_reviews) with optional `status`, `provider`, `app`, `limit`, `cursor` | `read` |
+| Read one provider's last model listing and its pending, approved and rejected models | [`GET /provider-model-reviews/{label}`](#Read_a_provider_model_review) (add `app_name` for a provider an app holds with its own keys) | `read` |
+| Approve or reject models of a shared provider | [`POST /provider-model-reviews/{label}/decisions`](#Approve_or_reject_provider_models) | `providers:write` |
+| Approve or reject models of a provider an app holds with its own keys (`{label}` is the app's own provider label) | [`POST /provider-model-reviews/{label}/app-decisions`](#Approve_or_reject_app_provider_models) with `app_name` | `config:write` |
+
+- **Decisions.** `status: "approved"` adds the models to the provider's model list and closes the reviews; for a shared provider you can send `model_costs` (as on [update a provider](#Update_or_disable_a_provider)) in the same call. `rejected` rejects pending models and `pending` restores rejected ones; neither changes what the provider serves.
+- **Saves.** Approving on a shared provider is the same save as updating the provider, and the response carries its new `provider_version` (the `If-Match` for your next PATCH). Approving on an app's own provider creates a new app configuration version, and returns `409` if the app changed meanwhile. A shared provider without a model list cannot be approved on (`409`).
+- **Retries.** Decisions need an `Idempotency-Key`: a retry with the same key and body replays the first result for 24 hours.
+- **Validation.** Every model must be a reviewed model of this provider in a state the decision can leave (`422` otherwise). A decision that already holds is accepted and changes nothing.
+- **Background checks.** `settings` in every read reports whether the gateway checks providers for new models in the background and how often. `available: false` means reviews are not managed on this deployment.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY" -H 'Content-Type: application/json')
+
+# Pending models across every provider
+curl -s "$API/provider-model-reviews?status=pending" "${auth[@]}" \
+  | jq -r '.items[] | [.label, .app_name // "shared", .model_id] | @tsv'
+
+# Approve one on a shared provider, with prices
+curl -s -X POST "$API/provider-model-reviews/Production%20OpenAI/decisions" "${auth[@]}" \
+  -H 'Idempotency-Key: approve-gpt-5-2-mini-001' \
+  -d '{"status": "approved", "models": ["gpt-5.2-mini"], "model_costs": {"gpt-5.2-mini": {"input_per_1m": 0.25, "output_per_1m": 2.0}}}'
+```
+
+<ApiReference tags={['Providers']} paths={['/provider-model-reviews']} />
 
 ## Quota pools {#quota-pools}
 
@@ -192,7 +232,7 @@ Both providers must already be attached with compatible models. Weights sum to 1
 
 ## Catalogs and configuration history {#catalogs-and-history}
 
-Read existing tenant resources and inspect configuration changes. These APIs do not expose inference traffic logs or operational reporting.
+Read existing tenant resources and inspect configuration changes. These endpoints cover configuration and catalogs. For operational reporting, see the [Usage API](./usage-api) and the [Monitoring API](./monitoring-api).
 
 ### Catalogs
 

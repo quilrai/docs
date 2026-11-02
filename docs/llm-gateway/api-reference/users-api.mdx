@@ -1,0 +1,94 @@
+---
+title: "Users API"
+sidebar_position: 6.92
+sidebar_label: "Users API"
+sidebar_custom_props:
+  badge: new
+  icon: Users
+description: "LLM Gateway Management API v1: everyone who uses the gateway, with app access and how it is granted, personal keys, last activity and requests and cost for the last 30 days and all time."
+aliases: [users api, gateway users, who uses the gateway, user access, personal keys, self-service keys, user usage, inactive users]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Users API
+
+Everyone the gateway knows for your organization, one entry per email: people in your synced identity directory, people named in gateway configuration, and people seen only in gateway requests. Use it to review access, find inactive users, or see what one person uses.
+
+| Call | Returns | Scope |
+| --- | --- | --- |
+| [`GET /users`](#List_users) | One summary per person: app access, active personal keys, last activity, and requests and cost for the last 30 days. | `read` |
+| [`GET /users/{email}`](#Read_a_user) | One person in detail: directory details, smart groups, console app visibility, self-service grants and personal-key ownership per app and how each is granted, personal key metadata, and usage. | `read` |
+
+App access here is console app visibility, self-service grants and personal-key ownership. This is not a request-time authorization evaluation; policies, model access and limits can still restrict calls.
+
+The API is read-only: people are added through your identity provider or the console. Try it in the [Management API playground](/llm-gateway-management-playground?tab=users).
+
+<StepFlow steps={[
+  {label: 'Where people come from', items: ['Identity directory', 'Gateway configuration', 'Gateway requests']},
+  {label: 'List', items: ['GET /users', 'q, app, active_since, sort']},
+  {label: 'Detail', items: ['GET /users/{email}', 'Access, keys, usage']},
+  {label: 'Follow links', items: ['Apps, smart groups', 'Budget subject']},
+]} />
+
+## List users
+
+| Parameter | Matches | Default |
+| --- | --- | --- |
+| `q` | Case-insensitive substring of the email or directory department. | None |
+| `app` | People granted that app specifically, or with requests to it. People who see every app only by default are not included. | None |
+| `active_since` | People active at or after this time (inclusive, like `from` on the other reports): a date (`YYYY-MM-DD`, UTC midnight) or an RFC 3339 timestamp with a timezone. | None |
+| `sort` | `email` (A to Z), `last_active` (most recent first), `requests` or `cost` (last 30 days, highest first). | `email` |
+| `limit`, `cursor` | 1 to 500 per page and the previous page's `next_cursor`; send the same sort and filters with the cursor. | `100` |
+
+Each entry has:
+
+| Field | Meaning |
+| --- | --- |
+| `email` | Lower-cased; emails match case-insensitively. |
+| `source` | `directory` (in your synced identity directory), `configured` (named in gateway configuration but not in the directory) or `traffic` (known only from gateway requests). |
+| `sources` | Every place the gateway knows the person from: `directory`, `app_access_list`, `smart_group`, `self_service_access`, `self_service_key`, `traffic`. |
+| `apps`, `all_apps` | Apps granted to the person specifically (allowed users, self-service access, an active personal key). `all_apps: true` when every app is listed for them in the console. An app saved without a name appears as `Unnamed app`. |
+| `smart_groups`, `directory_groups`, `department` | Enabled smart groups (highest priority first), identity-provider groups and department. |
+| `self_service_keys` | Number of active personal keys. |
+| `last_active_at` | Latest gateway request or personal-key use. |
+| `requests_30d`, `cost_usd_30d` | Served requests and logged cost for the last 30 days. `requests_30d` is `0` without traffic; both are `null` when usage is unavailable. |
+
+Results can be up to 60 seconds old; `generated_at` says when the data was read. When request history is unavailable, the list is still returned with `usage.available: false` and `null` usage fields; sorting by usage or filtering by `active_since` then answers `503 data_unavailable`, and `503 query_timeout` when usage exceeds its time or read limits. Very large organizations can exceed a read limit: `usage.complete: false` means usage is partial, and `truncated: true` means some people or personal keys may be missing from the directory or key data.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY")
+
+# Top 10 spenders over the last 30 days (first page only)
+curl -s "$API/users?sort=cost&limit=10" "${auth[@]}" \
+  | jq -r '.items[] | [.email, .requests_30d, .cost_usd_30d] | @tsv'
+
+# People granted Support Bot who were not active since October 1 (first page of up to 500;
+# follow next_cursor for more)
+curl -s "$API/users?app=Support%20Bot&limit=500" "${auth[@]}" \
+  | jq -r '.items[] | select((.last_active_at // "") < "2026-10-01") | .email'
+```
+
+## Read one user
+
+`GET /users/{email}` (URL-encode the email) returns:
+
+- **`app_access`**: each app in the person's console app visibility, self-service grants or personal-key ownership, with every grant in `granted_by` (for example an app's allowed users, self-service access through a smart group, or a personal key), whether their email domain is allowed, and whether self-service denies them. This is not a request-time authorization evaluation; policies, model access and limits can still restrict calls. An app saved without a name appears as `Unnamed app` and has no link.
+- **`self_service_keys`**: personal key metadata with status, creation, expiry and last use. Key values are never returned.
+- **`smart_groups`** and **`directory`**: group memberships and directory details.
+- **`usage`**: totals for the last 30 days (`last_30d`) and all time (`all_time`), plus up to 5 top models and per-app totals (`by_app`), both covering the last 30 days. `null` when request history is unavailable; `complete: false` when the person's history exceeded its read limit and the totals are partial. Requests whose identity data retention removed are not counted for the person. Request counts exclude rejected requests and background cache-refresh requests; cost includes the background cache-refresh requests the provider bills.
+- **`links`**: related management paths, including the person's budget subject for [Read a budget subject](./budgets-api#Read_a_budget_subject).
+
+Results can be up to 60 seconds old. The answer is `404` when the email is neither configured nor seen in requests, `503 query_timeout` when the query exceeds its time or read limits (retry), and `503 data_unavailable` when the data cannot be read right now.
+
+## Endpoints
+
+<ApiReference tags={['Users']} />
+
+## Related
+
+- [Usage API](./usage-api) - group usage by user over any range.
+- [Budgets API](./budgets-api) - per-user budgets, usage and grants.
+- [Apps and credentials API](./apps-and-credentials-api) - app access lists and gateway keys.
+- [Management API](./management-api) - authentication, errors and retry rules.
