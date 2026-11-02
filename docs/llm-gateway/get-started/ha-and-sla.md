@@ -12,11 +12,11 @@ High availability endpoints, retry strategy, and latency guarantees for the Quil
 
 ## Gateway Endpoints
 
-All endpoints are fully interchangeable - same API surface, same features, same API keys. The only difference is geographic proximity to your application.
+Every endpoint has the same API surface and features. Configuration, keys and limits apply per region: use the regional host your organization uses.
 
 | Endpoint | Region | Base URL |
 |----------|--------|----------|
-| **Global (auto-routed)** | Nearest | `https://guardrails.quilr.ai` |
+| **Global** | Global | `https://guardrails.quilr.ai` |
 | **USA 1** | US Central West | `https://guardrails-usa-1.quilr.ai` |
 | **USA 2** | US East | `https://guardrails-usa-2.quilr.ai` |
 | **India 1** | Mumbai | `https://guardrails-india-1.quilr.ai` |
@@ -26,7 +26,7 @@ All endpoints are fully interchangeable - same API surface, same features, same 
 
 Append the API format path to any base URL - for example, `https://guardrails-usa-1.quilr.ai/openai_compatible/`. See the [Integration Guide](./integration-guide) for all supported formats.
 
-For production traffic, choose the location-specific endpoint closest to your application as the primary base URL. Use `guardrails.quilr.ai` only when you explicitly want global auto-routing.
+For production traffic, use the regional endpoint your organization uses as the primary base URL. Use `guardrails.quilr.ai` only when your organization uses the global host.
 
 :::info Expanding regions
 This list will continue to grow as we bring new regions online. Check this page or the [Integration Guide](./integration-guide) for the latest endpoints.
@@ -34,12 +34,12 @@ This list will continue to grow as we bring new regions online. Check this page 
 
 ## Routing Architecture
 
-If you use `guardrails.quilr.ai`, it automatically routes to the nearest available gateway server based on your geographic location. For predictable production routing, use a regional endpoint directly.
+For predictable production routing, use a regional endpoint directly.
 
 ```mermaid
 flowchart TD
     A["Your Application"] --> B["guardrails.quilr.ai"]
-    B --> C{"Auto-route to<br/>nearest server"}
+    B --> C{"Gateway<br/>servers"}
     C -->|"US Central West traffic"| D["guardrails-usa-1.quilr.ai"]
     C -->|"US East traffic"| E["guardrails-usa-2.quilr.ai"]
     C -->|"India traffic"| F["guardrails-india-1.quilr.ai"]
@@ -59,6 +59,10 @@ flowchart TD
 Each regional server runs the full QuilrAI pipeline - validation, scanning, transformation, routing, and observability - so there is no functional difference between endpoints.
 
 ## Recommended Retry Strategy
+
+:::note
+Keys, configuration and limits apply per region. Retry on another regional endpoint only if your organization uses that region too.
+:::
 
 <StepFlow steps={[
   {

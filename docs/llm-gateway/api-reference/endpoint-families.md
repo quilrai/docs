@@ -27,7 +27,7 @@ Mistral OCR and fill-in-the-middle, and xAI images, videos and batches, are serv
 | `batches` | Off | `POST`, `GET /batches`; `GET /batches/{batch_id}`; `POST /batches/{batch_id}/cancel` | `openai`, `azureopenai`, `mistral` | - |
 | `videos` | Off | `POST /videos`; `GET /videos`; `GET`, `DELETE /videos/{video_id}`; `GET /videos/{video_id}/content` | `openai` | - |
 
-Every path also works without `/v1` (for example `/openai_compatible/moderations`).
+Every path also works without `/v1` (for example `/openai_compatible/moderations`). The [Inference API reference](./inference-api#openai-compatible) documents every endpoint's parameters, bodies and responses.
 
 ### What changed for each provider
 
@@ -70,6 +70,8 @@ A vendor's own APIs have their own route under its prefix. The same family engin
 A key of another provider type gets `400 unsupported_provider_for_<family>`. On an app with several providers the route uses the vendor's connection for the requested model; batch and video calls, which carry no model, use the app's only connection of that type. xAI's Responses API has its own vendor route too, `/xai/v1/responses`, described in [xAI and Mistral](../apps-and-providers/provider-support#vendor-routes).
 
 ## Examples
+
+The examples use `guardrails.quilr.ai`; replace it with your region's host.
 
 ```bash
 # Moderation (OpenAI or Mistral model)
@@ -157,6 +159,7 @@ Errors use the OpenAI shape `{"error": {"message", "type", "code"}}`. Errors fro
 
 ## Related
 
+- [Inference API](./inference-api) - OpenAPI reference for every family route, with headers and error codes
 - [xAI and Mistral](../apps-and-providers/provider-support#xai-and-mistral)
 - [Provider Support](../apps-and-providers/provider-support)
 - [Security Guardrails - Endpoint coverage](../protect/security-guardrails#endpoint-coverage)

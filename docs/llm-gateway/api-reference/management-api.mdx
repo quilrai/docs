@@ -96,7 +96,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 - Disabling tenant management suspends its keys. Unexpired, unrevoked keys work again when the tenant is re-enabled.
 - Disabling an app preserves its keys, settings and history. Disabling a shared provider preserves its attachments.
 - Provider saves validate the input but never contact the provider. **Connection tests, model tests and model discovery are separate explicit requests.**
-- Saved configuration reaches every gateway region asynchronously.
+- Configuration applies per region: manage it through the regional host your organization uses. Saved changes reach that region's gateways asynchronously.
 
 :::info Policy authority
 When QuilrQL is enabled, updates to governed app settings still save. The response identifies the fields that remain inactive until QuilrQL authority is disabled. Creating an eligible app under existing authority can publish an app-specific allowed-models default. See [QuilrQL behavior](./policy-api).
@@ -118,14 +118,16 @@ This workflow checks access, creates a shared provider, creates an app, reads it
 
 ### 1. Prepare access
 
-Management requests go to the same regional hosts as inference traffic. Use the region your organization uses for the gateway:
+Management requests go to the same regional hosts as inference traffic. Configuration, keys and limits apply per region, so use the region your organization uses for the gateway:
 
 | Region | Base URL |
 | --- | --- |
-| **India** | `https://guardrails-india-1.quilr.ai` |
+| **USA 1** (US Central West) | `https://guardrails-usa-1.quilr.ai` |
+| **USA 2** (US East) | `https://guardrails-usa-2.quilr.ai` |
 | **Europe** | `https://guardrails-europe-1.quilr.ai` |
-| **USA** | `https://guardrails-usa-1.quilr.ai` |
-| **Japan** | `https://guardrails-jp-1.quilr.ai` |
+| **India 1** (Mumbai) | `https://guardrails-india-1.quilr.ai` |
+| **India 2** (Mumbai) | `https://guardrails-india-2.quilr.ai` |
+| **Japan** (Tokyo) | `https://guardrails-jp-1.quilr.ai` |
 
 Self-hosted deployments use their own gateway URL. A self-hosted node that is connected to a QuilrAI-hosted service answers management calls with `503 central_service_required`; call the regional host instead.
 
@@ -406,7 +408,7 @@ Deletes return JSON with `200`, not `204`. Provider tests and model discovery al
 
 Saved configuration reaches the gateway asynchronously. Whole-app disable rejects new admissions once the change takes effect; existing requests and streams finish.
 
-A management key works on every regional host. New keys, revocations and tenant suspension propagate asynchronously, so a change may not be visible everywhere at once.
+Management keys, configuration and limits apply per region: use the regional host your organization uses. New keys, revocations and tenant suspension propagate asynchronously, so a change may not be visible on every gateway at once.
 
 Use one base URL per automation run. Retry a create with the same base URL and the same `Idempotency-Key`, and recover an operation through the same base URL as the original request. Send writes for the same resource through one base URL.
 
@@ -415,3 +417,17 @@ Use one base URL per automation run. Retry a create with the same base URL and t
 Features marked **Not Generally Available** in the [availability table](#availability) are not currently supported. The server publishes its OpenAPI 3.1 document at `GET /llmgateway_management_apis/v1/openapi.json` (management key with `read`). It is generated from the deployed routes, carries the required scopes of every operation in `x-scopes`, and is the same document as the [download on this site](/openapi/llm-gateway-management-v1.json). Use `/capabilities` for deployed fields, provider types and test support.
 
 <ApiReference tags={['Reference']} />
+
+## Management API behind Kong {#management-api-behind-kong}
+
+You can import the Management API's OpenAPI document into Kong the same way as the [Inference API](./inference-api#import-into-your-api-gateway-kong), with `deck file openapi2kong` and `deck gateway sync`. The spec has one server, `https://{region}.quilr.ai`.
+
+| Area | What to do |
+| --- | --- |
+| Region | Import one region per Kong setup. Request a pinned copy with `GET /llmgateway_management_apis/v1/openapi.json?region=<value>` (for example `?region=guardrails-europe-1`), or set the `region` variable's default before converting. Management configuration and idempotency are per region, so never pool several regions in one upstream. |
+| Retries | Set the Kong upstream `retries` to `0` for the management service. Retry writes yourself with the same `Idempotency-Key` (see [conventions](#conventions)). |
+| Credentials | Pass `Authorization: Bearer qlmgmt_...` through unchanged. The Management API accepts only that header, not `apikey` or `x-api-key`, so do not let key-auth strip or replace it. |
+| Headers | Pass the `If-Match`, `If-None-Match` and `Idempotency-Key` request headers, and keep the `ETag` and `X-Request-ID` response headers. |
+| Validation | Request validation is safe here: the management schemas are strict and match the server. |
+| App names | For app names that contain `/` or `%`, use the `/app?app_name=` aliases: proxies may normalize encoded slashes in paths. See [names and pagination](#names-and-pagination). |
+| Admin endpoints | `/llmgateway/management-admin/v1/*` takes a tenant administrator JWT and usually stays off Kong. |

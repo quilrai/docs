@@ -438,6 +438,9 @@
           "detection": {
             "additionalProperties": false,
             "properties": {
+              "attachment_scanning": {
+                "$ref": "#/components/schemas/AttachmentScanning"
+              },
               "category_actions": {
                 "additionalProperties": {
                   "description": "Adversarial detections have no redactable spans; actions they cannot apply are rejected.",
@@ -940,6 +943,9 @@
           "detection": {
             "additionalProperties": false,
             "properties": {
+              "attachment_scanning": {
+                "$ref": "#/components/schemas/AttachmentScanning"
+              },
               "category_actions": {
                 "additionalProperties": {
                   "description": "Adversarial detections have no redactable spans; actions they cannot apply are rejected.",
@@ -1403,6 +1409,182 @@
           "provider_labels",
           "version"
         ],
+        "type": "object"
+      },
+      "AttachmentScanning": {
+        "additionalProperties": false,
+        "description": "Request attachment scanning (images, PDFs, office documents): limits, text extraction and actions. Off by default. Partial updates merge. Under QuilrQL the policy decides enabled; attachments.* effects override the other fields (type_actions per kind).",
+        "properties": {
+          "enabled": {
+            "default": false,
+            "type": "boolean"
+          },
+          "image_classification": {
+            "default": true,
+            "type": "boolean"
+          },
+          "max_file_bytes": {
+            "default": 20971520,
+            "maximum": 536870912,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_files": {
+            "default": 20,
+            "maximum": 1000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_request_bytes": {
+            "default": 52428800,
+            "maximum": 2147483648,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "ocr": {
+            "default": "no_text_layer",
+            "enum": [
+              "off",
+              "no_text_layer",
+              "always"
+            ]
+          },
+          "ocr_scripts": {
+            "default": [],
+            "items": {
+              "enum": [
+                "latin",
+                "cjk",
+                "korean",
+                "cyrillic",
+                "arabic",
+                "devanagari",
+                "tamil",
+                "telugu",
+                "thai",
+                "greek"
+              ]
+            },
+            "type": "array"
+          },
+          "on_limit_violation": {
+            "default": "block",
+            "enum": [
+              "monitor",
+              "strip",
+              "block"
+            ]
+          },
+          "on_macros": {
+            "default": "monitor",
+            "enum": [
+              "monitor",
+              "strip",
+              "block"
+            ]
+          },
+          "on_unscannable": {
+            "default": "monitor",
+            "description": "What happens to an attachment the file itself makes unscannable: encrypted, unparseable, a remote URL or a provider file ID. Scan failures (timeouts, scanner errors, text past the scan limit) always fail open and never use this action.",
+            "enum": [
+              "monitor",
+              "strip",
+              "block"
+            ]
+          },
+          "pdf_max_pages": {
+            "default": 200,
+            "maximum": 10000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "redact_documents_as_text": {
+            "default": false,
+            "type": "boolean"
+          },
+          "text_extraction": {
+            "default": true,
+            "type": "boolean"
+          },
+          "type_actions": {
+            "additionalProperties": false,
+            "default": {},
+            "description": "Per detected kind: allow, strip or block. Kinds not listed are allowed; updates merge per kind and {} resets every kind to allow.",
+            "properties": {
+              "archive": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "audio": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "document": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "image": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "other": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "pdf": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "presentation": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "spreadsheet": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "text": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              },
+              "video": {
+                "enum": [
+                  "allow",
+                  "strip",
+                  "block"
+                ]
+              }
+            },
+            "type": "object"
+          }
+        },
         "type": "object"
       },
       "AuditEvent": {
@@ -13696,7 +13878,10 @@
               "sarvam",
               "mistral",
               "xai",
-              "xai_responses"
+              "xai_responses",
+              "cerebras",
+              "typesafe",
+              "groq"
             ],
             "type": "string"
           },
@@ -13755,6 +13940,7 @@
                 "aws_session_duration_seconds",
                 "aws_session_token",
                 "azure_api_version",
+                "azure_auth_header",
                 "azure_endpoint",
                 "base_url",
                 "gcp_project_id",
@@ -13769,6 +13955,7 @@
                 "oci_tenancy_id",
                 "oci_user_id",
                 "preferred_upstream_api",
+                "remote_connector_id",
                 "service_account_json",
                 "upstream_apis"
               ]
@@ -14303,7 +14490,10 @@
               "sarvam",
               "mistral",
               "xai",
-              "xai_responses"
+              "xai_responses",
+              "cerebras",
+              "typesafe",
+              "groq"
             ],
             "type": "string"
           },
@@ -14540,6 +14730,7 @@
                 "aws_session_duration_seconds",
                 "aws_session_token",
                 "azure_api_version",
+                "azure_auth_header",
                 "azure_endpoint",
                 "base_url",
                 "gcp_project_id",
@@ -14554,6 +14745,7 @@
                 "oci_tenancy_id",
                 "oci_user_id",
                 "preferred_upstream_api",
+                "remote_connector_id",
                 "service_account_json",
                 "upstream_apis"
               ]
@@ -14608,6 +14800,7 @@
                 "aws_session_duration_seconds",
                 "aws_session_token",
                 "azure_api_version",
+                "azure_auth_header",
                 "azure_endpoint",
                 "base_url",
                 "gcp_project_id",
@@ -14622,6 +14815,7 @@
                 "oci_tenancy_id",
                 "oci_user_id",
                 "preferred_upstream_api",
+                "remote_connector_id",
                 "service_account_json",
                 "upstream_apis"
               ]
@@ -15177,7 +15371,10 @@
               "sarvam",
               "mistral",
               "xai",
-              "xai_responses"
+              "xai_responses",
+              "cerebras",
+              "typesafe",
+              "groq"
             ],
             "type": "string"
           },
@@ -15304,8 +15501,12 @@
             "description": "Azure API version.",
             "type": "string"
           },
+          "azure_auth_header": {
+            "description": "Azure providers: the header the key is sent in. Omit (or api-key) for api-key, authorization_bearer for 'Authorization: Bearer <key>', or a header name such as Ocp-Apim-Subscription-Key (the raw key is sent in it).",
+            "type": "string"
+          },
           "azure_endpoint": {
-            "description": "Azure resource endpoint.",
+            "description": "Azure resource endpoint, or a custom API base ending in /deployments (e.g. an API Management route).",
             "type": "string"
           },
           "base_url": {
@@ -15356,6 +15557,9 @@
           },
           "preferred_upstream_api": {
             "description": "Prefer another endpoint of the client's API family.",
+            "type": "string"
+          },
+          "remote_connector_id": {
             "type": "string"
           },
           "service_account_json": {
@@ -15450,8 +15654,12 @@
             "description": "Azure API version.",
             "type": "string"
           },
+          "azure_auth_header": {
+            "description": "Azure providers: the header the key is sent in. Omit (or api-key) for api-key, authorization_bearer for 'Authorization: Bearer <key>', or a header name such as Ocp-Apim-Subscription-Key (the raw key is sent in it).",
+            "type": "string"
+          },
           "azure_endpoint": {
-            "description": "Azure resource endpoint.",
+            "description": "Azure resource endpoint, or a custom API base ending in /deployments (e.g. an API Management route).",
             "type": "string"
           },
           "base_url": {
@@ -15499,6 +15707,9 @@
           },
           "preferred_upstream_api": {
             "description": "Prefer another endpoint of the client's API family.",
+            "type": "string"
+          },
+          "remote_connector_id": {
             "type": "string"
           },
           "service_account_json": {
@@ -15711,6 +15922,7 @@
                 "aws_session_duration_seconds",
                 "aws_session_token",
                 "azure_api_version",
+                "azure_auth_header",
                 "azure_endpoint",
                 "base_url",
                 "gcp_project_id",
@@ -15725,6 +15937,7 @@
                 "oci_tenancy_id",
                 "oci_user_id",
                 "preferred_upstream_api",
+                "remote_connector_id",
                 "service_account_json",
                 "upstream_apis"
               ]
@@ -15916,7 +16129,10 @@
               "sarvam",
               "mistral",
               "xai",
-              "xai_responses"
+              "xai_responses",
+              "cerebras",
+              "typesafe",
+              "groq"
             ],
             "type": "string"
           },
@@ -43474,7 +43690,25 @@
       "get": {
         "description": "This OpenAPI 3.1 document, generated by the server from its route table, so it always matches the deployed API. Requires a management key with the read scope.",
         "operationId": "Get_openapi",
-        "parameters": [],
+        "parameters": [
+          {
+            "description": "Publish this region's URL as the only server (e.g. `guardrails-europe-1`). Import into an API gateway with one region only: management idempotency and operation records stay in the region that took the request. Default: a `region` server variable.",
+            "in": "query",
+            "name": "region",
+            "schema": {
+              "enum": [
+                "guardrails-usa-1",
+                "guardrails-usa-2",
+                "guardrails-europe-1",
+                "guardrails-india-1",
+                "guardrails-india-2",
+                "guardrails-jp-1",
+                "guardrails"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -43545,20 +43779,23 @@
   },
   "servers": [
     {
-      "description": "India",
-      "url": "https://guardrails-india-1.quilr.ai"
-    },
-    {
-      "description": "Europe",
-      "url": "https://guardrails-europe-1.quilr.ai"
-    },
-    {
-      "description": "USA",
-      "url": "https://guardrails-usa-1.quilr.ai"
-    },
-    {
-      "description": "Japan",
-      "url": "https://guardrails-jp-1.quilr.ai"
+      "description": "Quilr-hosted gateway. Set `region` to the region your organization uses before importing (or request the document with `region`). For a dedicated or on-premises gateway, replace the URL with your gateway's.",
+      "url": "https://{region}.quilr.ai",
+      "variables": {
+        "region": {
+          "default": "guardrails-usa-1",
+          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global",
+          "enum": [
+            "guardrails-usa-1",
+            "guardrails-usa-2",
+            "guardrails-europe-1",
+            "guardrails-india-1",
+            "guardrails-india-2",
+            "guardrails-jp-1",
+            "guardrails"
+          ]
+        }
+      }
     }
   ],
   "tags": [
