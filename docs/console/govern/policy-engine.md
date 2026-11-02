@@ -92,6 +92,7 @@ Every policy also has an exact text form in QuilrQL, the policy language. Use th
 | Card | Docs |
 |---|---|
 | Data & Adversarial Risks | [Security guardrails](../../llm-gateway/protect/security-guardrails), [Custom detections](../../llm-gateway/protect/custom-detections) |
+| Attachments | [Attachment scanning](../../llm-gateway/protect/attachment-scanning) - allowed files, limits, document text, OCR and image classification; select image data types and actions on Data & Adversarial Risks. |
 | Guardian Agent | [Guardian Agent](../../llm-gateway/protect/guardian-agent) |
 | Hallucination Protection | [Hallucination protection](../../llm-gateway/protect/hallucination-protection) |
 | Gateway Access | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |

@@ -123,13 +123,13 @@ Every Inspect and Configure button opens the app workspace on the matching tab. 
 | Group | Sections |
 |-------|----------|
 | Providers & routing | LLM Providers, [Routing](../cost-and-traffic/routing-and-fallbacks) |
-| Protection | [Security Guardrails](../protect/security-guardrails), [Guardian Agent](../protect/guardian-agent), [Custom Detections](../protect/custom-detections), [Rate and Token Limits](../cost-and-traffic/rate-token-and-budget-limits) |
+| Protection | [Security Guardrails](../protect/security-guardrails), [Guardian Agent](../protect/guardian-agent), [Custom Detections](../protect/custom-detections), [Attachments](../protect/attachment-scanning), [Rate and Token Limits](../cost-and-traffic/rate-token-and-budget-limits) |
 | Optimization & policy | [Token Saving](../cost-and-traffic/token-saving), [Self-Service](../self-service/overview), Alerts |
 | Identity & content | [Identity Aware](../protect/identity-and-network-trust), [Prompt Store](../cost-and-traffic/prompt-store) |
 | Operations | [API Keys, API Integration and Audit Log](../apps-and-providers/applications-and-keys) |
 
 :::note Policy Engine
-When the [Policy Engine](../../console/govern/policy-engine) is on, sections marked with its icon (Routing, Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving, Identity Aware, Prompt Store) follow published policies instead of these settings. Providers, keys and the other sections are still managed here.
+When the [Policy Engine](../../console/govern/policy-engine) is on, sections marked with its icon (Routing, Security Guardrails, Guardian Agent, Attachments, Rate and Token Limits, Token Saving, Identity Aware, Prompt Store) follow published policies instead of these settings. Providers, keys and the other sections are still managed here.
 :::
 
 ## Self-service usage

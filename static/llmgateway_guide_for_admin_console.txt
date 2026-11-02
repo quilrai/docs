@@ -1,5 +1,6 @@
 QUILR ADMIN CONSOLE (v2) - LLM GATEWAY NAVIGATION GUIDE FOR BROWSING AGENTS
 Last verified: 2026-10-07 against web.quilr.ai
+Attachment controls and image-risk labels checked against the current console: 2026-11-02.
 Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
@@ -39,7 +40,7 @@ WORKSPACE DRAWER ("LLM Gateway workspace")
 - Settings tab needs exactly one app; section list on left, form on right, Discard changes / Save settings at bottom
 - Settings section groups and labels:
   PROVIDERS & ROUTING: LLM Providers, Routing
-  PROTECTION: Security Guardrails, Guardian Agent, Custom Detections, Rate and Token Limits
+  PROTECTION: Security Guardrails, Guardian Agent, Custom Detections, Attachments, Rate and Token Limits
   OPTIMIZATION & POLICY: Token Saving, Self-Service, Alerts
   IDENTITY & CONTENT: Identity Aware, Prompt Store
   OPERATIONS: API Keys, API Integration, Audit Log
@@ -64,6 +65,18 @@ TASK -> WHERE
   then choose the connected connector. Binary, Docker and Kubernetes examples are in the remote connector docs.
 - Set guardrails (PII, secrets, prompt injection, hallucination, source IPs) -> Configure > Guardrails
   (Action mix, Default action, DATA RISKS / adversarial categories; "Copy from another app")
+- Check uploaded files -> workspace Settings > Attachments > Scan attachments (off by default).
+  Allowed files and limits: per-file-kind Allow | Strip | Block; Max file size (MB), Max attachments per
+  request (MB), Max new files per request, Max PDF pages; limit action Monitor | Strip | Block.
+  Scanning: Extract document text, unreadable-file action, macro-enabled-document action.
+  Images and OCR: Read text in images (Off | Images and pages without text | Every page), OCR scripts
+  (Every script | Only these), Classify images. Save settings applies app changes when not governed.
+- Detect payment-card, ID-document or other image types -> Security Guardrails > Attachments > Image Risks;
+  enable the required Image types and choose Monitor | Strip | Block. Scan attachments and Classify images
+  must also be on. Image Risks is off by default. Redaction removes the complete attachment.
+- Review file scans -> LLM Gateway > Insights > Attachments (/settings/llm-gateway/insights/attachments):
+  File kinds, Detected file types, Scan outcomes, Data found in attachment text, Image labels,
+  Why attachments were skipped, Apps. Choose a chart or app to review related requests.
 - Guardian Agent (coding/task adherence) -> Configure > Guardian
 - Custom detections -> workspace Settings > Custom Detections (detection models: sidebar Detection Models)
 - Set rate limits / token budgets / concurrency -> workspace Settings > Rate and Token Limits
@@ -118,12 +131,16 @@ TASK -> WHERE
 
 POLICY ENGINE (LLM) - /policy/engine/llm-gateway
 - Surface tabs: Browser Extension | LLM Gateway | MCP Gateway | Endpoint Agent
-- Header when on: ENGINE ON, Revision N, "Gateway controls", "N of 13 active", History, Docs, Filter
+- Header when on: ENGINE ON, Revision N, "Gateway controls", active-card count, History, Docs, Filter
 - "What applies to one request" > Describe a request (previews the winning value per control)
-- 13 cards (each Configure + Docs): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
+- Cards (each Configure): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
   Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Model Visibility, Model routing,
-  Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement.
+  Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement, Attachments.
   Below them: "Advanced policies" (policies the cards cannot represent; Advanced workspace).
+- Attachments card: request file kinds, size/count/page limits, text extraction, OCR and image
+  classification. Data & Adversarial Risks selects the text/image data types and their actions.
+  Classify images alone checks no category; enable at least one Image Risks type. Publish the shared
+  draft before testing live traffic. OCR and image classification are unavailable on no-GPU deployments.
 - Model Visibility card (what GET /v1/models and the console's Get available models / List models show;
   never what can be called): Quick add (Hide preview models, Only show approved providers, Turn off model
   listing, Let admins list hidden models) or a control's add button > "New model visibility rule": choose who
@@ -173,10 +190,10 @@ DEEP LINKS (query parameters on /settings/llm-gateway)
 - Models: /settings/models/models?action=add-models ; ?source=quilr|yours ; ?q=<search>
 - Policy card anchor: /policy/engine/llm-gateway#policy-surface-<id>; ids: data-risks, guardian,
   hallucination, gateway-access, identity-network, tool-controls, allowed-models,
-  model-visibility, routing-groups-fallbacks, budgets, limits, token-saving, prompt-store
+  model-visibility, routing-groups-fallbacks, budgets, limits, token-saving, prompt-store, attachments
 
 CONFIGURATION NOTES
-- Policy Engine on (tenant-wide): Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving,
+- Policy Engine on (tenant-wide): Security Guardrails, Guardian Agent, Attachments, Rate and Token Limits, Token Saving,
   Routing follow published policies; per-app values are not enforced. The section shows
   "Policy Engine active - Revision N" and "Controlled by Policy Engine. Live requests follow the published
   ... policies." > View policies (edit in Policy Engine) or Edit anyway > dialog "Edit legacy settings?"
@@ -208,6 +225,7 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/protect/security-guardrails.md
 - https://docs.quilrai.dev/llm-gateway/protect/guardian-agent.md
 - https://docs.quilrai.dev/llm-gateway/protect/custom-detections.md
+- https://docs.quilrai.dev/llm-gateway/protect/attachment-scanning.md
 - https://docs.quilrai.dev/llm-gateway/protect/identity-and-network-trust.md
 - https://docs.quilrai.dev/llm-gateway/protect/model-visibility.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/routing-and-fallbacks.md

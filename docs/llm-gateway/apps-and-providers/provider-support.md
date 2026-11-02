@@ -173,7 +173,7 @@ Converse and Claude-body InvokeModel requests can also reach providers that are 
 
 ## Vertex AI
 
-`/vertex_ai/` is a native passthrough to `generateContent`, so any Gemini model on the app works, including multimodal and image-output models. Guardrails scan the text parts of the request. Image, audio and video parts, and non-text outputs, pass through unscanned.
+`/vertex_ai/` accepts `generateContent` requests for Gemini models on the app, including multimodal and image-output models. Guardrails scan request text. When [attachment scanning](../protect/attachment-scanning) is enabled, supported inline images and documents can also be inspected using OCR, document text extraction and the enabled Image Risks. Remote file references are not downloaded for scanning. Audio, video and non-text model outputs are not content-scanned by this feature.
 
 ## Embeddings
 
