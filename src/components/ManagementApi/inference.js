@@ -19,7 +19,7 @@ const download = '/openapi/llm-gateway-inference-v1.json';
 const familyDownload = key => `/openapi/llm-gateway-inference-v1-${key}.json`;
 const liveSpecPath = '/llmgateway_inference_apis/v1/openapi.json';
 const playground = '/llm-gateway-playground';
-const icons = {openai_compatible: MessagesSquare, openai_responses: Sparkles, azure_openai: Cloud, openai_realtime: Radio, openai_assistants: Bot, anthropic_messages: ArrowLeftRight, bedrock_runtime: Boxes, google_gemini: Globe, rerank: ListOrdered, mistral: Wind, xai: Zap, sarvam: Languages, typesafe: Scale, specification: FileJson, other: Route};
+const icons = {openai_compatible: MessagesSquare, openai_responses: Sparkles, azure_openai: Cloud, openai_realtime: Radio, openai_assistants: Bot, anthropic_messages: ArrowLeftRight, bedrock_runtime: Boxes, google_gemini: Globe, rerank: ListOrdered, mistral: Wind, xai: Zap, sarvam: Languages, typesafe: Scale, perplexity: Search, specification: FileJson, other: Route};
 
 // Examples use the server's default region (https://{region}.quilr.ai).
 const host = serverUrl(spec);

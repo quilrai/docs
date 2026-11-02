@@ -10595,7 +10595,7 @@
     },
     "/openai_compatible/v1/decisions": {
       "post": {
-        "description": "OpenAI Decisions format for decision models (Microsoft-Decision-1 on Azure, TypeSafe). Text and JSON input only; images are refused. Request bodies may be gzip or deflate encoded; zstd is refused with 415. Unknown fields inside a question are rejected, as OpenAI does.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
+        "description": "OpenAI Decisions format for decision models (Microsoft-Decision-1 on Azure, TypeSafe, Perplexity). Text and JSON input only; images are refused. Request bodies may be gzip or deflate encoded; zstd is refused with 415. Unknown fields inside a question are rejected, as OpenAI does.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_decisions",
         "parameters": [
           {

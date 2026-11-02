@@ -96,7 +96,7 @@ This applies to every client format and provider on an adapter or translated pai
 When a request is translated, each parameter is mapped to the target API's field, or dropped when the target has no equivalent. A dropped parameter is removed and the request still runs. Columns are the API the request is sent to (the explorer's wire line shows it for each pair):
 
 - **Chat Completions targets:** OpenAI, Azure OpenAI, Gemini API, xAI, Mistral, Cerebras, Groq, DeepSeek, custom OpenAI-compatible, Bedrock OpenAI models, Vertex AI Model Garden.
-- **Responses targets:** OpenAI and Azure OpenAI Responses-type keys and Responses-only models, xAI Responses.
+- **Responses targets:** OpenAI and Azure OpenAI Responses-type keys and Responses-only models, xAI Responses, the Perplexity Agent API.
 - **Anthropic targets:** Anthropic, Azure AI Foundry Anthropic, Claude on Bedrock InvokeModel.
 - **Gemini targets:** Gemini models on Vertex AI.
 - **Converse targets:** non-Claude models on AWS Bedrock (such as Nova).
@@ -132,6 +132,7 @@ Per-model rules, applied only to translated requests:
 - **Mistral:** `seed` is sent as `random_seed`; `user`, `logit_bias`, `store`, `verbosity` and `safety_identifier` are dropped; `developer` messages become `system`; tool call ids are rewritten to Mistral's 9-character format; inline PDF parts are sent as Mistral documents. Codestral, Ministral and Voxtral models drop reasoning effort and `logprobs`.
 - **Cerebras:** reasoning effort is fitted to `low` to `high`. Reasoning returned by the model reaches the client as its own reasoning format, and earlier reasoning in a multi-turn conversation is sent back in Cerebras' `reasoning` field; an assistant `refusal` is sent as the message text.
 - **Groq:** the same rules as Cerebras, with Groq's `reasoning` field. Groq is translated to Chat Completions only; its native Responses API serves Responses clients directly.
+- **Perplexity:** every client format other than Responses is translated to the Agent API (Responses); Responses clients reach it natively.
 
 ### Chat Completions adapters {#chat-completions-adapters}
 

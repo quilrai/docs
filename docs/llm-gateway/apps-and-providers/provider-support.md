@@ -4,8 +4,8 @@ sidebar_label: "Provider support matrix"
 sidebar_custom_props:
   badge: new
   icon: Handshake
-description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, Cerebras, Groq, TypeSafe, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and decision models (Microsoft-Decision-1 on Azure AI Foundry and TypeSafe Jev) through the OpenAI Decisions and System One APIs, and the Mistral and xAI vendor routes (/mistral/v1/ocr, /mistral/v1/fim/completions, /xai/v1/responses, /xai/v1/images, videos and batches), and Groq (Chat Completions, native Responses, Whisper speech to text and translation, Orpheus text to speech)."
-aliases: [mistral, mistral ai, xai, grok, codestral, voxtral, grok imagine, typesafe, jev, system one]
+description: "Supported LLM providers (OpenAI, Anthropic, Azure, Bedrock, Vertex AI, xAI, Mistral, Cerebras, Groq, Perplexity, TypeSafe, DeepSeek, Oracle OCI, Sarvam, Copilot Studio) and their capability matrix with credentials per provider (incl. Oracle OCI auth modes, rerank, embeddings, Realtime, Assistants), including Oracle gateway sign-in, provider-native models through OpenAI-compatible endpoints, and the Sarvam speech and text APIs, and decision models (Microsoft-Decision-1 on Azure AI Foundry and TypeSafe Jev) through the OpenAI Decisions and System One APIs, and the Mistral and xAI vendor routes (/mistral/v1/ocr, /mistral/v1/fim/completions, /xai/v1/responses, /xai/v1/images, videos and batches), and Groq (Chat Completions, native Responses, Whisper speech to text and translation, Orpheus text to speech), and Perplexity (Agent API on the Responses route, pplx-decider decision models, pplx-embed embeddings)."
+aliases: [mistral, mistral ai, xai, grok, codestral, voxtral, grok imagine, typesafe, jev, system one, perplexity, sonar, agent api, pplx-decider, pplx-embed]
 ---
 
 # Provider Support
@@ -45,6 +45,7 @@ One row per provider type. The type is what you select in the console and what y
 | `mistral` | Mistral | ✓ | ↻ | ↻ | - | - | ✓ | - | ✓ | ✓ |
 | `cerebras` | Cerebras | ✓ | ↻ | ↻ | - | - | - | - | - | ✓ |
 | `groq` | Groq | ✓ | ↻ | ✓ | - | - | - | - | ✓ | ✓ |
+| `perplexity` | Perplexity (Agent API) | ↻ | ↻ | ✓ | - | - | ✓ | - | - | ✓ |
 | `typesafe` | TypeSafe (decision models only) | - | - | - | - | - | - | - | - | ✓ |
 | `oracle` | Oracle OCI Generative AI | ✓ | Soon | Soon | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | Soon | Soon | ✓ | - | - | - | - | - | Manual |
@@ -59,12 +60,12 @@ One row per provider type. The type is what you select in the console and what y
 
 - **Gemini generateContent and Bedrock Converse / InvokeModel** clients reach the same conversational providers. The [format explorer](../api-reference/any-to-any-formats#format-explorer) shows how each client format reaches each provider, model by model.
 - **Chat** on `vertex_ai` and the `anthropic_messages*` types uses the built-in adapters described in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters).
-- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), and Groq in [Groq](#groq).
+- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), Groq in [Groq](#groq), and Perplexity in [Perplexity](#perplexity).
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
 - **Endpoint families:** moderations, images, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families). Mistral and xAI also have [vendor routes](#vendor-routes).
-- `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes, and `typesafe` serves only those routes. See [Decision models](#decision-models).
+- `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes, `perplexity` serves its `pplx-decider` models there, and `typesafe` serves only those routes. See [Decision models](#decision-models).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
 ## Endpoints
@@ -103,6 +104,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `xai`, `xai_responses`, `mistral` | API key | API key | - (the endpoint is fixed: `https://api.x.ai/v1` or `https://api.mistral.ai/v1`) | Console, API |
 | `cerebras` | API key | API key | - (the endpoint is fixed: `https://api.cerebras.ai/v1`) | Console, API |
 | `groq` | API key | API key | - (the endpoint is fixed: `https://api.groq.com/openai/v1`) | Console, API |
+| `perplexity` | API key | API key | - (the endpoint is fixed: `https://api.perplexity.ai`) | Console, API |
 | `typesafe` | API key | API key | - (the endpoint is fixed: `https://api.typesafe.ai/v1`) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
@@ -175,7 +177,7 @@ Converse and Claude-body InvokeModel requests can also reach providers that are 
 
 ## Embeddings
 
-`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `mistral` (for example `mistral-embed`), `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
+`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `mistral` (for example `mistral-embed`), `perplexity` (`pplx-embed-v1-0.6b`, `pplx-embed-v1-4b`; see [Perplexity embeddings](#perplexity-embeddings)), `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
 
 ## Rerank
 
@@ -222,7 +224,7 @@ Chat models (`sarvam-105b`, `sarvam-105b-conversations`, and the beta `glm5.2`, 
 
 ## Responses API
 
-`/openai_responses/v1/responses` is a native passthrough for `openai`, `openai_responses`, `azureopenai`, `openai_responses_azure`, `xai_responses`, `oracle_responses`, `bedrock`, `groq` and `general` endpoints that serve `/responses`; `xai` switches to xAI's Responses endpoint with the same key. Create, retrieve, cancel, delete and list input items are supported; Groq's Responses API is stateless, so `groq` serves create only. Azure-style paths work too: `/openai_responses/openai/deployments/{deployment}/responses`. The deployment goes in `body.model`.
+`/openai_responses/v1/responses` is a native passthrough for `openai`, `openai_responses`, `azureopenai`, `openai_responses_azure`, `xai_responses`, `oracle_responses`, `bedrock`, `groq`, `perplexity` (its Agent API) and `general` endpoints that serve `/responses`; `xai` switches to xAI's Responses endpoint with the same key. Create, retrieve, cancel, delete and list input items are supported; Groq's Responses API is stateless and Perplexity's Agent API serves no stored-response routes, so `groq` and `perplexity` serve create only. Azure-style paths work too: `/openai_responses/openai/deployments/{deployment}/responses`. The deployment goes in `body.model`.
 
 Guardrails scan `input_text` parts and `instructions` on the request, and `output_text` on non-streaming responses. On native providers, `previous_response_id` and built-in tools pass through.
 
@@ -438,6 +440,78 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/speech \
 | Capacity | Groq's `498` `capacity_exceeded` (flex tier full) is treated as a rate limit, so [routing failover](../cost-and-traffic/routing-and-fallbacks) can retry or move the request. |
 | Billing | Chat by tokens, Whisper by audio seconds, Orpheus by characters. Groq's browser search tool (`{"type": "browser_search"}` on gpt-oss models) adds $5 per 1,000 searches and $1 per 1,000 page visits, on Chat and Responses. |
 
+## Perplexity
+
+`perplexity` calls `https://api.perplexity.ai`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored. Perplexity's Agent API needs paid API credits on the Perplexity account (without them it answers `403 restricted_api_key`).
+
+| Provider type | Console tile and API | What one key serves |
+|---------------|----------------------|---------------------|
+| `perplexity` | **Perplexity** › Agent API, Decisions and Embeddings | Perplexity's Agent API, which runs OpenAI, Anthropic, Google, xAI and Perplexity models (including `perplexity/sonar`) with built-in web search, its `pplx-decider` [decision models](#perplexity-decisions) and its `pplx-embed` [embedding models](#perplexity-embeddings). |
+
+Perplexity's older Sonar chat completions (`/chat/completions` with `sonar`, `sonar-pro`, `sonar-reasoning-pro`, `sonar-deep-research`) are closed to new Perplexity accounts ("Sonar is now the Agent API"), so the gateway serves every Perplexity model on the Agent API. Perplexity recommends `perplexity/sonar` or another Agent API model in their place.
+
+### Add the provider
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Search for `perplexity` and select the **Perplexity** tile ("Web-grounded answers · Direct API").
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+Perplexity lists its Agent API models from `/v1/models` (for example `openai/gpt-6-luna`, `anthropic/claude-sonnet-5-5`, `perplexity/sonar`); the gateway adds the decision models `pplx-decider-latest`, `pplx-decider-flash-latest`, `pplx-decider-v1.2` and `pplx-decider-flash-v1.2` and the embedding models `pplx-embed-v1-0.6b` and `pplx-embed-v1-4b`. Model validation sends one small request per model: a Responses call with no tools, a one-question decision request, or a one-word embedding. Enable every model you call.
+
+| API | Path | Perplexity | Example model |
+|-----|------|:----------:|---------------|
+| Responses (create only) | `/openai_responses/v1/responses` | ✓ (Agent API) | `openai/gpt-6-luna` |
+| Chat Completions | `/openai_compatible/v1/chat/completions` | Translated to Responses | `perplexity/sonar` |
+| Anthropic Messages, Gemini, Bedrock Converse | Their native paths | Translated to Responses | - |
+| Decisions | `/openai_compatible/v1/decisions`, `/typesafe/v1/systemone`, `/perplexity/v1/decisions` | ✓ | `pplx-decider-latest` |
+| Embeddings (OpenAI-style unit floats) | `/openai_compatible/v1/embeddings` | ✓ | `pplx-embed-v1-0.6b` |
+| Embeddings (Perplexity's int8 or binary) | `/perplexity/v1/embeddings` | ✓ | `pplx-embed-v1-4b` |
+| Contextualized embeddings, Search API, Orchestrator API, images, files, batches | - | - (not routed to Perplexity) | - |
+
+### Perplexity examples
+
+```bash
+# Responses on the Agent API, with Perplexity's web search tool
+curl https://guardrails-usa-2.quilr.ai/openai_responses/v1/responses \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "openai/gpt-6-luna", "input": "What changed in the EU AI Act this month?",
+       "tools": [{"type": "web_search"}], "max_output_tokens": 800}'
+
+# Chat Completions (translated to the Agent API; streaming and tool calls work too)
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "perplexity/sonar", "messages": [{"role": "user", "content": "Say hello."}], "max_tokens": 256}'
+```
+
+### Perplexity behavior
+
+| Topic | Perplexity |
+|-------|------------|
+| Responses | The Agent API continues a conversation by `previous_response_id`, but serves no stored-response routes: retrieve, cancel, delete and list input items return `400` (`operation_not_supported`) instead of Perplexity's `404`. `max_output_tokens` is required for `anthropic/*` models. |
+| Agent options | `preset`, `effort`, `max_steps` and `models` pass through unchanged on Responses requests. Send `model` with them: the gateway routes by `model`, and Perplexity runs `model` when both it and `preset` are set. Billing uses the model Perplexity reports serving, so a `models` fallback is priced as the model that answered. Model access rules check `model`; models named only in `models` are not checked. |
+| Web search and tools | Perplexity's own tools (`web_search`, `fetch_url`, `finance_search`, ...) pass through on Responses requests. Responses can carry a `search_results` output item beside the answer; clients of other formats receive the answer text. |
+| Other formats | Chat Completions, Anthropic Messages, Gemini and Bedrock clients are translated to the Agent API, including streaming and multi-turn tool calls. |
+| Billing | Tokens at each model's rate (Perplexity passes other vendors' models through at their list price; the catalog prices Perplexity's own ids). Cache writes the Agent API reports are billed at the model's cache-write rate. Web search and URL fetch calls are counted from Perplexity's `tool_calls_details`: Perplexity's own model ids are priced at $2.50 and $0.50 per 1,000 calls; other vendors' ids (`openai/...`, `anthropic/...`) use that vendor's catalog rate, which you can override per provider with your own model costs. |
+| Not covered | Perplexity's Sonar chat completions (closed to new accounts), contextualized embeddings, Search API and Orchestrator API (limited preview). |
+
+### Perplexity embeddings {#perplexity-embeddings}
+
+Perplexity's embedding models return quantized vectors only (`base64_int8` or `base64_binary`), and they are not normalized; Perplexity recommends cosine similarity. The gateway serves them two ways:
+
+| Route | What you send | What you get |
+|-------|---------------|--------------|
+| `/openai_compatible/v1/embeddings` | The OpenAI shape. `encoding_format` `float` (default) or `base64` (the OpenAI Python SDK's default) | Unit-length vectors: the int8 vector divided by its length, so cosine similarity is unchanged and a dot product equals it, as vector stores built for OpenAI embeddings expect. `base64` returns little-endian float32, as from OpenAI. |
+| `/openai_compatible/v1/embeddings` with `encoding_format` `base64_int8` or `base64_binary` | Perplexity's own encodings | Perplexity's vectors exactly as it sent them |
+| `/perplexity/v1/embeddings` | Perplexity's request (the Perplexity SDK with `base_url=https://guardrails-usa-2.quilr.ai/perplexity`) | Perplexity's answer unchanged; this route serves Perplexity providers only (`400 provider_not_supported_on_route` otherwise) |
+
+`dimensions` is passed to Perplexity (128 up to the model's size: 1024 for `pplx-embed-v1-0.6b`, 2560 for `pplx-embed-v1-4b`). A request takes up to 512 non-empty texts. Int8 vectors are quantized, so floats decoded from them are close to, not identical with, full-precision embeddings. Input tokens are billed at $0.004 (0.6b) or $0.03 (4b) per 1M.
+
+```bash
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/embeddings \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "pplx-embed-v1-0.6b", "input": ["What is retrieval-augmented generation?"]}'
+```
+
 ## Endpoint families
 
 Moderations, images, completions (including DeepSeek fill-in-the-middle), files, batches and videos are served under `/openai_compatible/v1/` in the OpenAI shape for the providers that support them:
@@ -455,19 +529,20 @@ Mistral OCR and FIM, and xAI images, videos and batches, have their own [vendor 
 
 ## Decision models
 
-Decision models answer typed questions about text or JSON with probabilities instead of generated text. Use them for classification, routing, ranking and yes/no gates. Two providers serve them:
+Decision models answer typed questions about text or JSON with probabilities instead of generated text. Use them for classification, routing, ranking and yes/no gates. Three providers serve them:
 
 | Provider | Provider type | Models | `model` value |
 |----------|---------------|--------|---------------|
 | Microsoft-Decision-1 on Azure AI Foundry | `azureopenai` | Your Microsoft-Decision-1 deployment | The deployment name |
 | TypeSafe | `typesafe` | Jev: `jev-latest`, `jev-preview`, `jev-1.14.0`, `jev-1.13.0` | A Jev model id or alias |
+| Perplexity | `perplexity` | `pplx-decider-latest`, `pplx-decider-flash-latest`, `pplx-decider-v1.2`, `pplx-decider-flash-v1.2` | A decider id or alias (the `perplexity/` prefix also works) |
 
-Call either provider in either format:
+Call any of them in either format:
 
 | Format | Path | Questions | Answers |
 |--------|------|-----------|---------|
 | OpenAI Decisions | `/openai_compatible/v1/decisions` | `input` and a `questions` array of `predicate`, `choice` and `score` | An `answers` array in question order |
-| System One | `/typesafe/v1/systemone` | `state` and a `questions` map of `noul`, `choice` and `score` | An `answers` map keyed by question name |
+| System One | `/typesafe/v1/systemone`, or `/perplexity/v1/decisions` (Perplexity's own path, for the Perplexity SDK) | `state` and a `questions` map of `noul`, `choice` and `score` | An `answers` map keyed by question name |
 
 The three question types:
 
@@ -518,6 +593,24 @@ print([model.name for model in client.models.list().models])
 
 `client.models.list()` calls `GET /typesafe/v1/models`, which returns the decision models the app may use in TypeSafe's format. It is answered from the app's configuration, so `release_date` is empty.
 
+### Perplexity decisions {#perplexity-decisions}
+
+A [Perplexity provider](#perplexity) also serves Perplexity's decision models (its Decisions API, `https://api.perplexity.ai/v1/decisions`, which takes the System One format). Select the `pplx-decider` models with your other Perplexity models. `pplx-decider-latest` selects `pplx-decider-v1.2` and `pplx-decider-flash-latest` selects `pplx-decider-flash-v1.2`.
+
+**Perplexity SDK:** point the SDK at `https://guardrails-usa-2.quilr.ai/perplexity` and use your Quilr key; `client.decisions.create(...)` calls `POST /perplexity/v1/decisions`.
+
+```python
+from perplexity import Perplexity
+
+client = Perplexity(api_key="<Quilr key>", base_url="https://guardrails-usa-2.quilr.ai/perplexity")
+response = client.decisions.create(
+    model="pplx-decider-latest",
+    state={"review": "The headphones sound great, but the battery stopped charging after two weeks."},
+    questions={"defect": {"type": "noul", "instructions": "Does the review report a product defect?"}},
+)
+print(response.answers["defect"].noul)
+```
+
 ### Decision model examples
 
 ```bash
@@ -562,21 +655,21 @@ curl https://guardrails-usa-2.quilr.ai/typesafe/v1/systemone \
 }
 ```
 
-Use your Azure deployment name or a Jev model as `model` in either format.
+Use your Azure deployment name, a Jev model or a `pplx-decider` model as `model` in either format.
 
 ### Decision model behavior
 
 | Topic | Behavior |
 |-------|----------|
-| Upstream | Azure: `<resource>/providers/microsoft/v1/systemone`. Any endpoint copied from the portal works (`/openai/v1`, `/models` and project URLs are trimmed to the resource). TypeSafe: `https://api.typesafe.ai/v1/systemone` with the stored key as a bearer token. |
+| Upstream | Azure: `<resource>/providers/microsoft/v1/systemone`. Any endpoint copied from the portal works (`/openai/v1`, `/models` and project URLs are trimmed to the resource). TypeSafe: `https://api.typesafe.ai/v1/systemone` with the stored key as a bearer token. Perplexity: `https://api.perplexity.ai/v1/decisions` with the stored key as a bearer token. |
 | Format conversion | OpenAI Decisions requests are converted to System One and the answers converted back. Text parts of `input` join into the state; `safety_identifier` is dropped. System One requests are forwarded as sent. |
 | Guardrails | Scan the input or state and every question field before conversion, including object keys. Answers are probabilities and your own labels, so they are not scanned. |
-| Not covered | Images, Box questions, audio and video, refused with `400 decision_media_not_supported` (Microsoft-Decision-1 reads text and JSON only; TypeSafe's image support is a preview). No streaming. |
+| Not covered | Images, Box questions, audio and video, refused with `400 decision_media_not_supported` (Microsoft-Decision-1 reads text and JSON only; TypeSafe's image support is a preview; image content could not be scanned). No streaming. |
 | Compression | Request bodies may be gzip or deflate encoded. zstd is refused with `415 invalid_content_encoding`. |
-| Routing | Decision routes serve only Azure and TypeSafe providers. They never join a routing group or route. Chat Completions refuses TypeSafe models. |
+| Routing | Decision routes serve only Azure, TypeSafe and Perplexity providers. They never join a routing group or route. Chat Completions refuses TypeSafe models. |
 | Model access | A request reaches only models listed in the serving provider's models; any other model is refused with `403 model_access_denied`. An Azure provider with no models listed serves every deployment. |
-| Billing | Input tokens are charged ($0.042 per 1M on Azure and TypeSafe); output tokens are free. Token, quota and budget limits apply as on other routes. |
-| Errors | Gateway errors use the OpenAI `{"error": {...}}` shape. TypeSafe's own errors are returned as TypeSafe sent them (`{"detail": ...}`). |
+| Billing | Input tokens are charged ($0.042 per 1M on Azure and TypeSafe; $0.02 for `pplx-decider` and $0.01 for `pplx-decider-flash` on Perplexity); output tokens are free. Token, quota and budget limits apply as on other routes. |
+| Errors | Gateway errors use the OpenAI `{"error": {...}}` shape. TypeSafe's and Perplexity's own errors are returned as they sent them. |
 
 ## Assistants API
 

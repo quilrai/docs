@@ -8240,6 +8240,136 @@
         ],
         "type": "object"
       },
+      "PerplexityDecisionsRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "model": {
+            "description": "pplx-decider model id or alias configured for the app.",
+            "type": "string"
+          },
+          "questions": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "properties": {
+                "type": {
+                  "enum": [
+                    "noul",
+                    "choice",
+                    "score"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            "description": "Named questions. Image (`box`) questions are refused.",
+            "minProperties": 1,
+            "type": "object"
+          },
+          "state": {
+            "description": "The input the questions are about: text or JSON.",
+            "type": [
+              "string",
+              "object",
+              "array"
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "questions"
+        ],
+        "type": "object"
+      },
+      "PerplexityDecisionsResponse": {
+        "additionalProperties": true,
+        "description": "Perplexity's answer, returned unchanged.",
+        "properties": {
+          "answers": {
+            "description": "Answer per question name.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "PerplexityEmbeddingList": {
+        "additionalProperties": true,
+        "description": "Perplexity's answer, returned unchanged.",
+        "properties": {
+          "data": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "embedding": {
+                  "description": "Base64 int8 values, or packed bits for `base64_binary`.",
+                  "type": "string"
+                },
+                "index": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "model": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "usage": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "PerplexityEmbeddingRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "dimensions": {
+            "description": "Truncated vector length (Matryoshka).",
+            "minimum": 128,
+            "type": "integer"
+          },
+          "encoding_format": {
+            "description": "Perplexity's encodings; `float` and `base64` are refused by Perplexity. Use `/openai_compatible/v1/embeddings` for floats.",
+            "enum": [
+              "base64_int8",
+              "base64_binary"
+            ],
+            "type": "string"
+          },
+          "input": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 512,
+                "type": "array"
+              }
+            ],
+            "description": "Text, or up to 512 texts."
+          },
+          "model": {
+            "description": "pplx-embed model id or alias configured for the app.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "input"
+        ],
+        "type": "object"
+      },
       "QuotaInfo": {
         "additionalProperties": true,
         "description": "A usage quota or budget as reported in quota errors.",
@@ -11767,7 +11897,8 @@
                 "mistral",
                 "xai",
                 "sarvam",
-                "typesafe"
+                "typesafe",
+                "perplexity"
               ],
               "type": "string"
             }
@@ -35114,7 +35245,7 @@
     },
     "/openai_compatible/v1/decisions": {
       "post": {
-        "description": "OpenAI Decisions format for decision models (Microsoft-Decision-1 on Azure, TypeSafe). Text and JSON input only; images are refused. Request bodies may be gzip or deflate encoded; zstd is refused with 415. Unknown fields inside a question are rejected, as OpenAI does.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
+        "description": "OpenAI Decisions format for decision models (Microsoft-Decision-1 on Azure, TypeSafe, Perplexity). Text and JSON input only; images are refused. Request bodies may be gzip or deflate encoded; zstd is refused with 415. Unknown fields inside a question are rejected, as OpenAI does.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_decisions",
         "parameters": [
           {
@@ -45364,6 +45495,351 @@
         ]
       }
     },
+    "/perplexity/v1/decisions": {
+      "post": {
+        "description": "Answers typed questions about `state` with probabilities, using Perplexity's pplx-decider models. Text and JSON input only. Request bodies may be gzip or deflate encoded; zstd is refused with 415.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
+        "operationId": "Perplexity_create_decision",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PerplexityDecisionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerplexityDecisionsResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "415": {
+            "$ref": "#/components/responses/OpenAIError415"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Answer decision questions",
+        "tags": [
+          "Perplexity Decisions"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/perplexity/v1/embeddings": {
+      "post": {
+        "description": "Embeds text with the app's Perplexity embedding model and returns Perplexity's own unnormalized int8 or binary vectors. Served for Perplexity providers only; any other provider is refused with 400 `provider_not_supported_on_route`. The input is scanned by the app's request guardrails.\n\n**Gateway features on this route:** request guardrails, model access rules, failover, limits, quotas and budgets, response cache.",
+        "operationId": "Perplexity_create_embeddings",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PerplexityEmbeddingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerplexityEmbeddingList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Create embeddings",
+        "tags": [
+          "Perplexity Embeddings"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "failover",
+          "limits",
+          "response_cache"
+        ]
+      }
+    },
     "/rerank/rerank": {
       "post": {
         "description": "Orders `documents` by relevance to `query`. `/rerank/rerank` and `/rerank/v2/rerank` accept the same body and return the same response. Provider errors are returned as the provider sent them.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
@@ -53532,6 +54008,14 @@
     {
       "description": "TypeSafe System One decision models: typed questions about an input answered with probabilities. Point the TypeSafe SDK at `<gateway>/typesafe`.",
       "name": "TypeSafe System One"
+    },
+    {
+      "description": "pplx-decider decision models in System One format.",
+      "name": "Perplexity Decisions"
+    },
+    {
+      "description": "pplx-embed models with Perplexity's int8 and binary encodings.",
+      "name": "Perplexity Embeddings"
     },
     {
       "description": "Download this document.",

@@ -10,6 +10,17 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Perplexity provider (2026-11-02)
+
+- New provider type `perplexity` on a **Perplexity** tile ("Web-grounded answers · Direct API"), with an API key and a fixed endpoint (`https://api.perplexity.ai`)
+- Perplexity's Agent API on the Responses route: OpenAI, Anthropic, Google, xAI and Perplexity models (including `perplexity/sonar`) with Perplexity's built-in web search
+- Chat Completions, Anthropic Messages, Gemini and Bedrock clients reach the Agent API through any-to-any formats, with streaming and tool calls
+- Perplexity's `pplx-decider` decision models on the decision routes, including `/perplexity/v1/decisions` for the Perplexity SDK
+- Perplexity's `pplx-embed` embedding models: OpenAI-style unit vectors on `/openai_compatible/v1/embeddings` (float or base64), and Perplexity's own int8 or binary vectors on `/perplexity/v1/embeddings`
+- **Check key and list models** lists the Agent API, decision and embedding models
+- Agent API cache writes and web search calls are billed
+- Details: [Perplexity](../apps-and-providers/provider-support#perplexity)
+
 ## Inference API reference (2026-11-02)
 
 - New [Inference API](../api-reference/inference-api) page: an OpenAPI 3.1 reference for every client-facing model API (OpenAI-compatible, Responses, Azure OpenAI, Realtime, Assistants, Anthropic Messages, Bedrock Runtime, Gemini and Vertex AI, rerank, Mistral, xAI, Sarvam, TypeSafe), searchable by family
