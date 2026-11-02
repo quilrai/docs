@@ -50,3 +50,6 @@
 .responseRef{font-size:.72rem!important}.responseRef code{font-size:.66rem;margin-right:4px}
 .specTable{font-size:.78rem;display:table;width:100%}.specTable td{vertical-align:top}.specTable code{font-size:.72rem;overflow-wrap:anywhere}.specTable tr:target{background:color-mix(in srgb,var(--ifm-color-primary) 10%,transparent)}
 @media(max-width:650px){.specTable{display:block;overflow-x:auto}}
+.rowSpaced{margin-top:8px}
+.specDownloads{margin:1rem 0}.regionPicker{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:.78rem}.regionPicker label{font-weight:600}.regionPicker select{border:1px solid var(--ifm-color-emphasis-300);border-radius:6px;padding:6px 9px;background:var(--ifm-background-surface-color);color:var(--ifm-font-color-base);font:inherit;font-size:.78rem;max-width:100%}
+.wideTable{overflow-x:auto;margin:1rem 0}.wideTable .specTable{font-size:.72rem;margin:0}.wideTable th{white-space:nowrap}.coverageOps{font-size:.68rem;color:var(--ifm-color-content-secondary)}.coverageCell{text-align:center}.coverageNo{color:var(--ifm-color-content-secondary)}

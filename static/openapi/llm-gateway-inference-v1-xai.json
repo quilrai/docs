@@ -143,6 +143,15 @@
           "type": "string"
         }
       },
+      "X-Quilr-Token-Count-Source": {
+        "description": "`estimate` when the gateway counted tokens itself instead of the provider (the provider has no counting endpoint, or the model is served through another API).",
+        "schema": {
+          "enum": [
+            "estimate"
+          ],
+          "type": "string"
+        }
+      },
       "X-RateLimit-Limit": {
         "description": "Limit of the exhausted quota or app limit (429).",
         "schema": {
@@ -3883,7 +3892,7 @@
     }
   },
   "info": {
-    "description": "xAI's own image, video, batch and Responses APIs, in xAI's request and response format, served for the app's xAI provider. Point an xAI or OpenAI SDK at `<gateway>/xai/v1`. Request bodies are forwarded unchanged apart from guardrail processing, so xAI-only fields (for example `aspect_ratio` and `resolution`) are available. Video and batch endpoints answer 404 `endpoint_not_enabled` unless they are enabled for the gateway deployment. Video, batch and response ids belong to the xAI account that created them, so later calls must use the same app.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the app's guardrails, routing, failover, limits and logging, then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway response headers.** Besides the provider's own headers (passed through), the gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
+    "description": "xAI's own image, video, batch and Responses APIs, in xAI's request and response format, served for the app's xAI provider. Point an xAI or OpenAI SDK at `<gateway>/xai/v1`. Request bodies are forwarded unchanged, so xAI-only fields (for example `aspect_ratio` and `resolution`) are available. Video and batch endpoints answer 404 `endpoint_not_enabled` unless they are enabled for the gateway deployment. Video, batch and response ids belong to the xAI account that created them, so later calls must use the same app.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the gateway features that apply to their route (see below), then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway features per route.** Not every route runs every gateway feature. Each model-call operation lists what applies to it in `x-quilr-gateway-features` and in its description: guardrails, Guardian, attachment scanning, model access, routing, failover, limits and quotas, token saving, Prompt Store, response cache. Guardrails do not scan the moderations, images, OCR, completions, files, batches and videos routes (and the Mistral and xAI image, video, batch and fill-in-the-middle routes).\n\n**Gateway response headers.** Most model-call routes relay the provider's own response headers (the endpoint-family routes above do not). The gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
     "title": "Quilr LLM Gateway: xAI",
     "version": "1.0.0"
   },
@@ -3891,7 +3900,7 @@
   "paths": {
     "/xai/v1/batches": {
       "get": {
-        "description": "Lists batch jobs, a page at a time.",
+        "description": "Lists batch jobs, a page at a time.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_list_batches",
         "parameters": [
           {
@@ -4035,10 +4044,14 @@
         "summary": "List batches",
         "tags": [
           "xAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Creates a batch job. Add requests with the add batch requests operation, or pass an uploaded `input_file_id`.",
+        "description": "Creates a batch job. Add requests with the add batch requests operation, or pass an uploaded `input_file_id`.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_create_batch",
         "parameters": [
           {
@@ -4073,6 +4086,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4198,12 +4220,16 @@
         "summary": "Create a batch",
         "tags": [
           "xAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/batches/{batch_id}": {
       "get": {
-        "description": "Returns a batch job and its request counters.",
+        "description": "Returns a batch job and its request counters.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_get_batch",
         "parameters": [
           {
@@ -4337,12 +4363,16 @@
         "summary": "Get a batch",
         "tags": [
           "xAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/batches/{batch_id}/requests": {
       "get": {
-        "description": "Returns a page of a batch's requests and their states.",
+        "description": "Returns a page of a batch's requests and their states.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_list_batch_requests",
         "parameters": [
           {
@@ -4495,10 +4525,14 @@
         "summary": "List batch requests",
         "tags": [
           "xAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Adds requests to a batch job.",
+        "description": "Adds requests to a batch job.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_add_batch_requests",
         "parameters": [
           {
@@ -4542,6 +4576,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4667,12 +4710,16 @@
         "summary": "Add batch requests",
         "tags": [
           "xAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/batches/{batch_id}/results": {
       "get": {
-        "description": "Returns a page of a batch's completed results.",
+        "description": "Returns a page of a batch's completed results.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_list_batch_results",
         "parameters": [
           {
@@ -4825,12 +4872,16 @@
         "summary": "List batch results",
         "tags": [
           "xAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/batches/{batch_id}:cancel": {
       "post": {
-        "description": "Cancels a batch job's pending requests. The path ends in the literal `:cancel`. No request body.",
+        "description": "Cancels a batch job's pending requests. The path ends in the literal `:cancel`. No request body.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_cancel_batch",
         "parameters": [
           {
@@ -4874,6 +4925,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4989,12 +5049,16 @@
         "summary": "Cancel a batch",
         "tags": [
           "xAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/images/edits": {
       "post": {
-        "description": "Edits one or more images from a prompt. JSON bodies only, with images given by URL or `data:` URI. The prompt is scanned by guardrails before forwarding.",
+        "description": "Edits one or more images from a prompt. JSON bodies only, with images given by URL or `data:` URI.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_edit_image",
         "parameters": [
           {
@@ -5011,6 +5075,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5136,12 +5218,16 @@
         "summary": "Edit images",
         "tags": [
           "xAI Images and Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/images/generations": {
       "post": {
-        "description": "Generates images from a prompt. The prompt is scanned by guardrails before forwarding.",
+        "description": "Generates images from a prompt.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_create_image",
         "parameters": [
           {
@@ -5158,6 +5244,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5283,12 +5387,16 @@
         "summary": "Generate images",
         "tags": [
           "xAI Images and Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/responses": {
       "post": {
-        "description": "Creates a model response with xAI's Responses API, including xAI server-side tools. Input is scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream of Responses events.",
+        "description": "Creates a model response with xAI's Responses API, including xAI server-side tools. Input is scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream of Responses events.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "XAI_create_response",
         "parameters": [
           {
@@ -5305,6 +5413,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5400,6 +5526,12 @@
           "413": {
             "$ref": "#/components/responses/OpenAIError413"
           },
+          "415": {
+            "$ref": "#/components/responses/OpenAIError415"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
           "429": {
             "$ref": "#/components/responses/OpenAIError429"
           },
@@ -5439,12 +5571,27 @@
         "summary": "Create a response",
         "tags": [
           "xAI Responses"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/xai/v1/responses/{response_id}": {
       "delete": {
-        "description": "Deletes a stored response.",
+        "description": "Deletes a stored response.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "XAI_delete_response",
         "parameters": [
           {
@@ -5470,6 +5617,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5543,6 +5708,15 @@
           "404": {
             "$ref": "#/components/responses/OpenAIError404"
           },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "415": {
+            "$ref": "#/components/responses/OpenAIError415"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
           "429": {
             "$ref": "#/components/responses/OpenAIError429"
           },
@@ -5579,10 +5753,25 @@
         "summary": "Delete a response",
         "tags": [
           "xAI Responses"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       },
       "get": {
-        "description": "Retrieves a stored response.",
+        "description": "Retrieves a stored response.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "XAI_get_response",
         "parameters": [
           {
@@ -5662,6 +5851,15 @@
           "404": {
             "$ref": "#/components/responses/OpenAIError404"
           },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "415": {
+            "$ref": "#/components/responses/OpenAIError415"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
           "429": {
             "$ref": "#/components/responses/OpenAIError429"
           },
@@ -5698,12 +5896,27 @@
         "summary": "Get a response",
         "tags": [
           "xAI Responses"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/xai/v1/videos/edits": {
       "post": {
-        "description": "Starts an asynchronous edit of a video and returns its `request_id`. The prompt is scanned by guardrails before forwarding.",
+        "description": "Starts an asynchronous edit of a video and returns its `request_id`.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_edit_video",
         "parameters": [
           {
@@ -5720,6 +5933,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5845,12 +6076,16 @@
         "summary": "Start a video edit",
         "tags": [
           "xAI Images and Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/videos/extensions": {
       "post": {
-        "description": "Starts an asynchronous extension of a video and returns its `request_id`. The prompt is scanned by guardrails before forwarding.",
+        "description": "Starts an asynchronous extension of a video and returns its `request_id`.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_extend_video",
         "parameters": [
           {
@@ -5867,6 +6102,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5992,12 +6245,16 @@
         "summary": "Start a video extension",
         "tags": [
           "xAI Images and Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/videos/generations": {
       "post": {
-        "description": "Starts an asynchronous video generation job and returns its `request_id`. The prompt is scanned by guardrails before forwarding.",
+        "description": "Starts an asynchronous video generation job and returns its `request_id`.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_create_video",
         "parameters": [
           {
@@ -6014,6 +6271,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6139,12 +6414,16 @@
         "summary": "Start a video generation",
         "tags": [
           "xAI Images and Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/xai/v1/videos/{video_id}": {
       "get": {
-        "description": "Returns a video job's status and, when done, the video URL.",
+        "description": "Returns a video job's status and, when done, the video URL.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "XAI_get_video",
         "parameters": [
           {
@@ -6278,18 +6557,22 @@
         "summary": "Get a video job",
         "tags": [
           "xAI Images and Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     }
   },
   "servers": [
     {
-      "description": "Quilr-hosted gateway. Pick your region; for a dedicated or on-premises gateway, replace the URL with your gateway's.",
+      "description": "Quilr-hosted gateway. Set `region` to the region your organization uses before importing (or request the document with `region`). For a dedicated or on-premises gateway, replace the URL with your gateway's.",
       "url": "https://{region}.quilr.ai",
       "variables": {
         "region": {
           "default": "guardrails-usa-1",
-          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global, routed to the nearest region",
+          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global",
           "enum": [
             "guardrails-usa-1",
             "guardrails-usa-2",

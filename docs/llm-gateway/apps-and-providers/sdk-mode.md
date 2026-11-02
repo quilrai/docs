@@ -344,6 +344,8 @@ Check the HTTP status before reading a check result. Validation errors use an `e
 
 ## Code Examples
 
+The examples use US East (`guardrails-usa-2.quilr.ai`); replace it with your region's host from the [integration guide](../get-started/integration-guide#region).
+
 ### Structured JSON - Python
 
 Send the JSON value without stringifying it. Check the action first and read `processed_json` directly, including when the safe result is `null`, `false`, `0`, or an empty value.

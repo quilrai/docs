@@ -143,6 +143,15 @@
           "type": "string"
         }
       },
+      "X-Quilr-Token-Count-Source": {
+        "description": "`estimate` when the gateway counted tokens itself instead of the provider (the provider has no counting endpoint, or the model is served through another API).",
+        "schema": {
+          "enum": [
+            "estimate"
+          ],
+          "type": "string"
+        }
+      },
       "X-RateLimit-Limit": {
         "description": "Limit of the exhausted quota or app limit (429).",
         "schema": {
@@ -4135,7 +4144,6 @@
             ]
           },
           "prompt": {
-            "description": "Scanned by the app's request guardrails.",
             "type": "string"
           },
           "quality": {
@@ -4204,7 +4212,6 @@
             ]
           },
           "prompt": {
-            "description": "Scanned by the app's request guardrails.",
             "type": "string"
           },
           "quality": {
@@ -4265,7 +4272,6 @@
             ]
           },
           "prompt": {
-            "description": "Scanned by the app's request guardrails.",
             "type": "string"
           },
           "quality": {
@@ -4891,7 +4897,6 @@
             "type": "string"
           },
           "prompt": {
-            "description": "Scanned by the app's request guardrails.",
             "type": "string"
           },
           "seconds": {
@@ -5023,7 +5028,7 @@
     }
   },
   "info": {
-    "description": "OpenAI wire format for chat completions, completions, embeddings, audio, images, moderations, OCR, files, batches, videos, decisions and model listing. Point an OpenAI SDK at `<gateway>/openai_compatible/v1`; the gateway serves the app's configured provider (OpenAI, Azure OpenAI, Anthropic, Gemini, Mistral, xAI and other OpenAI-compatible providers) in the OpenAI shape.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the app's guardrails, routing, failover, limits and logging, then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway response headers.** Besides the provider's own headers (passed through), the gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
+    "description": "OpenAI wire format for chat completions, completions, embeddings, audio, images, moderations, OCR, files, batches, videos, decisions and model listing. Point an OpenAI SDK at `<gateway>/openai_compatible/v1`; the gateway serves the app's configured provider (OpenAI, Azure OpenAI, Anthropic, Gemini, Mistral, xAI and other OpenAI-compatible providers) in the OpenAI shape.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the gateway features that apply to their route (see below), then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway features per route.** Not every route runs every gateway feature. Each model-call operation lists what applies to it in `x-quilr-gateway-features` and in its description: guardrails, Guardian, attachment scanning, model access, routing, failover, limits and quotas, token saving, Prompt Store, response cache. Guardrails do not scan the moderations, images, OCR, completions, files, batches and videos routes (and the Mistral and xAI image, video, batch and fill-in-the-middle routes).\n\n**Gateway response headers.** Most model-call routes relay the provider's own response headers (the endpoint-family routes above do not). The gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
     "title": "Quilr LLM Gateway: OpenAI-compatible APIs",
     "version": "1.0.0"
   },
@@ -5031,7 +5036,7 @@
   "paths": {
     "/openai_compatible/audio/speech": {
       "post": {
-        "description": "Text to speech. Returns audio bytes in `response_format`, or a server-sent event stream when `stream_format` is `sse`. Body fields and query parameters are forwarded to the provider as sent.",
+        "description": "Text to speech. Returns audio bytes in `response_format`, or a server-sent event stream when `stream_format` is `sse`. Body fields and query parameters are forwarded to the provider as sent.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_speech_unversioned",
         "parameters": [
           {
@@ -5048,6 +5053,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5211,12 +5234,17 @@
         "tags": [
           "OpenAI Audio"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/audio/speech"
+        "x-quilr-alias-of": "/openai_compatible/v1/audio/speech",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/audio/transcriptions": {
       "post": {
-        "description": "Speech to text from a multipart upload. Every form field is forwarded. `stream=true` returns a server-sent event stream when no response guardrail needs the full transcript.",
+        "description": "Speech to text from a multipart upload. Every form field is forwarded. `stream=true` returns a server-sent event stream when no response guardrail needs the full transcript.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_transcription_unversioned",
         "parameters": [
           {
@@ -5233,6 +5261,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5370,12 +5416,18 @@
         "tags": [
           "OpenAI Audio"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/audio/transcriptions"
+        "x-quilr-alias-of": "/openai_compatible/v1/audio/transcriptions",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/audio/translations": {
       "post": {
-        "description": "Speech to English text from a multipart upload. Every form field is forwarded.",
+        "description": "Speech to English text from a multipart upload. Every form field is forwarded.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_translation_unversioned",
         "parameters": [
           {
@@ -5392,6 +5444,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5523,12 +5593,18 @@
         "tags": [
           "OpenAI Audio"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/audio/translations"
+        "x-quilr-alias-of": "/openai_compatible/v1/audio/translations",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/batches": {
       "get": {
-        "description": "Lists the provider's batch jobs. Query parameters are forwarded to the provider.",
+        "description": "Lists the provider's batch jobs. Query parameters are forwarded to the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_list_batches_unversioned",
         "parameters": [
           {
@@ -5676,10 +5752,14 @@
         "tags": [
           "OpenAI Batches"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/batches"
+        "x-quilr-alias-of": "/openai_compatible/v1/batches",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Starts a batch job from an uploaded input file (OpenAI, Azure OpenAI, Mistral or xAI). Responses use the OpenAI batch shape.",
+        "description": "Starts a batch job from an uploaded input file (OpenAI, Azure OpenAI, Mistral or xAI). Responses use the OpenAI batch shape.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_batch_unversioned",
         "parameters": [
           {
@@ -5705,6 +5785,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5831,12 +5920,16 @@
         "tags": [
           "OpenAI Batches"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/batches"
+        "x-quilr-alias-of": "/openai_compatible/v1/batches",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/batches/{batch_id}": {
       "get": {
-        "description": "Returns a batch job's status.",
+        "description": "Returns a batch job's status.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_retrieve_batch_unversioned",
         "parameters": [
           {
@@ -5974,12 +6067,16 @@
         "tags": [
           "OpenAI Batches"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/batches/{batch_id}"
+        "x-quilr-alias-of": "/openai_compatible/v1/batches/{batch_id}",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/batches/{batch_id}/cancel": {
       "post": {
-        "description": "Cancels a running batch job. No request body.",
+        "description": "Cancels a running batch job. No request body.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_cancel_batch_unversioned",
         "parameters": [
           {
@@ -6023,6 +6120,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6136,12 +6242,16 @@
         "tags": [
           "OpenAI Batches"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/batches/{batch_id}/cancel"
+        "x-quilr-alias-of": "/openai_compatible/v1/batches/{batch_id}/cancel",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/batches/{batch_id}/results": {
       "get": {
-        "description": "Returns a batch's per-request results. xAI providers only (xAI returns results through its API instead of an output file).",
+        "description": "Returns a batch's per-request results. xAI providers only (xAI returns results through its API instead of an output file).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_get_batch_results_unversioned",
         "parameters": [
           {
@@ -6279,12 +6389,16 @@
         "tags": [
           "OpenAI Batches"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/batches/{batch_id}/results"
+        "x-quilr-alias-of": "/openai_compatible/v1/batches/{batch_id}/results",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/chat/completions": {
       "post": {
-        "description": "OpenAI Chat Completions. Guardrails scan the request and the response; routing, failover, limits and quotas apply. Returns a server-sent event stream when `stream` is `true`.",
+        "description": "OpenAI Chat Completions. Guardrails scan the request and the response; routing, failover, limits and quotas apply. Returns a server-sent event stream when `stream` is `true`.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt, response cache.",
         "operationId": "OpenAI_create_chat_completion_unversioned",
         "parameters": [
           {
@@ -6301,6 +6415,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6413,6 +6545,12 @@
           "413": {
             "$ref": "#/components/responses/OpenAIError413"
           },
+          "415": {
+            "$ref": "#/components/responses/OpenAIError415"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
           "429": {
             "$ref": "#/components/responses/OpenAIError429"
           },
@@ -6453,12 +6591,28 @@
         "tags": [
           "OpenAI Chat and Completions"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/chat/completions"
+        "x-quilr-alias-of": "/openai_compatible/v1/chat/completions",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt",
+          "response_cache"
+        ]
       }
     },
     "/openai_compatible/completions": {
       "post": {
-        "description": "Legacy text completions, including fill in the middle with `suffix` on providers that support it. Returns a server-sent event stream when `stream` is `true`.",
+        "description": "Legacy text completions, including fill in the middle with `suffix` on providers that support it. Returns a server-sent event stream when `stream` is `true`.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_completion_unversioned",
         "parameters": [
           {
@@ -6475,6 +6629,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6607,12 +6779,16 @@
         "tags": [
           "OpenAI Chat and Completions"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/completions"
+        "x-quilr-alias-of": "/openai_compatible/v1/completions",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/embeddings": {
       "post": {
-        "description": "Embeds text with the app's embedding model. The input is scanned by the app's request guardrails.",
+        "description": "Embeds text with the app's embedding model. The input is scanned by the app's request guardrails.\n\n**Gateway features on this route:** request guardrails, model access rules, failover, limits, quotas and budgets, response cache.",
         "operationId": "OpenAI_create_embeddings_unversioned",
         "parameters": [
           {
@@ -6629,6 +6805,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6758,12 +6952,19 @@
         "tags": [
           "OpenAI Embeddings"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/embeddings"
+        "x-quilr-alias-of": "/openai_compatible/v1/embeddings",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "failover",
+          "limits",
+          "response_cache"
+        ]
       }
     },
     "/openai_compatible/files": {
       "get": {
-        "description": "Lists the provider's files. Query parameters are forwarded to the provider.",
+        "description": "Lists the provider's files. Query parameters are forwarded to the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_list_files_unversioned",
         "parameters": [
           {
@@ -6933,10 +7134,14 @@
         "tags": [
           "OpenAI Files"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/files"
+        "x-quilr-alias-of": "/openai_compatible/v1/files",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Uploads a file to the app's file provider (OpenAI, Azure OpenAI, Mistral or xAI).",
+        "description": "Uploads a file to the app's file provider (OpenAI, Azure OpenAI, Mistral or xAI).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_upload_file_unversioned",
         "parameters": [
           {
@@ -6962,6 +7167,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7088,12 +7302,16 @@
         "tags": [
           "OpenAI Files"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/files"
+        "x-quilr-alias-of": "/openai_compatible/v1/files",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/files/{file_id}": {
       "delete": {
-        "description": "Deletes a file at the provider.",
+        "description": "Deletes a file at the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_delete_file_unversioned",
         "parameters": [
           {
@@ -7137,6 +7355,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7250,10 +7477,14 @@
         "tags": [
           "OpenAI Files"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/files/{file_id}"
+        "x-quilr-alias-of": "/openai_compatible/v1/files/{file_id}",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Returns a file's metadata.",
+        "description": "Returns a file's metadata.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_retrieve_file_unversioned",
         "parameters": [
           {
@@ -7391,12 +7622,16 @@
         "tags": [
           "OpenAI Files"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/files/{file_id}"
+        "x-quilr-alias-of": "/openai_compatible/v1/files/{file_id}",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/files/{file_id}/content": {
       "get": {
-        "description": "Streams the file's bytes from the provider unchanged, with the provider's content type.",
+        "description": "Streams the file's bytes from the provider unchanged, with the provider's content type.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_download_file_content_unversioned",
         "parameters": [
           {
@@ -7541,12 +7776,16 @@
         "tags": [
           "OpenAI Files"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/files/{file_id}/content"
+        "x-quilr-alias-of": "/openai_compatible/v1/files/{file_id}/content",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/images/edits": {
       "post": {
-        "description": "Edits images from a prompt. Send multipart form data with image files, or JSON with image references; which one a provider accepts depends on the provider (Azure OpenAI takes multipart only, xAI JSON only).",
+        "description": "Edits images from a prompt. Send multipart form data with image files, or JSON with image references; which one a provider accepts depends on the provider (Azure OpenAI takes multipart only, xAI JSON only).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_image_edit_unversioned",
         "parameters": [
           {
@@ -7563,6 +7802,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7694,12 +7951,16 @@
         "tags": [
           "OpenAI Images"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/images/edits"
+        "x-quilr-alias-of": "/openai_compatible/v1/images/edits",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/images/generations": {
       "post": {
-        "description": "Creates images from a prompt. The prompt is scanned by the app's request guardrails.",
+        "description": "Creates images from a prompt.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_image_unversioned",
         "parameters": [
           {
@@ -7716,6 +7977,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7842,12 +8121,16 @@
         "tags": [
           "OpenAI Images"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/images/generations"
+        "x-quilr-alias-of": "/openai_compatible/v1/images/generations",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/images/variations": {
       "post": {
-        "description": "Creates variations of an uploaded image. OpenAI providers only.",
+        "description": "Creates variations of an uploaded image. OpenAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_image_variation_unversioned",
         "parameters": [
           {
@@ -7864,6 +8147,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7990,7 +8291,11 @@
         "tags": [
           "OpenAI Images"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/images/variations"
+        "x-quilr-alias-of": "/openai_compatible/v1/images/variations",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/models": {
@@ -8208,7 +8513,7 @@
     },
     "/openai_compatible/moderations": {
       "post": {
-        "description": "Moderation in the OpenAI shape; Mistral moderation results are converted to it.",
+        "description": "Moderation in the OpenAI shape; Mistral moderation results are converted to it.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_moderation_unversioned",
         "parameters": [
           {
@@ -8225,6 +8530,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8351,12 +8674,16 @@
         "tags": [
           "OpenAI Moderations and OCR"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/moderations"
+        "x-quilr-alias-of": "/openai_compatible/v1/moderations",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/ocr": {
       "post": {
-        "description": "Document OCR in Mistral's request and response shape. Mistral providers only.",
+        "description": "Document OCR in Mistral's request and response shape. Mistral providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_ocr_unversioned",
         "parameters": [
           {
@@ -8373,6 +8700,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8499,12 +8844,16 @@
         "tags": [
           "OpenAI Moderations and OCR"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/ocr"
+        "x-quilr-alias-of": "/openai_compatible/v1/ocr",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/v1/audio/speech": {
       "post": {
-        "description": "Text to speech. Returns audio bytes in `response_format`, or a server-sent event stream when `stream_format` is `sse`. Body fields and query parameters are forwarded to the provider as sent.",
+        "description": "Text to speech. Returns audio bytes in `response_format`, or a server-sent event stream when `stream_format` is `sse`. Body fields and query parameters are forwarded to the provider as sent.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_speech",
         "parameters": [
           {
@@ -8521,6 +8870,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8683,12 +9050,17 @@
         "summary": "Generate speech",
         "tags": [
           "OpenAI Audio"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/audio/transcriptions": {
       "post": {
-        "description": "Speech to text from a multipart upload. Every form field is forwarded. `stream=true` returns a server-sent event stream when no response guardrail needs the full transcript.",
+        "description": "Speech to text from a multipart upload. Every form field is forwarded. `stream=true` returns a server-sent event stream when no response guardrail needs the full transcript.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_transcription",
         "parameters": [
           {
@@ -8705,6 +9077,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8841,12 +9231,18 @@
         "summary": "Transcribe audio",
         "tags": [
           "OpenAI Audio"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/audio/translations": {
       "post": {
-        "description": "Speech to English text from a multipart upload. Every form field is forwarded.",
+        "description": "Speech to English text from a multipart upload. Every form field is forwarded.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_translation",
         "parameters": [
           {
@@ -8863,6 +9259,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8993,12 +9407,18 @@
         "summary": "Translate audio to English",
         "tags": [
           "OpenAI Audio"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/batches": {
       "get": {
-        "description": "Lists the provider's batch jobs. Query parameters are forwarded to the provider.",
+        "description": "Lists the provider's batch jobs. Query parameters are forwarded to the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_list_batches",
         "parameters": [
           {
@@ -9145,10 +9565,14 @@
         "summary": "List batches",
         "tags": [
           "OpenAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Starts a batch job from an uploaded input file (OpenAI, Azure OpenAI, Mistral or xAI). Responses use the OpenAI batch shape.",
+        "description": "Starts a batch job from an uploaded input file (OpenAI, Azure OpenAI, Mistral or xAI). Responses use the OpenAI batch shape.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_batch",
         "parameters": [
           {
@@ -9174,6 +9598,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -9299,12 +9732,16 @@
         "summary": "Create a batch",
         "tags": [
           "OpenAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/batches/{batch_id}": {
       "get": {
-        "description": "Returns a batch job's status.",
+        "description": "Returns a batch job's status.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_retrieve_batch",
         "parameters": [
           {
@@ -9441,12 +9878,16 @@
         "summary": "Retrieve a batch",
         "tags": [
           "OpenAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/batches/{batch_id}/cancel": {
       "post": {
-        "description": "Cancels a running batch job. No request body.",
+        "description": "Cancels a running batch job. No request body.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_cancel_batch",
         "parameters": [
           {
@@ -9490,6 +9931,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -9602,12 +10052,16 @@
         "summary": "Cancel a batch",
         "tags": [
           "OpenAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/batches/{batch_id}/results": {
       "get": {
-        "description": "Returns a batch's per-request results. xAI providers only (xAI returns results through its API instead of an output file).",
+        "description": "Returns a batch's per-request results. xAI providers only (xAI returns results through its API instead of an output file).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_get_batch_results",
         "parameters": [
           {
@@ -9744,12 +10198,16 @@
         "summary": "Get batch results",
         "tags": [
           "OpenAI Batches"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/chat/completions": {
       "post": {
-        "description": "OpenAI Chat Completions. Guardrails scan the request and the response; routing, failover, limits and quotas apply. Returns a server-sent event stream when `stream` is `true`.",
+        "description": "OpenAI Chat Completions. Guardrails scan the request and the response; routing, failover, limits and quotas apply. Returns a server-sent event stream when `stream` is `true`.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt, response cache.",
         "operationId": "OpenAI_create_chat_completion",
         "parameters": [
           {
@@ -9766,6 +10224,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -9878,6 +10354,12 @@
           "413": {
             "$ref": "#/components/responses/OpenAIError413"
           },
+          "415": {
+            "$ref": "#/components/responses/OpenAIError415"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
           "429": {
             "$ref": "#/components/responses/OpenAIError429"
           },
@@ -9917,12 +10399,28 @@
         "summary": "Create a chat completion",
         "tags": [
           "OpenAI Chat and Completions"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt",
+          "response_cache"
         ]
       }
     },
     "/openai_compatible/v1/completions": {
       "post": {
-        "description": "Legacy text completions, including fill in the middle with `suffix` on providers that support it. Returns a server-sent event stream when `stream` is `true`.",
+        "description": "Legacy text completions, including fill in the middle with `suffix` on providers that support it. Returns a server-sent event stream when `stream` is `true`.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_completion",
         "parameters": [
           {
@@ -9939,6 +10437,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10070,12 +10586,16 @@
         "summary": "Create a text completion",
         "tags": [
           "OpenAI Chat and Completions"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/decisions": {
       "post": {
-        "description": "OpenAI Decisions format for decision models (Microsoft-Decision-1 on Azure, TypeSafe). Text and JSON input only; images are refused. Request bodies may be gzip or deflate encoded; zstd is refused with 415. Unknown fields inside a question are rejected, as OpenAI does.",
+        "description": "OpenAI Decisions format for decision models (Microsoft-Decision-1 on Azure, TypeSafe). Text and JSON input only; images are refused. Request bodies may be gzip or deflate encoded; zstd is refused with 415. Unknown fields inside a question are rejected, as OpenAI does.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
         "operationId": "OpenAI_create_decisions",
         "parameters": [
           {
@@ -10092,6 +10612,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10220,12 +10758,17 @@
         "summary": "Answer decision questions",
         "tags": [
           "OpenAI Decisions"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/embeddings": {
       "post": {
-        "description": "Embeds text with the app's embedding model. The input is scanned by the app's request guardrails.",
+        "description": "Embeds text with the app's embedding model. The input is scanned by the app's request guardrails.\n\n**Gateway features on this route:** request guardrails, model access rules, failover, limits, quotas and budgets, response cache.",
         "operationId": "OpenAI_create_embeddings",
         "parameters": [
           {
@@ -10242,6 +10785,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10370,12 +10931,19 @@
         "summary": "Create embeddings",
         "tags": [
           "OpenAI Embeddings"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "failover",
+          "limits",
+          "response_cache"
         ]
       }
     },
     "/openai_compatible/v1/files": {
       "get": {
-        "description": "Lists the provider's files. Query parameters are forwarded to the provider.",
+        "description": "Lists the provider's files. Query parameters are forwarded to the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_list_files",
         "parameters": [
           {
@@ -10544,10 +11112,14 @@
         "summary": "List files",
         "tags": [
           "OpenAI Files"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Uploads a file to the app's file provider (OpenAI, Azure OpenAI, Mistral or xAI).",
+        "description": "Uploads a file to the app's file provider (OpenAI, Azure OpenAI, Mistral or xAI).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_upload_file",
         "parameters": [
           {
@@ -10573,6 +11145,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10698,12 +11279,16 @@
         "summary": "Upload a file",
         "tags": [
           "OpenAI Files"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/files/{file_id}": {
       "delete": {
-        "description": "Deletes a file at the provider.",
+        "description": "Deletes a file at the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_delete_file",
         "parameters": [
           {
@@ -10747,6 +11332,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10859,10 +11453,14 @@
         "summary": "Delete a file",
         "tags": [
           "OpenAI Files"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       },
       "get": {
-        "description": "Returns a file's metadata.",
+        "description": "Returns a file's metadata.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_retrieve_file",
         "parameters": [
           {
@@ -10999,12 +11597,16 @@
         "summary": "Retrieve a file",
         "tags": [
           "OpenAI Files"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/files/{file_id}/content": {
       "get": {
-        "description": "Streams the file's bytes from the provider unchanged, with the provider's content type.",
+        "description": "Streams the file's bytes from the provider unchanged, with the provider's content type.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_download_file_content",
         "parameters": [
           {
@@ -11148,12 +11750,16 @@
         "summary": "Download file content",
         "tags": [
           "OpenAI Files"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/images/edits": {
       "post": {
-        "description": "Edits images from a prompt. Send multipart form data with image files, or JSON with image references; which one a provider accepts depends on the provider (Azure OpenAI takes multipart only, xAI JSON only).",
+        "description": "Edits images from a prompt. Send multipart form data with image files, or JSON with image references; which one a provider accepts depends on the provider (Azure OpenAI takes multipart only, xAI JSON only).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_image_edit",
         "parameters": [
           {
@@ -11170,6 +11776,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -11300,12 +11924,16 @@
         "summary": "Edit images",
         "tags": [
           "OpenAI Images"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/images/generations": {
       "post": {
-        "description": "Creates images from a prompt. The prompt is scanned by the app's request guardrails.",
+        "description": "Creates images from a prompt.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_image",
         "parameters": [
           {
@@ -11322,6 +11950,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -11447,12 +12093,16 @@
         "summary": "Generate images",
         "tags": [
           "OpenAI Images"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/images/variations": {
       "post": {
-        "description": "Creates variations of an uploaded image. OpenAI providers only.",
+        "description": "Creates variations of an uploaded image. OpenAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_image_variation",
         "parameters": [
           {
@@ -11469,6 +12119,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -11594,6 +12262,10 @@
         "summary": "Create image variations",
         "tags": [
           "OpenAI Images"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
@@ -11810,7 +12482,7 @@
     },
     "/openai_compatible/v1/moderations": {
       "post": {
-        "description": "Moderation in the OpenAI shape; Mistral moderation results are converted to it.",
+        "description": "Moderation in the OpenAI shape; Mistral moderation results are converted to it.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_moderation",
         "parameters": [
           {
@@ -11827,6 +12499,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -11952,12 +12642,16 @@
         "summary": "Classify content",
         "tags": [
           "OpenAI Moderations and OCR"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/ocr": {
       "post": {
-        "description": "Document OCR in Mistral's request and response shape. Mistral providers only.",
+        "description": "Document OCR in Mistral's request and response shape. Mistral providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_ocr",
         "parameters": [
           {
@@ -11974,6 +12668,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -12099,6 +12811,10 @@
         "summary": "Extract text from a document",
         "tags": [
           "OpenAI Moderations and OCR"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
@@ -12203,7 +12919,7 @@
     },
     "/openai_compatible/v1/videos": {
       "get": {
-        "description": "Lists video jobs. OpenAI providers only. Query parameters are forwarded to the provider.",
+        "description": "Lists video jobs. OpenAI providers only. Query parameters are forwarded to the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_list_videos",
         "parameters": [
           {
@@ -12363,10 +13079,14 @@
         "summary": "List videos",
         "tags": [
           "OpenAI Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Starts a video generation job (OpenAI or xAI). Send JSON, or multipart form data with a reference image (OpenAI only). The prompt is scanned by the app's request guardrails.",
+        "description": "Starts a video generation job (OpenAI or xAI). Send JSON, or multipart form data with a reference image (OpenAI only).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_video",
         "parameters": [
           {
@@ -12383,6 +13103,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -12513,12 +13251,16 @@
         "summary": "Create a video",
         "tags": [
           "OpenAI Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/videos/edits": {
       "post": {
-        "description": "Starts a video edit job. xAI providers only.",
+        "description": "Starts a video edit job. xAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_video_edit",
         "parameters": [
           {
@@ -12535,6 +13277,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -12660,12 +13420,16 @@
         "summary": "Edit a video",
         "tags": [
           "OpenAI Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/videos/{video_id}": {
       "delete": {
-        "description": "Deletes a video. OpenAI providers only.",
+        "description": "Deletes a video. OpenAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_delete_video",
         "parameters": [
           {
@@ -12709,6 +13473,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -12821,10 +13594,14 @@
         "summary": "Delete a video",
         "tags": [
           "OpenAI Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       },
       "get": {
-        "description": "Returns a video job's status (OpenAI or xAI).",
+        "description": "Returns a video job's status (OpenAI or xAI).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_retrieve_video",
         "parameters": [
           {
@@ -12961,12 +13738,16 @@
         "summary": "Retrieve a video job",
         "tags": [
           "OpenAI Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/v1/videos/{video_id}/content": {
       "get": {
-        "description": "Streams the generated video (or a thumbnail or spritesheet) from the provider unchanged. OpenAI providers only.",
+        "description": "Streams the generated video (or a thumbnail or spritesheet) from the provider unchanged. OpenAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_download_video_content",
         "parameters": [
           {
@@ -13136,12 +13917,16 @@
         "summary": "Download video content",
         "tags": [
           "OpenAI Videos"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_compatible/videos": {
       "get": {
-        "description": "Lists video jobs. OpenAI providers only. Query parameters are forwarded to the provider.",
+        "description": "Lists video jobs. OpenAI providers only. Query parameters are forwarded to the provider.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_list_videos_unversioned",
         "parameters": [
           {
@@ -13302,10 +14087,14 @@
         "tags": [
           "OpenAI Videos"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/videos"
+        "x-quilr-alias-of": "/openai_compatible/v1/videos",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Starts a video generation job (OpenAI or xAI). Send JSON, or multipart form data with a reference image (OpenAI only). The prompt is scanned by the app's request guardrails.",
+        "description": "Starts a video generation job (OpenAI or xAI). Send JSON, or multipart form data with a reference image (OpenAI only).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_video_unversioned",
         "parameters": [
           {
@@ -13322,6 +14111,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -13453,12 +14260,16 @@
         "tags": [
           "OpenAI Videos"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/videos"
+        "x-quilr-alias-of": "/openai_compatible/v1/videos",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/videos/edits": {
       "post": {
-        "description": "Starts a video edit job. xAI providers only.",
+        "description": "Starts a video edit job. xAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_create_video_edit_unversioned",
         "parameters": [
           {
@@ -13475,6 +14286,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -13601,12 +14430,16 @@
         "tags": [
           "OpenAI Videos"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/videos/edits"
+        "x-quilr-alias-of": "/openai_compatible/v1/videos/edits",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/videos/{video_id}": {
       "delete": {
-        "description": "Deletes a video. OpenAI providers only.",
+        "description": "Deletes a video. OpenAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_delete_video_unversioned",
         "parameters": [
           {
@@ -13650,6 +14483,15 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -13763,10 +14605,14 @@
         "tags": [
           "OpenAI Videos"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/videos/{video_id}"
+        "x-quilr-alias-of": "/openai_compatible/v1/videos/{video_id}",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Returns a video job's status (OpenAI or xAI).",
+        "description": "Returns a video job's status (OpenAI or xAI).\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_retrieve_video_unversioned",
         "parameters": [
           {
@@ -13904,12 +14750,16 @@
         "tags": [
           "OpenAI Videos"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/videos/{video_id}"
+        "x-quilr-alias-of": "/openai_compatible/v1/videos/{video_id}",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_compatible/videos/{video_id}/content": {
       "get": {
-        "description": "Streams the generated video (or a thumbnail or spritesheet) from the provider unchanged. OpenAI providers only.",
+        "description": "Streams the generated video (or a thumbnail or spritesheet) from the provider unchanged. OpenAI providers only.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "OpenAI_download_video_content_unversioned",
         "parameters": [
           {
@@ -14080,7 +14930,11 @@
         "tags": [
           "OpenAI Videos"
         ],
-        "x-quilr-alias-of": "/openai_compatible/v1/videos/{video_id}/content"
+        "x-quilr-alias-of": "/openai_compatible/v1/videos/{video_id}/content",
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/v1/quilr/usage": {
@@ -14186,12 +15040,12 @@
   },
   "servers": [
     {
-      "description": "Quilr-hosted gateway. Pick your region; for a dedicated or on-premises gateway, replace the URL with your gateway's.",
+      "description": "Quilr-hosted gateway. Set `region` to the region your organization uses before importing (or request the document with `region`). For a dedicated or on-premises gateway, replace the URL with your gateway's.",
       "url": "https://{region}.quilr.ai",
       "variables": {
         "region": {
           "default": "guardrails-usa-1",
-          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global, routed to the nearest region",
+          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global",
           "enum": [
             "guardrails-usa-1",
             "guardrails-usa-2",
@@ -14227,15 +15081,15 @@
       "name": "OpenAI Moderations and OCR"
     },
     {
-      "description": "File upload and management. File ids belong to the provider that created them; later calls must reach the same provider.",
+      "description": "File upload and management. File ids belong to the provider that created them; later calls must reach the same provider. Off by default: answers 404 `endpoint_not_enabled` unless enabled for the gateway deployment.",
       "name": "OpenAI Files"
     },
     {
-      "description": "Asynchronous batch jobs. Batch ids belong to the provider that created them.",
+      "description": "Asynchronous batch jobs. Batch ids belong to the provider that created them. Off by default: answers 404 `endpoint_not_enabled` unless enabled for the gateway deployment.",
       "name": "OpenAI Batches"
     },
     {
-      "description": "Video generation jobs and downloads.",
+      "description": "Video generation jobs and downloads. Off by default: answers 404 `endpoint_not_enabled` unless enabled for the gateway deployment.",
       "name": "OpenAI Videos"
     },
     {

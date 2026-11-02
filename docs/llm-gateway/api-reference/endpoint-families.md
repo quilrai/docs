@@ -71,6 +71,8 @@ A key of another provider type gets `400 unsupported_provider_for_<family>`. On 
 
 ## Examples
 
+The examples use `guardrails.quilr.ai`; replace it with your region's host.
+
 ```bash
 # Moderation (OpenAI or Mistral model)
 curl https://guardrails.quilr.ai/openai_compatible/v1/moderations \

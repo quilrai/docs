@@ -34,6 +34,30 @@ export default {
     {key: 'specification', anchor: 'specification', label: 'Specification', desc: 'Fetch this OpenAPI document from the gateway.', tags: ['Specification'], noDownload: true},
   ],
   other: {key: 'other', anchor: 'other-operations', label: 'Other'},
+  // x-quilr-gateway-features keys -> public names, in display order. Unknown keys show as-is.
+  features: {
+    request_dlp: 'Request guardrails',
+    response_dlp: 'Response guardrails (non-streaming)',
+    guardian: 'Guardian checks',
+    hallucination: 'Hallucination check (non-streaming)',
+    attachments: 'Attachment scanning',
+    model_access: 'Model access rules',
+    group_routing: 'Routing groups',
+    context_routing: 'Content routing',
+    failover: 'Failover',
+    limits: 'Limits, quotas and budgets',
+    token_saving: 'Token saving',
+    prompt_store: 'Prompt Store',
+    universal_system_prompt: 'Universal system prompt',
+    response_cache: 'Response cache',
+  },
+  // Short column headings for the coverage table.
+  featureShort: {
+    request_dlp: 'Request guardrails', response_dlp: 'Response guardrails', guardian: 'Guardian', hallucination: 'Hallucination',
+    attachments: 'Attachments', model_access: 'Model access', group_routing: 'Routing groups', context_routing: 'Content routing',
+    failover: 'Failover', limits: 'Limits', token_saving: 'Token saving', prompt_store: 'Prompt Store',
+    universal_system_prompt: 'Universal prompt', response_cache: 'Response cache',
+  },
   playground: {
     'POST /openai_compatible/v1/chat/completions': 'chat',
     'POST /openai_responses/v1/responses': 'responses',

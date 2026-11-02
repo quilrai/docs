@@ -4,6 +4,7 @@ import {BookOpen, Boxes, Download, FlaskConical, KeyRound, Layers, Play, Route, 
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
+import {serverUrl} from './servers';
 
 // Management API v1 reference components. The Inference API page uses the same
 // components built for its own spec: ./inference.js.
@@ -16,8 +17,8 @@ const tryIt = operationId => `${playground}?tab=explorer&op=${encodeURIComponent
 // Operations whose scope depends on the collections they touch (batch, restore, history reads).
 const scopeNote = op => op['x-scopes-per-op'] ? 'Write (or read) scope of each collection it touches' : null;
 const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Routing:'routing-and-failover-api', Limits:'rate-limits-api', Incidents:'incidents-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
-// Examples use the same regional host as the inference examples in the integration guide.
-const host = (spec.servers || []).find(s => s.url.includes('usa-1'))?.url || spec.servers?.[0]?.url || 'https://guardrails-usa-1.quilr.ai';
+// Examples use the server's default region (https://{region}.quilr.ai with region at its default).
+const host = serverUrl(spec);
 const scopeDescriptions = spec['x-scope-descriptions'] || {};
 const shortPath = path => path.replace(adminBase,'/admin').replace(base,'');
 const print = value => JSON.stringify(value, null, 2);

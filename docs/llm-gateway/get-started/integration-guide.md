@@ -19,7 +19,7 @@ Connect to the QuilrAI gateway with your existing SDK. Change the base URL and t
 
 | Region | Base URL |
 |--------|----------|
-| **Nearest** (auto) | `https://guardrails.quilr.ai` |
+| **Global** | `https://guardrails.quilr.ai` |
 | **USA (US Central West)** | `https://guardrails-usa-1.quilr.ai` |
 | **USA (US East)** | `https://guardrails-usa-2.quilr.ai` |
 | **India 1** | `https://guardrails-india-1.quilr.ai` |
@@ -27,7 +27,7 @@ Connect to the QuilrAI gateway with your existing SDK. Change the base URL and t
 | **Japan** | `https://guardrails-jp-1.quilr.ai` |
 | **Europe** | `https://guardrails-europe-1.quilr.ai` |
 
-Use the regional endpoint closest to your application for production traffic. Use `https://guardrails.quilr.ai` only when you want global auto-routing. The examples below use US East.
+Configuration, keys and limits apply per region: use the regional host your organization uses for every call. The examples below use US East; replace the host with your region's.
 
 ### API Format
 

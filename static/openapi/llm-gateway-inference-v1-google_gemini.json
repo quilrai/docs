@@ -143,6 +143,15 @@
           "type": "string"
         }
       },
+      "X-Quilr-Token-Count-Source": {
+        "description": "`estimate` when the gateway counted tokens itself instead of the provider (the provider has no counting endpoint, or the model is served through another API).",
+        "schema": {
+          "enum": [
+            "estimate"
+          ],
+          "type": "string"
+        }
+      },
       "X-RateLimit-Limit": {
         "description": "Limit of the exhausted quota or app limit (429).",
         "schema": {
@@ -4251,7 +4260,7 @@
     }
   },
   "info": {
-    "description": "Google Gemini and Vertex AI APIs in Google's own wire format. Point the Vertex AI or google-genai SDK at `<gateway>/vertex_ai` and it appends the native resource path, for example `v1/projects/{project}/locations/{location}/publishers/google/models/{model}:generateContent`. The project and location in the path are accepted but not used: the app's configuration decides the upstream project, location and credentials. `generateContent` and `streamGenerateContent` run the app's guardrails, routing and failover; every other method is forwarded to the provider with the app's access rules, limits and best-effort guardrails, and its response comes back unchanged.\n\n**Path matching.** Every `POST` under `/vertex_ai/` is accepted when it has the shape `[{api_version}/][projects/{project}/locations/{location}/]` followed by `publishers/{publisher}/models/{model}:{method}`, `models/{model}:{method}`, `endpoints/{endpoint}:{method}` or `endpoints/{endpoint}/{sub_path}`; the version and the project and location prefix are optional. The operations below document the common methods only. In an API gateway, route `/vertex_ai/` as a prefix (Kong: one route with `paths: [\"/vertex_ai/\"]`, `strip_path: false`) rather than one route per operation, so other methods and versions keep working.\n\n**Streaming.** `streamGenerateContent` returns server-sent events with `?alt=sse` (what the SDKs send), otherwise one JSON array of responses. Errors use the Google error envelope.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the app's guardrails, routing, failover, limits and logging, then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway response headers.** Besides the provider's own headers (passed through), the gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
+    "description": "Google Gemini and Vertex AI APIs in Google's own wire format. Point the Vertex AI or google-genai SDK at `<gateway>/vertex_ai` and it appends the native resource path, for example `v1/projects/{project}/locations/{location}/publishers/google/models/{model}:generateContent`. The project and location in the path are accepted but not used: the app's configuration decides the upstream project, location and credentials. `generateContent` and `streamGenerateContent` run the app's guardrails, routing and failover; every other method is forwarded to the provider with the app's access rules, limits and best-effort guardrails, and its response comes back unchanged.\n\n**Path matching.** Every `POST` under `/vertex_ai/` is accepted when it has the shape `[{api_version}/][projects/{project}/locations/{location}/]` followed by `publishers/{publisher}/models/{model}:{method}`, `models/{model}:{method}`, `endpoints/{endpoint}:{method}` or `endpoints/{endpoint}/{sub_path}`; the version and the project and location prefix are optional. The operations below document the common methods only. In an API gateway, route `/vertex_ai/` as a prefix (Kong: one route with `paths: [\"/vertex_ai/\"]`, `strip_path: false`) rather than one route per operation, so other methods and versions keep working.\n\n**Streaming.** `streamGenerateContent` returns server-sent events with `?alt=sse` (what the SDKs send), otherwise one JSON array of responses. Errors use the Google error envelope.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the gateway features that apply to their route (see below), then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway features per route.** Not every route runs every gateway feature. Each model-call operation lists what applies to it in `x-quilr-gateway-features` and in its description: guardrails, Guardian, attachment scanning, model access, routing, failover, limits and quotas, token saving, Prompt Store, response cache. Guardrails do not scan the moderations, images, OCR, completions, files, batches and videos routes (and the Mistral and xAI image, video, batch and fill-in-the-middle routes).\n\n**Gateway response headers.** Most model-call routes relay the provider's own response headers (the endpoint-family routes above do not). The gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
     "title": "Quilr LLM Gateway: Google Gemini and Vertex AI",
     "version": "1.0.0"
   },
@@ -4259,7 +4268,7 @@
   "paths": {
     "/vertex_ai/{api_version}/models/{model}:batchEmbedContents": {
       "post": {
-        "description": "Gemini API `batchEmbedContents`, forwarded to the provider.",
+        "description": "Gemini API `batchEmbedContents`, forwarded to the provider.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_api_batch_embed_contents",
         "parameters": [
           {
@@ -4296,6 +4305,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4385,6 +4412,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -4424,12 +4454,27 @@
         "summary": "Batch embed contents (Gemini API path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/models/{model}:countTokens": {
       "post": {
-        "description": "Gemini API `countTokens`, forwarded to the provider. Makes no generation call.",
+        "description": "Gemini API `countTokens`, forwarded to the provider. Makes no generation call.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_api_count_tokens",
         "parameters": [
           {
@@ -4466,6 +4511,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4555,6 +4618,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -4594,12 +4660,27 @@
         "summary": "Count tokens (Gemini API path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/models/{model}:embedContent": {
       "post": {
-        "description": "Gemini API `embedContent`, forwarded to the provider.",
+        "description": "Gemini API `embedContent`, forwarded to the provider.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_api_embed_content",
         "parameters": [
           {
@@ -4636,6 +4717,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4725,6 +4824,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -4764,12 +4866,27 @@
         "summary": "Embed content (Gemini API path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/models/{model}:generateContent": {
       "post": {
-        "description": "Gemini API `generateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded.",
+        "description": "Gemini API `generateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_api_generate_content",
         "parameters": [
           {
@@ -4806,6 +4923,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4916,6 +5051,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -4955,12 +5093,27 @@
         "summary": "Generate content (Gemini API path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/models/{model}:streamGenerateContent": {
       "post": {
-        "description": "Gemini API `streamGenerateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded. Send `alt=sse` for server-sent events.",
+        "description": "Gemini API `streamGenerateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded. Send `alt=sse` for server-sent events.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_api_stream_generate_content",
         "parameters": [
           {
@@ -5010,6 +5163,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5113,6 +5284,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -5152,12 +5326,27 @@
         "summary": "Stream generated content (Gemini API path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/endpoints/openapi/chat/completions": {
       "post": {
-        "description": "Vertex AI's OpenAI-compatible chat completions endpoint. The body is an OpenAI chat completions request whose `model` (for example `google/gemini-2.5-flash`) is checked against the app's models. Forwarded to the provider; with `stream: true` the provider's event stream is returned unchanged.",
+        "description": "Vertex AI's OpenAI-compatible chat completions endpoint. The body is an OpenAI chat completions request whose `model` (for example `google/gemini-2.5-flash`) is checked against the app's models. Forwarded to the provider; with `stream: true` the provider's event stream is returned unchanged.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_openapi_chat_completions",
         "parameters": [
           {
@@ -5203,6 +5392,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5326,6 +5533,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -5365,12 +5575,27 @@
         "summary": "OpenAI-compatible chat completions on Vertex AI",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/endpoints/{endpoint}:predict": {
       "post": {
-        "description": "Vertex AI endpoint `predict`. The model is the one the app maps to this endpoint. Forwarded to the provider; the response comes back unchanged.",
+        "description": "Vertex AI endpoint `predict`. The model is the one the app maps to this endpoint. Forwarded to the provider; the response comes back unchanged.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_endpoint_predict",
         "parameters": [
           {
@@ -5425,6 +5650,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5514,6 +5757,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -5553,12 +5799,27 @@
         "summary": "Predict on a Vertex AI endpoint",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/publishers/{publisher}/models/{model}:countTokens": {
       "post": {
-        "description": "Vertex AI `countTokens`, forwarded to the provider. Makes no generation call.",
+        "description": "Vertex AI `countTokens`, forwarded to the provider. Makes no generation call.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_count_tokens",
         "parameters": [
           {
@@ -5623,6 +5884,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5712,6 +5991,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -5751,12 +6033,27 @@
         "summary": "Count tokens (Vertex AI path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/publishers/{publisher}/models/{model}:embedContent": {
       "post": {
-        "description": "Vertex AI `embedContent`, forwarded to the provider.",
+        "description": "Vertex AI `embedContent`, forwarded to the provider.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_embed_content",
         "parameters": [
           {
@@ -5821,6 +6118,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5910,6 +6225,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -5949,12 +6267,27 @@
         "summary": "Embed content (Vertex AI path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/publishers/{publisher}/models/{model}:generateContent": {
       "post": {
-        "description": "Vertex AI `generateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded.",
+        "description": "Vertex AI `generateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_generate_content",
         "parameters": [
           {
@@ -6019,6 +6352,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6129,6 +6480,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -6168,12 +6522,27 @@
         "summary": "Generate content (Vertex AI path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/publishers/{publisher}/models/{model}:predict": {
       "post": {
-        "description": "Vertex AI `predict` (for example text embedding and image models). Forwarded to the provider with the app's access rules and limits.",
+        "description": "Vertex AI `predict` (for example text embedding and image models). Forwarded to the provider with the app's access rules and limits.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_predict",
         "parameters": [
           {
@@ -6242,6 +6611,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -6327,6 +6714,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -6366,12 +6756,27 @@
         "summary": "Predict (publisher model)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/publishers/{publisher}/models/{model}:rawPredict": {
       "post": {
-        "description": "Vertex AI `rawPredict` with the publisher's own body (for example Anthropic Messages for Claude on Vertex AI). Forwarded to the provider with the app's access rules and limits.",
+        "description": "Vertex AI `rawPredict` with the publisher's own body (for example Anthropic Messages for Claude on Vertex AI). Forwarded to the provider with the app's access rules and limits.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_raw_predict",
         "parameters": [
           {
@@ -6440,6 +6845,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -6525,6 +6948,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -6564,12 +6990,27 @@
         "summary": "Raw predict (publisher model)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/publishers/{publisher}/models/{model}:streamGenerateContent": {
       "post": {
-        "description": "Vertex AI `streamGenerateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded. Send `alt=sse` for server-sent events.",
+        "description": "Vertex AI `streamGenerateContent`. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded. Send `alt=sse` for server-sent events.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_stream_generate_content",
         "parameters": [
           {
@@ -6647,6 +7088,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6750,6 +7209,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -6789,12 +7251,27 @@
         "summary": "Stream generated content (Vertex AI path)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertex_ai/{api_version}/projects/{project}/locations/{location}/publishers/{publisher}/models/{model}:streamRawPredict": {
       "post": {
-        "description": "Vertex AI `streamRawPredict` with the publisher's own body; the provider's stream is returned unchanged. Forwarded to the provider with the app's access rules and limits.",
+        "description": "Vertex AI `streamRawPredict` with the publisher's own body; the provider's stream is returned unchanged. Forwarded to the provider with the app's access rules and limits.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_vertex_stream_raw_predict",
         "parameters": [
           {
@@ -6859,6 +7336,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6954,6 +7449,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -6993,12 +7491,27 @@
         "summary": "Stream raw predict (publisher model)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     },
     "/vertexai/v1/generateContent": {
       "post": {
-        "description": "Gemini `generateContent` with `model` in the body instead of the path. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded. With `stream: true` the response is server-sent events of GenerateContentResponse objects.",
+        "description": "Gemini `generateContent` with `model` in the body instead of the path. Runs the app's guardrails, routing and failover, then calls the provider serving the model. Query parameters other than credentials are forwarded. With `stream: true` the response is server-sent events of GenerateContentResponse objects.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, hallucination check (non-streaming), attachment scanning, model access rules, routing groups, content routing, failover, limits, quotas and budgets, token saving, Prompt Store, universal system prompt.",
         "operationId": "Gemini_generate_content_body_model",
         "parameters": [
           {
@@ -7015,6 +7528,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7131,6 +7662,9 @@
           "415": {
             "$ref": "#/components/responses/GoogleError415"
           },
+          "422": {
+            "$ref": "#/components/responses/GoogleError422"
+          },
           "429": {
             "$ref": "#/components/responses/GoogleError429"
           },
@@ -7170,18 +7704,33 @@
         "summary": "Generate content (model in the body)",
         "tags": [
           "Google Gemini and Vertex AI"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "hallucination",
+          "attachments",
+          "model_access",
+          "group_routing",
+          "context_routing",
+          "failover",
+          "limits",
+          "token_saving",
+          "prompt_store",
+          "universal_system_prompt"
         ]
       }
     }
   },
   "servers": [
     {
-      "description": "Quilr-hosted gateway. Pick your region; for a dedicated or on-premises gateway, replace the URL with your gateway's.",
+      "description": "Quilr-hosted gateway. Set `region` to the region your organization uses before importing (or request the document with `region`). For a dedicated or on-premises gateway, replace the URL with your gateway's.",
       "url": "https://{region}.quilr.ai",
       "variables": {
         "region": {
           "default": "guardrails-usa-1",
-          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global, routed to the nearest region",
+          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global",
           "enum": [
             "guardrails-usa-1",
             "guardrails-usa-2",

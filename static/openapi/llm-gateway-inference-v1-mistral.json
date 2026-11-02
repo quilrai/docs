@@ -143,6 +143,15 @@
           "type": "string"
         }
       },
+      "X-Quilr-Token-Count-Source": {
+        "description": "`estimate` when the gateway counted tokens itself instead of the provider (the provider has no counting endpoint, or the model is served through another API).",
+        "schema": {
+          "enum": [
+            "estimate"
+          ],
+          "type": "string"
+        }
+      },
       "X-RateLimit-Limit": {
         "description": "Limit of the exhausted quota or app limit (429).",
         "schema": {
@@ -3684,7 +3693,7 @@
     }
   },
   "info": {
-    "description": "Mistral's own OCR and fill-in-the-middle (FIM) APIs, in Mistral's request and response format, served for the app's Mistral provider. Point the Mistral SDK at `<gateway>/mistral`. Request bodies are forwarded unchanged apart from guardrail processing, so every Mistral field is available.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the app's guardrails, routing, failover, limits and logging, then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway response headers.** Besides the provider's own headers (passed through), the gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
+    "description": "Mistral's own OCR and fill-in-the-middle (FIM) APIs, in Mistral's request and response format, served for the app's Mistral provider. Point the Mistral SDK at `<gateway>/mistral`. Request bodies are forwarded unchanged, so every Mistral field is available.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the gateway features that apply to their route (see below), then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway features per route.** Not every route runs every gateway feature. Each model-call operation lists what applies to it in `x-quilr-gateway-features` and in its description: guardrails, Guardian, attachment scanning, model access, routing, failover, limits and quotas, token saving, Prompt Store, response cache. Guardrails do not scan the moderations, images, OCR, completions, files, batches and videos routes (and the Mistral and xAI image, video, batch and fill-in-the-middle routes).\n\n**Gateway response headers.** Most model-call routes relay the provider's own response headers (the endpoint-family routes above do not). The gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
     "title": "Quilr LLM Gateway: Mistral",
     "version": "1.0.0"
   },
@@ -3692,7 +3701,7 @@
   "paths": {
     "/mistral/v1/fim/completions": {
       "post": {
-        "description": "Completes code between `prompt` and `suffix`. `prompt` and `suffix` are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream of Mistral completion chunks ending with `data: [DONE]`.",
+        "description": "Completes code between `prompt` and `suffix`. With `stream: true` the response is a server-sent event stream of Mistral completion chunks ending with `data: [DONE]`.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "Mistral_create_fim_completion",
         "parameters": [
           {
@@ -3709,6 +3718,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -3845,12 +3872,16 @@
         "summary": "Create a fill-in-the-middle completion",
         "tags": [
           "Mistral"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     },
     "/mistral/v1/ocr": {
       "post": {
-        "description": "Runs Mistral OCR on a document or image and returns each page as Markdown.",
+        "description": "Runs Mistral OCR on a document or image and returns each page as Markdown.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
         "operationId": "Mistral_ocr",
         "parameters": [
           {
@@ -3867,6 +3898,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -3999,18 +4048,22 @@
         "summary": "Extract text from a document",
         "tags": [
           "Mistral"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
         ]
       }
     }
   },
   "servers": [
     {
-      "description": "Quilr-hosted gateway. Pick your region; for a dedicated or on-premises gateway, replace the URL with your gateway's.",
+      "description": "Quilr-hosted gateway. Set `region` to the region your organization uses before importing (or request the document with `region`). For a dedicated or on-premises gateway, replace the URL with your gateway's.",
       "url": "https://{region}.quilr.ai",
       "variables": {
         "region": {
           "default": "guardrails-usa-1",
-          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global, routed to the nearest region",
+          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global",
           "enum": [
             "guardrails-usa-1",
             "guardrails-usa-2",
@@ -4026,7 +4079,7 @@
   ],
   "tags": [
     {
-      "description": "Mistral's own OCR and fill-in-the-middle (FIM) APIs, in Mistral's request and response format, served for the app's Mistral provider. Point the Mistral SDK at `<gateway>/mistral`. Request bodies are forwarded unchanged apart from guardrail processing, so every Mistral field is available.",
+      "description": "Mistral's own OCR and fill-in-the-middle (FIM) APIs, in Mistral's request and response format, served for the app's Mistral provider. Point the Mistral SDK at `<gateway>/mistral`. Request bodies are forwarded unchanged, so every Mistral field is available.",
       "name": "Mistral"
     }
   ],

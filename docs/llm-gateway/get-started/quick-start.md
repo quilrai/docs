@@ -127,7 +127,7 @@ resp = client.chat.completions.create(
 print(resp.choices[0].message.content)
 ```
 
-The example uses US East. Select the nearest region and the appropriate path for your SDK (Anthropic, boto3, Vertex AI, Responses, Realtime), in the [Integration Guide](./integration-guide).
+The example uses US East; replace the host with the regional host your organization uses. Select the appropriate path for your SDK (Anthropic, boto3, Vertex AI, Responses, Realtime), in the [Integration Guide](./integration-guide).
 
 ## 3. Check that it worked
 

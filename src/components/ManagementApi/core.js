@@ -29,6 +29,7 @@ import styles from './styles.module.css';
  *   directoryNote({aliasCount}) appended to the result count
  *   rowExtra(op, aliases)      extra element in a directory row
  *   href(op)                   directory row link (required)
+ *   description(op)            the operation description element (default: one <p>)
  *   requirements(op)           the requirement row element (required)
  *   aliasNote(op, aliases)     element under the header when aliases exist
  *   curl(op, body)             cURL text (required)
@@ -199,7 +200,7 @@ export function createApiReference(config) {
     const code=custom || {language:tab==='cURL'?'bash':'json', title:tab==='Response'&&success?`${success[0]} response example`:undefined, code:tab==='cURL'?config.curl(op,chosen,mediaType):tab==='JSON body'?print(chosen):response?print(response):'// See the response schema for this operation.'};
     const otherTypes=config.requestContent ? Object.keys(op.requestBody?.content || {}).filter(t=>t!==mediaType) : [];
     return <article className={styles.operation} id={op.operationId}>
-      <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{shortPath(op.path)}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3><p>{op.description}</p>{config.requirements(op)}{aliases.length>0&&config.aliasNote?.(op, aliases)}</header>
+      <header className={styles.operationHeader}><div className={styles.operationPath}><Method method={op.method}/><code>{shortPath(op.path)}</code></div><h3><a href={'#'+op.operationId}>{op.summary}</a></h3>{config.description ? config.description(op) : <p>{op.description}</p>}{config.requirements(op)}{aliases.length>0&&config.aliasNote?.(op, aliases)}</header>
       <div className={styles.operationBody}>
         {op.parameters.length>0&&<Panel className={styles.parameterPanel} summary={<summary>Path, query &amp; header parameters <span>{op.parameters.length}</span></summary>}><SchemaFields schema={parameterSchema}/></Panel>}
         {content ? <Panel className={styles.parameterPanel} summary={<summary>Full request body specification <span>{mediaType}</span>{otherTypes.length>0&&<span>also {otherTypes.join(', ')}</span>}</summary>}><p className={styles.schemaIntro}>{resolve(content.schema).description}</p><SchemaFields schema={content.schema}/></Panel> : <p className={styles.noBody}>No request body.</p>}

@@ -73,11 +73,11 @@ Create a QuilrAI key with provider `copilot_studio`, then use the closest region
 https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx
 ```
 
-The example uses US East. Choose the nearest regional base URL for your tenant:
+The example uses US East. Use the regional base URL your organization uses:
 
 | Endpoint | Region | Endpoint base |
 |----------|--------|---------------|
-| Global (auto-routed) | Nearest | `https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx` |
+| Global | Global | `https://guardrails.quilr.ai/copilot_studio/sk-quilr-xxx` |
 | USA 1 | US Central West | `https://guardrails-usa-1.quilr.ai/copilot_studio/sk-quilr-xxx` |
 | USA 2 | US East | `https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx` |
 | India 1 | Mumbai | `https://guardrails-india-1.quilr.ai/copilot_studio/sk-quilr-xxx` |

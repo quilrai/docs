@@ -13,7 +13,7 @@
  *     list of the operations / fields they show. On the Inference API page
  *     (components imported from ManagementApi/inference) they read the
  *     inference spec, and its tables (<ErrorCodeTable>, <ResponseHeaderTable>,
- *     <CredentialTable>, <SpecDownloads>, <RegionTable>) become markdown tables.
+ *     <CredentialTable>, <SpecDownloads>, <RegionTable>, <GatewayFeatureTable>) become markdown tables.
  *   - Product landing pages (<ProductLanding product="..."/>) become a real
  *     page: name, tagline, tasks and the section map from the sidebar.
  *   - Deployment SOP components (<InstallSop>, <SopLink>) become links to the
@@ -165,7 +165,8 @@ function inferenceComponents(text, {site, siteDir}) {
     .replace(/<RegionTable\s*\/>/g, () => {
       const v = server?.variables?.region;
       if (!v) return `Base URL: ${host}`;
-      return [`Base URL: \`${server.url}\` (region variable, default \`${v.default}\`). Regions: ${v.description || ''}`, '', ...(v.enum || []).map((r) => `- ${server.url.replace('{region}', r)}`)].join('\n');
+      const labels = Object.fromEntries([...(v.description || '').matchAll(/`([^`]+)`:\s*([^;]+)/g)].map((m) => [m[1], m[2].trim()]));
+      return [`Base URL: \`${server.url}\` (region variable, default \`${v.default}\`). Regions:`, '', ...(v.enum || []).map((r) => `- ${labels[r] || r}: ${server.url.replace('{region}', r)} (\`region=${r}\`)`)].join('\n');
     })
     .replace(/<CredentialTable\s*\/>/g, () =>
       ['| Header | Details |', '|---|---|', ...Object.keys(schemes).map((n) => `| \`${header(n)}\` | ${cell(schemes[n].description)} |`)].join('\n'))
@@ -176,7 +177,32 @@ function inferenceComponents(text, {site, siteDir}) {
         `| \`${c.code}\` | ${c.source} | ${c.status} | ${c.group} | ${cell(c.description)}${c.failover_class ? ` Failover class: \`${c.failover_class}\`.` : ''}${c.also_sent_by_providers ? ' Also sent by providers.' : ''} |`)].join('\n'))
     .replace(/<SpecDownloads\s*\/>/g, () =>
       [`- All families: ${specUrl} (live: \`GET /llmgateway_inference_apis/v1/openapi.json\`)`,
-        ...familyKeys.map((k) => `- ${data.families.find((f) => f.key === k)?.label || k}: ${site}/openapi/llm-gateway-inference-v1-${k}.json (live: \`?family=${k}\`)`)].join('\n'))
+        ...familyKeys.map((k) => `- ${data.families.find((f) => f.key === k)?.label || k}: ${site}/openapi/llm-gateway-inference-v1-${k}.json (live: \`?family=${k}\`)`),
+        '', 'Add `region=<value>` (for example `?region=guardrails-europe-1&family=anthropic_messages`) to the live route to get a copy pinned to one region.'].join('\n'))
+    .replace(/<GatewayFeatureTable\s*\/>/g, () => {
+      const names = data.features || {};
+      const groups = [];
+      for (const op of canonical) {
+        const f = op['x-quilr-gateway-features'] || [];
+        if (!f.length) continue;
+        const key = `${op.tags[0]}|${[...f].sort().join(',')}`;
+        let g = groups.find((x) => x.key === key);
+        if (!g) groups.push((g = {key, tag: op.tags[0], features: f, ops: []}));
+        g.ops.push(op.summary);
+      }
+      const tagOrder = Object.fromEntries((spec.tags || []).map((t, i) => [t.name, i]));
+      groups.sort((a, b) => (tagOrder[a.tag] ?? 999) - (tagOrder[b.tag] ?? 999));
+      const none = canonical.filter((op) => !(op['x-quilr-gateway-features'] || []).length);
+      return [
+        'Gateway features by route (from `x-quilr-gateway-features`):',
+        '',
+        '| Route | Operations | Gateway features |',
+        '|---|---|---|',
+        ...groups.map((g) => `| ${cell(g.tag)} | ${cell(g.ops.join(', '))} | ${cell(g.features.map((k) => names[k] || k).join(', '))} |`),
+        '',
+        none.length ? `No gateway features (no model call): ${none.map((op) => `${op.tags[0]}: ${op.summary}`).join('; ')}.` : '',
+      ].join('\n');
+    })
     .replace(/<EndpointDirectory\s*\/>/g, () =>
       [`Every operation (full definitions: ${specUrl}; base URL ${host}):`, '', ...canonical.map(line)].join('\n'))
     .replace(/<ApiReference\s+family=["']([\w-]+)["']\s*\/>/g, (_, key) => {
@@ -188,7 +214,7 @@ function inferenceComponents(text, {site, siteDir}) {
 
 // Replaces the Management API components with markdown.
 function apiComponents(text, {site, siteDir, fullText}) {
-  if (!/<(ApiReference|SchemaReference|EndpointDirectory|ResourceCards|ManagementHero|ResponseHeaderTable|ErrorCodeTable|CredentialTable|SpecDownloads|RegionTable)\b/.test(text)) return text;
+  if (!/<(ApiReference|SchemaReference|EndpointDirectory|ResourceCards|ManagementHero|GatewayFeatureTable|ResponseHeaderTable|ErrorCodeTable|CredentialTable|SpecDownloads|RegionTable)\b/.test(text)) return text;
   if (INFERENCE_IMPORT.test(fullText || '')) return inferenceComponents(text, {site, siteDir});
   const spec = loadSpec(siteDir);
   const ops = operations(spec);

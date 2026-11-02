@@ -5,7 +5,9 @@ import {ArrowLeftRight, Bot, Boxes, Cloud, Download, FileJson, FlaskConical, Glo
 import spec from '@site/static/openapi/llm-gateway-inference-v1.json';
 import familyData from '@site/src/data/inferenceApiFamilies';
 import styles from './styles.module.css';
+import CodeBlock from '@theme/CodeBlock';
 import {createApiReference} from './core';
+import {regionsOf, serverUrl, defaultRegion} from './servers';
 
 // Inference API v1 reference: the Management API components (./core.js) built
 // for static/openapi/llm-gateway-inference-v1.json, plus the tables only this
@@ -19,9 +21,16 @@ const liveSpecPath = '/llmgateway_inference_apis/v1/openapi.json';
 const playground = '/llm-gateway-playground';
 const icons = {openai_compatible: MessagesSquare, openai_responses: Sparkles, azure_openai: Cloud, openai_realtime: Radio, openai_assistants: Bot, anthropic_messages: ArrowLeftRight, bedrock_runtime: Boxes, google_gemini: Globe, rerank: ListOrdered, mistral: Wind, xai: Zap, sarvam: Languages, typesafe: Scale, specification: FileJson, other: Route};
 
-// The base URL with each server variable at its default (https://{region}.quilr.ai -> the default region).
-export const serverUrl = (server = spec.servers?.[0]) => server ? server.url.replace(/\{(\w+)\}/g, (m, name) => server.variables?.[name]?.default ?? m) : 'https://guardrails-usa-1.quilr.ai';
-const host = serverUrl();
+// Examples use the server's default region (https://{region}.quilr.ai).
+const host = serverUrl(spec);
+const regions = regionsOf(spec);
+
+// x-quilr-gateway-features: the gateway features that apply on an operation's route.
+const featureNames = familyData.features;
+const featureKeys = [...Object.keys(featureNames), ...new Set(Object.values(spec.paths).flatMap(ms => Object.values(ms).flatMap(o => o['x-quilr-gateway-features'] || [])).filter(k => !featureNames[k]))];
+const featuresOf = op => op['x-quilr-gateway-features'] || [];
+// The description's own "Gateway features on this route: ..." sentence is shown as the GATEWAY row instead.
+const FEATURE_SENTENCE = /\*\*Gateway features on this route:\*\*[^.]*\.\s*/;
 
 const families = familyData.families;
 const familyByTag = Object.fromEntries(families.flatMap(f => f.tags.map(t => [t, f])));
@@ -127,7 +136,8 @@ api = createApiReference({
   directoryNote: ({aliasCount}) => aliasCount > 0 && <> (plus {aliasCount} <Link to={page + '#aliases'}>alias paths</Link>, listed under each operation)</>,
   rowExtra: (op, aliases) => (aliases.length > 0 || isWebSocket(op)) && <span className={styles.rowBadges}>{isWebSocket(op) && <em>WebSocket</em>}{aliases.length > 0 && <em>+{aliases.length} alias{aliases.length === 1 ? '' : 'es'}</em>}</span>,
   href: op => `${page}#${op.operationId}`,
-  requirements: op => <div className={styles.scopeRow}><span>ACCEPTS</span>{schemesOf(op).map(name => <code key={name} title={spec.components.securitySchemes[name]?.description}>{schemeHeader(name)}</code>)}{isWebSocket(op) && <><span className={styles.rowGap}>PROTOCOL</span><code>WebSocket (101)</code></>}</div>,
+  description: op => <>{op.description.replace(FEATURE_SENTENCE, '').split(/\n\s*\n/).filter(p => p.trim()).map((p, i) => <p key={i}><Inline text={p}/></p>)}</>,
+  requirements: op => <><div className={styles.scopeRow}><span>GATEWAY</span>{featuresOf(op).length ? featuresOf(op).map(k => <code key={k}>{featureNames[k] || k}</code>) : <code>No gateway features (no model call)</code>}</div><div className={`${styles.scopeRow} ${styles.rowSpaced}`}><span>ACCEPTS</span>{schemesOf(op).map(name => <code key={name} title={spec.components.securitySchemes[name]?.description}>{schemeHeader(name)}</code>)}{isWebSocket(op) && <><span className={styles.rowGap}>PROTOCOL</span><code>WebSocket (101)</code></>}</div></>,
   aliasNote: (op, aliases) => <details className={styles.aliasList}><summary>Also served at {aliases.length} alias path{aliases.length === 1 ? '' : 's'}</summary><ul>{aliases.map(a => <li key={a.operationId}><api.Method method={a.method}/><code>{a.path}</code></li>)}</ul></details>,
   requestContent: op => {
     const content = op.requestBody?.content;
@@ -217,30 +227,75 @@ export function ErrorCodeTable() {
   </section>;
 }
 
-// Combined and per-family OpenAPI documents. Families come from the spec endpoint's `family` enum.
+// Combined and per-family OpenAPI documents, with a region picker for the live (pinned) copy.
+// Families come from the spec endpoint's `family` enum, regions from the server variable.
 export function SpecDownloads() {
   const specOp = api.operations.find(op => op.path === liveSpecPath);
   const keys = specOp?.parameters.find(p => p.name === 'family')?.schema?.enum || families.filter(f => !f.noDownload).map(f => f.key);
   const countFor = key => api.allOperations.filter(op => familyOf(op).key === key).length;
   const label = key => families.find(f => f.key === key)?.label || key;
-  return <table className={styles.specTable}><thead><tr><th>Family</th><th>Download</th><th>Live from your gateway</th><th>Paths</th></tr></thead><tbody>
-    <tr><td><strong>All families</strong></td><td><a href={download} download>llm-gateway-inference-v1.json</a></td><td><code>GET {liveSpecPath}</code></td><td>{api.allOperations.length}</td></tr>
-    {keys.map(key => <tr key={key}><td>{label(key)}</td><td><a href={familyDownload(key)} download>{`llm-gateway-inference-v1-${key}.json`}</a></td><td><code>?family={key}</code></td><td>{countFor(key)}</td></tr>)}
-  </tbody></table>;
+  const fallback = defaultRegion(spec);
+  const [region, setRegion] = useState(fallback);
+  const [example, setExample] = useState(keys.includes('anthropic_messages') ? 'anthropic_messages' : keys[0]);
+  const id = useId();
+  const chosen = regions.find(r => r.value === region);
+  const base = chosen?.url || host;
+  const live = key => `${liveSpecPath}?region=${region}${key ? `&family=${key}` : ''}`;
+  const curl = [
+    'curl --header "Authorization: Bearer $QUILR_API_KEY" \\',
+    `  '${base}${live(example)}' \\`,
+    `  -o ${example || 'llm-gateway-inference-v1'}.json`,
+  ].join('\n');
+  return <div className={styles.specDownloads}>
+    {regions.length > 0 && <div className={styles.regionPicker}><label htmlFor={id}>Region</label><select id={id} value={region} onChange={e => setRegion(e.target.value)}>{regions.map(r => <option key={r.value} value={r.value}>{r.label} ({r.value})</option>)}</select>
+      <label htmlFor={id + 'f'}>Family</label><select id={id + 'f'} value={example || ''} onChange={e => setExample(e.target.value)}><option value="">All families</option>{keys.map(k => <option key={k} value={k}>{label(k)}</option>)}</select></div>}
+    <CodeBlock language="bash" title={`Pinned to ${chosen?.label || region}`}>{curl}</CodeBlock>
+    {region !== fallback && <p className={styles.schemaIntro}>The downloads below keep <code>region</code> as a variable with the default <code>{fallback}</code>. Set its default to <code>{region}</code> before converting, or use the pinned live copy above.</p>}
+    <table className={styles.specTable}><thead><tr><th>Family</th><th>Download</th><th>Live, pinned to {region}</th><th>Paths</th></tr></thead><tbody>
+      <tr><td><strong>All families</strong></td><td><a href={download} download>llm-gateway-inference-v1.json</a></td><td><code>{live()}</code></td><td>{api.allOperations.length}</td></tr>
+      {keys.map(key => <tr key={key}><td>{label(key)}</td><td><a href={familyDownload(key)} download>{`llm-gateway-inference-v1-${key}.json`}</a></td><td><code>{live(key)}</code></td><td>{countFor(key)}</td></tr>)}
+    </tbody></table>
+  </div>;
 }
 
 // Regions from the server variable (https://{region}.quilr.ai).
 export function RegionTable() {
-  const server = spec.servers?.[0];
-  const variable = server?.variables?.region;
-  if (!variable) return <p><code>{host}</code></p>;
-  const labels = Object.fromEntries([...(variable.description || '').matchAll(/`([^`]+)`:\s*([^;]+)/g)].map(m => [m[1], m[2].trim()]));
+  if (!regions.length) return <p><code>{host}</code></p>;
   return <table className={styles.specTable}><thead><tr><th>Region</th><th>Base URL</th><th><code>region</code> value</th></tr></thead><tbody>
-    {(variable.enum || [variable.default]).map(v => <tr key={v}><td>{labels[v] || v}{v === variable.default ? ' (default)' : ''}</td><td><code>{server.url.replace('{region}', v)}</code></td><td><code>{v}</code></td></tr>)}
+    {regions.map(r => <tr key={r.value}><td>{r.label}{r.isDefault ? ' (default)' : ''}</td><td><code>{r.url}</code></td><td><code>{r.value}</code></td></tr>)}
   </tbody></table>;
 }
 
-// Renders `code` spans in spec descriptions.
+// Which gateway features run on which routes, from x-quilr-gateway-features: one row per
+// resource (tag) and feature set. Operations with no features are listed under the table.
+export function GatewayFeatureTable() {
+  const groups = [];
+  const none = [];
+  for (const op of api.operations) {
+    const features = featuresOf(op);
+    if (!features.length) { none.push(op); continue; }
+    const key = op.tags[0] + '|' + [...features].sort().join(',');
+    let g = groups.find(x => x.key === key);
+    if (!g) groups.push(g = {key, tag: op.tags[0], features: new Set(features), ops: []});
+    g.ops.push(op);
+  }
+  const tagOrder = Object.fromEntries(spec.tags.map((t, i) => [t.name, i]));
+  groups.sort((a, b) => (tagOrder[a.tag] ?? 999) - (tagOrder[b.tag] ?? 999));
+  const used = featureKeys.filter(k => groups.some(g => g.features.has(k)));
+  const short = familyData.featureShort || {};
+  const opsText = ops => ops.length <= 3 ? ops.map(o => o.summary).join(', ') : `${ops.slice(0, 2).map(o => o.summary).join(', ')} and ${ops.length - 2} more`;
+  return <>
+    <div className={styles.wideTable}><table className={styles.specTable}><thead><tr><th>Route</th>{used.map(k => <th key={k} title={featureNames[k] || k}>{short[k] || featureNames[k] || k}</th>)}</tr></thead><tbody>
+      {groups.map(g => <tr key={g.key}><td><strong>{g.tag}</strong><br/><span className={styles.coverageOps}>{opsText(g.ops)}</span></td>{used.map(k => <td key={k} className={styles.coverageCell}>{g.features.has(k) ? <span aria-label="yes">✓</span> : <span aria-label="no" className={styles.coverageNo}>-</span>}</td>)}</tr>)}
+    </tbody></table></div>
+    {none.length > 0 && <p className={styles.schemaIntro}>No gateway features (no model call): {none.map((o, i) => <React.Fragment key={o.operationId}>{i > 0 && ', '}<Link to={`${page}#${o.operationId}`}>{o.tags[0]}: {o.summary}</Link></React.Fragment>)}.</p>}
+  </>;
+}
+
+// Renders `code` and **bold** spans in spec descriptions.
 function Inline({text = ''}) {
-  return <>{String(text).split(/(`[^`]+`)/).map((part, i) => part.startsWith('`') && part.endsWith('`') && part.length > 1 ? <code key={i}>{part.slice(1, -1)}</code> : part)}</>;
+  return <>{String(text).split(/(`[^`]+`|\*\*[^*]+\*\*)/).map((part, i) =>
+    part.length > 1 && part.startsWith('`') && part.endsWith('`') ? <code key={i}>{part.slice(1, -1)}</code>
+      : part.length > 4 && part.startsWith('**') && part.endsWith('**') ? <strong key={i}>{part.slice(2, -2)}</strong>
+        : part)}</>;
 }

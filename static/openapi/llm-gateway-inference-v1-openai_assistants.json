@@ -143,6 +143,15 @@
           "type": "string"
         }
       },
+      "X-Quilr-Token-Count-Source": {
+        "description": "`estimate` when the gateway counted tokens itself instead of the provider (the provider has no counting endpoint, or the model is served through another API).",
+        "schema": {
+          "enum": [
+            "estimate"
+          ],
+          "type": "string"
+        }
+      },
       "X-RateLimit-Limit": {
         "description": "Limit of the exhausted quota or app limit (429).",
         "schema": {
@@ -4315,7 +4324,7 @@
     }
   },
   "info": {
-    "description": "The OpenAI Assistants API (v2): assistants, threads, messages, runs and run steps. Point the OpenAI SDK at `<gateway>/openai_assistants/v1`, or the AzureOpenAI SDK at `<gateway>/openai_assistants` (or `<gateway>/openai_assistants/v1`). Each call is forwarded to the app's Assistants provider. Guardrails scan user content sent in threads, messages, runs and tool outputs, and scan message contents, run tool-call arguments and run step details read back. Assistant and run instructions are not scanned. Assistant, thread and run ids belong to the provider that created them, so later calls must use the same app.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the app's guardrails, routing, failover, limits and logging, then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway response headers.** Besides the provider's own headers (passed through), the gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
+    "description": "The OpenAI Assistants API (v2): assistants, threads, messages, runs and run steps. Point the OpenAI SDK at `<gateway>/openai_assistants/v1`, or the AzureOpenAI SDK at `<gateway>/openai_assistants` (or `<gateway>/openai_assistants/v1`). Each call is forwarded to the app's Assistants provider. Guardrails scan user content sent in threads, messages, runs and tool outputs, and scan message contents, run tool-call arguments and run step details read back. Assistant and run instructions are not scanned. Assistant, thread and run ids belong to the provider that created them, so later calls must use the same app.\n\nClient-facing model APIs of the Quilr LLM Gateway. Each API family speaks a provider's own wire format (OpenAI, Azure OpenAI, Anthropic, AWS Bedrock Runtime, Google Gemini and Vertex AI, and others), so an existing SDK works by pointing its base URL at the gateway. Requests pass through the gateway features that apply to their route (see below), then reach the configured upstream provider.\n\n**Authentication.** Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses (listed per operation) and the key headers common API gateways use (`apikey`, `ocp-apim-subscription-key`, `x-apikey`). When `Authorization` is present it decides; send one credential header only. The credential header is never forwarded upstream.\n\n**Bodies.** Request and response schemas document the main fields only and allow additional fields: the gateway forwards provider options it does not know. Do not enable strict body validation that rejects unknown fields.\n\n**Streaming.** Operations that stream return `text/event-stream` (Bedrock streaming operations return `application/vnd.amazon.eventstream`). Disable response buffering for these paths.\n\n**Aliases.** Several paths are aliases of a canonical path (marked with `x-quilr-alias-of`), kept so every SDK base-URL convention resolves. Route all of them.\n\n**Gateway features per route.** Not every route runs every gateway feature. Each model-call operation lists what applies to it in `x-quilr-gateway-features` and in its description: guardrails, Guardian, attachment scanning, model access, routing, failover, limits and quotas, token saving, Prompt Store, response cache. Guardrails do not scan the moderations, images, OCR, completions, files, batches and videos routes (and the Mistral and xAI image, video, batch and fill-in-the-middle routes).\n\n**Gateway response headers.** Most model-call routes relay the provider's own response headers (the endpoint-family routes above do not). The gateway adds: `X-Quilr-Request-ID` (correlation), `X-Quilr-Route` (opaque id of the routing rule that chose the upstream), `X-Quilr-Served-Model` (model actually called), `X-Quilr-Attempts` and `X-Quilr-Failover` (retries and failover), `X-Quilr-Cache` and `Age` (response cache), and the quota headers `RateLimit-Policy`, `RateLimit`, `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. Errors add `X-Quilr-Error-Source`, `X-Quilr-Error-Code`, `Retry-After`, `Link` (help) and, on 429, `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`. Each header's exact format and condition is under `components.headers`. A provider can never set an `x-quilr-*` header: they are removed from upstream responses. Browsers cannot read these headers from cross-origin JavaScript (they are not CORS-exposed); server-side clients can.\n\n**Guardrail blocks.** A request or response stopped by a guardrail returns 400 with error type `content_policy_violation` and a code: `sensitive_data_blocked` (details give only a count, never the values), `adversarial_content_blocked`, `custom_intent_blocked`, `language_blocked`, `guardian_task_adherence_blocked` or `hallucination_blocked`. Policy and access denials return 403 (`policy_error`). Administrators may replace the message and attach a help link (`help_url`, `Link`). Anthropic-format errors keep the code but not `details`; Bedrock and Google-format guardrail blocks carry no code. Response checks run on non-streaming responses only.\n\n**Redaction.** When a guardrail redacts instead of blocking, detected values are masked in place: fully with `X` characters of the same length (text to speech uses `REDACTED`), or partially, keeping the first and last characters. Request-side redaction changes what the model receives; response-side redaction (non-streaming) changes what the client receives. No field marks a redaction.\n\n**Advisories.** When coding-helper checks are on, a non-streaming response may end with an appended paragraph starting `Guardian note:` about dependency vulnerabilities or newer versions.\n\n**Streams.** While a stream is idle for 15 seconds the gateway writes SSE comment lines (`: ` prefix); SSE parsers ignore them. If the gateway has not answered 15 seconds after admitting a request it starts a `200` event stream early; a later failure then arrives as an in-stream error event carrying an added `status_code` field instead of an HTTP status. Bedrock streams end with an exception frame (`modelStreamErrorException` or `internalServerException`) when the upstream stream is interrupted.\n\n**Error codes.** `x-quilr-error-codes` lists every gateway code (`source: gateway`) and the gateway's names for provider failures (`source: provider`) with their usual status. Codes are only ever added, never renamed. A code marked `also_sent_by_providers` does not by itself say who raised the error: read `X-Quilr-Error-Source` or `error.source`. Responses API ids starting `resp_qtx_` were issued by the gateway for a translated provider and are valid only against the gateway.",
     "title": "Quilr LLM Gateway: OpenAI Assistants",
     "version": "1.0.0"
   },
@@ -4323,7 +4332,7 @@
   "paths": {
     "/openai_assistants/openai/assistants": {
       "get": {
-        "description": "Lists assistants.",
+        "description": "Lists assistants.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_assistants_azure",
         "parameters": [
           {
@@ -4492,10 +4501,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Creates an assistant.",
+        "description": "Creates an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_assistant_azure",
         "parameters": [
           {
@@ -4531,6 +4547,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4654,12 +4688,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/assistants/{assistant_id}": {
       "delete": {
-        "description": "Deletes an assistant.",
+        "description": "Deletes an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_assistant_azure",
         "parameters": [
           {
@@ -4704,6 +4745,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -4817,10 +4876,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Retrieves an assistant.",
+        "description": "Retrieves an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_assistant_azure",
         "parameters": [
           {
@@ -4956,10 +5022,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies an assistant.",
+        "description": "Modifies an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_assistant_azure",
         "parameters": [
           {
@@ -5004,6 +5077,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5127,12 +5218,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads": {
       "post": {
-        "description": "Creates a thread, optionally with initial messages. Message contents are scanned by guardrails before forwarding.",
+        "description": "Creates a thread, optionally with initial messages. Message contents are scanned by guardrails before forwarding.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_thread_azure",
         "parameters": [
           {
@@ -5168,6 +5266,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5291,12 +5407,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/runs": {
       "post": {
-        "description": "Creates a thread and starts a run on it in one request. Message contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Creates a thread and starts a run on it in one request. Message contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_thread_and_run_azure",
         "parameters": [
           {
@@ -5332,6 +5455,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5461,12 +5602,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/runs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/runs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}": {
       "delete": {
-        "description": "Deletes a thread.",
+        "description": "Deletes a thread.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_thread_azure",
         "parameters": [
           {
@@ -5511,6 +5659,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5624,10 +5790,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Retrieves a thread.",
+        "description": "Retrieves a thread.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_thread_azure",
         "parameters": [
           {
@@ -5763,10 +5936,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies a thread's metadata or tool resources.",
+        "description": "Modifies a thread's metadata or tool resources.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_thread_azure",
         "parameters": [
           {
@@ -5811,6 +5991,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -5934,12 +6132,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/messages": {
       "get": {
-        "description": "Lists a thread's messages. Message contents are scanned by guardrails before they are returned.",
+        "description": "Lists a thread's messages. Message contents are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_messages_azure",
         "parameters": [
           {
@@ -6126,10 +6331,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Adds a message to a thread. The content is scanned by guardrails before forwarding.",
+        "description": "Adds a message to a thread. The content is scanned by guardrails before forwarding.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_message_azure",
         "parameters": [
           {
@@ -6174,6 +6386,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6297,12 +6527,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/messages/{message_id}": {
       "delete": {
-        "description": "Deletes a message.",
+        "description": "Deletes a message.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_message_azure",
         "parameters": [
           {
@@ -6356,6 +6593,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6469,10 +6724,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Retrieves a message. Its content is scanned by guardrails before it is returned.",
+        "description": "Retrieves a message. Its content is scanned by guardrails before it is returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_message_azure",
         "parameters": [
           {
@@ -6617,10 +6879,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies a message's metadata.",
+        "description": "Modifies a message's metadata.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_message_azure",
         "parameters": [
           {
@@ -6674,6 +6943,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -6797,12 +7084,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/runs": {
       "get": {
-        "description": "Lists a thread's runs. Tool-call arguments of runs awaiting tool outputs are scanned by guardrails before they are returned.",
+        "description": "Lists a thread's runs. Tool-call arguments of runs awaiting tool outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_runs_azure",
         "parameters": [
           {
@@ -6980,10 +7274,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Starts a run of an assistant on a thread. `additional_messages` contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Starts a run of an assistant on a thread. `additional_messages` contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_run_azure",
         "parameters": [
           {
@@ -7040,6 +7341,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7169,12 +7488,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/runs/{run_id}": {
       "get": {
-        "description": "Retrieves a run. Tool-call arguments of a run awaiting tool outputs are scanned by guardrails before they are returned.",
+        "description": "Retrieves a run. Tool-call arguments of a run awaiting tool outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_run_azure",
         "parameters": [
           {
@@ -7319,10 +7645,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies a run's metadata.",
+        "description": "Modifies a run's metadata.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_run_azure",
         "parameters": [
           {
@@ -7376,6 +7709,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7499,12 +7850,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/runs/{run_id}/cancel": {
       "post": {
-        "description": "Cancels an in-progress run. No request body.",
+        "description": "Cancels an in-progress run. No request body.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_cancel_run_azure",
         "parameters": [
           {
@@ -7558,6 +7916,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -7671,12 +8047,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/cancel"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/cancel",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/runs/{run_id}/steps": {
       "get": {
-        "description": "Lists a run's steps. Tool-call inputs and outputs are scanned by guardrails before they are returned.",
+        "description": "Lists a run's steps. Tool-call inputs and outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_run_steps_azure",
         "parameters": [
           {
@@ -7875,12 +8258,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/runs/{run_id}/steps/{step_id}": {
       "get": {
-        "description": "Retrieves a run step. Tool-call inputs and outputs are scanned by guardrails before they are returned.",
+        "description": "Retrieves a run step. Tool-call inputs and outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_run_step_azure",
         "parameters": [
           {
@@ -8046,12 +8436,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/openai/threads/{thread_id}/runs/{run_id}/submit_tool_outputs": {
       "post": {
-        "description": "Submits function tool outputs to a run awaiting them. The outputs are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Submits function tool outputs to a run awaiting them. The outputs are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_submit_tool_outputs_azure",
         "parameters": [
           {
@@ -8105,6 +8502,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8234,12 +8649,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/assistants": {
       "get": {
-        "description": "Lists assistants.",
+        "description": "Lists assistants.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_assistants",
         "parameters": [
           {
@@ -8398,10 +8820,17 @@
         "summary": "List assistants",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Creates an assistant.",
+        "description": "Creates an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_assistant",
         "parameters": [
           {
@@ -8428,6 +8857,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8550,12 +8997,19 @@
         "summary": "Create an assistant",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/assistants/{assistant_id}": {
       "delete": {
-        "description": "Deletes an assistant.",
+        "description": "Deletes an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_assistant",
         "parameters": [
           {
@@ -8591,6 +9045,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8703,10 +9175,17 @@
         "summary": "Delete an assistant",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "get": {
-        "description": "Retrieves an assistant.",
+        "description": "Retrieves an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_assistant",
         "parameters": [
           {
@@ -8832,10 +9311,17 @@
         "summary": "Retrieve an assistant",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Modifies an assistant.",
+        "description": "Modifies an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_assistant",
         "parameters": [
           {
@@ -8871,6 +9357,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -8993,12 +9497,19 @@
         "summary": "Modify an assistant",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/openai/assistants": {
       "get": {
-        "description": "Lists assistants.",
+        "description": "Lists assistants.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_assistants_azure_v1",
         "parameters": [
           {
@@ -9167,10 +9678,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Creates an assistant.",
+        "description": "Creates an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_assistant_azure_v1",
         "parameters": [
           {
@@ -9206,6 +9724,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -9329,12 +9865,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/assistants/{assistant_id}": {
       "delete": {
-        "description": "Deletes an assistant.",
+        "description": "Deletes an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_assistant_azure_v1",
         "parameters": [
           {
@@ -9379,6 +9922,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -9492,10 +10053,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Retrieves an assistant.",
+        "description": "Retrieves an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_assistant_azure_v1",
         "parameters": [
           {
@@ -9631,10 +10199,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies an assistant.",
+        "description": "Modifies an assistant.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_assistant_azure_v1",
         "parameters": [
           {
@@ -9679,6 +10254,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -9802,12 +10395,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/assistants/{assistant_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads": {
       "post": {
-        "description": "Creates a thread, optionally with initial messages. Message contents are scanned by guardrails before forwarding.",
+        "description": "Creates a thread, optionally with initial messages. Message contents are scanned by guardrails before forwarding.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_thread_azure_v1",
         "parameters": [
           {
@@ -9843,6 +10443,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -9966,12 +10584,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/runs": {
       "post": {
-        "description": "Creates a thread and starts a run on it in one request. Message contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Creates a thread and starts a run on it in one request. Message contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_thread_and_run_azure_v1",
         "parameters": [
           {
@@ -10007,6 +10632,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10136,12 +10779,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/runs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/runs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}": {
       "delete": {
-        "description": "Deletes a thread.",
+        "description": "Deletes a thread.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_thread_azure_v1",
         "parameters": [
           {
@@ -10186,6 +10836,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10299,10 +10967,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Retrieves a thread.",
+        "description": "Retrieves a thread.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_thread_azure_v1",
         "parameters": [
           {
@@ -10438,10 +11113,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies a thread's metadata or tool resources.",
+        "description": "Modifies a thread's metadata or tool resources.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_thread_azure_v1",
         "parameters": [
           {
@@ -10486,6 +11168,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10609,12 +11309,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/messages": {
       "get": {
-        "description": "Lists a thread's messages. Message contents are scanned by guardrails before they are returned.",
+        "description": "Lists a thread's messages. Message contents are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_messages_azure_v1",
         "parameters": [
           {
@@ -10801,10 +11508,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Adds a message to a thread. The content is scanned by guardrails before forwarding.",
+        "description": "Adds a message to a thread. The content is scanned by guardrails before forwarding.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_message_azure_v1",
         "parameters": [
           {
@@ -10849,6 +11563,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -10972,12 +11704,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/messages/{message_id}": {
       "delete": {
-        "description": "Deletes a message.",
+        "description": "Deletes a message.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_message_azure_v1",
         "parameters": [
           {
@@ -11031,6 +11770,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -11144,10 +11901,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "get": {
-        "description": "Retrieves a message. Its content is scanned by guardrails before it is returned.",
+        "description": "Retrieves a message. Its content is scanned by guardrails before it is returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_message_azure_v1",
         "parameters": [
           {
@@ -11292,10 +12056,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies a message's metadata.",
+        "description": "Modifies a message's metadata.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_message_azure_v1",
         "parameters": [
           {
@@ -11349,6 +12120,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -11472,12 +12261,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/runs": {
       "get": {
-        "description": "Lists a thread's runs. Tool-call arguments of runs awaiting tool outputs are scanned by guardrails before they are returned.",
+        "description": "Lists a thread's runs. Tool-call arguments of runs awaiting tool outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_runs_azure_v1",
         "parameters": [
           {
@@ -11655,10 +12451,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Starts a run of an assistant on a thread. `additional_messages` contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Starts a run of an assistant on a thread. `additional_messages` contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_run_azure_v1",
         "parameters": [
           {
@@ -11715,6 +12518,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -11844,12 +12665,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/runs/{run_id}": {
       "get": {
-        "description": "Retrieves a run. Tool-call arguments of a run awaiting tool outputs are scanned by guardrails before they are returned.",
+        "description": "Retrieves a run. Tool-call arguments of a run awaiting tool outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_run_azure_v1",
         "parameters": [
           {
@@ -11994,10 +12822,17 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       },
       "post": {
-        "description": "Modifies a run's metadata.",
+        "description": "Modifies a run's metadata.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_run_azure_v1",
         "parameters": [
           {
@@ -12051,6 +12886,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -12174,12 +13027,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/runs/{run_id}/cancel": {
       "post": {
-        "description": "Cancels an in-progress run. No request body.",
+        "description": "Cancels an in-progress run. No request body.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_cancel_run_azure_v1",
         "parameters": [
           {
@@ -12233,6 +13093,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -12346,12 +13224,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/cancel"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/cancel",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/runs/{run_id}/steps": {
       "get": {
-        "description": "Lists a run's steps. Tool-call inputs and outputs are scanned by guardrails before they are returned.",
+        "description": "Lists a run's steps. Tool-call inputs and outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_run_steps_azure_v1",
         "parameters": [
           {
@@ -12550,12 +13435,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/runs/{run_id}/steps/{step_id}": {
       "get": {
-        "description": "Retrieves a run step. Tool-call inputs and outputs are scanned by guardrails before they are returned.",
+        "description": "Retrieves a run step. Tool-call inputs and outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_run_step_azure_v1",
         "parameters": [
           {
@@ -12721,12 +13613,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/openai/threads/{thread_id}/runs/{run_id}/submit_tool_outputs": {
       "post": {
-        "description": "Submits function tool outputs to a run awaiting them. The outputs are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Submits function tool outputs to a run awaiting them. The outputs are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_submit_tool_outputs_azure_v1",
         "parameters": [
           {
@@ -12780,6 +13679,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -12909,12 +13826,19 @@
         "tags": [
           "OpenAI Assistants"
         ],
-        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs"
+        "x-quilr-alias-of": "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
+        ]
       }
     },
     "/openai_assistants/v1/threads": {
       "post": {
-        "description": "Creates a thread, optionally with initial messages. Message contents are scanned by guardrails before forwarding.",
+        "description": "Creates a thread, optionally with initial messages. Message contents are scanned by guardrails before forwarding.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_thread",
         "parameters": [
           {
@@ -12941,6 +13865,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -13063,12 +14005,19 @@
         "summary": "Create a thread",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/runs": {
       "post": {
-        "description": "Creates a thread and starts a run on it in one request. Message contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Creates a thread and starts a run on it in one request. Message contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_thread_and_run",
         "parameters": [
           {
@@ -13095,6 +14044,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -13223,12 +14190,19 @@
         "summary": "Create a thread and run it",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}": {
       "delete": {
-        "description": "Deletes a thread.",
+        "description": "Deletes a thread.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_thread",
         "parameters": [
           {
@@ -13264,6 +14238,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -13376,10 +14368,17 @@
         "summary": "Delete a thread",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "get": {
-        "description": "Retrieves a thread.",
+        "description": "Retrieves a thread.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_thread",
         "parameters": [
           {
@@ -13505,10 +14504,17 @@
         "summary": "Retrieve a thread",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Modifies a thread's metadata or tool resources.",
+        "description": "Modifies a thread's metadata or tool resources.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_thread",
         "parameters": [
           {
@@ -13544,6 +14550,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -13666,12 +14690,19 @@
         "summary": "Modify a thread",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/messages": {
       "get": {
-        "description": "Lists a thread's messages. Message contents are scanned by guardrails before they are returned.",
+        "description": "Lists a thread's messages. Message contents are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_messages",
         "parameters": [
           {
@@ -13848,10 +14879,17 @@
         "summary": "List messages",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Adds a message to a thread. The content is scanned by guardrails before forwarding.",
+        "description": "Adds a message to a thread. The content is scanned by guardrails before forwarding.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_message",
         "parameters": [
           {
@@ -13887,6 +14925,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -14009,12 +15065,19 @@
         "summary": "Create a message",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/messages/{message_id}": {
       "delete": {
-        "description": "Deletes a message.",
+        "description": "Deletes a message.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_delete_message",
         "parameters": [
           {
@@ -14059,6 +15122,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -14171,10 +15252,17 @@
         "summary": "Delete a message",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "get": {
-        "description": "Retrieves a message. Its content is scanned by guardrails before it is returned.",
+        "description": "Retrieves a message. Its content is scanned by guardrails before it is returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_message",
         "parameters": [
           {
@@ -14309,10 +15397,17 @@
         "summary": "Retrieve a message",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Modifies a message's metadata.",
+        "description": "Modifies a message's metadata.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_message",
         "parameters": [
           {
@@ -14357,6 +15452,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -14479,12 +15592,19 @@
         "summary": "Modify a message",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/runs": {
       "get": {
-        "description": "Lists a thread's runs. Tool-call arguments of runs awaiting tool outputs are scanned by guardrails before they are returned.",
+        "description": "Lists a thread's runs. Tool-call arguments of runs awaiting tool outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_runs",
         "parameters": [
           {
@@ -14652,10 +15772,17 @@
         "summary": "List runs",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Starts a run of an assistant on a thread. `additional_messages` contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Starts a run of an assistant on a thread. `additional_messages` contents are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_create_run",
         "parameters": [
           {
@@ -14703,6 +15830,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -14831,12 +15976,19 @@
         "summary": "Create a run",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}": {
       "get": {
-        "description": "Retrieves a run. Tool-call arguments of a run awaiting tool outputs are scanned by guardrails before they are returned.",
+        "description": "Retrieves a run. Tool-call arguments of a run awaiting tool outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_run",
         "parameters": [
           {
@@ -14971,10 +16123,17 @@
         "summary": "Retrieve a run",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       },
       "post": {
-        "description": "Modifies a run's metadata.",
+        "description": "Modifies a run's metadata.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_modify_run",
         "parameters": [
           {
@@ -15019,6 +16178,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -15141,12 +16318,19 @@
         "summary": "Modify a run",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/cancel": {
       "post": {
-        "description": "Cancels an in-progress run. No request body.",
+        "description": "Cancels an in-progress run. No request body.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_cancel_run",
         "parameters": [
           {
@@ -15191,6 +16375,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -15303,12 +16505,19 @@
         "summary": "Cancel a run",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps": {
       "get": {
-        "description": "Lists a run's steps. Tool-call inputs and outputs are scanned by guardrails before they are returned.",
+        "description": "Lists a run's steps. Tool-call inputs and outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_list_run_steps",
         "parameters": [
           {
@@ -15497,12 +16706,19 @@
         "summary": "List run steps",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}": {
       "get": {
-        "description": "Retrieves a run step. Tool-call inputs and outputs are scanned by guardrails before they are returned.",
+        "description": "Retrieves a run step. Tool-call inputs and outputs are scanned by guardrails before they are returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_retrieve_run_step",
         "parameters": [
           {
@@ -15658,12 +16874,19 @@
         "summary": "Retrieve a run step",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     },
     "/openai_assistants/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs": {
       "post": {
-        "description": "Submits function tool outputs to a run awaiting them. The outputs are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.",
+        "description": "Submits function tool outputs to a run awaiting them. The outputs are scanned by guardrails before forwarding. With `stream: true` the response is a server-sent event stream. The streamed model output is scanned when the stream ends; the stored messages are scanned when read.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), Guardian checks, model access rules, limits, quotas and budgets.",
         "operationId": "Assistants_submit_tool_outputs",
         "parameters": [
           {
@@ -15708,6 +16931,24 @@
             "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
             "in": "header",
             "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
             "required": false,
             "schema": {
               "type": "string"
@@ -15836,18 +17077,25 @@
         "summary": "Submit tool outputs",
         "tags": [
           "OpenAI Assistants"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "guardian",
+          "model_access",
+          "limits"
         ]
       }
     }
   },
   "servers": [
     {
-      "description": "Quilr-hosted gateway. Pick your region; for a dedicated or on-premises gateway, replace the URL with your gateway's.",
+      "description": "Quilr-hosted gateway. Set `region` to the region your organization uses before importing (or request the document with `region`). For a dedicated or on-premises gateway, replace the URL with your gateway's.",
       "url": "https://{region}.quilr.ai",
       "variables": {
         "region": {
           "default": "guardrails-usa-1",
-          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global, routed to the nearest region",
+          "description": "`guardrails-usa-1`: USA 1 (US Central West); `guardrails-usa-2`: USA 2 (US East); `guardrails-europe-1`: Europe; `guardrails-india-1`: India 1 (Mumbai); `guardrails-india-2`: India 2 (Mumbai); `guardrails-jp-1`: Japan (Tokyo); `guardrails`: Global",
           "enum": [
             "guardrails-usa-1",
             "guardrails-usa-2",
