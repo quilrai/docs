@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaRe
 
 Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
 
-Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets, routing and failover, rate limits, incident controls and stored configuration. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
+Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets, routing and failover, rate limits, incident controls and stored configuration, and to read usage, guardrail activity, provider health, users and the explanation of a single request. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
 
 ## Enable in the console
 
@@ -33,7 +33,7 @@ Use the Management API to configure LLM Gateway apps, shared providers, quota po
 
 | Console scope | API scope | Grants |
 | --- | --- | --- |
-| **Read** | `read` | Apps, providers, quota pools, key metadata, prompts, catalogs, history and the OpenAPI document |
+| **Read** | `read` | Apps, providers, quota pools, key metadata, prompts, catalogs, history, usage, guardrail activity, provider health, request explanations, users, new-model reviews and the OpenAPI document |
 | **Configure apps** | `config:write` | Create apps and change their settings, availability, providers and prompts |
 | **Manage providers** | `providers:write` | Create, update, delete and test shared providers and quota pools, and discover models |
 | **Issue app keys** | `credentials:write` | Issue, extend and revoke Quilr keys for apps |
@@ -62,17 +62,20 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Resource | What you can do | What stays separate |
 | --- | --- | --- |
 | Apps | Create, read, configure, disable and enable; address by app name. | App deletion/rename: **Not Generally Available**. |
-| Shared providers | Create, read, filter, rotate credentials, configure models, disable, enable, delete, test and discover models. | Deleting needs every app detached first. Detaching affects one app only. |
+| Shared providers | Create, read, filter, rotate credentials, configure models, disable, enable, delete, test and discover models, and approve or reject [new models](./providers-and-configuration-api#model-reviews) a provider starts offering. | Deleting needs every app detached first. Detaching affects one app only. |
 | Quota pools | Register, read, update and delete shared upstream ceilings; assign providers and models to them. | Pools describe limits; they do not enforce them. |
 | Gateway keys | Issue, list metadata, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
 | Budgets | Create and edit spend, request and token budgets, read usage, issue grants, set prices and exemptions. | Each budget, pricing or exemption edit publishes a policy revision. Needs the Policy Engine on. |
 | Routing and failover | Routes, weighted and ordered destinations, failover profiles, rules and default, routing constraints and model access; dry runs, revision history and restore, routing diagnostics. | Each write publishes a policy revision with no QuilrQL to write. Needs the Policy Engine on. |
 | Rate limits | Request and token rate limits, temporary raises, request guards, model limits, exemptions, custom limit responses, live usage and effective limits. | Counters are regional. Each limit write publishes a policy revision; raises do not. Needs the Policy Engine on. |
 | Incidents | Mark a provider down for every app or chosen apps with an expiry, preview, restore, reset cooldowns and drop session pins. | Not a policy change; works with the Policy Engine on or off. |
+| Usage | Requests, outcomes, tokens and cost over all time or any range, by period and up to two of app, model, provider, user, key, source and outcome. Per-key last use. See the [Usage API](./usage-api). | Aggregates only; bulk request logs come from the [Log Export API](./log-export-api). |
+| Monitoring | Guardrail activity, provider and model health with routing state, and why one request was routed, blocked, limited or failed over. See the [Monitoring API](./monitoring-api). | Read only. Never returns prompt or response text or detected values. |
+| Users | Everyone who uses the gateway, with app access, personal keys, last activity and usage. See the [Users API](./users-api). | Read only; people are added through your identity provider or the console. |
 | QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. The typed budgets, routing and limits APIs cover those cards without QuilrQL. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
 | Smart groups and custom definitions | Read and use existing resources in app configuration. | Definition/membership editing: **Not Generally Available**. |
-| History | Read redacted config versions and audit, restore eligible app settings. | Traffic logs, usage, health and red-team jobs: **Not Generally Available** through management v1. |
+| History | Read redacted config versions and audit, restore eligible app settings. | Request logs come from the [Log Export API](./log-export-api). Red-team jobs: **Not Generally Available** through management v1. |
 
 ## Availability
 
@@ -87,7 +90,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Later management-key secret retrieval and expired/revoked gateway-key reveal | **Not Generally Available** | Management secrets are returned on issuance/replay; explicit gateway-key reveal requires an active key. |
 | Create-only prompt preconditions | **Not Generally Available** | PUT uses the current app ETag and creates or replaces. |
 | Catalog search and audit app/key/time filters | **Not Generally Available** | Use documented pagination. App lists filter by name, tag and enabled state; provider lists by type, enabled state, tag and model. |
-| App-restricted management-key scopes, traffic/usage/health reporting and red-team job APIs | **Not Generally Available** | Management scopes apply tenant-wide; these reporting/job operations are outside this API. |
+| App-restricted management-key scopes and red-team job APIs | **Not Generally Available** | Management scopes apply tenant-wide; red-team jobs are outside this API. |
 
 ## Defaults
 
@@ -257,6 +260,10 @@ To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expir
 | Route a model alias, shift traffic or set failover | [Routing and failover API](./routing-and-failover-api) |
 | Set request and token rate limits | [Rate limits API](./rate-limits-api) |
 | Take a provider out of routing during an outage | [Incidents API](./incidents-api) |
+| Report spend, requests and tokens | [Usage API](./usage-api) |
+| Check guardrail activity or provider health, or explain one request | [Monitoring API](./monitoring-api) |
+| Review who uses the gateway | [Users API](./users-api) |
+| Approve models a provider started offering | [Review new models](./providers-and-configuration-api#model-reviews) |
 | Try any call from the browser | [Management API playground](/llm-gateway-management-playground) |
 
 ## Authentication and management keys {#authentication}
@@ -294,9 +301,9 @@ All scopes listed for an operation are required. No scope implies another.
 
 | Scope | Grants |
 | --- | --- |
-| `read` | Read apps, providers, quota pools, credentials metadata, prompts, catalogs, history, operation status and the OpenAPI document. |
-| `config:write` | Change app settings, attachments and prompts; roll back and recover app writes. |
-| `providers:write` | Create, update and delete shared providers and quota pools; run provider tests and model discovery. |
+| `read` | Read apps, providers, quota pools, credentials metadata, prompts, catalogs, history, operation status, usage (including per-key last use), guardrail activity, provider health, request explanations, users, new-model reviews and the OpenAPI document. |
+| `config:write` | Change app settings, attachments and prompts; roll back and recover app writes; decide new-model reviews of providers an app holds with its own keys. |
+| `providers:write` | Create, update and delete shared providers and quota pools; run provider tests and model discovery; decide new-model reviews of shared providers. |
 | `credentials:write` | Issue, change expiry of and revoke gateway keys. |
 | `credentials:read` | Reveal the secret of an active gateway key. |
 | `budgets:read` | Read budgets, usage, subjects, grants, pricing, exemptions, alerts and events. Does not need `read`. |
@@ -395,12 +402,13 @@ Capabilities fields are at the response root, including `schema_version`, `scope
 | `403` | Tenant suspended or insufficient permission. |
 | `404` | Deployment disabled or resource missing/outside tenant. |
 | `408` | Request body read timed out. |
-| `409` | Identity/dependency/idempotency conflict, changed collection, terminal key state, or `policy_not_enabled` for routing and limit controls while the Policy Engine is off. |
+| `409` | Identity/dependency/idempotency conflict, changed collection or report rows between pages, terminal key state, or `policy_not_enabled` for routing and limit controls while the Policy Engine is off. |
 | `412` | Stale version. |
 | `413` | Request exceeds 1 MiB. |
+| `422` | Unprocessable request, such as a model review decision a model cannot take, or a usage query over 100,000 result rows (`result_too_large`). |
 | `428` | Required `If-Match` missing. |
 | `429` | Management concurrency limit reached. |
-| `503` | Storage unavailable, operation pending, or a node that does not accept management calls. |
+| `503` | Storage unavailable, operation pending, or a node that does not accept management calls. Reports (usage, guardrail activity, provider health, users, request explanations) answer `503 query_timeout` when a query exceeds its time or read limits (narrow it and retry) and `503 data_unavailable` when their data cannot be read right now. |
 
 Deletes return JSON with `200`, not `204`. Provider tests and model discovery always return `200` with the outcome in the body; inspect `outcome` and `code`. See [tests and model discovery](./providers-and-configuration-api#tests-and-discovery).
 

@@ -5,6 +5,7 @@ import useIsBrowser from '@docusaurus/useIsBrowser';
 import {
   Activity,
   ArrowUpRight,
+  BarChart3,
   Boxes,
   Braces,
   Building2,
@@ -25,6 +26,8 @@ import {
   Unplug,
   Wallet,
   FileText,
+  HeartPulse,
+  Users as UsersIcon,
 } from 'lucide-react';
 import bundledSpec from '@site/static/openapi/llm-gateway-management-v1.json';
 import { LIVE_SPEC_PATH, MANAGEMENT_PREFIX, createClient, normalizeBaseUrl, setSpecSecretFields } from './client.mjs';
@@ -43,6 +46,9 @@ import Budgets from './Budgets';
 import Routing from './Routing';
 import Limits from './Limits';
 import Incidents from './Incidents';
+import Usage from './Usage';
+import Monitoring from './Monitoring';
+import Users from './Users';
 import Catalogs from './Catalogs';
 import HistoryWorkspace from './HistoryWorkspace';
 import Administration from './Administration';
@@ -58,10 +64,13 @@ export const REGIONS = regionsOf(bundledSpec).map(({ value, label, url }) => ({
 
 export const WORKSPACES = [
   { id: 'overview', label: 'Overview', Icon: Gauge, Component: Overview },
+  { id: 'usage', label: 'Usage', Icon: BarChart3, Component: Usage },
+  { id: 'monitoring', label: 'Monitoring', Icon: HeartPulse, Component: Monitoring },
   { id: 'apps', label: 'Apps', Icon: Layers, Component: Apps },
   { id: 'providers', label: 'Providers', Icon: Server, Component: Providers },
   { id: 'quota-pools', label: 'Quota pools', Icon: Boxes, Component: QuotaPools },
   { id: 'credentials', label: 'Credentials', Icon: KeyRound, Component: Credentials },
+  { id: 'users', label: 'Users', Icon: UsersIcon, Component: Users },
   { id: 'prompts', label: 'Prompts', Icon: FileText, Component: Prompts },
   { id: 'budgets', label: 'Budgets', Icon: Wallet, Component: Budgets },
   { id: 'routing', label: 'Routing', Icon: Route, Component: Routing },
@@ -394,8 +403,8 @@ export default function ManagementPlayground() {
             <div className={styles.eyebrow}>LLM GATEWAY / MANAGEMENT API V1</div>
             <h1>Management API playground</h1>
             <p>
-              Administer apps, providers, credentials, prompts, budgets, routing, limits and incidents against your live
-              gateway, and see the exact API call behind every action.
+              Administer apps, providers, credentials, prompts, budgets, routing, limits and incidents, review usage,
+              guardrail activity, provider health and users, and see the exact API call behind every action.
             </p>
           </div>
           <nav className={styles.heroLinks} aria-label="Related pages">

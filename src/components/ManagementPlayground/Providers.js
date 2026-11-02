@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Check, Plus, RefreshCw, Undo2, X } from 'lucide-react';
 import { MANAGEMENT_PREFIX, newIdempotencyKey, seg, versionOf } from './client.mjs';
 import {
   ActionButton,
@@ -28,6 +28,7 @@ import {
   usePlayground,
 } from './ui';
 import { useLoad, when } from './shared';
+import { num } from './Usage';
 import styles from './styles.module.css';
 
 const P = MANAGEMENT_PREFIX;
@@ -220,6 +221,7 @@ export default function Providers() {
         />
         <Pager list={list} />
       </Panel>
+      <ModelReviews />
       {selected ? (
         <ProviderDetail key={selected} label={selected} onChanged={list.reload} onDeleted={() => { setParam('provider', ''); list.reload(); }} />
       ) : (
@@ -672,5 +674,168 @@ function DiscoverModels({ path, data, etag, onSaved }) {
       )}
       <ProbeResult result={result} />
     </div>
+  );
+}
+
+// ── New-model reviews ───────────────────────────────────────────────────────
+
+const REVIEW_TONE = { pending: 'warn', approved: 'ok', rejected: 'off' };
+
+function ModelReviews() {
+  const { client, confirm } = usePlayground();
+  const [status, setStatus] = useState('pending');
+  const [provider, setProvider] = useState('');
+  const [applied, setApplied] = useState({ status: 'pending', provider: '' });
+  const action = useAction();
+  const list = useCollection(
+    (cursor) =>
+      client.call({
+        path: `${P}/provider-model-reviews`,
+        query: { status: applied.status, provider: applied.provider, limit: 50, cursor },
+        source: 'Model reviews',
+      }),
+    [client, applied.status, applied.provider],
+  );
+  const data = list.data;
+
+  async function decide(row, next) {
+    const verb = next === 'approved' ? 'Approve' : next === 'rejected' ? 'Reject' : 'Restore';
+    const appOwned = !!row.app_name;
+    const path = `${P}/provider-model-reviews/${seg(row.label)}/${appOwned ? 'app-decisions' : 'decisions'}`;
+    const body = appOwned ? { app_name: row.app_name, models: [row.model_id], status: next } : { models: [row.model_id], status: next };
+    if (
+      !(await confirm({
+        title: `${verb} ${row.model_id} on ${row.label}?`,
+        body:
+          next === 'approved'
+            ? appOwned
+              ? `Adds the model to the model list of ${row.app_name}'s own provider (a new app configuration version), so the app can call it.`
+              : 'Adds the model to the shared provider\'s model list, so every app that attaches the provider can call it.'
+            : next === 'rejected'
+              ? 'Rejects the model. The provider keeps serving only its listed models.'
+              : 'Moves the model back to pending.',
+        call: `POST ${path.slice(P.length)}`,
+        confirmLabel: verb,
+      }))
+    )
+      return;
+    await action.run(
+      () =>
+        client.call({
+          method: 'POST',
+          path,
+          body,
+          headers: { 'Idempotency-Key': newIdempotencyKey('model-review') },
+          source: `${verb} new model`,
+        }),
+      (res) => {
+        list.reload();
+        return next === 'approved'
+          ? `Approved. Added to the model list: ${(res?.added_to_model_list || []).join(', ') || 'already listed'}.`
+          : `${next === 'rejected' ? 'Rejected' : 'Restored'} ${row.model_id}.`;
+      },
+    );
+  }
+
+  const buttons = (row) => {
+    const op = row.app_name ? '/provider-model-reviews/{label}/app-decisions' : '/provider-model-reviews/{label}/decisions';
+    const btn = (next, Icon, text, variant) => (
+      <ActionButton key={next} method="POST" path={op} variant={variant} onClick={() => decide(row, next)}>
+        <Icon size={12} aria-hidden /> {text}
+      </ActionButton>
+    );
+    return (
+      <span className={styles.inline} onClick={(e) => e.stopPropagation()} role="presentation">
+        {row.status === 'pending' && [btn('approved', Check, 'Approve', 'primary'), btn('rejected', X, 'Reject')]}
+        {row.status === 'rejected' && [btn('approved', Check, 'Approve'), btn('pending', Undo2, 'Restore')]}
+        {row.status === 'approved' && <span className={styles.muted}>decided</span>}
+      </span>
+    );
+  };
+
+  return (
+    <Panel
+      title="New-model reviews"
+      subtitle="Models your providers started offering after the gateway began watching them. A provider with a model list serves only listed models, so a pending model is not callable until you approve it."
+      actions={
+        <>
+          <ApiChips
+            calls={[
+              ['GET', '/provider-model-reviews'],
+              ['POST', '/provider-model-reviews/{label}/decisions'],
+              ['POST', '/provider-model-reviews/{label}/app-decisions'],
+            ]}
+          />
+          <Btn onClick={list.reload}>
+            <RefreshCw size={13} aria-hidden /> Refresh
+          </Btn>
+        </>
+      }
+    >
+      <form
+        className={styles.filters}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setApplied({ status, provider: provider.trim() });
+        }}
+      >
+        <Field label="Status">
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="pending">pending</option>
+            <option value="approved">approved</option>
+            <option value="rejected">rejected</option>
+            <option value="">all</option>
+          </select>
+        </Field>
+        <Field label="Provider label">
+          <input value={provider} onChange={(e) => setProvider(e.target.value)} />
+        </Field>
+        <Btn type="submit">Apply</Btn>
+      </form>
+      <ErrorBox error={list.error} />
+      <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
+      <Notice tone="ok" onDismiss={() => action.setNotice('')}>
+        {action.notice}
+      </Notice>
+      {data && data.available === false ? (
+        <p className={styles.muted}>New-model reviews are not managed on this deployment.</p>
+      ) : (
+        <>
+          {data && (
+            <p className={styles.muted}>
+              {num(data.pending_count)} pending across matching providers.{' '}
+              {data.settings &&
+                (data.settings.enabled === false || !data.settings.background_checks
+                  ? `Background checks are off${data.settings.enabled === false ? ' for this tenant' : ''}; new reviews appear after a model-review check from the console.`
+                  : data.settings.background_checks
+                    ? `Background checks run every ${Math.round((data.settings.check_interval_seconds || 0) / 3600) || '<1'} h; new reviews also appear after a model-review check from the console.`
+                    : null)}
+            </p>
+          )}
+          <Table
+            rows={data?.items || []}
+            rowKey={(r) => `${r.app_name || ''}|${r.label}|${r.model_id}`}
+            empty={list.loading ? 'Loading...' : 'No models to review.'}
+            columns={[
+              {
+                label: 'Provider',
+                render: (r) => (
+                  <span>
+                    <strong>{r.label}</strong> <span className={styles.muted}>{r.app_name ? `app: ${r.app_name}` : 'shared'}</span>
+                  </span>
+                ),
+              },
+              { label: 'Model', render: (r) => <span><code>{r.model_id}</code>{r.display_name && r.display_name !== r.model_id ? ` ${r.display_name}` : ''}</span> },
+              { label: 'Type', render: (r) => fmt(r.model_type) },
+              { label: 'First seen', render: (r) => when(r.first_seen_at) },
+              { label: 'Status', render: (r) => <Pill tone={REVIEW_TONE[r.status]}>{fmt(r.status)}</Pill> },
+              { label: 'Decided by', render: (r) => fmt(r.decided_by) },
+              { label: 'Action', render: buttons },
+            ]}
+          />
+          <Pager list={list} />
+        </>
+      )}
+    </Panel>
   );
 }

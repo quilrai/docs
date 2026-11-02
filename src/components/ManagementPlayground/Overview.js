@@ -1,12 +1,15 @@
 import React from 'react';
-import { Braces, Building2, Layers, Route, Server, Siren, Timer, Wallet } from 'lucide-react';
-import { ApiChips, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from './ui';
+import { BarChart3, Braces, Building2, HeartPulse, Layers, Route, Server, Siren, Timer, Users, Wallet } from 'lucide-react';
+import { MANAGEMENT_PREFIX } from './client.mjs';
+import { ApiChips, Btn, ErrorBox, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from './ui';
+import { useLoad } from './shared';
+import { Stats, daysAgo, num, usd } from './Usage';
 import styles from './styles.module.css';
 
 export const SCOPES = [
-  ['read', 'Capabilities and the spec, app, provider, quota pool and key metadata, prompts, history, audit, catalogs and operation status.'],
-  ['config:write', 'App settings and availability, provider attachments and conversion, prompts, configuration rollback and operation recovery.'],
-  ['providers:write', 'Create, update, enable, disable and delete shared providers, manage quota pools, and run provider tests and model discovery.'],
+  ['read', 'Capabilities and the spec, app, provider, quota pool and key metadata, prompts, history, audit, catalogs, operation status, usage, guardrail activity, provider health, request explanations, users and new-model reviews.'],
+  ['config:write', 'App settings and availability, provider attachments and conversion, prompts, configuration rollback, operation recovery, and new-model decisions for providers an app holds with its own keys.'],
+  ['providers:write', 'Create, update, enable, disable and delete shared providers, manage quota pools, run provider tests and model discovery, and approve or reject new models of shared providers.'],
   ['credentials:write', 'Issue gateway keys, change their expiry and revoke them. Creating an app needs this and config:write.'],
   ['credentials:read', 'Reveal the secret of one active gateway key, on explicit request.'],
   ['budgets:read', 'Budgets, usage, subjects, grants, pricing, exemptions, alerts and budget events.'],
@@ -37,6 +40,9 @@ export default function Overview() {
         <Panel title="What you can do here" subtitle="Everything below uses the public management API. Pick a region, paste a management key, and every action shows the request it sends.">
           <div className={styles.cards}>
             {[
+              ['usage', BarChart3, 'Usage', 'Requests, tokens and spend by day, week or month, per app, model, provider, user or key.'],
+              ['monitoring', HeartPulse, 'Monitoring', 'Guardrail activity, provider health, and why one request was routed, blocked or failed over.'],
+              ['users', Users, 'Users', 'Who uses the gateway: app access, personal keys, last activity and usage.'],
               ['apps', Layers, 'Apps and credentials', 'Create apps, change settings, attach providers, issue and revoke gateway keys.'],
               ['providers', Server, 'Providers and quota pools', 'Configure shared providers, test models and discover what an upstream offers.'],
               ['budgets', Wallet, 'Budgets', 'Review spend, adjust limits and grant temporary headroom.'],
@@ -55,6 +61,7 @@ export default function Overview() {
           </div>
         </Panel>
       )}
+      {capabilities && !capabilities.limitedAreas && (!scopes || scopes.includes('read')) && <UsageTile />}
       {capabilities && (
         <Panel
           title="Gateway capabilities"
@@ -141,5 +148,42 @@ export default function Overview() {
         />
       </Panel>
     </div>
+  );
+}
+
+function UsageTile() {
+  const { client, navigate } = usePlayground();
+  const usage = useLoad(
+    () => client.call({ path: `${MANAGEMENT_PREFIX}/usage`, query: { from: daysAgo(30), granularity: 'total' }, source: 'Overview usage' }),
+    [client],
+    !!client,
+  );
+  const t = usage.data?.totals;
+  return (
+    <Panel
+      title="Last 30 days"
+      subtitle="Requests, spend and outcomes of every app in the organization."
+      actions={
+        <>
+          <ApiChips calls={[['GET', '/usage']]} />
+          <Btn onClick={() => navigate('usage')}>Open usage</Btn>
+        </>
+      }
+    >
+      <ErrorBox error={usage.error} />
+      {usage.loading && !t && <p className={styles.muted}>Loading...</p>}
+      {t && (
+        <Stats
+          items={[
+            ['Requests', num(t.requests)],
+            ['Cost', usd(t.cost_usd)],
+            ['Input tokens', num(t.input_tokens)],
+            ['Output tokens', num(t.output_tokens)],
+            ['Blocked', num(t.blocked)],
+            ['Errors', num(t.errors)],
+          ]}
+        />
+      )}
+    </Panel>
   );
 }
