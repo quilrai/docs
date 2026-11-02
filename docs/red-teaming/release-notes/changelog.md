@@ -10,6 +10,21 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Scheduled runs open their schedule and follow your timezone (2026-11-02)
+
+- On the **Schedules** tab, click a run on **Next 7 days**, the **+N more runs** line, or the first run under **Runs in the next 24h** to open that schedule's settings, with its recent runs shown behind
+- Schedules use the timezone set in **Settings → Display**: run times, the day view and the schedule editor all read in it and name it the way that page does
+- Changing the timezone in **Settings → Display** moves your schedules to it and keeps their clock time: a daily 09:00 schedule still runs at 09:00 in the new timezone
+- A schedule still set to another timezone is marked in the **Frequency** column, and saving it moves it to yours
+
+## Schedule any agent or model (2026-11-02)
+
+- WebSocket agents, voice agents and AI workflows can now run on a schedule, not only HTTP agents
+- A single-model assessment has a **Schedule** step too; comparing several models still runs once
+- **New schedule** on the **Schedules** tab lists saved WebSocket, voice and AI workflow assessments
+- Voice agent schedules can be created now and are listed as **Waiting for scheduler support** until scheduled voice runs are available
+- Gateway-connected assessments still run once
+
 ## Coverage rings match what was tested (2026-10-30)
 
 - Each framework ring on a run's Standards & Framework Coverage panel now shows how much of that framework the run tested, matching the count beside it
