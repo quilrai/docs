@@ -87,10 +87,11 @@ For a model endpoint inside a private network, use a [Remote Connector](./remote
 | Cerebras | Chat completions (`cerebras`) |
 | Groq | Chat completions and Responses (`groq`) |
 | Perplexity | Agent API, decision and embedding models (`perplexity`) |
+| Cohere | Chat, embeddings, rerank and speech to text (`cohere`), Rerank only (`cohere_rerank`) |
 | TypeSafe | System One decision models (`typesafe`) |
 | xAI | Chat completions (`xai`), Responses (`xai_responses`) |
 | Sarvam | Speech, text & chat (`sarvam`) |
-| Cohere, Jina, Voyage | Rerank (`cohere_rerank`, `jina_rerank`, `voyage_rerank`) |
+| Jina, Voyage | Rerank (`jina_rerank`, `voyage_rerank`) |
 | Custom endpoint | Chat completions (`general`), Rerank (`general_rerank`) |
 
 

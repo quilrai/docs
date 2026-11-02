@@ -46,6 +46,7 @@ One row per provider type. The type is what you select in the console and what y
 | `cerebras` | Cerebras | ✓ | ↻ | ↻ | - | - | - | - | - | ✓ |
 | `groq` | Groq | ✓ | ↻ | ✓ | - | - | - | - | ✓ | ✓ |
 | `perplexity` | Perplexity (Agent API) | ↻ | ↻ | ✓ | - | - | ✓ | - | - | ✓ |
+| `cohere` | Cohere | ✓ | ↻ | ↻ | - | - | ✓ | ✓ | ✓ | ✓ |
 | `typesafe` | TypeSafe (decision models only) | - | - | - | - | - | - | - | - | ✓ |
 | `oracle` | Oracle OCI Generative AI | ✓ | Soon | Soon | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | Soon | Soon | ✓ | - | - | - | - | - | Manual |
@@ -60,11 +61,11 @@ One row per provider type. The type is what you select in the console and what y
 
 - **Gemini generateContent and Bedrock Converse / InvokeModel** clients reach the same conversational providers. The [format explorer](../api-reference/any-to-any-formats#format-explorer) shows how each client format reaches each provider, model by model.
 - **Chat** on `vertex_ai` and the `anthropic_messages*` types uses the built-in adapters described in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters).
-- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), Groq in [Groq](#groq), and Perplexity in [Perplexity](#perplexity).
+- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), Groq in [Groq](#groq), Perplexity in [Perplexity](#perplexity), and Cohere in [Cohere](#cohere). **Speech** on `cohere` is transcription only.
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
-- **Endpoint families:** moderations, images, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families). Mistral and xAI also have [vendor routes](#vendor-routes).
+- **Endpoint families:** moderations, images, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families). Mistral, xAI and Cohere also have vendor routes ([Mistral and xAI](#vendor-routes), [Cohere](#cohere-routes)).
 - `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes, `perplexity` serves its `pplx-decider` models there, and `typesafe` serves only those routes. See [Decision models](#decision-models).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
@@ -80,6 +81,7 @@ Combine a [regional base URL](../get-started/integration-guide#region) with a pa
 | Endpoint families | `/openai_compatible/v1/moderations`, `/images/*`, `/completions`, `/files`, `/batches`, `/videos` | `Authorization: Bearer <Quilr key>` |
 | Mistral vendor routes | `/mistral/v1/ocr`, `/mistral/v1/fim/completions` | `Authorization: Bearer <Quilr key>` |
 | xAI vendor routes | `/xai/v1/responses`, `/xai/v1/images/*`, `/xai/v1/videos/*`, `/xai/v1/batches/*` | `Authorization: Bearer <Quilr key>` |
+| Cohere vendor routes | `/cohere/v2/embed`, `/cohere/v2/rerank`, `/cohere/v2/parse`, `/cohere/v1/tokenize`, `/cohere/v1/detokenize`, `/cohere/v2/batches/*`, `/cohere/v1/embed-jobs/*`, `/cohere/v1/datasets/*` | `Authorization: Bearer <Quilr key>` |
 | Anthropic Messages | `/anthropic_messages/v1/messages` | `x-api-key: <Quilr key>` |
 | Responses | `/openai_responses/v1/responses` | `Authorization: Bearer <Quilr key>` |
 | Assistants | `/openai_assistants/` | `Authorization: Bearer <Quilr key>` |
@@ -105,6 +107,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `cerebras` | API key | API key | - (the endpoint is fixed: `https://api.cerebras.ai/v1`) | Console, API |
 | `groq` | API key | API key | - (the endpoint is fixed: `https://api.groq.com/openai/v1`) | Console, API |
 | `perplexity` | API key | API key | - (the endpoint is fixed: `https://api.perplexity.ai`) | Console, API |
+| `cohere` | API key | API key | - (the endpoint is fixed: `https://api.cohere.com`) | Console, API |
 | `typesafe` | API key | API key | - (the endpoint is fixed: `https://api.typesafe.ai/v1`) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
@@ -177,15 +180,15 @@ Converse and Claude-body InvokeModel requests can also reach providers that are 
 
 ## Embeddings
 
-`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `mistral` (for example `mistral-embed`), `perplexity` (`pplx-embed-v1-0.6b`, `pplx-embed-v1-4b`; see [Perplexity embeddings](#perplexity-embeddings)), `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
+`/openai_compatible/v1/embeddings` takes the OpenAI embeddings shape for `openai`, `azureopenai`, `mistral` (for example `mistral-embed`), `perplexity` (`pplx-embed-v1-0.6b`, `pplx-embed-v1-4b`; see [Perplexity embeddings](#perplexity-embeddings)), `cohere` (`embed-v4.0`, `embed-v5.0-pro`, the v3 models; see [Cohere](#cohere)), `general` and `bedrock_embeddings` (Titan and Cohere Embed on Bedrock).
 
 ## Rerank
 
-All three rerank paths take a Cohere-compatible body (`model`, `query`, `documents`, optional `top_n`, `return_documents`) and return a response in Cohere format. Guardrails scan `query` and `documents`. Responses are scores and indices, so they are not scanned. `bedrock_rerank` serves Cohere Rerank 3.5 and Amazon Rerank and uses the `bedrock:InvokeModel` permission.
+All three rerank paths take a Cohere-compatible body (`model`, `query`, `documents`, optional `top_n`, `return_documents`) and return a response in Cohere format. Guardrails scan `query` and `documents`. Responses are scores and indices, so they are not scanned. `bedrock_rerank` serves Cohere Rerank 3.5 and Amazon Rerank and uses the `bedrock:InvokeModel` permission. `cohere` and `cohere_rerank` are billed from Cohere's billed units: search units for Rerank 3 and 4, input tokens for Rerank 5.
 
 ## TTS & STT
 
-`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai`, `sarvam` and `groq` (Whisper and Orpheus models; see [Groq](#groq)). `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
+`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai`, `sarvam` and `groq` (Whisper and Orpheus models; see [Groq](#groq)). `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`), and so does `cohere` (`cohere-transcribe-03-2026`; `language` is required). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
 
 On a Sarvam provider these routes adapt to Sarvam's APIs:
 
@@ -511,6 +514,78 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/embeddings \
   -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
   -d '{"model": "pplx-embed-v1-0.6b", "input": ["What is retrieval-augmented generation?"]}'
 ```
+
+## Cohere
+
+`cohere` calls `https://api.cohere.com`. It takes one API key; the endpoint is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored. Chat, OpenAI-shaped embeddings and transcription use Cohere's OpenAI-compatible API (`https://api.cohere.com/compatibility/v1`); rerank, Cohere-shaped embeddings and the [Cohere routes](#cohere-routes) use Cohere's own API.
+
+| Provider type | Console tile and API | What one key serves |
+|---------------|----------------------|---------------------|
+| `cohere` | **Cohere** › Chat, embeddings & rerank | Command and Aya chat models, Embed, Rerank, Transcribe and Parse models, and Cohere's tokenize, batch, embed-job and dataset APIs. |
+| `cohere_rerank` | **Cohere** › Rerank only | Rerank only, with an optional base URL. Unchanged. |
+
+### Add the provider
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Select the **Cohere** tile ("Chat, embeddings & rerank · Direct API"), then **Chat, embeddings & rerank**.
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+The gateway lists Cohere's models from its `/v1/models`, typed by what each model serves: chat, embedding, rerank, speech to text or parse. Validation sends a 3-token chat request for chat models and reads the model's own entry for the others. Cohere trial keys are rate limited and not licensed for production use.
+
+| API | Path | Cohere | Example model |
+|-----|------|:------:|---------------|
+| Chat Completions | `/openai_compatible/v1/chat/completions` | ✓ | `command-a-03-2025` |
+| Anthropic Messages, Responses, Gemini, Bedrock Converse | Their native paths | Translated to Chat | `command-r7b-12-2024` |
+| Embeddings (OpenAI shape) | `/openai_compatible/v1/embeddings` | ✓ | `embed-v4.0` |
+| Embeddings (Cohere shape) | `/cohere/v2/embed` | ✓ | `embed-v4.0` |
+| Rerank | `/rerank/v1/rerank`, `/cohere/v2/rerank` | ✓ | `rerank-v3.5`, `rerank-v5.0-pro` |
+| Speech to text | `/openai_compatible/v1/audio/transcriptions` | ✓ | `cohere-transcribe-03-2026` |
+| Parse, tokenize, batches, embed jobs, datasets | [Cohere routes](#cohere-routes) | ✓ | `parse-v5.0` |
+| Cohere's native `/v2/chat` (documents, citations), text to speech | - | - (not routed) | - |
+
+### Cohere examples
+
+```bash
+# Chat Completions (streaming and tool calls work too)
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "command-a-03-2025", "messages": [{"role": "user", "content": "Say hello."}], "max_tokens": 256}'
+
+# Cohere's own embed request, with int8 vectors
+curl https://guardrails-usa-2.quilr.ai/cohere/v2/embed \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "embed-v4.0", "texts": ["What is retrieval-augmented generation?"],
+       "input_type": "search_document", "embedding_types": ["float", "int8"]}'
+```
+
+With the Cohere SDK, set the base URL to `https://guardrails-usa-2.quilr.ai/cohere` and the API key to your Quilr key.
+
+### Cohere behavior
+
+| Topic | Cohere |
+|-------|--------|
+| Reasoning | Cohere's reasoning is on or off: `reasoning_effort` other than `none` is sent as `high`, which is the only other value Cohere accepts. |
+| Unsupported parameters | Cohere refuses `n` above 1 and some OpenAI-only fields with its own `422` error, which the gateway returns as sent. |
+| Embeddings | Every Embed model works on the OpenAI route; Cohere supplies `input_type` there. On `/cohere/v2/embed`, v3 models need `input_type`. The texts are scanned by the app's request guardrails; image inputs (`images`, `inputs`) are refused with `400 invalid_cohere_embed_input` because they cannot be scanned on this route. |
+| Rerank | Billed from Cohere's billed units: $2.00 per 1,000 searches for Rerank 3, 3.5 and 4 Fast, $2.50 for Rerank 4 Pro, and input tokens for Rerank 5. Existing `cohere_rerank` providers are billed the same way. |
+| Speech to text | Transcriptions only; `language` is required. |
+| Billing | Tokens at Cohere's catalog rates. Parse is billed per page from Cohere's billed units ($1.50 per 1,000 pages for `parse-v5.0`). Command A Plus, Aya Vision, Tiny Aya, North and Transcribe have no published price yet and show as unpriced; add your own model costs to price them. |
+
+### Cohere routes {#cohere-routes}
+
+Cohere's own APIs, in Cohere's request and response format, for Cohere providers only. Point the Cohere SDK at `https://guardrails-usa-2.quilr.ai/cohere`.
+
+| Route | What it does | Guardrails | Enabled |
+|-------|--------------|------------|---------|
+| `POST /cohere/v2/embed` | Embeddings in Cohere's shape (float, int8, uint8, binary, ubinary) | Request | Always |
+| `POST /cohere/v2/rerank` | Rerank (`cohere` and `cohere_rerank` providers) | Request | Always |
+| `POST /cohere/v2/parse` | Parse an image document with `parse-v5.0` | - | Always |
+| `POST /cohere/v1/tokenize`, `/cohere/v1/detokenize` | Tokenize text or turn tokens back into text (no model call) | - | Always |
+| `/cohere/v2/batches`, `/cohere/v2/batches/{id}`, `:cancel` | Create, list, get and cancel batches | - | When the deployment enables batches |
+| `/cohere/v1/embed-jobs`, `/{id}`, `/{id}/cancel` | Create, list, get and cancel embed jobs | - | When the deployment enables batches |
+| `/cohere/v1/datasets`, `/usage`, `/{id}` | Upload (multipart), list, get, delete datasets and read usage | - | When the deployment enables files |
+
+Batch, embed-job and dataset ids belong to the Cohere account that created them, so later calls must use the same app. Cohere's raw model list and API key check are not exposed; the gateway's model list applies the app's model visibility.
 
 ## Endpoint families
 

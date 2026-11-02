@@ -10,6 +10,16 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Cohere provider (2026-11-02)
+
+- New provider type `cohere` on the **Cohere** tile, now "Chat, embeddings & rerank · Direct API", with an API key and a fixed endpoint (`https://api.cohere.com`); the existing **Rerank only** type (`cohere_rerank`) is unchanged
+- Command and Aya chat on Chat Completions, including streaming, tool calls and JSON schema; Anthropic Messages, Responses, Gemini and Bedrock clients are translated to it
+- Embed models on `/openai_compatible/v1/embeddings` (float or base64) and in Cohere's own shape on `/cohere/v2/embed` (int8, binary and the other embedding types)
+- Rerank on `/rerank/v1/rerank` and `/cohere/v2/rerank`, now priced from Cohere's search units (Rerank 3 and 4) and input tokens (Rerank 5), for `cohere_rerank` providers too
+- Cohere Transcribe on `/openai_compatible/v1/audio/transcriptions`
+- Cohere's parse, tokenize, batch, embed-job and dataset APIs on [Cohere routes](../apps-and-providers/provider-support#cohere-routes)
+- Details: [Cohere](../apps-and-providers/provider-support#cohere)
+
 ## Perplexity provider (2026-11-02)
 
 - New provider type `perplexity` on a **Perplexity** tile ("Web-grounded answers · Direct API"), with an API key and a fixed endpoint (`https://api.perplexity.ai`)

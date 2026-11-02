@@ -31,6 +31,7 @@ export default {
     {key: 'xai', anchor: 'xai', label: 'xAI', desc: 'Images, videos, batches and Responses with xAI server-side tools.', tags: ['xAI Images and Videos', 'xAI Batches', 'xAI Responses']},
     {key: 'sarvam', anchor: 'sarvam', label: 'Sarvam', desc: 'Speech to text, text to speech, translation, transliteration and language identification.', tags: ['Sarvam']},
     {key: 'typesafe', anchor: 'typesafe', label: 'TypeSafe System One', desc: 'Decision models answering typed questions with probabilities.', tags: ['TypeSafe System One']},
+    {key: 'cohere', anchor: 'cohere', label: 'Cohere', desc: 'Cohere embed, rerank, parse, tokenize, batches, embed jobs and datasets in Cohere\'s own format.', tags: ['Cohere Embed and Rerank', 'Cohere Parse and Tokenize', 'Cohere Batches, Embed Jobs and Datasets']},
     {key: 'perplexity', anchor: 'perplexity', label: 'Perplexity', desc: 'pplx-decider decisions and pplx-embed embeddings in Perplexity\'s own format.', tags: ['Perplexity Decisions', 'Perplexity Embeddings']},
     {key: 'specification', anchor: 'specification', label: 'Specification', desc: 'Fetch this OpenAPI document from the gateway.', tags: ['Specification'], noDownload: true},
   ],
