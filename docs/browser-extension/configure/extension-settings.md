@@ -38,4 +38,4 @@ After you change a setting, open **Users › Browser deployment** to confirm ext
 
 - [Allowed domains and patterns](./allowed-domains-and-patterns): exclude trusted sites from monitoring.
 - [Browser controls](./browser-controls): decide what the extension does when it sees risky AI use.
-- [End-user popups](../../console/settings-sensors/end-user-popups): brand and word the popups the extension shows.
+- [User Interaction Hub](../../console/settings-sensors/user-interaction-hub): brand and word the popups the extension shows.

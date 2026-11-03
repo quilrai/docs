@@ -201,7 +201,7 @@ export const crossLinks = [
   ]},
   {in: 'browser-extension/configure', at: 'end', links: [
     {label: 'Action requests', href: '/console/govern/action-requests', product: 'console'},
-    {label: 'End-user popups', href: '/console/settings-sensors/end-user-popups', product: 'console'},
+    {label: 'User Interaction Hub', href: '/console/settings-sensors/user-interaction-hub', product: 'console'},
   ]},
 ];
 
