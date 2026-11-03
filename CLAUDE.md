@@ -127,3 +127,11 @@ Node >= 20.
 8. `npm run build` — confirm no broken-link or icon errors.
 
 When in doubt, copy the structure of an existing neighboring page. Match the surrounding tone and frontmatter exactly.
+
+---
+
+## Writing style reference (all agents)
+
+Any agent writing or reviewing docs in this repo follows the same style guide: `.claude/skills/saas-documentation-writer/SKILL.md`. Read it before drafting or editing pages under `docs/`. It covers plain language, task-oriented headings, numbered steps, UI labels exactly as the product shows them, and the three editing passes. The hard rules above (icons, frontmatter, no em dashes, redirects, build) still take priority where they overlap.
+
+`AGENTS.md` is a symlink to this file, so this reference applies to every agent that reads either name.
