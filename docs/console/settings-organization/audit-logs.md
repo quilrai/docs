@@ -59,10 +59,6 @@ Each filter lists only the values recorded in the selected period. Choosing seve
 The **Action** and **Signed in with** filters show the stored event name, which can read differently from the label in the table. For example, **Signed in with SAML** in the table is **Sign In With Saml** in the filter, and **Requested sensitive data reveal** is **Reveal Sensitive Data**.
 :::
 
-### Share a view
-
-The page address keeps your period, search, filters and any open event. Copy it from your browser to share exactly what you are looking at with another admin.
-
 ## Read the table
 
 | Column | Shows |
