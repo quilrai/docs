@@ -28,10 +28,10 @@ If your organization still uses V1 roles, Platform MFA follows the **Integration
 
 The name the Quilr browser agent reports for your organization.
 
-1. Edit the name in **Organization name**.
-2. Select **Save**. To undo your edit, select **Discard**.
+1. Enter the name in **Organization name**.
+2. Select **Save**.
 
-You see **Organization name saved**. The name can't be empty.
+To undo an unsaved edit, select **Discard**. The name can't be empty.
 
 ### Tenant ID
 
@@ -41,14 +41,14 @@ The unique identifier for your organization. Select the copy icon in the field t
 
 The domains your organization uses, for example `example.com`. Quilr uses them to recognize your organization's accounts and for access control.
 
-**To add a domain:** type it in the field, then select **Add** or press **Enter**.
+#### Add a domain
 
-**To remove a domain:** select the **x** on its tag.
+1. Type the domain in the field, for example `example.com`.
+2. Select **Add** or press **Enter**.
 
-Each change is saved as soon as you make it. You see **Added example.com** or **Removed example.com**. There is no separate save step.
+To remove a domain, select the **x** on its tag. Adding and removing are saved immediately. There is no separate save step.
 
-- Add every domain people sign in with, including subsidiaries and aliases.
-- Enter a plain domain, such as `example.com` or `eu.example.com`. Wildcards and full URLs aren't accepted.
+Add every domain people sign in with, including subsidiaries and aliases. Enter a plain domain, such as `example.com` or `eu.example.com`. Wildcards and full URLs aren't accepted.
 
 :::note Domains and browser monitoring
 When the Browser Extension monitors all domains, this list doesn't limit monitoring, and the page says so below the field. To monitor only these domains, set **Domains to monitor** to **Work domains only** in [Deployment Management](../../browser-extension/configure/extension-settings#deployment-management).
@@ -56,29 +56,25 @@ When the Browser Extension monitors all domains, this list doesn't limit monitor
 
 ### Platform MFA
 
-Platform MFA adds a one-time passcode after the password when people sign in with email and password. It is also the switch for email and password sign-in itself: while Platform MFA is off, nobody can sign in with an email and password.
+Platform MFA controls email and password sign-in. When it is on, people sign in with their email and password, then enter a one-time passcode. When it is off, email and password sign-in is unavailable.
 
-**To turn it on:**
+| Setting | Description |
+|---|---|
+| **Platform MFA** | Turns email and password sign-in, with a one-time passcode, on or off. |
+| **Select factor** | How people receive the passcode. Shown only when Platform MFA is on. **Email OTP** is currently the only option. |
 
-1. Turn on the **Platform MFA** switch.
-2. In **Turn on Platform MFA?**, select **Turn on**.
+#### Turn Platform MFA on or off
 
-You see **Platform MFA turned on**. People can now sign in with their email and password, followed by a one-time passcode.
+1. Select the **Platform MFA** switch.
+2. In the confirmation dialog, select **Turn on** or **Turn off**.
 
-**Select factor** shows how people receive the passcode. **Email OTP** is the only option, so you can't change it.
+The change applies to everyone in your organization as soon as you confirm.
 
-**To turn it off:**
-
-1. Turn off the **Platform MFA** switch.
-2. In **Turn off Platform MFA?**, select **Turn off**. To cancel, select **Keep it on**.
-
-Email and password sign-in stops working for everyone in your organization, and you can't add new email and password users. Other sign-in options, such as Google, Microsoft or [single sign-on](./single-sign-on), aren't affected.
-
-:::warning
-Before you turn off Platform MFA, make sure everyone who signs in with an email and password has another way to sign in.
+:::warning Before you turn off Platform MFA
+Email and password sign-in stops working for everyone, and you can't add new email and password users. Google, Microsoft and [single sign-on](./single-sign-on) sign-in aren't affected. Make sure everyone who uses an email and password has another way to sign in.
 :::
 
-To add a console user who signs in with an email and password, Platform MFA must be on. See [Roles and permissions](./roles-and-permissions).
+Platform MFA must be on before you can add a console user who signs in with an email and password. See [Roles and permissions](./roles-and-permissions).
 
 ## Unmanaged Browsers
 
