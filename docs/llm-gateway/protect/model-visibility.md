@@ -5,13 +5,16 @@ sidebar_custom_props:
   icon: EyeOff
 description: "Choose which models GET /v1/models and the console's model lookups list, for everyone or a narrower scope, without changing which models can be called."
 aliases: [model visibility, model listing, hide models, hidden models, list models, available models, include_hidden]
+console_path: []
 ---
 
 # Model visibility
 
-Choose which models a model list shows. Turn listing off, show only some providers or models, hide models by name, or hide undated aliases, for everyone or for an app, a team or a person. Model visibility is a Policy Engine card. With the engine off, every list shows the models a caller may use, as before.
+Updated on 3 November 2026.
 
-## Visibility is not access
+Choose which models a model list shows. Turn listing off, show only some providers or models, hide models by name, or hide undated aliases, for everyone or for an app, a team or a person. Model visibility is configured in the Policy Engine. With the engine off, every list shows the models a caller may use, as before.
+
+## Visibility is not access {#visibility-is-not-access}
 
 Hiding a model only takes it off lists. It never blocks a call:
 
@@ -24,7 +27,7 @@ Hiding a model only takes it off lists. It never blocks a call:
 | Stop a model from being called | [Allowed Models](./gateway-access-and-allowed-models#allowed-models-card) |
 | Stop someone from sending requests at all | [Gateway Access](./gateway-access-and-allowed-models#gateway-access-card) |
 
-## Lists it applies to
+## Lists it applies to {#lists-it-applies-to}
 
 | List | Who reads it |
 |---|---|
@@ -40,18 +43,17 @@ Scopes match like this:
 - **People and Smart group:** on `GET /v1/models`, the identity the request carries (a JWT, or `X-User-Email` when the app accepts it; see [Identity and network trust](./identity-and-network-trust)). In the console, the person signed in.
 - **Application and App tag:** on `GET /v1/models`, the app whose key made the call. In the console, only **Get available models** on a provider an app already has carries the app. Creating an app, entering new credentials or adding a provider in **Models** carries none, so those rules do not apply there.
 
-## Model Visibility card
+## Configure Model Visibility {#model-visibility-card}
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
-  path={['Govern', 'Policy Engine', 'LLM Gateway']}
+  path={['Govern', 'Policy Engine', 'LLM Gateway', 'Controls']}
   action="Model Visibility"
 />
 
-The card sits next to **Allowed Models**. Start from **Quick add** or from a control's add button:
+Open the **Model Visibility** panel. Start from a recipe or a section's add menu:
 
-| Quick add | What it sets |
+| Recipe | What it sets |
 |---|---|
 | **Hide preview models** | **Hide** with the model pattern `*preview*` |
 | **Only show approved providers** | **Show only** with the providers you pick |
@@ -69,9 +71,9 @@ Each opens **New model visibility rule**. Choose who it applies to (everyone, or
 | **Undated aliases** | **Hide undated aliases**: leave out `gpt-4o` when the same provider also lists `gpt-4o-2024-08-06`. | Listed |
 | **Hidden models** | **Never**, **On request** or **Always**: who still sees hidden models, marked as hidden. See [Show hidden models](#show-hidden-models). | Never |
 
-**Add to draft** puts the rule in the shared draft, and it applies once you [publish a revision](../../console/govern/author-simulate-and-publish). The card lists each rule's grants, for example `azureopenai · gpt-4o*`. Editing a rule reopens the same form, or the full editor for a rule the form cannot show.
+**Save to draft** puts the rule in the shared draft, and it applies once you [publish a revision](../../console/govern/author-simulate-and-publish). The panel lists each rule's grants, for example `azureopenai · gpt-4o*`. Editing a rule reopens the same form, or the full editor for a rule the form cannot show.
 
-### Grants
+### Grants {#grants}
 
 A grant describes a set of models. Fill in one or more of its fields, and use **Add grant** for another set.
 
@@ -87,7 +89,7 @@ A grant describes a set of models. Fill in one or more of its fields, and use **
 - A pattern matches the whole ID: `gpt-4o` matches only `gpt-4o`, while `gpt-4o*` also matches `gpt-4o-mini` and `gpt-4o-2024-08-06`. Use `*preview*` for "contains preview".
 - A provider label matches only a saved provider. A provider you are still adding has no label yet, so label grants never match it.
 
-## How rules combine
+## How rules combine {#how-rules-combine}
 
 The gateway builds each list in this order:
 
@@ -103,9 +105,9 @@ The gateway builds each list in this order:
 - **Hidden models follows priority.** The highest-priority setting wins, and at one priority the stricter one wins (**Never**, then **On request**, then **Always**). The form gives a rule for a person, Smart group or app a higher priority than a rule for everyone.
 - **One model, two providers.** When two providers offer the same model ID and only one of them is hidden, the list still shows the model, under the provider that is visible.
 
-A model visibility rule holds only model visibility settings, plus its name, priority and risk level. In [Advanced policies](../../console/govern/policy-engine#llm-gateway-and-mcp-gateway), validation rejects a rule that also sets other controls, because other requests would then skip the whole rule. It also rejects conditions a model list never carries: the requested model, prompt text, tools or detected data. It warns when a rule matches on the provider (use a grant's **Providers** instead), on the source IP of a console lookup (that is the console server's address), or hides `*` (set **Model listing** to **Off** instead).
+A model visibility rule holds only model visibility settings, plus its name, priority and risk level. In the [Policies tab](../../console/govern/policy-engine#llm-gateway-and-mcp-gateway), validation rejects a rule that also sets other controls, because other requests would then skip the whole rule. It also rejects conditions a model list never carries: the requested model, prompt text, tools or detected data. It warns when a rule matches on the provider (use a grant's **Providers** instead), on the source IP of a console lookup (that is the console server's address), or hides `*` (set **Model listing** to **Off** instead).
 
-## Show hidden models
+## Show hidden models {#show-hidden-models}
 
 **Hidden models** decides who still sees what these rules hide. Hidden models come back marked. A model that Allowed Models rejects never comes back on `GET /v1/models`.
 
@@ -135,14 +137,14 @@ curl "https://guardrails.quilr.ai/openai_compatible/v1/models?include_hidden=tru
 
 In the console, **Show models hidden by policy** appears once a lookup hid something, and only for people whose role lets them view LLM Gateway policies. Hidden models then show as **gpt-4.1-preview · hidden by policy** in an app's providers, or with a **Hidden by policy** tag when you add a provider or models.
 
-## What people see
+## What people see {#what-people-see}
 
 - **API callers** get fewer entries, in the usual format. With listing off, `data` is an empty list. A hidden model still answers `GET /v1/models/{id}`, while a model the caller may not use returns 404 (`model_not_found` in the OpenAI format).
 - **Console lookups** add a line such as "3 models hidden by policy." Hidden models are dropped before the console checks each model with the provider, so they are never called.
 - **Nothing left to list.** With listing off, or when no show-only grant can match the provider, the console does not contact the provider. It shows "Model listing is turned off by your organization's policy. Add models by name." or "All models from this provider are hidden by your organization's policy. Add models by name." Type models into **Add a model by name** (or **Add by ID**): each is still checked against the provider, which also checks the key.
 - **If the policy cannot be read**, lists show every model the caller may use, as they would without these rules. Visibility is presentation, so it fails open.
 
-## Scenarios
+## Scenarios {#scenarios}
 
 - **Tidy lists for everyone.** Hide `*preview*` and undated aliases for everyone:
 
@@ -172,7 +174,7 @@ In the console, **Show models hidden by policy** appears once a lookup hid somet
 - **Coding agents see one family.** For an App tag shared by your coding-agent apps, with **Model lists** set to **API (GET /v1/models)**, show only `azureopenai · gpt-4o*`. Console lookups for those apps are unchanged.
 - **Retire a provider's copies.** Hide the provider label `legacy-openai`. Models that another provider also offers stay listed, under that provider.
 
-## Related
+## Related {#related}
 
 - [Gateway access and allowed models](./gateway-access-and-allowed-models)
 - [Providers and models](../apps-and-providers/providers-and-models)

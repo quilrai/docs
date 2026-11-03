@@ -6,7 +6,12 @@ sidebar_custom_props:
 description: "Connect Zscaler Internet Access and apply its URL decisions, URL overrides and group domain exclusions to QuilrAI Web Search."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Web search security
+
+Updated on 3 November 2026.
 
 Apply your Zscaler Internet Access (ZIA) URL policy to the [QuilrAI Web Search](../quilr-provided-mcps/web-search) MCP, so agents can only open web pages your users are allowed to visit.
 
@@ -22,7 +27,6 @@ This policy applies only to the built-in **QuilrAI Web Search** server. Other MC
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'MCP Gateway', '...']}
   action="ZIA integration"
 />
@@ -35,11 +39,15 @@ This policy applies only to the built-in **QuilrAI Web Search** server. Other MC
 
 The status changes to **Connected** and shows how many ZIA groups and departments are available. Credentials are not displayed again. To change them, enter new values and connect again.
 
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
 ## Set the policy
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'QuilrAI Web Search card', 'Configure']}
   action="General"
 />
@@ -56,6 +64,28 @@ Scroll to **Web Search policy** ("Apply ZIA-backed group policy and explicit URL
 
 Click **Save settings** in the footer to apply your changes.
 
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Going further with the Policy Engine
+
+Open **Govern > Policy Engine > MCP Gateway > Controls > Web Search Security**. ZIA credentials remain managed through **ZIA integration**; policy rules decide the search restrictions.
+
+| Section | Use it for | How matching rules combine |
+|---|---|---|
+| **Excluded domains** | Domains to exclude from web search. | Matching lists combine; priority is not used. |
+| **Result domains** | Allow or deny results by their domains. | Highest numeric priority wins; Deny wins ties. |
+| **URL overrides and timeout** | Explicit URL decisions and the ZIA check timeout. | Each setting combines separately; the timeout uses the smallest positive value. |
+
+1. Choose a recipe or start a blank rule in the section.
+2. Select callers, groups, agents or the Web Search server under **Applies to**, then set the domains, outcome or timeout.
+3. Check **Reads as**, **Save to draft**, then [test and publish](../../console/govern/author-simulate-and-publish).
+
+With no matching rule, no domains are excluded, result domains are allowed, and ZIA decides without an override. The default check timeout is 10 seconds per batch. Use a specific outcome and caller scope rather than assuming all overlapping rules are restrictive in the same way.
+
+</TabItem>
+</Tabs>
+
 ## How it works
 
 1. An agent asks QuilrAI Web Search to open one or more web pages.
@@ -63,29 +93,6 @@ Click **Save settings** in the footer to apply your changes.
 3. URLs ZIA blocks for that person are removed. The rest are fetched and returned.
 
 Because the check uses the person's own ZIA identity, web search results follow the same ZIA URL policy that applies to that person.
-
-## Going further with the Policy Engine
-
-The **Web Search Security** card (stage 4, Response) in **Govern > Policy Engine > MCP Gateway** carries the same controls as policy effects: ZIA timeout, URL overrides, excluded domains and a result domain action. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
-
-Scenarios the card supports beyond the server setting:
-
-- **Exclude domains outright.** List domains such as paste sites or raw file hosts as **excluded domains** and set **result domain action** to `block`, independent of the ZIA lookup.
-- **Different rules per group or agent.** Match **smart groups**, **user email** or **agent name**, for example a stricter exclusion list for contractors.
-- **Pair with token saving.** One response rule can also turn on **smart JSON compression** and **HTML to text** for search results.
-
-<PolicyCard
-  name="compress_and_fence_search"
-  stage="response"
-  priority={400}
-  when={[{ field: "MCP name", op: "is", value: "Web Search" }]}
-  then={[
-    { effect: "smart JSON compression", value: "true" },
-    { effect: "HTML to text", value: "true" },
-    { effect: "excluded domains", values: ["pastebin.com", "raw.githubusercontent.com"], tone: "info" },
-    { effect: "result domain action", value: "block" },
-  ]}
-/>
 
 ## Related
 

@@ -3,37 +3,56 @@ sidebar_position: 6
 sidebar_label: "Gateway access and allowed models"
 sidebar_custom_props:
   icon: KeyRound
+description: "Control who may send gateway requests and which configured models they may call with classic app catalogs or scoped policy rules."
+console_path: []
+aliases: ["gateway access and allowed models"]
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Gateway access and allowed models
 
+Updated on 3 November 2026.
+
 Control who may send requests through the gateway and which models they may call. Denied requests are rejected before routing or scanning: no provider call, no tokens.
 
-## Set models for an app
+## Configure this control
+
+Linked providers and enabled models define an app's model catalog in both modes. The Policy Engine adds caller and model-access rules on top of that catalog. Gateway Access has no classic equivalent. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
+## Set models for an app {#set-models-for-an-app}
 
 In app settings, an app's usable models are the models of the providers linked to it. To limit an app to certain models, link only the providers (and enable only the models) it should use:
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Providers"
 />
 
 See [Link providers to an app](../apps-and-providers/providers-and-models#link-providers-to-an-app) and [Providers and models](../apps-and-providers/providers-and-models). There is no app setting to deny a request by user, group or prompt text. That needs the Policy Engine.
 
-## Going further with the Policy Engine
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
 
-Two cards in **Policy Engine > LLM Gateway** cover access. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish). Gateway Access is policy-only, so nothing freezes when you turn it on; see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings) for what the engine takes over.
+## Going further with the Policy Engine {#going-further-with-the-policy-engine}
 
-### Gateway Access card
+Open **Govern > Policy Engine > LLM Gateway > Controls** and choose **Gateway Access** or **Allowed Models**. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish). Gateway Access is policy-only, so nothing freezes when you turn it on; see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings) for what the engine takes over.
+
+### Gateway Access {#gateway-access-card}
+
+Start from a recipe such as **Block an app, group or person**, or use the section's add menu. Choose **Applies to**, the decision and any exclusions, check **Reads as**, then **Save to draft**. Use **Test** for matching callers and exceptions before **Review & publish**.
 
 Allow or deny an entire request by who sent it, which app or model it targets, or what its prompt says.
 
 | Section | What it does | Empty state |
 |---|---|---|
-| **Requests** | **Add rule**: Allow or Deny (default **Deny**) the whole request for a scope, with an optional severity. | Everyone without a rule is allowed. |
-| **Prompt text rules** | **Add phrase rule**: act on a phrase in the user prompt, system prompt or either. | No request is denied for what its prompt says. |
+| **Who can send requests** | Allow or Deny the whole request for a scope, with an optional severity. | Everyone without a rule is allowed. |
+| **Prompt text rules** | Act on a phrase in the user prompt, system prompt or either. | No request is denied for what its prompt says. |
 
 Phrase rules run at the request stage on `chat`, `responses`, `bedrock` and `vertex`.
 
@@ -48,7 +67,9 @@ Matching is case-insensitive (except **is exactly**) and reads the first 8,192 c
 
 Highest priority wins. When an allow and a deny share a priority, **deny wins**. An allow never bypasses identity, source IP, model or tool checks.
 
-### Allowed Models card
+### Allowed Models {#allowed-models-card}
+
+Use **Search rules** to find configurations by app, group, person or model. Start from a recipe or a section's add menu, select the scope and model lists, then **Save to draft**.
 
 Choose which models matching traffic may call, and which models nobody in scope may call.
 
@@ -67,7 +88,7 @@ On `models`, `GET /v1/models` lists only the models a caller may use, and `GET /
 An allowed list scoped to **Everyone** restricts every application and user to that list. Choose **Application** or another scope to limit who it affects.
 :::
 
-### Scenarios
+### Scenarios {#scenarios}
 
 - **Keep frontier models away from a group.** Deny requests when the Smart group is Interns and the requested model is one of a list:
 
@@ -91,7 +112,10 @@ An allowed list scoped to **Everyone** restricts every application and user to t
 
 For limiting models, an allowed list is usually easier to maintain than a deny rule on Gateway Access.
 
-## Related
+</TabItem>
+</Tabs>
+
+## Related {#related}
 
 - [Providers and models](../apps-and-providers/providers-and-models)
 - [Model visibility](./model-visibility)

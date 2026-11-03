@@ -121,7 +121,7 @@ Okta's guide: [Create SAML app integrations](https://help.okta.com/en-us/content
    |---|---|
    | **Audience (EntityID)** | The Quilr **Entity ID** |
    | **Recipient** | The Quilr **ACS URL** |
-   | **ACS (Consumer) URL Validator** | The ACS URL as a regular expression, with dots escaped. For example, `^https://web\.quilr\.ai/platformadminapis/v2/auth/saml/callback$` |
+   | **ACS (Consumer) URL Validator** | The copied ACS URL as a regular expression, with dots escaped as `\.`. Add `^` at the start and `$` at the end so it matches the whole URL |
    | **ACS (Consumer) URL** | The Quilr **ACS URL** |
    | **Single Logout URL** | Leave empty |
 

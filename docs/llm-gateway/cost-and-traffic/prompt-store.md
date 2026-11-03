@@ -4,17 +4,30 @@ sidebar_label: "Prompt store"
 sidebar_custom_props:
   icon: MessageSquareText
 description: "Store reusable system prompts, reference them at request time, and give an app a universal system prompt that the gateway adds to every request."
+console_path: []
+aliases: ["prompt store"]
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Prompt store
 
+Updated on 3 November 2026.
+
 Store reusable system prompts centrally, then reference one or more of them and add inline instructions at request time. You can also give an app one universal system prompt that the gateway adds to every request.
 
-## Turn it on for an app
+## Configure this control
+
+App prompt definitions stay editable in both modes. Choose Classic settings for app prompt setup, or Policy Engine for organization-wide prompts and scoped enforcement. Only the governed enforcement and universal-prompt settings follow the engine switch. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
+## Turn it on for an app {#turn-it-on-for-an-app}
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Prompts"
 />
@@ -27,7 +40,91 @@ Variable names can contain letters, numbers, underscores and hyphens. Callers mu
 
 To add one prompt to every request without a Prompt ID, use the [universal system prompt](#universal-system-prompt) in the same section.
 
-## How it works
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Going further with the Policy Engine {#going-further-with-the-policy-engine}
+
+The **Prompt Store & Enforcement** card in **Policy Engine > LLM Gateway** holds three things: the organization-wide Global Prompt Store, the **Require store prompt** policy and the **Universal system prompt** policy. When the engine is on for the LLM Gateway, the app's store-prompt enforcement and [universal system prompt](#universal-system-prompt) freeze, and the card's policies decide them. App prompts themselves stay editable. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+
+### Global Prompt Store {#global-prompt-store-v2-console}
+
+The Global Prompt Store is one prompt library for your whole organization, reusable by every LLM Gateway app. Open **Govern > Policy Engine > LLM Gateway > Controls > Prompt Store & Enforcement**, then choose its **Prompt Store** tab.
+
+The **Prompt Store** tab lists every prompt with its ID, variables and content. Search by ID or content, or use **Add prompt**, **Edit** and **Delete**. IDs and `{{variable}}` rules are the same as for app prompts. Changes apply immediately across the organization: they are not part of the policy draft and do not require publishing.
+
+| | App Prompt Store | Global Prompt Store |
+|---|---|---|
+| Where | App **Configure > Prompts** | **Policy Engine > LLM Gateway > Prompt Store & Enforcement > Prompt Store** |
+| Scope | One app | Every app in the organization |
+| Reference in requests | `quilrai-prompt-store-<id>` | `quilrai-prompt-store-<id>` |
+| Variables | `X-Prompt-Variables` header | `X-Prompt-Variables` header |
+
+How the two stores relate:
+
+- The global list also shows the prompts of your active apps. When apps share an ID, the newest app version is the default and conflicting versions get alias IDs.
+- Saving an app-derived ID in the global store creates an organization-level version that takes priority over the app copies.
+- Deleting an app-derived ID in the global store hides it from the global list.
+
+### Require store prompt {#require-store-prompt}
+
+Use a recipe or the add menu in **Require store prompt** to add a configuration with **Require store prompt** set to **Required**, **Not required** (an exception that must outrank the matching requirement) or **Leave as is**. It applies on `chat`, `responses` and `vertex`. The highest-priority matching configuration wins; Required wins ties. Edits join the shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+
+Scenarios:
+
+- **Production only.** Require a store prompt when request metadata marks the environment as production, and leave development free to experiment.
+- **Tenant-wide with exceptions.** Require it for Everyone, then set **Not required** for one Application, App tag or Smart group.
+- **Per model or provider.** Require it only for a Requested model or Provider.
+
+<PolicyCard
+  name="require_approved_system_prompts"
+  stage="request"
+  priority={600}
+  when={[{ field: "Request metadata . environment", op: "is", value: "production" }]}
+  then={[{ effect: "Require Prompt Store system prompt", value: "required" }]}
+/>
+
+### Universal system prompt policies {#universal-system-prompt-policies}
+
+With the engine on, the universal system prompt comes from policies instead of each app's setting. Open **Universal system prompt** in the **Prompt Store & Enforcement** panel and start from a recipe or its add menu. Choose who it applies to, then set **Universal system prompt** to:
+
+- **On**, with the prompt from either:
+  - **Write the prompt**: type it in **Prompt text**. The counter shows its length against the 8,192-character limit.
+  - **Use a Global Prompt Store prompt**: pick it in **Global Prompt Store prompt**, for longer prompts or one prompt shared by several configurations. **Manage prompts in the Prompt Store** opens the [Global Prompt Store](#global-prompt-store-v2-console).
+- **Off**: an explicit exception at a higher priority than the matching On configuration.
+
+The card shows each configuration as **On · 1,234 characters**, **On · Global prompt support-persona** or **Off**. Editing one reopens the same form, or the full editor for a configuration the form cannot show.
+
+The gateway adds the winning prompt exactly as described in [What the model receives](#what-the-model-receives), on `chat` (including Anthropic Messages), `responses`, `vertex` and `bedrock` requests.
+
+How it resolves:
+
+- **One prompt per request.** The highest-priority matching configuration wins. The form sets a priority from the scope, and the form then moves to the next priority no other universal system prompt holds. Two configurations at the same priority with different prompts cannot be published unless they apply to different applications.
+- **No matching configuration, no prompt.** The app's own universal system prompt does not apply while the engine is on.
+- **Global Prompt Store prompts are live.** The gateway reads the prompt on each request, so editing it in the Global Prompt Store applies immediately, without publishing. It is sent as written: `{{variables}}` are not resolved.
+- **A deleted prompt is skipped.** Requests go to the model without a universal system prompt, and the request log records the reason `prompt_not_found`. The form flags a prompt the Global Prompt Store no longer holds, and validation warns about it.
+- **Request logs name the source.** The log records that the prompt came from a policy and, for a Global Prompt Store prompt, its ID. The prompt text is never logged.
+
+When you [turn the engine on](../../console/govern/switching-from-classic-settings), each app's universal system prompt becomes a configuration scoped to that app. A prompt longer than 8,192 characters cannot move automatically: the conversion review flags it, and you add it to the Global Prompt Store and reference it from a configuration.
+
+Scenarios:
+
+- **One persona for everyone.** Turn it on for Everyone with a Global Prompt Store prompt, and set **Off** for the one Application that brings its own.
+- **Per team.** Give a Smart group its own prompt at a higher priority than the Everyone configuration.
+- **Per model.** Add model-specific instructions for one Requested model.
+
+<PolicyCard
+  name="support_team_persona"
+  stage="request"
+  priority={600}
+  when={[{ field: "Smart groups", op: "includes (ignoring case)", value: "Support" }]}
+  then={[{ effect: "Universal system prompt", value: "On · Global prompt support-persona" }]}
+/>
+
+</TabItem>
+</Tabs>
+
+## How it works {#how-it-works}
 
 <StepFlow steps={[
   {
@@ -57,7 +154,7 @@ To add one prompt to every request without a Prompt ID, use the [universal syste
 2. **Reference** - Use it as the system message content: `quilrai-prompt-store-code-reviewer`
 3. **Gateway Resolves** - The gateway resolves the prompt and sends the full text to the LLM
 
-## Combining prompts and instructions
+## Combining prompts and instructions {#combining-prompts-and-instructions}
 
 A system message is not limited to a single reference. The gateway scans it for `quilrai-prompt-store-<id>` reference tokens and replaces each one **in place** with that prompt's resolved content, leaving any other text exactly where you wrote it. So one system message can:
 
@@ -103,13 +200,15 @@ Only review the security-sensitive files in this diff.
 References and inline text are combined from top to bottom in the order they appear. Put foundational prompts first and request-specific instructions last so the model reads them in a natural order.
 :::
 
-## Universal system prompt
+## Universal system prompt {#universal-system-prompt}
 
 A universal system prompt is one prompt per app, with no Prompt ID, that the gateway adds to every request. Callers do not reference it, so it reaches the model even when an app sends its own system prompt or none at all.
 
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Prompts"
 />
@@ -120,7 +219,15 @@ A universal system prompt is one prompt per app, with no Prompt ID, that the gat
 
 Unlike stored prompts, which apply immediately, the universal system prompt is part of the app's settings. It applies when you click **Save settings**, is kept in the app's configuration versions (so **Roll back** restores it), and is recorded in the app's [Audit Log](../monitor/app-audit-log) as a configuration change (`update_config`). Self-service editors change it through the normal settings save or change request. It can be up to 100,000 characters, and it cannot be turned on while **Prompt** is empty.
 
-### What the model receives
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+Open **Govern > Policy Engine > LLM Gateway > Controls > Prompt Store & Enforcement** and add a rule under **Universal system prompt**. Choose who it applies to and whether to write prompt text or reference a Global Prompt Store prompt, then **Save to draft** and **Review & publish**. See [Universal system prompt policies](#universal-system-prompt-policies) for precedence and prompt sources.
+
+</TabItem>
+</Tabs>
+
+### What the model receives {#what-the-model-receives}
 
 The gateway adds the universal system prompt before the system prompt your app sends, separated by a blank line. A request with no system prompt gets the universal system prompt as its system prompt. Prompt Store references in your app's system message are resolved first, so the universal system prompt sits in front of the resolved text.
 
@@ -146,7 +253,7 @@ Answer in Spanish.
 
 When the request has no system message, the LLM receives only `You are Acme's support assistant. Never share internal URLs.` as its system prompt.
 
-### Where it goes in each format
+### Where it goes in each format {#where-it-goes-in-each-format}
 
 | Request format | Where the universal system prompt is added |
 |---|---|
@@ -159,7 +266,7 @@ When the request has no system message, the LLM receives only `You are Acme's su
 
 It is not applied to embeddings, legacy completions, images, moderations, Realtime, Assistants or Anthropic token counting.
 
-### How it behaves
+### How it behaves {#how-it-behaves}
 
 - **Sent as written.** Prompt Store references and `{{variables}}` inside the universal system prompt are not resolved.
 - **Applied after guardrails.** The gateway adds it after guardrails run and Prompt Store references are resolved, right before the request goes to the provider, so guardrails never scan or redact it. It is added to the request in the format your client sent, so it also works with [any-to-any formats](../api-reference/any-to-any-formats).
@@ -172,7 +279,7 @@ It is not applied to embeddings, legacy completions, images, moderations, Realti
 
 To set it from automation, use the [Management API](../api-reference/prompts-api).
 
-## Template variables
+## Template variables {#template-variables}
 
 Prompts support `{{variable}}` placeholders. Pass values via the `X-Prompt-Variables` header, keyed by the reference each set of values belongs to.
 
@@ -203,7 +310,7 @@ When a system message references several prompts, give each one its own entry - 
 }
 ```
 
-## Enforce system prompts
+## Enforce system prompts {#enforce-system-prompts}
 
 **Enforce system prompts from store**, in the app's prompt settings, ensures every request's system message includes at least one managed Prompt Store reference, so no request runs without a reviewed base prompt.
 
@@ -216,9 +323,9 @@ This applies uniformly across Chat Completions, Anthropic Messages (both the top
 
 The [universal system prompt](#universal-system-prompt) does not count as a reference. Enforcement checks only the system prompt your app sends, so with enforcement on, a request without a valid reference is still rejected even when the universal system prompt is on.
 
-## Code examples
+## Code examples {#code-examples}
 
-### OpenAI
+### OpenAI {#openai}
 
 ```python
 from openai import OpenAI
@@ -240,7 +347,7 @@ response = client.chat.completions.create(
 )
 ```
 
-### Anthropic
+### Anthropic {#anthropic}
 
 ```python
 import anthropic
@@ -263,89 +370,7 @@ message = client.messages.create(
 )
 ```
 
-## Going further with the Policy Engine
-
-The **Prompt Store and Enforcement** card in **Policy Engine > LLM Gateway** holds three things: the organization-wide Global Prompt Store, the **Require store prompt** policy and the **Universal system prompt** policy. When the engine is on for the LLM Gateway, the app's store-prompt enforcement and [universal system prompt](#universal-system-prompt) freeze, and the card's policies decide them. App prompts themselves stay editable. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
-
-### Global Prompt Store {#global-prompt-store-v2-console}
-
-The Global Prompt Store is one prompt library for your whole organization, reusable by every LLM Gateway app. Open **Policy Engine > LLM Gateway** and click **Prompt Store** on the **Prompt Store and Enforcement** card.
-
-![Prompt Store and Enforcement card with the Configure menu, the Prompt Store button, and Require store prompt set for 3 applications](/img/llm-gateway/ui/policy-prompt-store-card.png)
-
-The drawer lists every prompt with its ID, variables and content. Search by ID or content, or use **Add prompt**, **Edit** and **Delete**. IDs and `{{variable}}` rules are the same as for app prompts. Changes apply immediately across the organization: they are not part of the policy draft and do not require publishing.
-
-![Global Prompt Store drawer with a search box and two prompts showing their persona and name variable chips](/img/llm-gateway/ui/policy-global-prompt-store-drawer.png)
-
-| | App Prompt Store | Global Prompt Store |
-|---|---|---|
-| Where | App **Configure > Prompts** | **Policy Engine > LLM Gateway > Prompt Store** |
-| Scope | One app | Every app in the organization |
-| Reference in requests | `quilrai-prompt-store-<id>` | `quilrai-prompt-store-<id>` |
-| Variables | `X-Prompt-Variables` header | `X-Prompt-Variables` header |
-
-How the two stores relate:
-
-- The global list also shows the prompts of your active apps. When apps share an ID, the newest app version is the default and conflicting versions get alias IDs.
-- Saving an app-derived ID in the global store creates an organization-level version that takes priority over the app copies.
-- Deleting an app-derived ID in the global store hides it from the global list.
-
-### Require store prompt
-
-**Require** adds a configuration with **Require store prompt** set to **Required**, **Not required** (exempts a narrower scope) or **Leave as is**. It applies on `chat`, `responses` and `vertex`. The highest-priority matching configuration wins; new configurations start at 500. Edits join the shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
-
-Scenarios:
-
-- **Production only.** Require a store prompt when request metadata marks the environment as production, and leave development free to experiment.
-- **Tenant-wide with exceptions.** Require it for Everyone, then set **Not required** for one Application, App tag or Smart group.
-- **Per model or provider.** Require it only for a Requested model or Provider.
-
-<PolicyCard
-  name="require_approved_system_prompts"
-  stage="request"
-  priority={600}
-  when={[{ field: "Request metadata . environment", op: "is", value: "production" }]}
-  then={[{ effect: "Require Prompt Store system prompt", value: "required" }]}
-/>
-
-### Universal system prompt policies
-
-With the engine on, the universal system prompt comes from policies instead of each app's setting. On the **Prompt Store and Enforcement** card, click **Custom** in the **Universal system prompt** section to open **New universal system prompt**. Choose who it applies to, then set **Universal system prompt** to:
-
-- **On**, with the prompt from either:
-  - **Write the prompt**: type it in **Prompt text**. The counter shows its length against the 8,192-character limit.
-  - **Use a Global Prompt Store prompt**: pick it in **Global Prompt Store prompt**, for longer prompts or one prompt shared by several configurations. **Manage prompts in the Prompt Store** opens the [Global Prompt Store](#global-prompt-store-v2-console).
-- **Off**: exempts these requests from a broader configuration that turned it on.
-
-The card shows each configuration as **On · 1,234 characters**, **On · Global prompt support-persona** or **Off**. Editing one reopens the same form, or the full editor for a configuration the form cannot show.
-
-The gateway adds the winning prompt exactly as described in [What the model receives](#what-the-model-receives), on `chat` (including Anthropic Messages), `responses`, `vertex` and `bedrock` requests.
-
-How it resolves:
-
-- **One prompt per request.** The highest-priority matching configuration wins. New configurations start at 500, a narrower scope raises that, and the form then moves to the next priority no other universal system prompt holds. Two configurations at the same priority with different prompts cannot be published unless they apply to different applications.
-- **No matching configuration, no prompt.** The app's own universal system prompt does not apply while the engine is on.
-- **Global Prompt Store prompts are live.** The gateway reads the prompt on each request, so editing it in the Global Prompt Store applies immediately, without publishing. It is sent as written: `{{variables}}` are not resolved.
-- **A deleted prompt is skipped.** Requests go to the model without a universal system prompt, and the request log records the reason `prompt_not_found`. The form flags a prompt the Global Prompt Store no longer holds, and validation warns about it.
-- **Request logs name the source.** The log records that the prompt came from a policy and, for a Global Prompt Store prompt, its ID. The prompt text is never logged.
-
-When you [turn the engine on](../../console/govern/switching-from-classic-settings), each app's universal system prompt becomes a configuration scoped to that app. A prompt longer than 8,192 characters cannot move automatically: the conversion review flags it, and you add it to the Global Prompt Store and reference it from a configuration.
-
-Scenarios:
-
-- **One persona for everyone.** Turn it on for Everyone with a Global Prompt Store prompt, and set **Off** for the one Application that brings its own.
-- **Per team.** Give a Smart group its own prompt at a higher priority than the Everyone configuration.
-- **Per model.** Add model-specific instructions for one Requested model.
-
-<PolicyCard
-  name="support_team_persona"
-  stage="request"
-  priority={600}
-  when={[{ field: "Smart groups", op: "includes (ignoring case)", value: "Support" }]}
-  then={[{ effect: "Universal system prompt", value: "On · Global prompt support-persona" }]}
-/>
-
-## Related
+## Related {#related}
 
 - [Prompts API](../api-reference/prompts-api)
 - [Token saving](./token-saving)

@@ -87,11 +87,11 @@ Put the value to scan in `json`. Pass an actual JSON value, rather than a serial
   "type": "request",
   "json": {
     "customer": {
-      "firstName": "Praneeth",
-      "fullName": "Praneeth Bedapudi",
-      "name": "PRANEETH"
+      "firstName": "Alex",
+      "fullName": "Alex Morgan",
+      "name": "ALEX"
     },
-    "contacts": [{"email": "praneeth@example.com"}],
+    "contacts": [{"email": "alex@example.com"}],
     "active": true,
     "notes": null
   },
@@ -225,29 +225,29 @@ This example assumes `NAME` is detected and its configured action is `redact`:
 {
   "status": "redacted",
   "action": "redact",
-  "original_json": {"name": "praneeth", "active": true, "notes": null},
+  "original_json": {"name": "alex", "active": true, "notes": null},
   "processed_json": {"name": "XXXXXXXX", "active": true, "notes": null},
-  "original_text": "{\"name\": \"praneeth\", \"active\": true, \"notes\": null}",
+  "original_text": "{\"name\": \"alex\", \"active\": true, \"notes\": null}",
   "processed_text": "{\"name\": \"XXXXXXXX\", \"active\": true, \"notes\": null}",
   "predictions": [
     {
       "id": "data_risk_category_pii",
       "type": "redact",
-      "sensitive_entities": ["praneeth"],
-      "entity_texts_with_subcategories": {"praneeth": "NAME"},
-      "entity_json_paths": {"praneeth": ["/name"]}
+      "sensitive_entities": ["alex"],
+      "entity_texts_with_subcategories": {"alex": "NAME"},
+      "entity_json_paths": {"alex": ["/name"]}
     }
   ],
   "categories_detected": ["pii"],
   "placeholder_masking": {
     "hashing_mode": "case_sensitive",
-    "json": {"name": "<qe-3eec439a42808ba8>", "active": true, "notes": null},
-    "text": "{\"name\": \"<qe-3eec439a42808ba8>\", \"active\": true, \"notes\": null}",
+    "json": {"name": "<qe-4135aa9dc1b842a6>", "active": true, "notes": null},
+    "text": "{\"name\": \"<qe-4135aa9dc1b842a6>\", \"active\": true, \"notes\": null}",
     "messages": null,
     "placeholders": [
       {
-        "placeholder": "<qe-3eec439a42808ba8>",
-        "value": "praneeth",
+        "placeholder": "<qe-4135aa9dc1b842a6>",
+        "value": "alex",
         "sub_category": "NAME",
         "category_id": "data_risk_category_pii",
         "action": "redact",
@@ -273,8 +273,8 @@ Tokens have the format `<qe-{16-char-hash}>`. The same source value and hashing 
 
 | `hashing_mode` | Hash input | Example |
 |----------------|------------|---------|
-| `case_sensitive` (default) | Exact matched source value | `Praneeth` and `praneeth` have different hashes. |
-| `case_insensitive` | Source value after Unicode case folding | `Praneeth`, `praneeth`, and `PRANEETH` all produce `<qe-3eec439a42808ba8>`. |
+| `case_sensitive` (default) | Exact matched source value | `Alex` and `alex` have different hashes. |
+| `case_insensitive` | Source value after Unicode case folding | `Alex`, `alex`, and `ALEX` all produce `<qe-4135aa9dc1b842a6>`. |
 
 The selected mode is echoed in `placeholder_masking.hashing_mode`. It applies to all placeholder entity types and changes hashing only; detection, ordinary redaction, and policy actions are unaffected. Whitespace, punctuation, and accents remain part of the hash input.
 
@@ -282,7 +282,7 @@ Repeated identical JSON values share a placeholder entry with every replaced pat
 
 ### Similar entities
 
-Every completed check also includes `similar_entities` and `similar_entities_truncated`. These are response fields, not request parameters. When both names in `{"first": "Praneeth", "full": "Praneeth Bedapudi"}` are detected, a case-insensitive check can return:
+Every completed check also includes `similar_entities` and `similar_entities_truncated`. These are response fields, not request parameters. When both names in `{"first": "Alex", "full": "Alex Morgan"}` are detected, a case-insensitive check can return:
 
 ```json
 {
@@ -292,17 +292,17 @@ Every completed check also includes `similar_entities` and `similar_entities_tru
       "reason": "name_contains",
       "entities": [
         {
-          "value": "Praneeth",
-          "hash": "3eec439a42808ba8",
-          "placeholder": "<qe-3eec439a42808ba8>",
+          "value": "Alex",
+          "hash": "4135aa9dc1b842a6",
+          "placeholder": "<qe-4135aa9dc1b842a6>",
           "category_id": "data_risk_category_pii",
           "sub_category": "NAME",
           "json_paths": ["/first", "/full"]
         },
         {
-          "value": "Praneeth Bedapudi",
-          "hash": "e22c3df7649a8ca6",
-          "placeholder": "<qe-e22c3df7649a8ca6>",
+          "value": "Alex Morgan",
+          "hash": "60705d930a9ed84f",
+          "placeholder": "<qe-60705d930a9ed84f>",
           "category_id": "data_risk_category_pii",
           "sub_category": "NAME",
           "json_paths": ["/full"]
@@ -358,7 +358,7 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-quilr-xxx"},
     json={
         "type": "request",
-        "json": {"name": "Praneeth", "active": True, "notes": None},
+        "json": {"name": "Alex", "active": True, "notes": None},
         "hashing_mode": "case_insensitive",
         "metadata": {"source": "customer-profile"},
     },
@@ -384,7 +384,7 @@ const response = await fetch("https://guardrails-usa-2.quilr.ai/sdk/v1/check", {
   },
   body: JSON.stringify({
     type: "request",
-    json: { name: "Praneeth", active: true, notes: null },
+    json: { name: "Alex", active: true, notes: null },
     hashing_mode: "case_insensitive",
   }),
 });
@@ -404,7 +404,7 @@ curl -X POST https://guardrails-usa-2.quilr.ai/sdk/v1/check \
   -H "Content-Type: application/json" \
   -d '{
     "type": "response",
-    "json": {"name": "Praneeth", "active": true, "notes": null},
+    "json": {"name": "Alex", "active": true, "notes": null},
     "hashing_mode": "case_insensitive"
   }'
 ```

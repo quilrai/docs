@@ -1,5 +1,5 @@
 QUILR ADMIN CONSOLE (v2) - LLM GATEWAY NAVIGATION GUIDE FOR BROWSING AGENTS
-Last verified: 2026-10-07 against web.quilr.ai
+Updated on 3 November 2026.
 Attachment controls and image-risk labels checked against the current console: 2026-11-02.
 Labels below are the exact on-screen text. ">" means "then click".
 
@@ -30,7 +30,25 @@ PAGE LAYOUT (Applications tab, top to bottom)
   Inspect row: Logs | Usage & Cost | Provider Status | Copy logs key | Export API docs
   Configure row: Providers | Guardrails | Guardian | Token Saving | Routing | Self-Service | Audit Log | Prompts
   footer: Created by, Created at
-- Every Inspect/Configure button opens the "LLM Gateway workspace" drawer.
+- Logs and Configure actions open operational drawers. Overall analytics and app Analytics links open full-page Insights.
+
+FULL-PAGE INSIGHTS
+- Overall analytics opens LLM Gateway Insights, separate from operational Activity/Settings drawers.
+- Sections: Overview | Agents & tools | Performance & errors | Security | Attachments | Users.
+- Routes under /settings/llm-gateway/insights/: overview, agents, performance, security, attachments, users.
+- Period: 24 hours | 3 days | 7 days | 14 days | 30 days; compared with the previous period; All apps picker.
+- Model requests / Guardrail checks appears where supported, not identically on every section.
+- Overview: Worth a look, app behavior, prompt caching, changes, answer endings, models/routing,
+  callers, estimated spend, failed requests, All apps. Explore opens related evidence.
+- Agents & tools: All agents | Tools & parameters; Coding agents may be unavailable.
+  An agent configuration, an app, and a run are different units. Cost and token figures are estimates.
+- Performance & errors: Where the time goes, failures, streaming, rate limiting, output limits,
+  served model versions, reasoning, providers and deployments.
+- Security: scan completeness, results, findings, actions, app coverage, networks.
+  Unavailable scan completeness is not zero coverage.
+- Attachments: file counts/bytes, OCR, scan outcomes, data found, image labels, skipped files, apps.
+- Users: people/Smart groups, requests/cost/data/outcomes, identity coverage, people-agent-tool flow.
+- Open an app card's Logs for request-level Activity; Insights does not have an Activity or Settings tab.
 
 WORKSPACE DRAWER ("LLM Gateway workspace")
 - Application picker ("All applications" = every app); scope tiles APPLICATIONS IN SCOPE / PROVIDERS / NEEDS ATTENTION
@@ -87,7 +105,7 @@ TASK -> WHERE
 - Prompt Store (approved prompts + Universal system prompt + enforcement) -> Configure > Prompts
 - One prompt added to every request of an app -> Configure > Prompts > "Universal system prompt" card:
   type the Prompt, turn on "Apply to every request" > Save settings (no Prompt ID; added before the request's
-  own system prompt). With the Policy Engine on, set it on the Policy Engine "Prompt Store and Enforcement"
+  own system prompt). With the Policy Engine on, set it on the Policy Engine "Prompt Store & Enforcement"
   card instead (see POLICY ENGINE)
 - Self-service for developers -> Configure > Self-Service > Self-service Enabled switch, then Capabilities grid
   (per capability: Allow all users / Allow emails / Allow smart groups / Deny emails / Deny smart groups) > Save settings
@@ -129,47 +147,49 @@ TASK -> WHERE
   Review impact > Apply and confirm; Save draft does not apply changes.
 - Exports -> Settings > Data management > Export Center
 
-POLICY ENGINE (LLM) - /policy/engine/llm-gateway
-- Surface tabs: Browser Extension | LLM Gateway | MCP Gateway | Endpoint Agent
-- Header when on: ENGINE ON, Revision N, "Gateway controls", active-card count, History, Docs, Filter
-- "What applies to one request" > Describe a request (previews the winning value per control)
-- Cards (each Configure): Data & Adversarial Risks, Guardian Agent, Hallucination Protection,
-  Gateway Access, Identity & Network Trust, Tool Controls, Allowed Models, Model Visibility, Model routing,
-  Budgets & Usage Limits, Rate, Token & Timeout Limits, Token Savings, Prompt Store and Enforcement, Attachments.
-  Below them: "Advanced policies" (policies the cards cannot represent; Advanced workspace).
-- Attachments card: request file kinds, size/count/page limits, text extraction, OCR and image
-  classification. Data & Adversarial Risks selects the text/image data types and their actions.
-  Classify images alone checks no category; enable at least one Image Risks type. Publish the shared
-  draft before testing live traffic. OCR and image classification are unavailable on no-GPU deployments.
-- Model Visibility card (what GET /v1/models and the console's Get available models / List models show;
-  never what can be called): Quick add (Hide preview models, Only show approved providers, Turn off model
-  listing, Let admins list hidden models) or a control's add button > "New model visibility rule": choose who
-  it applies to > Model lists (Both | API (GET /v1/models) | Console), Model listing (On | Off), Show only
-  ("Show only some models") and Hide ("Hide some models") with grants (Providers = exact provider type,
-  Provider labels, Model patterns with * and ?; Add grant), Undated aliases ("Hide undated aliases"),
-  Hidden models (Not set | Never | On request | Always) > Add to draft. Grants from every matching rule add
-  up and a hide wins. Hidden models stay callable by name; block a model on Allowed Models instead.
-  On request: callers add ?include_hidden=true or header X-Quilr-Include-Hidden: true. In the console a
-  lookup shows "N models hidden by policy." and, for people who can view LLM Gateway policies, a
-  "Show models hidden by policy" checkbox.
-- Prompt Store and Enforcement card: Prompt Store button (Global Prompt Store drawer), "Require store prompt",
-  and "Universal system prompt" (section's Custom > "New universal system prompt": choose who it applies to >
-  On with "Write the prompt" ("Prompt text", up to 8,192 characters) or "Use a Global Prompt Store prompt"
-  ("Global Prompt Store prompt" picker), or Off). Rows read "On · N characters", "On · Global prompt <id>"
-  or "Off". Highest priority wins; one prompt per request; edits join the shared draft.
-- Edits go to one shared draft > Review changes > Publish revision.
-- History: /policy/engine/llm-gateway/history. Simulate: /policy/engine/llm-gateway/simulate
-- Model routing card: /policy/engine/llm-gateway?tile=routing-groups-fallbacks&tab=controls
-  (tabs Overview | Controls | Activity). Controls: Quick add (Send an app to a model, Split traffic across
-  models, Route by what the request is about, Route sensitive data to a model, More...), then sections
-  Conversations (Keep prompt cache warm), Content routes, Route to, Routing groups, Complexity levels,
-  Failover (Move failed requests to another model, Where it can go, Backup models, Fail over on, Max tries,
-  Same-model retries, Time budget, Failover preview; per route: Set failover for this route), and Routing activity. Deep links: &add=content-routes | complexity-levels | route-to | routing-group |
-  keep-cache-warm. Content route Match when: Request is about | Data detected | Prompt complexity |
-  Text contains | Client. Conversation behaviour: Keep destination | Upgrade when needed (complexity) |
-  Re-check every message. Responses carry x-quilr-route and x-quilr-served-model headers.
-- First time (engine off): "Enable new Policy Engine" > Review conversion > tick both checkboxes in
-  "Confirm your review" > Continue to confirmation > confirm (not re-verified: engine already on)
+POLICY ENGINE (LLM)
+- Workspace: /policy/engine/llm-gateway. Selector: LLM Gateway | MCP Gateway | Endpoint Agent | Cloud & SaaS.
+- Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Test | History.
+- Controls groups and areas:
+  Who can use AI?: Gateway Access, Identity & Network Trust, Allowed Models, Model Visibility,
+  Prompt Store & Enforcement.
+  What should be checked?: Data & Adversarial Risks, Guardian Agent, Tool Controls, Attachments.
+  Which model and limits?: Routing Groups & Fallbacks, Budgets & Usage Limits, Token Savings.
+  What may return?: Hallucination Protection, Error Messages.
+- Open an area > read What happens today, section defaults and How rules combine > start from a recipe
+  or blank rule > Applies to > outcome > Reads as > Save to draft > Review & publish.
+- Most panels: Controls | Activity. Prompt Store & Enforcement also has Prompt Store.
+- Gateway Access: Who can send requests, Prompt text rules. Highest priority wins, Deny wins ties.
+- Allowed Models: Search rules; allowed lists combine; a matching rejected list wins regardless of priority.
+- Model Visibility: Model listing, Show only, Hide, Undated aliases, Who still sees hidden models.
+- Identity & Network Trust: Require identity, Require conversation ID, Allowed source IPs, Identity capture.
+  Identity sources remain per app; capture overrides and defaults are shown per setting.
+- Data & Adversarial Risks: Language Blocking, Detection rules, Tag matching traffic.
+  Do not assume a lower-priority Block defeats every higher-priority action; read the section's combination rule.
+- Guardian Agent: Guardian, Coding helpers, Task adherence, Tag findings.
+- Hallucination Protection: Protection, Tag findings.
+- Attachments: Scanning, File types, Size and count limits, Files that can't be scanned, Text in images (OCR).
+  Text/image data types and actions belong in Data & Adversarial Risks.
+- Routing Groups & Fallbacks: Routes | Failover defaults | Activity; Search routes, models or groups;
+  filter by All, Limits, Split, Try in order, Content, Watch only.
+- Budgets & Usage Limits: Budgets & rate limits | Usage | Grants | Request guards | Alerts & response |
+  Exemptions | Model prices. Search limits; there is no separate Rate, Token & Timeout Limits area.
+- Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression,
+  Minify JSON tool outputs, Clean up tool output, Remove encoded content, Response cache.
+- Error Messages: ordered matching messages/help links; status/error codes unchanged.
+  Errors before app identification and limit refusals using a Limit response are excluded.
+- Applies to supports Exclude something and More targeting options. A short app shortcut list is not the
+  full catalog: Search Application values > Find application. Read wildcard and priority explanations.
+- Policies: Search policies, Filters, policy details, Add rule, Edit technical source.
+- Test: Try a situation | Replay activity. Check which rules are selected for testing.
+  Try a situation: Person, Application, AI model, Request type, More details, Add detail,
+  Sensitive data types (optional), Test multiple situations > Run test.
+  Replay activity: Time range, Advanced replay options > Run check. Neither changes live traffic.
+- History: Version list with actor/reason; compare Previous version or Live version; change summary;
+  Technical details, Technical source and Source diff. Restoring preserves history as a new version.
+- Panel links use ?tile=<id>&tab=controls or activity. Observed ids: gateway-access, identity-network,
+  allowed-models, model-visibility, prompt-store, data-risks, guardian, tool-controls, attachments,
+  routing-groups-fallbacks, budgets, token-saving, hallucination, error-messages.
 
 DEEP LINKS (query parameters on /settings/llm-gateway)
 - ?create=1                         Create App dialog
@@ -188,9 +208,6 @@ DEEP LINKS (query parameters on /settings/llm-gateway)
 - &interaction=<id> opens a conversation detail drawer
 - Example: /settings/llm-gateway?app=<id>&workspace=settings&section=limits
 - Models: /settings/models/models?action=add-models ; ?source=quilr|yours ; ?q=<search>
-- Policy card anchor: /policy/engine/llm-gateway#policy-surface-<id>; ids: data-risks, guardian,
-  hallucination, gateway-access, identity-network, tool-controls, allowed-models,
-  model-visibility, routing-groups-fallbacks, budgets, limits, token-saving, prompt-store, attachments
 
 CONFIGURATION NOTES
 - Policy Engine on (tenant-wide): Security Guardrails, Guardian Agent, Attachments, Rate and Token Limits, Token Saving,
@@ -233,6 +250,7 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/token-saving.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/prompt-store.md
 - https://docs.quilrai.dev/llm-gateway/self-service/admin-guide.md
+- https://docs.quilrai.dev/llm-gateway/monitor/analytics-and-insights.md
 - https://docs.quilrai.dev/llm-gateway/monitor/app-audit-log.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/management-api.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/budgets-api.md

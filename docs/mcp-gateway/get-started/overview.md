@@ -3,10 +3,12 @@ sidebar_position: 1
 sidebar_label: "Introduction"
 sidebar_custom_props:
   icon: BookOpen
-description: "The MCP Gateway page in the console - summary tiles, banners, server cards, the workspace tabs and the settings sections."
+description: "Find MCP server management, Insights, tool updates, call logs and server settings in the console."
 ---
 
 # Introduction to the MCP Gateway
+
+Updated on 3 November 2026.
 
 The MCP Gateway sits between your AI apps and the MCP servers they call. Users connect their AI app to a Quilr gateway URL instead of the server itself, and every tool call is checked against your tool rules and guardrails, then logged with the user, the agent and the result.
 
@@ -52,24 +54,25 @@ New servers start with their tools turned off, so nothing is reachable until you
 
 Go to **Settings > AI Gateway > MCP Gateway**.
 
-![MCP Gateway page with the Overall analytics, OneMCP endpoint, Library, Allowed Agents and Add MCP server buttons above four summary tiles and the OAuth and quick-fix banners](/img/mcp-gateway/ui/mcp-gateway-page.png)
+![MCP Gateway page with analytics, OneMCP, library, Tool updates and server management actions above summary cards and review banners](/img/gateway-updates-2026-11/mcp-gateway-servers.jpg)
 
 | Button | What it opens |
 |--------|---------------|
-| **Overall analytics** | The MCP Gateway workspace for all servers, on the Analytics tab |
+| **Overall analytics** | Full-page **MCP Gateway Insights**, starting on **Overview**. See [Analytics and insights](../monitor/analytics-and-insights). |
 | **OneMCP endpoint** | OneMCP settings. See [OneMCP](./onemcp#onemcp-settings). |
-| **Remote Connectors** | Outbound WebSocket tunnel tokens for private-network MCP servers and REST APIs. See [Remote Connectors](../servers-and-connections/remote-connectors). |
+| **Remote connectors** | Connectors for private-network MCP servers and REST APIs. See [Remote Connectors](../servers-and-connections/remote-connectors). |
 | **Library** | The [MCP Library](../servers-and-connections/mcp-library). A count shows pending install requests from users. |
+| **Tool updates** | The queue of tools added or changed upstream, with the gateway default for new-tool approval. See [Tool change watch](../protect/tool-change-watch). |
 | **Allowed Agents** | Which AI clients may connect, and which servers each one sees |
 | **Add MCP server** | The Add MCP drawer. See [Adding MCP Servers](../servers-and-connections/adding-mcp-servers). |
 | **...** | **Connections** (who has connected to which server) and **ZIA integration** (see [Web Search Policy](../protect/web-search-security)) |
 
 | Summary tile | Shows |
 |--------------|-------|
-| **Tool calls** | Calls in the period, the share that came through OneMCP, people calling, tools called, success rate |
+| **Tool calls** | Calls in the period, the share that came through OneMCP, tokens saved and success rate |
 | **Estate** | Servers that are Serving, Awaiting connection or have No tools, and how many are enabled or disabled |
 | **Tools reachable** | Tools agents can call, with Scoped rules, OAuth servers and the Library queue |
-| **Stopped by guardrails** | Calls the gateway refused, Guardrail flags, Failed calls, p95 latency |
+| **Stopped by guardrails** | Calls the gateway refused, block rate, failed calls and the previous-period comparison |
 
 Click a row on a tile to filter the server list or open the matching view.
 
@@ -77,6 +80,7 @@ Click a row on a tile to filter the server list or open the matching view.
 |--------|--------|
 | **N OAuth servers need an administrator connection before their tools can be discovered.** | **Review all** filters the list to those servers. With one server, the button reads **Connect** and the server name. |
 | **N quick fixes could prevent failed tool calls** | **Review fixes** opens the quick fixes drawer. See [Input Aliases](../protect/input-aliases). |
+| **N servers changed their tools upstream.** | **Review tool updates** opens the changes awaiting review. Clients keep the current tool list until the changes are reviewed. |
 
 Below the banners, **Elsewhere** links to **Inventory & analytics**, the **User dashboard** and this **Documentation**. The server list has **All**, **Local**, **Remote** and **API** tabs, **Search servers** and a **Filter** for state, auth, source and runtime.
 
@@ -99,19 +103,22 @@ Each configured server has a card.
 
 A server waiting for an administrator OAuth sign-in shows **Connect OAuth** on its card.
 
+## Analytics and insights
+
+**Overall analytics** opens a full page with **Overview**, **Usage**, **Data & security**, **Reliability**, and **Servers & tools** tabs. Choose the period, server scope and AI-client scope before comparing traffic or following a chart into its details.
+
+See [Analytics and insights](../monitor/analytics-and-insights) for adoption, access maps, failure investigation and the difference between tool-list savings and smaller tool results.
+
 ## The workspace
 
-**Overall analytics** and every Inspect and Configure button open the **MCP Gateway workspace**. Select one or more servers with the server picker, and change the period at the top.
+The server card's **Inspect** and **Configure** actions open operational views. **Inspect > Logs** opens that server's Activity; **Configure** opens its settings. These views are separate from full-page Insights. Select the server scope and period in the workspace; Settings needs exactly one server.
 
 | Tab | What it shows |
 |-----|---------------|
-| **Analytics** | Tool calls, Blocked, Guardrail flags, Via OneMCP, Tokens saved, Success, P95 latency, Users, Servers; calls over time and usage by server |
 | **Activity** | **Tool calls** (one row per call), **Interactions** (calls grouped into conversations), **Findings** (guardrail detections) |
 | **Connections** | Which users have connected to which servers, and their tool calls |
 | **Health** | Gateway verdict, Rejected requests, Access denied, Auth challenges, OAuth refreshes, Upstream server errors, and rejection reasons. Covers the whole gateway. |
 | **Settings** | The server configuration. Available for one server at a time. |
-
-![Analytics tab of the MCP Gateway workspace with tool call, blocked, guardrail, OneMCP and tokens-saved tiles above calls over time](/img/mcp-gateway/ui/workspace-analytics.png)
 
 ![Activity tab listing each tool call with its server, tool, user, agent and outcome](/img/mcp-gateway/ui/workspace-activity.png)
 
@@ -143,6 +150,7 @@ When the [Policy Engine](../../console/govern/policy-engine) is on, Settings sho
 ## Next steps
 
 - [Quick Start](./quick-start): add a server and make a first tool call.
+- [Analytics and insights](../monitor/analytics-and-insights): review adoption, security, failures and tool savings.
 - [Adding MCP Servers](../servers-and-connections/adding-mcp-servers): remote servers, sign-in modes and the MCP Library.
 - [API to MCP](../servers-and-connections/api-to-mcp): turn a REST API into tools.
 - [OneMCP](./onemcp): one URL for every MCP a user may use.

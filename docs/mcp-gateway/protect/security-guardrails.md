@@ -6,97 +6,83 @@ sidebar_custom_props:
 description: "Data risk and adversarial categories on tool arguments and tool results, with Block, Redact, Partial Redact and Monitor actions."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Security guardrails
+
+Updated on 3 November 2026.
 
 Scan what agents send to an MCP server and what the server sends back, and block, redact or flag sensitive data and attacks.
 
-## Configure it on the server
-
-<ConsolePath
-  console="QuilrAI console"
-  href="https://web.quilr.ai"
-  path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
-  action="Guardrails"
-/>
-
-![Guardrails section with Coverage, Request actions across categories, the Actions card (Default, Request, Response) and the Data risk categories table](/img/mcp-gateway/ui/settings-guardrails.png)
-
-### Request and response
+## Request and response {#request-and-response}
 
 | Direction | What is scanned |
-|-----------|-----------------|
-| **Request (tool arguments)** | The inputs an agent sends when it calls a tool. |
-| **Response (tool results)** | What the tool returns before the agent sees it. |
+|---|---|
+| **Request (tool arguments)** | The inputs sent when an agent calls a tool. |
+| **Response (tool results)** | What the tool returns before the AI client sees it. |
 
-### Actions
+## Actions {#actions}
 
 | Action | What happens |
-|--------|--------------|
-| **Block** | The tool call is stopped. |
-| **Redact** | The detected data is removed and the call proceeds. |
-| **Partial** (**Partial Redact** in the category lists) | Part of each match is masked and the rest stays visible for context. |
-| **Monitor** | The call goes ahead and the detection is recorded. |
+|---|---|
+| **Block** | Stops the tool call or withholds the result. |
+| **Redact** | Removes detected data and lets the payload continue. |
+| **Partial redact** | Masks part of each match while retaining context. |
+| **Monitor** | Lets the payload continue and records the detection. |
 
-The **Actions** card sets the defaults:
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
 
-| Setting | Meaning |
-|---------|---------|
-| **Default** | The action for any detection that has no more specific action. Starts as **Monitor**. |
-| **Request (tool arguments)** | The action for detections in tool inputs. **Default** uses the setting above. |
-| **Response (tool results)** | The action for detections in tool results. **Default** uses the setting above. |
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
+## Configure it on the server
+
+Open **Settings > AI Gateway > MCP Gateway**, then the server's **Configure > Guardrails** section.
+
+![Classic Guardrails settings with default, request and response actions and category selection](/img/mcp-gateway/ui/settings-guardrails.png)
+
+The **Actions** card has **Default**, **Request (tool arguments)**, and **Response (tool results)** selectors. Default starts as Monitor; choosing Default for a direction uses that value.
 
 ### Categories
 
-Select a category to scan for it, then optionally select its own **Request** and **Response** action. Leave a category on **Default** to use the **Actions** card.
+Enable the data-risk and adversarial categories you need. Each category can have its own Request and Response action; Default uses the Actions card. The Coverage and action summaries show what is selected.
 
-| Group | Categories |
-|-------|------------|
-| **Data risk categories** | PII, PHI, PFI, PCI, Insurance, Auth Secrets, Device Network Online Identifiers, Telecom Subscriber Data, Employee HR Data |
-| **Adversarial categories** | Prompt Injection Techniques, Jailbreak Techniques, Prompt Context Corruption, Semantic Adversarial Prompts, Social Engineering Prompts, Response Risks, Hateful Or Offensive Content, Violence And Harmful Content, Fraudulent Or Illegal Activity Content, System Guardrail And Security Disclosure, Security Exploit And Payload Enablement, Cybersecurity Frameworks And Standards Mention |
+Click **Save settings** to apply. For differences by person or Smart Group, use [Group and user rules](./group-and-user-rules).
 
-Each group shows how many categories are on, for example **3 of 9 on**. The **Coverage** card totals both groups and **Request actions across categories** shows how many categories use each action.
-
-Click **Save settings** in the footer to apply your changes.
-
-## Where detections show
-
-- The **Stopped by guardrails** tile on the MCP Gateway page counts guardrail flags.
-- The **Guardrails** chip on the server card opens this section.
-- **Overall analytics > Analytics** shows **Blocked** and **Guardrail flags**.
-- **Findings & Interactions** lists each detection, filterable by input and output DLP.
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
 
 ## Going further with the Policy Engine
 
-When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Data & Adversarial Risks** card (stages 3 and 4, Request and Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+Open **Govern > Policy Engine > MCP Gateway > Controls > Data & Adversarial Risks**. It has two sections:
 
-The card's effects are **Actions per sensitive data type**, **Default sensitive data action**, **Sensitive data detectors** and a risk level. Scenarios it supports that server settings cannot:
+| Section | What it sets |
+|---|---|
+| **Detection rules** | Selected findings, the request/response stage and an action for a matching call or result. |
+| **Scan profile** | Which detectors run, category-specific actions, and the fallback action. |
 
-- **A different action per data type in one rule.** One map can block secrets, redact national IDs and monitor names on the same server. Each data type resolves independently, so a rule about one type never erases another rule's action on a different type. **Default sensitive data action** covers any enabled category the map does not name.
-- **Scope by caller, agent or tool.** Apply stricter actions for one smart group, one AI client, or only the tools tagged as writes, instead of one setting for the whole server.
-- **React to what was found.** A rule with a **data found** condition (detections by exact catalog name) can set the sensitive data action or raise the call's risk level, for example on a response from one tool.
+1. Choose a recipe or start a blank rule in the appropriate section.
+2. Choose **Applies to**, the data types or detectors, and the outcome.
+3. Check **Reads as**, then **Save to draft**.
+4. Use **Test > Try a situation** or **Replay activity** to check the candidate, then [review and publish](../../console/govern/author-simulate-and-publish).
 
-<PolicyCard
-  name="crm_data_actions"
-  stage="request"
-  priority={700}
-  when={[{ field: "MCP name", op: "is", value: "Customer CRM" }]}
-  then={[
-    {
-      effect: "Actions per sensitive data type",
-      value: "3 data types",
-      detail: [
-        { label: "Auth & Secrets", value: "block" },
-        { label: "Aadhaar Number / VID", value: "redact" },
-        { label: "Name", value: "monitor" },
-      ],
-    },
-    { effect: "Default sensitive data action", value: "monitor" },
-  ]}
-/>
+Detection rules resolve a payload-wide action: the highest numeric priority wins, with the stricter action winning ties. For each finding, that action competes by priority with the scan profile's category-specific or fallback action. Do not assume every Block overrides every higher-priority rule.
 
-:::note
-**Actions per sensitive data type**, **Default sensitive data action** and **Sensitive data detectors** are evaluated before content is scanned, so a rule carrying one of them cannot also carry a **data found** condition. Put the data condition in a separate rule.
-:::
+Scan-profile settings resolve per detector and per category. On wins a detector tie, and the stricter category action wins an action tie; the default action is a fallback. Detectors run only when a rule or profile selects them. Without selected checks, nothing is scanned automatically.
+
+Rules that select detectors or set scan-profile actions run before scanning. Put conditions on **Data found** in a separate detection rule, rather than making the scan depend on a finding it has not yet produced.
+
+Open **Activity** for observed matches. Classic settings marked **Controlled by Policy Engine** are stored for use when the engine is off; **Edit anyway** does not change published policies.
+
+</TabItem>
+</Tabs>
+
+## Where detections show
+
+- **Overall analytics > Data & security** shows flagged request and response content in [MCP Gateway Insights](../monitor/analytics-and-insights).
+- **Findings & Interactions** lists detections and supports input/output DLP filters.
+- The server card's **Guardrails** chip opens its configuration.
 
 ## Related
 

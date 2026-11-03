@@ -1230,8 +1230,8 @@ export default function LlmGatewayStudio() {
     text: 'My SSN is 219-09-4823. Please help me update my profile.',
     messages: formatJson([{ role: 'user', content: 'My SSN is 219-09-4823. Please help me update my profile.' }]),
     json: formatJson({
-      customer: { firstName: 'Praneeth', fullName: 'Praneeth Bedapudi', name: 'PRANEETH' },
-      contacts: [{ email: 'praneeth@example.com' }],
+      customer: { firstName: 'Alex', fullName: 'Alex Morgan', name: 'ALEX' },
+      contacts: [{ email: 'alex@example.com' }],
       active: true,
       notes: null,
     }),

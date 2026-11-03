@@ -3,30 +3,33 @@ sidebar_position: 7
 sidebar_label: "Tool controls"
 sidebar_custom_props:
   icon: Wrench
+description: "Allow or deny declared tool calls by name, traits or argument conditions through the LLM Gateway Policy Engine."
+console_path: []
+aliases: ["tool controls"]
 ---
 
 # Tool controls
 
+Updated on 3 November 2026.
+
 Allow or deny tool calls by tool name, declared annotations, wire type or argument values, independently of what data they carry.
 
-## Where it is configured
+## Where it is configured {#where-it-is-configured}
 
-Tool controls are a Policy Engine feature. There is no app setting or Configure tab for them, so nothing freezes when you use them. Open the **Tool Controls** card in **Policy Engine > LLM Gateway**. Edits join the shared draft and take effect once you [review and publish](../../console/govern/author-simulate-and-publish) a revision.
+Tool controls are a Policy Engine feature. There is no app setting or Configure tab for them, so nothing freezes when you use them. Open **Govern > Policy Engine > LLM Gateway > Controls > Tool Controls**. Start from a recipe or the **Tool calls** add menu, choose **Applies to** and the outcome, then **Save to draft**. Edits join the shared draft and take effect once you [review and publish](../../console/govern/author-simulate-and-publish) a revision.
 
-![Tool Controls card expanded with the per-call banner, a Deny rule for delete_* tools, and the Argument & result protection section](/img/policy-engine/llm-tool-controls-expanded.jpg)
-
-## Sections
+## Sections {#sections}
 
 | Section | What it does | Add button |
 |---|---|---|
-| **Tool calls** | Per-call allow or deny rules. | **Add tool rule** |
-| **Argument & result protection** | Lists the [Data & Adversarial Risks](./security-guardrails) rules scoped to the tool boundary. Edit them on that card. | **Open Data & Adversarial Risks** |
+| **Tool calls** | Per-call allow or deny rules. | Section add menu |
+| **Argument & result protection** | Lists the [Data & Adversarial Risks](./security-guardrails) rules scoped to the tool boundary. Edit them in that control. | **Open Data & Adversarial Risks** |
 
 Tool calls applies on `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `rerank`, `responses`, `sdk_check`, `stt`, `text`, `tts` and `vertex`.
 
 Every tool call in a request is judged on its own, but **one denied call rejects the whole request**. The engine never strips a single call. Per-call verdicts stay visible in attribution.
 
-## Tool rule settings
+## Tool rule settings {#tool-rule-settings}
 
 | Setting | Options | Default | Notes |
 |---|---|---|---|
@@ -39,7 +42,7 @@ Every tool call in a request is judged on its own, but **one denied call rejects
 
 Risk and tags are not computed by the gateway, so the quick rule does not offer them. Use **Add configuration** for result-field conditions on the response stage or combinations the quick rule cannot express.
 
-## Scenarios
+## Scenarios {#scenarios}
 
 - **Block destructive tools for most people.** Deny calls whose trait is **Destructive** for Everyone, then allow them at a higher priority for one Smart group.
 - **Block one risky argument value.** Deny `create_repository` when `visibility` is `public`:
@@ -62,23 +65,18 @@ Risk and tags are not computed by the gateway, so the quick rule does not offer 
 
 To scan tool arguments for secrets or PII instead, add a data rule with **Scan tool-call arguments** on [Data & Adversarial Risks](./security-guardrails). Only Monitor and Block apply there, because redaction cannot preserve a call.
 
-## Scoping and precedence
+## Scoping and precedence {#scoping-and-precedence}
 
 - **Applies to**: Everyone, People, Smart group, Application, App tag, Requested model, Provider, API surface, Environment, Tool, Source network, or **Except...**.
-- Highest priority wins for each call.
+- Highest priority wins for each call; Deny wins equal-priority ties. Without a matching rule, tool calls pass this control and still follow the data-risk checks.
 
-## Test before you publish
+## Test before you publish {#test-before-you-publish}
 
-The LLM Gateway workspace in the Policy Engine has tools around the cards that help when you build tool rules:
+Open **Test > Try a situation** in the LLM Gateway Policy Engine. Describe a matching request, run the test and review the rules that decide its settings. Repeat with a caller or tool that should remain allowed. Use **Replay activity** to check recent recorded traffic, then **Review & publish** when the draft is ready.
 
-- **What applies to one request** (Describe a request): enter a person, Smart groups, application, requested model, API surface, environment, provider credential, source IP and detections. Each card shows the winning value, the configuration that decided it and why. Values that depend on a field you left empty are tagged **conditional**. Nothing is saved. **Test with the engine** compares the answer with the engine's simulator, and **Open full simulator** opens the [simulator](../../console/govern/author-simulate-and-publish#4-simulate).
-- **Review changes**: validates the shared draft and replays it over sampled recorded traffic, with global counters (blocked, redacted, rerouted, model rejected, rate-limited).
-- **History**: every published revision with time, actor, checksum, **View source** and **Rollback** (rollback republishes as a new revision).
-- **Advanced policies**: policies the cards cannot represent are listed below the cards. **Advanced workspace** opens the QuilrQL source editor with drafts, suggested policies (for example deny tool access), diagnostics, simulation and historical try.
+Use the **Policies** tab for the complete rule list and **Edit technical source** for options the guided form cannot express. **History** shows published versions and their changes.
 
-![What applies to one request panel with Person, Smart groups, Application, Requested model, API surface, Environment, Provider credential and Source IP fields](/img/policy-engine/llm-describe-request-form.png)
-
-## Related
+## Related {#related}
 
 - [Security guardrails](./security-guardrails) - scan tool-call arguments for sensitive data.
 - [Gateway access and allowed models](./gateway-access-and-allowed-models)

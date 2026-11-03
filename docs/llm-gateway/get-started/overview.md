@@ -3,13 +3,15 @@ sidebar_position: 1
 sidebar_label: "Introduction"
 sidebar_custom_props:
   icon: BookOpen
-description: "What the gateway is, apps vs Quilr keys vs providers, and a tour of the console (overview cards, app workspace tabs, settings sections, self-service usage)."
+description: "Understand gateway applications, keys and providers, then find Insights, request logs and application settings."
 aliases: [provider health]
 ---
 
 # LLM Gateway overview
 
-The LLM Gateway sits between your applications and your LLM providers. Your application continues to use its existing SDK. You change the base URL and the API key, and every request is checked by guardrails, routed to a provider, and logged with cost and latency.
+Updated on 3 November 2026.
+
+The LLM Gateway sits between your applications and your LLM providers. Your application continues to use its existing SDK. Change the base URL and the API key to route requests through the gateway, apply configured controls, and record usage, cost and latency.
 
 <StepFlow steps={[
   {
@@ -53,17 +55,16 @@ Provider credentials stay in the gateway. Developers only ever see the Quilr key
 
 Go to **Settings > AI Gateway > LLM Gateway**. The page has two tabs: **Applications** and **Management API** (see [Management APIs](../api-reference/management-api)).
 
-![LLM Gateway Applications tab with the Overall analytics, Self-service usage, Audit log and Create App buttons above four summary cards](/img/llm-gateway/ui/applications-overview-cards.png)
-<!-- TODO-SCREENSHOT: retake, header is missing the Provider health and Provider configuration buttons -->
+![LLM Gateway Applications page with analytics, provider management and app creation actions above the summary cards](/img/gateway-updates-2026-11/llm-gateway-applications.jpg)
 
 | Button | What it opens |
 |--------|---------------|
-| **Overall analytics** | The gateway workspace for all applications, on the Analytics tab |
+| **Overall analytics** | Full-page **LLM Gateway Insights**, starting on **Overview**. See [Analytics and insights](../monitor/analytics-and-insights). |
 | **Provider health** | The gateway workspace for all applications, on the Health tab |
 | **Self-service usage** | Who can use self-service in each app, and whether they do |
 | **Audit log** | The gateway workspace on its Audit tab |
 | **Provider configuration** | Your platform providers and their models, with **Add your own models**. The same list as **Settings > AI Gateway > Models > Your models**. See [Providers and Models](../apps-and-providers/providers-and-models). |
-| **Remote Connectors** | Connectors for reaching private model endpoints. See [Remote Connectors](../apps-and-providers/remote-connectors). |
+| **Remote connectors** | Connectors for reaching private model endpoints. See [Remote Connectors](../apps-and-providers/remote-connectors). |
 | **Create App** | The Create App wizard. See [Quick Start](./quick-start). |
 | **...** | **Copy all-apps log key**, a read-only key for the [Log Export API](../api-reference/log-export-api) across every app |
 
@@ -82,9 +83,6 @@ Click any number on a card to filter the app list. Below the cards, search by ap
 
 Each app in **Configured Apps** has a card.
 
-![App card with its providers and models, feature chips, request and cost summary, and the Inspect and Configure button rows](/img/llm-gateway/ui/app-card-multi-provider.png)
-<!-- TODO-SCREENSHOT: retake if it still shows Red Team and Results buttons in the Inspect row -->
-
 | Area | What it shows |
 |------|---------------|
 | Header | App name, key status, **+ Tag**, **Manage keys**, **Integration docs** |
@@ -92,23 +90,27 @@ Each app in **Configured Apps** has a card.
 | Providers | Each provider with its models, a **Disabled** chip if switched off, and its p95, latency and error trend |
 | Feature chips | Identity aware, Prompt store, Token saving, Guardian agent |
 | Traffic | Requests, blocked, monitored, redacted and failed counts, estimated cost, tokens |
-| **Inspect** | Logs, Usage & Cost, Provider Status, Copy logs key, Export API docs |
+| **Analytics** | Insights scoped to the application |
+| **Inspect** | Logs, Usage & Cost, Provider Status, Copy logs key |
 | **Configure** | Providers, Guardrails, Guardian, Token Saving, Routing, Self-Service, Audit Log, Prompts |
+
+## Analytics and insights
+
+**Overall analytics** opens a full page with **Overview**, **Agents & tools**, **Performance & errors**, **Security**, **Attachments**, and **Users** tabs. Choose the application scope and reporting period, then select a chart, signal or app for its supporting details.
+
+See [Analytics and insights](../monitor/analytics-and-insights) for each tab, comparisons, estimates and drilldowns.
 
 ## The app workspace
 
-Every Inspect and Configure button opens the app workspace on the matching tab. **Overall analytics** opens the same workspace with **All applications** selected. Switch scope with the application picker.
+The app card's **Inspect** and **Configure** actions open operational views for that application. For example, **Logs** opens **Activity > Requests**, while **Providers** opens the matching Settings section. Use the application picker to change scope; Settings needs exactly one app.
 
 | Tab | What it shows |
 |-----|---------------|
-| **Analytics** | Requests, blocked, monitored, tokens and tokens saved; traffic by model; guardrail outcomes; top users; requests by provider |
 | **Activity** | **Requests** (one row per call), **Interactions** (calls grouped into conversations) and **Findings** (guardrail detections) |
 | **Usage** | Estimated cost, input, output, reused and reasoning tokens, errors, and requests and tokens by model |
 | **Health** | Provider verdict, failures, rate limits and server errors, and failure rate and p95 upstream latency per provider |
 | **Settings** | The app configuration. Available for one app at a time. |
 | **Audit** | Configuration changes: application, operation, actor, status and time |
-
-![Analytics tab of the LLM Gateway workspace showing request, blocked, monitored, token and tokens-saved summaries](/img/llm-gateway/ui/workspace-analytics.png)
 
 ![Activity tab, Requests view, listing each request with model, provider, outcome, HTTP status, tokens, token savings and latency](/img/llm-gateway/ui/workspace-activity-requests.png)
 
@@ -143,6 +145,7 @@ See [Self-Service](../self-service/overview) to set it up.
 ## Next steps
 
 - [Quick Start](./quick-start): create an app and send a first request.
+- [Analytics and insights](../monitor/analytics-and-insights): review model usage, performance, protection and callers.
 - [Applications and Keys](../apps-and-providers/applications-and-keys): add keys, set expiry, roll back changes.
 - [Provider Support](../apps-and-providers/provider-support): every provider type, endpoint and credential field.
 - [Integration Guide](./integration-guide): regional URLs and SDK examples.

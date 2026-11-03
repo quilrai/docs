@@ -5,19 +5,32 @@ sidebar_custom_props:
   badge: experimental
   icon: ShieldCheck
 aliases: [guardian agent]
+description: "Configure coding safety and task-adherence checks in classic app settings or the Policy Engine."
+console_path: []
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Guardian agent
+
+Updated on 3 November 2026.
 
 Guide model behavior with gateway checks for dependency safety and task adherence.
 
 Guardian Agent runs inside the gateway's request and response flow. It is not a separate agent or model endpoint. When enabled, the gateway can add instructions before a request reaches the model, retry unsafe dependency output once with corrective guidance, append an advisory, or block off-task requests.
 
-## Turn it on for an app
+## Configure this control
+
+Choose the mode used by your gateway. When the Policy Engine is on, published rules govern this control; classic values saved through **Edit anyway** apply only after the engine is disabled. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
+## Turn it on for an app {#turn-it-on-for-an-app}
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Guardian"
 />
@@ -36,7 +49,45 @@ Guardian Agent is **off** for new apps.
 | Agent purpose | One sentence describing what the agent is for | Empty |
 | Guardian prompt | The boundary to enforce, in plain language | Empty |
 
-## How it works
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Going further with the Policy Engine {#going-further-with-the-policy-engine}
+
+Open **Govern > Policy Engine > LLM Gateway > Controls > Guardian Agent**. Guardian Agent is a control in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardian tab freezes and published rules apply instead. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+
+The control has four sections: **Guardian** (master switch), **Coding helpers**, **Task adherence** and **Tag findings** (follow-up rules). Each control is a three-way switch (**Leave as is**, **On**, **Off**), so a narrow configuration can change one setting and inherit the rest. These rules apply on the `assistants`, `bedrock`, `chat`, `copilot`, `responses`, `sdk_check` and `vertex` API surfaces.
+
+- In a new configuration, **Guardian** starts **On** when opened from the Guardian section; **Coding helpers** and **Task adherence** start at **Leave as is**. Turning Coding helpers On ticks both **Dependency security check** and **Latest version suggestions**. At least one control must be On or Off.
+- Guardian results are request-stage fields, so follow-up rules cannot see them on the response leg.
+
+Start from a recipe or the add menu beside a section, choose **Applies to** and the outcome, then **Save to draft**. Use **Test** before **Review & publish**.
+
+Scenarios it supports:
+
+- **Coding models only.** Turn on coding helpers and strict task adherence when the Requested model matches a pattern such as `*code*`.
+- **Exempt one app or group.** Guardian **Off** exempts a scope only when its rule has higher priority than the matching **On** rule. Each setting resolves independently; On, Block and higher sensitivity win equal-priority ties.
+- **Severity follow-ups.** Tag a severity when Guardian blocked, when there are at least N findings, or for a specific finding type, for dashboards and alerts.
+- **Metadata conditions.** Use **Add configuration** to key Guardian off languages, repos or request metadata.
+
+<PolicyCard
+  name="secure_coding_guardian"
+  stage="request"
+  priority={700}
+  when={[{ field: "Requested model", op: "matches pattern", value: "*code*" }]}
+  then={[
+    { effect: "Guardian", value: "true" },
+    { effect: "Dependency security check", value: "true" },
+    { effect: "Latest version suggestions", value: "true" },
+    { effect: "Task adherence sensitivity", value: "high" },
+    { effect: "Task adherence action", value: "block" },
+  ]}
+/>
+
+</TabItem>
+</Tabs>
+
+## How it works {#how-it-works}
 
 <StepFlow steps={[
   {
@@ -102,11 +153,11 @@ For dependency output, Guardian Agent adds a response-side review before the fin
   },
 ]} />
 
-## Feature groups
+## Feature groups {#feature-groups}
 
 Guardian Agent currently has two feature groups.
 
-### Coding helpers
+### Coding helpers {#coding-helpers}
 
 Coding helpers focus on dependency-related prompts and generated dependency output.
 
@@ -128,7 +179,7 @@ Package extraction is best-effort across PyPI, npm, crates.io, RubyGems, NuGet, 
 
 Latest-version suggestions are supported for exact pins on PyPI, npm, crates.io, RubyGems, NuGet, and Go. Latest-version checks are not available for Maven and Packagist.
 
-### Task adherence
+### Task adherence {#task-adherence}
 
 Task adherence checks whether the latest user message stays within the agent's purpose. Set **Agent purpose** to one sentence describing what the agent is for, and use **Guardian prompt** to state the boundary. The request's system prompt also describes the purpose; if a request has no system prompt, the check is skipped and the request is allowed.
 
@@ -141,7 +192,7 @@ When the latest user message is classified as off-task, Guardian Agent records a
 
 Task adherence runs on the request side only.
 
-## Writing a guardian prompt
+## Writing a guardian prompt {#writing-a-guardian-prompt}
 
 One or two direct sentences are usually enough: name what the agent may handle, then say what is outside its scope. Keep evaluation logic out of the prompt, and put persona, tone and formatting in the agent's own system prompt.
 
@@ -151,7 +202,7 @@ One or two direct sentences are usually enough: name what the agent may handle, 
 | Product support | `Allow questions about Acme products, setup, troubleshooting, billing, and returns. Treat unrelated requests as outside this agent's scope.` | `Keep the user on topic and block inappropriate requests.` The topic is never defined. |
 | Internal HR | `Allow questions about company benefits, leave, payroll, and workplace policies. Do not allow requests for legal, medical, or financial advice.` | `You are a friendly HR expert. Answer clearly, use bullet points.` Describes tone, not scope. |
 
-## Streaming and retry behavior
+## Streaming and retry behavior {#streaming-and-retry-behavior}
 
 Request-side Guardian Agent checks run before upstream calls for both streaming and non-streaming requests.
 
@@ -161,7 +212,7 @@ For streaming requests with dependency checks enabled, the gateway first sends a
 
 Other response-side Guardian Agent checks are skipped for normal streaming passthrough.
 
-## Latency impact
+## Latency impact {#latency-impact}
 
 Guardian Agent runs additional checks inside the request and response path, so it adds latency on top of the [normal gateway overhead](../get-started/ha-and-sla#gateway-latency).
 
@@ -177,7 +228,7 @@ As a planning figure, expect Guardian Agent to add **~700 ms** per request when 
 ~700 ms is a guideline, not a guarantee. Requests that need no retry and no registry lookups take substantially less time, and requests that trigger a retry or many package lookups can take longer.
 :::
 
-## Endpoint coverage
+## Endpoint coverage {#endpoint-coverage}
 
 Guardian Agent supports these LLM Gateway APIs:
 
@@ -190,7 +241,7 @@ Guardian Agent supports these LLM Gateway APIs:
 
 OpenAI-compatible chat includes provider-native chat models reached through gateway translations, including Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages.
 
-## Configuration keys
+## Configuration keys {#configuration-keys}
 
 For the [Management APIs](../api-reference/management-api), Guardian Agent is the `guardian_agent` object in the app configuration:
 
@@ -222,7 +273,7 @@ For the [Management APIs](../api-reference/management-api), Guardian Agent is th
 
 Setting `guardian_agent` to `null` on update removes the Guardian Agent configuration.
 
-## Logging
+## Logging {#logging}
 
 Guardian Agent findings are logged in the same prediction format used by guardrails:
 
@@ -234,44 +285,14 @@ Guardian categories are also written to `metadata.extra_data.guardian_agent.requ
 
 If Guardian Agent records a finding and no content was blocked or anonymized, the request outcome becomes `monitor_detected`. If task adherence is configured with `block` and the latest user message is classified as unrelated, the request outcome becomes `blocked` and the upstream model is not called.
 
-## Current limits
+## Current limits {#current-limits}
 
 - Dependency extraction is best-effort, and version ranges are not checked.
 - Vulnerable dependency output is not blocked: the gateway retries once and then appends an advisory.
 - Task adherence checks only the latest user message, on the request side.
 - Dependency and task-adherence network checks fail open on transient errors.
 
-## Going further with the Policy Engine
-
-Guardian Agent is also a card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardian tab freezes and the card applies instead. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
-
-The card has four sections: **Guardian** (master switch), **Coding helpers**, **Task adherence** and **After Guardian runs** (follow-up rules). Each control is a three-way switch (**Leave as is**, **On**, **Off**), so a narrow configuration can change one setting and inherit the rest. The card applies on the `assistants`, `bedrock`, `chat`, `copilot`, `responses`, `sdk_check` and `vertex` API surfaces.
-
-- In a new configuration, **Guardian** starts **On** when opened from the Guardian section; **Coding helpers** and **Task adherence** start at **Leave as is**. Turning Coding helpers On ticks both **Dependency security check** and **Latest version suggestions**. At least one control must be On or Off.
-- Guardian results are request-stage fields, so follow-up rules cannot see them on the response leg.
-
-Scenarios it supports:
-
-- **Coding models only.** Turn on coding helpers and strict task adherence when the Requested model matches a pattern such as `*code*`.
-- **Exempt one app or group.** Guardian **Off** on a narrower scope (People, Smart group, Application, App tag) beats **On** for Everyone. The highest-priority configuration wins per setting.
-- **Severity follow-ups.** Tag a severity when Guardian blocked, when there are at least N findings, or for a specific finding type, for dashboards and alerts.
-- **Metadata conditions.** Use **Add configuration** to key Guardian off languages, repos or request metadata.
-
-<PolicyCard
-  name="secure_coding_guardian"
-  stage="request"
-  priority={700}
-  when={[{ field: "Requested model", op: "matches pattern", value: "*code*" }]}
-  then={[
-    { effect: "Guardian", value: "true" },
-    { effect: "Dependency security check", value: "true" },
-    { effect: "Latest version suggestions", value: "true" },
-    { effect: "Task adherence sensitivity", value: "high" },
-    { effect: "Task adherence action", value: "block" },
-  ]}
-/>
-
-## Related
+## Related {#related}
 
 - [Security guardrails](./security-guardrails) - data and adversarial risk detection.
 - [Policy Engine overview](../../console/govern/policy-engine)

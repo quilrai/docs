@@ -7,7 +7,12 @@ description: "Unified OneMCP endpoint, smart discovery tools, native memory tool
 aliases: [OneMCP]
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # OneMCP
+
+Updated on 3 November 2026.
 
 OneMCP exposes the MCPs a user is allowed to access through one endpoint. Agents can discover MCP groups, find relevant tools, call tools, manage per-user connections, and use native memory tools without configuring each service as a separate MCP server.
 
@@ -39,6 +44,11 @@ OneMCP accepts gateway-issued OneMCP OAuth proxy tokens, which the AI client get
 
 ## OneMCP settings
 
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
 Go to **Settings > AI Gateway > MCP Gateway** and click **OneMCP endpoint**.
 
 ![OneMCP dialog with the Dynamic tool calling choices and the Memories enabled switch](/img/mcp-gateway/ui/onemcp-settings.png)
@@ -49,6 +59,27 @@ Go to **Settings > AI Gateway > MCP Gateway** and click **OneMCP endpoint**.
 | **Memories enabled** | Allow OneMCP and workflow agents to store and recall user memories for your organization (see [Native Memory Tools](#native-memory-tools)). |
 
 Changes save as soon as you select them.
+
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## OneMCP policy settings
+
+Open **Govern > Policy Engine > MCP Gateway > Controls > OneMCP Features**.
+
+| Section | What it controls | Default and ties |
+|---|---|---|
+| **Dynamic tools** | Dynamic discovery on, off, or decided by each person. | Each person's preference applies with no rule. Highest numeric priority wins; ties prefer Off, then Each person decides, then On. |
+| **OneMCP memory** | Whether matching sessions can use memory tools. | Memory is allowed with no rule. Highest priority wins; Deny wins ties. |
+| **Most-used tools listed** | Shorter lists for selected MCP servers. | Off with no rule. Highest priority wins; On wins ties. |
+| **Scripts** | Offer `run_code` for selected MCP servers. | Off with no rule. Highest priority wins; On wins ties. |
+
+Choose a recipe or blank rule in a section, set **Applies to** and the outcome, check **Reads as**, and **Save to draft**. Use **Test** for the intended caller and a caller outside the scope, then [review and publish](../../console/govern/author-simulate-and-publish).
+
+The **Activity** tab shows observed matches. Server tool-list pins remain managed in server settings; see [Tool lists](../protect/tool-lists).
+
+</TabItem>
+</Tabs>
 
 ## Smart Tools
 
@@ -61,7 +92,7 @@ When dynamic tool calling is on, OneMCP returns a compact set of gateway tools:
 | `call_tool` | Calls a tool returned by `find_relevant_tools`. |
 | `quilr_platform_helper` | Tenant administrators only. Queries MCP Gateway usage and discovery data; with no arguments, returns a 7-day overview. |
 
-When an administrator turns on [tool lists](../protect/tool-lists) for a server, its most-used tools are also listed directly, named `<server-slug>_<tool>` (for example `mcp-query_llm_alert_scan`), and `run_code` is added when a server allows scripts. Tool lists are off by default, so without them the list is just the tools above.
+When an administrator turns on [tool lists](../protect/tool-lists) for a server, its most-used tools are also listed directly, named `<server-slug>_<tool>` (for example `crm_search_records`), and `run_code` is added when a server allows scripts. Tool lists are off by default, so without them the list is just the tools above.
 
 The usual flow is:
 
@@ -71,7 +102,7 @@ The usual flow is:
 
 ## Native Memory Tools
 
-OneMCP includes native memory tools for user-scoped context. They are available while **Memories enabled** is on in [OneMCP settings](#onemcp-settings).
+OneMCP includes native memory tools for user-scoped context. Their availability follows the classic **Memories enabled** setting or the matching **OneMCP memory** policy described in [OneMCP settings](#onemcp-settings).
 
 | Tool | Purpose |
 |------|---------|

@@ -6,17 +6,26 @@ sidebar_custom_props:
 description: "Per-server strategies that shorten tool results (smart JSON compression, HTML to text, Markdown to text, text compression) and where savings appear."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Token saving
+
+Updated on 3 November 2026.
 
 Compress tool results before they reach the model, so agents use fewer tokens on each MCP call.
 
 <VideoEmbed id="ai-gateway-token-saving" />
 
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
 ## Configure it on the server
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="Token Saving"
 />
@@ -38,12 +47,41 @@ Turn on the strategies that match what the server returns, then click **Save set
 
 Token saving runs after guardrails, so detections are made on the full tool result. The four strategies are the same methods the LLM Gateway applies to requests; see [LLM Gateway token saving](../../llm-gateway/cost-and-traffic/token-saving) for a before-and-after example of each.
 
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Going further with the Policy Engine
+
+Open **Govern > Policy Engine > MCP Gateway > Controls > Token Savings**. Published policies govern tool-result transforms while the engine is on; stored classic values are used when it is off.
+
+| Section | What it changes |
+|---|---|
+| **Smart JSON compression** | Compacts eligible JSON results. |
+| **HTML to text** | Removes HTML markup. |
+| **Markdown to text** | Removes Markdown formatting. |
+| **Text compression** | Shortens verbose plain text. |
+| **Strip base64 content** | Replaces encoded content with a size note. That content is no longer available to the model. |
+
+1. Choose a recipe for a transform or start a blank rule in its section.
+2. Choose **Applies to**: a server, tool, person, Smart Group, agent, or route.
+3. Set only the switches you want to change, check **Reads as**, and **Save to draft**.
+4. [Test and publish](../../console/govern/author-simulate-and-publish) the change.
+
+Each switch resolves independently: highest numeric priority wins, with **On** winning ties. An Off exemption must outrank the matching On rule. With no rule, responses return as the server sends them.
+
+Base64 stripping removes information rather than merely shortening its representation. Enable it only where the model does not need the encoded payload.
+
+Open **Activity** to review observed activity for this control. [OneMCP Features](../get-started/onemcp#onemcp-settings) separately controls dynamic discovery and short tool lists.
+
+</TabItem>
+</Tabs>
+
 ## Where savings show
 
 | Place | What you see |
 |-------|--------------|
 | Server card | **Token saving** chip (**Yes** / **No**) and **tokens saved** for the period. |
-| **Overall analytics > Analytics** | The **Tokens saved** tile across servers. |
+| **Overall analytics > Overview** | Response-token savings across servers in [MCP Gateway Insights](../monitor/analytics-and-insights). |
 | **Costs & Savings** | Savings from the MCP channel. |
 
 ## OneMCP saves tokens too
@@ -59,29 +97,6 @@ Token saving runs after guardrails, so detections are made on the full tool resu
 Set it with the **OneMCP endpoint** button in the MCP Gateway header, under **Dynamic tool calling** (**User preference**, **Always on** or **Always off**).
 
 To shorten the tool list itself, per server and on the server's own address too, see [Tool lists](./tool-lists): the server's most-used tools in full and every other tool one search away.
-
-## Going further with the Policy Engine
-
-When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **Token Savings** card (stage 4, Response) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). The card has one effect per strategy: **smart JSON compression**, **HTML to text**, **Markdown to text** and **text compression**.
-
-Scenarios the card supports that server settings cannot:
-
-- **Compress by tool, not by server.** Match **tool name** or tags, so only the tools that return large payloads are compressed.
-- **Compress for some callers or agents.** Match **smart groups** or **agent name**, for example compress results only for an agent with a small context window.
-- **Compress on one route.** Match **route kind** to treat OneMCP traffic differently from direct connections.
-
-<PolicyCard
-  name="compress_web_search"
-  stage="response"
-  priority={400}
-  when={[{ field: "MCP name", op: "is", value: "Web Search" }]}
-  then={[
-    { effect: "smart JSON compression", value: "true" },
-    { effect: "HTML to text", value: "true" },
-  ]}
-/>
-
-The OneMCP side has its own card. **OneMCP Features** (stage 1, Session) sets OneMCP dynamic tools and memory per caller, for example turning dynamic tools off for one smart group.
 
 ## Related
 

@@ -18,7 +18,9 @@
     "check-frontmatter": "node scripts/check-doc-frontmatter.js",
     "prepare": "husky",
     "check-redirects": "node scripts/check-redirects.js",
-    "sync-sop": "node scripts/sync-install-sop.js"
+    "sync-sop": "node scripts/sync-install-sop.js",
+    "check-public-content": "node scripts/check-public-content.js",
+    "postbuild": "npm run check-public-content"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",

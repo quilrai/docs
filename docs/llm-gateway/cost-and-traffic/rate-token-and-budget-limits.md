@@ -3,13 +3,28 @@ sidebar_position: 2
 sidebar_label: "Rate, token and budget limits"
 sidebar_custom_props:
   icon: Gauge
+description: "Configure classic application limits or policy budgets, rate limits, request guards, grants and exemptions."
+console_path: []
+aliases: ["rate, token and budget limits"]
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Rate, token and budget limits
 
-Cap how long calls run, how many run at once, how many requests an app makes and how many tokens or dollars it spends. All limits are enforced at the gateway, before the request reaches the provider.
+Updated on 3 November 2026.
 
-## Turn it on for an app
+Cap how long calls run, how many run at once, how many requests an app makes and how many tokens or dollars it spends. The gateway enforces the limits; request counts are checked at admission, while tokens and spend are accounted as requests complete.
+
+## Configure this control
+
+Choose the mode used by your gateway. When the Policy Engine is on, published rules govern this control; classic values saved through **Edit anyway** apply only after the engine is disabled. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
+## Turn it on for an app {#turn-it-on-for-an-app}
 
 Open the app from **Settings > AI Gateway > LLM Gateway** and choose any **Configure** option to open the app workspace's **Settings** tab, then select **Rate and Token Limits** under **Protection**. New apps have no limits set. Leave a field empty to keep it unlimited.
 
@@ -27,26 +42,35 @@ Open the app from **Settings > AI Gateway > LLM Gateway** and choose any **Confi
 
 App limits apply to the whole app, across all of its Quilr keys. Classic app settings have no USD budget and no per-person limit; both need the Policy Engine.
 
-## When a limit is hit
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
 
-The gateway rejects the call with HTTP `429` without contacting the provider. Raise the limit or wait for the window to roll forward. A reached budget returns `429 quota_exceeded` until its period resets.
+## Going further with the Policy Engine {#going-further-with-the-policy-engine}
 
-## Going further with the Policy Engine
+Open **Govern > Policy Engine > LLM Gateway > Controls > Budgets & Usage Limits**. This one panel owns budgets, rate limits and request guards; there is no separate Rate, Token & Timeout Limits control on the overview.
 
-Two cards in **Policy Engine > LLM Gateway** cover limits: **Rate, Token & Timeout Limits** and **Budgets & Usage Limits**. When the engine is on for the LLM Gateway, the app's Rate and Token Limits settings freeze and the cards apply instead. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+Start from a recipe or use **Custom**, choose the scope and the limit, then **Save to draft**. Use **Test** before **Review & publish**. **Search limits** and the All/Budgets/Rate limits filters help find existing configurations.
 
-Both cards apply on the `assistants`, `bedrock`, `chat`, `embeddings`, `realtime`, `rerank`, `responses`, `stt`, `text`, `tts` and `vertex` API surfaces.
+| Panel tab | What it covers |
+|---|---|
+| **Budgets & rate limits** | Spend, request and token counters. |
+| **Usage** | Observed usage against the configured limits; a partial reading is not evidence of zero usage. |
+| **Grants** | Additional usage allowances. |
+| **Request guards** | Limits on individual requests, including request size and runtime limits. |
+| **Alerts & response** | Budget alerts and what a client sees when a limit refuses a request. |
+| **Exemptions** | Exceptions to budgets, rate limits or selected limits, with a reason. |
+| **Model prices** | Rates used to count model spend. |
 
-### Rate, Token & Timeout Limits card
+### Request guards {#rate-token--timeout-limits-card}
 
-The same limits as the app settings (concurrency, requests, input and output token windows, tokens per request, timeout), in an **Application limits** section and a **Per-model limits** section keyed by model or by provider credential and model.
+Request guards cover per-request token limits, timeout and concurrency. Rate limits live alongside budgets and count requests or tokens over a window. Choose an application, model or another supported scope in the rule form.
 
 - Limits do **not** resolve by priority. For each limit, the **strictest** matching value wins, so a narrower row can tighten a broader one but never loosen it.
 - Window limits compare per second, so 1,000 per minute is stricter than 100,000 per day.
 - A limit left off keeps the value from a broader configuration.
 - New limits default to a **per minute** window for **Requests** and **per hour** for **Input tokens** and **Output tokens**. **Tokens per request** counts input tokens in one request.
 
-### Budgets & Usage Limits card
+### Budgets and rate limits {#budgets--usage-limits-card}
 
 Cap spend in USD, or requests and tokens, over a reset period.
 
@@ -67,10 +91,10 @@ Each budget gets a generated ID that its usage is tracked against. Keep the ID w
 :::
 
 :::warning Spend budgets need prices
-A spend budget prices usage with the rates in the card's **Model pricing** section (USD per 1M input and output tokens, per provider and model, optionally per credential). With the Policy Engine on, this section is the only price source: a model with no rate under a spend budget is rejected with `503 quota_price_unavailable`. Price every model the budget can reach, including [routing](./routing-and-fallbacks) fallbacks. Coverage is checked when you add the budget and before publishing. Every matching Model pricing configuration contributes its rates, so avoid pricing the same model differently in overlapping scopes.
+A spend budget prices usage with the rates in the **Model prices** tab (USD per 1M input and output tokens, per provider and model, optionally per credential). With the Policy Engine on, this section is the only price source: a model with no rate under a spend budget is rejected with `503 quota_price_unavailable`. Price every model the budget can reach, including [routing](./routing-and-fallbacks) fallbacks. Coverage is checked when you add the budget and before publishing. Every matching model-price configuration contributes its rates, so avoid pricing the same model differently in overlapping scopes.
 :::
 
-### Scenarios
+### Scenarios {#scenarios}
 
 - **Tighter rate for contractors.** Support Copilot allows 1,000 requests a minute; a narrower row for the Contractors Smart group sets 100. A narrower row asking for 5,000 would have no effect.
 - **Monthly allowance per person.** Spend (USD) 500, Calendar month, counted separately for each user email, scoped to one application.
@@ -90,7 +114,20 @@ A spend budget prices usage with the rates in the card's **Model pricing** secti
 
 Limits and budgets cannot be scoped by Prompt complexity, Prompt text or Tool. For limits keyed on an API key or request metadata, use **Add configuration** and finish in the full editor.
 
-## Related
+### Alerts, response messages and exemptions
+
+Use **Alerts & response** to customize limit refusals or set budget-alert delivery. The webhook-alert form has its own save button; its changes save immediately rather than waiting for a policy publication. Review the rule form's save behavior before closing it.
+
+Use **Exemptions** for an explicit exception rather than assuming that a more generous overlapping limit cancels another counter. Use **Grants** for additional allowance, and check **Usage** after the grant is applied.
+
+</TabItem>
+</Tabs>
+
+## When a limit is hit {#when-a-limit-is-hit}
+
+The gateway rejects the call with HTTP `429` without contacting the provider. Raise the limit or wait for the window to roll forward. A reached budget returns `429 quota_exceeded` until its period resets.
+
+## Related {#related}
 
 - [Applications and keys](../apps-and-providers/applications-and-keys) - key expiry is set on each Quilr key.
 - [Providers and models](../apps-and-providers/providers-and-models) - model prices for cost reporting.

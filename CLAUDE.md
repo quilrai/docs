@@ -37,6 +37,8 @@ Read this before touching anything. This is the QuilrAI documentation site. It i
 
    Check a draft with `node scripts/check-doc-frontmatter.js <file>`; `npm run check-frontmatter` lists what existing pages still miss (older pages are not blocked until they are re-added). Videos come from `src/data/videos.json` (`docs` links and `questions`; give every new video 2-4 `questions`). A bad `console_path` / `aliases` value or a video linking to a missing page fails the build. `static/api/v1/openapi.json` documents the index; update it when the index shape changes. Cursor rule: `.cursor/rules/docs-frontmatter.mdc`.
 
+10. **Do not publish console environment URLs.** Show menu paths for console navigation and **Updated on <date>** for review metadata. Required gateway/API integration endpoints remain. Use synthetic identities in text and older screenshots unless the owner explicitly approved that particular session. Keep audit evidence, private review reports, and raw capture manifests outside `docs/` and `static/`. After building, run `npm run check-public-content`; both deployment workflows enforce it. The synced SOP must pass the same check, with source fixes made in installdocs (rule 8).
+
 ---
 
 ## Where everything is
@@ -55,7 +57,7 @@ Each product folder has an `overview.mdx` landing and category subfolders (each 
 | `docs/endpoint-agent/` | Endpoint Agent | `get-started/`, `configure/`, `how-it-works/`, `deploy-and-operate/`. |
 | `docs/integrations/` | Integrations | `get-started/`, `pull-ai-usage-and-inventory/`, `send-logs-and-alerts/`. |
 
-**Control pages** (`llm-gateway/protect/*`, `llm-gateway/cost-and-traffic/*`, `mcp-gateway/protect/*`) follow one pattern: what it does, turn it on in the app or server settings, settings reference, "Going further with the Policy Engine" (the card it lives on and advanced scenarios), related links. The Policy Engine pages in `console/govern/` cover the engine itself and link out to these.
+**Control pages** (`llm-gateway/protect/*`, `llm-gateway/cost-and-traffic/*`, `mcp-gateway/protect/*`) put shared concepts outside a **Classic settings | Policy Engine** switcher wherever both workflows apply. Use native `Tabs` / `TabItem`, `groupId="gateway-configuration-mode"`, values `classic` and `policy`, and default `policy`. Policy-only or shared management features use one flow. Preserve existing heading IDs; the scoped `src/theme/Tabs/` wrapper reveals the mode containing a linked section. AI-readable exports retain both mode labels and contents. The Policy Engine pages in `console/govern/` cover the shared draft, test, publish and version workflows.
 
 **Console pages** match console menu items one to one; tabs inside a console page become H2s. Name things exactly as the console UI does.
 
@@ -101,6 +103,7 @@ npm run serve        # serve the built site locally
 npm run check-icons  # validate all sidebar icons (subset of pre-commit)
 npm run check-frontmatter  # list docs-index frontmatter (description, console_path, aliases) existing pages miss; new pages are blocked by pre-commit
 npm run check-redirects  # after a build: every old URL redirect lands on an existing page and #section
+npm run check-public-content  # after a build: no console URLs, identifying SOP examples or private audit files
 npm run sync-sop     # pull the Deployment SOP from quilrai/installdocs into static/sop/ (also runs before start/build)
 ./replace-em-dashes.sh   # strip em dashes from docs/**/*.md
 ```
