@@ -48,5 +48,5 @@ If you keep approving the same kind of request, the control may be too strict. R
 
 ## Related
 
-- [End-user popups](../settings-sensors/end-user-popups) - word the justification prompt users see
+- [User Interaction Hub](../settings-sensors/user-interaction-hub) - word the justification prompt users see
 - [Policy Engine](./policy-engine) - Browser Extension controls

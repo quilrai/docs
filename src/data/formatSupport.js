@@ -107,6 +107,7 @@ const GROQ_RULES =
   'reasoning effort is fitted to low to high; reasoning comes back in the client’s format and earlier reasoning is sent back in Groq’s reasoning field.';
 const XAI_RULES = 'logit_bias is dropped; reasoning effort is fitted to what the Grok model accepts.';
 const PERPLEXITY_AGENT = 'Perplexity Agent API (Responses)';
+const COHERE_RULES = 'reasoning effort other than none is sent as high, the only other value Cohere accepts.';
 const MANTLE_SOON = 'Claude models served only through Bedrock Mantle (such as Claude Mythos) are coming soon.';
 
 export default {
@@ -137,6 +138,7 @@ export default {
     { id: 'cerebras', label: 'Cerebras', group: 'More providers' },
     { id: 'groq', label: 'Groq', group: 'More providers' },
     { id: 'perplexity', label: 'Perplexity', group: 'More providers' },
+    { id: 'cohere', label: 'Cohere', group: 'More providers' },
     { id: 'deepseek', label: 'DeepSeek', group: 'More providers' },
     { id: 'oracle', label: 'Oracle OCI (Chat)', group: 'More providers' },
     { id: 'oracle_responses', label: 'Oracle OCI (Responses)', group: 'More providers' },
@@ -430,6 +432,18 @@ export default {
       gemini: tr('Mistral Chat Completions', MISTRAL_RULES),
       converse: trConverse('Mistral Chat Completions', MISTRAL_RULES),
       invoke: trInvoke('Mistral Chat Completions', MISTRAL_RULES),
+    },
+    cohere: {
+      chat: native('Cohere Chat Completions (compatibility API)', `✓ ${COHERE_RULES[0].toUpperCase()}${COHERE_RULES.slice(1)}`),
+      responses: tr(
+        'Cohere Chat Completions (compatibility API)',
+        'Cohere has no Responses or Anthropic-compatible endpoint, so every other format is translated to Chat.',
+        COHERE_RULES,
+      ),
+      messages: tr('Cohere Chat Completions (compatibility API)', COHERE_RULES),
+      gemini: tr('Cohere Chat Completions (compatibility API)', COHERE_RULES),
+      converse: trConverse('Cohere Chat Completions (compatibility API)', COHERE_RULES),
+      invoke: trInvoke('Cohere Chat Completions (compatibility API)', COHERE_RULES),
     },
     cerebras: {
       chat: native('Cerebras Chat Completions'),

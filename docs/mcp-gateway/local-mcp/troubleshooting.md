@@ -3,7 +3,7 @@ sidebar_position: 5
 sidebar_label: "Troubleshooting"
 sidebar_custom_props:
   icon: ListChecks
-description: "Symptom table for local packages unavailable, pairing rejection, gateway 401/403, Python version and dependency failures, missing tools and integrity mismatch - plus diagnosing a specific connection with --state, the Preparing response, response-policy blocks, and starting over cleanly."
+description: "Symptom table for local packages unavailable, pairing rejection, gateway 401/403, Python version and dependency failures, missing tools, integrity mismatch and a package that stops while starting (package_exited with a redacted detail from connector 0.4.1) - plus diagnosing a specific connection with --state, the Preparing response, response-policy blocks, and starting over cleanly."
 ---
 
 # Troubleshooting
@@ -25,6 +25,7 @@ Work down from the symptom you can see. Most issues are access configuration, a 
 | Runtime changed | Repeat setup after updating Node or Python. Regenerate client config if paths moved |
 | Package integrity mismatch | Do not edit installed files. Disconnect, then repeat setup from the beginning |
 | Missing environment | Provide the named values locally to the process that starts the AI client |
+| Package stopped while starting (`package_exited`) | Read the result's `detail`, usually a wrong credential or setting. See [A package stopped while starting](#a-package-stopped-while-starting) |
 | Gateway unavailable | Calls stop. Restore network access. Local execution does not continue offline |
 | No Activity entry | Allow a short delay and recheck. If it still does not appear, contact your administrator. A successful tool result alone does not confirm the call was recorded |
 
@@ -48,6 +49,26 @@ This is expected on a first call, while the package is set up on your computer.
 **Preparing means the tool did not execute.** Ask your AI app to check `quilr_connection_status`, then retry when it reports ready. Later calls are fast.
 
 If a package stays in Preparing, the usual causes are a failed dependency install or a missing Node or Python runtime for that package. Run `doctor` and share the output with your administrator.
+
+## A package stopped while starting
+
+A package can start and then stop straight away, most often because a credential or setting in its environment is wrong. With connector **0.4.1** or later, the tool result says so and includes the package's own last error:
+
+```json
+{"state":"needs_action","code":"package_exited","action":"The package stopped while starting; detail shows its last error. ...","detail":"snowflake.connector.errors.HttpError: 290404 (08001): 404 Not Found: post myorg-my_account.snowflakecomputing.com:443/session/v1/login-request"}
+```
+
+`quilr_connection_status` shows the same `detail` for that package. To fix it:
+
+1. Read `detail`. It names what the provider rejected, such as an unknown account, a wrong password or a blocked network.
+2. Correct the value in the environment that starts your AI app, then restart the app. Do not paste credentials into chat.
+3. Retry the tool. The package starts again on the next call.
+
+`detail` is one line, at most 300 characters. The connector removes the values of variables named like credentials (such as `PASSWORD`, `SECRET`, `TOKEN`, `KEY`, `PAT` and connection strings or URLs), `user:password@` in URLs, and `password=` or `token:` style values. Account, user, host and warehouse names stay visible because they usually explain the failure. If a package crashes during a call rather than at startup, `operation_interrupted` carries the same `detail`.
+
+Connectors before 0.4.1 show only *"Check the connection and package prerequisites, then retry."* To update, re-run the connection command from **Connect your AI app**.
+
+For Snowflake-specific messages, see [Snowflake: When sign-in fails](../provider-setup/snowflake#when-sign-in-fails).
 
 ## A call succeeded locally but shows as Blocked
 

@@ -30,4 +30,4 @@ Upload the final, approved version of each policy. Users may see it quoted when 
 
 ## Related
 
-- [End-user popups](../settings-sensors/end-user-popups) - add links to your policies in popups
+- [User Interaction Hub](../settings-sensors/user-interaction-hub) - add links to your policies in popups

@@ -42,7 +42,12 @@ The **Service provider details** card on the Single sign-on page shows the value
 | **ACS URL** | Reply URL, Single sign-on URL, Assertion Consumer Service URL |
 | **Metadata URL** | Metadata URL. Same value as the Entity ID |
 
-Copy the values from your own deployment. The Entity ID includes your tenant identifier; the ACS URL is the callback address for your console.
+The values look like this:
+
+- Entity ID: `https://<your-tenant-url>/platformadminapis/v2/auth/saml/metadata/<tenant-id>`
+- ACS URL: `https://<your-tenant-url>/platformadminapis/v2/auth/saml/callback`
+
+`<your-tenant-url>` is your tenant's console address, and `<tenant-id>` is your Tenant ID from [General](./general-and-domains) settings. Always copy the exact values from the **Service provider details** card.
 
 :::note First-time setup
 The **Metadata URL** only works after single sign-on is turned on. For your first setup, enter the **Entity ID** and **ACS URL** in your IdP by hand.
@@ -116,7 +121,7 @@ Okta's guide: [Create SAML app integrations](https://help.okta.com/en-us/content
    |---|---|
    | **Audience (EntityID)** | The Quilr **Entity ID** |
    | **Recipient** | The Quilr **ACS URL** |
-   | **ACS (Consumer) URL Validator** | The ACS URL as a regular expression, with dots escaped. For example, `^https://web\.quilr\.ai/platformadminapis/v2/auth/saml/callback$` |
+   | **ACS (Consumer) URL Validator** | The copied ACS URL as a regular expression, with dots escaped as `\.`. Add `^` at the start and `$` at the end so it matches the whole URL |
    | **ACS (Consumer) URL** | The Quilr **ACS URL** |
    | **Single Logout URL** | Leave empty |
 
@@ -248,6 +253,6 @@ If single sign-on is enforced, Google and Microsoft sign-ins also go to your IdP
 ## Related
 
 - [Roles and permissions](./roles-and-permissions) - decide what people can see after they sign in
-- [General and domains](./general-and-domains) - your organization's domains
+- [General](./general-and-domains) - your organization's domains
 - [Smart Groups](./smart-groups) - assign roles to groups instead of individuals
 - [Audit logs](./audit-logs) - review sign-ins and SSO changes

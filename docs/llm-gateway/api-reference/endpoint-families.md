@@ -57,6 +57,8 @@ Groq is not in any endpoint family yet: its files and batches are not routed, an
 
 Perplexity is not in any endpoint family: its embeddings are served on the embeddings route, and its Search and Orchestrator APIs are not routed. See [Perplexity](../apps-and-providers/provider-support#perplexity).
 
+Cohere's parse, tokenize, batch, embed-job and dataset APIs are served on its own [Cohere routes](../apps-and-providers/provider-support#cohere-routes) by the same engine: parse counts as OCR, tokenize as its own `tokenize` family, batches and embed jobs as batches, and datasets as files, so the same switches, limits and policy rules apply.
+
 ## Vendor routes
 
 A vendor's own APIs have their own route under its prefix. The same family engine serves them, for that vendor's provider type only, and forwards the vendor's own request and response unchanged (no OpenAI-shape conversion), so vendor-only fields such as xAI's `aspect_ratio` and `resolution` or Mistral's `random_seed` pass through. Defaults, limits, logging and errors are the family's.

@@ -52,7 +52,7 @@ Start new or changed controls in **Monitor** mode, scoped to a pilot group. Revi
 
 ## What users see
 
-In Action mode, the extension shows a popup that explains the decision. Word and brand these popups in [End-user popups](../../console/settings-sensors/end-user-popups). When a user justifies a blocked action, the request appears in [Action requests](../../console/govern/action-requests) for an admin to approve or reject.
+In Action mode, the extension shows a popup that explains the decision. Word and brand these popups in [User Interaction Hub](../../console/settings-sensors/user-interaction-hub). When a user justifies a blocked action, the request appears in [Action requests](../../console/govern/action-requests) for an admin to approve or reject.
 
 ## Maintain controls
 

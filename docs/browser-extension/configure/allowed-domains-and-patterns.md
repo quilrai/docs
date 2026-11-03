@@ -32,4 +32,4 @@ The table lists every entry with its **Domain or pattern** and **Description**, 
 ## Related
 
 - [Extension settings](./extension-settings): **Domains to monitor** decides whether the extension watches all domains or only work domains.
-- [General and domains](../../console/settings-organization/general-and-domains): your organization's domains.
+- [General](../../console/settings-organization/general-and-domains): your organization's domains.
