@@ -17,7 +17,6 @@ When a Browser Extension control asks for a justification, the person can explai
 ## Before you start
 
 - To view the page, your role needs access to the **Policy** page and the **Read Browser Extension** permission. To decide requests, it also needs **Manage Browser Extension**. Without it, the page is view only.
-- If your organization still uses V1 roles, the Browser Extension permission controls the page: **Read** to view and **Update** to decide.
 - Justifications are visible only if your role can see conversation content. Otherwise the column shows **You don't have permission to view this**.
 - You can't decide your own requests. Your rows show **Your request** or **Your grant** instead of buttons.
 - Requests come only from the Browser Extension. If Browser Extension is turned off in [Data Sources](../settings-organization/data-sources), the page shows no requests.
@@ -80,8 +79,6 @@ Times are shown in your organization's display timezone. Hover over a time to se
 3. If you're rejecting, enter a **Reason (optional)** of up to 500 characters. It appears on the **Rejected** tab and in the audit log.
 4. If you're rejecting, keep **Email the requester** selected to send them your reason, or clear it.
 5. Select **Approve** or **Reject** to confirm.
-
-The row updates to **APPROVED** or **REJECTED**. When you approve, other pending requests from the same person for the same application and action are approved too.
 
 ## Decide several requests at once
 
