@@ -251,6 +251,6 @@ If single sign-on is enforced, Google and Microsoft sign-ins also go to your IdP
 ## Related
 
 - [Roles and permissions](./roles-and-permissions) - decide what people can see after they sign in
-- [General and domains](./general-and-domains) - your organization's domains
+- [General](./general-and-domains) - your organization's domains
 - [Smart Groups](./smart-groups) - assign roles to groups instead of individuals
 - [Audit logs](./audit-logs) - review sign-ins and SSO changes
