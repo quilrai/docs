@@ -52,7 +52,7 @@ The sidebar has four groups: Observe, Govern, Assessments and Settings.
 |---|---|
 | [Policy Engine](../govern/policy-engine) | What happens when AI use crosses a line, per enforcement surface: Browser Extension, LLM Gateway, MCP Gateway and Endpoint Agent. |
 | [Detection Models](../govern/detection-models) | What counts as sensitive data or an adversarial prompt: built-in and custom detectors. |
-| [Action Request](../govern/action-requests) | Approve or reject justification requests raised when the browser extension blocked an action. |
+| [Action Requests](../govern/action-requests) | Approve or reject justification requests raised when the browser extension blocked an action. |
 
 ### Assessments
 
