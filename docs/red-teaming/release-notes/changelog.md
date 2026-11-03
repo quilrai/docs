@@ -10,6 +10,10 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Back to assessments from a live run (2026-11-03)
+
+- While an assessment is running, **Back to assessments** now returns to the **Assessments** page, where the run stays listed as **Running**, instead of the older runs list
+
 ## Back to run from the full report (2026-11-03)
 
 - On the full report, **Back to run** now returns to the run page you opened it from, instead of the list of runs
