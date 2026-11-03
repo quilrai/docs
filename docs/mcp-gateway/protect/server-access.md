@@ -6,15 +6,24 @@ sidebar_custom_props:
 description: "Allow or deny each MCP server by agent, smart group and user, and how those lists take precedence."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Server access
 
-Choose which AI agents, smart groups and people can use one MCP server. Everyone else is denied access before any tool is listed or called.
+Updated on 3 November 2026.
+
+Choose which AI agents, Smart Groups and people can connect to an MCP server. Connection access is separate from permission to list or call its tools.
+
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
 
 ## Configure it on the server
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="General"
   note="Scroll to the Access control card."
@@ -78,26 +87,31 @@ These rules apply to calls that go through the MCP Gateway. They do not stop som
 | [Allowed Agents](../servers-and-connections/allowed-agents) | Every server, per agent | See and change which servers each agent gets. |
 | [Group and user rules](./group-and-user-rules) | One server, per group or user | Configure what authorized users can access: tools, guardrails, token saving and confirmation. |
 
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
 ## Going further with the Policy Engine
 
-The same decision lives on the **MCP Server Access** card (stage 1, Session) in **Govern > Policy Engine > MCP Gateway**. Its effect is **MCP access**: allow or deny. Because it runs at session, a denied caller never sees the server's tools. Deny wins over allow, and a server that is not registered is denied by default. Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+Open **Govern > Policy Engine > MCP Gateway > Controls > MCP Server Access**. The panel shows what happens today, recipes, configured rules, and an **Activity** tab.
 
-A rule can match on far more than the Access control card offers:
+| Section | Use it to | When no rule sets it |
+|---|---|---|
+| **Server access** | Allow or deny a connection by server, person, Smart Group, agent, route, identity provider, or network. | The connection is denied. |
+| **Hidden from OneMCP** | Deny access through OneMCP while letting the other rules decide direct access. | There is no additional OneMCP-only restriction. |
 
-- **Block servers by name for everyone.** Match **MCP name** against a list, for example unapproved or legacy servers, and deny access across the tenant in one rule.
-- **Gate by identity source or network.** Match the caller's **identity provider** or **client IP**, so a server is only reachable from accounts signed in through your corporate IdP or from known networks.
-- **Gate by agent or route.** Match **agent name**, agent classification or **route kind** (`direct`, `onemcp`, `workflow`), for example allow a server through OneMCP but not as a direct connection.
-- **Gate by server attributes.** Match MCP **tags**, **transport** or **auth type** instead of naming each server.
+1. Choose a recipe such as **Let a team connect to a server** or **Keep someone off a server**, or start a blank rule in the section.
+2. Choose the servers and callers under **Applies to**, and set the outcome.
+3. Check **Reads as**, then **Save to draft**.
+4. Use **Test > Try a situation** to check an allowed and a denied caller, then [review and publish](../../console/govern/author-simulate-and-publish).
 
-<PolicyCard
-  name="block_unapproved_servers"
-  stage="session"
-  priority={900}
-  when={[{ field: "MCP name", op: "is any of", values: ["Unapproved Notes", "Legacy CRM"] }]}
-  then={[{ effect: "MCP access", value: "deny" }]}
-/>
+For both sections, the highest numeric priority wins; **Deny** wins only when priorities tie. A higher-priority Allow can therefore override a lower-priority Deny. Scope suggests a starting priority; it does not replace the stored priority of an existing rule.
 
-The **OneMCP Features** card sits in the same Session stage. It turns OneMCP dynamic tools and memory on or off per caller, and turns [tool lists](./tool-lists) (most-used tools listed, `run_code` scripts) on per server. See [OneMCP](../get-started/onemcp).
+Allowing a connection does not allow its tools. Configure **Invocation & Discovery** for what is listed, what can run, and which results return. See [Tool visibility](./tool-visibility).
+
+**OneMCP Features**, in the same **Who can connect?** group, controls dynamic tools, memory, and [short tool lists](./tool-lists).
+
+</TabItem>
+</Tabs>
 
 ## Related
 

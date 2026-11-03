@@ -3,125 +3,116 @@ sidebar_position: 1
 sidebar_label: "Policy Engine overview"
 sidebar_custom_props:
   icon: ListChecks
-description: "The four Policy Engine surfaces, how policies resolve, where each card is documented, and the MCP field and effect reference."
+description: "Find gateway controls, understand how matching policies combine, and review what the Policy Engine governs."
 console_path: [/policy, /policy/engine]
 aliases: [policy engine, policy studio, quilrql, llm gateway policies, mcp gateway policies, gateway controls]
 ---
 
 # Policy Engine overview
 
-The Policy Engine decides what happens when AI use crosses a line. It has one tab per enforcement surface, and each surface holds the controls enforced through that product.
+Updated on 3 November 2026.
 
-![Policy Engine in the console](/img/console-v2/pages/policy-engine.jpg)
+Use the Policy Engine to decide who can use your gateways, what requests are checked, and what may return. Open **Govern > Policy Engine**, then choose **LLM Gateway** or **MCP Gateway**.
+
+![LLM Gateway controls organized by access, checks, routing and responses](/img/gateway-updates-2026-11/llm-policy-controls.jpg)
 
 <ConsolePath console="QuilrAI Console" path={['Govern', 'Policy Engine']} />
 
-## The four surfaces
+## Policy workspaces {#the-four-surfaces}
 
-| Tab | Model | What you configure |
-|---|---|---|
-| **Browser Extension** | Controls table | Monitor and action controls for AI apps and websites in the browser |
-| **LLM Gateway** | Card engine, versioned | Data, tools, models, identity, routing, spend and quality on every model call |
-| **MCP Gateway** | Card engine, versioned | Server access, tool visibility and invocation, approvals, quotas and responses for MCP traffic |
-| **Endpoint Agent** | Basic policies | Per-app detection and application configuration on managed devices |
+The workspace selector shows **LLM Gateway**, **MCP Gateway**, **Endpoint Agent**, and **Cloud & SaaS**. This guide covers the two gateways. For other enforcement surfaces, see [Endpoint app policies](../../endpoint-agent/configure/app-policies) and [Browser controls](../../browser-extension/configure/browser-controls).
 
-### Browser Extension
+### Gateway workspaces {#llm-gateway-and-mcp-gateway}
 
-A table of controls. Search, filter by **Posture** (AI Risks, Data Risks, Device Risks, IT Support, MFA Risks, Password Hygiene and more) and **Type**, sort by **Recently modified**, **Export**, or **Add control**. Each row shows the control name and use case, **Criticality**, **Mode** (Monitor or Action), a **Status** toggle, and who created and last updated it. The row menu offers **Edit** and **Duplicate**.
+Each gateway has its own engine status and four sections:
 
-The edit form has three parts: control details (name, description, criticality from Very Low to Very High, mode), **When this happens** (the use case, fixed after creation, plus mandatory and additional conditions), and **Perform action**. See [Browser controls](../../browser-extension/configure/browser-controls).
+| Section | Use it to |
+|---|---|
+| **Controls** | Open a control area, read what happens today, start from a recipe, or manage configured rules. |
+| **Policies** | Search and filter policies, inspect their scope and outcome, add a rule, or open **Edit technical source**. |
+| **Test** | **Try a situation** or **Replay activity** before publishing. |
+| **History** | Compare published versions and review what changed. |
 
-### LLM Gateway and MCP Gateway
+**POLICY ENGINE ON** means published policies govern that gateway. The header shows when it was updated. A control's status summarizes its configured scope; it is not proof that a particular request will match.
 
-Both gateways use the same card-based engine:
+Open a control to see its default, how rules combine, and the rules already configured. Most panels have **Controls** and **Activity** tabs. Routing has **Routes**, **Failover defaults**, and **Activity**; Prompt Store also has a **Prompt Store** tab.
 
-- The header shows **ENGINE ON**, the live **Revision N**, how many cards are active, and **History**.
-- Each card has **Configure** (edit in place) and a summary of what is set.
-- **All edits from every card collect in one shared draft.** Nothing changes for live traffic until you review the draft and publish it. Publishing creates the next numbered revision.
-- **History** lists published revisions, so you can review and roll back. Rollback republishes an earlier revision and never changes the classic settings.
-- **Advanced policies** holds rules that no card can express. They stay byte-preserved; card edits never rewrite them.
+Edits saved to the draft do not change live traffic. Use **Review & publish** to publish the pending changes together. See [Author, simulate and publish](./author-simulate-and-publish).
 
-The MCP Gateway tab groups its cards by the stage where they take effect: **1 Session** (evaluated once per connection), **2 Discovery** (per listed capability), **3 Request** (before a call is dispatched) and **4 Response** (before the result returns).
+### Browser controls {#browser-extension}
 
-See [Author, simulate and publish](./author-simulate-and-publish) for the draft and publish workflow.
+See [Browser controls](../../browser-extension/configure/browser-controls) for browser-specific conditions, actions, and modes.
 
 ### Endpoint Agent
 
-The Endpoint Agent tab still runs in **Basic policies** mode, with **Detection configurations** and **Application configuration** sub-tabs and a card per supported AI app (ChatGPT, Claude, Cursor, Copilot, Gemini, DeepSeek, Ollama, LM Studio and more). A **Convert to Policy Engine** button moves it to the engine model. See [App policies](../../endpoint-agent/configure/app-policies).
+See [App policies](../../endpoint-agent/configure/app-policies) for application monitoring and device policy configuration.
 
-## Describe a request
+## Test a situation {#describe-a-request}
 
-On the LLM Gateway tab, **What applies to one request** has a **Describe a request** button (on the MCP Gateway tab: **Describe a call**). Describe a request or session, for example the user, application, model, server or tool, and every card collapses to the value that would win for it, resolved from the shared draft the way the engine merges it. Use it to answer "what happens to this call?" before you publish.
+Open **Test > Try a situation**. For the LLM Gateway, describe the person, application, AI model, and request type. For the MCP Gateway, describe the person, server, tool, and operation. Add details that your rules depend on, then run the test and review the deciding rules.
+
+Use **Replay activity** to compare the candidate with recent recorded traffic. Tests and replay do not change live behavior. See [Test and replay](./author-simulate-and-publish#4-simulate).
 
 ## How policies work
 
-Each card setting is stored as a policy: a sentence with a name, a priority, a stage, conditions and effects.
+A policy has a name, a priority, one or more stages, conditions, and effects. A stage describes where it applies: request/response for LLM traffic, or session/discovery/request/response for MCP traffic. Those execution stages are separate from the question-based groups in **Controls**.
 
-<PolicyCard
-  name="block_request_secrets"
-  stage="request"
-  priority={900}
-  when={[{ field: "data found", op: "is any of", value: "Auth & Secrets" }]}
-  then={[
-    { effect: "Sensitive data action", value: "block" },
-    { effect: "Risk level", value: "critical" },
-  ]}
-/>
+When several policies match, use the combination rule shown on the control:
 
-| Part | Meaning |
+| Control or setting | How matching rules combine |
 |---|---|
-| Name | Stable identifier. Activity history is keyed by name, so renaming a live policy starts a fresh history. |
-| Priority | Higher wins when several rules set the same single-value setting. New policies start at 500. |
-| Stage | Where the rule runs: `request` and `response` for the LLM Gateway; `session`, `discovery`, `request` and `response` for the MCP Gateway. |
-| Conditions | Who, which app, model, server, tool or metadata. No conditions means every call on that stage. |
-| Effects | The settings that take effect. |
+| Gateway Access, MCP Server Access, tool access | Highest numeric priority wins; Deny wins ties. A higher-priority Allow can override a lower-priority Deny for that setting. Other checks still apply. |
+| Allowed Models | Matching allowed lists combine. A model on any matching rejected list is rejected, regardless of priority. |
+| Identity or conversation ID required | Highest priority wins; Required wins ties. |
+| Allowed source IP ranges | Matching rules narrow access by intersecting their ranges. |
+| Token-saving switches | Each switch resolves independently by priority; On wins ties. An Off exemption must outrank the On rule. |
+| Human Confirmation | Highest priority wins; the stricter confirmation requirement wins ties. |
+| Data-risk actions | The highest-priority matching action applies to the request, call, or result, with stricter actions winning ties. Non-blocking redaction and MCP scan-profile category actions have additional per-type rules; see the control guides. |
+| Severity tags | The highest matching severity is reported, regardless of priority. Severity does not replace the configured action. |
 
-When several rules match:
+Do not assume that a narrower audience always wins. Scope shortcuts seed a priority, but existing rules keep their stored priority. Inspect the rule and test overlapping cases before publishing.
 
-- **Restriction wins.** A deny is not undone by a permissive rule elsewhere.
-- **Priority settles single values.** A person rule sits above a Smart Group rule, which sits above an everyone default.
-- **Risk only climbs.** A call's risk level rises to the highest any matching rule assigns.
-- **Redaction is per data type.** `redact` and `partial-redact` apply only to the findings their own rule selected, so rules for different data types never compete. `block` stops the whole call.
-
-Every policy also has an exact text form in QuilrQL, the policy language. Use the source view for review, diffing or bulk work.
+Every policy also has a QuilrQL text form. Use **Policies > Edit technical source** when a visual control cannot express the condition or effect you need.
 
 ## Where each control is documented
 
-### LLM Gateway cards
+### LLM Gateway controls {#llm-gateway-cards}
 
-| Card | Docs |
-|---|---|
-| Data & Adversarial Risks | [Security guardrails](../../llm-gateway/protect/security-guardrails), [Custom detections](../../llm-gateway/protect/custom-detections) |
-| Attachments | [Attachment scanning](../../llm-gateway/protect/attachment-scanning) - allowed files, limits, document text, OCR and image classification; select image data types and actions on Data & Adversarial Risks. |
-| Guardian Agent | [Guardian Agent](../../llm-gateway/protect/guardian-agent) |
-| Hallucination Protection | [Hallucination protection](../../llm-gateway/protect/hallucination-protection) |
-| Gateway Access | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |
-| Identity & Network Trust | [Identity and network trust](../../llm-gateway/protect/identity-and-network-trust) |
-| Tool Controls | [Tool controls](../../llm-gateway/protect/tool-controls) |
-| Allowed Models | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |
-| Model Visibility | [Model visibility](../../llm-gateway/protect/model-visibility) |
-| Model routing | [Routing and failover](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
-| Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
-| Rate, Token & Timeout Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
-| Token Savings | [Token saving](../../llm-gateway/cost-and-traffic/token-saving) |
-| Prompt Store and Enforcement | [Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store) |
+The groups follow a model request from access to returned response.
 
-### MCP Gateway cards
-
-| Stage | Card | Docs |
+| Group | Control | Guide |
 |---|---|---|
-| 1 Session | MCP Server Access | [Server access](../../mcp-gateway/protect/server-access) |
-| 1 Session | OneMCP Features | [OneMCP](../../mcp-gateway/get-started/onemcp), [Tool lists](../../mcp-gateway/protect/tool-lists) |
-| 1 Session | Claims Forwarding | [Claims forwarding](../../mcp-gateway/protect/claims-forwarding) |
-| 2 Discovery | Discovery Visibility | [Tool visibility](../../mcp-gateway/protect/tool-visibility) |
-| 3 Request | Invocation | [Tool visibility](../../mcp-gateway/protect/tool-visibility), [Group and user rules](../../mcp-gateway/protect/group-and-user-rules) |
-| 3 Request | Human Approval | [Human approval](../../mcp-gateway/protect/human-approval) |
-| 3 Request | Usage Quotas & Concurrency | [Usage quotas and concurrency](../../mcp-gateway/protect/usage-quotas-and-concurrency) |
-| 3 Request, 4 Response | Data & Adversarial Risks | [Security guardrails](../../mcp-gateway/protect/security-guardrails) |
-| 4 Response | Token Savings | [Token saving](../../mcp-gateway/protect/token-saving) |
-| 4 Response | Web Search Security | [Web search security](../../mcp-gateway/protect/web-search-security) |
+| Who can use AI? | Gateway Access; Allowed Models | [Gateway access and allowed models](../../llm-gateway/protect/gateway-access-and-allowed-models) |
+| Who can use AI? | Identity & Network Trust | [Identity and network trust](../../llm-gateway/protect/identity-and-network-trust) |
+| Who can use AI? | Model Visibility | [Model visibility](../../llm-gateway/protect/model-visibility) |
+| Who can use AI? | Prompt Store & Enforcement | [Prompt store](../../llm-gateway/cost-and-traffic/prompt-store) |
+| What should be checked? | Data & Adversarial Risks | [Security guardrails](../../llm-gateway/protect/security-guardrails), [Custom detections](../../llm-gateway/protect/custom-detections) |
+| What should be checked? | Guardian Agent | [Guardian Agent](../../llm-gateway/protect/guardian-agent) |
+| What should be checked? | Tool Controls | [Tool controls](../../llm-gateway/protect/tool-controls) |
+| What should be checked? | Attachments | [Attachment scanning](../../llm-gateway/protect/attachment-scanning) |
+| Which model and limits? | Routing Groups & Fallbacks | [Routing and failover](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
+| Which model and limits? | Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
+| Which model and limits? | Token Savings | [Token saving](../../llm-gateway/cost-and-traffic/token-saving) |
+| What may return? | Hallucination Protection | [Hallucination protection](../../llm-gateway/protect/hallucination-protection) |
+| What may return? | Error Messages | [Error messages](../../llm-gateway/protect/error-messages) |
 
-Settings without a card (cache mode, managed authentication and credential references, web search tuning, response-stage access rules) live under **Advanced policies & classifications**. See [MCP advanced policy reference](#mcp-advanced-policy-reference).
+### MCP Gateway controls {#mcp-gateway-cards}
+
+![MCP Gateway controls organized around connections, available tools, execution and results](/img/gateway-updates-2026-11/mcp-policy-controls.jpg)
+
+| Group | Control | Guide |
+|---|---|---|
+| Who can connect? | MCP Server Access | [Server access](../../mcp-gateway/protect/server-access) |
+| Who can connect? | OneMCP Features | [OneMCP](../../mcp-gateway/get-started/onemcp), [Tool lists](../../mcp-gateway/protect/tool-lists) |
+| Who can connect? | Web Search Security | [Web search security](../../mcp-gateway/protect/web-search-security) |
+| Who can connect? | Claims Forwarding | [Claims forwarding](../../mcp-gateway/protect/claims-forwarding) |
+| Which tools are available? | Invocation & Discovery | [Tool visibility](../../mcp-gateway/protect/tool-visibility), [Group and user rules](../../mcp-gateway/protect/group-and-user-rules) |
+| What can run? | Human Confirmation | [Human approval](../../mcp-gateway/protect/human-approval) |
+| What can run? | Usage Quotas & Concurrency | [Quotas and concurrency](../../mcp-gateway/protect/usage-quotas-and-concurrency) |
+| What can run? | Data & Adversarial Risks | [Security guardrails](../../mcp-gateway/protect/security-guardrails) |
+| What may return? | Token Savings | [Token saving](../../mcp-gateway/protect/token-saving) |
+
+For combinations not exposed by a visual control, use **Policies** and the technical source editor. See [MCP advanced policy reference](#mcp-advanced-policy-reference).
 
 ## MCP advanced policy reference
 
@@ -147,7 +138,7 @@ An effect is legal only on the stages that own it. The compiler rejects a rule t
 |---|---|---|
 | MCP Server Access | session | `mcp.access` allow or deny |
 | Tools, Resources & Prompts | discovery, request, response | `tool.access`, `resource.access`, `prompt.access` |
-| Human Approval | request | `tool.confirmation` none or required |
+| Human Confirmation | request | `tool.confirmation`: `none`, `required`, or `required_with_justification` |
 | Data & Adversarial Risks | request, response | `dlp.action`, `dlp.category_actions`, `dlp.default_action`, `dlp.detectors`, `risk.level` |
 | Usage Quotas & Concurrency | request | `quota.minute`, `quota.hour`, `quota.day`, `quota.window`, `quota.timezone`, `quota.dimensions`, `quota.id`, `concurrency.limit`, `concurrency.ttl_seconds`, `concurrency.dimensions` |
 | OneMCP Features | session | `onemcp.dynamic_tools`, `onemcp.memory`, `tool_list.top_tools` (most-used tools listed), `tool_list.code` (`run_code` scripts); both `tool_list` effects are off unless a configuration turns them on |
@@ -175,21 +166,22 @@ A session rule can combine several advanced effects, for example a locked-down p
 
 ## App settings under the Policy Engine
 
-The engine switch is tenant-wide. While the LLM Gateway engine is on, these sections of every gateway app's settings follow published policies instead of their own values. Each shows **Controlled by Policy Engine**, with **View policies** (open the matching card) and **Edit anyway** (edit the stored legacy values). Values saved through **Edit anyway** are not enforced and are not added to policies; they become live only if the engine is disabled. For every transition (publish, rollback, Edit anyway, Management API writes, disable), see [What happens to classic settings](./switching-from-classic-settings#what-happens-to-classic-settings).
+The engine switch is tenant-wide. While the LLM Gateway engine is on, these sections of every gateway app's settings follow published policies instead of their own values. Each shows **Controlled by Policy Engine**, with **View policies** (open the matching control) and **Edit anyway** (edit the stored legacy values). Values saved through **Edit anyway** are not enforced and are not added to policies; they become live only if the engine is disabled. For every transition (publish, rollback, Edit anyway, Management API writes, disable), see [What happens to classic settings](./switching-from-classic-settings#what-happens-to-classic-settings).
 
-| App settings section | Policy Engine card |
+| App settings section | Policy Engine control |
 |---|---|
 | Security Guardrails (data, adversarial, precision detections) | Data & Adversarial Risks |
 | Security Guardrails > Hallucination check | Hallucination Protection |
 | Security Guardrails > Source IP restrictions | Identity & Network Trust |
 | Guardian Agent | Guardian Agent |
-| Rate and Token Limits | Rate, Token & Timeout Limits |
+| Attachments | Attachments |
+| Rate and Token Limits | Budgets & Usage Limits > Request guards |
 | Token Saving | Token Savings |
-| Routing | Model routing |
+| Routing | Routing Groups & Fallbacks |
 | Identity Aware (Enforce identity, Enforce conversation ID) | Identity & Network Trust |
-| Prompt Store (Require system prompt from store, Universal system prompt) | Prompt Store and Enforcement |
+| Prompt Store (Require system prompt from store, Universal system prompt) | Prompt Store & Enforcement |
 
-Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls, Budgets & Usage Limits and Model Visibility exist only in the engine. See [Switching from classic settings](./switching-from-classic-settings).
+Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls, Budgets & Usage Limits, Model Visibility and Error Messages are configured in the engine. See [Switching from classic settings](./switching-from-classic-settings).
 
 ## Related
 

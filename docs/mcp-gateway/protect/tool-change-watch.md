@@ -8,48 +8,42 @@ description: "Get notified when a server adds, removes or changes tools, and app
 
 # Tool change watch
 
-MCP servers can add, remove or change tools. Quilr checks each server's tool list every hour. With the default setting, it tells you what changed so you can review new or changed tools before your users get them.
+Updated on 3 November 2026.
 
-<ConsolePath
-  console="QuilrAI console"
-  href="https://web.quilr.ai"
-  path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
-  action="Tools"
-  note="The Upstream tool changes card sits above the tool list."
-/>
+Review new tools and changes to existing tools before they become available to AI apps. **Tool updates** in the MCP Gateway header gathers changes across servers; each server also has controls under **Configure > Tools**.
 
-![Upstream tool changes card with the When the upstream tool list changes selector, Last checked time and the Check now button](/img/mcp-gateway/ui/settings-tool-changes.png)
+## Gateway approval for new tools
+
+Open **Settings > AI Gateway > MCP Gateway > Tool updates**. The **New tools wait for approval** switch is the gateway default for servers that use that setting. A server can choose its own rule under **Configure > Tools**.
+
+When approval is on, a newly offered tool is hidden from AI apps and agents until an administrator approves it. Tools present when the server was first added are not held by this new-tool gate. Review a server in the queue to inspect what it offers before deciding.
+
+This is a tool-update setting, not a switch between classic settings and the Policy Engine. Approval does not bypass published access, confirmation or guardrail rules.
 
 ## Choose what happens
 
-Pick an option in **When the upstream tool list changes**, then click **Save settings**.
+Open the server's **Configure > Tools** section to choose its update behavior. When the upstream list is watched, the **Upstream tool changes** area shows **Last checked** and **Check now**.
 
-| Option | What happens |
-|--------|--------------|
-| **Tell me about changes** (default) | Quilr checks hourly and flags changes here for you to apply. Your clients see the old tool list until you approve. |
-| **Update tools automatically** | Quilr checks hourly and applies the new tool list automatically. |
-| **Don't watch this MCP** | Quilr stops checking this MCP for tool changes. |
+![Classic per-server upstream tool-change settings](/img/mcp-gateway/ui/settings-tool-changes.png)
 
-**Last checked** shows when Quilr last compared the list. Click **Check now** to compare immediately.
+| Update behavior | Result |
+|---|---|
+| **Tell me about changes** | Flag differences for an administrator to review; clients keep the previous list until approval. |
+| **Update tools automatically** | Apply detected tool-list changes automatically. |
+| **Don't watch this MCP** | Stop watching this server for list changes. |
+
+Save server settings after changing their behavior. The gateway approval setting applies only to servers that use the gateway setting; check the server's own rule when its behavior differs.
 
 ## Review a change
 
-When a change is waiting, the card says **This MCP changed N tools upstream. What your clients see is unchanged until you approve it.** The change is listed in three parts.
+The **Tool updates** queue distinguishes newly offered tools from **Changed upstream**: changed descriptions or input schemas, and tools that disappeared since the gateway last recorded the server's list. AI apps keep the previous list while those changes await review.
 
-| List | What it shows |
-|------|---------------|
-| **New upstream** | Tools the server added. Hover a name to read its description. |
-| **Gone from upstream** | Tools the server no longer offers. |
-| **Changed upstream** | Tools whose **Description** or **Input schema** changed, with the removed words struck through and the added words highlighted. |
+1. Open **Tool updates** in the gateway header or the review action on a server card.
+2. Choose **Review** for the server.
+3. Inspect the tool names, descriptions and schema differences. An AI-written **Added risk** summary can help, but review the underlying change before deciding.
+4. **Approve** to apply the change, or **Dismiss** to keep the current list.
 
-An **Added risk** note summarizes what the change could expose. It is written by an AI model, so read the change itself before you decide.
-
-| Button | Result |
-|--------|--------|
-| **Approve** | Your clients receive the new tool list immediately. |
-| **Dismiss** | The tool list stays as it is. A different change is flagged again. |
-
-Approve and Dismiss take effect immediately; you don't need to save. A newly approved tool is enabled like any other tool, so turn off or require confirmation for it in the tool list if needed.
+Approval and dismissal take effect immediately. Check [tool access](./tool-visibility) and [confirmation](./human-approval) before making a newly approved capability available to callers.
 
 ## Servers that can't be watched
 

@@ -3,140 +3,107 @@ sidebar_position: 2
 sidebar_label: "Author, simulate and publish"
 sidebar_custom_props:
   icon: Workflow
-description: "The draft, validate, simulate, replay, publish and roll back loop, plus permissions and engine limits."
+description: "Create gateway policy drafts, test situations, replay activity, publish changes and compare earlier versions."
 console_path: [/policy/engine/llm-gateway, /policy/engine/mcp-gateway]
 aliases: [drafts, revisions, rollback, simulate, simulation, replay recent traffic]
 ---
 
 # Author, simulate and publish
 
-How a change moves from a draft to a live revision on the **LLM Gateway** and **MCP Gateway** tabs of the [Policy Engine](./policy-engine). The Browser Extension and Endpoint Agent tabs do not use this draft workflow.
+Updated on 3 November 2026.
+
+Use **Govern > Policy Engine > LLM Gateway** or **MCP Gateway** to move a change from a draft to live traffic. Saving a rule to the draft does not publish it.
 
 ## The loop
 
 <StepFlow steps={[
-  { label: "Draft", items: ["Configure a card", "Shared draft"] },
-  { label: "Validate", items: ["Errors", "Warnings"] },
-  { label: "Simulate", items: ["Describe a request", "Synthetic cases"] },
-  { label: "Replay", items: ["Recorded traffic"] },
-  { label: "Publish", items: ["Numbered revision", "History"] },
+  {label: "Draft", items: ["Open a control", "Choose a recipe", "Save to draft"]},
+  {label: "Test", items: ["Try a situation", "Review deciding rules"]},
+  {label: "Replay", items: ["Recent recorded activity"]},
+  {label: "Publish", items: ["Review changes", "Publish together"]},
+  {label: "Review", items: ["Activity", "Version history"]},
 ]} />
 
-### 1. Open the card
+### 1. Open a control {#1-open-the-card}
 
-Each card shows what is live. Select **Configure** to edit it in place. Scope shortcuts add a User, Smart group or Application condition with a seeded priority (900, 700 and 600), so a narrower scope wins without you choosing numbers.
+On **Controls**, open the area you want to change. Read **What happens today**, the section default, and **How rules combine** before adding another rule. A recipe starts a form with a useful outcome selected; a blank rule starts without that setup.
 
-### 2. Edit into the shared draft
+### 2. Save a rule to the draft {#2-edit-into-the-shared-draft}
 
-Every edit, from every card and every admin, collects in one shared draft. Pickers are backed by your real catalogs (people, applications, Smart Groups, detections), so you cannot enter a value that would fail validation. Anything too complex for a card stays byte-preserved under **Advanced policies** and remains editable in source view.
+1. Choose a recipe or a section's add control.
+2. Set **Applies to**. Use people, Smart Groups, applications, servers, models, or the other targeting fields that control supports. **Exclude something** carves a scope out of the rule.
+3. Add conditions when needed. Every condition must match unless you change the joining logic or add an **either/or group**.
+4. Choose what should happen and read **Reads as**. Check the priority explanation as well as the audience.
+5. Use **More options** for the fields the form offers, such as severity, end date, or reason.
+6. Select **Save to draft**. If the quick form cannot express the rule, use **Open in full editor** when available.
 
-Conditions are built from a field, an operator and a value. Operators adapt to the field: `is`, `is not`, `is any of`, `is none of`, `is set`, `is not set`, `contains`, `starts with`, `ends with`, `matches pattern`, `is inside CIDR`, `includes (ignoring case)`, `has entry` and `has count`. **Data found** takes `is any of`, `is all of` or `is none of`, with an optional occurrence threshold.
-
-- Rows join with `and` or `or`, and an any-of group nests a bracketed set of alternatives inside the sentence.
-- On a card, every **Applies to** chip must match (AND), and values accept `*` and `?` wildcards. For "A or B", add a second configuration or an any-of group.
+An application's shortcut list is not the whole catalog. Use **Search Application values** to open **Find application**, or the corresponding picker for another field. Some condition values accept patterns such as `*` and `?`; review the resulting condition rather than assuming every value is an exact catalog selection.
 
 ### 3. Validate
 
-Problems are reported against the exact field that caused them, with warnings
-kept separate from errors.
+Fix errors against the fields the editor identifies. Read warnings separately. Validation establishes that the rule is valid, not that it affects only the traffic you intended.
 
-### 4. Simulate
+### 4. Try a situation {#4-simulate}
 
-Use **Describe a request** (MCP: **Describe a call**) to see the winning value per control for one request. Leave **API surface** empty and the request simulates as `chat`; **Add detection** reports a data type as found, with a count per type. For more coverage, run up to 100 synthetic cases against your draft and read the engine's actual decision evidence: which rules matched, on which stage, and the call-level outcome.
+Open **Test > Try a situation**. Check the label that says which rules are being tested, such as **Testing live rules**, before interpreting a result.
 
-:::tip
-A policy validating, or appearing to be in scope, is not evidence of the
-outcome. Simulation is the only thing that reports the engine's real decision.
-:::
+For the LLM Gateway, choose a **Person**, **Application**, **AI model**, and **Request type** as needed. **More details**, **Add detail**, and **Sensitive data types (optional)** let you provide the fields used by your conditions. **Test multiple situations** expands the test coverage.
 
-### 5. Replay recorded traffic
+![LLM Gateway Test with person, application, AI model and request type fields](/img/gateway-updates-2026-11/llm-policy-test.jpg)
 
-Evaluate the draft against traffic that already happened, up to 90 days back
-and up to 5,000 requests for the LLM Gateway. This is how you find the rule
-that would have blocked more than you intended.
+For the MCP Gateway, describe **What is happening?**, then choose a **Person**, **MCP server**, and **Tool**. Add caller, route, and operation details as needed. Run the test and inspect both the outcome and the matching/deciding rules. A field you omit can change whether a condition matches.
 
-### 6. Publish
+### 5. Replay recent activity {#5-replay-recorded-traffic}
 
-Review the draft, then publish. On the LLM Gateway, publish takes a message; on the MCP Gateway it takes no message, and drafts can be renamed. All pending changes publish together as the next numbered revision, shown as **Revision N** in the header. Drafts carry a concurrency guard, so a colleague's publish cannot be silently overwritten.
+Select **Replay activity**, choose the **Time range**, and open **Advanced replay options** if you need to narrow the sample. Select **Run check** and compare what the rules would have done with the recorded outcomes.
 
-### 7. Watch, then adjust
+![MCP Gateway Replay activity with time range and advanced replay options](/img/gateway-updates-2026-11/mcp-policy-replay.jpg)
 
-The activity view rolls up governed calls, blocked calls and tokens saved over
-the last 7 or 30 days.
+Replay does not change live traffic. Use a representative sample that includes people who should match and people who should remain unaffected.
 
-### 8. Roll back if needed
+### 6. Review and publish {#6-publish}
 
-**History** lists every published revision with its checksum. Rolling back
-republishes an earlier document as a new revision, so the timeline only moves
-forward and an incident stays fully auditable. Rollback changes only policies;
-it never touches classic app settings (see
-[What happens to classic settings](./switching-from-classic-settings#what-happens-to-classic-settings)).
+Open **Review & publish** from the control panel. Review the pending changes and validation results, then publish when the tested behavior is correct. Pending changes publish together as the next version. Reopen **History** to confirm the new active version.
+
+### 7. Watch the result {#7-watch-then-adjust}
+
+Open the control's **Activity** tab and the gateway's [LLM Insights](../../llm-gateway/monitor/analytics-and-insights) or [MCP Insights](../../mcp-gateway/monitor/analytics-and-insights). Inspect matching traffic and [Findings & Interactions](../observe/findings-and-interactions). A configured-rule count is not a matched-request count.
+
+### 8. Compare or restore an earlier version {#8-roll-back-if-needed}
+
+**History** lists published versions, their time, and the recorded publisher or automatic reason. Select a version and compare it with the **Previous version** or **Live version**. The change summary shows added, removed, and updated policies; **Technical details**, **Technical source**, and **Source diff** provide more detail.
+
+![LLM Gateway History with version list, publisher reasons and a change comparison](/img/gateway-updates-2026-11/llm-policy-history.jpg)
+
+Restoring an earlier version republishes it as a new version and preserves the history. It changes policies, not classic app/server settings. See [What happens to classic settings](./switching-from-classic-settings#what-happens-to-classic-settings).
 
 ## Worked example: block secrets for contractors
 
-Goal: on the LLM Gateway, block requests carrying **Auth & Secrets** for the
-**Contractors** Smart Group, and leave everyone else as they are. Assume the
-live revision is **Revision 4**.
+1. In **Controls > Data & Adversarial Risks**, start a recipe for blocking sensitive data.
+2. Choose the **Contractors** Smart Group, **Auth & Secrets**, the Request stage, and **Block**. Read the scope and priority, then save to the draft.
+3. In **Test**, describe a matching contractor request with that detection and confirm it is blocked.
+4. Describe a request from someone outside Contractors. Confirm the new rule does not change their outcome.
+5. Replay recent traffic and inspect unexpected matches before publishing.
+6. Review and publish, then check Activity. If needed, use History to restore the earlier version.
 
-1. **Draft.** On the **Data & Adversarial Risks** card, select **Configure**,
-   add a Smart group scope for **Contractors**, pick **Auth & Secrets** and set
-   the action to **block**. The edit joins the shared draft; live traffic is
-   unchanged.
-2. **Positive test.** Select **Describe a request**. Describe a user in
-   Contractors and use **Add detection** to report **Auth & Secrets**. The
-   card should resolve to **block**.
-3. **Negative test.** Describe the same request for a user outside
-   Contractors. The card should resolve to the value you had before, for
-   example **monitor**. If it shows **block**, the scope is wrong.
-4. **Replay.** Replay the last 30 days. The would-be-blocked set should contain
-   only Contractors' calls that carried secrets.
-5. **Publish** with a message such as "Block secrets for contractors". The
-   header now shows **Revision 5**.
-6. **Verify.** Check the activity view and
-   [Findings & Interactions](../observe/findings-and-interactions) for blocked
-   calls from Contractors only.
-7. **Roll back if it misfires.** Open **History**, find **Revision 4** and
-   roll back. Its document is republished as **Revision 6**, and live traffic
-   behaves as it did under Revision 4. Revision 5 stays in History for the
-   audit trail.
+## Policies and technical source {#source-view-and-the-advanced-workspace}
 
-## Source view and the Advanced workspace
+**Policies** lists the live policies with their audience, outcome, and status. Use **Search policies**, **Filters**, and row details to find a policy. **Add rule** starts another policy; **Edit technical source** opens QuilrQL for conditions or effects the visual editor cannot express.
 
-Every policy has an exact text form in QuilrQL, the policy language. The `</>` toggle switches between the sentence editor and source in both directions. You need source only for review, diffing or bulk work.
+![LLM Gateway Policies with search, filters, scopes, outcomes and the technical source entry](/img/gateway-updates-2026-11/llm-policy-policies.jpg)
 
-```
-policy block_request_secrets priority 900 {
-  request
-  data_type ("Auth & Secrets")
-  then {
-    dlp.action = block;
-    risk.level = critical;
-  }
-}
-```
-
-**Advanced policies > Advanced workspace** opens the source-level editor for the whole document:
-
-1. **New draft from active revision** clones the live revision into a named draft.
-2. Edit with the visual builder (one policy at a time) or the full QuilrQL source. **Suggested policies** inserts ready-made rules, and **Insert from catalog** inserts exact values for users, apps and more.
-3. **Save draft** explicitly. Validation and publication run only against the saved source.
-4. **02 Analyze** runs **Diagnostics**, **Simulation** and **Historical Try** against the candidate, then publish the revision.
+Use technical source for advanced conditions, review, or bulk work. Keep the same draft/test/review/publish discipline as visual edits.
 
 ## Permissions
 
 | To | You need |
 |---|---|
-| Read the workspace, validate, simulate, replay, preview conversion | Policy read access, plus gateway credentials in the session |
-| Create drafts, publish, roll back, enable, disable | Policy update access |
+| Read policies, test, replay, or review conversion | Policy read access and access to the gateway |
+| Save drafts, publish, restore, enable, or disable | Policy update access |
 
 ## Limits and practical notes
 
-| Topic | Detail |
-|---|---|
-| Document size | Up to 400,000 characters per document, which is thousands of policies in practice |
-| Data types | Up to 64 per rule and 256 per document |
-| Simulation | Up to 100 synthetic cases per run |
-| Replay | LLM Gateway up to 90 days and 5,000 requests; MCP Gateway filters by window, MCP, tool, user and route |
-| Activity window | 7 or 30 days |
-| Activity attribution | The LLM Gateway rollup reports tenant totals. Per-policy match counts are not attributed in LLM traffic logs, so use simulation and replay for per-policy behaviour. The MCP Gateway does attribute per policy. |
-| Naming | Observed history is keyed by policy name. Renaming a live policy starts its history over, so prefer editing in place. |
+- Tests and replay evaluate the selected rule set; they do not change live behavior.
+- Test both matching and non-matching cases when narrowing scope or adding an exemption.
+- Use the combination rule on each section. Higher priority, list unions, intersections, and stricter ties apply to different settings.
+- Review retained classic settings before disabling the engine. Published policy edits are not copied back into them.

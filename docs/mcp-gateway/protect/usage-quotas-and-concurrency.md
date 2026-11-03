@@ -3,26 +3,38 @@ sidebar_position: 10
 sidebar_label: "Usage quotas and concurrency"
 sidebar_custom_props:
   icon: Gauge
+description: "Limit MCP tool calls and simultaneous execution with scoped Policy Engine quotas and shared counters."
+aliases: [MCP quotas, rate limits, concurrent calls]
 ---
 
 # Usage quotas and concurrency
 
+Updated on 3 November 2026.
+
 Cap how many tool calls can be made in a time window, and how many can run at the same time. Use quotas to stop a runaway agent or a heavy user from exhausting an MCP server or its upstream API limits.
 
 :::note Policy Engine only
-There is no quota setting in a server's **Configure** sections. Quotas and concurrency limits are set only on the **Usage Quotas & Concurrency** card (stage 3, Request) in **Govern > Policy Engine > MCP Gateway**, and apply once the Policy Engine is on for the MCP Gateway.
+There is no quota setting in a server's **Configure** sections. Quotas and concurrency limits are set only on the **Usage Quotas & Concurrency** control in **Govern > Policy Engine > MCP Gateway**, and apply once the Policy Engine is on for the MCP Gateway.
 :::
 
 ## Where to set it
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Govern', 'Policy Engine', 'MCP Gateway']}
   action="Usage Quotas & Concurrency"
 />
 
-Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+The panel has **Call quotas** and **Simultaneous calls** sections, with **Controls** and **Activity** tabs.
+
+1. Choose **Limit calls** or **Limit simultaneous calls**, or start a blank rule in the corresponding section.
+2. Set **Applies to**, the limits, and the counter dimensions.
+3. Check **Reads as**, then **Save to draft**.
+4. Use **Test** to check the candidate, then [review and publish](../../console/govern/author-simulate-and-publish).
+
+Without a matching setting, this control adds no rate or concurrency ceiling. Other gateway or upstream limits can still refuse a call.
+
+Every distinct matching counter must admit the call; priority does not make another counter disappear. Rules with the same quota name share usage and must agree on dimensions, window and timezone. The **Share a server's concurrency pool** recipe creates one pool shared by rules that name it.
 
 ## Effects
 

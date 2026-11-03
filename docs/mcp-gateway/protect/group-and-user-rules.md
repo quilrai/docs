@@ -6,15 +6,24 @@ sidebar_custom_props:
 description: "Override tools, confirmation, guardrails and token saving for a smart group or a single user, and preview a user's effective settings."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Group and user rules
 
+Updated on 3 November 2026.
+
 Give a smart group or a single person different settings on one MCP server. A rule can turn tools on or off, require confirmation, change guardrail actions and enable or disable token saving without changing other users' settings.
+
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
 
 ## Configure it on the server
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="Group & User Rules"
 />
@@ -79,37 +88,28 @@ Review one user's effective settings after all rules apply.
 
 The preview lists the tools, any hidden tools, token saving and the guardrail actions for that person. Click **Show full settings** to see everything.
 
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
 ## Going further with the Policy Engine
 
-When the Policy Engine is on for the MCP Gateway, this section turns read-only and published policies apply instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+Caller scope belongs on the control that owns the outcome. Open **Govern > Policy Engine > MCP Gateway > Controls**, choose the control, then choose people or Smart Groups under **Applies to**. Use exclusions when a rule should apply to everyone except a group or person.
 
-The Policy Engine has no separate rules list. Every rule can match on the caller (**user email**, **smart groups**, identity provider, client IP), so a group or user override becomes a rule on the card that owns the setting:
+| Classic override | Policy control |
+|---|---|
+| Tool **Enabled** | **Invocation & Discovery**: listing, calls, and returned results. |
+| **Confirmation**, **Justification** | **Human Confirmation**. |
+| Guardrail actions and categories | **Data & Adversarial Risks**. |
+| Token-saving strategies | **Token Savings**. |
 
-| Override here | Card in **Govern > Policy Engine > MCP Gateway** |
-|---------------|-----------------------------------------------|
-| Tool **Enabled** | **Invocation** (stage 3, Request) to refuse calls, and **Discovery Visibility** (stage 2) to hide the tool |
-| **Confirmation**, **Justification** | **Human Approval** |
-| Guardrail actions and categories | **Data & Adversarial Risks** |
-| Token saving strategies | **Token Savings** |
+Unlike classic overrides, there is no universal “user rule applies last” order. Each control explains **How rules combine** and **When no rule sets this**. Access decisions use the highest numeric priority, with Deny winning ties; confirmation and token-saving switches have their own tie rules. Data-risk actions have separate rules for detection actions and the scan profile.
 
-The **Invocation** card decides whether a tool call may run. Its effect is **Tool call access**: allow or deny. Scenarios it covers that group and user rules cannot:
+For example, use **Invocation & Discovery > Block destructive tools**, scope it to a Smart Group, and check which listing, call, and result steps it changes. A more specific audience alone does not guarantee an override: compare its stored priority with the other matching rules.
 
-- **Combine caller and tool conditions.** Deny destructive tools (the tool's `destructive` annotation, tags or risk) for one smart group across every server, instead of switching tools off server by server.
-- **Condition on the agent or route.** Allow a write tool from one agent but not another, or only when the call comes through OneMCP (**route kind** `onemcp`).
-- **Cover a class of servers.** Match MCP **tags**, auth type or system MCP instead of adding the same rule to each server.
+**Policies** provides a searchable list of policies and their outcomes. For an effective decision, use **Test > Try a situation**, choose a person and server/tool, and inspect the result. **Replay activity** checks the candidate against recorded calls. [Review and publish](../../console/govern/author-simulate-and-publish) only after the intended and exempt cases behave as expected.
 
-<PolicyCard
-  name="contractors_no_destructive_tools"
-  stage="request"
-  priority={800}
-  when={[
-    { field: "Smart groups", op: "includes (ignoring case)", value: "Contractors" },
-    { field: "Tool is destructive", op: "is", value: "true" },
-  ]}
-  then={[{ effect: "Tool call access", value: "deny" }]}
-/>
-
-Overlapping policies resolve differently from this section: a deny is never undone by a more permissive rule, and priority settles single values. A person-specific allow therefore cannot loosen a group deny the way a user rule can here. See the [Policy Engine overview](../../console/govern/policy-engine), and simulate before you [publish](../../console/govern/author-simulate-and-publish).
+</TabItem>
+</Tabs>
 
 ## Related
 

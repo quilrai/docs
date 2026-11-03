@@ -7,7 +7,12 @@ description: "Per-server switches that send AI apps a server's most-used tools i
 aliases: [tool list, most-used tools, smart tool lists, short tool list, run_code, code mode]
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Tool lists
+
+Updated on 3 November 2026.
 
 Send AI apps a short tool list: a server's most-used tools in full, with every other tool one search away.
 
@@ -44,17 +49,21 @@ A short list only changes what is listed up front. Every tool stays callable by 
 | Where | With **List most-used tools** on |
 |-------|----------------------------------|
 | The server's own address (`<YOUR_MCP_BASE_URL>/<server-slug>/mcp`) | The server sends its most-used tools, `find_relevant_tools` and `call_tool`. With **Add Code mode** on too, it also sends `run_code`. |
-| [OneMCP](../get-started/onemcp) with dynamic tool calling on | The server's most-used tools are listed directly next to OneMCP's own tools, named `<server-slug>_<tool>` (for example `mcp-query_llm_alert_scan`). Its other tools stay reachable through `find_relevant_tools` and `call_tool`. `run_code` is offered when any server the person can use has **Add Code mode** on. |
+| [OneMCP](../get-started/onemcp) with dynamic tool calling on | The server's most-used tools are listed directly next to OneMCP's own tools, named `<server-slug>_<tool>` (for example `crm_search_records`). Its other tools stay reachable through `find_relevant_tools` and `call_tool`. `run_code` is offered when any server the person can use has **Add Code mode** on. |
 | [Workflow Agents](../../workflow-agents) | Not affected. An agent's tools are chosen when it is built, so agents always get them in full. |
 | [Local MCP](../local-mcp/overview) servers | Not affected. Local servers always send their full list, and the setting is not shown for them. |
 
 With both switches off on every server, OneMCP behaves exactly as described in [Smart Tools](../get-started/onemcp#smart-tools).
 
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
 ## Configure it on the server
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="Tool list"
 />
@@ -68,6 +77,32 @@ The **What AI apps get** card holds the two switches. Turn on the ones you want,
 | **List most-used tools** | Sends the server's most-used tools in full and keeps every other tool one search away, on the server's own address and in OneMCP sessions with dynamic tool calling on. |
 | **Add Code mode** | Lets AI apps run short `run_code` scripts that call this server's tools and return only the answer. Best for data-heavy servers. On the server's own address it comes with the most-used tools list. |
 | **Pin** | Always list a tool in full, even when it is not among the most used. Pin from the **tools one search away** list or the **Most often found by search** list. Pinned tools show with a pin; click the **x** on a pinned tool to unpin it. |
+
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Going further with the Policy Engine
+
+Open **Govern > Policy Engine > MCP Gateway > Controls > OneMCP Features**. The **Most-used tools listed** and **Scripts** sections govern short lists and `run_code` while the engine is on.
+
+| Section | Effect | When no rule sets it |
+|---|---|---|
+| **Most-used tools listed** | `tool_list.top_tools` | The server's tool list is not shortened. |
+| **Scripts** | `tool_list.code` | AI apps call tools one at a time. |
+
+1. Start from a recipe in the section, or use its add control to create a blank rule.
+2. Choose the **MCP server** under **Applies to**, along with any person, Smart Group, agent or route conditions.
+3. Turn on the outcome you need, check **Reads as**, and **Save to draft**.
+4. [Test and publish](../../console/govern/author-simulate-and-publish).
+
+Each switch resolves independently. The highest numeric priority wins; On wins ties. An Off exception must outrank the rule that turns the switch on.
+
+The server's Tool list switches show **Controlled by Policy Engine**. **Edit anyway** changes values saved for classic mode. **Pins always come from server settings**, so use the server's preview to pin important tools in either mode.
+
+Use caller scope for a pilot group, or route scope to offer scripts through OneMCP only. Dynamic discovery and memory have separate sections on the same panel; see [OneMCP settings](../get-started/onemcp#onemcp-settings).
+
+</TabItem>
+</Tabs>
 
 ### Preview
 
@@ -100,13 +135,13 @@ Each tool call inside a script is a normal governed call: policies, approvals, g
 
 ## Find servers worth turning on
 
-The MCP Gateway page shows a **Savings opportunity** card when servers send many tool descriptions nobody uses.
+The MCP Gateway page shows a **Tool list savings** summary and, when there are opportunities, a **Review** action for servers that can send shorter lists.
 
 ![Savings opportunity card: 2 servers send AI apps tools nobody uses, 5.3M tokens a month, with a Review button](/img/mcp-gateway/ui/tool-list-savings-card.png)
 
-Click **Review** to open **Send AI apps shorter tool lists**. Each server shows its tokens per turn today and with the short list, the share of calls the listed tools cover, and the tokens a month you could stop sending. **Open settings** opens the server's Tool list section, and **Turn on** turns **List most-used tools** on for that server, keeping its pins and Code mode setting.
+Click **Review** to review servers that can send shorter tool lists. Each server shows its tokens per turn today and with the short list, the share of calls the listed tools cover, and the tokens a month you could stop sending. **Open settings** opens the server's Tool list section, and **Turn on** turns **List most-used tools** on for that server, keeping its pins and Code mode setting.
 
-![Send AI apps shorter tool lists drawer listing mcp-query and Quilr SE-CS MCP with tokens per turn before and after and Open settings buttons](/img/mcp-gateway/ui/tool-list-review.png)
+![Send AI apps shorter tool lists drawer listing example servers with tokens per turn before and after and Open settings buttons](/img/mcp-gateway/ui/tool-list-review.png)
 
 A server is recommended when the short list saves at least 2,000 tokens per turn and the server had at least 50 calls in the last 30 days. When the Policy Engine is on, the drawer shows a note instead of **Turn on** (see [Going further with the Policy Engine](#going-further-with-the-policy-engine)).
 
@@ -116,7 +151,7 @@ A server is recommended when the short list saves at least 2,000 tokens per turn
 |-------|--------------|
 | Server card | A **Tool list** chip once a switch is on, for example **Most-used · -91%** or **Most-used · -91% + Code**. |
 | Server settings > **Tool list** | The preview and, once used, **What the short list saved here**. |
-| **Overall analytics > Servers & tools** | The **Tool list savings** panel, below. |
+| **Overall analytics > Servers & tools** | The **Tool list savings** panel in [MCP Gateway Insights](../monitor/analytics-and-insights). |
 
 ![Tool list savings panel with tokens not sent, estimated cost avoided, calls with a short list, savings with the recommended servers on, and a per-server table](/img/mcp-gateway/ui/insights-tool-list-savings.png)
 
@@ -141,41 +176,6 @@ The savings figures are estimates built on real usage. They are not read from a 
 | Recommended and "if turned on" figures | **Projected** from the last 30 days of calls made with the full list. |
 
 Tool list savings show only in the places above. The **Tokens saved** figures on the MCP Gateway page and in Costs & Savings count [token saving](./token-saving) strategies.
-
-## Going further with the Policy Engine
-
-When the Policy Engine is on for the MCP Gateway, this section turns read-only and the **OneMCP Features** card (stage 1, Session) in **Govern > Policy Engine > MCP Gateway** applies instead. **Edit anyway** changes the stored values, which are used only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). Pins always come from the server settings.
-
-![Tool list section marked with the Policy Engine icon, the Controlled by Policy Engine banner with View policies and Edit anyway, and the switches locked](/img/mcp-gateway/ui/settings-tool-list-policy-engine.png)
-
-The card has two effects for tool lists, both **Off** for everyone until a configuration turns them on:
-
-| Effect | Card row | Merge rule |
-|--------|----------|------------|
-| `tool_list.top_tools` | **Most-used tools listed** | Highest priority wins; at equal priority on wins. |
-| `tool_list.code` | **Scripts (run_code)** | Highest priority wins; at equal priority on wins. |
-
-![OneMCP Features card showing Most-used tools listed off for everyone and on for MCP server mcp-query at priority 650, and Scripts (run_code) off](/img/mcp-gateway/ui/policy-engine-onemcp-tool-lists.png)
-
-To turn tool lists on for a server, click **Quick add** under **Most-used tools listed**, choose **MCP server** under **Applies to** and pick the server, set **Most-used tools listed** (and **Scripts (run_code)** if you want scripts) to **On**, then **Add to draft** and **Review & publish**.
-
-![Quick add form rows for Most-used tools listed and Scripts (run_code), both set to On, with the Reads as sentence](/img/mcp-gateway/ui/policy-engine-tool-list-quick-add.png)
-
-Scenarios the card supports that server settings cannot:
-
-- **Short lists for some people only.** Match **smart groups** or **user email**, for example turn short lists on for a pilot group first.
-- **Scripts on one route.** Match **route kind** to offer `run_code` through OneMCP but not on a server's own address.
-- **Many servers at once.** Match **MCP name** with a list or pattern instead of configuring each server.
-
-<PolicyCard
-  name="short_list_for_reporting_servers"
-  stage="session"
-  priority={650}
-  when={[{ field: "MCP name", op: "is any of", values: ["mcp-query", "Quilr SE-CS MCP"] }]}
-  then={[
-    { effect: "list most-used tools", value: "true" },
-  ]}
-/>
 
 ## Related
 

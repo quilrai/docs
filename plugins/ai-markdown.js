@@ -447,6 +447,13 @@ function cleanProse(text, ctx) {
   t = apiComponents(t, ctx);
   t = sopComponents(t, ctx);
   t = videoComponents(t);
+  t = t
+    .replace(/<TabItem\b([^>]*?)>/g, (_, attrs) => {
+      const label = attr(attrs, 'label') || attr(attrs, 'value');
+      return label ? `\n\n**${label}**\n\n` : '';
+    })
+    .replace(/<\/?Tabs\b[^>]*>/g, '')
+    .replace(/<\/TabItem>/g, '');
   return t;
 }
 
@@ -485,7 +492,7 @@ function landingMarkdown(product, {site, sidebar = [], docsById, productsById = 
   };
   const lines = [`# ${product.name}`, '', product.tagline, ''];
   if (product.primary) lines.push(`Start here: [${product.primary.label}](${url(product.primary.to)})`);
-  if (product.consoleUrl) lines.push(`Open in the console: ${product.consoleUrl}`);
+  if (product.consolePath) lines.push(`In the console: ${product.consolePath}`);
   lines.push('', '## Get going', '');
   for (const t of product.tasks || []) lines.push(`- [${t.title}](${url(t.to)}): ${t.desc}`);
   lines.push('', `## Everything in ${product.name}`, '');

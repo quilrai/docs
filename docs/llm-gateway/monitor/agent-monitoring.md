@@ -8,9 +8,11 @@ description: "Correlate gateway LLM calls with agent runs, traces, workflows, an
 
 # Agent Monitoring
 
+Updated on 3 November 2026.
+
 Correlate every gateway LLM call with the agent run, trace, workflow, or conversation that produced it - using standard distributed-tracing headers, Quilr agent headers, or provider request-body metadata. No Quilr SDK required.
 
-In the console, open an app (or **Overall analytics** on the **Settings > AI Gateway > LLM Gateway** page) and go to **Activity**: **Requests** lists each call, **Interactions** groups calls into conversations, and **Findings** lists guardrail detections.
+In **Settings > AI Gateway > LLM Gateway**, select **Logs** on an application card. **Activity > Requests** lists each call, **Interactions** groups calls into conversations, and **Findings** lists guardrail detections. For aggregated configurations, runs and tool behavior, select **Overall analytics > Agents & tools** instead; see [Analytics and insights](./analytics-and-insights#agents--tools).
 
 ## How It Works
 

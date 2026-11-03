@@ -1,13 +1,14 @@
 ---
 sidebar_position: 1
 sidebar_label: "Console tour"
+description: "Find Observe, Govern, Assessments and Settings in the QuilrAI console."
 sidebar_custom_props:
   icon: LayoutGrid
 ---
 
 # Console tour
 
-The QuilrAI console at [web.quilr.ai](https://web.quilr.ai) is organised
+The QuilrAI console is organised
 around what you manage (people, applications, agents, interactions and
 controls), not around the sensors that collect the data. This page shows how
 the sidebar is laid out and where each job lives.

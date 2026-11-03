@@ -7,7 +7,12 @@ description: "Require the calling user to confirm a tool call, optionally with a
 aliases: [require justification]
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Human approval
+
+Updated on 3 November 2026.
 
 Require user approval for tools that modify data or systems. With confirmation on, the gateway pauses each call to the tool and asks the user to approve it. The call reaches the MCP server only after the user clicks **Approve**.
 
@@ -21,11 +26,15 @@ The approval comes from the **person who made the call**, in their own AI app. I
 
 This feature doesn't provide two-person approval. To reduce exposure for sensitive tools, restrict them instead: disable it with [Tool visibility](./tool-visibility), or limit who can reach it with [Group and user rules](./group-and-user-rules) and [Server access](./server-access).
 
+Choose the instructions for the mode that governs your MCP Gateway. See [Switching from classic settings](../../console/govern/switching-from-classic-settings) for what happens to stored settings when the engine is on.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
 ## Configure it on the server
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="Tools"
 />
@@ -57,6 +66,27 @@ Confirmation can differ by smart group or user. In [Group and user rules](./grou
 
 Setting **Confirmation** to **On** also sets **Justification** to **On**. If a user is in several groups with rules, a group that requires confirmation takes precedence; a rule for that single user applies last. Use **Effective settings preview** to check one user's effective settings.
 
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Going further with the Policy Engine
+
+Open **Govern > Policy Engine > MCP Gateway > Controls > Human Confirmation**. **Confirmation required** decides which tool calls need the caller's confirmation and whether a written justification is required.
+
+1. Choose a confirmation recipe or start a blank rule under **Confirmation required**.
+2. Choose the server, tools and callers under **Applies to**.
+3. Set the confirmation outcome, check **Reads as**, and **Save to draft**.
+4. Test the intended caller and an exempt caller in **Test > Try a situation**, then [review and publish](../../console/govern/author-simulate-and-publish).
+
+The highest numeric priority decides. At equal priority, the stricter confirmation value wins. The **Don't ask for…** recipe creates an explicit exemption, which must have a higher priority than the requirement it overrides. With no matching confirmation rule, an otherwise allowed call runs without asking the caller to confirm.
+
+Match a tool annotation, tag, person, Smart Group, agent, or route instead of maintaining a switch on every server. **Invocation & Discovery** also offers recipes that allow tools and require confirmation; make sure its access decisions permit the call.
+
+While the engine is on, the governed classic tool switches show **Controlled by Policy Engine**. Changes through **Edit anyway** are stored for classic mode; they do not replace the published rule. The client approval experiences below are the same regardless of which mode required confirmation.
+
+</TabItem>
+</Tabs>
+
 ## What your users see
 
 The approval request appears in the user's AI app. Each app supports different things, so the gateway picks the best option the app tells it it can handle, in this order:
@@ -71,7 +101,6 @@ If an in-chat prompt can't be shown or isn't answered, the gateway falls back to
 
 ![Approval required card in ChatGPT showing the server, the search_web tool and its arguments, the expiry countdown, a Justification box, Approve and Deny buttons, and the Approve in Quilr link below](/img/mcp-gateway/ui/approval-card-chatgpt.png)
 
-<!-- TODO-SCREENSHOT: Browser "Approval required" page opened from the Approve in Quilr link, showing Arguments, Why approval is needed, Justification, Approve and Deny -->
 
 ### Support by client
 
@@ -165,27 +194,7 @@ A request that was already approved or denied elsewhere shows **Already decided*
 
 ## Review confirmed calls
 
-Open **Overall analytics > Activity > Tool calls**, or **Inspect > Logs** on the server card, and click a call. The **Tool call detail** drawer shows the arguments and the result. The approval decision, who decided, and the justification are recorded in the call's **Metadata**.
-
-## Going further with the Policy Engine
-
-When the Policy Engine is on for the MCP Gateway, the **Human Approval** card (stage 3, Request) in **Govern > Policy Engine > MCP Gateway** decides which calls need approval, and the switches in **Tools** are read-only. **Edit anyway** saves values that apply only if the Policy Engine is disabled (see [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings)). Its tool confirmation effect takes `required`, which asks for approval with an optional justification, or `required_with_justification`, which also makes the justification mandatory.
-
-Scenarios the card supports that per-tool switches cannot:
-
-- **Approve by tool type, on every server.** Match tool **tags** (for example `write`) or the `destructive` annotation, so new tools that fit the pattern need approval as soon as they appear.
-- **Approve for some people or agents only.** Combine the tool condition with **smart groups**, **user email** or **agent name**, for example require approval from contractors but not from the team that owns the server.
-- **Approve on one route.** Require approval only on direct connections or only through OneMCP, using **route kind**.
-
-<PolicyCard
-  name="confirm_write_tools"
-  stage="request"
-  priority={700}
-  when={[{ field: "Tool tags", op: "has entry", value: "write" }]}
-  then={[{ effect: "tool confirmation", value: "required" }]}
-/>
-
-Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
+Open **Inspect > Logs** on the server card, choose **Tool calls**, and click a call. **Overall analytics** opens the separate Insights pages. The **Tool call detail** drawer shows the arguments and the result. The approval decision, who decided, and the justification are recorded in the call's **Metadata**.
 
 ## How this compares to other MCP gateways
 

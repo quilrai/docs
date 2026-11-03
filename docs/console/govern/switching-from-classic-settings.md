@@ -10,13 +10,17 @@ aliases: [classic settings, switch to policy engine, conversion review, conversi
 
 # Switching from classic settings
 
+Updated on 3 November 2026.
+
 How a gateway moves from its classic per-app settings screens to the [Policy Engine](./policy-engine).
 
 ## The two authorities
 
-The LLM Gateway and the MCP Gateway are each governed **either** by their classic per-application settings **or** by the Policy Engine, never by both. Each has its own switch, so turning on the LLM Gateway engine changes nothing for the MCP Gateway. When a gateway is on the engine, its Policy Engine tab shows **ENGINE ON**.
+The configuration guides have a **Classic settings | Policy Engine** switcher. Choose the mode that governs your gateway; changing a documentation tab does not change the engine.
 
-The Endpoint Agent tab runs in **Basic policies** mode and offers its own **Convert to Policy Engine** button.
+The LLM Gateway and the MCP Gateway are each governed **either** by their classic per-application settings **or** by the Policy Engine, never by both. Each has its own switch, so turning on the LLM Gateway engine changes nothing for the MCP Gateway. When a gateway is on the engine, its Policy Engine tab shows **POLICY ENGINE ON**.
+
+For Endpoint Agent configuration, see [App policies](../../endpoint-agent/configure/app-policies).
 
 ## The conversion review
 
@@ -48,9 +52,7 @@ are raised as attention items, never converted quietly.
 Your per-category settings arrive as ordinary readable rules: one data rule per
 action, each naming its data types. There is no opaque settings blob to
 decipher, so you can review the generated document line by line and edit it
-afterwards in the sentence editor. Every generated rule for one application or
-group shares a priority, so a monitor override on one category can never
-suppress a block on another.
+afterwards in the sentence editor. Review overlapping rules using the combination explanation on each control. Test matching and non-matching cases before publishing further changes.
 
 ### What the MCP Gateway conversion compares
 
@@ -93,10 +95,10 @@ The governed sections of the settings screens lock and show **Controlled by Poli
 
 | Gateway | Locked once the engine is on | Still managed in Settings |
 |---|---|---|
-| LLM Gateway | Security Guardrails, Guardian Agent, Rate and Token Limits, Token Saving, Routing, Identity Aware (identity and conversation ID requirements), Prompt Store (store-prompt enforcement and the universal system prompt) | Applications, keys, providers and credentials, custom detections, alerts, self-service, audit |
+| LLM Gateway | Security Guardrails, Guardian Agent, Attachments, Rate and Token Limits, Token Saving, Routing, Identity Aware (identity and conversation ID requirements), Prompt Store (store-prompt enforcement and the universal system prompt) | Applications, keys, providers and credentials, custom detections, alerts, self-service, audit |
 | MCP Gateway | Tools, Guardrails, Token saving, Tool list, Group & User Rules per server | Server register, connections, OneMCP operation, API tokens |
 
-The LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store and Enforcement** card. An app's prompts stay managed in the app and keep applying. Its [universal system prompt](../../llm-gateway/cost-and-traffic/prompt-store#universal-system-prompt-policies) converts into a configuration scoped to that app; a prompt longer than 8,192 characters is an attention item instead.
+The LLM Gateway sections map to Policy Engine cards as listed in [App settings under the Policy Engine](./policy-engine#app-settings-under-the-policy-engine). Organization-wide prompts live in the [Global Prompt Store](../../llm-gateway/cost-and-traffic/prompt-store#global-prompt-store-v2-console), opened from the **Prompt Store & Enforcement** control. An app's prompts stay managed in the app and keep applying. Its [universal system prompt](../../llm-gateway/cost-and-traffic/prompt-store#universal-system-prompt-policies) converts into a configuration scoped to that app; a prompt longer than 8,192 characters is an attention item instead.
 
 ## What happens to classic settings
 
@@ -106,7 +108,7 @@ This table is the reference for every page that mentions classic settings under 
 |---|---|---|---|
 | Engine off (classic mode) | Editable as normal | Classic settings | None, or revisions from an earlier period on the engine |
 | **Enable** (activation) | Kept as they were and locked | The converted document | Conversion becomes a new revision (revision 1 the first time) |
-| Card edits | Unchanged | The live revision | Edits collect in the shared draft only |
+| Rule edits | Unchanged | The live revision | Edits collect in the shared draft only |
 | **Publish** a draft | Unchanged | The new revision | Next numbered revision |
 | **Rollback** to an earlier revision | Unchanged | The republished revision | The earlier document is republished as a new revision |
 | **Edit anyway**, then save | The saved values replace the stored ones | Still the live revision; the saved values are not enforced and are not added to policies | Unchanged |
@@ -114,7 +116,7 @@ This table is the reference for every page that mentions classic settings under 
 | **Disable Policy Engine** | Become live again, as currently stored | Classic settings | Kept in the revision store; not applied |
 | **Enable** again later | Kept as they are now and locked | A fresh conversion of the current settings | The fresh conversion becomes a new revision; it does not resume your last published revision |
 
-In short: on disable, the classic settings resume as they are stored at that moment, which is the activation values plus anything saved since through **Edit anyway** or the Management API. Work published in the engine is never copied back into the classic settings.
+On disable, the classic settings resume as they are stored at that moment, which is the activation values plus anything saved since through **Edit anyway** or the Management API. Work published in the engine is never copied back into the classic settings.
 
 ### Example
 
@@ -131,12 +133,12 @@ To return to the exact pre-activation behaviour after disabling, check each gove
 1. **Tidy first.** Resolve duplicate application names and disable providers
    you no longer use. Attention items are far easier to fix before the review.
 2. **Plan model prices.** Once the engine is on, spend budgets use the
-   **Model pricing** section of the Budgets & Usage Limits card, so plan input
+   **Model prices** section of the Budgets & Usage Limits card, so plan input
    and output prices for every model you route to. Spend budgets refuse requests without a
    price.
 3. **Review, do not activate.** Read every attention item and both review
    views.
-4. **Activate and change nothing.** Revision 1 is your current behaviour. Let
+4. **Activate and change nothing.** Version 1 contains the conversion you reviewed. Let
    it run for a few days and confirm the activity numbers match traffic you
    know.
 5. **Add new controls on monitor.** Publish new detections and scopes with the

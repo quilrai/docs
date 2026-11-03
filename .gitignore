@@ -26,3 +26,8 @@ build-next
 # Deployment SOP, pulled from quilrai/installdocs at build time (scripts/sync-install-sop.js)
 /static/sop
 /static/sop.tmp
+
+# Private audit captures and regenerable trail graph
+/reviews/
+/.trail/*
+!/.trail/learnings/

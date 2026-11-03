@@ -20,13 +20,13 @@ export const products = [
     shot: '/img/products/console-overview.jpg',
     shotCaption: 'Console › Observe › Overview, Adoption tab',
     primary: {label: 'Console tour', to: '/console/get-started/console-tour'},
-    consoleUrl: 'https://web.quilr.ai/overview',
+    consolePath: 'Observe > Overview',
     mirror:
       'Groups mirror the console sidebar: Observe, Govern, Assessments, Settings. Settings pages owned by a product (gateways, sensors, integrations) live in that product and are linked here.',
     tasks: [
       {title: 'Take the console tour', desc: 'How Observe, Govern and Settings fit together', to: '/console/get-started/console-tour'},
       {title: 'Triage findings', desc: 'Close noise in bulk and tune detections', to: '/console/observe/triage-center'},
-      {title: 'Publish your first policy', desc: 'Draft, simulate with Describe a request, publish', to: '/console/govern/author-simulate-and-publish'},
+      {title: 'Publish your first policy', desc: 'Draft, test a situation, review and publish', to: '/console/govern/author-simulate-and-publish'},
       {title: 'Give your team access', desc: 'Roles, Smart Groups and single sign-on', to: '/console/settings-organization/roles-and-permissions'},
     ],
   },
@@ -38,11 +38,11 @@ export const products = [
     sub: 'One endpoint for every model provider',
     tagline:
       'Point your apps at one OpenAI-compatible endpoint. Every request gets guardrails, routing, limits and cost tracking, whichever provider serves it.',
-    shot: '/img/products/llm-gateway.jpg',
+    shot: '/img/gateway-updates-2026-11/llm-gateway-applications.jpg',
     shotCaption: 'Console › Settings › AI Gateway › LLM Gateway',
     primary: {label: 'Quick start', to: '/llm-gateway/get-started/quick-start'},
-    consoleUrl: 'https://web.quilr.ai/settings/llm-gateway',
-    // Navigation guide for AI agents: exact console labels, URLs, task -> screen.
+    consolePath: 'Settings > AI Gateway > LLM Gateway',
+    // Navigation guide for AI agents: console labels and task destinations.
     consoleGuide: '/llmgateway_guide_for_admin_console.txt',
     tasks: [
       {title: 'Send your first request', desc: 'Create an app, copy its key, call the gateway', to: '/llm-gateway/get-started/quick-start'},
@@ -60,10 +60,10 @@ export const products = [
     sub: 'Governed tool access for AI agents',
     tagline:
       'Give AI agents governed access to tools. Register MCP servers once, decide who can call which tool, and log every call.',
-    shot: '/img/products/mcp-gateway.jpg',
+    shot: '/img/gateway-updates-2026-11/mcp-gateway-servers.jpg',
     shotCaption: 'Console › Settings › AI Gateway › MCP Gateway',
     primary: {label: 'Quick start', to: '/mcp-gateway/get-started/quick-start'},
-    consoleUrl: 'https://web.quilr.ai/settings/mcp-gateway',
+    consolePath: 'Settings > AI Gateway > MCP Gateway',
     consoleGuide: '/mcpgateway_guide_for_admin_console.txt',
     tasks: [
       {title: 'Connect your first client', desc: 'Claude, Cursor, ChatGPT and other MCP clients', to: '/mcp-gateway/get-started/quick-start'},
@@ -83,7 +83,7 @@ export const products = [
     shot: '/img/products/workflow-agents.jpg',
     shotCaption: 'Console › Settings › AI Gateway › Workflow Agents',
     primary: {label: 'Quick start', to: '/workflow-agents/get-started/quick-start'},
-    consoleUrl: 'https://web.quilr.ai/settings/agents',
+    consolePath: 'Settings > AI Gateway > Workflow Agents',
     tasks: [
       {title: 'Build your first agent', desc: 'Describe it, pick a model and tools, publish', to: '/workflow-agents/get-started/quick-start'},
       {title: 'Start from a template', desc: 'Research, support, code review and more', to: '/workflow-agents/build/library-templates'},
@@ -102,7 +102,7 @@ export const products = [
     shot: '/img/products/red-teaming.jpg',
     shotCaption: 'Console › Assessments › Red Teaming',
     primary: {label: 'LLM Intelligence Assessment', to: '/red-teaming/assessments/llm-intelligence-assessment'},
-    consoleUrl: 'https://web.quilr.ai/red-teaming',
+    consolePath: 'Assessments > Red Teaming',
     tasks: [
       {title: 'Assess a gateway app', desc: "Run suites against the app's configured model through the gateway", to: '/red-teaming/assessments/llm-intelligence-assessment'},
       {title: 'Vet an MCP server', desc: 'Static, dependency and live tool-surface scan', to: '/red-teaming/assessments/mcp-threat-detection'},
@@ -122,7 +122,7 @@ export const products = [
     shot: '/img/products/browser-extension.jpg',
     shotCaption: 'Console › Settings › Browser Extension',
     primary: {label: 'Deploy with Intune', to: '/browser-extension/deploy/microsoft-intune'},
-    consoleUrl: 'https://web.quilr.ai/settings/browser-extension',
+    consolePath: 'Settings > Browser Extension',
     tasks: [
       {title: 'Deploy with Intune', desc: 'Or Jamf Pro and Group Policy', to: '/browser-extension/deploy/microsoft-intune'},
       {title: 'Choose what to monitor', desc: 'All domains or work domains only', to: '/browser-extension/configure/extension-settings'},
@@ -142,7 +142,7 @@ export const products = [
     shot: '/img/products/endpoint-agent.jpg',
     shotCaption: 'Console › Govern › Policy Engine › Endpoint Agent',
     primary: {label: 'Requirements', to: '/endpoint-agent/get-started/requirements'},
-    consoleUrl: 'https://web.quilr.ai/settings/endpoint-agent',
+    consolePath: 'Settings > Endpoint Agent',
     tasks: [
       {title: 'Check requirements', desc: 'Operating systems, network and permissions', to: '/endpoint-agent/get-started/requirements'},
       {title: 'Roll out the agent', desc: 'Deploy and watch coverage', to: '/endpoint-agent/deploy-and-operate/deployment-and-status'},
@@ -161,7 +161,7 @@ export const products = [
     shot: '/img/products/integrations.jpg',
     shotCaption: 'Console › Settings › Integrations',
     primary: {label: 'How integrations work', to: '/integrations/get-started/how-integrations-work'},
-    consoleUrl: 'https://web.quilr.ai/settings/integrations',
+    consolePath: 'Settings > Integrations',
     tasks: [
       {title: 'Browse integrations', desc: 'Installed and library, by capability', to: '/integrations/get-started/how-integrations-work'},
       {title: 'Monitor Claude.ai', desc: 'Anthropic Compliance API', to: '/integrations/pull-ai-usage-and-inventory/claude-compliance-api'},

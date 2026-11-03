@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
 import {useDocsSidebar} from '@docusaurus/plugin-content-docs/client';
-import {ArrowUpRight} from 'lucide-react';
 import {productById} from '@site/src/data/products';
 import {ProductIcon} from '@site/src/utils/productIcons';
 
@@ -109,12 +108,8 @@ export default function ProductLanding({product}) {
             <Link className="qd-btn qd-btn--primary" to={p.primary.to}>
               {p.primary.label}
             </Link>
-            {p.consoleUrl && (
-              <Link className="qd-btn" href={p.consoleUrl}>
-                Open in console <ArrowUpRight size={15} aria-hidden="true" />
-              </Link>
-            )}
           </div>
+          {p.consolePath && <p className="qd-mirror">In the console: {p.consolePath}</p>}
         </div>
         {p.shot ? (
           <figure className="qd-shot-fig">

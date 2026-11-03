@@ -1,5 +1,5 @@
 QUILR ADMIN CONSOLE (v2): MCP GATEWAY GUIDE FOR BROWSING AGENTS
-Last verified: 2026-10-20 against web.quilr.ai
+Updated on 3 November 2026.
 Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
@@ -9,7 +9,7 @@ WHERE
 
 PAGE LAYOUT (top to bottom)
 - Header buttons: Overall analytics | OneMCP endpoint | Remote Connectors | Library (badge = pending user install requests) |
-  Allowed Agents | Add MCP server | "..." (More MCP Gateway actions) > Connections | ZIA integration
+  Tool updates | Allowed Agents | Add MCP server | "..." (More MCP Gateway actions) > Connections | ZIA integration
 - Summary tiles (rows are clickable filters/shortcuts):
   TOOL CALLS: People calling, Tools called, Success, "% of them came through OneMCP" -> opens analytics
   ESTATE: Serving / Awaiting / No tools -> filters server list by state; "N enabled - N disabled"
@@ -28,6 +28,23 @@ PAGE LAYOUT (top to bottom)
   Rows: Inspect (Logs = activity, Open in Inventory) | Configure (General, Guardrails, Token Saving, Tools,
   Group & User Rules; API on API MCPs)
   Awaiting servers show a "Connect OAuth" button
+
+FULL-PAGE INSIGHTS
+- Overall analytics opens MCP Gateway Insights, separate from operational Activity/Settings drawers.
+- Sections: Overview | Usage | Data & security | Reliability | Servers & tools.
+- Routes under /settings/mcp-gateway/insights/: overview, usage, security, reliability, servers.
+- Period: 3 days | 7 days | 30 days | 90 days; compared with previous period; All servers and All AI clients.
+- Overview: calls, people, failures, detections, topics, what AI touched, Needs attention, top servers/users.
+  Topics show classification coverage and activity grouped into six-hour UTC windows.
+- Usage: active/new/returning people, repeat usage, adoption by server, client/server relationships, people search.
+- Data & security: read/write/execute classifications, resources named, access map, AI changes,
+  flagged requests/responses, prompt-injection sources, affected people.
+- Reliability: failure ownership/reasons, affected tools/servers, latency, input mismatch evidence.
+- Servers & tools: health/access filters, Servers/Tools toggle, tool-list savings, idle definition overhead,
+  tokens returned to AI; select a tool for Overview | Output size | Data protection.
+- Tool-list savings and tool-response compression savings measure different things.
+- Insights has no Activity, Connections or Settings tab; use server Logs/Configure or the gateway's
+  operational workspace/Connections entry point for those tasks.
 
 WORKSPACE DRAWER ("MCP Gateway workspace")
 - Server picker ("All servers"); tiles SERVERS IN SCOPE / SERVING TOOLS / NOT SERVING
@@ -94,28 +111,49 @@ TASK -> WHERE
 - Which clients may connect -> Allowed Agents (matched by User-Agent keyword; open an agent to pick servers; Add agent)
 - OneMCP settings -> OneMCP endpoint (dialog "OneMCP") > Dynamic tool calling (User preference / Always on /
   Always off); Memories > "Memories enabled" switch (OneMCP and workflow agents)
-- Analytics/logs/health -> Overall analytics (workspace drawer above)
+- Analytics -> Overall analytics (full-page Insights above). Logs -> server Inspect > Logs.
+- Gateway Tool updates -> header Tool updates or Review tool updates banner. Gateway setting:
+  New tools wait for approval; per-server choice under Settings > Tools. Review changes before approving.
 - Who is connected (per user per MCP) -> "..." > Connections (Users, MCPs, Connected, Tool calls; "MCP users" table)
 - Rejected requests -> workspace Health: REJECTED REQUESTS, ACCESS DENIED, AUTH CHALLENGES, TOKEN-AUTH REQUESTS,
   OAUTH REFRESHES, UPSTREAM SERVER ERRORS; Rejection reasons, Upstream server errors, Recent rejections (gateway-wide)
 - One server's logs -> card Inspect > Logs
 - Server inventory/usage -> card Open in Inventory, or sidebar Inventory (filter asset type MCP server)
 
-POLICY ENGINE (MCP) - /policy/engine/mcp-gateway  (also /history, /simulate, /code, /new)
-- Header when on: ENGINE ON, Revision N, "MCP Gateway controls", "N of 10 active", History, Filter
-- Stages: 1 SESSION (once per connection) | 2 DISCOVERY | 3 REQUEST (before dispatch) | 4 RESPONSE (before result returns)
-- "What applies to one call" > Describe a call
-- Cards: MCP Server Access, OneMCP Features, Discovery Visibility, Invocation, Human Approval, Usage Quotas &
-  Concurrency, Data & Adversarial Risks, Token Savings, Web Search Security, Claims Forwarding; then
-  "Advanced policies & classifications". One shared draft > Review changes > Publish revision
-- Card anchors #policy-surface-<id>: server-access, onemcp, discovery-visibility, invocation, human-approval,
-  usage-limits, data-risks, token-saving, ...
-- OneMCP Features card also holds "Most-used tools listed" (tool_list.top_tools) and "Scripts (run_code)"
-  (tool_list.code), both Off for everyone by default; Quick add > Applies to: MCP server > On
-- When on, the server's Tools, Guardrails, Token saving, Tool list and Group & User Rules sections are tagged
-  "Controlled by Policy Engine"; the panel shows "Policy Engine active - Revision N" and "Controlled by Policy
-  Engine. Live requests follow the published ... policies." > View policies or Edit anyway (edits the legacy
-  per-server values used only when the engine is off). General, Input aliases and API tokens stay editable
+POLICY ENGINE (MCP)
+- Workspace: /policy/engine/mcp-gateway. Header: POLICY ENGINE ON, Updated time, More.
+- Sections: Controls | Policies | Test | History.
+- Controls groups and areas:
+  Who can connect?: MCP Server Access, OneMCP Features, Web Search Security, Claims Forwarding.
+  Which tools are available?: Invocation & Discovery.
+  What can run?: Human Confirmation, Usage Quotas & Concurrency, Data & Adversarial Risks.
+  What may return?: Token Savings.
+- Open an area > read What happens today, defaults and How rules combine > recipe or blank rule >
+  Applies to > outcome > Reads as > Save to draft > Review & publish. Most panels: Controls | Activity.
+- MCP Server Access: Server access, Hidden from OneMCP. Connection permission does not by itself allow tools.
+- Invocation & Discovery: Tool calls, Resource reads, Prompt fetches; inspect list/call/result steps.
+  Hiding from discovery alone does not refuse a call by name. No matching allow denies the step.
+- Access: highest numeric priority wins; Deny wins ties. Human Confirmation uses priority with stricter ties.
+- Human Confirmation replaces the old Human Approval control label; Confirmation required section,
+  including explicit exemptions that must outrank a requirement.
+- Data & Adversarial Risks: Detection rules | Scan profile. Detection action applies to a whole call/result;
+  per-category scan profile actions and detector selection have separate combination rules.
+- Usage Quotas & Concurrency: Call quotas, Simultaneous calls. Policy-only.
+- OneMCP Features: Dynamic tools, OneMCP memory, Most-used tools listed, Scripts.
+- Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression, Strip base64 content.
+  Stripping encoded content makes it unavailable to the model; it is replaced with a size note.
+- Web Search Security: Excluded domains, Result domains, URL overrides and timeout.
+- Claims Forwarding: Forward user claims.
+- Policies: Search policies, Filters, policy details, Add rule, Edit technical source.
+- Test: Try a situation | Replay activity; check the rule-set label.
+  Try a situation: What is happening?, Person, MCP server, Tool, More details, Add detail > Run test.
+  Replay activity: Time range, Advanced replay options > Run check. Neither changes live traffic.
+- History: published Versions, actor/reason, Previous version/Live version comparison, changes,
+  Technical details/source/diff. Restore republishes as a new version.
+- Panel links use ?tile=<id>&tab=controls or activity. Observed ids: server-access, onemcp, web-search,
+  claims-forwarding, invocation, human-approval, usage-limits, data-risks, token-saving.
+- Governed per-server Tools, Guardrails, Token saving, Tool list and Group & User Rules show
+  Controlled by Policy Engine. Edit anyway changes stored classic values, not published policies.
 
 RELATED PAGES
 - Findings & Interactions (/interactions): MCP filter fields: MCP server, tool, agent, called via, auth mode,
@@ -153,6 +191,7 @@ GOTCHAS
 
 DOCS (deeper reading; .md URLs return raw markdown)
 - Section home: https://docs.quilrai.dev/mcp-gateway
+- https://docs.quilrai.dev/mcp-gateway/monitor/analytics-and-insights.md
 - https://docs.quilrai.dev/mcp-gateway/get-started/quick-start.md
 - https://docs.quilrai.dev/mcp-gateway/get-started/onemcp.md
 - https://docs.quilrai.dev/mcp-gateway/servers-and-connections/adding-mcp-servers.md

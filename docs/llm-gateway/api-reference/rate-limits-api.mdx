@@ -13,7 +13,7 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 # Rate limits API
 
-Manage the request and token limits that the Policy Engine's **Rate, Token & Timeout Limits** card configures, as typed resources. **You never write QuilrQL**: each write is validated and published as one policy revision. For what a limit counts and what clients see when they hit one, see [Rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits).
+Manage the request and token limits that the Policy Engine's **Budgets & Usage Limits > Request guards** section configures, as typed resources. **You never write QuilrQL**: each write is validated and published as one policy revision. For what a limit counts and what clients see when they hit one, see [Rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits).
 
 This page covers rate limits (requests and tokens over a window). Spend budgets, budget grants and pricing are in the [Budgets API](./budgets-api): they have their own scopes (`budgets:*`), are priced in USD and report usage from a periodic snapshot, while rate limits count live.
 

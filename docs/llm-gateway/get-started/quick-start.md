@@ -6,7 +6,12 @@ sidebar_custom_props:
 description: "Create an app in the console (platform providers or app-only credentials, guardrail defaults), send a first request, and check Activity."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Quick Start
+
+Updated on 3 November 2026.
 
 Create an app, configure your SDK to use the gateway, and send a first request.
 
@@ -93,7 +98,7 @@ The **Platform providers** option exists only in the V2 console, and it is the d
 To connect an app to [QuilrAI-provided models](../apps-and-providers/providers-and-models), add a **Custom endpoint** provider with the **Chat completions** API (`general`), base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > AI Gateway > Models > API keys**.
 :::
 
-Click **Create app**. There is no guardrail step: every new app starts with these defaults, which you can change later in its [Security Guardrails](../protect/security-guardrails) section.
+Click **Create app**. There is no guardrail step. New apps have the following classic settings, which you can change in [Security Guardrails](../protect/security-guardrails). When the Policy Engine is enabled, published policies decide the effective protection instead.
 
 | Setting | Default |
 |---------|---------|
@@ -131,11 +136,18 @@ The example uses US East; replace the host with the regional host your organizat
 
 ## 3. Check that it worked
 
-On the app card, click **Logs**. The **Activity > Requests** view lists each call with its model, provider, guardrail outcome, HTTP status, tokens and latency. See [Overview](./overview#the-app-workspace) for the other tabs.
+On the app card, click **Logs**. The **Activity > Requests** view lists each call with its model, provider, guardrail outcome, HTTP status, tokens and latency. See [Overview](./overview#the-app-workspace) for the operational views.
+
+For the bigger picture, select **Overall analytics** to open **LLM Gateway Insights**. Its six tabs cover usage, agents and tools, performance, security, attachments and users. See [Analytics and insights](../monitor/analytics-and-insights).
 
 ## 4. Tune the app
 
-Open the app card's **Configure** buttons to change any of these settings later.
+Providers, keys and app-specific definitions remain on the app card's **Configure** actions. Choose the configuration mode that governs traffic for the controls below.
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
+With the LLM Gateway Policy Engine off, open the app card's **Configure** actions to change these settings. Select **Save settings** for changes that use the settings form.
 
 | Setting | What it controls |
 |---------|------------------|
@@ -149,4 +161,12 @@ Open the app card's **Configure** buttons to change any of these settings later.
 | [Identity Aware](../protect/identity-and-network-trust) | Required user identity, conversation IDs, JWT verification |
 | [Self-Service](../self-service/overview) | What developers can see and change themselves |
 
-If the [Policy Engine](../../console/govern/policy-engine) is on, guardrails, Guardian Agent, limits, token saving, routing, identity requirements and Prompt Store enforcement follow published policies instead of these app settings.
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+With the engine on, open **Govern > Policy Engine > LLM Gateway**. Choose the relevant control, select a recipe or start a blank rule, and scope it to your application. Save the rule to the shared draft, test it, then **Review & publish**.
+
+Start with [Security guardrails](../protect/security-guardrails), [Gateway access and allowed models](../protect/gateway-access-and-allowed-models), [Routing and failover](../cost-and-traffic/routing-and-fallbacks), or [Budgets and limits](../cost-and-traffic/rate-token-and-budget-limits). Editing classic settings does not change policy-governed traffic. See [Author, simulate and publish](../../console/govern/author-simulate-and-publish) for the complete workflow.
+
+</TabItem>
+</Tabs>

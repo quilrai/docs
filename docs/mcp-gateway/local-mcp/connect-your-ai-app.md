@@ -61,9 +61,9 @@ Or step through it below.
       alt: "Connect your AI app dialog with Cursor and Node.js npm selected, showing the connection command",
       caption: "Choose your AI app and how to install",
       body: "Open Self service -> Your local tools -> Connect your AI app. Pick Cursor, Claude Desktop, Claude Code or VS Code, then choose Node.js with npm or Python with PyPI.",
-      code: "npx --yes --package '@quilrbusiness/local-mcp-runtime@0.3.0' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'https://web.quilr.ai' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
+      code: "npx --yes --package '@quilrbusiness/local-mcp-runtime@0.3.0' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'YOUR_CONSOLE_URL' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
       codeLabel: "Node.js · npm",
-      note: "Always use Copy connection command in your own dialog. The command carries your organization identifier and a pinned version, so a colleague's command will not be right for you.",
+      note: "Replace YOUR_CONSOLE_URL with your organization's console address, or use Copy connection command in your own dialog. The command carries your organization identifier and a pinned version, so a colleague's command will not be right for you.",
     },
     {
       label: "Python option",
@@ -71,7 +71,7 @@ Or step through it below.
       alt: "The same dialog with Python PyPI selected, showing the uvx connection command",
       caption: "Prefer Python? Use the PyPI connector",
       body: "Python tools need no Node.js. Choose Python · PyPI to get the uvx form of the same command. Each MCP still needs its own native runtime.",
-      code: "uvx --from 'quilr-local-mcp-runtime==0.3.0' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'https://web.quilr.ai' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
+      code: "uvx --from 'quilr-local-mcp-runtime==0.3.0' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'YOUR_CONSOLE_URL' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
       codeLabel: "Python · PyPI",
     },
     {

@@ -13,7 +13,7 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 # Routing and failover API
 
-Configure the same routing and failover that the Policy Engine's **Model routing** card owns, as typed resources: a route sends a requested model to a destination, a destination is a weighted pool or an ordered list of provider models, and failover says where a failed request may go. **You never write QuilrQL.** Each write is validated, turned into policy rules for you, and published as one policy revision. For what routing and failover do at runtime, see [Routing and failover](../cost-and-traffic/routing-and-fallbacks).
+Configure the same routing and failover that the Policy Engine's **Routing Groups & Fallbacks** control owns, as typed resources: a route sends a requested model to a destination, a destination is a weighted pool or an ordered list of provider models, and failover says where a failed request may go. **You never write QuilrQL.** Each write is validated, turned into policy rules for you, and published as one policy revision. For what routing and failover do at runtime, see [Routing and failover](../cost-and-traffic/routing-and-fallbacks).
 
 <StepFlow steps={[
   {label: 'Destinations', items: ['Weighted pool', 'Ordered targets']},

@@ -4,51 +4,71 @@ sidebar_label: "Hallucination protection"
 sidebar_custom_props:
   icon: Target
 description: "Flag or act on responses that are likely fabricated: the per-app Hallucination check in Guardrails, and the Policy Engine card for confidence thresholds and actions."
+console_path: []
+aliases: ["hallucination protection"]
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Hallucination protection
 
+Updated on 3 November 2026.
+
 Score model responses for hallucinations and monitor or block them above a confidence threshold. Runs at the response stage.
 
-## Where it is configured
+## Configure this control
 
-Hallucination protection is a Policy Engine feature. There is no dedicated app setting or Configure tab for it. The only per-app option is the on/off [Hallucination check](./security-guardrails#hallucination-check) in an app's Guardrails tab, which uses a fixed threshold of 0.8 and freezes once the Policy Engine is on (see [Switching from classic settings](../../console/govern/switching-from-classic-settings)).
+Choose the mode used by your gateway. When the Policy Engine is on, published rules govern this control; classic values saved through **Edit anyway** apply only after the engine is disabled. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
-For a tunable threshold, scoping and follow-up severities, use the **Hallucination Protection** card in **Policy Engine > LLM Gateway**. Edits join the shared draft and take effect once you [review and publish](../../console/govern/author-simulate-and-publish) a revision.
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
 
-![Hallucination Protection card expanded with the response-stage banner, the Protection section and the After a hallucination is detected section](/img/policy-engine/llm-hallucination-protection-expanded.jpg)
+### Classic hallucination check
 
-## Sections
+Open **Settings > AI Gateway > LLM Gateway > your app > Configure > Guardrails**, then use [Hallucination check](./security-guardrails#hallucination-check). This app setting uses a fixed threshold of 0.8. For a tunable threshold or scoped exceptions, use the Policy Engine.
+
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Where it is configured {#where-it-is-configured}
+
+Open **Govern > Policy Engine > LLM Gateway > Controls > Hallucination Protection**. Start from a recipe or a section's add menu, choose **Applies to**, set protection or a tag rule, then **Save to draft**. Test the rules before **Review & publish**. The policy sections and settings are described below.
+
+</TabItem>
+</Tabs>
+
+## Sections {#sections}
 
 | Section | What it does | Empty state |
 |---|---|---|
-| **Protection** | Switch, threshold, action and risk level. **Add protection**. | Responses are not checked for hallucinations. |
-| **After a hallucination is detected** | Follow-up rules that tag a severity on the detection result. **Add follow-up**. | Nothing is tagged on the detection result. |
+| **Protection** | Switch, threshold, action and risk level. Use a recipe or the section add menu. | Responses are not checked for hallucinations. |
+| **Tag findings** | Follow-up rules that tag a severity on the detection result. Use the section add menu. | Nothing is tagged on the detection result. |
 
 Applies on `bedrock`, `chat`, `responses` and `vertex`, and only to **non-streaming** responses. Streaming responses cannot be blocked, so they are not checked.
 
-## Settings
+## Settings {#settings}
 
-**Add protection** opens the **Hallucination protection** dialog.
+Open a recipe or the add menu in **Protection** to set:
 
 | Setting | Options | Default | Notes |
 |---|---|---|---|
-| Protection | On, Off | On | Off exempts the scope from a broader configuration that switched it on. |
+| Protection | On, Off | On | Off exempts the scope only when its rule outranks a matching On rule. |
 | Threshold | 0 to 1, step 0.05 | 0.8 | Lower catches more, with more false positives. |
 | When flagged: action | Monitor, Block | Monitor | Block replaces the response with a refusal. |
 | When flagged: risk level | Low, Medium, High | Medium | Tags the hallucination itself. |
 | Severity | Not set, Very low, Low, Medium, High, Critical, Very critical | Not set | Applies to the whole request. Reported only. |
 
-### Follow-up rules
+### Follow-up rules {#follow-up-rules}
 
-**Add follow-up** opens **Hallucination follow-up**. **When** is one of: **a hallucination is detected**, **the score is at least** (0 to 1), or **the risk level is** (Low, Medium, High). The rule then tags a severity. The highest severity among matching rules is reported.
+Open the add menu in **Tag findings** to set a follow-up rule. **When** is one of: **a hallucination is detected**, **the score is at least** (0 to 1), or **the risk level is** (Low, Medium, High). The rule then tags a severity. The highest severity among matching rules is reported.
 
-## Scoping and advanced scenarios
+## Scoping and advanced scenarios {#scoping-and-advanced-scenarios}
 
 - **Applies to**: Everyone, People, Smart group, Application, App tag, Requested model, Provider, API surface, Environment, Tool, Source network, or **Except...**.
-- **Threshold**: the **lowest** matching threshold applies, whatever its priority. A narrower scope cannot raise the threshold set for Everyone.
+- **Threshold**: the **lowest positive** matching threshold applies, whatever its priority. A narrower scope cannot raise that threshold; a value of zero is treated as no threshold.
 - **Action and risk level** follow the highest-priority matching configuration.
-- **Off** on a narrower scope beats **On** for Everyone.
+- **On/Off, action and rating** use highest priority; On, Block and the higher rating win equal-priority ties. An Off exception must outrank the On rule.
 - Need to key protection off attachment types, streaming or a metadata field? Use **Add configuration**.
 
 For example, block likely hallucinations for one customer-facing app while the rest of the tenant only monitors, or set a lower (stricter) threshold for one Smart group. Start at Monitor, then move the action or the threshold:
@@ -68,7 +88,7 @@ For example, block likely hallucinations for one customer-facing app while the r
   ]}
 />
 
-## Related
+## Related {#related}
 
 - [Security guardrails](./security-guardrails) - the basic per-app hallucination check.
 - [Policy Engine overview](../../console/govern/policy-engine)

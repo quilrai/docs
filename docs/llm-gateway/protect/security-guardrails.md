@@ -5,17 +5,29 @@ sidebar_custom_props:
   icon: ShieldCheck
 description: "Configure sensitive-text, image and adversarial risk detections, their actions, and the request and response surfaces they protect."
 aliases: [guardrails, language blocking, image risks]
+console_path: []
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Security guardrails
 
+Updated on 3 November 2026.
+
 Detect sensitive data and adversarial input in prompts and responses, then monitor, redact or block it. Set the basics per app in the app's settings; use the Policy Engine's **Data & Adversarial Risks** card when you need rules that depend on who is calling, which model, or which part of the request.
 
-## Turn it on for an app
+## Configure this control
+
+Choose the mode used by your gateway. When the Policy Engine is on, published rules govern this control; classic values saved through **Edit anyway** apply only after the engine is disabled. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
+
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
+
+## Turn it on for an app {#turn-it-on-for-an-app}
 
 <ConsolePath
   console="QuilrAI console"
-  href="https://web.quilr.ai"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Guardrails"
 />
@@ -32,7 +44,7 @@ The Security Guardrails section includes:
 | [Hallucination check](#hallucination-check) | Flags responses that score as likely fabricated. |
 | [Source IP restrictions](#source-ip-restrictions) | Accepts calls only from listed networks. |
 
-### Defaults for a new app
+### Defaults for a new app {#defaults-for-a-new-app}
 
 **Create App** has no guardrail step. Every new app starts with these guardrails:
 
@@ -48,7 +60,7 @@ The Security Guardrails section includes:
 
 Because the default action is Monitor, a new app records detections without changing traffic. Review findings before you change any category to Redact or Block.
 
-## Actions
+## Actions {#actions}
 
 ![Action mix panel counting categories per action, next to the Default action selector set to Monitor](/img/llm-gateway/ui/app-guardrails-action-mix-default-action.png)
 
@@ -66,7 +78,7 @@ Because the default action is Monitor, a new app records detections without chan
 
 **Image Risks** uses Monitor, Strip or Block. Strip removes the whole image. Text redaction and partial redaction inside an attachment also remove that attachment, rather than editing the original file. See [attachment actions](./attachment-scanning#actions-and-unreadable-files).
 
-## Data risks
+## Data risks {#data-risks}
 
 ![PII category detail with Risk level High, Applies to Request and response, Action Monitor, and the sub-category list with per-item sensitivity](/img/llm-gateway/ui/app-guardrails-data-risks-pii.png)
 
@@ -93,7 +105,7 @@ Each text data-risk category has these settings:
 
 Image Risks applies to request images and has a switch and action per image type. It requires **Scan attachments** and **Classify images** in the app's **Attachments** section, or the equivalent published Policy Engine configuration. [Document extraction and OCR](./attachment-scanning#document-text-and-ocr) let the text data types above inspect supported files as well as message text.
 
-### Risk level and sub-category sensitivity
+### Risk level and sub-category sensitivity {#risk-level-and-sub-category-sensitivity}
 
 Every sub-category has a sensitivity. The category's risk level determines which sensitivities trigger detection: a low risk level detects only clearly sensitive values, and a high risk level also detects weaker contextual signals.
 
@@ -115,7 +127,7 @@ Change one sub-category's sensitivity to tune that value without changing the wh
 
 The app's risk level wins over the organization-wide setting in [Detection Models](../../console/govern/detection-models#risk-levels). When the Policy Engine is enabled, the policy wins.
 
-## Adversarial risks
+## Adversarial risks {#adversarial-risks}
 
 ![Adversarial risk list with an on/off switch and a Block or Monitor choice for each category](/img/llm-gateway/ui/app-guardrails-adversarial-risks.png)
 
@@ -139,7 +151,7 @@ Each category has an on/off switch and a **Block | Monitor** action. Its scope i
 
 **Enable all** turns every adversarial category on.
 
-## Precision detections
+## Precision detections {#precision-detections}
 
 Exact-match patterns for structured identifiers. Use them when you need a specific identifier detected in addition to the contextual data risk categories. Each detection has its own switch and action (Redact, Partial redact, Block or Monitor; default Monitor), and all are off until you turn them on. A red dot marks a high-sensitivity identifier.
 
@@ -160,7 +172,7 @@ The built-in catalog has more than 80 identifiers:
 
 To match your own identifiers with a regex, create a [Custom Detection](./custom-detections) instead.
 
-## Hallucination check
+## Hallucination check {#hallucination-check}
 
 Flags responses the gateway scores as likely fabricated, using a fixed threshold of **0.8**.
 
@@ -172,13 +184,52 @@ Flags responses the gateway scores as likely fabricated, using a fixed threshold
 
 It runs on non-streaming responses only, because a streamed response cannot be blocked once it has started. To set a different threshold per app or group, use the Policy Engine's [Hallucination protection](./hallucination-protection) card.
 
-## Source IP restrictions
+## Source IP restrictions {#source-ip-restrictions}
 
 Accept gateway calls only from listed networks. Turn on **Enabled** and enter **Allowed source IPs** as comma-separated IPv4, IPv6 or CIDR values, for example `203.0.113.10, 10.0.0.0/8`. Calls from other addresses are rejected.
 
 ![Hallucination check with Action and Risk level, and Source IP restrictions, both switched off](/img/llm-gateway/ui/app-guardrails-hallucination-source-ip.png)
 
-## Endpoint coverage
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+## Going further with the Policy Engine {#going-further-with-the-policy-engine}
+
+1. Open **Govern > Policy Engine > LLM Gateway > Controls > Data & Adversarial Risks**.
+2. Choose a recipe or use the add menu in **Detection rules**, **Language Blocking**, or **Tag matching traffic**.
+3. Set **Applies to**, the conditions and outcome. Check **Reads as**, then **Save to draft**.
+4. Use **Test > Try a situation** for a matching request and an exception, then **Review & publish**.
+
+### Detection rules
+
+Select data types, a findings threshold, an action, and whether the rule applies to Request, Response or Both. A whole category or individual types can be selected; app [custom detections](./custom-detections) appear in the **Custom** group. **Scan tool-call arguments** checks arguments separately and supports Monitor or Block.
+
+| Setting | Default |
+|---|---|
+| Data types | None |
+| Findings threshold | At least 1 |
+| Action | Monitor |
+| Stage | Request |
+| **Scan tool-call arguments** | Off |
+
+The highest-priority matching action applies to the request or response; the stricter action wins ties. A higher-priority Monitor or Redact can cancel a lower-priority Block, including a block selected by another data type. Non-blocking redaction is selected per data type. Check the panel's **How rules combine** explanation before adding an exception, and test requests containing several data types together.
+
+Without a rule here, nothing is redacted or blocked. A type is scanned only when a rule needs it, so the absence of a finding does not by itself prove that the type was checked.
+
+### Language Blocking
+
+Choose **Only allow certain languages** to monitor or block passages outside the languages you select. Languages are unrestricted without a matching rule. Highest priority decides; conflicting values at the same priority fail validation. Streamed responses are skipped.
+
+### Tag matching traffic
+
+Add a severity to matching traffic for investigation and reporting. Severity does not change Monitor, Redact or Block. All matching tag rules contribute, and the highest severity is reported regardless of priority.
+
+Hallucination scoring and source IP restrictions have their own controls: [Hallucination protection](./hallucination-protection) and [Identity and network trust](./identity-and-network-trust).
+
+</TabItem>
+</Tabs>
+
+## Endpoint coverage {#endpoint-coverage}
 
 The table below describes the text guardrails. [Attachment scanning](./attachment-scanning#coverage-and-availability) adds request-file protection on supported conversational surfaces and SDK Mode when enabled; it does not scan model-generated files.
 
@@ -202,72 +253,7 @@ The table below describes the text guardrails. [Attachment scanning](./attachmen
 - **Copilot Studio** cannot accept rewritten tool input, so Redact and Partial redact become Block. See [Copilot Studio](../../integrations/pull-ai-usage-and-inventory/microsoft-copilot-studio).
 - **Realtime** sessions log the handshake, byte counters and usage, but do not run DLP. Use [SDK Mode](../apps-and-providers/sdk-mode) to scan Realtime transcripts out of band.
 
-## Going further with the Policy Engine
-
-The same controls live on the **Data & Adversarial Risks** card in **Policy Engine > LLM Gateway**. When the engine is on for the LLM Gateway, the Guardrails tab freezes and the card decides what happens on live requests. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings). Edits join a shared draft and apply once you [publish a revision](../../console/govern/author-simulate-and-publish).
-
-A detection rule picks data types (a whole category, single types or [custom detections](./custom-detections)), a findings threshold (**at least** N), an action (Monitor, Partial redact, Redact, Block), a stage (Request, Response, Both) and an optional severity that is reported but never changes the action. The card applies on the `assistants`, `bedrock`, `chat`, `copilot`, `embeddings`, `rerank`, `responses`, `sdk_check`, `stt`, `text`, `tts` and `vertex` API surfaces.
-
-| Detection line setting | Default |
-|---|---|
-| Data types (several types on one line match any of them) | None |
-| Findings threshold (**at least** N) | 1 |
-| Action | Monitor |
-| Stage | Request |
-| **Scan tool-call arguments** | Off |
-
-Add more lines to one rule with **+ Add line**. Each line keeps its own types, threshold, action and stage, and all lines share the configuration's scope and priority. Adding a rule copies the scope from the rule above it.
-
-Scenarios the card supports that app settings cannot express:
-
-- **Block secrets for everyone, monitor PII for one team.** Scope rules to Everyone, People, a Smart group, an Application or App tag. Narrower scopes take precedence, and the highest priority wins per data type.
-- **Different rules per model or provider.** Scope by Requested model, Provider, API surface or Environment, for example redact PHI only on requests to one provider.
-- **Thresholds.** Act only when a request contains at least N findings of a type, such as 5 or more email addresses.
-- **Tool-call arguments.** Turn on **Scan tool-call arguments** to evaluate each tool call's arguments on their own (Monitor and Block only).
-- **Language blocking.** Monitor or block passages outside a list of allowed languages (streamed responses are skipped).
-
-- **Several data types, several actions.** One configuration for Support Copilot redacts Aadhaar numbers, records names and blocks secrets. A request carrying all three has the Aadhaar redacted, the name left alone but recorded, and the whole call refused because of the key.
-
-<PolicyCard
-  name="support_copilot_data_actions"
-  stage="request"
-  priority={700}
-  rules={[
-    {
-      when: [
-        { field: "Application", op: "is", value: "Support Copilot" },
-        { field: "data found", op: "is any of", value: "Aadhaar Number / VID" },
-      ],
-      then: [
-        { effect: "Sensitive data action", value: "redact" },
-        { effect: "Risk level", value: "high" },
-      ],
-    },
-    {
-      when: [
-        { field: "Application", op: "is", value: "Support Copilot" },
-        { field: "data found", op: "is any of", value: "Name" },
-      ],
-      then: [{ effect: "Sensitive data action", value: "monitor" }],
-    },
-    {
-      when: [
-        { field: "Application", op: "is", value: "Support Copilot" },
-        { field: "data found", op: "is any of", value: "Auth & Secrets" },
-      ],
-      then: [
-        { effect: "Sensitive data action", value: "block" },
-        { effect: "Risk level", value: "critical" },
-      ],
-    },
-  ]}
-/>
-
-Redact and Partial redact rewrite only the findings their own rule selected, and a finding no rule selects is left unchanged. Where two rules select the same finding, the higher priority wins; at equal priority the more restrictive action wins.
-
-Hallucination scoring and source IP lists move to their own cards: [Hallucination protection](./hallucination-protection) and [Identity and network trust](./identity-and-network-trust).
-
-## Related
+## Related {#related}
 
 - [Custom detections](./custom-detections) - your own regex and intent detections.
 - [Guardian Agent](./guardian-agent) - dependency checks and task adherence.

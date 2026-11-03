@@ -5,9 +5,15 @@ sidebar_custom_props:
   icon: FileText
 description: "Scan request attachments for sensitive text and image risks, control allowed file types and limits, and monitor, remove or block files through app settings or the Policy Engine."
 aliases: [attachments, document scanning, image scanning, OCR, scanned PDFs, image risks, payment card image, file uploads]
+console_path: []
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Attachment scanning
+
+Updated on 3 November 2026.
 
 Check files sent with a model request before they reach the provider. The gateway extracts document text, reads text in images and scanned PDFs with OCR, and identifies image risks such as payment cards or ID documents. Your enabled data risks decide what to monitor, remove or block.
 
@@ -20,7 +26,7 @@ Check files sent with a model request before they reach the provider. The gatewa
   { label: "Record the outcome", items: ["Scan status", "Findings and action"] },
 ]} />
 
-## Three kinds of protection
+## Three kinds of protection {#three-kinds-of-protection}
 
 | Protection | What it checks | Example |
 |---|---|---|
@@ -30,24 +36,42 @@ Check files sent with a model request before they reach the provider. The gatewa
 
 OCR and image classification answer different questions. An invoice containing a card number can trigger a text detection without being a **Payment Card Image**. A photo of a payment card can trigger that image type. Enable the protections your use case needs.
 
-## Where to configure it
+## Configure this control
 
-<ConsolePath
-  console="QuilrAI console"
-  href="https://web.quilr.ai"
-  path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
-  action="Attachments"
-/>
+Choose the mode used by your gateway. When the Policy Engine is on, published rules govern this control; classic values saved through **Edit anyway** apply only after the engine is disabled. See [What happens to classic settings](../../console/govern/switching-from-classic-settings#what-happens-to-classic-settings).
 
-The app's **Attachments** section has **Scan attachments**, **Allowed files and limits**, **Scanning**, and **Images and OCR**. Changes apply after **Save settings**. Select the data types and their actions in the app's **Security Guardrails** section; attachment text uses the enabled request-side detections.
+<Tabs groupId="gateway-configuration-mode" defaultValue="policy">
+<TabItem value="classic" label="Classic settings">
 
-When the [Policy Engine](../../console/govern/policy-engine) is on, configure the **Attachments** card under **Govern > Policy Engine > LLM Gateway**. The **Data & Adversarial Risks** card selects the text and image data types and their actions. Changes join the shared draft and apply after you [publish a revision](../../console/govern/author-simulate-and-publish). A saved app switch does not override the published policy.
+## Where to configure it {#where-to-configure-it}
+
+Open **Settings > AI Gateway > LLM Gateway > your app > Configure > Attachments**. The section includes **Scan attachments**, **Allowed files and limits**, **Scanning**, and **Images and OCR**. Choose the checks and click **Save settings**. Select text and image data types and their actions under **Security Guardrails**.
+
+</TabItem>
+<TabItem value="policy" label="Policy Engine">
+
+### Attachment policies
+
+Open **Govern > Policy Engine > LLM Gateway > Controls > Attachments**. Configure these sections:
+
+| Section | What you choose |
+|---|---|
+| **Scanning** | Whether attachment scanning runs. |
+| **File types** | Which file types are allowed, stripped or blocked. |
+| **Size and count limits** | File size, total size, counts and page limits. |
+| **Files that can't be scanned** | What happens when file content cannot be inspected. |
+| **Text in images (OCR)** | How text in images and scanned pages is read. |
+
+Start from a recipe or a section's add menu, choose **Applies to**, then **Save to draft**. The **Data & Adversarial Risks** control selects text/image data types and their actions. Test the rules before **Review & publish**. A saved classic switch does not override a published policy.
+
+</TabItem>
+</Tabs>
 
 :::tip Image classification needs both controls
 Turn on attachment scanning and **Classify images**, then enable at least one **Image Risks** type in Security Guardrails, or select that image data type in a Policy Engine detection rule. **Classify images** on its own does not check every image type.
 :::
 
-## Allowed files and limits
+## Allowed files and limits {#allowed-files-and-limits}
 
 File types are detected from their content, rather than trusting the file name. Each type can be **Allow**, **Strip** or **Block**. **Allow** lets the file proceed to the enabled scans; it does not exempt it from data-risk rules.
 
@@ -63,7 +87,7 @@ File types are detected from their content, rather than trusting the file name. 
 
 Files resent in conversation history still count toward size limits and remain subject to type and page checks. Their content can still be scanned.
 
-### Content the gateway can read
+### Content the gateway can read {#content-the-gateway-can-read}
 
 | File group | Supported content |
 |---|---|
@@ -76,7 +100,7 @@ Files resent in conversation history still count toward size limits and remain s
 
 Audio, video, archives and unknown binary formats are not content-scanned. Their file-type controls still let you allow, remove or block them. Allowing a type does not make its content readable.
 
-## Document text and OCR
+## Document text and OCR {#document-text-and-ocr}
 
 **Extract document text** is on by default once scanning is enabled. The extracted text is checked with the request's enabled text data types, including applicable [custom detections](./custom-detections).
 
@@ -88,7 +112,7 @@ Audio, video, archives and unknown binary formats are not content-scanned. Their
 
 OCR reads up to **20 pages per file**, separately from the configurable **Max PDF pages** limit. Across a request, up to **50,000 extracted characters** are sent to text detection. If work cannot finish or text remains beyond the scan limit, the scan is reported as incomplete; findings from the part that was scanned still apply.
 
-### OCR scripts
+### OCR scripts {#ocr-scripts}
 
 **OCR scripts** defaults to **Every script**. Choose **Only these** to limit the writing systems read:
 
@@ -98,7 +122,7 @@ OCR reads up to **20 pages per file**, separately from the configurable **Max PD
 
 These are writing systems, rather than a guarantee for every language or image. Bengali OCR is not supported. Text in an unsupported or excluded script, unreadable text, or text made too small by resizing can result in a partial scan.
 
-## Image Risks
+## Image Risks {#image-risks}
 
 **Classify images** checks the visual content of raster images attached to requests. It is on by default within the attachment settings, but runs only while attachment scanning is on and an image type is enabled. **Image Risks** is off by default.
 
@@ -116,7 +140,7 @@ Each image type can use its own action or inherit the Image Risks category actio
 
 Image classification applies to attached raster images. It does not inspect images embedded inside a PDF or Office document. OCR can still read scanned PDF pages. Image quality, cropping and small content can affect what is detected.
 
-### Quick configurations
+### Quick configurations {#quick-configurations}
 
 | Goal | Attachments controls | Data-risk controls |
 |---|---|---|
@@ -127,7 +151,7 @@ Image classification applies to attached raster images. It does not inspect imag
 
 The same choices can be scoped to people, groups or applications on the Policy Engine cards. Publish the draft before testing live traffic.
 
-## Actions and unreadable files
+## Actions and unreadable files {#actions-and-unreadable-files}
 
 | Action | Effect |
 |---|---|
@@ -150,7 +174,7 @@ The gateway does not fetch remote URLs or download files from a provider's file 
 Timeouts, scanner failures and unfinished scans **fail open**: the missing scan alone does not remove a file or reject a request. This behavior is separate from the action for an unreadable file. Findings in content that was successfully scanned can still trigger their configured action.
 :::
 
-## Coverage and availability
+## Coverage and availability {#coverage-and-availability}
 
 Scanning applies to **request attachments**, including requests that ask for a streaming response, on Chat Completions, OpenAI Responses, Anthropic Messages, Gemini generateContent, Bedrock Converse and supported InvokeModel bodies. It also applies to supported attachments sent through [SDK Mode](../apps-and-providers/sdk-mode). The gateway inspects the incoming client format before any [format translation](../api-reference/any-to-any-formats).
 
@@ -158,13 +182,13 @@ It does not scan files generated in a model's response. Enabling scanning also d
 
 On **no-GPU deployments**, document text extraction remains available; OCR and image classification are unavailable. A requested scan that cannot run is reported as incomplete and fails open. This differs from an image intentionally left unscanned because its protection is switched off.
 
-## Review scan outcomes
+## Review scan outcomes {#review-scan-outcomes}
 
 The gateway's **Insights > Attachments** view shows file kinds and sizes, scan outcomes, data found in attachment text, **Image labels**, and **Why attachments were skipped**. Filter the period and applications, then select a chart or app to review the related requests.
 
 Request details show each attachment's scan status and the resulting action. Check for incomplete or skipped scans as well as detections; a successful model response alone does not establish that the attachment was scanned.
 
-## Related
+## Related {#related}
 
 - [Security guardrails](./security-guardrails) - request-side text and image data types and their actions.
 - [Custom detections](./custom-detections) - your own sensitive text definitions.
