@@ -10,6 +10,18 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Back to run from the full report (2026-11-03)
+
+- On the full report, **Back to run** now returns to the run page you opened it from, instead of the list of runs
+
+## Framework rings count each test once, and a refreshed report (2026-11-03)
+
+- Each framework ring on a run's Standards & Framework Coverage panel now shows the share of the run's tests that held, out of the tests that map to that framework, with each test counted once. Tests under **Other** are left out of the rings and still count in **Tests passed**
+- The large ring is still the average of the framework rings
+- On the full report, the security posture ring now fills with the safe share, so a clean **A** shows a full ring
+- **Capabilities exercised** on the full report has new cards: each stat has an icon, a title and a one-line description, in one row on wide screens
+- Section titles on the full report, such as **Severity breakdown** and **Tool exposure**, use the same bold heading as the rest of the page
+
 ## OWASP card subtitle shortened (2026-11-02)
 
 - On a run's Standards & Framework Coverage panel, the OWASP card's subtitle now reads **LLM and Agentic**
