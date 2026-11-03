@@ -30,7 +30,7 @@ The native Browser Agent also powers [clipboard monitoring](../capabilities/clip
 | **Findings** | Review what the extension detected and the outcome (monitored, justified, redacted, blocked). See [Findings and interactions](../../console/observe/findings-and-interactions). |
 | **Policy Engine › Browser Extension** | Create and tune the controls the extension enforces. See [Browser controls](../configure/browser-controls). |
 | **Action Request** | Approve or reject justification requests raised when the extension blocked an action. See [Action requests](../../console/govern/action-requests). |
-| **Settings › User Interaction Hub** | Brand and word the popups users see. See [End-user popups](../../console/settings-sensors/end-user-popups). |
+| **Settings › User Interaction Hub** | Brand and word the popups users see. See [User Interaction Hub](../../console/settings-sensors/user-interaction-hub). |
 | **Settings › Browser Extension** | Turn the extension on, choose which domains it monitors, and manage allowed domains. See [Extension settings](../configure/extension-settings). |
 
 ## Deployment path
