@@ -42,10 +42,12 @@ The **Service provider details** card on the Single sign-on page shows the value
 | **ACS URL** | Reply URL, Single sign-on URL, Assertion Consumer Service URL |
 | **Metadata URL** | Metadata URL. Same value as the Entity ID |
 
-The values look like this. Your Entity ID ends with your own tenant ID:
+The values look like this:
 
-- Entity ID: `https://web.quilr.ai/platformadminapis/v2/auth/saml/metadata/<tenant-id>`
-- ACS URL: `https://web.quilr.ai/platformadminapis/v2/auth/saml/callback`
+- Entity ID: `https://<your-tenant-url>/platformadminapis/v2/auth/saml/metadata/<tenant-id>`
+- ACS URL: `https://<your-tenant-url>/platformadminapis/v2/auth/saml/callback`
+
+`<your-tenant-url>` is your tenant's console address, and `<tenant-id>` is your Tenant ID from [General](./general-and-domains) settings. Always copy the exact values from the **Service provider details** card.
 
 :::note First-time setup
 The **Metadata URL** only works after single sign-on is turned on. For your first setup, enter the **Entity ID** and **ACS URL** in your IdP by hand.
