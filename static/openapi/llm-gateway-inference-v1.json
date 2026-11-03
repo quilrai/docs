@@ -5437,6 +5437,232 @@
         "description": "The model's own response body, as Bedrock returns it.",
         "type": "object"
       },
+      "CohereDatasetUpload": {
+        "additionalProperties": true,
+        "properties": {
+          "data": {
+            "format": "binary",
+            "type": "string"
+          },
+          "eval_data": {
+            "format": "binary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CohereDetokenizeRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "tokens": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "model",
+          "tokens"
+        ],
+        "type": "object"
+      },
+      "CohereEmbedRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "embedding_types": {
+            "items": {
+              "enum": [
+                "float",
+                "int8",
+                "uint8",
+                "binary",
+                "ubinary",
+                "base64"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "input_type": {
+            "description": "Required for v3 models.",
+            "enum": [
+              "search_document",
+              "search_query",
+              "classification",
+              "clustering"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "description": "Embed model id or alias configured for the app.",
+            "type": "string"
+          },
+          "output_dimension": {
+            "type": "integer"
+          },
+          "texts": {
+            "description": "Texts to embed. Image inputs (`images`, `inputs`) are refused.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 96,
+            "minItems": 1,
+            "type": "array"
+          },
+          "truncate": {
+            "enum": [
+              "NONE",
+              "START",
+              "END"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "texts"
+        ],
+        "type": "object"
+      },
+      "CohereEmbedResponse": {
+        "additionalProperties": true,
+        "description": "Cohere's answer, returned unchanged.",
+        "properties": {
+          "embeddings": {
+            "description": "One list of vectors per embedding type.",
+            "type": "object"
+          },
+          "id": {
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "texts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "CohereObject": {
+        "additionalProperties": true,
+        "description": "Cohere's answer, returned unchanged.",
+        "properties": {},
+        "type": "object"
+      },
+      "CohereParseRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "document": {
+            "additionalProperties": true,
+            "description": "The document to parse.",
+            "type": "object"
+          },
+          "model": {
+            "description": "Parse model, e.g. `parse-v5.0`.",
+            "type": "string"
+          },
+          "output_format": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "document"
+        ],
+        "type": "object"
+      },
+      "CohereRerankRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "documents": {
+            "items": {
+              "type": [
+                "string",
+                "object"
+              ]
+            },
+            "type": "array"
+          },
+          "max_tokens_per_doc": {
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "top_n": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "model",
+          "query",
+          "documents"
+        ],
+        "type": "object"
+      },
+      "CohereRerankResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "results": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "index": {
+                  "type": "integer"
+                },
+                "relevance_score": {
+                  "type": "number"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "usage": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "CohereTokenizeRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "text"
+        ],
+        "type": "object"
+      },
       "GeminiBatchEmbedContentsRequest": {
         "additionalProperties": true,
         "properties": {
@@ -11873,6 +12099,2832 @@
         ]
       }
     },
+    "/cohere/v1/datasets": {
+      "get": {
+        "description": "List datasets. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_list_datasets",
+        "parameters": [
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "List datasets",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      },
+      "post": {
+        "description": "Create a dataset. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_create_dataset",
+        "parameters": [
+          {
+            "description": "Dataset name.",
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Dataset type, e.g. `embed-input`.",
+            "in": "query",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereDatasetUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Create a dataset",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v1/datasets/usage": {
+      "get": {
+        "description": "Get dataset usage. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_dataset_usage",
+        "parameters": [
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Get dataset usage",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v1/datasets/{dataset_id}": {
+      "delete": {
+        "description": "Delete a dataset. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_delete_dataset",
+        "parameters": [
+          {
+            "description": "Cohere dataset id.",
+            "in": "path",
+            "name": "dataset_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Delete a dataset",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      },
+      "get": {
+        "description": "Retrieve a dataset. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_retrieve_dataset",
+        "parameters": [
+          {
+            "description": "Cohere dataset id.",
+            "in": "path",
+            "name": "dataset_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Retrieve a dataset",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v1/detokenize": {
+      "post": {
+        "description": "Turns token ids back into text. Makes no model call.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_detokenize",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereDetokenizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Detokenize tokens",
+        "tags": [
+          "Cohere Parse and Tokenize"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v1/embed-jobs": {
+      "get": {
+        "description": "List embed jobs. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_list_embed_jobs",
+        "parameters": [
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "List embed jobs",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      },
+      "post": {
+        "description": "Create an embed job. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_create_embed_job",
+        "parameters": [
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereObject"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Create an embed job",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v1/embed-jobs/{job_id}": {
+      "get": {
+        "description": "Retrieve an embed job. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_retrieve_embed_job",
+        "parameters": [
+          {
+            "description": "Cohere embed job id.",
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Retrieve an embed job",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v1/embed-jobs/{job_id}/cancel": {
+      "post": {
+        "description": "Cancel an embed job. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_cancel_embed_job",
+        "parameters": [
+          {
+            "description": "Cohere embed job id.",
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Cancel an embed job",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v1/tokenize": {
+      "post": {
+        "description": "Splits text into the model's tokens. Makes no model call.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_tokenize",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereTokenizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Tokenize text",
+        "tags": [
+          "Cohere Parse and Tokenize"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v2/batches": {
+      "get": {
+        "description": "List batches. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_list_batches",
+        "parameters": [
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "List batches",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      },
+      "post": {
+        "description": "Create a batch. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_create_batch",
+        "parameters": [
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereObject"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Create a batch",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v2/batches/{batch_id}": {
+      "get": {
+        "description": "Retrieve a batch. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_retrieve_batch",
+        "parameters": [
+          {
+            "description": "Cohere batch id.",
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Retrieve a batch",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v2/batches/{batch_id}:cancel": {
+      "post": {
+        "description": "Cancel a batch. Routed by provider label.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_cancel_batch",
+        "parameters": [
+          {
+            "description": "Cohere batch id.",
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selects which of the app's configured Cohere providers serves the request when the app has more than one.",
+            "in": "query",
+            "name": "provider_label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Cancel a batch",
+        "tags": [
+          "Cohere Batches, Embed Jobs and Datasets"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v2/embed": {
+      "post": {
+        "description": "Embeds texts with the app's Cohere embed model and returns Cohere's answer, including int8 and binary embedding types. The texts are scanned by the app's request guardrails. Served for Cohere providers only; any other provider is refused with 400 `provider_not_supported_on_route`.\n\n**Gateway features on this route:** request guardrails, model access rules, failover, limits, quotas and budgets, response cache.",
+        "operationId": "Cohere_embed",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereEmbedRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereEmbedResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Create embeddings",
+        "tags": [
+          "Cohere Embed and Rerank"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "failover",
+          "limits",
+          "response_cache"
+        ]
+      }
+    },
+    "/cohere/v2/parse": {
+      "post": {
+        "description": "Parses a document with a Cohere parse model.\n\n**Gateway features on this route:** model access rules, limits, quotas and budgets. Guardrails do not scan this route. Provider response headers are not relayed on this route.",
+        "operationId": "Cohere_parse",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereParseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereObject"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Parse a document",
+        "tags": [
+          "Cohere Parse and Tokenize"
+        ],
+        "x-quilr-gateway-features": [
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/cohere/v2/rerank": {
+      "post": {
+        "description": "Ranks `documents` against `query`. Served for Cohere providers (`cohere`, `cohere_rerank`) only. Rerank 3 and 4 bill search units, Rerank 5 input tokens.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
+        "operationId": "Cohere_rerank",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohereRerankRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohereRerankResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "413": {
+            "$ref": "#/components/responses/OpenAIError413"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Rerank documents",
+        "tags": [
+          "Cohere Embed and Rerank"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "limits"
+        ]
+      }
+    },
     "/llmgateway_inference_apis/v1/openapi.json": {
       "get": {
         "description": "Returns the inference OpenAPI document. Pass `family` for one API family only.",
@@ -11898,7 +14950,8 @@
                 "xai",
                 "sarvam",
                 "typesafe",
-                "perplexity"
+                "perplexity",
+                "cohere"
               ],
               "type": "string"
             }
@@ -54016,6 +57069,18 @@
     {
       "description": "pplx-embed models with Perplexity's int8 and binary encodings.",
       "name": "Perplexity Embeddings"
+    },
+    {
+      "description": "Cohere embeddings (int8, binary and float types) and reranking.",
+      "name": "Cohere Embed and Rerank"
+    },
+    {
+      "description": "Document parsing and tokenization.",
+      "name": "Cohere Parse and Tokenize"
+    },
+    {
+      "description": "Cohere batch jobs, embed jobs and the datasets they read.",
+      "name": "Cohere Batches, Embed Jobs and Datasets"
     },
     {
       "description": "Download this document.",

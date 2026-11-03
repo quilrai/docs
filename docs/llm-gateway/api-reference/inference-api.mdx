@@ -5,7 +5,7 @@ sidebar_label: "Inference API"
 sidebar_custom_props:
   badge: new
   icon: Plug
-description: "OpenAPI reference for the LLM Gateway's client-facing model APIs (OpenAI-compatible, Responses, Azure OpenAI, Realtime, Assistants, Anthropic Messages, Bedrock Runtime, Gemini and Vertex AI, rerank, Mistral, xAI, Sarvam, TypeSafe, Perplexity), with the headers, error codes and guardrail responses the gateway adds, and how to import it into Kong."
+description: "OpenAPI reference for the LLM Gateway's client-facing model APIs (OpenAI-compatible, Responses, Azure OpenAI, Realtime, Assistants, Anthropic Messages, Bedrock Runtime, Gemini and Vertex AI, rerank, Mistral, xAI, Sarvam, TypeSafe, Perplexity, Cohere), with the headers, error codes and guardrail responses the gateway adds, and how to import it into Kong."
 aliases: [inference api, openapi, openapi spec, kong, api gateway import, deck openapi2kong, gateway response headers, error codes, x-quilr headers]
 ---
 
@@ -90,7 +90,7 @@ Errors come back in the calling family's own format, so your SDK raises its usua
 
 | Error schema | Families | Where the gateway code goes |
 | --- | --- | --- |
-| `OpenAIError` | OpenAI-compatible, Responses, Azure OpenAI, Assistants, rerank, Mistral, xAI, Sarvam, TypeSafe, Perplexity | `error.code`, with `error.type`, `error.source`, `error.help_url` and, for quotas, `error.quota` / `error.blocked_by` |
+| `OpenAIError` | OpenAI-compatible, Responses, Azure OpenAI, Assistants, rerank, Mistral, xAI, Sarvam, TypeSafe, Perplexity, Cohere | `error.code`, with `error.type`, `error.source`, `error.help_url` and, for quotas, `error.quota` / `error.blocked_by` |
 | `AnthropicError` | Anthropic Messages | `error.code` (guardrail blocks keep the code but not `details`) |
 | `BedrockError` | AWS Bedrock Runtime | `reason` and `X-Quilr-Error-Code`, appended to the message as `(reason: <code>)`; the type is in `__type` and `x-amzn-ErrorType` |
 | `GoogleError` | Gemini and Vertex AI | `error.details[].reason` and `X-Quilr-Error-Code` |
@@ -246,6 +246,10 @@ Point the OpenAI SDK at `<gateway>/openai_compatible/v1`. Which providers serve 
 ### Perplexity {#perplexity}
 
 <ApiReference family="perplexity" />
+
+### Cohere {#cohere}
+
+<ApiReference family="cohere" />
 
 ### Specification {#specification}
 
