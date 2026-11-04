@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Braces, Building2, HeartPulse, Layers, Route, Server, Siren, Timer, Users, Wallet } from 'lucide-react';
+import { BarChart3, Braces, Building2, HeartPulse, Layers, Route, Server, Siren, Timer, Users, Wallet, Webhook } from 'lucide-react';
 import { MANAGEMENT_PREFIX } from './client.mjs';
 import { ApiChips, Btn, ErrorBox, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from './ui';
 import { useLoad } from './shared';
@@ -23,6 +23,8 @@ export const SCOPES = [
   ['limits:grant', 'Issue and revoke temporary rate limit raises.'],
   ['incidents:read', 'Read incident mark-downs and status (read or incidents:write also allow these reads).'],
   ['incidents:write', 'Mark providers down, preview, restore, reset cooldowns and drop session pins. Never a policy revision.'],
+  ['hooks:write', 'Create, change, delete and test external hooks that call your own HTTPS API on gateway traffic (each write publishes a policy revision). Reading hooks needs read.'],
+  ['keys:write', "Issue personal API keys on a user's behalf, rename them, change their expiry and revoke them. Reading them needs read."],
 ];
 
 const yesNo = (v) => (v === undefined || v === null ? '-' : v ? 'yes' : 'no');
@@ -49,6 +51,7 @@ export default function Overview() {
               ['routing', Route, 'Routing and failover', 'Routes, weighted destinations, failover and constraints, with dry runs, history and restore.'],
               ['limits', Timer, 'Rate limits', 'Request and token limits, request guards, temporary raises and effective limits.'],
               ['incidents', Siren, 'Incidents', 'Mark a provider down during an outage, check it applied, then restore it.'],
+              ['hooks', Webhook, 'Hooks', 'Call your own API before the model call or after the response, or export finished requests.'],
               ['administration', Building2, 'Bootstrap access', 'No management key yet? Enable management and issue one with a tenant-admin token.'],
               ['explorer', Braces, 'API Explorer', 'Browse every operation with its schema, then send it and copy cURL, Python or JavaScript.'],
             ].map(([id, Icon, title, text]) => (

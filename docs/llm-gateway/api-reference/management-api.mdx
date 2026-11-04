@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaRe
 
 Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
 
-Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets, routing and failover, rate limits, incident controls and stored configuration, and to read usage, guardrail activity, provider health, users and the explanation of a single request. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
+Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets, routing and failover, rate limits, incident controls, external hooks and stored configuration, and to read usage, guardrail activity, provider health, users and the explanation of a single request. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
 
 ## Enable in the console
 
@@ -41,6 +41,8 @@ Use the Management API to configure LLM Gateway apps, shared providers, quota po
 | **Read budgets** | `budgets:read` | Budgets, usage, subjects, grants, pricing, exemptions, alerts and events |
 | **Manage budget grants** | `budgets:grant` | Issue, change and revoke budget grants |
 | **Configure budgets** | `budgets:policy` | Edit budgets, pricing, exemptions and alert destinations |
+| **Manage hooks** | `hooks:write` | Create, change, delete and test [external hooks](./hooks-api) |
+| **Manage personal keys** | `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf |
 
 Routing, rate limit and incident scopes (`routing:*`, `limits:*`, `incidents:*`) are described under [Scopes](#scopes).
 
@@ -69,6 +71,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Routing and failover | Routes, weighted and ordered destinations, failover profiles, rules and default, routing constraints and model access; dry runs, revision history and restore, routing diagnostics. | Each write publishes a policy revision with no QuilrQL to write. Needs the Policy Engine on. |
 | Rate limits | Request and token rate limits, temporary raises, request guards, model limits, exemptions, custom limit responses, live usage and effective limits. | Counters are regional. Each limit write publishes a policy revision; raises do not. Needs the Policy Engine on. |
 | Incidents | Mark a provider down for every app or chosen apps with an expiry, preview, restore, reset cooldowns and drop session pins. | Not a policy change; works with the Policy Engine on or off. |
+| Hooks | Call your own HTTPS API before the model call (`pre_call`) or before a non-streaming response is returned (`post_call`) to allow, flag or block, or export finished requests in batches (`on_complete`). Preview, test and stats. See the [Hooks API](./hooks-api). | Each write publishes a policy revision. Needs the Policy Engine on. The console lists hooks read-only under **Configured hooks**. |
 | Usage | Requests, outcomes, tokens and cost over all time or any range, by period and up to two of app, model, provider, user, key, source and outcome. Per-key last use. See the [Usage API](./usage-api). | Aggregates only; bulk request logs come from the [Log Export API](./log-export-api). |
 | Monitoring | Guardrail activity, provider and model health with routing state, and why one request was routed, blocked, limited or failed over. See the [Monitoring API](./monitoring-api). | Read only. Never returns prompt or response text or detected values. |
 | Users | Everyone who uses the gateway, with app access, personal keys, last activity and usage. See the [Users API](./users-api). | Read only; people are added through your identity provider or the console. |
@@ -317,10 +320,12 @@ All scopes listed for an operation are required. No scope implies another.
 | `limits:grant` | Issue and revoke temporary rate limit raises. |
 | `incidents:read` | Read incident mark-downs and status. `read` and `incidents:write` also allow these reads. |
 | `incidents:write` | Mark providers down, preview, restore, reset cooldowns and drop session pins. Never a policy revision. |
+| `hooks:write` | Create, change, delete and test [external hooks](./hooks-api). Each write publishes a policy revision. Reading hooks, the field catalog, previews and stats needs `read`. |
+| `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf. Reading them needs `read` (see the [Users API](./users-api)). |
 
 App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`. `GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
 
-Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The sixteen scopes above are the accepted scopes and apply tenant-wide.
+Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The eighteen scopes above are the accepted scopes and apply tenant-wide.
 
 ### Administration boundary
 

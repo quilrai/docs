@@ -10,6 +10,16 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## External hooks (2026-11-04)
+
+- New [Hooks API](../api-reference/hooks-api): call your own HTTPS API on gateway traffic for OpenAI Chat Completions, Responses, Anthropic Messages, Gemini and Bedrock clients
+- `pre_call` hooks allow, flag or block a request after Quilr's checks and before the model call; `post_call` hooks do the same for non-streaming responses before they are returned or cached; blocked clients get `403 external_hook_blocked` in their own API's error format
+- `on_complete` hooks export every finished request in batches (`{"records": [...]}`), with retries and a bounded queue while your endpoint is down
+- Shape the call to fit an existing API: URL and header templates, client headers, bearer, basic and API key auth, HMAC signing, a Quilr envelope or your own body template, and a reply mapped from your own JSON
+- Choose the fields sent from a field catalog (identity, app, model, Quilr findings, budgets, usage and cost); sensitive fields only when named exactly
+- Observe mode, per-hook timeout and failure behavior, a circuit breaker, previews, test calls and stats
+- New Management API key scopes: **Manage hooks** (`hooks:write`) and **Manage personal keys** (`keys:write`, issue, rename, re-expire and revoke personal API keys on a user's behalf)
+- The console lists configured hooks read-only under **Management API > Configured hooks**, and the [Management API playground](/llm-gateway-management-playground?tab=hooks) has a **Hooks** tab
 ## SDK image and attachment checks (gateway upgrade required)
 
 - Request-side SDK checks can inspect inline images and documents with the same attachment protections as proxied model requests, including OCR and enabled Image Risks

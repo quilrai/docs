@@ -28,6 +28,7 @@ import {
   FileText,
   HeartPulse,
   Users as UsersIcon,
+  Webhook,
 } from 'lucide-react';
 import bundledSpec from '@site/static/openapi/llm-gateway-management-v1.json';
 import { LIVE_SPEC_PATH, MANAGEMENT_PREFIX, createClient, normalizeBaseUrl, setSpecSecretFields } from './client.mjs';
@@ -46,6 +47,7 @@ import Budgets from './Budgets';
 import Routing from './Routing';
 import Limits from './Limits';
 import Incidents from './Incidents';
+import Hooks from './Hooks';
 import Usage from './Usage';
 import Monitoring from './Monitoring';
 import Users from './Users';
@@ -76,6 +78,7 @@ export const WORKSPACES = [
   { id: 'routing', label: 'Routing', Icon: Route, Component: Routing },
   { id: 'limits', label: 'Limits', Icon: Timer, Component: Limits },
   { id: 'incidents', label: 'Incidents', Icon: Siren, Component: Incidents },
+  { id: 'hooks', label: 'Hooks', Icon: Webhook, Component: Hooks },
   { id: 'catalogs', label: 'Catalogs', Icon: Library, Component: Catalogs },
   { id: 'history', label: 'History', Icon: HistoryIcon, Component: HistoryWorkspace },
   { id: 'administration', label: 'Administration', Icon: Building2, Component: Administration },
@@ -403,7 +406,7 @@ export default function ManagementPlayground() {
             <div className={styles.eyebrow}>LLM GATEWAY / MANAGEMENT API V1</div>
             <h1>Management API playground</h1>
             <p>
-              Administer apps, providers, credentials, prompts, budgets, routing, limits and incidents, review usage,
+              Administer apps, providers, credentials, prompts, budgets, routing, limits, incidents and hooks, review usage,
               guardrail activity, provider health and users, and see the exact API call behind every action.
             </p>
           </div>
