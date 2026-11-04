@@ -1,0 +1,594 @@
+---
+title: "Hooks API"
+sidebar_position: 6.85
+sidebar_label: "Hooks API"
+sidebar_custom_props:
+  badge: new
+  icon: Webhook
+description: "LLM Gateway Management API v1: external hooks that call your own HTTPS API on gateway traffic to allow, flag or block requests and responses, or export finished requests in batches."
+aliases: [hooks api, external hooks, webhook, pre_call, post_call, on_complete, request hook, response hook, export hook, custom guardrail, hook signing]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Hooks API
+
+**Call your own API on gateway traffic.** A hook sends selected request details to an HTTPS endpoint you run. Your endpoint can allow, flag or block the request before the model is called, check the response before it is returned, or receive every finished request in batches for your own logging, billing or analytics. You decide which fields are sent, and how the call and its reply look.
+
+Hooks are created and changed only through the Management API. The console lists them read-only under **Settings > AI Gateway > LLM Gateway > Management API > Configured hooks**. Try every operation in the [Management API playground](/llm-gateway-management-playground?tab=hooks).
+
+| Stage | When it runs | What your endpoint can do | Requests |
+| --- | --- | --- | --- |
+| `pre_call` | After Quilr's request checks, before the model call. Also on response-cache hits. | Allow, flag or block the request. | Streaming and non-streaming |
+| `post_call` | After Quilr's response checks, before the response is returned or cached. Also on response-cache hits. | Allow, flag or block the response. | Non-streaming only (streams skip it) |
+| `on_complete` | After the request finishes. | Receive a record of it, in batches. Never changes the request. | Streaming and non-streaming |
+
+## Where hooks run
+
+<ArchitectureDiagram
+  source={{
+    label: "Client request",
+    code: `POST /openai_compatible/v1/chat/completions
+{ "model": "gpt-4.1", "messages": [...] }
+app: support-bot   user: dana@example.com`,
+  }}
+  gateway={{
+    label: "QuilrAI LLM Gateway",
+    phases: [
+      {
+        label: "Admit",
+        stages: [
+          { label: "Quilr checks", items: ["Access, routing, limits", "Request guardrails"] },
+          { label: "pre_call hooks", items: ["Your API, in parallel", "allow / flag / block", "Blocked: 403, no tokens used"] },
+        ],
+      },
+      {
+        label: "Call the model",
+        stages: [
+          { label: "Provider", items: ["Retries and failover", "Hooks run once per request, not per attempt"] },
+        ],
+      },
+      {
+        label: "Return",
+        stages: [
+          { label: "Quilr checks", items: ["Response guardrails"] },
+          { label: "post_call hooks", items: ["Non-streaming only", "allow / flag / block", "Blocked: 403, tokens already used"] },
+        ],
+      },
+      {
+        label: "After the response",
+        stages: [
+          { label: "on_complete hooks", items: ["One record per request", "Batched POST to your API", "Retried, never blocks"] },
+        ],
+      },
+    ],
+    footer: "Hooks on one stage run in parallel  ·  the strictest decision wins: block > flag > allow",
+  }}
+  destination={{
+    label: "Client response",
+    items: ["The model's response", "or 403 external_hook_blocked in the client's API format"],
+  }}
+/>
+
+Hooks run on these client APIs, and you can narrow a hook to some of them with `match.api_families`:
+
+| Client API | `api_family` |
+| --- | --- |
+| OpenAI Chat Completions | `openai.chat_completions` |
+| OpenAI Responses | `openai.responses` |
+| Anthropic Messages | `anthropic.messages` |
+| Gemini generateContent | `gemini.generate_content` |
+| Bedrock Converse | `bedrock.converse` |
+| Bedrock InvokeModel | `bedrock.invoke` |
+
+Other routes (embeddings, audio, Realtime, Assistants and provider passthrough routes) do not run hooks.
+
+## Before you start
+
+- **The Policy Engine must be on** for the LLM Gateway. While it is off, every call answers `409 policy_not_enabled`.
+- **Scopes:** `hooks:write` to create, change, delete and test hooks; `read` to list and read them, read the field catalog, preview a draft and read stats. See [Scopes](./management-api#scopes).
+- Writes follow the same rules as the other controls: content-idempotent PUT, `If-Match` ETags, `If-None-Match: *` to create only, `?dry_run=true`, a JSON merge-patch PATCH, and one policy revision per write. See [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency).
+- **Start in observe mode.** A new `pre_call` or `post_call` hook in `mode: "observe"` logs its decisions without enforcing them. Switch to `enforce` once the decisions look right. Saving a new enforcing hook returns the warning `hook_enforcing_without_observe`.
+
+## The hook resource
+
+A hook is one resource under `/controls/hooks/{id}`. This hook checks every Chat Completions and Anthropic Messages request of `support-bot` with your policy service, in observe mode:
+
+```json
+{
+  "description": "ACME prompt policy check",
+  "stage": "pre_call",
+  "mode": "observe",
+  "scope": {"apps": ["support-bot"]},
+  "match": {"api_families": ["openai.chat_completions", "anthropic.messages"]},
+  "secrets": {"api_key": "sk_live_example", "hmac_key": "whsec_example"},
+  "endpoint": {
+    "url": "https://guard.example.com/v1/check?app={{app.name}}",
+    "headers": [
+      {"name": "X-Api-Key", "value": "{{secret.api_key}}"},
+      {"name": "X-Agent", "value": "{{client.agent.name}}", "omit_if_empty": true}
+    ],
+    "signing": {"secret": "hmac_key"},
+    "timeout_ms": 1500,
+    "on_failure": "allow"
+  },
+  "send": {"preset": "standard", "request_headers": ["user-agent", "x-team-id"]}
+}
+```
+
+| Field | Values |
+| --- | --- |
+| `stage` | `pre_call`, `post_call` or `on_complete`. Required. |
+| `mode` | `enforce` (default) or `observe`. `pre_call` and `post_call` only. |
+| `enabled` | `true` (default) or `false`. A disabled hook stays saved and never runs. |
+| `description` | Up to 500 characters. |
+| `scope` | `apps`, `app_tags`, `smart_groups`, `users`. Every non-empty list must match; empty lists do not restrict. |
+| `all_apps` | Set `true` to leave `scope` empty and apply the hook to every app (otherwise `422 hook_scope_required`). |
+| `match` | `api_families` (see above) and `requested_models`. Empty lists match everything. |
+| `secrets` | Named values used in headers, query values, auth and signing. Write-only. See [Security](#security). |
+| `endpoint` | The call: `method`, `url`, `headers`, `auth`, `signing`, `body`, `response`, `timeout_ms`, `on_failure`. `pre_call` and `post_call` only. |
+| `export` | The batch delivery: `url`, `headers`, `auth`, `signing`, `record`, `batch_size`, `flush_ms`, `max_batch_bytes`. `on_complete` only. See [on_complete export](#on_complete-export). |
+| `send` | What is sent: `preset`, `include`, `exclude`, `body`, `response_body`, `request_headers`, `max_body_bytes`, `on_oversize`. See [Choose the fields](#choose-the-fields). |
+
+## Customize the call
+
+Everything about the HTTP call is yours to shape, so a hook can call an existing API without an adapter in between.
+
+<StepFlow steps={[
+  {label: 'URL', items: ['Fixed https host', 'Fields in path and query']},
+  {label: 'Headers', items: ['Fixed text, secrets', 'Fields, client headers']},
+  {label: 'Auth and signing', items: ['Bearer, basic, API key', 'HMAC signature']},
+  {label: 'Body', items: ['Quilr envelope', 'Your template, raw, none']},
+  {label: 'Reply', items: ['Quilr decision JSON', 'or mapped from yours']},
+]} />
+
+### URL and method
+
+`endpoint.method` is `POST` (default), `PUT` or `PATCH`. `endpoint.url` is an `https://` URL with a fixed host, up to 2048 characters:
+
+- **Path segments** can use `{{app.name}}`, `{{request_id}}`, `{{tenant_id}}` and `{{api_family}}`, for example `https://guard.example.com/apps/{{app.name}}/check`. Values are URL-encoded.
+- **Query values** can use any single-value field, `{{secret.name}}` and `{{request_header.name}}`. Query parameter names are fixed.
+- The host cannot contain placeholders or credentials, and the URL cannot have a `#fragment`.
+
+`on_complete` export URLs and headers take fixed text and secrets only, because one batch carries many requests.
+
+### Headers
+
+`endpoint.headers` is a list of up to 50 `{"name", "value", "omit_if_empty"}` entries (4096 characters per value, 16 KB in total). A value mixes fixed text with placeholders:
+
+| Placeholder | Inserts |
+| --- | --- |
+| `{{field.path}}` | A single-value field from the [field catalog](#field-catalog), for example `{{user.email}}`. Lists and objects go in the body instead (`422 list_field_not_allowed_here`). |
+| `{{secret.name}}` | A value from `secrets`. |
+| `{{request_header.name}}` | A header the client sent, for example `{{request_header.x-team-id}}`. Credential and identity headers can never be read (`422 request_header_not_allowed`). |
+
+With `omit_if_empty: true`, a header whose placeholders render empty is left out. Hooks cannot set framing or hop-by-hop headers (`Host`, `Content-Length`, `Transfer-Encoding`, `Connection`, `Content-Type` and similar) or `X-Quilr-*` headers (`422 header_not_allowed`). A header set twice, or also set by auth or signing, is `422 header_conflict`.
+
+Every hook call also carries these headers from the gateway:
+
+| Header | Value |
+| --- | --- |
+| `X-Quilr-Request-Id` | The gateway request id (not on export batches). |
+| `X-Quilr-Hook` | `<hook id>; stage=<stage>; rev=<version>`. `rev` changes whenever the hook's configuration changes. |
+| `X-Quilr-Hook-Request` | Loop marker. See [Security](#security). |
+| `User-Agent` | `Quilr-LLM-Gateway-Hooks/1` |
+| `Idempotency-Key` | Export batches only: the same value when the same batch is retried. |
+
+### Client headers
+
+`send.request_headers` forwards headers the client sent: up to 50 names or prefixes ending in `*` (for example `x-team-*`). They appear under `request_headers` in the Quilr envelope. Credential and identity headers (`Authorization`, API key headers, cookies, identity headers) and `X-Quilr-*`, `X-Amz-*` and `X-Forwarded-*` headers are never sent.
+
+### Auth presets
+
+| `auth.type` | Settings | Sends |
+| --- | --- | --- |
+| `none` (default) | - | Nothing. |
+| `bearer` | `secret` | `Authorization: Bearer <secret>` |
+| `basic` | `username_secret`, `password_secret` | `Authorization: Basic <base64>` |
+| `api_key` | `secret`, and exactly one of `header` or `query` | The secret in that header or query parameter. |
+
+Every setting names a secret, never the value itself. A hook with no auth, no signing and no secret header saves with the warning `hook_unauthenticated`, because your endpoint cannot tell the call comes from Quilr.
+
+### HMAC signing
+
+`signing` signs the body with a key you supply in `secrets`:
+
+| Field | Values |
+| --- | --- |
+| `secret` | The secret holding the signing key. Required. |
+| `header` | Default `X-Quilr-Signature`. |
+| `format` | `quilr` (default): `t=<unix seconds>,v1=<signature of "<t>.<body>">`. `body`: the signature of the body alone, or of `<t>.<body>` when `timestamp_header` is set. |
+| `algorithm` | `sha256` (default) or `sha512`. |
+| `encoding` | `hex` (default) or `base64`. |
+| `prefix` | Text put before the signature, for example `sha256=`. |
+| `timestamp_header` | Also send the timestamp in this header. |
+
+Verify the default signature on your endpoint before you trust the call, and reject old timestamps:
+
+```python
+import hashlib, hmac, time
+
+def verify(body: bytes, header: str, key: str, tolerance_s: int = 300) -> bool:
+    parts = dict(item.split("=", 1) for item in header.split(","))
+    timestamp, signature = parts["t"], parts["v1"]
+    if abs(time.time() - int(timestamp)) > tolerance_s:
+        return False
+    expected = hmac.new(key.encode(), timestamp.encode() + b"." + body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+
+# verify(request.body, request.headers["X-Quilr-Signature"], HOOK_SIGNING_KEY)
+```
+
+```javascript
+const crypto = require('crypto');
+
+function verify(body, header, key, toleranceS = 300) {
+  const parts = Object.fromEntries(header.split(',').map((item) => item.split('=', 2)));
+  if (Math.abs(Date.now() / 1000 - Number(parts.t)) > toleranceS) return false;
+  const expected = crypto.createHmac('sha256', key).update(`${parts.t}.`).update(body).digest('hex');
+  return expected.length === parts.v1.length && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1));
+}
+```
+
+Sign over the raw body bytes you received, before any JSON parsing. With a `prefix`, strip it from `v1` first.
+
+### Body
+
+`endpoint.body.format` (and `export.record.format` for `on_complete`) chooses the body:
+
+| Format | Body |
+| --- | --- |
+| `quilr` (default) | The Quilr envelope below. |
+| `template` | Your own JSON shape (up to 16 KB, 16 levels deep). `{"$value": "<field>"}` inserts a field's JSON value, strings take `{{field}}` and `{{request_header.name}}` placeholders, `{"$raw": "request_body"}` inserts the client's request body and `{"$raw": "response_body"}` the response body (`post_call` and `on_complete`, with `send.response_body: true`). Secrets are never allowed in the body. |
+| `raw` | The client's request body exactly as received. Call hooks only. |
+| `none` | An empty body. Call hooks only. |
+
+The Quilr envelope of a `pre_call` call:
+
+```json
+{
+  "version": "1",
+  "stage": "pre_call",
+  "hook": "acme-guard",
+  "request_id": "req_8f2c",
+  "tenant_id": "tenant_sample",
+  "timestamp": "2026-11-04T10:15:02.114Z",
+  "api_family": "openai.chat_completions",
+  "endpoint": "/openai_compatible/v1/chat/completions",
+  "stream": false,
+  "body": {"model": "gpt-4.1", "messages": [{"role": "user", "content": "Hello"}]},
+  "body_omitted": null,
+  "request_headers": {"user-agent": "claude-cli/2.0.0", "x-team-id": "support"},
+  "metadata": {
+    "request_id": "req_8f2c",
+    "user": {"email": "dana@example.com", "verified": true, "groups": ["support"]},
+    "app": {"name": "support-bot", "tags": ["prod"]},
+    "model": {"requested": "gpt-4.1", "target": "gpt-4.1"}
+  }
+}
+```
+
+- `body` is the client's body exactly as it was received, before any Quilr redaction. A body that is not JSON (some Bedrock InvokeModel bodies) is base64 text with `"body_encoding": "base64"`.
+- `body_omitted` is `null` when the body is included, `"not_requested"` with `send.body: "none"`, or `"too_large"` when it exceeded `send.max_body_bytes`.
+- `request_headers` is present only when `send.request_headers` is set.
+- `metadata` holds the selected fields, nested by their dotted path. A field with no value is `null`, never invented.
+
+## Choose the fields
+
+`send` decides what a hook receives:
+
+| Setting | Values |
+| --- | --- |
+| `preset` | `minimal`, `standard` (default), `full_export` or `empty`. |
+| `include` | Extra fields: exact paths, or `prefix.*` for every non-sensitive field under a prefix (for example `user.*`). |
+| `exclude` | Fields to drop from the preset, exact or `prefix.*`. |
+| `body` | `as_received` (default for call hooks) or `none` (default for `on_complete`). |
+| `response_body` | `true` to also send the response body. `post_call` and `on_complete`, non-streaming requests only. Default `false`. |
+| `request_headers` | Client headers to forward (see [Client headers](#client-headers)). |
+| `max_body_bytes` | Largest body sent, 1 KB to 4 MB (default 1 MB). |
+| `on_oversize` | When the body is larger: `send_without_body` (default; `body_omitted: "too_large"`), `skip_hook` (the hook does not run; call hooks) or `apply_on_failure` (the hook's `on_failure` applies; call hooks). |
+
+- **`minimal`** sends `request_id`, `api_family`, `stream`, `user.email`, `app.name`, `model.requested` and `model.target`.
+- **`standard`** adds the identity, client agent, Smart Group, app, provider and request fields, and the outcome, usage, cost and latency fields at `on_complete`.
+- **`full_export`** sends every non-sensitive field available at the stage.
+- **`empty`** sends no fields, for a hook that needs only the body or its own template.
+
+**Sensitive fields** (`client.ip`, `identity.jwt_claims`, `quilr.entities`) are never part of a preset or a `prefix.*` pattern. Name them by exact path in `include` to send them. Fields used in the URL, headers or a body template are added to the selection automatically. `GET /controls/hooks/field-catalog?stage=` lists every field with its type, stages, presets and whether it is sensitive.
+
+### Field catalog
+
+| Field | Type | Stages | Description |
+| --- | --- | --- | --- |
+| `request_id` | string | all | Gateway request id (also `X-Quilr-Request-Id`). |
+| `tenant_id` | string | all | Your organization's tenant id. |
+| `api_family` | string | all | Client API, for example `openai.chat_completions`. |
+| `endpoint` | string | all | Gateway path the client called. |
+| `stream` | boolean | all | Whether the client asked for a stream. |
+| `user.email` | string | all | User the gateway attributed the request to (`null` when anonymous). |
+| `user.id`, `user.full_name` | string | all | User id and display name. |
+| `user.identity_source` | string | all | Where the identity came from: `jwt_claims`, `token_header`, `self_service`, `admin_api_key`, `identity_header`, `body` or `none`. |
+| `user.verified` | boolean | all | `true` only for a validated token or a Quilr-issued key. Identity headers are client-supplied. |
+| `user.department`, `user.groups` | string, list | all | From your identity directory. |
+| `client.ip` | string | all | Client IP address. **Sensitive.** |
+| `client.agent.name`, `.version`, `.confidence` | string | all | Detected agent or SDK, for example `claude-code`, and how confident the detection is. |
+| `client.session_ids` | object | all | Session, conversation and trace ids the agent sent. |
+| `client.headers` | object | all | Known client headers after masking (credentials never included). |
+| `conversation.id` | string | all | Conversation or session id the client sent. |
+| `smart_groups.names`, `smart_groups.all` | list | all | Every Smart Group the user belongs to, as names or `{name, display_name}`. |
+| `app.name`, `app.display_name` | string | all | The app's key name (what scopes use) and console name. |
+| `app.key_id`, `app.tags` | string, list | all | Id of the credential presented, and the app's tags. |
+| `model.requested`, `model.target` | string | all | Model the client asked for, and the model selected by routing (at `on_complete`, the model that served it). |
+| `provider.name`, `provider.label` | string | all | Provider and provider label of the selected target. |
+| `request.metadata` | object | all | Request metadata the client sent. |
+| `request.token_estimate` | number | all | The gateway's estimate of input tokens. |
+| `policy.revision` | number | all | Policy revision serving the request. |
+| `key.self_service` | object | all | Personal key id and name, when the request used one. |
+| `identity.jwt_claims` | object | all | Captured identity-token claims. **Sensitive.** |
+| `quilr.status` | string | all | Whether Quilr's checks ran: `ran`, `not_run` or `not_run_cache_hit`. |
+| `quilr.categories` | list | all | Categories Quilr's request checks detected. |
+| `quilr.action` | string | all | The action Quilr's checks took. |
+| `quilr.entities` | list | all | Sensitive data entities Quilr detected. **Sensitive.** |
+| `quilr.response_categories` | list | `post_call`, `on_complete` | Categories Quilr's response checks detected. |
+| `budgets` | list | all | Budgets that apply, each `{id, name, metric, window, limit, used, remaining}`. |
+| `outcome.status` | number | `on_complete` | HTTP status returned to the client. |
+| `outcome.error_type` | string | `on_complete` | Error type, when the request failed or was blocked. |
+| `outcome.blocked_by` | string | `on_complete` | `quilr`, `hook`, `gateway` or `provider`; `null` when not blocked. |
+| `usage` | object | `on_complete` | `input_tokens`, `output_tokens`, `source` and a breakdown. |
+| `cost` | object | `on_complete` | Priced cost (`null` when unpriced). |
+| `latency_ms.total`, `latency_ms.first_response` | number | `on_complete` | Total gateway latency and time to the first response byte. |
+| `cache_hit` | boolean | `on_complete` | Served from the response cache. |
+| `failover` | object | `on_complete` | Failover attempts and outcome. |
+| `hooks` | list | `on_complete` | Results of this request's call hooks. |
+
+A field used at a stage that does not have it is `422 field_not_available_at_stage`; an unknown path is `422 unknown_field`.
+
+## What your endpoint returns
+
+### The Quilr reply (default)
+
+Answer `2xx` with JSON:
+
+```json
+{
+  "decision": "block",
+  "reason": "Customer account numbers are not allowed in support prompts",
+  "user_message": "This request contains an account number. Remove it and try again.",
+  "labels": ["pii", "account-number"],
+  "metadata": {"policy": "support-v3"}
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `decision` | Required. `allow`, `flag` (continue, and record the flag) or `block`. |
+| `reason` | Recorded with the request (up to 1000 characters). Never shown to the client. |
+| `user_message` | Shown to the client when the request is blocked. Without it the client sees "This request was blocked by an organization policy hook." |
+| `labels` | Up to 20 strings of 64 characters, recorded with the request. |
+| `metadata` | Up to 4 KB of JSON, recorded with the request. |
+
+A non-`2xx` status, a body that is not JSON or a missing `decision` is a failure (see [Timeouts and failures](#timeouts-and-failures)).
+
+### Map your own reply
+
+To call an API that already has its own reply shape, set `endpoint.response.format` to `mapped`:
+
+```json
+{
+  "format": "mapped",
+  "status_map": {"403": "block", "429": "allow"},
+  "decision": {
+    "path": "$.result.action",
+    "block_values": ["deny", "reject"],
+    "flag_values": ["review"],
+    "case_insensitive": true,
+    "otherwise": "allow"
+  },
+  "reason_path": "$.result.explanation",
+  "user_message_path": "$.result.message",
+  "labels_path": "$.result.tags[*]",
+  "metadata_paths": {"score": "$.result.score"}
+}
+```
+
+1. A status listed in `status_map` decides directly.
+2. Otherwise a non-`2xx` status is a failure.
+3. Otherwise the value at `decision.path` decides: `block` if it equals a `block_values` entry, else `flag` if it equals a `flag_values` entry, else `otherwise` (`allow`, or `failure` to treat it as a failure). With no `decision`, a `2xx` reply allows.
+
+Paths start with `$` and use dotted keys, `[n]` and at most one `[*]`. A mapped response needs `status_map` or `decision`.
+
+### Several hooks and observe mode
+
+- Hooks on the same stage run in parallel. The strictest decision wins (`block` over `flag` over `allow`); when several hooks block, the message of the hook with the lowest id is shown.
+- In `observe` mode the decision is recorded but never enforced.
+- Each request's log records every hook that ran: hook id, stage, mode, status, decision, latency, the HTTP status, an error code on failure, and your `reason`, `labels` and `metadata`. On `on_complete`, the `hooks` field carries the same results.
+
+### What the client sees when a hook blocks
+
+The client gets `403` with code `external_hook_blocked`, the hook id and the request id, in its own API's error format, plus the `x-quilr-request-id` header. A `pre_call` block of a streaming request is returned before the stream starts.
+
+| Client API | Body |
+| --- | --- |
+| OpenAI Chat Completions, Responses | `{"error": {"message": "...", "type": "permission_error", "param": null, "code": "external_hook_blocked", "hook": "acme-guard", "request_id": "req_8f2c"}}` |
+| Anthropic Messages | `{"type": "error", "error": {"type": "permission_error", "message": "..."}, "request_id": "req_8f2c", "quilr": {"code": "external_hook_blocked", "hook": "acme-guard"}}` |
+| Gemini generateContent | `{"error": {"code": 403, "message": "...", "status": "PERMISSION_DENIED", "details": [{"@type": "type.googleapis.com/google.rpc.ErrorInfo", "reason": "external_hook_blocked", "domain": "quilr.ai", "metadata": {"hook": "acme-guard", "request_id": "req_8f2c"}}]}}` |
+| Bedrock Converse, InvokeModel | `{"message": "...", "code": "external_hook_blocked", "hook": "acme-guard", "request_id": "req_8f2c"}` with `x-amzn-ErrorType: AccessDeniedException` |
+
+`message` is your `user_message`. A `pre_call` block stops the request before the model call, so no tokens are used. A `post_call` block replaces a response the model already produced: those tokens are used and counted.
+
+## Timeouts and failures
+
+| Setting | Values |
+| --- | --- |
+| `endpoint.timeout_ms` | 100 to 10000, default 1500. The whole call, including connecting. |
+| `endpoint.on_failure` | `allow` (default) or `block`. What happens when the call fails. |
+
+A call fails on a timeout, a connection error (connecting is retried once within the timeout), a non-`2xx` or unreadable reply, a reply over 64 KB or nested deeper than 32 levels, or a hook that cannot run (for example its secrets cannot be read). The failure is recorded with an error code and `on_failure` applies. When a failure is allowed through, the response is not stored in the response cache.
+
+**Circuit breaker.** After 5 consecutive failures on a gateway server, the hook is skipped there for 30 seconds and its `on_failure` applies without a call. Then one call probes the endpoint; success closes the breaker. `GET /controls/hooks/{id}/stats` reports whether it is open on the server that answers.
+
+## on_complete export
+
+An `on_complete` hook delivers one record per finished request to `export.url`, in batches. Records cover requests that reached the hook stage (after access, routing, limits and Quilr's request checks), including requests a hook blocked and requests the provider failed.
+
+```json
+{
+  "stage": "on_complete",
+  "description": "Usage export to our warehouse",
+  "all_apps": true,
+  "secrets": {"token": "warehouse_token_example"},
+  "export": {
+    "url": "https://ingest.example.com/quilr/requests",
+    "auth": {"type": "bearer", "secret": "token"},
+    "batch_size": 200,
+    "flush_ms": 5000
+  },
+  "send": {"preset": "standard", "include": ["quilr.*"]}
+}
+```
+
+Your endpoint receives a `POST` with `{"records": [...]}`. Each record is the Quilr envelope (with `stage: "on_complete"`) or your `export.record.template`:
+
+```json
+{
+  "records": [
+    {
+      "version": "1",
+      "stage": "on_complete",
+      "hook": "warehouse-export",
+      "request_id": "req_8f2c",
+      "tenant_id": "tenant_sample",
+      "timestamp": "2026-11-04T10:15:03.020Z",
+      "api_family": "openai.chat_completions",
+      "endpoint": "/openai_compatible/v1/chat/completions",
+      "stream": false,
+      "body": null,
+      "body_omitted": "not_requested",
+      "metadata": {
+        "app": {"name": "support-bot"},
+        "model": {"requested": "gpt-4.1", "target": "gpt-4.1"},
+        "outcome": {"status": 200, "error_type": null, "blocked_by": null},
+        "usage": {"input_tokens": 12, "output_tokens": 40, "source": "provider"},
+        "cost": {"total_usd": 0.0004},
+        "latency_ms": {"total": 820, "first_response": 310}
+      }
+    }
+  ]
+}
+```
+
+| Setting | Values |
+| --- | --- |
+| `export.batch_size` | 1 to 1000 records, default 100. |
+| `export.flush_ms` | 250 to 60000, default 5000. A partly filled batch is sent after this time. |
+| `export.max_batch_bytes` | 64 KB to 8 MB, default 4 MB. |
+| `export.record` | `{"format": "quilr"}` (default) or `{"format": "template", "template": {...}}`. |
+
+- **Delivery:** any `2xx` within 30 seconds delivers the batch. Each batch is tried up to 3 times with the same `Idempotency-Key`, so deduplicate on it.
+- **While your endpoint is down:** after a batch fails all its tries, the hook is unhealthy. The gateway keeps only the latest 100 records for it and sends one probe batch every 30 seconds; when one succeeds, normal delivery resumes.
+- **Retention:** at most 50,000 records or 256 MB are queued per hook on each gateway server; the oldest are dropped first. Deleting a hook drops its queued records.
+- **Bodies:** set `send.body: "as_received"` to include the request body, and `send.response_body: true` to include the response body of non-streaming requests.
+- `GET /controls/hooks/{id}/stats` shows the queue on the server that answers: `healthy`, `queued`, `queued_bytes`, `delivered`, `dropped`, `failed_batches`, `last_error` and `last_success`.
+
+## Security
+
+- **Secrets are write-only.** Up to 10 per hook, named `[a-z][a-z0-9_]*`, up to 4096 characters each. Reads return `********`. Sending `********` back (or leaving `secrets` out of a PATCH) keeps the stored value. Secrets go only in headers, query values, auth and signing, never in the body (`422 secret_not_allowed_here`). A secret that is defined but never used saves with the warning `hook_secret_unused`.
+- **Destinations.** Only `https://` URLs to public addresses. Quilr hosts, `localhost` and private or loopback addresses are refused at save (`422 destination_not_allowed`), and every connection resolves the host again and connects only to a public address. Dedicated and on-premises deployments can allow private networks through deployment configuration, never through the API.
+- **Credentials never leave the gateway.** The client's credential and identity headers can never be sent to a hook, in any setting.
+- **Loop protection.** Every hook call carries `X-Quilr-Hook-Request`. If your endpoint calls the LLM Gateway itself (for example to ask a model), forward that header unchanged: hooks do not run on that inner request, so a hook cannot call itself in a loop. The value is signed for your organization and that request, so a forged or copied value never skips hooks.
+- **Hooks see the original request.** The body is sent exactly as the client sent it, before any Quilr redaction. Use `send.body: "none"` or an `exclude` list when a hook does not need content.
+
+## Preview, test and stats
+
+- **Preview** (`POST /controls/hooks/preview`, `read`) validates a draft and returns the exact call it would make for a sample request of the chosen API family: method, URL, headers and body, with secrets masked. Nothing is saved or sent.
+- **Test** (`POST /controls/hooks/{id}/test`, `hooks:write`) sends one sample call with the saved hook and returns the HTTP status, latency and the parsed decision. An `on_complete` test sends one batch with a sample record.
+- **Stats** (`GET /controls/hooks/{id}/stats`, `read`) returns the circuit breaker and export queue state on the server that answers.
+
+Preview and test are limited to 10 calls a minute per organization (`429 rate_limited` with `retry_after_seconds`). Both use sample values (`user@example.com`, `support-bot`, `req_sample`) and a small sample body, or your own `sample_body`.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY" -H 'Content-Type: application/json')
+
+# Preview a draft
+curl -X POST "$API/controls/hooks/preview" "${auth[@]}" \
+  -d '{"api_family": "openai.chat_completions", "hook": {"stage": "pre_call", "mode": "observe", "all_apps": true, "endpoint": {"url": "https://guard.example.com/v1/check"}, "send": {"preset": "minimal"}}}'
+
+# Create it (409/412 rules as for every control; add ?dry_run=true to validate only)
+curl -X PUT "$API/controls/hooks/acme-guard" "${auth[@]}" -H 'If-None-Match: *' \
+  -d '{"stage": "pre_call", "mode": "observe", "all_apps": true, "endpoint": {"url": "https://guard.example.com/v1/check"}, "send": {"preset": "minimal"}}'
+
+# Send a test call
+curl -X POST "$API/controls/hooks/acme-guard/test" "${auth[@]}" -d '{"api_family": "anthropic.messages"}'
+```
+
+A test result:
+
+```json
+{
+  "ok": true,
+  "stage": "pre_call",
+  "api_family": "anthropic.messages",
+  "http_status": 200,
+  "latency_ms": 84.2,
+  "error_code": null,
+  "decision": "allow",
+  "reason": null,
+  "user_message": null,
+  "labels": [],
+  "metadata": null
+}
+```
+
+## Errors
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| 422 | `hook_scope_required` | An empty `scope` needs `all_apps: true`. |
+| 422 | `hook_limit` | More than 3 enabled enforcing `pre_call` hooks. Set extra ones to `observe`. |
+| 422 | `unknown_field` | A field path is not in the field catalog. |
+| 422 | `field_not_available_at_stage` | The field is not available at the hook's stage (for example `usage` at `pre_call`). |
+| 422 | `list_field_not_allowed_here` | A list or object field was used in a header, the URL or a string. Use `{"$value": ...}` in a body template. |
+| 422 | `field_not_allowed_here` | The field or client header cannot be used in that position (for example a URL path segment). |
+| 422 | `secret_not_allowed_here` | Secrets go only in headers, query values, auth and signing. |
+| 422 | `unknown_secret` | A `{{secret.name}}`, auth or signing secret is not defined in `secrets`. |
+| 422 | `header_not_allowed` | A framing, hop-by-hop or `X-Quilr-*` header. |
+| 422 | `header_conflict` | A header is set twice, or also by auth or signing. |
+| 422 | `request_header_not_allowed` | A credential, identity or `X-Quilr-*` client header can never be sent. |
+| 422 | `destination_not_allowed` | Not `https`, or a Quilr, local or private host. |
+| 422 | `api_family_unsupported` | The API family does not run hooks. |
+| 422 | `validation_failed`, `unsupported_fields` | Any other invalid value, or a field the resource does not take. |
+| 409 | `policy_not_enabled` | The Policy Engine is off for the LLM Gateway. |
+| 404 | `not_found` | Test or stats for a hook that does not exist. |
+| 429 | `rate_limited` | More than 10 previews and tests a minute. Retry after `retry_after_seconds`. |
+| 403 | `external_hook_blocked` | Returned to gateway clients (not to the Management API) when a hook blocks a request or response. |
+
+Writes also return the usual control errors (`412 version_conflict`, `428 precondition_required` and the others in [Management API errors](./management-api#conventions)).
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Hooks per organization | 10 |
+| Enabled enforcing `pre_call` hooks | 3 (observe-mode and disabled hooks do not count) |
+| Call timeout | 100 to 10000 ms, default 1500 |
+| Secrets | 10 per hook, 4096 characters each |
+| URL | 2048 characters |
+| Headers | 50 per hook, 4096 characters each, 16 KB in total |
+| Body template | 16 KB, 16 levels deep |
+| Body sent to a hook | 1 KB to 4 MB (`send.max_body_bytes`, default 1 MB) |
+| Reply read from a hook | 64 KB, 32 levels deep |
+| Labels and metadata in a reply | 20 labels of 64 characters; 4 KB of metadata |
+| Export batch | 1000 records, 8 MB |
+| Export queue | 50,000 records or 256 MB per hook per server; 100 while unhealthy |
+| Preview and test | 10 a minute per organization |
+
+## Endpoints
+
+<ApiReference tags={['Hooks']} paths={['/controls/hooks']} />
+
+## Related
+
+- [Management API](./management-api) - authentication, scopes, errors and retry rules.
+- [Routing and failover API](./routing-and-failover-api) - the write, ETag and dry-run rules shared by every control.
+- [Security guardrails](../protect/security-guardrails) - Quilr's own request and response checks, which run before your hooks.
+- [Management API playground](/llm-gateway-management-playground?tab=hooks) - list, preview, create and test hooks from the browser.

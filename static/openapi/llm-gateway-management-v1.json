@@ -6625,6 +6625,2097 @@
         ],
         "type": "object"
       },
+      "ControlsHooks": {
+        "additionalProperties": false,
+        "description": "External hooks call your own HTTPS API on gateway traffic. A pre_call hook runs after Quilr's checks and before the model call; a post_call hook runs after Quilr's response checks, before a non-streaming response is returned. Both can allow, flag or block (observe mode logs without enforcing). An on_complete hook exports finished requests in batches. You choose the fields sent, the method, URL, headers, auth and signing, the body shape and how the reply maps to a decision. Secrets are write-only.",
+        "example": {
+          "description": "ACME prompt policy check",
+          "endpoint": {
+            "headers": [
+              {
+                "name": "X-Api-Key",
+                "value": "{{secret.api_key}}"
+              },
+              {
+                "name": "X-Agent",
+                "omit_if_empty": true,
+                "value": "{{client.agent.name}}"
+              }
+            ],
+            "on_failure": "allow",
+            "signing": {
+              "secret": "hmac_key"
+            },
+            "timeout_ms": 1500,
+            "url": "https://guard.example.com/v1/check?app={{app.name}}"
+          },
+          "match": {
+            "api_families": [
+              "openai.chat_completions",
+              "anthropic.messages"
+            ]
+          },
+          "mode": "observe",
+          "scope": {
+            "apps": [
+              "support-bot"
+            ]
+          },
+          "secrets": {
+            "api_key": "sk_live_example",
+            "hmac_key": "whsec_example"
+          },
+          "send": {
+            "preset": "standard",
+            "request_headers": [
+              "user-agent",
+              "x-team-id"
+            ]
+          },
+          "stage": "pre_call"
+        },
+        "properties": {
+          "all_apps": {
+            "description": "Required (true) to leave scope empty.",
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "endpoint": {
+            "description": "pre_call and post_call only.",
+            "properties": {
+              "auth": {
+                "properties": {
+                  "header": {
+                    "type": "string"
+                  },
+                  "password_secret": {
+                    "type": "string"
+                  },
+                  "query": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "enum": [
+                      "none",
+                      "bearer",
+                      "basic",
+                      "api_key"
+                    ]
+                  },
+                  "username_secret": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "body": {
+                "properties": {
+                  "format": {
+                    "enum": [
+                      "quilr",
+                      "template",
+                      "raw",
+                      "none"
+                    ]
+                  },
+                  "template": {
+                    "description": "JSON in your own schema."
+                  }
+                },
+                "type": "object"
+              },
+              "headers": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "omit_if_empty": {
+                      "type": "boolean"
+                    },
+                    "value": {
+                      "description": "Fixed text mixed with {{field}}, {{secret.name}} or {{request_header.name}} placeholders.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "method": {
+                "enum": [
+                  "POST",
+                  "PUT",
+                  "PATCH"
+                ]
+              },
+              "on_failure": {
+                "default": "allow",
+                "enum": [
+                  "allow",
+                  "block"
+                ]
+              },
+              "response": {
+                "properties": {
+                  "decision": {
+                    "properties": {
+                      "block_values": {
+                        "type": "array"
+                      },
+                      "case_insensitive": {
+                        "type": "boolean"
+                      },
+                      "flag_values": {
+                        "type": "array"
+                      },
+                      "otherwise": {
+                        "enum": [
+                          "allow",
+                          "failure"
+                        ]
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "format": {
+                    "enum": [
+                      "quilr",
+                      "mapped"
+                    ]
+                  },
+                  "labels_path": {
+                    "type": "string"
+                  },
+                  "metadata_paths": {
+                    "type": "object"
+                  },
+                  "reason_path": {
+                    "type": "string"
+                  },
+                  "status_map": {
+                    "type": "object"
+                  },
+                  "user_message_path": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "signing": {
+                "properties": {
+                  "algorithm": {
+                    "enum": [
+                      "sha256",
+                      "sha512"
+                    ]
+                  },
+                  "encoding": {
+                    "enum": [
+                      "hex",
+                      "base64"
+                    ]
+                  },
+                  "format": {
+                    "description": "quilr: t=<unix>,v1=<hmac of \"t.body\">; body: hmac of the body (or \"t.body\" with timestamp_header).",
+                    "enum": [
+                      "quilr",
+                      "body"
+                    ]
+                  },
+                  "header": {
+                    "default": "X-Quilr-Signature",
+                    "type": "string"
+                  },
+                  "prefix": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "timestamp_header": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "secret"
+                ],
+                "type": "object"
+              },
+              "timeout_ms": {
+                "default": 1500,
+                "maximum": 10000,
+                "minimum": 100,
+                "type": "integer"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "export": {
+            "description": "on_complete only.",
+            "properties": {
+              "auth": {
+                "properties": {
+                  "header": {
+                    "type": "string"
+                  },
+                  "password_secret": {
+                    "type": "string"
+                  },
+                  "query": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "enum": [
+                      "none",
+                      "bearer",
+                      "basic",
+                      "api_key"
+                    ]
+                  },
+                  "username_secret": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "batch_size": {
+                "default": 100,
+                "maximum": 1000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "flush_ms": {
+                "default": 5000,
+                "maximum": 60000,
+                "minimum": 250,
+                "type": "integer"
+              },
+              "headers": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "omit_if_empty": {
+                      "type": "boolean"
+                    },
+                    "value": {
+                      "description": "Fixed text mixed with {{field}}, {{secret.name}} or {{request_header.name}} placeholders.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "max_batch_bytes": {
+                "default": 4194304,
+                "type": "integer"
+              },
+              "record": {
+                "properties": {
+                  "format": {
+                    "enum": [
+                      "quilr",
+                      "template"
+                    ]
+                  },
+                  "template": {}
+                },
+                "type": "object"
+              },
+              "signing": {
+                "properties": {
+                  "algorithm": {
+                    "enum": [
+                      "sha256",
+                      "sha512"
+                    ]
+                  },
+                  "encoding": {
+                    "enum": [
+                      "hex",
+                      "base64"
+                    ]
+                  },
+                  "format": {
+                    "description": "quilr: t=<unix>,v1=<hmac of \"t.body\">; body: hmac of the body (or \"t.body\" with timestamp_header).",
+                    "enum": [
+                      "quilr",
+                      "body"
+                    ]
+                  },
+                  "header": {
+                    "default": "X-Quilr-Signature",
+                    "type": "string"
+                  },
+                  "prefix": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "timestamp_header": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "secret"
+                ],
+                "type": "object"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "match": {
+            "properties": {
+              "api_families": {
+                "items": {
+                  "enum": [
+                    "openai.chat_completions",
+                    "openai.responses",
+                    "anthropic.messages",
+                    "gemini.generate_content",
+                    "bedrock.converse",
+                    "bedrock.invoke"
+                  ]
+                },
+                "type": "array"
+              },
+              "requested_models": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "mode": {
+            "description": "pre_call and post_call only. observe logs decisions and never blocks.",
+            "enum": [
+              "enforce",
+              "observe"
+            ]
+          },
+          "scope": {
+            "properties": {
+              "app_tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "apps": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "smart_groups": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "users": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "secrets": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Write-only. Reads return ******** ; sending ******** keeps the stored value.",
+            "type": "object"
+          },
+          "send": {
+            "properties": {
+              "body": {
+                "enum": [
+                  "as_received",
+                  "none"
+                ]
+              },
+              "exclude": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "include": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "max_body_bytes": {
+                "maximum": 4194304,
+                "minimum": 1024,
+                "type": "integer"
+              },
+              "on_oversize": {
+                "enum": [
+                  "send_without_body",
+                  "skip_hook",
+                  "apply_on_failure"
+                ]
+              },
+              "preset": {
+                "enum": [
+                  "minimal",
+                  "standard",
+                  "full_export",
+                  "empty"
+                ]
+              },
+              "request_headers": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "response_body": {
+                "default": false,
+                "description": "post_call and on_complete: also send the response body of non-streaming requests (template: {\"$raw\": \"response_body\"}).",
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "stage": {
+            "enum": [
+              "pre_call",
+              "post_call",
+              "on_complete"
+            ]
+          }
+        },
+        "required": [
+          "stage"
+        ],
+        "type": "object"
+      },
+      "ControlsHooksItem": {
+        "properties": {
+          "default": {
+            "type": "boolean"
+          },
+          "etag": {
+            "type": "string"
+          },
+          "resource": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ControlsHooksView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ControlsHooksList": {
+        "properties": {
+          "etag": {
+            "type": "string"
+          },
+          "filters": {
+            "type": "object"
+          },
+          "items": {
+            "description": "Managed resources, then read-only console rules (source console).",
+            "items": {
+              "$ref": "#/components/schemas/ControlsHooksView"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Bound to revision: 409 collection_changed when the policy changed between pages.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revision": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ControlsHooksPatch": {
+        "additionalProperties": false,
+        "description": "JSON merge patch of ControlsHooks: send only the fields to change; null removes a field (nested objects merge, lists are replaced). The merged resource must be a valid ControlsHooks.",
+        "properties": {
+          "all_apps": {
+            "anyOf": [
+              {
+                "description": "Required (true) to leave scope empty.",
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "default": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "description": "pre_call and post_call only.",
+                "properties": {
+                  "auth": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "header": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "password_secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "query": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "type": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "none",
+                                  "bearer",
+                                  "basic",
+                                  "api_key"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "username_secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "body": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "format": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "quilr",
+                                  "template",
+                                  "raw",
+                                  "none"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "template": {
+                            "anyOf": [
+                              {
+                                "description": "JSON in your own schema."
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "headers": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "omit_if_empty": {
+                              "type": "boolean"
+                            },
+                            "value": {
+                              "description": "Fixed text mixed with {{field}}, {{secret.name}} or {{request_header.name}} placeholders.",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "value"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "method": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "POST",
+                          "PUT",
+                          "PATCH"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "on_failure": {
+                    "anyOf": [
+                      {
+                        "default": "allow",
+                        "enum": [
+                          "allow",
+                          "block"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "response": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "decision": {
+                            "anyOf": [
+                              {
+                                "properties": {
+                                  "block_values": {
+                                    "anyOf": [
+                                      {
+                                        "type": "array"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "case_insensitive": {
+                                    "anyOf": [
+                                      {
+                                        "type": "boolean"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "flag_values": {
+                                    "anyOf": [
+                                      {
+                                        "type": "array"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "otherwise": {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "allow",
+                                          "failure"
+                                        ]
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "path": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "format": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "quilr",
+                                  "mapped"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "labels_path": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "metadata_paths": {
+                            "anyOf": [
+                              {
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "reason_path": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status_map": {
+                            "anyOf": [
+                              {
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "user_message_path": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "signing": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "algorithm": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "sha256",
+                                  "sha512"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "encoding": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "hex",
+                                  "base64"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "format": {
+                            "anyOf": [
+                              {
+                                "description": "quilr: t=<unix>,v1=<hmac of \"t.body\">; body: hmac of the body (or \"t.body\" with timestamp_header).",
+                                "enum": [
+                                  "quilr",
+                                  "body"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "header": {
+                            "anyOf": [
+                              {
+                                "default": "X-Quilr-Signature",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "prefix": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "timestamp_header": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "timeout_ms": {
+                    "anyOf": [
+                      {
+                        "default": 1500,
+                        "maximum": 10000,
+                        "minimum": 100,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "export": {
+            "anyOf": [
+              {
+                "description": "on_complete only.",
+                "properties": {
+                  "auth": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "header": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "password_secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "query": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "type": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "none",
+                                  "bearer",
+                                  "basic",
+                                  "api_key"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "username_secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "batch_size": {
+                    "anyOf": [
+                      {
+                        "default": 100,
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "flush_ms": {
+                    "anyOf": [
+                      {
+                        "default": 5000,
+                        "maximum": 60000,
+                        "minimum": 250,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "headers": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "omit_if_empty": {
+                              "type": "boolean"
+                            },
+                            "value": {
+                              "description": "Fixed text mixed with {{field}}, {{secret.name}} or {{request_header.name}} placeholders.",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "value"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_batch_bytes": {
+                    "anyOf": [
+                      {
+                        "default": 4194304,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "record": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "format": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "quilr",
+                                  "template"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "template": {
+                            "anyOf": [
+                              {},
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "signing": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "algorithm": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "sha256",
+                                  "sha512"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "encoding": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "hex",
+                                  "base64"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "format": {
+                            "anyOf": [
+                              {
+                                "description": "quilr: t=<unix>,v1=<hmac of \"t.body\">; body: hmac of the body (or \"t.body\" with timestamp_header).",
+                                "enum": [
+                                  "quilr",
+                                  "body"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "header": {
+                            "anyOf": [
+                              {
+                                "default": "X-Quilr-Signature",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "prefix": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "secret": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "timestamp_header": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "match": {
+            "anyOf": [
+              {
+                "properties": {
+                  "api_families": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "enum": [
+                            "openai.chat_completions",
+                            "openai.responses",
+                            "anthropic.messages",
+                            "gemini.generate_content",
+                            "bedrock.converse",
+                            "bedrock.invoke"
+                          ]
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "requested_models": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "description": "pre_call and post_call only. observe logs decisions and never blocks.",
+                "enum": [
+                  "enforce",
+                  "observe"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "properties": {
+                  "app_tags": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "apps": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "smart_groups": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "users": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "secrets": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Write-only. Reads return ******** ; sending ******** keeps the stored value.",
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "send": {
+            "anyOf": [
+              {
+                "properties": {
+                  "body": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "as_received",
+                          "none"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "exclude": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "include": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_body_bytes": {
+                    "anyOf": [
+                      {
+                        "maximum": 4194304,
+                        "minimum": 1024,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "on_oversize": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "send_without_body",
+                          "skip_hook",
+                          "apply_on_failure"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "preset": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "minimal",
+                          "standard",
+                          "full_export",
+                          "empty"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "request_headers": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "response_body": {
+                    "default": false,
+                    "description": "post_call and on_complete: also send the response body of non-streaming requests (template: {\"$raw\": \"response_body\"}).",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "pre_call",
+                  "on_complete"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ControlsHooksView": {
+        "description": "A hook as read: the resource plus read-only fields.",
+        "properties": {
+          "all_apps": {
+            "description": "Required (true) to leave scope empty.",
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "endpoint": {
+            "description": "pre_call and post_call only.",
+            "properties": {
+              "auth": {
+                "properties": {
+                  "header": {
+                    "type": "string"
+                  },
+                  "password_secret": {
+                    "type": "string"
+                  },
+                  "query": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "enum": [
+                      "none",
+                      "bearer",
+                      "basic",
+                      "api_key"
+                    ]
+                  },
+                  "username_secret": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "body": {
+                "properties": {
+                  "format": {
+                    "enum": [
+                      "quilr",
+                      "template",
+                      "raw",
+                      "none"
+                    ]
+                  },
+                  "template": {
+                    "description": "JSON in your own schema."
+                  }
+                },
+                "type": "object"
+              },
+              "headers": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "omit_if_empty": {
+                      "type": "boolean"
+                    },
+                    "value": {
+                      "description": "Fixed text mixed with {{field}}, {{secret.name}} or {{request_header.name}} placeholders.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "method": {
+                "enum": [
+                  "POST",
+                  "PUT",
+                  "PATCH"
+                ]
+              },
+              "on_failure": {
+                "default": "allow",
+                "enum": [
+                  "allow",
+                  "block"
+                ]
+              },
+              "response": {
+                "properties": {
+                  "decision": {
+                    "properties": {
+                      "block_values": {
+                        "type": "array"
+                      },
+                      "case_insensitive": {
+                        "type": "boolean"
+                      },
+                      "flag_values": {
+                        "type": "array"
+                      },
+                      "otherwise": {
+                        "enum": [
+                          "allow",
+                          "failure"
+                        ]
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "format": {
+                    "enum": [
+                      "quilr",
+                      "mapped"
+                    ]
+                  },
+                  "labels_path": {
+                    "type": "string"
+                  },
+                  "metadata_paths": {
+                    "type": "object"
+                  },
+                  "reason_path": {
+                    "type": "string"
+                  },
+                  "status_map": {
+                    "type": "object"
+                  },
+                  "user_message_path": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "signing": {
+                "properties": {
+                  "algorithm": {
+                    "enum": [
+                      "sha256",
+                      "sha512"
+                    ]
+                  },
+                  "encoding": {
+                    "enum": [
+                      "hex",
+                      "base64"
+                    ]
+                  },
+                  "format": {
+                    "description": "quilr: t=<unix>,v1=<hmac of \"t.body\">; body: hmac of the body (or \"t.body\" with timestamp_header).",
+                    "enum": [
+                      "quilr",
+                      "body"
+                    ]
+                  },
+                  "header": {
+                    "default": "X-Quilr-Signature",
+                    "type": "string"
+                  },
+                  "prefix": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "timestamp_header": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "secret"
+                ],
+                "type": "object"
+              },
+              "timeout_ms": {
+                "default": 1500,
+                "maximum": 10000,
+                "minimum": 100,
+                "type": "integer"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "etag": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "export": {
+            "description": "on_complete only.",
+            "properties": {
+              "auth": {
+                "properties": {
+                  "header": {
+                    "type": "string"
+                  },
+                  "password_secret": {
+                    "type": "string"
+                  },
+                  "query": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "enum": [
+                      "none",
+                      "bearer",
+                      "basic",
+                      "api_key"
+                    ]
+                  },
+                  "username_secret": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "batch_size": {
+                "default": 100,
+                "maximum": 1000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "flush_ms": {
+                "default": 5000,
+                "maximum": 60000,
+                "minimum": 250,
+                "type": "integer"
+              },
+              "headers": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "omit_if_empty": {
+                      "type": "boolean"
+                    },
+                    "value": {
+                      "description": "Fixed text mixed with {{field}}, {{secret.name}} or {{request_header.name}} placeholders.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "max_batch_bytes": {
+                "default": 4194304,
+                "type": "integer"
+              },
+              "record": {
+                "properties": {
+                  "format": {
+                    "enum": [
+                      "quilr",
+                      "template"
+                    ]
+                  },
+                  "template": {}
+                },
+                "type": "object"
+              },
+              "signing": {
+                "properties": {
+                  "algorithm": {
+                    "enum": [
+                      "sha256",
+                      "sha512"
+                    ]
+                  },
+                  "encoding": {
+                    "enum": [
+                      "hex",
+                      "base64"
+                    ]
+                  },
+                  "format": {
+                    "description": "quilr: t=<unix>,v1=<hmac of \"t.body\">; body: hmac of the body (or \"t.body\" with timestamp_header).",
+                    "enum": [
+                      "quilr",
+                      "body"
+                    ]
+                  },
+                  "header": {
+                    "default": "X-Quilr-Signature",
+                    "type": "string"
+                  },
+                  "prefix": {
+                    "type": "string"
+                  },
+                  "secret": {
+                    "type": "string"
+                  },
+                  "timestamp_header": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "secret"
+                ],
+                "type": "object"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "id": {
+            "type": "string"
+          },
+          "match": {
+            "properties": {
+              "api_families": {
+                "items": {
+                  "enum": [
+                    "openai.chat_completions",
+                    "openai.responses",
+                    "anthropic.messages",
+                    "gemini.generate_content",
+                    "bedrock.converse",
+                    "bedrock.invoke"
+                  ]
+                },
+                "type": "array"
+              },
+              "requested_models": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "mode": {
+            "description": "pre_call and post_call only. observe logs decisions and never blocks.",
+            "enum": [
+              "enforce",
+              "observe"
+            ]
+          },
+          "policy": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "integer"
+          },
+          "read_only": {
+            "type": "boolean"
+          },
+          "rule_index": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "scope": {
+            "properties": {
+              "app_tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "apps": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "smart_groups": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "users": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "secrets": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Write-only. Reads return ******** ; sending ******** keeps the stored value.",
+            "type": "object"
+          },
+          "send": {
+            "properties": {
+              "body": {
+                "enum": [
+                  "as_received",
+                  "none"
+                ]
+              },
+              "exclude": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "include": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "max_body_bytes": {
+                "maximum": 4194304,
+                "minimum": 1024,
+                "type": "integer"
+              },
+              "on_oversize": {
+                "enum": [
+                  "send_without_body",
+                  "skip_hook",
+                  "apply_on_failure"
+                ]
+              },
+              "preset": {
+                "enum": [
+                  "minimal",
+                  "standard",
+                  "full_export",
+                  "empty"
+                ]
+              },
+              "request_headers": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "response_body": {
+                "default": false,
+                "description": "post_call and on_complete: also send the response body of non-streaming requests (template: {\"$raw\": \"response_body\"}).",
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "source": {
+            "enum": [
+              "managed",
+              "console"
+            ]
+          },
+          "stage": {
+            "enum": [
+              "pre_call",
+              "post_call",
+              "on_complete"
+            ]
+          },
+          "view": {
+            "description": "Console rows: condition, scope and effects (read-only).",
+            "type": "object"
+          }
+        },
+        "required": [
+          "stage"
+        ],
+        "type": "object"
+      },
       "ControlsItem": {
         "properties": {
           "default": {
@@ -11913,6 +14004,196 @@
           "name",
           "type"
         ],
+        "type": "object"
+      },
+      "HookFieldCatalog": {
+        "properties": {
+          "fields": {
+            "items": {
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "path_safe": {
+                  "type": "boolean"
+                },
+                "presets": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "sensitive": {
+                  "type": "boolean"
+                },
+                "single_value": {
+                  "type": "boolean"
+                },
+                "stages": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "presets": {
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "HookPreview": {
+        "properties": {
+          "api_family": {
+            "type": "string"
+          },
+          "call": {
+            "properties": {
+              "body": {},
+              "body_bytes": {
+                "type": "integer"
+              },
+              "headers": {
+                "type": "object"
+              },
+              "method": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "HookPreviewRequest": {
+        "properties": {
+          "api_family": {
+            "type": "string"
+          },
+          "hook": {
+            "$ref": "#/components/schemas/ControlsHooks"
+          },
+          "sample_body": {
+            "description": "Client body to use instead of the family's sample."
+          }
+        },
+        "required": [
+          "hook"
+        ],
+        "type": "object"
+      },
+      "HookStats": {
+        "properties": {
+          "breaker_open": {
+            "type": "boolean"
+          },
+          "export": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "HookTestRequest": {
+        "properties": {
+          "api_family": {
+            "type": "string"
+          },
+          "sample_body": {}
+        },
+        "type": "object"
+      },
+      "HookTestResult": {
+        "properties": {
+          "api_family": {
+            "type": "string"
+          },
+          "decision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "http_status": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "latency_ms": {
+            "type": "number"
+          },
+          "metadata": {},
+          "ok": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stage": {
+            "type": "string"
+          },
+          "user_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
         "type": "object"
       },
       "IncidentAction": {
@@ -34797,6 +37078,1390 @@
         ]
       }
     },
+    "/llmgateway/management/v1/controls/hooks": {
+      "get": {
+        "description": "Every managed hook with its ETag, then the console policy rules of the same kind as read-only rows (source console, policy, rule_index, view). Console rows cannot be written here (409 rule_not_api_managed). Paginated (limit, cursor bound to the revision) and filtered by source, app, requested_model, mode and references.",
+        "operationId": "List_hooks",
+        "parameters": [
+          {
+            "description": "Page size.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor of the previous page; bound to the revision (409 collection_changed when the policy changed).",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only managed resources or only console rows.",
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "enum": [
+                "managed",
+                "console"
+              ]
+            }
+          },
+          {
+            "description": "Rows that can apply to this app (rows scoped only by smart group, user or tag are kept). app_name is a deprecated alias.",
+            "example": "support-bot",
+            "in": "query",
+            "name": "app",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Rows that can apply to this requested model. model is a deprecated alias.",
+            "example": "smart",
+            "in": "query",
+            "name": "requested_model",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Rows with this mode (routes: active, observe, disabled; limits: enforce, alert, paused).",
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "<provider_label> or <provider_label>/<model>: rows that name it, following destination and failover-profile refs (adds references [paths]).",
+            "example": "azure-eu/gpt-4.1",
+            "in": "query",
+            "name": "references",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "etag": "\"r13\"",
+                  "items": [
+                    {
+                      "description": "ACME prompt policy check",
+                      "endpoint": {
+                        "headers": [
+                          {
+                            "name": "X-Api-Key",
+                            "value": "{{secret.api_key}}"
+                          },
+                          {
+                            "name": "X-Agent",
+                            "omit_if_empty": true,
+                            "value": "{{client.agent.name}}"
+                          }
+                        ],
+                        "on_failure": "allow",
+                        "signing": {
+                          "secret": "hmac_key"
+                        },
+                        "timeout_ms": 1500,
+                        "url": "https://guard.example.com/v1/check?app={{app.name}}"
+                      },
+                      "etag": "\"r13-acme-guard-1a2b3c4d\"",
+                      "id": "acme-guard",
+                      "match": {
+                        "api_families": [
+                          "openai.chat_completions",
+                          "anthropic.messages"
+                        ]
+                      },
+                      "mode": "observe",
+                      "scope": {
+                        "apps": [
+                          "support-bot"
+                        ]
+                      },
+                      "secrets": {
+                        "api_key": "********",
+                        "hmac_key": "********"
+                      },
+                      "send": {
+                        "preset": "standard",
+                        "request_headers": [
+                          "user-agent",
+                          "x-team-id"
+                        ]
+                      },
+                      "source": "managed",
+                      "stage": "pre_call"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "req_example",
+                  "revision": 13
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsHooksList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List hooks",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/controls/hooks/field-catalog": {
+      "get": {
+        "description": "Every field a hook can request, with its type, the stages it is available at, whether it is sensitive, whether it fits a header or URL slot and the presets that include it, plus the fields of each preset per stage. stage narrows the list to one stage.",
+        "operationId": "List_hook_fields",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "fields": [
+                    {
+                      "description": "Caller email.",
+                      "path": "user.email",
+                      "path_safe": false,
+                      "presets": [
+                        "standard",
+                        "full_export"
+                      ],
+                      "sensitive": true,
+                      "single_value": true,
+                      "stages": [
+                        "pre_call",
+                        "on_complete"
+                      ],
+                      "type": "string"
+                    }
+                  ],
+                  "presets": {
+                    "standard": {
+                      "pre_call": [
+                        "user.email",
+                        "app.name"
+                      ]
+                    }
+                  },
+                  "request_id": "req_example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookFieldCatalog"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List the fields a hook can send",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/controls/hooks/preview": {
+      "post": {
+        "description": "Validates a draft hook and renders the exact HTTP call it would make for a sample request of the chosen API family, with secrets masked. Nothing is saved or sent. Limited to 10 previews and tests per minute.",
+        "operationId": "Preview_a_hook_call",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "api_family": "openai.chat_completions",
+                "hook": {
+                  "description": "ACME prompt policy check",
+                  "endpoint": {
+                    "headers": [
+                      {
+                        "name": "X-Api-Key",
+                        "value": "{{secret.api_key}}"
+                      },
+                      {
+                        "name": "X-Agent",
+                        "omit_if_empty": true,
+                        "value": "{{client.agent.name}}"
+                      }
+                    ],
+                    "on_failure": "allow",
+                    "signing": {
+                      "secret": "hmac_key"
+                    },
+                    "timeout_ms": 1500,
+                    "url": "https://guard.example.com/v1/check?app={{app.name}}"
+                  },
+                  "match": {
+                    "api_families": [
+                      "openai.chat_completions",
+                      "anthropic.messages"
+                    ]
+                  },
+                  "mode": "observe",
+                  "scope": {
+                    "apps": [
+                      "support-bot"
+                    ]
+                  },
+                  "secrets": {
+                    "api_key": "sk_live_example",
+                    "hmac_key": "whsec_example"
+                  },
+                  "send": {
+                    "preset": "standard",
+                    "request_headers": [
+                      "user-agent",
+                      "x-team-id"
+                    ]
+                  },
+                  "stage": "pre_call"
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/HookPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "api_family": "openai.chat_completions",
+                  "call": {
+                    "body": {
+                      "request_id": "req_sample"
+                    },
+                    "body_bytes": 30,
+                    "headers": {
+                      "Content-Type": "application/json",
+                      "X-Api-Key": "********"
+                    },
+                    "method": "POST",
+                    "url": "https://guard.example.com/v1/check?app=support-bot"
+                  },
+                  "fields": [
+                    "app.name",
+                    "user.email"
+                  ],
+                  "request_id": "req_example",
+                  "stage": "pre_call",
+                  "warnings": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookPreview"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Preview the call a hook would make",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/controls/hooks/{resource_id}": {
+      "delete": {
+        "description": "Removes the hook; refused while other controls reference it. If-Match is required.",
+        "operationId": "Delete_hook",
+        "parameters": [
+          {
+            "description": "Client-chosen control ID, ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ (console rules read as console:<policy>:<rule_index>).",
+            "example": "eu-pool",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Preview: spec and policy diff, diagnostics, warnings, would_publish and impact; nothing is saved.",
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Resource ETag \"r<revision>-<id>-<hash8>\" from the latest read, or the collection ETag \"r<revision>\". Required to change or delete an existing resource (428 when missing, 412 when stale); an unrelated publish does not invalidate it.",
+            "example": "\"r12-eu-pool-1a2b3c4d\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body returns the original result, including after a crash once the revision was published. Optional on PUT, PATCH and DELETE.",
+            "example": "eu-routing-change-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "deleted": true,
+                  "id": "acme-guard",
+                  "propagation": {
+                    "poll_seconds": 10,
+                    "session_pins": "kept",
+                    "status": "/controls/revisions/13/status"
+                  },
+                  "request_id": "req_example",
+                  "revision": 14,
+                  "warnings": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsWriteResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Delete a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
+        ]
+      },
+      "get": {
+        "description": "One hook and its ETag.",
+        "operationId": "Read_hook",
+        "parameters": [
+          {
+            "description": "Client-chosen control ID, ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ (console rules read as console:<policy>:<rule_index>).",
+            "example": "eu-pool",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "etag": "\"r13-acme-guard-1a2b3c4d\"",
+                  "request_id": "req_example",
+                  "resource": {
+                    "description": "ACME prompt policy check",
+                    "endpoint": {
+                      "headers": [
+                        {
+                          "name": "X-Api-Key",
+                          "value": "{{secret.api_key}}"
+                        },
+                        {
+                          "name": "X-Agent",
+                          "omit_if_empty": true,
+                          "value": "{{client.agent.name}}"
+                        }
+                      ],
+                      "on_failure": "allow",
+                      "signing": {
+                        "secret": "hmac_key"
+                      },
+                      "timeout_ms": 1500,
+                      "url": "https://guard.example.com/v1/check?app={{app.name}}"
+                    },
+                    "etag": "\"r13-acme-guard-1a2b3c4d\"",
+                    "id": "acme-guard",
+                    "match": {
+                      "api_families": [
+                        "openai.chat_completions",
+                        "anthropic.messages"
+                      ]
+                    },
+                    "mode": "observe",
+                    "scope": {
+                      "apps": [
+                        "support-bot"
+                      ]
+                    },
+                    "secrets": {
+                      "api_key": "********",
+                      "hmac_key": "********"
+                    },
+                    "send": {
+                      "preset": "standard",
+                      "request_headers": [
+                        "user-agent",
+                        "x-team-id"
+                      ]
+                    },
+                    "source": "managed",
+                    "stage": "pre_call"
+                  },
+                  "revision": 13
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsHooksItem"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "patch": {
+        "description": "JSON merge patch of the hook (null removes a field); the result is validated as a whole. If-Match is required. Writes publish one policy revision. A PUT whose content equals the stored resource returns changed false and publishes nothing.",
+        "operationId": "Update_hook",
+        "parameters": [
+          {
+            "description": "Client-chosen control ID, ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ (console rules read as console:<policy>:<rule_index>).",
+            "example": "eu-pool",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Preview: spec and policy diff, diagnostics, warnings, would_publish and impact; nothing is saved.",
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Resource ETag \"r<revision>-<id>-<hash8>\" from the latest read, or the collection ETag \"r<revision>\". Required to change or delete an existing resource (428 when missing, 412 when stale); an unrelated publish does not invalidate it.",
+            "example": "\"r12-eu-pool-1a2b3c4d\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body returns the original result, including after a crash once the revision was published. Optional on PUT, PATCH and DELETE.",
+            "example": "eu-routing-change-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlsHooksPatch"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "etag": "\"r13-acme-guard-1a2b3c4d\"",
+                  "impact": {
+                    "apps": [
+                      "support-bot"
+                    ],
+                    "models": [],
+                    "routes": []
+                  },
+                  "operation_id": "op_example",
+                  "propagation": {
+                    "poll_seconds": 10,
+                    "session_pins": "kept",
+                    "status": "/controls/revisions/13/status"
+                  },
+                  "request_id": "req_example",
+                  "resource": {
+                    "description": "ACME prompt policy check",
+                    "endpoint": {
+                      "headers": [
+                        {
+                          "name": "X-Api-Key",
+                          "value": "{{secret.api_key}}"
+                        },
+                        {
+                          "name": "X-Agent",
+                          "omit_if_empty": true,
+                          "value": "{{client.agent.name}}"
+                        }
+                      ],
+                      "on_failure": "allow",
+                      "signing": {
+                        "secret": "hmac_key"
+                      },
+                      "timeout_ms": 1500,
+                      "url": "https://guard.example.com/v1/check?app={{app.name}}"
+                    },
+                    "etag": "\"r13-acme-guard-1a2b3c4d\"",
+                    "id": "acme-guard",
+                    "match": {
+                      "api_families": [
+                        "openai.chat_completions",
+                        "anthropic.messages"
+                      ]
+                    },
+                    "mode": "observe",
+                    "scope": {
+                      "apps": [
+                        "support-bot"
+                      ]
+                    },
+                    "secrets": {
+                      "api_key": "********",
+                      "hmac_key": "********"
+                    },
+                    "send": {
+                      "preset": "standard",
+                      "request_headers": [
+                        "user-agent",
+                        "x-team-id"
+                      ]
+                    },
+                    "source": "managed",
+                    "stage": "pre_call"
+                  },
+                  "revision": 13,
+                  "warnings": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsWriteResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Update a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
+        ]
+      },
+      "put": {
+        "description": "Creates (201) or replaces (200) the hook. Changing an existing one needs If-Match; If-None-Match: * creates only. Writes publish one policy revision. A PUT whose content equals the stored resource returns changed false and publishes nothing.",
+        "operationId": "Set_hook",
+        "parameters": [
+          {
+            "description": "Client-chosen control ID, ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ (console rules read as console:<policy>:<rule_index>).",
+            "example": "eu-pool",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Preview: spec and policy diff, diagnostics, warnings, would_publish and impact; nothing is saved.",
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Resource ETag \"r<revision>-<id>-<hash8>\" from the latest read, or the collection ETag \"r<revision>\". Required to change or delete an existing resource (428 when missing, 412 when stale); an unrelated publish does not invalidate it.",
+            "example": "\"r12-eu-pool-1a2b3c4d\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body returns the original result, including after a crash once the revision was published. Optional on PUT, PATCH and DELETE.",
+            "example": "eu-routing-change-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Create only: 412 when the resource exists with different content.",
+            "in": "header",
+            "name": "If-None-Match",
+            "required": false,
+            "schema": {
+              "const": "*"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "description": "ACME prompt policy check",
+                "endpoint": {
+                  "headers": [
+                    {
+                      "name": "X-Api-Key",
+                      "value": "{{secret.api_key}}"
+                    },
+                    {
+                      "name": "X-Agent",
+                      "omit_if_empty": true,
+                      "value": "{{client.agent.name}}"
+                    }
+                  ],
+                  "on_failure": "allow",
+                  "signing": {
+                    "secret": "hmac_key"
+                  },
+                  "timeout_ms": 1500,
+                  "url": "https://guard.example.com/v1/check?app={{app.name}}"
+                },
+                "match": {
+                  "api_families": [
+                    "openai.chat_completions",
+                    "anthropic.messages"
+                  ]
+                },
+                "mode": "observe",
+                "scope": {
+                  "apps": [
+                    "support-bot"
+                  ]
+                },
+                "secrets": {
+                  "api_key": "sk_live_example",
+                  "hmac_key": "whsec_example"
+                },
+                "send": {
+                  "preset": "standard",
+                  "request_headers": [
+                    "user-agent",
+                    "x-team-id"
+                  ]
+                },
+                "stage": "pre_call"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ControlsHooks"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsWriteResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "etag": "\"r13-acme-guard-1a2b3c4d\"",
+                  "impact": {
+                    "apps": [
+                      "support-bot"
+                    ],
+                    "models": [],
+                    "routes": []
+                  },
+                  "operation_id": "op_example",
+                  "propagation": {
+                    "poll_seconds": 10,
+                    "session_pins": "kept",
+                    "status": "/controls/revisions/13/status"
+                  },
+                  "request_id": "req_example",
+                  "resource": {
+                    "description": "ACME prompt policy check",
+                    "endpoint": {
+                      "headers": [
+                        {
+                          "name": "X-Api-Key",
+                          "value": "{{secret.api_key}}"
+                        },
+                        {
+                          "name": "X-Agent",
+                          "omit_if_empty": true,
+                          "value": "{{client.agent.name}}"
+                        }
+                      ],
+                      "on_failure": "allow",
+                      "signing": {
+                        "secret": "hmac_key"
+                      },
+                      "timeout_ms": 1500,
+                      "url": "https://guard.example.com/v1/check?app={{app.name}}"
+                    },
+                    "etag": "\"r13-acme-guard-1a2b3c4d\"",
+                    "id": "acme-guard",
+                    "match": {
+                      "api_families": [
+                        "openai.chat_completions",
+                        "anthropic.messages"
+                      ]
+                    },
+                    "mode": "observe",
+                    "scope": {
+                      "apps": [
+                        "support-bot"
+                      ]
+                    },
+                    "secrets": {
+                      "api_key": "********",
+                      "hmac_key": "********"
+                    },
+                    "send": {
+                      "preset": "standard",
+                      "request_headers": [
+                        "user-agent",
+                        "x-team-id"
+                      ]
+                    },
+                    "source": "managed",
+                    "stage": "pre_call"
+                  },
+                  "revision": 13,
+                  "warnings": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ControlsWriteResponse"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Create or replace a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/controls/hooks/{resource_id}/stats": {
+      "get": {
+        "description": "This server's view of one hook: whether its circuit breaker is open and, for on_complete hooks, the export queue (queued records and bytes, delivered, dropped, failed batches, last error and last success).",
+        "operationId": "Read_hook_stats",
+        "parameters": [
+          {
+            "description": "Client-chosen control ID, ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ (console rules read as console:<policy>:<rule_index>).",
+            "example": "eu-pool",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "breaker_open": false,
+                  "export": null,
+                  "id": "acme-guard",
+                  "request_id": "req_example",
+                  "scope": "node",
+                  "stage": "pre_call"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookStats"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read hook delivery stats",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/controls/hooks/{resource_id}/test": {
+      "post": {
+        "description": "Sends one sample call with the saved hook to your endpoint and returns the HTTP status, latency and the parsed decision (pre_call) or whether the batch was accepted (on_complete). Limited to 10 previews and tests per minute.",
+        "operationId": "Test_a_hook",
+        "parameters": [
+          {
+            "description": "Client-chosen control ID, ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ (console rules read as console:<policy>:<rule_index>).",
+            "example": "eu-pool",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "api_family": "openai.chat_completions"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/HookTestRequest"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "api_family": "openai.chat_completions",
+                  "decision": "allow",
+                  "error_code": null,
+                  "http_status": 200,
+                  "labels": [],
+                  "latency_ms": 84.2,
+                  "metadata": {},
+                  "ok": true,
+                  "reason": null,
+                  "request_id": "req_example",
+                  "stage": "pre_call",
+                  "user_message": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookTestResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Send a test call with a saved hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
+        ]
+      }
+    },
     "/llmgateway/management/v1/controls/limit-exemptions": {
       "get": {
         "description": "Every managed limit exemption with its ETag, then the console policy rules of the same kind as read-only rows (source console, policy, rule_index, view). Console rows cannot be written here (409 rule_not_api_managed). Paginated (limit, cursor bound to the revision) and filtered by source, app, requested_model, mode and references.",
@@ -49077,6 +52742,10 @@
       "name": "Limits"
     },
     {
+      "description": "External hooks call your own HTTPS API on gateway traffic: pre_call and post_call hooks can allow, flag or block a request before the model call or a non-streaming response before it is returned; on_complete hooks export finished requests in batches.",
+      "name": "Hooks"
+    },
+    {
       "description": "Read-only catalogs referenced by app settings: smart groups and custom detection definitions.",
       "name": "Catalogs"
     },
@@ -49096,8 +52765,10 @@
     "config:write": "Change app settings, attachments, prompts; roll back and recover app writes.",
     "credentials:read": "Reveal the secret of an active gateway key.",
     "credentials:write": "Issue, change expiry of and revoke gateway keys.",
+    "hooks:write": "Create, change, delete and test external hooks that call your own HTTPS API on gateway traffic (each write publishes a policy revision; reading hooks needs read).",
     "incidents:read": "Read incident mark-downs and incident propagation status (read or incidents:write also allow these reads).",
     "incidents:write": "Mark providers down for an incident, preview the impact, restore them, reset cooldowns and drop session pins (tenant-wide, never a policy revision).",
+    "keys:write": "Issue personal API keys on a person's behalf, rename them, change their expiry and revoke them (reading them needs read).",
     "limits:grant": "Issue and revoke temporary rate limit raises.",
     "limits:read": "Read rate limits, request guards, model limits, exemptions, limit responses, live usage, grants and effective limits.",
     "limits:write": "Change rate limits, request guards, model limits, exemptions and limit responses, and migrate legacy limits (each write publishes a policy revision).",

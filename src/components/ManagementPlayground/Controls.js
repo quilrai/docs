@@ -89,7 +89,8 @@ const FILTERS = [
  * One managed-controls collection: filtered list, a detail read, and writes
  * that open in the API explorer with the ETag and a dry run already set.
  *
- * config: { title, subtitle, path, columns, routing, quickOps(resource) => [[label, method, suffix, body]] }
+ * config: { title, subtitle, path, columns, routing, quickOps(resource) => [[label, method, suffix, body]],
+ *           editableBody(resource) => body for Replace (default: editableBody) }
  */
 export function ControlCollection({ config, extra }) {
   const { client } = usePlayground();
@@ -209,7 +210,7 @@ export function ControlCollection({ config, extra }) {
                         pathParams: { resource_id: selected.id },
                         query: writeQuery,
                         headers: { 'If-Match': etag },
-                        body: editableBody(resource),
+                        body: (config.editableBody || editableBody)(resource),
                       })
                     }
                   >

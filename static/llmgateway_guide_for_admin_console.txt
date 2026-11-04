@@ -125,9 +125,14 @@ TASK -> WHERE
 - Log export key -> card Copy logs key; all apps: header "..." > Copy all-apps log key
 - Management API keys -> Management API tab > "Allow management keys for this organization" switch
   (off = every key suspended), then "Issue a management key": Key name*, Expiry, Scopes (Read, Configure apps,
-  Manage providers, Issue app keys, Reveal app keys, Read budgets, Manage budget grants, Configure budgets)
+  Manage providers, Issue app keys, Reveal app keys, Read budgets, Manage budget grants, Configure budgets,
+  Read routing, Manage routing, Manage routing constraints, Read limits, Manage limits, Grant limit raises,
+  Read incidents, Manage incidents, Manage hooks, Manage personal keys)
   > Issue key. Table: Name, Scopes, Status, Created, Expires, Last used, Actions. The key value is shown once.
   Try the key from the browser: https://docs.quilrai.dev/llm-gateway-management-playground
+- External hooks (your own API called on gateway traffic) -> Management API tab > "Configured hooks": read-only
+  list of each hook's stage, mode, scope and destination. Create and change hooks only through the Management
+  API (scope hooks:write): https://docs.quilrai.dev/llm-gateway/api-reference/hooks-api
 - Quilr-provided models / model API keys -> Settings > Models: tabs Models | API keys | Usage | Playground
   (/settings/models/models, /settings/models/api-keys). Models tab sources: "QuilrAI provided models" |
   "Your models"; Search models, Sort by price. API keys > Create API key (shown once).
@@ -254,4 +259,5 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/monitor/app-audit-log.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/management-api.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/budgets-api.md
+- https://docs.quilrai.dev/llm-gateway/api-reference/hooks-api.md
 - Policy Engine: https://docs.quilrai.dev/console/govern/policy-engine.md

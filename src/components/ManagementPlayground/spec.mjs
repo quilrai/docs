@@ -23,6 +23,7 @@ const DEFAULT_TAG_ORDER = [
   'Routing',
   'Limits',
   'Incidents',
+  'Hooks',
   'Catalogs',
   'History',
   'Administration',
@@ -76,6 +77,7 @@ const SUBGROUP_LABELS = {
   limits: 'Effective limits',
   'mark-downs': 'Mark-downs',
   incidents: 'Incident actions and status',
+  hooks: 'Hooks',
 };
 
 /**

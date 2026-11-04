@@ -46,6 +46,7 @@ import {
   ArrowLeftRight,
   EyeOff,
   HeartPulse,
+  Webhook,
 } from "lucide-react";
 
 const iconMap = {
@@ -95,6 +96,7 @@ const iconMap = {
   ArrowLeftRight,
   EyeOff,
   HeartPulse,
+  Webhook,
 };
 
 export function getSidebarIcon(name) {
