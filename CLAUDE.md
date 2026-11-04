@@ -37,7 +37,7 @@ Read this before touching anything. This is the QuilrAI documentation site. It i
 
    Check a draft with `node scripts/check-doc-frontmatter.js <file>`; `npm run check-frontmatter` lists what existing pages still miss (older pages are not blocked until they are re-added). Videos come from `src/data/videos.json` (`docs` links and `questions`; give every new video 2-4 `questions`). A bad `console_path` / `aliases` value or a video linking to a missing page fails the build. `static/api/v1/openapi.json` documents the index; update it when the index shape changes. Cursor rule: `.cursor/rules/docs-frontmatter.mdc`.
 
-10. **Do not publish console environment URLs.** Show menu paths for console navigation and **Updated on <date>** for review metadata. Required gateway/API integration endpoints remain. Use synthetic identities in text and older screenshots unless the owner explicitly approved that particular session. Keep audit evidence, private review reports, and raw capture manifests outside `docs/` and `static/`. After building, run `npm run check-public-content`; both deployment workflows enforce it. The synced SOP must pass the same check, with source fixes made in installdocs (rule 8).
+10. **Do not publish console environment URLs.** Show menu paths for console navigation and **Updated on <date>** for review metadata. Required gateway/API integration endpoints remain. Use synthetic identities in text and older screenshots unless the owner explicitly approved that particular session. Keep audit evidence, private review reports, and raw capture manifests outside `docs/` and `static/`. After building, run `npm run check-public-content`; both deployment workflows enforce it. The synced installation SOP (`build/sop/`) is excluded from this check at the owner's request. SOP content is maintained in installdocs (rule 8).
 
 ---
 
@@ -103,7 +103,7 @@ npm run serve        # serve the built site locally
 npm run check-icons  # validate all sidebar icons (subset of pre-commit)
 npm run check-frontmatter  # list docs-index frontmatter (description, console_path, aliases) existing pages miss; new pages are blocked by pre-commit
 npm run check-redirects  # after a build: every old URL redirect lands on an existing page and #section
-npm run check-public-content  # after a build: no console URLs, identifying SOP examples or private audit files
+npm run check-public-content  # after a build: no console URLs or private audit files; installation SOP excluded
 npm run sync-sop     # pull the Deployment SOP from quilrai/installdocs into static/sop/ (also runs before start/build)
 ./replace-em-dashes.sh   # strip em dashes from docs/**/*.md
 ```
