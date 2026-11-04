@@ -270,7 +270,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/ocr \
 | Topic | Behavior |
 |-------|----------|
 | Documents | Azure cannot fetch URLs. Send `document_url` or `image_url` as a base64 `data:` URI. Any other URL returns `400 ocr_document_url_unsupported` before the request is counted or sent. Azure's own size and page limits apply. |
-| Model check | Model validation confirms that an OCR deployment exists on the OCR route without running OCR. It recognizes deployments listed by **Check key and list models**, and names that start with `mistral-document-ai` or `mistral-ocr`. Unknown deployments return Azure's `404 DeploymentNotFound`. |
+| Model check | Model validation confirms that an OCR deployment exists on the OCR route without running OCR, under any deployment name: the gateway asks the resource which model the deployment runs. Unknown deployments return Azure's `404 DeploymentNotFound`. |
 | Usage accounting | OCR counts requests, like the other [endpoint families](../api-reference/endpoint-families). |
 | Guardrails | OCR runs no guardrails and no failover, like the other endpoint families. |
 
