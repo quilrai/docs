@@ -120,6 +120,7 @@ A hook is one resource under `/controls/hooks/{id}`. This hook checks every Chat
 | --- | --- |
 | `stage` | `pre_call`, `post_call` or `on_complete`. Required. |
 | `mode` | `enforce` (default) or `observe`. `pre_call` and `post_call` only. |
+| `stream_mode` | `post_call` only: `skip` (the default and only value). Streaming requests never run `post_call` hooks. |
 | `enabled` | `true` (default) or `false`. A disabled hook stays saved and never runs. |
 | `description` | Up to 500 characters. |
 | `scope` | `apps`, `app_tags`, `smart_groups`, `users`. Every non-empty list must match; empty lists do not restrict. |
@@ -270,6 +271,8 @@ The Quilr envelope of a `pre_call` call:
 
 - `body` is the client's body exactly as it was received, before any Quilr redaction. A body that is not JSON (some Bedrock InvokeModel bodies) is base64 text with `"body_encoding": "base64"`.
 - `body_omitted` is `null` when the body is included, `"not_requested"` with `send.body: "none"`, or `"too_large"` when it exceeded `send.max_body_bytes`.
+- `response_body` (`post_call` and `on_complete` with `send.response_body: true`) is the response exactly as it is sent to the client. A response that is not JSON is base64 text with `"response_body_encoding": "base64"`.
+- `response_body_omitted` is `null` when the response body is included, `"not_requested"`, `"too_large"`, or `"stream"` (streaming responses never carry a body).
 - `request_headers` is present only when `send.request_headers` is set.
 - `metadata` holds the selected fields, nested by their dotted path. A field with no value is `null`, never invented.
 
@@ -282,18 +285,18 @@ The Quilr envelope of a `pre_call` call:
 | `preset` | `minimal`, `standard` (default), `full_export` or `empty`. |
 | `include` | Extra fields: exact paths, or `prefix.*` for every non-sensitive field under a prefix (for example `user.*`). |
 | `exclude` | Fields to drop from the preset, exact or `prefix.*`. |
-| `body` | `as_received` (default for call hooks) or `none` (default for `on_complete`). |
-| `response_body` | `true` to also send the response body. `post_call` and `on_complete`, non-streaming requests only. Default `false`. |
+| `body` | `as_received` (default for `pre_call` and `post_call`) or `none` (default for `on_complete`). |
+| `response_body` | Send the response the client receives. `post_call` (default `true`) and `on_complete` (default `false`); non-streaming requests only. |
 | `request_headers` | Client headers to forward (see [Client headers](#client-headers)). |
-| `max_body_bytes` | Largest body sent, 1 KB to 4 MB (default 1 MB). |
+| `max_body_bytes` | Largest body sent, 1 KB to 4 MB (default 1 MB). Applies to the request body and the response body separately. |
 | `on_oversize` | When the body is larger: `send_without_body` (default; `body_omitted: "too_large"`), `skip_hook` (the hook does not run; call hooks) or `apply_on_failure` (the hook's `on_failure` applies; call hooks). |
 
 - **`minimal`** sends `request_id`, `api_family`, `stream`, `user.email`, `app.name`, `model.requested` and `model.target`.
-- **`standard`** adds the identity, client agent, Smart Group, app, provider and request fields, and the outcome, usage, cost and latency fields at `on_complete`.
-- **`full_export`** sends every non-sensitive field available at the stage.
+- **`standard`** adds the identity, client agent, Smart Group, app, provider and request fields, Quilr's findings (`quilr.status`, `quilr.categories`, `quilr.action` and their response versions) and `budgets`, and the outcome, usage, cost and latency fields at the stages that have them.
+- **`full_export`** sends every non-sensitive field available at the stage, including `client.headers` and `failover`.
 - **`empty`** sends no fields, for a hook that needs only the body or its own template.
 
-**Sensitive fields** (`client.ip`, `identity.jwt_claims`, `quilr.entities`) are never part of a preset or a `prefix.*` pattern. Name them by exact path in `include` to send them. Fields used in the URL, headers or a body template are added to the selection automatically. `GET /controls/hooks/field-catalog?stage=` lists every field with its type, stages, presets and whether it is sensitive.
+**Sensitive fields** (`client.ip`, `identity.jwt_claims`, `quilr.entities`, `quilr.response_entities`) are never part of a preset or a `prefix.*` pattern. Name them by exact path in `include` to send them. Fields used in the URL, headers or a body template are added to the selection automatically. `GET /controls/hooks/field-catalog?stage=` lists every field with its type, stages, presets and whether it is sensitive.
 
 ### Field catalog
 
@@ -317,28 +320,33 @@ The Quilr envelope of a `pre_call` call:
 | `smart_groups.names`, `smart_groups.all` | list | all | Every Smart Group the user belongs to, as names or `{name, display_name}`. |
 | `app.name`, `app.display_name` | string | all | The app's key name (what scopes use) and console name. |
 | `app.key_id`, `app.tags` | string, list | all | Id of the credential presented, and the app's tags. |
-| `model.requested`, `model.target` | string | all | Model the client asked for, and the model selected by routing (at `on_complete`, the model that served it). |
+| `model.requested`, `model.target` | string | all | Model the client asked for, and the model selected by routing (at `post_call` and `on_complete`, the model that served it). |
 | `provider.name`, `provider.label` | string | all | Provider and provider label of the selected target. |
 | `request.metadata` | object | all | Request metadata the client sent. |
 | `request.token_estimate` | number | all | The gateway's estimate of input tokens. |
 | `policy.revision` | number | all | Policy revision serving the request. |
 | `key.self_service` | object | all | Personal key id and name, when the request used one. |
 | `identity.jwt_claims` | object | all | Captured identity-token claims. **Sensitive.** |
-| `quilr.status` | string | all | Whether Quilr's checks ran: `ran`, `not_run` or `not_run_cache_hit`. |
-| `quilr.categories` | list | all | Categories Quilr's request checks detected. |
-| `quilr.action` | string | all | The action Quilr's checks took. |
-| `quilr.entities` | list | all | Sensitive data entities Quilr detected. **Sensitive.** |
-| `quilr.response_categories` | list | `post_call`, `on_complete` | Categories Quilr's response checks detected. |
-| `budgets` | list | all | Budgets that apply, each `{id, name, metric, window, limit, used, remaining}`. |
-| `outcome.status` | number | `on_complete` | HTTP status returned to the client. |
+| `quilr.status` | string | all | Whether Quilr's request checks ran: `ran`, `not_run`, or `not_run_cache_hit` (a response-cache hit skips them). |
+| `quilr.categories` | list | all | Category ids Quilr detected in the request, for example `["data_risk_category_pii"]`. `null` when `quilr.status` is not `ran`. |
+| `quilr.action` | string | all | What Quilr did with the request: `Allow`, `Block_Prompt`, `Anonymize_Prompt`, or `failed` (findings in monitor-only categories). `null` when the checks did not run. |
+| `quilr.entities` | list | all | Detected values in the request, `[{category, subcategory, value, offsets}]` (`subcategory` and `offsets` when known), at most 200. **Sensitive.** |
+| `budgets` | list | all | Budgets that matched at admission: `[{id, name, metric, window, limit, used, remaining, unit}]`. See below. `null` when no budget matched. |
+| `quilr.response_status` | string | `post_call`, `on_complete` | Whether Quilr's response checks ran (same values as `quilr.status`). |
+| `quilr.response_categories` | list | `post_call`, `on_complete` | Category ids Quilr detected in the response. |
+| `quilr.response_action` | string | `post_call`, `on_complete` | What Quilr did with the response (same values as `quilr.action`). |
+| `quilr.response_entities` | list | `post_call`, `on_complete` | Detected values in the response (same shape as `quilr.entities`). **Sensitive.** |
+| `outcome.status` | number | `post_call`, `on_complete` | HTTP status returned to the client (at `post_call`, of the response about to be returned). |
 | `outcome.error_type` | string | `on_complete` | Error type, when the request failed or was blocked. |
 | `outcome.blocked_by` | string | `on_complete` | `quilr`, `hook`, `gateway` or `provider`; `null` when not blocked. |
-| `usage` | object | `on_complete` | `input_tokens`, `output_tokens`, `source` and a breakdown. |
+| `usage` | object | `post_call`, `on_complete` | `input_tokens`, `output_tokens`, `source` and a breakdown. |
 | `cost` | object | `on_complete` | Priced cost (`null` when unpriced). |
 | `latency_ms.total`, `latency_ms.first_response` | number | `on_complete` | Total gateway latency and time to the first response byte. |
-| `cache_hit` | boolean | `on_complete` | Served from the response cache. |
+| `cache_hit` | boolean | `post_call`, `on_complete` | Served from the response cache. |
 | `failover` | object | `on_complete` | Failover attempts and outcome. |
-| `hooks` | list | `on_complete` | Results of this request's call hooks. |
+| `hooks` | list | `on_complete` | Results of this request's `pre_call` and `post_call` hooks. |
+
+**`budgets`**: `metric` is `spend`, `tokens` or `requests`; spend is in USD with `unit: "usd"`. `used` includes this request's own admission charge, and `used` and `remaining` are `null` when admission was deferred. At `on_complete` it is the snapshot taken at admission.
 
 A field used at a stage that does not have it is `422 field_not_available_at_stage`; an unknown path is `422 unknown_field`.
 
@@ -413,7 +421,7 @@ The client gets `403` with code `external_hook_blocked`, the hook id and the req
 | Gemini generateContent | `{"error": {"code": 403, "message": "...", "status": "PERMISSION_DENIED", "details": [{"@type": "type.googleapis.com/google.rpc.ErrorInfo", "reason": "external_hook_blocked", "domain": "quilr.ai", "metadata": {"hook": "acme-guard", "request_id": "req_8f2c"}}]}}` |
 | Bedrock Converse, InvokeModel | `{"message": "...", "code": "external_hook_blocked", "hook": "acme-guard", "request_id": "req_8f2c"}` with `x-amzn-ErrorType: AccessDeniedException` |
 
-`message` is your `user_message`. A `pre_call` block stops the request before the model call, so no tokens are used. A `post_call` block replaces a response the model already produced: those tokens are used and counted.
+`message` is your `user_message`. A `pre_call` block stops the request before the model call, so no tokens are used. A `post_call` block replaces a response the model already produced: those tokens are used and billed.
 
 ## Timeouts and failures
 
@@ -442,7 +450,7 @@ An `on_complete` hook delivers one record per finished request to `export.url`, 
     "batch_size": 200,
     "flush_ms": 5000
   },
-  "send": {"preset": "standard", "include": ["quilr.*"]}
+  "send": {"preset": "standard"}
 }
 ```
 
@@ -486,7 +494,7 @@ Your endpoint receives a `POST` with `{"records": [...]}`. Each record is the Qu
 - **Delivery:** any `2xx` within 30 seconds delivers the batch. Each batch is tried up to 3 times with the same `Idempotency-Key`, so deduplicate on it.
 - **While your endpoint is down:** after a batch fails all its tries, the hook is unhealthy. The gateway keeps only the latest 100 records for it and sends one probe batch every 30 seconds; when one succeeds, normal delivery resumes.
 - **Retention:** at most 50,000 records or 256 MB are queued per hook on each gateway server; the oldest are dropped first. Deleting a hook drops its queued records.
-- **Bodies:** set `send.body: "as_received"` to include the request body, and `send.response_body: true` to include the response body of non-streaming requests.
+- **Bodies:** set `send.body: "as_received"` to include the request body, and `send.response_body: true` to include the response body of non-streaming requests (`response_body_omitted: "stream"` for streams).
 - `GET /controls/hooks/{id}/stats` shows the queue on the server that answers: `healthy`, `queued`, `queued_bytes`, `delivered`, `dropped`, `failed_batches`, `last_error` and `last_success`.
 
 ## Security
@@ -544,7 +552,8 @@ A test result:
 | Status | Code | Meaning |
 | --- | --- | --- |
 | 422 | `hook_scope_required` | An empty `scope` needs `all_apps: true`. |
-| 422 | `hook_limit` | More than 3 enabled enforcing `pre_call` hooks. Set extra ones to `observe`. |
+| 422 | `hook_limit` | More than 3 enabled enforcing hooks on one stage (`pre_call` and `post_call` count separately). Set extra ones to `observe`. |
+| 422 | `too_many_resources` | More than 10 hooks in the organization. |
 | 422 | `unknown_field` | A field path is not in the field catalog. |
 | 422 | `field_not_available_at_stage` | The field is not available at the hook's stage (for example `usage` at `pre_call`). |
 | 422 | `list_field_not_allowed_here` | A list or object field was used in a header, the URL or a string. Use `{"$value": ...}` in a body template. |
@@ -569,7 +578,7 @@ Writes also return the usual control errors (`412 version_conflict`, `428 precon
 | Limit | Value |
 | --- | --- |
 | Hooks per organization | 10 |
-| Enabled enforcing `pre_call` hooks | 3 (observe-mode and disabled hooks do not count) |
+| Enabled enforcing hooks | 3 for `pre_call` and 3 for `post_call` (observe-mode and disabled hooks do not count) |
 | Call timeout | 100 to 10000 ms, default 1500 |
 | Secrets | 10 per hook, 4096 characters each |
 | URL | 2048 characters |

@@ -6627,7 +6627,7 @@
       },
       "ControlsHooks": {
         "additionalProperties": false,
-        "description": "External hooks call your own HTTPS API on gateway traffic. A pre_call hook runs after Quilr's checks and before the model call; a post_call hook runs after Quilr's response checks, before a non-streaming response is returned. Both can allow, flag or block (observe mode logs without enforcing). An on_complete hook exports finished requests in batches. You choose the fields sent, the method, URL, headers, auth and signing, the body shape and how the reply maps to a decision. Secrets are write-only.",
+        "description": "External hooks call your own HTTPS API on gateway traffic. A pre_call hook runs after Quilr's checks and before the model call and can allow, flag or block the request (observe mode logs without enforcing). A post_call hook runs on the final non-streaming response (after Quilr's response checks, before it is cached or returned) and can allow, flag or block it; streaming requests skip it. An on_complete hook exports finished requests in batches. You choose the fields sent, the method, URL, headers, auth and signing, the body shape and how the reply maps to a decision. Secrets are write-only.",
         "example": {
           "description": "ACME prompt policy check",
           "endpoint": {
@@ -6688,7 +6688,7 @@
             "type": "boolean"
           },
           "endpoint": {
-            "description": "pre_call and post_call only.",
+            "description": "pre_call and post_call.",
             "properties": {
               "auth": {
                 "properties": {
@@ -7114,8 +7114,7 @@
                 "type": "array"
               },
               "response_body": {
-                "default": false,
-                "description": "post_call and on_complete: also send the response body of non-streaming requests (template: {\"$raw\": \"response_body\"}).",
+                "description": "post_call (default true) and on_complete (default false) only: send the response the client receives, as delivered (quilr envelope key response_body, or {\"$raw\": \"response_body\"} in a template). Non-streaming requests only; streams carry response_body_omitted: \"stream\".",
                 "type": "boolean"
               }
             },
@@ -7126,6 +7125,13 @@
               "pre_call",
               "post_call",
               "on_complete"
+            ]
+          },
+          "stream_mode": {
+            "default": "skip",
+            "description": "post_call only. Streaming requests never run post_call hooks (buffering a stream is a later phase).",
+            "enum": [
+              "skip"
             ]
           }
         },
@@ -7226,7 +7232,7 @@
           "endpoint": {
             "anyOf": [
               {
-                "description": "pre_call and post_call only.",
+                "description": "pre_call and post_call.",
                 "properties": {
                   "auth": {
                     "anyOf": [
@@ -8192,9 +8198,15 @@
                     ]
                   },
                   "response_body": {
-                    "default": false,
-                    "description": "post_call and on_complete: also send the response body of non-streaming requests (template: {\"$raw\": \"response_body\"}).",
-                    "type": "boolean"
+                    "anyOf": [
+                      {
+                        "description": "post_call (default true) and on_complete (default false) only: send the response the client receives, as delivered (quilr envelope key response_body, or {\"$raw\": \"response_body\"} in a template). Non-streaming requests only; streams carry response_body_omitted: \"stream\".",
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "type": "object"
@@ -8209,7 +8221,22 @@
               {
                 "enum": [
                   "pre_call",
+                  "post_call",
                   "on_complete"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stream_mode": {
+            "anyOf": [
+              {
+                "default": "skip",
+                "description": "post_call only. Streaming requests never run post_call hooks (buffering a stream is a later phase).",
+                "enum": [
+                  "skip"
                 ]
               },
               {
@@ -8236,7 +8263,7 @@
             "type": "boolean"
           },
           "endpoint": {
-            "description": "pre_call and post_call only.",
+            "description": "pre_call and post_call.",
             "properties": {
               "auth": {
                 "properties": {
@@ -8686,8 +8713,7 @@
                 "type": "array"
               },
               "response_body": {
-                "default": false,
-                "description": "post_call and on_complete: also send the response body of non-streaming requests (template: {\"$raw\": \"response_body\"}).",
+                "description": "post_call (default true) and on_complete (default false) only: send the response the client receives, as delivered (quilr envelope key response_body, or {\"$raw\": \"response_body\"} in a template). Non-streaming requests only; streams carry response_body_omitted: \"stream\".",
                 "type": "boolean"
               }
             },
@@ -8704,6 +8730,13 @@
               "pre_call",
               "post_call",
               "on_complete"
+            ]
+          },
+          "stream_mode": {
+            "default": "skip",
+            "description": "post_call only. Streaming requests never run post_call hooks (buffering a stream is a later phase).",
+            "enum": [
+              "skip"
             ]
           },
           "view": {
@@ -14103,6 +14136,9 @@
           },
           "sample_body": {
             "description": "Client body to use instead of the family's sample."
+          },
+          "sample_response_body": {
+            "description": "Response body to use instead of the family's sample (post_call / on_complete with send.response_body)."
           }
         },
         "required": [
@@ -14113,7 +14149,11 @@
       "HookStats": {
         "properties": {
           "breaker_open": {
-            "type": "boolean"
+            "description": "Across this server's processes; null when the breaker state cannot be read.",
+            "type": [
+              "boolean",
+              "null"
+            ]
           },
           "export": {
             "type": [
@@ -14138,7 +14178,8 @@
           "api_family": {
             "type": "string"
           },
-          "sample_body": {}
+          "sample_body": {},
+          "sample_response_body": {}
         },
         "type": "object"
       },
@@ -37297,6 +37338,7 @@
                       "single_value": true,
                       "stages": [
                         "pre_call",
+                        "post_call",
                         "on_complete"
                       ],
                       "type": "string"
@@ -38269,7 +38311,7 @@
     },
     "/llmgateway/management/v1/controls/hooks/{resource_id}/stats": {
       "get": {
-        "description": "This server's view of one hook: whether its circuit breaker is open and, for on_complete hooks, the export queue (queued records and bytes, delivered, dropped, failed batches, last error and last success).",
+        "description": "This server's view of one hook: whether its circuit breaker (shared by the server's processes) is open and, for on_complete hooks, the export queue (queued records and bytes, delivered, dropped, failed batches, last error and last success).",
         "operationId": "Read_hook_stats",
         "parameters": [
           {
@@ -38354,7 +38396,7 @@
     },
     "/llmgateway/management/v1/controls/hooks/{resource_id}/test": {
       "post": {
-        "description": "Sends one sample call with the saved hook to your endpoint and returns the HTTP status, latency and the parsed decision (pre_call) or whether the batch was accepted (on_complete). Limited to 10 previews and tests per minute.",
+        "description": "Sends one sample call with the saved hook to your endpoint and returns the HTTP status, latency and the parsed decision (pre_call, post_call) or whether the batch was accepted (on_complete). post_call and on_complete samples use sample_response_body (or the family's sample). Limited to 10 previews and tests per minute.",
         "operationId": "Test_a_hook",
         "parameters": [
           {
@@ -52742,7 +52784,7 @@
       "name": "Limits"
     },
     {
-      "description": "External hooks call your own HTTPS API on gateway traffic: pre_call and post_call hooks can allow, flag or block a request before the model call or a non-streaming response before it is returned; on_complete hooks export finished requests in batches.",
+      "description": "External hooks call your own HTTPS API on gateway traffic: pre_call hooks can allow, flag or block a request before the model call; post_call hooks can allow, flag or block the final non-streaming response; on_complete hooks export finished requests in batches.",
       "name": "Hooks"
     },
     {
