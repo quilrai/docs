@@ -98,16 +98,16 @@ export const products = [
     icon: 'Target',
     sub: 'Attack your own AI before others do',
     tagline:
-      'Test gateway apps, agents, models and MCP servers against real attack techniques, then fix what breaks with hardened prompts and new detections.',
+      'Test gateway apps, agents, AI workflows and models against real attack techniques, then fix what breaks.',
     shot: '/img/products/red-teaming.jpg',
     shotCaption: 'Console › Assessments › Red Teaming',
-    primary: {label: 'LLM Intelligence Assessment', to: '/red-teaming/assessments/llm-intelligence-assessment'},
+    primary: {label: 'Get started', to: '/red-teaming/get-started/overview'},
     consolePath: 'Assessments > Red Teaming',
     tasks: [
-      {title: 'Assess a gateway app', desc: "Run suites against the app's configured model through the gateway", to: '/red-teaming/assessments/llm-intelligence-assessment'},
-      {title: 'Vet an MCP server', desc: 'Static, dependency and live tool-surface scan', to: '/red-teaming/assessments/mcp-threat-detection'},
-      {title: 'Red team an agent', desc: 'Attack any HTTP, WebSocket, or voice agent endpoint', to: '/red-teaming/assessments/agentic-red-teaming'},
-      {title: 'Compare models', desc: 'Run the same attacks on 2 to 8 models', to: '/red-teaming/assessments/model-red-teaming'},
+      {title: 'Red team a gateway app', desc: 'Test an app or agent already behind the Quilr LLM Gateway', to: '/red-teaming/configure-and-run/gateway-connected'},
+      {title: 'Red team an AI workflow', desc: 'Hide attacks in documents, images or data records', to: '/red-teaming/configure-and-run/ai-workflow'},
+      {title: 'Red team an agent', desc: 'Attack any HTTP, WebSocket, or voice agent endpoint', to: '/red-teaming/configure-and-run/agent'},
+      {title: 'Compare models', desc: 'Run the same attacks on 2 to 8 models', to: '/red-teaming/configure-and-run/model'},
     ],
   },
   {

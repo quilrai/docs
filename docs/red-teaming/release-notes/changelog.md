@@ -82,7 +82,7 @@ What changed in Red Teaming, newest first.
 - Detect reads how the API signs callers in (its sign-in challenge, OpenAPI security schemes, OAuth and OpenID Connect metadata) and pre-fills the most likely method, saying where it came from. Methods it can't use, such as NTLM, AWS request signing or SSO, show a warning instead
 - New sign-in methods: API key in a header or the query string, HTTP Basic, and a sign-in form that keeps its session cookie, with optional anti-CSRF token support
 - Discovery only reads from the host you pasted, with at most 30 requests in 45 seconds, and sends one test message to the endpoint it picks
-- Details: [Connect your agent](../assessments/agentic-red-teaming#01-connect-your-agent)
+- Details: [Connect your agent](../configure-and-run/agent#step-1-target)
 
 ## Pass rate by framework on the run page (2026-10-29)
 
@@ -91,7 +91,7 @@ What changed in Red Teaming, newest first.
 - The panel header shows how many test cases passed out of the total, for example **Tests passed 12/14**
 - The line under each ring shows how much of the framework the run reached, for example **7 / 18 techniques tested**. A **Quick scan** reaches less than the **Full library**
 - Framework cards use the same icon tiles as the **New assessment** cards
-- Details: [Reading a report](../get-started/reading-a-report)
+- Details: [Reading a report](../results-and-reports/full-report)
 
 ## AI Workflow assessments (2026-10-29)
 

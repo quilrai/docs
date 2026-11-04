@@ -142,6 +142,38 @@ const config = {
             {
                 redirects: [
                     ...movedPageRedirects,
+{
+    from: ['/red-teaming/assessments/agentic-red-teaming'],
+    to: '/red-teaming/configure-and-run/agent',
+},
+{
+    from: ['/red-teaming/assessments/model-red-teaming'],
+    to: '/red-teaming/configure-and-run/model',
+},
+{
+    from: ['/red-teaming/assessments/llm-intelligence-assessment'],
+    to: '/red-teaming/configure-and-run/examples',
+},
+{
+    from: ['/red-teaming/assessments/mcp-threat-detection'],
+    to: '/red-teaming/configure-and-run/mcp-threat-detection',
+},
+{
+    from: ['/red-teaming/get-started/reading-a-report'],
+    to: '/red-teaming/results-and-reports/full-report',
+},
+{
+    from: ['/red-teaming/operate/runs-findings-and-schedules'],
+    to: '/red-teaming/results-and-reports/assessments-overview',
+},
+{
+    from: ['/red-teaming/operate/attack-library'],
+    to: '/red-teaming/reference/attack-library',
+},
+{
+    from: ['/red-teaming/operate/turn-findings-into-detections'],
+    to: '/red-teaming/results-and-reports/full-report',
+},
                     {
                         from: [
                             '/llm-gateway/openai-to-bedrock',
