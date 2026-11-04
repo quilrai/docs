@@ -1849,6 +1849,216 @@
   border-color: var(--docs-dark-border);
 }
 
+.sdkAttachments {
+  margin: 0.9rem;
+  padding: 0.9rem;
+  border: 1px solid var(--docs-light-border);
+  border-radius: 0.65rem;
+  background: var(--docs-light-surface-raised);
+}
+
+.sdkAttachmentHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.sdkAttachmentHeader h3,
+.sdkAttachmentCoverage h3 {
+  margin: 0;
+  font-size: 0.87rem;
+}
+
+.sdkAttachmentHeader p,
+.sdkAttachmentHelp,
+.sdkAttachmentFormats {
+  margin: 0.4rem 0 0;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.sdkAttachButton {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: 0.4rem;
+  color: var(--ifm-color-primary);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sdkAttachButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.sdkFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sdkAttachButton:focus-visible,
+.sdkAttachmentFormats summary:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 3px;
+}
+
+.sdkUploadList {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+}
+
+.sdkUploadList li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--docs-light-border);
+}
+
+.sdkUploadList li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.sdkUploadList strong,
+.sdkUploadList small {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.75rem;
+}
+
+.sdkUploadList small {
+  margin-top: 0.15rem;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.69rem;
+}
+
+.sdkAttachmentError {
+  color: #b42318;
+  margin: 0.6rem 0;
+  font-size: 0.78rem;
+}
+
+.sdkAttachmentFormats summary {
+  color: var(--ifm-color-primary);
+  cursor: pointer;
+}
+
+.sdkAttachmentFormats p {
+  margin: 0.5rem 0;
+}
+
+.sdkAttachmentCoverage {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+}
+
+.sdkAttachmentCoverage[data-coverage='warning'] {
+  color: #b45309;
+}
+
+.sdkAttachmentCoverage[data-coverage='complete'] {
+  color: var(--ifm-color-primary);
+}
+
+.sdkAttachmentCoverage > span {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+.sdkScanItems {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.75rem;
+}
+
+.sdkScanItem {
+  padding: 0.8rem;
+  border: 1px solid var(--docs-light-border);
+  border-radius: 0.5rem;
+}
+
+.sdkScanItemTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.sdkScanItemTitle span {
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.69rem;
+}
+
+.sdkAttachmentPath {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--ifm-color-content-secondary);
+  overflow-wrap: anywhere;
+  font-size: 0.67rem;
+}
+
+.sdkScanFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 0.65rem;
+  margin: 0.8rem 0;
+}
+
+.sdkScanFacts dt {
+  margin: 0 0 0.15rem;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.68rem;
+  font-weight: normal;
+}
+
+.sdkScanFacts dd,
+.sdkAttachmentFindings {
+  margin: 0;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+:global([data-theme='dark']) .sdkAttachments,
+:global([data-theme='dark']) .sdkUploadList li,
+:global([data-theme='dark']) .sdkScanItem {
+  border-color: var(--docs-dark-border);
+}
+
+:global([data-theme='dark']) .sdkAttachments {
+  background: var(--docs-dark-surface-raised);
+}
+
+:global([data-theme='dark']) .sdkAttachmentError {
+  color: #fda29b;
+}
+
+:global([data-theme='dark']) .sdkAttachmentCoverage[data-coverage='warning'] {
+  color: #fbbf24;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────── */
 
 @media (max-width: 1200px) {
