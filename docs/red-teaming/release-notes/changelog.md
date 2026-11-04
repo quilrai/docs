@@ -10,6 +10,13 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## MCP scans can sign in to the server (2026-11-04)
+
+- A live MCP scan can now sign in the same ways an agent assessment can: bearer token, API key (in a header or query parameter), username and password, OAuth client credentials, a login that returns a token, or a sign-in form's session cookie. Choose the method under **Sign-in** when you scan a live server. Credentials are used for that scan only and are never stored
+- Add an optional **Access level**, such as "Read-only analyst", to say what the credentials should be allowed to do. The scan flags tools that go beyond it, such as write or delete tools a read-only account can reach
+- When the scan signs in, it also checks that the server turns away a request with no credentials and one with a made-up credential. The report's new **Sign-in** section shows each result, and a server that accepts either gets a finding
+- When a server turns the scan away, the report now says the server requires sign-in or refused the credentials, and lists how the server signs callers in, instead of showing a generic error
+
 ## Model scans say when a model was rate limited (2026-11-04)
 
 - When a model from the QuilrAI catalog is rate limited during a scan, each affected test now says the model was rate limited instead of showing a generic error
