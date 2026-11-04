@@ -4,7 +4,7 @@ sidebar_label: "SDK mode"
 sidebar_custom_props:
   badge: new
   icon: Wrench
-description: "Use standalone SDK endpoints to check text, messages or JSON for sensitive data, or optimize text with caller-selected token-saving methods."
+description: "Check text, messages, JSON and request attachments without proxying an LLM call, or optimize text with caller-selected token-saving methods."
 ---
 
 # SDK Mode
@@ -15,11 +15,17 @@ Check content and optimize text directly from your application code - no LLM pro
 
 SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages, text, or structured JSON for sensitive data and adversarial inputs.
 
+Request checks can also inspect inline images and documents using the same [attachment scanning](../protect/attachment-scanning) settings as proxied model requests. This includes document text, OCR and enabled Image Risks. Your application applies the returned allow, redact or block decision before continuing.
+
+:::note Gateway availability
+SDK attachment checks require a gateway deployment that includes this feature. Older deployments can return a successful text check without inspecting attached file content. Inspect the returned attachment coverage as well as the overall action.
+:::
+
 For text optimization, use the separate [`POST /sdk/v1/token-savings`](./sdk-token-savings) endpoint. Select any of seven token-saving methods and receive the final text plus savings estimates. Its deterministic output helps keep repeated prompt content hash stable and cache friendly when you apply it consistently.
 
 | SDK endpoint | Use it to | Input |
 |---|---|---|
-| `POST /sdk/v1/check` | Detect, redact or block content | Text, messages or JSON |
+| `POST /sdk/v1/check` | Detect, redact or block content | Text, messages or JSON; inline images and documents on request checks |
 | [`POST /sdk/v1/token-savings`](./sdk-token-savings) | Optimize text with explicit method selection | Text only |
 
 To test a key before integrating it into your app, open the [LLM Gateway Playground](/llm-gateway-playground) and select **Quilr SDK**, then **Guardrail check** or **Token savings**. For checks, choose **Text**, **Messages**, or **JSON** and select the check type and hashing mode. For token savings, enter text and select your methods. Both operations generate matching cURL, Python and JavaScript.
@@ -54,7 +60,9 @@ Three input formats are supported. Send one content field: `messages`, `text`, o
 
 ### Messages (conversation)
 
-Send an OpenAI-style conversation. Request checks select recent user messages according to your key settings. A final assistant message, or `type: "response"`, checks the last message as response text and returns the text response shape. The `type` field is optional.
+Send an OpenAI-style conversation. Request checks select recent user messages for message-text detection according to your key settings. Attachment discovery also includes supported files in the supplied conversation history.
+
+Set `type: "request"` or `"response"` explicitly. The explicit value wins over message roles. Without it, a final assistant message selects a response check and returns the text response shape; otherwise the messages are checked as a request.
 
 ```json
 {
@@ -77,6 +85,50 @@ Use this to check a single piece of text. Set `type: "request"` for input checks
   "type": "request"
 }
 ```
+
+### Images and documents (request checks)
+
+Set `type: "request"` and send the file bytes inline. For a conversation, put image and file blocks inside a message's `content` array. Text is optional: an image-only or document-only message is valid.
+
+```json
+{
+  "type": "request",
+  "messages": [{
+    "role": "user",
+    "content": [
+      {"type": "text", "text": "Inspect these attachments."},
+      {
+        "type": "image_url",
+        "image_url": {"url": "data:image/png;base64,<BASE64_IMAGE_BYTES>"}
+      },
+      {
+        "type": "file",
+        "file": {
+          "filename": "sample.pdf",
+          "file_data": "data:application/pdf;base64,<BASE64_PDF_BYTES>"
+        }
+      }
+    ]
+  }]
+}
+```
+
+Replace the placeholders with standard base64 of each original file's bytes. Recognized image/file fields can also carry bare base64. Anthropic-style `image` and `document` blocks with a base64 `source` are accepted, along with the gateway's other supported inline content blocks.
+
+The SDK uses the same attachment discovery as normal gateway requests. Data URLs embedded in message strings, text content parts, HTML and tool-result text are inspected too, including wrapped base64. For a single string, use request-side `text`:
+
+```json
+{
+  "type": "request",
+  "text": "Inspect <img src=\"data:image/png;base64,<BASE64_IMAGE_BYTES>\">"
+}
+```
+
+A bare base64 string in ordinary text is treated as text, not inferred to be an image. Remote URLs and provider file IDs are not fetched. The request still needs `messages` or `text`; a standalone attachment array is not a fourth input format.
+
+Enable **Scan attachments** in the SDK app's **Attachments** settings, or the equivalent published Policy Engine control. OCR and document text use the enabled request-side text detections. Visual classification also needs **Classify images** and at least one enabled **Image Risks** type. See [supported files and coverage](../protect/attachment-scanning#content-the-gateway-can-read).
+
+This protection is request-side only. Response checks do not scan generated images or documents, and explicit `json` input remains a check of JSON values rather than an attachment envelope.
 
 ### JSON (structured content)
 
@@ -110,18 +162,18 @@ A detected entity can match occurrences in multiple values, including under diff
 
 | Field | Type | Behavior |
 |-------|------|----------|
-| `messages` | Array of messages | Conversation input. Use one content field per request. |
-| `text` | String | Raw text input. |
+| `messages` | Array of messages | Conversation input, including supported inline image/file blocks and embedded data URLs on request checks. Use one primary content field per request. |
+| `text` | String | Raw text input. With `type: "request"`, supported embedded data URLs also reach attachment scanning. |
 | `json` | Any JSON value | Structured input. Cannot be combined with `text` or `messages`, even if those fields are `null`. |
-| `type` | `"request"` or `"response"` | Selects check scopes. JSON defaults to request; raw text defaults to response. Messages ending in an assistant message use response checks. Set this explicitly in integrations. |
+| `type` | `"request"` or `"response"` | Explicit direction takes precedence over message roles. Without it, JSON defaults to request, raw text defaults to response, and messages ending in an assistant message use response checks. |
 | `hashing_mode` | `"case_sensitive"` or `"case_insensitive"` | Optional; defaults to `"case_sensitive"`. Controls placeholder hashes in every input format. |
 | `metadata` | JSON metadata | Optional caller metadata stored with the SDK check. |
 
 ## Response
 
 Completed checks return HTTP 200, including content blocked by guardrails. Authentication, validation, and policy-access errors use non-2xx responses. The response shape depends on the input and check type.
-Use `action` for application control flow, and use `predictions` to inspect what
-the guardrail found.
+Use `action` for application control flow. Message-text and JSON findings appear
+in `predictions`; attachment findings and scan coverage appear in `attachments`.
 
 ### Messages response
 
@@ -216,6 +268,29 @@ the guardrail found.
 - `predictions` - rule-level details, including exact `sensitive_entities` and
   `entity_texts_with_subcategories`
 - `error` - only present when `status` is `blocked`
+
+### Attachment results
+
+When request attachments are recognized, the response adds `attachments` with `scanned`, `summary` and `items`. This describes file coverage and findings separately from message-text `predictions`. It contains metadata, not the file bytes or extracted text. The paths below are relative to `attachments`.
+
+| Field | How to use it |
+|---|---|
+| `scanned` | `false` when attachment scanning was disabled. `true` means the attachment pipeline ran; inspect each item's coverage too. |
+| `summary.incomplete_count` | Number of files whose requested scan could not finish. An allowed request can still have incomplete coverage. |
+| `items[].id`, `items[].path`, `items[].kind` | Identify the attachment and its location in your input. |
+| `items[].status`, `items[].reason`, `items[].stages_run`, `items[].ocr_used` | Describe whether the file was scanned, skipped, unreadable or incomplete, and which stages ran. |
+| `items[].data_types`, `items[].image_labels` | The detected attachment text types and visual image categories. |
+| `items[].action`, `items[].stripped`, `items[].incomplete`, `items[].unscannable` | The per-file action and coverage flags. |
+
+Monitor keeps the original inline content. Redact or Partial redact removes the whole affected attachment, rather than editing its pixels or document contents. The returned `messages`, `processed_text` and applicable placeholder view reflect that removal. An attachment-only removal still produces `status: "redacted"`, `action: "redact"`, even if the surrounding message text is unchanged.
+
+Attachment blocks, including file type and configured limit blocks, use the existing HTTP 200 SDK verdict: `status: "blocked"`, `action: "block"` and an `error` with the attachment code. Do not forward content after a block. Attachment errors do not appear as text entity placeholders.
+
+The SDK also recognizes the gateway's supported media in request extension fields. When an attachment is outside the primary `messages` or `text` field, the response adds `processed_body`: the complete sanitized input body, with primary text redactions applied too. It is `null` on a block. Use that body to retain rewritten extension fields; replacing only `messages` would not apply a removal elsewhere in the input.
+
+:::note Check coverage, not just HTTP 200
+Scanner errors, timeouts and unfinished scans fail open. They can return `action: "allow"` while the attachment metadata reports incomplete coverage. An unreadable-file policy is a separate control. Check the per-file status and flags, and see [Actions and unreadable files](../protect/attachment-scanning#actions-and-unreadable-files).
+:::
 
 ### JSON response
 
@@ -345,6 +420,51 @@ Check the HTTP status before reading a check result. Validation errors use an `e
 ## Code Examples
 
 The examples use US East (`guardrails-usa-2.quilr.ai`); replace it with your region's host from the [integration guide](../get-started/integration-guide#region).
+
+### Image and PDF request check - Python
+
+This sends local file bytes directly to the SDK check. It does not make a model call. Configure the SDK app's attachment protections and data types before testing.
+
+```python
+import base64
+import os
+from pathlib import Path
+
+import requests
+
+def file_data_url(path, mime):
+    encoded = base64.b64encode(Path(path).read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+response = requests.post(
+    "https://guardrails-usa-2.quilr.ai/sdk/v1/check",
+    headers={"Authorization": f"Bearer {os.environ['QUILR_SDK_API_KEY']}"},
+    json={
+        "type": "request",
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "image_url", "image_url": {
+                    "url": file_data_url("sample.png", "image/png"),
+                }},
+                {"type": "file", "file": {
+                    "filename": "sample.pdf",
+                    "file_data": file_data_url("sample.pdf", "application/pdf"),
+                }},
+            ],
+        }],
+    },
+    timeout=60,
+)
+response.raise_for_status()
+check = response.json()
+print(check.get("attachments"))
+if check["action"] == "block":
+    raise RuntimeError(check["error"]["message"])
+checked_messages = check["messages"]  # Use these, not the original messages.
+```
+
+For a proxied model request with the same image/file blocks, see [Send images and documents](../get-started/integration-guide#send-images-and-documents).
 
 ### Structured JSON - Python
 

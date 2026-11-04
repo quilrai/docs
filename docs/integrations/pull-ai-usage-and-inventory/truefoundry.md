@@ -183,13 +183,17 @@ Completed policy outcomes return HTTP 200:
 | Redact or partial-redact | `true` | `true` | `result` contains the complete modified request or response. |
 | Block | `false` | `false` | `message` explains the denial; `result` is omitted. |
 
-TrueFoundry consumes these fields. The native SDK's `predictions`, `placeholder_masking`, and original-content fields are not part of this response. Use QuilrAI logs to inspect findings.
+TrueFoundry consumes these fields. The native SDK's `predictions`, `placeholder_masking`, and original-content fields are not part of this response. Checks with request attachments also return `attachments` coverage metadata; use it and QuilrAI logs to inspect attachment findings and incomplete scans.
 
 ### Content coverage
 
 Input checks scan supported text across all messages supplied by TrueFoundry, including system, developer, user, assistant, and tool messages. Output checks scan every response choice. Text/refusal parts and function/tool-call arguments are supported. JSON function arguments are scanned and redacted by value while preserving keys and structure; invalid JSON arguments are scanned as text. Tool IDs and names are preserved.
 
-Embedded images use the QuilrAI app's image-scanning settings and request/response scopes. Image scanning must be enabled separately, and requires a deployment with OCR available. Remote image URLs are never fetched. When image redaction applies, the affected attachment is removed. Audio/file parts, custom tool-call types, and streaming delta bodies are unsupported. This endpoint supports LLM Chat Completions hooks; it does not implement TrueFoundry MCP pre/post-tool hooks.
+On deployments with SDK attachment support, **input checks** inspect supported inline images and documents in `requestBody` using the same [attachment scanning](../../llm-gateway/protect/attachment-scanning) settings as other SDK request checks. Data URLs embedded in text and HTML are discovered too. Enable attachment scanning and the required text or Image Risks data types. OCR reads image text; visual classification is a separate protection and also requires **Classify images**. Both need a deployment where their scanning stages are available.
+
+When an attachment is removed, `result` contains the complete rewritten request and `transformed` is `true`. A block returns `verdict: false` with no `result`. Remote URLs and provider file IDs are not fetched. Output checks do not scan generated images or documents.
+
+Other content parts, custom tool-call types and extension fields pass through. They are not rejected solely because the text checker does not understand them; text and attachment coverage is limited to recognized content. Audio and video content are not scanned. Supply complete hook request/response bodies rather than streaming deltas. This endpoint supports LLM Chat Completions hooks; it does not implement TrueFoundry MCP pre/post-tool hooks.
 
 ### Identity and failures
 

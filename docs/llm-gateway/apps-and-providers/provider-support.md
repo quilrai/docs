@@ -774,7 +774,7 @@ For apps linked to [platform providers](./providers-and-models), the label is th
 
 ## SDK
 
-`/sdk/v1/check` scans text, messages or JSON for guardrail findings without calling any LLM. Create an app with the `quilr_sdk` provider. Install with `pip install quilrai` or `npm install quilrai`. See [SDK Mode](./sdk-mode), or try it in the [LLM Gateway Playground](/llm-gateway-playground).
+`/sdk/v1/check` scans text, messages or JSON for guardrail findings without calling any LLM. On gateway deployments with SDK attachment support, request checks also inspect inline images, documents and data URLs embedded in text using the app's [attachment protections](../protect/attachment-scanning). Create an app with the `quilr_sdk` provider. Install with `pip install quilrai` or `npm install quilrai`. See [SDK Mode](./sdk-mode#images-and-documents-request-checks), or try it in the [LLM Gateway Playground](/llm-gateway-playground).
 
 ## Microsoft Copilot Studio
 
