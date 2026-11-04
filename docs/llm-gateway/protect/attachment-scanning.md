@@ -97,12 +97,34 @@ Files resent in conversation history still count toward size limits and remain s
 | Office documents | DOCX, DOC, XLSX, XLS, PPTX and PPT. |
 | OpenDocument | ODT, ODS and ODP. |
 | Other text documents | RTF, HTML, EML, plain text, CSV, JSON and code files. EML includes message headers and text parts; documents nested inside an email are not fully extracted. |
-| Raster images | PNG, JPEG, WebP, GIF, BMP and TIFF for OCR and enabled visual image checks. Animated or multi-image files use the first frame or image, including GIF, animated WebP and multi-page TIFF. Icon and cursor assets are skipped; small avatars may also be skipped. |
-| SVG | Text elements can be extracted. SVGs are not checked by image classification. |
+| Raster images | PNG, JPEG, WebP, GIF, BMP and TIFF support OCR and enabled visual image checks. See [Supported image formats](#supported-image-formats) for coverage and exclusions. |
+| SVG | Markup text only. The drawing and embedded images are not read by OCR or checked by Image Risks. |
 
 Audio, video, archives and unknown binary formats are not content-scanned. Their file-type controls still let you allow, remove or block them. Allowing a type does not make its content readable.
 
-HEIC, HEIF and AVIF can be recognized as images but cannot be decoded for OCR or image classification. When a requested scan needs to decode them, they follow the configured unreadable-file action rather than receiving a successful content scan.
+### Supported image formats {#supported-image-formats}
+
+OCR reads text visible in an image. Image Risks classifies its visual content. These are separate checks: attachment scanning must be on, OCR requires enabled text detections, and image classification requires **Classify images** plus at least one enabled **Image Risks** type.
+
+| Image format | OCR of visible text | Image Risks classification | Coverage |
+|---|---|---|---|
+| **PNG** (`.png`) | Supported | Supported | Attached raster image. |
+| **JPEG** (`.jpg`, `.jpeg`) | Supported | Supported | Attached raster image. |
+| **WebP** (`.webp`) | Supported | Supported | First frame only for animated WebP. |
+| **GIF** (`.gif`) | Supported | Supported | First frame only; later animation frames are not scanned. |
+| **BMP** (`.bmp`) | Supported | Supported | Attached raster image. |
+| **TIFF** (`.tif`, `.tiff`) | Supported | Supported | First image only; later pages in a multi-page TIFF are not scanned. |
+| **SVG** (`.svg`) | Not supported | Not supported | With document text extraction on, text in the SVG markup can be extracted and checked by enabled text detections. The drawing is not rendered. |
+| **HEIC, HEIF and AVIF** (`.heic`, `.heif`, `.avif`) | Not supported | Not supported | Can be recognized as images, but cannot be decoded for these checks. |
+| **Icons and cursors** (`.ico`, `.cur`) | Skipped | Skipped | Content scanning is skipped. |
+
+The format is detected from file content, not just its extension or declared type. Supported formats remain subject to scan settings, size and pixel limits, and scanner availability. Very small images may be skipped.
+
+:::note SVG text extraction does not scan the picture
+SVG support is limited to text stored in the markup, such as text elements, titles and descriptions. It does **not** OCR text drawn as shapes, classify the rendered artwork, or inspect raster images embedded inside the SVG. An SVG containing a payment-card photo or a weapons illustration can therefore produce no Image Risks finding. A completed SVG text scan does not establish that its visual content was checked.
+:::
+
+When a requested scan needs to decode HEIC, HEIF or AVIF, the file follows the configured unreadable-file action rather than receiving a successful content scan.
 
 ### How attachments are recognized
 
@@ -150,7 +172,7 @@ These are writing systems, rather than a guarantee for every language or image. 
 
 Each image type can use its own action or inherit the Image Risks category action. Start with **Monitor** to review findings before choosing **Strip** or **Block**. Classification describes visible content; it does not verify a person's identity, authenticate a document, or make a medical diagnosis.
 
-Image classification applies to attached raster images. It does not inspect images embedded inside a PDF or Office document. OCR can still read scanned PDF pages. Image quality, cropping and small content can affect what is detected.
+Image classification applies only to the attached raster formats listed in [Supported image formats](#supported-image-formats). It does not inspect SVG drawings, images embedded inside SVGs, or images embedded inside a PDF or Office document. OCR can still read scanned PDF pages. Image quality, cropping and small content can affect what is detected.
 
 ### Quick configurations {#quick-configurations}
 
