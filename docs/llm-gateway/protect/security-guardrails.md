@@ -231,7 +231,7 @@ Hallucination scoring and source IP restrictions have their own controls: [Hallu
 
 ## Endpoint coverage {#endpoint-coverage}
 
-The table below describes the text guardrails. [Attachment scanning](./attachment-scanning#coverage-and-availability) adds request-file protection on supported conversational surfaces and SDK Mode when enabled; it does not scan model-generated files.
+The table below describes the text guardrails. [Attachment scanning](./attachment-scanning#coverage-and-availability) adds request-file protection on supported conversational surfaces and request-side SDK text/messages checks when enabled and available on the deployment. This includes supported data URLs embedded in text; it does not scan model-generated files. SDK callers should inspect [attachment results and coverage](../apps-and-providers/sdk-mode#attachment-results), separately from message-text predictions.
 
 | Surface | Request | Response |
 |---------|---------|----------|
