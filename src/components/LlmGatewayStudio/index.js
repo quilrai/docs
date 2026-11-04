@@ -28,6 +28,8 @@ import {
   Volume2,
 } from 'lucide-react';
 import styles from './styles.module.css';
+import { SdkAttachmentResults, SdkAttachmentUploads } from './SdkAttachments.js';
+import { buildSdkCheckPayload, compactSdkMedia, formatSdkSafeContent, sdkMayContainAttachments, sdkUploadModeError } from './sdkAttachments.mjs';
 
 /* ────────────────────────────────── Config ─────────────────────────── */
 
@@ -789,13 +791,10 @@ function parseSdkContent(content, inputFormat) {
 }
 
 function getSdkSafeText(result) {
-  if (!result || result.action === 'block' || result.status === 'blocked') return null;
-  if (Object.prototype.hasOwnProperty.call(result, 'processed_json')) return formatJson(result.processed_json);
-  if (Array.isArray(result.messages)) return formatJson(result.messages);
-  return result.processed_text ?? null;
+  return formatSdkSafeContent(result);
 }
 
-function getSdkVerdict(result) {
+function getSdkVerdict(result, expectsAttachments = false) {
   const action = result?.action ?? result?.status;
   if (action === 'block' || result?.status === 'blocked') {
     return { tone: 'error', label: 'Block', Icon: ShieldAlert, hint: 'Stop the flow and return your own safe fallback.' };
@@ -803,7 +802,7 @@ function getSdkVerdict(result) {
   if (action === 'redact' || result?.status === 'redacted') {
     return { tone: 'redacted', label: 'Redact', Icon: AlertTriangle, hint: 'Use the returned redacted content instead of the original.' };
   }
-  return { tone: 'ok', label: 'Allow', Icon: CheckCircle2, hint: 'Forward the original content unchanged.' };
+  return { tone: 'ok', label: 'Allow', Icon: CheckCircle2, hint: result?.attachments || expectsAttachments ? 'The request is allowed. Review attachment coverage below; allowed does not mean fully scanned.' : 'Forward the original content unchanged.' };
 }
 
 /* Code snippet builders */
@@ -1105,14 +1104,18 @@ response = requests.post(
 response.raise_for_status()
 judgement = response.json()
 
-if judgement.get("action") == "block":
+if judgement.get("action") == "block" or judgement.get("status") == "blocked":
     raise ValueError(f"Blocked: {judgement.get('categories_detected', [])}")
-if "processed_json" in judgement:
+if "processed_body" in judgement:
+    safe = judgement["processed_body"]
+elif "processed_json" in judgement:
     safe = judgement["processed_json"]
 elif "messages" in judgement:
     safe = judgement["messages"]
 else:
     safe = judgement["processed_text"]
+# Attachment coverage is separate from the allow/redact/block decision.
+attachments = judgement.get("attachments")
 `;
 }
 
@@ -1129,12 +1132,16 @@ const response = await fetch(url, {
 if (!response.ok) throw new Error(\`Check failed \${response.status}\`);
 
 const judgement = await response.json();
-if (judgement.action === "block") {
+if (judgement.action === "block" || judgement.status === "blocked") {
   throw new Error(\`Blocked: \${(judgement.categories_detected ?? []).join(", ")}\`);
 }
-const safe = Object.prototype.hasOwnProperty.call(judgement, "processed_json")
-  ? judgement.processed_json
-  : (judgement.messages ?? judgement.processed_text);
+const safe = Object.prototype.hasOwnProperty.call(judgement, "processed_body")
+  ? judgement.processed_body
+  : Object.prototype.hasOwnProperty.call(judgement, "processed_json")
+    ? judgement.processed_json
+    : (judgement.messages ?? judgement.processed_text);
+// Attachment coverage is separate from the allow/redact/block decision.
+const attachments = judgement.attachments;
 `;
 }
 
@@ -1226,6 +1233,8 @@ export default function LlmGatewayStudio() {
   const [sdkCheckType, setSdkCheckType] = useState('request');
   const [sdkInputFormat, setSdkInputFormat] = useState('text');
   const [sdkHashingMode, setSdkHashingMode] = useState('case_sensitive');
+  const [sdkUploads, setSdkUploads] = useState([]);
+  const [sdkFilesLoading, setSdkFilesLoading] = useState(false);
   const [sdkContents, setSdkContents] = useState(() => ({
     text: 'My SSN is 219-09-4823. Please help me update my profile.',
     messages: formatJson([{ role: 'user', content: 'My SSN is 219-09-4823. Please help me update my profile.' }]),
@@ -1359,10 +1368,14 @@ export default function LlmGatewayStudio() {
   const editorError =
     isEditor && (editorParse.error || (!isPlainObject(editorParse.value) ? 'Request body must be a JSON object.' : null));
 
-  const sdkParse = useMemo(() => parseSdkContent(sdkContent, sdkInputFormat), [sdkContent, sdkInputFormat]);
+  const sdkParse = useMemo(() => {
+    if (sdkInputFormat === 'text' && !sdkContent.trim() && sdkUploads.length) return { value: sdkContent, error: null };
+    return parseSdkContent(sdkContent, sdkInputFormat);
+  }, [sdkContent, sdkInputFormat, sdkUploads.length]);
   const sdkValidationError = isSdkTokenSavings
     ? sdkTokenMethods.length === 0 ? 'Select at least one method.' : null
-    : sdkParse.error;
+    : sdkFilesLoading ? 'Reading local files. Wait before running the check.'
+      : sdkUploadModeError(sdkUploads, sdkCheckType, sdkInputFormat) || sdkParse.error;
   const sdkPayload = useMemo(() => {
     if (sdkValidationError) return null;
     if (isSdkTokenSavings) {
@@ -1373,14 +1386,11 @@ export default function LlmGatewayStudio() {
         ...(sdkToolCommand ? { tool_command: sdkToolCommand } : {}),
       };
     }
-    return {
-      type: sdkCheckType,
-      [sdkInputFormat]: sdkParse.value,
-      hashing_mode: sdkHashingMode,
-      metadata: { caller: 'docs-playground' },
-    };
+    return buildSdkCheckPayload({ inputFormat: sdkInputFormat, value: sdkParse.value,
+      checkType: sdkCheckType, hashingMode: sdkHashingMode, uploads: sdkUploads });
   }, [sdkValidationError, isSdkTokenSavings, sdkTokenText, sdkTokenMethods, sdkToolName, sdkToolCommand,
-    sdkCheckType, sdkInputFormat, sdkParse, sdkHashingMode]);
+    sdkCheckType, sdkInputFormat, sdkParse, sdkHashingMode, sdkUploads]);
+  const sdkExpectsAttachments = !isSdkTokenSavings && sdkMayContainAttachments(sdkPayload);
 
   const effectivePayload = useMemo(() => {
     if (isSdk) return sdkPayload;
@@ -1472,6 +1482,14 @@ export default function LlmGatewayStudio() {
     logQueryPreview.end_time,
     logQueryPreview.limit,
   ]);
+
+  const snippetPreview = useMemo(() => {
+    if (!isSdk || isSdkTokenSavings || !sdkPayload) return activeSnippet;
+    const preview = compactSdkMedia(sdkPayload);
+    if (codeTab === 'python') return buildSdkPython(requestUrl, preview, snippetKeyValue);
+    if (codeTab === 'javascript') return buildSdkJs(requestUrl, preview, snippetKeyValue);
+    return buildSdkCurl(requestUrl, preview, snippetKeyValue);
+  }, [activeSnippet, isSdk, isSdkTokenSavings, sdkPayload, codeTab, requestUrl, snippetKeyValue]);
 
   /* ── Actions ── */
 
@@ -2363,7 +2381,11 @@ export default function LlmGatewayStudio() {
                 setSdkContents((contents) => ({ ...contents, [sdkInputFormat]: value }));
                 resetRunState();
               }}
-              validationError={sdkParse.error}
+              validationError={sdkValidationError}
+              uploads={sdkUploads}
+              setUploads={(files) => { setSdkUploads(files); resetRunState(); }}
+              onFilesLoading={setSdkFilesLoading}
+              expectsAttachments={sdkExpectsAttachments}
               onRun={runSingle}
               isRunning={isRunning}
               canRun={canRun}
@@ -2463,7 +2485,8 @@ export default function LlmGatewayStudio() {
                   </button>
                 </div>
               </div>
-              <pre className={styles.codeBlock}>{activeSnippet}</pre>
+              {isSdk && !isSdkTokenSavings && <p className={styles.subtle}>Inline bytes are hidden in this preview. Copy includes the complete request.</p>}
+              <pre className={styles.codeBlock}>{snippetPreview}</pre>
               {isLogs ? (
                 <>
                   <div className={styles.previewLabel}>Query parameters</div>
@@ -2549,7 +2572,7 @@ export default function LlmGatewayStudio() {
                   </div>
                   <div className={styles.previewLabel}>Raw response</div>
                   <pre className={styles.rawBlock}>
-                    {typeof lastResponse.body === 'string' ? lastResponse.body : formatJson(lastResponse.body)}
+                    {typeof lastResponse.body === 'string' ? (isSdk ? compactSdkMedia(lastResponse.body) : lastResponse.body) : formatJson(isSdk ? compactSdkMedia(lastResponse.body) : lastResponse.body)}
                   </pre>
                 </>
               ) : (
@@ -2971,15 +2994,16 @@ function SdkTokenSavingsPane({
 function SdkPane({
   styles, checkType, setCheckType, inputFormat, setInputFormat, hashingMode, setHashingMode,
   content, setContent, validationError, onRun, isRunning, canRun, lastResponse, error,
+  uploads, setUploads, onFilesLoading, expectsAttachments,
 }) {
   const result = lastResponse?.ok ? lastResponse.body : null;
-  const verdict = result ? getSdkVerdict(result) : null;
+  const verdict = result ? getSdkVerdict(result, expectsAttachments) : null;
   const entities = getDetectedEntities(result);
   const safeText = getSdkSafeText(result);
   const masking = result?.placeholder_masking;
   const maskedContent = masking && (Object.prototype.hasOwnProperty.call(masking, 'json')
-    ? formatJson(masking.json)
-    : Array.isArray(masking.messages) ? formatJson(masking.messages) : masking.text);
+    ? formatJson(compactSdkMedia(masking.json))
+    : Array.isArray(masking.messages) ? formatJson(compactSdkMedia(masking.messages)) : compactSdkMedia(masking.text));
   const similarEntities = result?.similar_entities ?? [];
 
   return (
@@ -3051,11 +3075,12 @@ function SdkPane({
       </label>
       <p id="sdk-input-hint" className={styles.sdkHint}>
         {inputFormat === 'json'
-          ? 'Enter the JSON value to scan, without a request wrapper. Objects, arrays, strings, numbers, booleans, and null are supported. Keys and structure are preserved.'
+          ? 'Enter a JSON value, not a complete request body. Keys and structure are preserved. Attachment scanning does not run in JSON-value mode.'
           : inputFormat === 'messages'
-            ? 'Enter an OpenAI-style messages array. Request checks select recent user messages; a final assistant message or Response type checks the last message as text.'
-            : 'Checks this string as text. Choose JSON to scan structured values.'}
+            ? 'Enter a messages array, including inline image/file blocks if needed. The selected Request or Response direction wins over message roles. Request attachments across the supplied body can be scanned; response checks scan text only.'
+            : 'Request checks also recognize attachment data URLs embedded in text or HTML. Files added below become user-message content with this text. Response checks scan text only.'}
       </p>
+      <SdkAttachmentUploads styles={styles} uploads={uploads} onChange={setUploads} onBusyChange={onFilesLoading} isRunning={isRunning} available={checkType === 'request' && inputFormat !== 'json'} />
       {validationError && <div id="sdk-validation-error" className={styles.composerError} role="alert">{validationError}</div>}
 
       {verdict && (
@@ -3073,6 +3098,8 @@ function SdkPane({
           <AlertTriangle size={14} aria-hidden /> {error}
         </div>
       )}
+
+      {result && <SdkAttachmentResults styles={styles} record={result.attachments} expected={expectsAttachments} />}
 
       {entities.length > 0 && (
         <div className={styles.resultCard}>
@@ -3094,7 +3121,7 @@ function SdkPane({
 
       {safeText !== null && (
         <div className={styles.resultCard}>
-          <div className={styles.previewLabel}>{Object.prototype.hasOwnProperty.call(result, 'processed_json') ? 'Processed JSON' : 'Caller-safe content'}</div>
+          <div className={styles.previewLabel}>{Object.prototype.hasOwnProperty.call(result, 'processed_body') ? 'Processed request body' : Object.prototype.hasOwnProperty.call(result, 'processed_json') ? 'Processed JSON' : 'Caller-safe content'}</div>
           <pre className={styles.resultBody}>{safeText}</pre>
         </div>
       )}
