@@ -20,6 +20,14 @@ Recent interface improvements and quality-of-life changes.
 - Observe mode, per-hook timeout and failure behavior, a circuit breaker, previews, test calls and stats
 - New Management API key scopes: **Manage hooks** (`hooks:write`) and **Manage personal keys** (`keys:write`, issue, rename, re-expire and revoke personal API keys on a user's behalf)
 - The console lists configured hooks read-only under **Management API > Configured hooks**, and the [Management API playground](/llm-gateway-management-playground?tab=hooks) has a **Hooks** tab
+## SDK image and attachment checks (gateway upgrade required)
+
+- Request-side SDK checks can inspect inline images and documents with the same attachment protections as proxied model requests, including OCR and enabled Image Risks
+- Images embedded as data URLs in text or HTML are discovered too; ordinary bare base64 text is not treated as an image
+- SDK results include attachment findings and scan coverage, and sanitized content reflects whole-attachment removal
+- Explicit request/response direction takes precedence over message roles; structured JSON checks and response checks retain their existing text/value scope
+- Available on deployments that include SDK attachment scanning. Upgrade the gateway before relying on this protection; HTTP 200 alone does not establish a complete scan
+- Details: [SDK Mode](../apps-and-providers/sdk-mode#images-and-documents-request-checks), [Attachment scanning](../protect/attachment-scanning), and [image/file request examples](../get-started/integration-guide#send-images-and-documents)
 
 ## Cohere provider (2026-11-02)
 

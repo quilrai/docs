@@ -65,6 +65,77 @@ The standalone SDK paths return [content-check results](../apps-and-providers/sd
 
 ## 2. Code Examples
 
+### Send images and documents {#send-images-and-documents}
+
+For a proxied model request, enable the app's [attachment protections](../protect/attachment-scanning) and the text or Image Risks data types you want to check. Use a model that accepts the files you send. Scanning does not extend the model's file support.
+
+Send file bytes inline rather than a remote URL or provider file ID. The gateway recognizes native inline image/file blocks and supported data URLs embedded in text, including HTML, before converting the request for the selected provider. OCR reads image text; visual Image Risks are separate detections. The file and page limits, unreadable-file actions and scan coverage are described in [Attachment scanning](../protect/attachment-scanning).
+
+This OpenAI Chat Completions example sends a PNG and PDF. Encode the original bytes using standard base64; the MIME type describes the content, and the gateway also checks the bytes.
+
+```python
+import base64
+import os
+from pathlib import Path
+
+import requests
+
+def data_url(path, mime):
+    encoded = base64.b64encode(Path(path).read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+response = requests.post(
+    "https://guardrails-usa-2.quilr.ai/openai_compatible/v1/chat/completions",
+    headers={"Authorization": f"Bearer {os.environ['QUILR_API_KEY']}"},
+    json={
+        "model": os.environ["QUILR_MODEL"],
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Summarize the allowed attachments."},
+                {"type": "image_url", "image_url": {
+                    "url": data_url("sample.png", "image/png"),
+                }},
+                {"type": "file", "file": {
+                    "filename": "sample.pdf",
+                    "file_data": data_url("sample.pdf", "application/pdf"),
+                }},
+            ],
+        }],
+        "stream": False,
+    },
+    timeout=60,
+)
+response.raise_for_status()
+print(response.json())
+```
+
+For native Anthropic Messages, the equivalent content blocks use `type: "image"` or `"document"` with a base64 `source`:
+
+```json
+{
+  "type": "image",
+  "source": {
+    "type": "base64",
+    "media_type": "image/png",
+    "data": "<BASE64_IMAGE_BYTES>"
+  }
+}
+```
+
+To inspect an embedded image in text, the message can contain a data URL such as HTML with an inline image. This is discovered for scanning, but it does not guarantee the selected model interprets that text as an image input:
+
+```json
+{
+  "role": "user",
+  "content": "Inspect <img src=\"data:image/png;base64,<BASE64_IMAGE_BYTES>\">"
+}
+```
+
+A bare base64 string in ordinary text is not inferred to be an image. Remote references are not downloaded. Request attachments can be scanned even when the model response streams; generated files in the response are not scanned by this feature.
+
+For a standalone check before your own provider call, use an SDK app key with [`POST /sdk/v1/check`](../apps-and-providers/sdk-mode#images-and-documents-request-checks), `type: "request"` and the same supported content. SDK request text/messages have the same attachment discovery, including embedded data URLs. Unlike a proxy call, your application must inspect the SDK `action` and forward its sanitized result. See [SDK attachment results](../apps-and-providers/sdk-mode#attachment-results) for coverage, whole-file removal and `processed_body`.
+
 ### OpenAI-compatible chat
 
 <Tabs groupId="lang">

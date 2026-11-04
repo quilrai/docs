@@ -13,11 +13,13 @@ import TabItem from '@theme/TabItem';
 
 # Attachment scanning
 
-Updated on 3 November 2026.
+Updated on 4 November 2026.
 
 Check files sent with a model request before they reach the provider. The gateway extracts document text, reads text in images and scanned PDFs with OCR, and identifies image risks such as payment cards or ID documents. Your enabled data risks decide what to monitor, remove or block.
 
 **Attachment scanning is off by default.** Turning it on does not change what the selected model can accept: the file format must still be supported by that model.
+
+In [SDK Mode](../apps-and-providers/sdk-mode#images-and-documents-request-checks), the check runs without a model call. Your application uses the returned action and sanitized content before continuing.
 
 <StepFlow steps={[
   { label: "Check the files", items: ["Detected type", "Size, count and PDF pages"] },
@@ -95,10 +97,20 @@ Files resent in conversation history still count toward size limits and remain s
 | Office documents | DOCX, DOC, XLSX, XLS, PPTX and PPT. |
 | OpenDocument | ODT, ODS and ODP. |
 | Other text documents | RTF, HTML, EML, plain text, CSV, JSON and code files. EML includes message headers and text parts; documents nested inside an email are not fully extracted. |
-| Raster images | PNG, JPEG, WebP, GIF, BMP and TIFF for OCR; animated GIFs use the first frame. Icon and cursor assets are skipped; small avatars may also be skipped. |
+| Raster images | PNG, JPEG, WebP, GIF, BMP and TIFF for OCR and enabled visual image checks. Animated or multi-image files use the first frame or image, including GIF, animated WebP and multi-page TIFF. Icon and cursor assets are skipped; small avatars may also be skipped. |
 | SVG | Text elements can be extracted. SVGs are not checked by image classification. |
 
 Audio, video, archives and unknown binary formats are not content-scanned. Their file-type controls still let you allow, remove or block them. Allowing a type does not make its content readable.
+
+HEIC, HEIF and AVIF can be recognized as images but cannot be decoded for OCR or image classification. When a requested scan needs to decode them, they follow the configured unreadable-file action rather than receiving a successful content scan.
+
+### How attachments are recognized
+
+Send the file content with the request. The gateway recognizes supported inline image and file blocks, as well as data URLs embedded in text. This includes text content parts, HTML, conversation history and tool-result text. Line-wrapped base64 in a data URL is supported. A bare base64 string in ordinary text is not assumed to be an image; recognized image/file fields can carry bare base64.
+
+Request-side SDK checks use the same attachment discovery as proxy requests, including supported media in request extension fields. Caller metadata and tool-definition examples are not attachments. Response checks and the SDK's explicit structured-JSON mode do not run attachment scanning.
+
+For payloads and application control flow, see [Send images and documents](../get-started/integration-guide#send-images-and-documents) and [SDK images and documents](../apps-and-providers/sdk-mode#images-and-documents-request-checks). The protection settings below apply to both proxy and SDK request scanning.
 
 ## Document text and OCR {#document-text-and-ocr}
 
@@ -176,7 +188,7 @@ Timeouts, scanner failures and unfinished scans **fail open**: the missing scan 
 
 ## Coverage and availability {#coverage-and-availability}
 
-Scanning applies to **request attachments**, including requests that ask for a streaming response, on Chat Completions, OpenAI Responses, Anthropic Messages, Gemini generateContent, Bedrock Converse and supported InvokeModel bodies. It also applies to supported attachments sent through [SDK Mode](../apps-and-providers/sdk-mode). The gateway inspects the incoming client format before any [format translation](../api-reference/any-to-any-formats).
+Scanning applies to **request attachments**, including requests that ask for a streaming response, on Chat Completions, OpenAI Responses, Anthropic Messages, Gemini generateContent, Bedrock Converse and supported InvokeModel bodies. On gateway deployments that include SDK attachment support, it also applies to request-side text/messages checks in [SDK Mode](../apps-and-providers/sdk-mode#images-and-documents-request-checks) and [TrueFoundry input hooks](../../integrations/pull-ai-usage-and-inventory/truefoundry#content-coverage). The gateway inspects the incoming client format before any [format translation](../api-reference/any-to-any-formats).
 
 It does not scan files generated in a model's response. Enabling scanning also does not fetch files held remotely, inspect audio or video content, or add guardrails to the separate [endpoint-family routes](../api-reference/endpoint-families).
 
