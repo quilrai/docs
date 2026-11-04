@@ -10,6 +10,11 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Model scans name rate limits and pace their requests (2026-11-04)
+
+- When a model from the QuilrAI catalog keeps refusing requests because its provider is rate limiting it, each affected test now says so, for example **Model 'kimi-k2.6' was rate limited by its provider (HTTP 429)**, instead of a generic error
+- Model scans on QuilrAI catalog models now send at most 6 requests to the model at a time, so a scan is less likely to hit the provider's rate limit. These scans may take a little longer
+
 ## Back to assessments from a live run (2026-11-03)
 
 - While an assessment is running, **Back to assessments** now returns to the **Assessments** page, where the run stays listed as **Running**, instead of the older runs list
