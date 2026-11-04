@@ -216,7 +216,7 @@ Other response-side Guardian Agent checks are skipped for normal streaming passt
 
 Guardian Agent runs additional checks inside the request and response path, so it adds latency on top of the [normal gateway overhead](../get-started/ha-and-sla#gateway-latency).
 
-As a planning figure, expect Guardian Agent to add **~700 ms** per request when it is enabled. The actual latency varies with the scenario and the complexity of the request:
+For planning, allow **350 ms median and 500 ms average of additional Guardian Agent processing per request** when it is enabled. These are per-request budgets, independent of the 10,000-token reference for default text scanning. Budget any extra model generation caused by preliminary drafts or corrective retries separately. The actual latency varies with the scenario and the complexity of the request:
 
 - **Which feature groups are enabled.** Running coding helpers and task adherence together takes longer than running one of them.
 - **Request size and complexity.** Longer conversations and larger dependency manifests take longer to evaluate.
@@ -225,7 +225,7 @@ As a planning figure, expect Guardian Agent to add **~700 ms** per request when 
 - **Streaming with dependency checks.** The gateway first issues a preliminary non-streaming draft request, so time to first token reflects the full draft rather than the first upstream token.
 
 :::note
-~700 ms is a guideline, not a guarantee. Requests that need no retry and no registry lookups take substantially less time, and requests that trigger a retry or many package lookups can take longer.
+These figures are guidelines, not guarantees. Requests that need no retry and no registry lookups can take less time, and requests that trigger a retry or many package lookups can take longer.
 :::
 
 ## Endpoint coverage {#endpoint-coverage}

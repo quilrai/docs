@@ -3,16 +3,18 @@ sidebar_position: 5
 sidebar_label: "HA and SLA"
 sidebar_custom_props:
   icon: Activity
-description: "Regional endpoints, recommended retry strategy, connection pooling, and 99.6% uptime SLA."
+description: "Configure same-region gateway failover, plan latency for default and optional scans, and understand the 99.6% uptime SLA."
 ---
 
 # HA & SLA
 
-High availability endpoints, retry strategy, and latency guarantees for the QuilrAI LLM Gateway.
+Updated on 4 November 2026.
+
+Use regional gateway endpoints to keep requests in your assigned region and recover from a gateway node or load balancer failure. This guide covers endpoint selection, retry behavior, the uptime SLA and latency planning.
 
 ## Gateway Endpoints
 
-Every endpoint has the same API surface and features. Configuration, keys and limits apply per region: use the regional host your organization uses.
+Every endpoint supports the gateway API formats. Configuration, keys and limits apply per region: use the endpoints assigned to your organization.
 
 | Endpoint | Region | Base URL |
 |----------|--------|----------|
@@ -24,252 +26,189 @@ Every endpoint has the same API surface and features. Configuration, keys and li
 | **Japan** | Tokyo | `https://guardrails-jp-1.quilr.ai` |
 | **Europe** | Europe | `https://guardrails-europe-1.quilr.ai` |
 
-Append the API format path to any base URL - for example, `https://guardrails-usa-1.quilr.ai/openai_compatible/`. See the [Integration Guide](./integration-guide) for all supported formats.
+Append the API format path to the base URL, for example `https://guardrails-india-1.quilr.ai/openai_compatible/v1`. See the [Integration Guide](./integration-guide) for supported formats.
 
-For production traffic, use the regional endpoint your organization uses as the primary base URL. Use `guardrails.quilr.ai` only when your organization uses the global host.
-
-:::info Expanding regions
-This list will continue to grow as we bring new regions online. Check this page or the [Integration Guide](./integration-guide) for the latest endpoints.
-:::
+For production traffic, use your assigned regional endpoint. Use `guardrails.quilr.ai` only when your organization uses the global host, and keep it out of a regional failover chain.
 
 ## Routing Architecture
 
-For predictable production routing, use a regional endpoint directly.
+**A regional URL is a load balancer, not an individual gateway node.** It distributes requests across gateway nodes in that region. Each node runs the gateway pipeline, including validation, scanning, routing and logging.
+
+A region may provide two separate load balancer URLs. The first distributes traffic across gateway nodes during normal operation. If that load balancer becomes unavailable, your application can switch to the second URL in the **same region**. Mumbai provides this pair today through **India 1** and **India 2**.
 
 ```mermaid
 flowchart TD
-    A["Your Application"] --> B["guardrails.quilr.ai"]
-    B --> C{"Gateway<br/>servers"}
-    C -->|"US Central West traffic"| D["guardrails-usa-1.quilr.ai"]
-    C -->|"US East traffic"| E["guardrails-usa-2.quilr.ai"]
-    C -->|"India traffic"| F["guardrails-india-1.quilr.ai"]
-    C -->|"India traffic"| K["guardrails-india-2.quilr.ai"]
-    C -->|"Japan traffic"| I["guardrails-jp-1.quilr.ai"]
-    C -->|"Europe traffic"| J["guardrails-europe-1.quilr.ai"]
-    C -->|"Future regions"| H["..."]
-    D --> G["LLM Providers"]
-    E --> G
-    F --> G
-    K --> G
-    I --> G
-    J --> G
-    H --> G
+    A["Your application"] -->|"Primary URL"| B["India 1 load balancer"]
+    A -.->|"Same-region failover"| C["India 2 load balancer"]
+    subgraph Mumbai["Mumbai region"]
+        B --> D["Gateway node 1"]
+        B --> E["Gateway node 2"]
+        C --> D
+        C --> E
+    end
+    D --> F["Configured LLM provider"]
+    E --> F
 ```
 
-Each regional server runs the full QuilrAI pipeline - validation, scanning, transformation, routing, and observability - so there is no functional difference between endpoints.
+The diagram illustrates the routing pattern; node counts can change. Separate load balancers provide another entry point if one load balancer fails. They can still share gateway nodes and regional dependencies, so this does not protect against an entire regional outage or an upstream provider outage.
 
 ## Recommended Retry Strategy
 
-:::note
-Keys, configuration and limits apply per region. Retry on another regional endpoint only if your organization uses that region too.
-:::
+Configure a primary and, where available, an alternate endpoint **within your assigned region**. Use only a pair supplied for that region. In particular, **USA 1 and USA 2 are different regions**, so they are not a same-region failover pair.
+
+For a Mumbai deployment:
 
 <StepFlow steps={[
   {
-    label: "Attempt 1",
+    label: "Primary attempt",
     items: [
-      "→ guardrails-usa-2.quilr.ai",
-      "Direct to US East server ✓",
-      "Primary regional endpoint ✓",
+      "guardrails-india-1.quilr.ai",
+      "Load balancer selects a gateway node",
+      "Mumbai region ✓",
     ],
   },
   {
-    label: "Attempt 2",
+    label: "Alternate attempt",
     items: [
-      "→ guardrails-usa-1.quilr.ai",
-      "Direct to US Central West server ✓",
-      "Host-level redundancy ✓",
-    ],
-  },
-  {
-    label: "Attempt 3",
-    items: [
-      "→ guardrails-india-1.quilr.ai",
-      "Direct to India server ✓",
-      "Geographic redundancy ✓",
-    ],
-  },
-  {
-    label: "Attempt 4",
-    items: [
-      "→ guardrails-india-2.quilr.ai",
-      "Direct to second India server ✓",
-      "Host-level redundancy ✓",
-    ],
-  },
-  {
-    label: "Attempt 5",
-    items: [
-      "→ guardrails-jp-1.quilr.ai",
-      "Direct to Japan server ✓",
-      "Cross-region redundancy ✓",
-    ],
-  },
-  {
-    label: "Attempt 6",
-    items: [
-      "→ guardrails-europe-1.quilr.ai",
-      "Direct to Europe server ✓",
-      "Cross-region redundancy ✓",
+      "guardrails-india-2.quilr.ai",
+      "Separate load balancer entry point",
+      "Same Mumbai region ✓",
     ],
   },
 ]} />
 
-For production retry logic, use explicit regional endpoints. Start with the location-specific endpoint closest to your application, then fail over to other regional hosts. Do not include the global auto-routed endpoint in the retry chain.
-
-Example order for a US East deployment:
-
-1. **First attempt** - `guardrails-usa-2.quilr.ai` - Direct connection to the nearest regional server.
-2. **Second attempt** - `guardrails-usa-1.quilr.ai` - Direct connection to another US server for host-level redundancy.
-3. **Third attempt** - `guardrails-india-1.quilr.ai` - Targets a geographically distinct server for maximum redundancy.
-4. **Fourth attempt** - `guardrails-india-2.quilr.ai` - Direct connection to a second India server for host-level redundancy.
-5. **Fifth attempt** - `guardrails-jp-1.quilr.ai` - Adds a further region for the widest geographic spread.
-6. **Sixth attempt** - `guardrails-europe-1.quilr.ai` - Adds a European region for the widest geographic spread.
-
 ### Why retry with regional endpoints?
 
-Explicit regional fallbacks protect against edge cases that auto-routing alone cannot cover:
+The load balancer handles distribution across gateway nodes behind its URL. Your application handles switching between the two load balancer URLs when an entry point is unavailable. Keep the alternate's credentials, configuration and provider access ready before an incident, and verify the pair during deployment.
 
-- **DNS or routing-layer issues** - Direct regional URLs bypass the global routing layer entirely.
-- **Deterministic failover** - Retrying with an explicit regional URL immediately targets a different host instead of letting the auto-router choose.
-- **Regional propagation delays** - A server that has just recovered may not yet be visible to the auto-router. Hitting it directly avoids propagation lag.
-- **Geographic redundancy** - Retrying across regions ensures your request reaches an entirely independent infrastructure stack, eliminating single points of failure.
+Limit each call to one primary attempt and one alternate attempt. Apply a short backoff with jitter before the alternate attempt, and choose connection and response timeouts that fit your application's deadline.
 
-The overhead is minimal - five additional fallback URLs in your retry logic - but the resilience improvement is significant.
+| Outcome | Recommended behavior |
+|---|---|
+| Connection cannot be established | Try the alternate URL in the same region. |
+| HTTP 502, 503 or 504 | Retry only when your application can safely replay the request. Honor `Retry-After` when present. |
+| HTTP 429 | Respect `Retry-After` and the applicable quota or rate limit. Switching URLs does not provide additional quota. |
+| Authentication error, invalid request or guardrail block | Return the error or policy outcome to the caller. |
+| Read/write timeout or connection lost after sending | The request may already have reached the provider. Replay only if duplicate execution and charges are acceptable or your application can prevent them. |
+| Stream fails after output starts | Handle the interrupted stream explicitly; a new request cannot resume the same generation. |
 
-We recommend **one retry per QuilrAI host**. If a request fails on a given endpoint, move on to the next one rather than retrying the same host. This maximizes the chance of hitting a healthy server quickly.
+Use one retry layer. If your application implements endpoint failover around an SDK, disable the SDK's built-in retries, for example `max_retries=0` with the OpenAI Python SDK, so attempts do not multiply.
 
 ### Code Example
 
+This non-streaming example switches to the alternate Mumbai URL only when a connection cannot be established. HTTP errors and failures after sending the request propagate to the caller for the handling described above.
+
 ```python
+import os
+import random
 import time
+
 import httpx
 
 ENDPOINTS = [
-    "https://guardrails-usa-2.quilr.ai",      # primary US East endpoint
-    "https://guardrails-usa-1.quilr.ai",      # direct US Central West fallback
-    "https://guardrails-india-1.quilr.ai",    # direct India fallback
-    "https://guardrails-india-2.quilr.ai",    # direct India 2 fallback
-    "https://guardrails-jp-1.quilr.ai",       # direct Japan fallback
-    "https://guardrails-europe-1.quilr.ai",   # direct Europe fallback
+    "https://guardrails-india-1.quilr.ai",  # primary Mumbai load balancer
+    "https://guardrails-india-2.quilr.ai",  # alternate Mumbai load balancer
 ]
 
-def call_llm(payload: dict) -> dict:
-    for base_url in ENDPOINTS:
+
+def call_llm(client: httpx.Client, payload: dict) -> dict:
+    for attempt, base_url in enumerate(ENDPOINTS):
         try:
-            resp = httpx.post(
+            response = client.post(
                 f"{base_url}/openai_compatible/v1/chat/completions",
-                headers={"Authorization": "Bearer sk-quilr-xxx"},
-                json=payload,
-                timeout=30,
+                json={**payload, "stream": False},
             )
-            resp.raise_for_status()
-            return resp.json()
-        except (httpx.RequestError, httpx.HTTPStatusError):
-            time.sleep(0.3)  # optionally sleep slightly before retrying the next host
+        except (httpx.ConnectError, httpx.ConnectTimeout):
+            if attempt == len(ENDPOINTS) - 1:
+                raise
+            time.sleep(random.uniform(0.1, 0.3))
             continue
-    raise RuntimeError("All gateway endpoints failed")
+
+        response.raise_for_status()
+        return response.json()
+
+    raise RuntimeError("No gateway endpoints configured")
+
+
+# Reuse this client across calls to preserve connection pooling.
+with httpx.Client(
+    headers={"Authorization": f"Bearer {os.environ['QUILR_API_KEY']}"},
+    timeout=httpx.Timeout(60.0, connect=3.0),
+) as client:
+    result = call_llm(client, {
+        "model": os.environ["QUILR_MODEL"],
+        "messages": [{"role": "user", "content": "Summarize this document."}],
+    })
 ```
 
-```python
-import time
-from openai import OpenAI
-
-ENDPOINTS = [
-    "https://guardrails-usa-2.quilr.ai/openai_compatible/v1",    # primary US East endpoint
-    "https://guardrails-usa-1.quilr.ai/openai_compatible/v1",    # direct US Central West fallback
-    "https://guardrails-india-1.quilr.ai/openai_compatible/v1",  # direct India fallback
-    "https://guardrails-india-2.quilr.ai/openai_compatible/v1",  # direct India 2 fallback
-    "https://guardrails-jp-1.quilr.ai/openai_compatible/v1",     # direct Japan fallback
-    "https://guardrails-europe-1.quilr.ai/openai_compatible/v1", # direct Europe fallback
-]
-
-def call_llm(messages: list) -> str:
-    for base_url in ENDPOINTS:
-        try:
-            client = OpenAI(base_url=base_url, api_key="sk-quilr-xxx")
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=messages,
-            )
-            return response.choices[0].message.content
-        except Exception:
-            time.sleep(0.3)  # optionally sleep slightly before retrying the next host
-            continue
-    raise RuntimeError("All gateway endpoints failed")
-```
-
-```javascript
-const ENDPOINTS = [
-  "https://guardrails-usa-2.quilr.ai",     // primary US East endpoint
-  "https://guardrails-usa-1.quilr.ai",     // direct US Central West fallback
-  "https://guardrails-india-1.quilr.ai",   // direct India fallback
-  "https://guardrails-india-2.quilr.ai",   // direct India 2 fallback
-  "https://guardrails-jp-1.quilr.ai",      // direct Japan fallback
-  "https://guardrails-europe-1.quilr.ai",  // direct Europe fallback
-];
-
-async function callLLM(payload) {
-  for (const baseUrl of ENDPOINTS) {
-    try {
-      const res = await fetch(
-        `${baseUrl}/openai_compatible/v1/chat/completions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer sk-quilr-xxx",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-      if (!res.ok) throw new Error(res.statusText);
-      return await res.json();
-    } catch {
-      await new Promise((r) => setTimeout(r, 300)); // optionally sleep slightly before retrying the next host
-      continue;
-    }
-  }
-  throw new Error("All gateway endpoints failed");
-}
-```
+Replace the endpoint pair for a deployment in another region only with the pair assigned to that region.
 
 ## Data Residency Note
 
-:::info Only LLM requests are routed across regions
-When a request is routed to a different regional endpoint (either by auto-routing or your retry logic), **only the LLM API call itself** is forwarded to that region's gateway server. All other data - request logs, analytics, guardrail audit trails, prompt history, and dashboard metrics - remains stored in your account's primary region. Cross-region routing does not replicate or move any of your logged data to another geography.
-:::
+Keep gateway requests and failover within your organization's assigned region. The Mumbai example uses two load balancers in one region; it does not move traffic to another geography.
+
+Your upstream provider deployment is a separate routing choice. Select provider deployments that meet your organization's data residency requirements as well.
 
 ## SLA
 
 ### Uptime
 
-QuilrAI guarantees **99.6% uptime** across all gateway endpoints. This is measured as the combined availability of the global and regional endpoints. With the recommended retry strategy across multiple hosts, effective availability from your application's perspective is significantly higher.
+QuilrAI provides a contractual **99.6% uptime SLA** for the gateway. Your agreement defines the covered endpoints, measurement period, exclusions and applicable remedies.
+
+Same-region endpoint failover improves resilience to an individual entry point failing. It does not change the contractual SLA or guarantee availability when shared regional dependencies or the upstream provider are unavailable.
 
 ### Gateway Latency
 
-The QuilrAI gateway adds **~40 ms** of processing latency for a typical 12,000-token request. This covers the full pipeline - authentication, guardrail scanning, transformation, routing, and logging.
+For capacity and response-time planning, use **50 ms median** and **94 ms average** of added gateway processing time with the default built-in text detections, at a reference size of **10,000 total scanned input and output tokens**. For example, 8,000 input tokens plus 2,000 output tokens count as 10,000 tokens.
 
-| Metric | Value |
-|--------|-------|
-| **Gateway overhead** | ~40 ms per 12,000 tokens |
-| **Overhead source** | Auth + guardrails + routing + logging |
-| **LLM response time** | Improved by 2-5% due to server-side connection optimizations |
-| **Guardian Agent overhead** | ~700 ms per request when enabled, scenario dependent |
+| Default text scanning | Planning figure |
+|---|---|
+| **Median gateway overhead** | **50 ms per 10,000 total scanned tokens** |
+| **Average gateway overhead** | **94 ms per 10,000 total scanned tokens** |
+| **Configuration** | Default built-in data and adversarial detections; no custom detections, Guardian Agent, hallucination check, token-saving transforms or attachment scanning |
+| **Excluded time** | Upstream model generation and client-to-gateway network time |
 
-Gateway latency scales with token count. Shorter requests are faster; longer requests proportionally slower.
+These are indicative planning figures, not a latency SLA or a controlled benchmark of exactly 10,000 scanned tokens. Production token usage is a proxy for scan size. Request/response split, caching, enabled checks, content complexity and concurrency affect actual time; latency does not scale at a fixed rate per token. See [default guardrail settings](../protect/security-guardrails#defaults-for-a-new-app).
 
-:::note Guardian Agent adds to this
-The ~40 ms figure covers the standard pipeline. When [Guardian Agent](../protect/guardian-agent) is enabled on a key, expect roughly **~700 ms** of additional latency per request. The real number depends on the scenario and complexity: which Guardian feature groups are on, request size, OSV and package registry lookups, and whether a dependency finding triggers a corrective retry. See [Latency Impact](../protect/guardian-agent#latency-impact).
-:::
+#### Custom detections
+
+Use these estimates when planning a scan with a simple custom category:
+
+| Custom detection type | Estimated processing time |
+|---|---|
+| **EDM / regex** | **7-11 ms** |
+| **Semantic** | **~50 ms** |
+| **Intent** | **~150 ms** |
+
+These are per-scan planning estimates, not measured incremental costs for every category at 10,000 tokens. Request-side and response-side scans are separate passes. Categories can share work and run in parallel, so do not multiply a row by the number of categories or add every row to predict total latency. Pattern complexity, text size and the number of categories can change the result. See [Custom detections](../protect/custom-detections).
+
+#### Images and attachment scanning
+
+Attachment scanning and Image Risks are off by default. The work below applies when the relevant protection is enabled and a request contains a file that needs that scan.
+
+| Optional work | Expected time | Basis |
+|---|---|---|
+| **Image classification only** | **20-100 ms per image** | Planning estimate; limited independent samples. |
+| **Image classification with OCR** | **~346 ms average; ~1.33 s p95 per completed image scan** | Observed worker time across 74 completed image scans. |
+| **OCR** | **100-1,500 ms per image** | Planning estimate; depends on image size, quality and visible text. |
+| **Native document text extraction** | **20-200 ms per file** | Planning estimate for a simple text-bearing document; insufficient production samples for a general document benchmark. |
+
+The completed-image figures exclude timed-out and skipped scans, so they do not describe every attachment request. Allow for slower scans and check the recorded scan status. An incomplete scan is not a clean result; see [Actions and unreadable files](../protect/attachment-scanning#actions-and-unreadable-files).
+
+These stages can overlap and are not all additive. Extracted text also passes through the enabled text detections, and that text contributes to the total scanned-token workload. Multi-page scanned PDFs require page-level OCR; the image figures are not a benchmark for a whole PDF. See [Attachment scanning](../protect/attachment-scanning).
+
+#### Guardian Agent
+
+[Guardian Agent](../protect/guardian-agent) is off by default. When enabled, use this additional latency budget:
+
+| Optional check | Additional processing time | Basis |
+|---|---|---|
+| **Guardian Agent** | **350 ms median; 500 ms average per request** | Planning estimates on top of the default gateway overhead. |
+
+These estimates apply per request, independently of the 10,000-token reference used for default text scanning. Enabled features, request complexity and external dependency lookups affect the result. Budget any extra model generation caused by a preliminary draft or corrective retry separately. With streaming dependency checks, the preliminary draft also delays the first token. See [Latency impact](../protect/guardian-agent#latency-impact).
 
 ### Connection Pooling & Performance Under Load
 
-The QuilrAI gateway maintains persistent connection pools to all configured LLM providers. This delivers meaningful performance benefits, especially under high concurrency:
+The gateway reuses connections to configured LLM providers, reducing repeated connection setup when a pooled connection is available. Reuse an HTTP or SDK client in your own application as well.
 
-- **Eliminates per-request TLS handshakes** - Connections to providers like OpenAI and Anthropic are kept warm, removing the 50-150 ms of handshake overhead that each cold connection would otherwise incur.
-- **Reduces provider-side throttling** - Pooled connections present a stable, predictable traffic pattern that is less likely to trigger provider rate limits compared to bursts of new connections from distributed clients.
-- **Handles connection backpressure** - Under high concurrency, the gateway queues and multiplexes requests across the pool rather than opening unbounded connections that providers may reject.
-- **Centralized provider credentials** - A single connection pool per provider key avoids the "thundering herd" problem where many application instances each independently compete for connections.
-
-For latency-sensitive workloads, the gateway's pooling layer can reduce effective end-to-end latency below what a direct provider connection achieves - particularly during traffic spikes when cold-start connection costs dominate.
+Connection pooling does not guarantee faster model generation or remove provider rate limits. Validate response-time budgets with your selected models, scan configuration, payload sizes and expected concurrency. Monitor median and tail latency separately, including time to first token for streaming requests.
