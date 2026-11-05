@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {BarChart3, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Users, Wallet, Webhook, Workflow} from 'lucide-react';
+import {BarChart3, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Users, Wallet, Webhook, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -16,7 +16,7 @@ const playground = '/llm-gateway-management-playground';
 const tryIt = operationId => `${playground}?tab=explorer&op=${encodeURIComponent(operationId)}`;
 // Operations whose scope depends on the collections they touch (batch, restore, history reads).
 const scopeNote = op => op['x-scopes-per-op'] ? 'Write (or read) scope of each collection it touches' : null;
-const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Routing:'routing-and-failover-api', Limits:'rate-limits-api', Incidents:'incidents-api', Hooks:'hooks-api', Usage:'usage-api', Monitoring:'monitoring-api', Users:'users-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
+const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Routing:'routing-and-failover-api', Limits:'rate-limits-api', Incidents:'incidents-api', Hooks:'hooks-api', Access:'gateway-features-api', 'Gateway features':'gateway-features-api', Usage:'usage-api', Monitoring:'monitoring-api', Users:'users-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
 // Examples use the server's default region (https://{region}.quilr.ai with region at its default).
 const host = serverUrl(spec);
 const scopeDescriptions = spec['x-scope-descriptions'] || {};
@@ -55,13 +55,14 @@ const api = createApiReference({
     ['Budgets','Set spend, request and token budgets, track usage and issue grants.','budgets-api',Wallet],
     ['Routing and failover','Routes, weighted destinations, failover and constraints, with dry runs, history and restore.','routing-and-failover-api',Route],
     ['Rate limits','Request and token rate limits, request guards, temporary raises and effective limits.','rate-limits-api',Timer],
+    ['Access and features','Access controls, token saving, response cache, cache warm, model visibility, error messages and prompt enforcement.','gateway-features-api',Lock],
     ['Incidents','Mark a provider down during an outage, check it applied, then restore it.','incidents-api',Siren],
     ['Hooks','Call your own API to allow, flag or block requests and responses, or export finished requests.','hooks-api',Webhook],
     ['Usage','Requests, tokens and cost by period, app, model, provider, user, key, source or outcome.','usage-api',BarChart3],
     ['Monitoring','Guardrail activity, provider health, and why one request was routed, blocked or failed over.','monitoring-api',HeartPulse],
     ['Users','Who uses the gateway: app access, personal keys, last activity and usage.','users-api',Users],
     ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
-    ['Gateway credentials','Issue, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
+    ['Gateway credentials','Issue, rename, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
     ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
     ['Prompts','Manage Prompt Store content.','prompts-api',BookOpen],
   ].map(([title,desc,page,Icon]) => ({title, desc, to: './'+page, Icon})),

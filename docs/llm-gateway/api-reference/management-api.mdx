@@ -66,10 +66,11 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Apps | Create, read, configure, disable and enable; address by app name. | App deletion/rename: **Not Generally Available**. |
 | Shared providers | Create, read, filter, rotate credentials, configure models, disable, enable, delete, test and discover models, and approve or reject [new models](./providers-and-configuration-api#model-reviews) a provider starts offering. | Deleting needs every app detached first. Detaching affects one app only. |
 | Quota pools | Register, read, update and delete shared upstream ceilings; assign providers and models to them. | Pools describe limits; they do not enforce them. |
-| Gateway keys | Issue, list metadata, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
+| Gateway keys | Issue, list metadata, rename, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
 | Budgets | Create and edit spend, request and token budgets, read usage, issue grants, set prices and exemptions. | Each budget, pricing or exemption edit publishes a policy revision. Needs the Policy Engine on. |
 | Routing and failover | Routes, weighted and ordered destinations, failover profiles, rules and default, routing constraints and model access; dry runs, revision history and restore, routing diagnostics. | Each write publishes a policy revision with no QuilrQL to write. Needs the Policy Engine on. |
 | Rate limits | Request and token rate limits, temporary raises, request guards, model limits, exemptions, custom limit responses, live usage and effective limits. | Counters are regional. Each limit write publishes a policy revision; raises do not. Needs the Policy Engine on. |
+| Access and gateway features | Access controls (block, require identity or a conversation ID, allowed source IPs) and gateway features: token saving, response cache, cache warm, model visibility, error messages, conversation headers and prompt enforcement. See the [Access and gateway features API](./gateway-features-api). | Each write publishes a policy revision. Needs the Policy Engine on. |
 | Incidents | Mark a provider down for every app or chosen apps with an expiry, preview, restore, reset cooldowns and drop session pins. | Not a policy change; works with the Policy Engine on or off. |
 | Hooks | Call your own HTTPS API before the model call (`pre_call`) or before a non-streaming response is returned (`post_call`) to allow, flag or block, or export finished requests in batches (`on_complete`). Preview, test and stats. See the [Hooks API](./hooks-api). | Each write publishes a policy revision. Needs the Policy Engine on. The console lists hooks read-only under **Configured hooks**. |
 | Usage | Requests, outcomes, tokens and cost over all time or any range, by period and up to two of app, model, provider, user, key, source and outcome. Per-key last use. See the [Usage API](./usage-api). | Aggregates only; bulk request logs come from the [Log Export API](./log-export-api). |
@@ -91,8 +92,8 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Custom-definition authoring and smart-group/membership writes | **Not Generally Available** | Read and reference existing resources. |
 | Dedicated key rotation and individual management-key pause/resume | **Not Generally Available** | Issue a replacement and revoke the old key; tenant-wide suspension is supported. |
 | Later management-key secret retrieval and expired/revoked gateway-key reveal | **Not Generally Available** | Management secrets are returned on issuance/replay; explicit gateway-key reveal requires an active key. |
-| Create-only prompt preconditions | **Not Generally Available** | PUT uses the current app ETag and creates or replaces. |
-| Catalog search and audit app/key/time filters | **Not Generally Available** | Use documented pagination. App lists filter by name, tag and enabled state; provider lists by type, enabled state, tag and model. |
+| Create-only prompt preconditions | **Not Generally Available** | PUT creates a new prompt without `If-Match` and replaces an existing one with the app ETag. |
+| Catalog search | **Not Generally Available** | Use documented pagination. App lists filter by name, tag and enabled state; provider lists by type, enabled state, tag and model. Audit lists filter by `actor`, `operation`, `resource`, `since` and `until`. |
 | App-restricted management-key scopes and red-team job APIs | **Not Generally Available** | Management scopes apply tenant-wide; red-team jobs are outside this API. |
 
 ## Defaults
@@ -349,6 +350,12 @@ Resource routes use `/llmgateway/management/v1` and `Authorization: Bearer <qlmg
 
 Send JSON bodies with `Content-Type: application/json`. Requests are capped at 1 MiB, request bodies must arrive within a bounded time (`408` otherwise), and concurrent management requests are limited (`429` when reached). Provider tests and model discovery are time-bounded. Secret-bearing values are omitted from ordinary reads. Responses use `Cache-Control: no-store` and `X-Request-ID`.
 
+### Response formats
+
+- **Timestamps.** Every `*_at` and `timestamp` text field is UTC RFC 3339 with seconds and `Z`, for example `2026-11-05T10:00:00Z`. Numeric times (such as `completed_at` and audit `created_at`) stay Unix seconds. Text you wrote yourself, such as hook templates, tags and prompt content, is returned exactly as written.
+- **ETag header.** Single-resource reads send `ETag`, the quoted body `version`. Header names are case-insensitive: over HTTP/1.1 it can arrive as `Etag`.
+- **Unknown fields.** A body field or query parameter the operation does not take is refused (`400` or `422`). The message and `fields` name every one of them.
+
 ### Names and pagination
 
 Use URL-encoded paths for simple names. For app names containing `/`, `%` or other proxy-sensitive characters, use the `/app` query aliases and encode `app_name` once. Every app subresource supports the same alias, for example `/app/keys?app_name=Team%20%2F%20Support`. The reference lists each operation once, in its path form; the aliases take the same inputs and are marked `x-alias-of` in the OpenAPI document.
@@ -359,7 +366,7 @@ Paginated lists accept `limit` (1-200, default 50) and `cursor`:
 {"items": [], "next_cursor": null, "request_id": "req_example"}
 ```
 
-There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider lists support [type, enabled, tag and model filters](./providers-and-configuration-api#list-filters). Group, definition and audit lists support no additional filters. Budget lists have their own filters and accept `limit` up to 500 (default 100). Routing and limit control lists also accept `limit` up to 500 (default 100) and filter by `source`, `app`, `requested_model`, `mode` and `references`; see [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency). App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
+There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider lists support [type, enabled, tag and model filters](./providers-and-configuration-api#list-filters). Group and definition lists support no additional filters; audit lists filter by `actor`, `operation`, `resource`, `since` and `until`. Budget lists have their own filters and accept `limit` up to 500 (default 100). Routing and limit control lists also accept `limit` up to 500 (default 100) and filter by `source`, `app`, `requested_model`, `mode` and `references`; see [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency). App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
 
 ### Versions and preconditions
 
@@ -367,7 +374,7 @@ Read the current resource version, then send its quoted value in `If-Match`. Mis
 
 App updates, provider attachments/conversion, all prompt mutations and configuration rollback use the app ETag. Provider changes use the provider ETag. Gateway credential changes use the individual credential GET version. Management-key changes use `key.version` from the admin list. Tenant enablement changes use the settings version.
 
-Prompt creation also requires the app ETag; `If-None-Match` has no create-only semantics. App and provider lists do not return a collection ETag for editing their members.
+Creating a new prompt needs no `If-Match`; replacing or deleting one needs the app ETag. `If-None-Match` has no create-only semantics. App and provider lists do not return a collection ETag for editing their members.
 
 Routing and limit controls are the exception: each resource has its own ETag, `If-None-Match: *` creates only, a PUT of unchanged content is a no-op, and the collection ETag `"r<revision>"` is accepted in `If-Match`. Incident mark-downs use `mark_down.version`. See the [Routing and failover API](./routing-and-failover-api#writes-versions-and-idempotency).
 

@@ -74,7 +74,8 @@ On most model routes, provider response headers pass through unchanged; endpoint
 - **Retries and failover.** `X-Quilr-Attempts` and `X-Quilr-Failover` report same-target retries and moves to another target. See [failover](../cost-and-traffic/routing-and-fallbacks#failover).
 - **Response cache.** `X-Quilr-Cache` and `Age` mark a response served from the app's response cache.
 - **Quotas and budgets.** `RateLimit-Policy` and `RateLimit` (IETF format) describe the tightest quota, with `X-Quilr-Quota-Remaining`, `X-Quilr-Quota-Reset`, `X-Quilr-Quota-Warning`, `X-Quilr-Budget-Overflow` and `X-Quilr-Quota-Scope`. See [rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits).
-- **Errors.** `X-Quilr-Error-Source` and `X-Quilr-Error-Code` say who raised an error and its code, `Retry-After` when to retry, and `Link` an administrator's help link. A 429 adds `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`.
+- **Errors.** `X-Quilr-Error-Source` and `X-Quilr-Error-Code` say who raised an error and its code, `Retry-After` when to retry, and `Link` an administrator's help link. A 429 from a QuilrAI limit adds `X-RateLimit-*`, `X-Quilr-Quota-Id`, `X-Quilr-Quota-Blocked-By` and `X-Should-Retry`.
+- **Provider headers.** Provider response headers are returned as sent, except the provider's own rate-limit and account headers (`x-ratelimit-*`, `anthropic-ratelimit-*`, `x-ms-ratelimit-*`, `openai-organization`, `openai-project`): they describe the gateway's provider account, not your allowance. On a provider error, its `Retry-After`, `retry-after-ms` and `x-should-retry` are kept.
 
 :::note Browsers cannot read these headers
 The gateway headers are not CORS-exposed, so cross-origin JavaScript in a browser cannot read them. Server-side clients can.

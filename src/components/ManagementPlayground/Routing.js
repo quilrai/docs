@@ -110,6 +110,17 @@ const COLLECTIONS = {
       { label: 'Providers', render: (r) => fmt(r.providers) },
     ],
   },
+  'complexity-levels': {
+    title: 'Complexity levels',
+    subtitle: 'Named complexity levels and context thresholds that content routes match on, for a scope. A content-routed rule may only choose where the request goes.',
+    path: '/controls/complexity-levels',
+    routing: true,
+    columns: [
+      { label: 'Scope', render: (r) => scopeText(r.scope) },
+      { label: 'Levels', render: (r) => (Array.isArray(r.levels) ? r.levels.length : r.levels ? Object.keys(r.levels).length : '-') },
+      { label: 'Context thresholds', render: (r) => (r.context_thresholds ? 'set' : '-') },
+    ],
+  },
   'model-access': {
     title: 'Model access',
     subtitle: 'Allow and deny lists of requested models for a scope.',
@@ -131,6 +142,7 @@ const TABS = [
   ['failover-default', 'Failover default'],
   ['routing-constraints', 'Constraints'],
   ['model-access', 'Model access'],
+  ['complexity-levels', 'Complexity levels'],
   ['references', 'References'],
   ['revisions', 'Revisions'],
   ['diagnostics', 'Diagnostics'],
