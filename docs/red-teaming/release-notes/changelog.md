@@ -10,6 +10,10 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Agent card renamed to AI App / Agent (2026-11-05)
+
+- On the **Assessments** page, the first card in the **New assessment** row is now called **AI App / Agent**. It starts the same assessment as before
+
 ## Gateway-connected card removed from New assessment (2026-11-05)
 
 - The **New assessment** row on the **Assessments** page now shows four cards: **Agent**, **AI Workflow**, **Model** and **MCP**. The **Gateway-connected** card is no longer shown
