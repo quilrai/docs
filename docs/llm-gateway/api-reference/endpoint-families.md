@@ -25,6 +25,7 @@ Mistral OCR and fill-in-the-middle, and xAI images, videos and batches, are serv
 | `completions` | On | `POST /completions` | `openai`, `azureopenai`, `deepseek` (FIM beta), `cerebras`, `general` | ✓ |
 | `files` | Off | `POST`, `GET /files`; `GET`, `DELETE /files/{file_id}`; `GET /files/{file_id}/content` | `openai`, `azureopenai`, `mistral`, `xai` | - |
 | `batches` | Off | `POST`, `GET /batches`; `GET /batches/{batch_id}`; `POST /batches/{batch_id}/cancel` | `openai`, `azureopenai`, `mistral` | - |
+| `ocr` | On | `POST /ocr` | `mistral`, `azureopenai` (Mistral Document AI deployments on Azure AI Foundry; documents as base64 `data:` URIs only) | - |
 | `videos` | Off | `POST /videos`; `GET /videos`; `GET`, `DELETE /videos/{video_id}`; `GET /videos/{video_id}/content` | `openai` | - |
 
 Every path also works without `/v1` (for example `/openai_compatible/moderations`). The [Inference API reference](./inference-api#openai-compatible) documents every endpoint's parameters, bodies and responses.
@@ -36,7 +37,7 @@ Every path also works without `/v1` (for example `/openai_compatible/moderations
 | `mistral` (new) | moderations, files, batches; OCR and FIM on its [vendor routes](#vendor-routes) |
 | `xai` (new) | files; images, videos and batches on its [vendor routes](#vendor-routes) |
 | `openai` | moderations, images, completions, files, batches, videos |
-| `azureopenai` | images (generations, edits), completions, files, batches |
+| `azureopenai` | images (generations, edits), completions, files, batches, OCR ([Mistral Document AI](../apps-and-providers/provider-support#azure-ai-foundry-models)) |
 | `gemini_chatcompletions` | images (generations) |
 | `deepseek` | completions (FIM through DeepSeek's beta endpoint) |
 | `cerebras` (new) | completions |

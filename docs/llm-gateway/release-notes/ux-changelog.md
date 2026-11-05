@@ -10,6 +10,13 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Azure AI Foundry models (2026-11-04)
+
+- **Check key and list models** on an Azure (`azureopenai`) provider now also lists the resource's Mistral Document AI and Microsoft-Decision-1 deployments, by deployment name and type
+- Mistral Document AI deployments serve document OCR at `/openai_compatible/v1/ocr`; send documents as base64 `data:` URIs
+- Claude deployments found on the resource are named in a note that points to **Azure** › **Anthropic messages**; that provider type now asks for deployment names instead of showing a listing error
+- Details: [Azure AI Foundry models](../apps-and-providers/provider-support#azure-ai-foundry-models)
+
 ## External hooks (2026-11-04)
 
 - New [Hooks API](../api-reference/hooks-api): call your own HTTPS API on gateway traffic for OpenAI Chat Completions, Responses, Anthropic Messages, Gemini and Bedrock clients

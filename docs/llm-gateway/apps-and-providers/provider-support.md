@@ -67,6 +67,7 @@ One row per provider type. The type is what you select in the console and what y
 - **Manual**: enter Oracle model IDs yourself.
 - **Endpoint families:** moderations, images, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families). Mistral, xAI and Cohere also have vendor routes ([Mistral and xAI](#vendor-routes), [Cohere](#cohere-routes)).
 - `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes, `perplexity` serves its `pplx-decider` models there, and `typesafe` serves only those routes. See [Decision models](#decision-models).
+- `azureopenai` also serves Mistral Document AI deployments on Azure AI Foundry for document OCR, and Claude deployments there use `anthropic_messages_azure`. See [Azure AI Foundry models](#azure-ai-foundry-models).
 - **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
 
 ## Endpoints
@@ -232,6 +233,46 @@ Chat models (`sarvam-105b`, `sarvam-105b-conversations`, and the beta `glm5.2`, 
 Guardrails scan `input_text` parts and `instructions` on the request, and `output_text` on non-streaming responses. On native providers, `previous_response_id` and built-in tools pass through.
 
 Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistral, Cerebras, DeepSeek and more) are reached by translation. Stored state such as `previous_response_id` does not carry over, and hosted tools are dropped so the model answers without them; see [Limits](../api-reference/any-to-any-formats#limits).
+
+## Azure AI Foundry models {#azure-ai-foundry-models}
+
+An Azure AI Foundry resource can hold Azure OpenAI deployments and Foundry Models deployments from other vendors. They are served by two provider types:
+
+| Deployment | Provider type | API | Listed by **Check key and list models** |
+|------------|---------------|-----|------------------------------------------|
+| Azure OpenAI models (for example `gpt-5.4-mini`) | `azureopenai` | Chat, Responses, embeddings, speech and more | Yes |
+| Mistral Document AI (`mistral-document-ai-2512`, `mistral-ocr-*`) | `azureopenai` | Document OCR at `/openai_compatible/v1/ocr` | Yes, as an OCR model |
+| Microsoft-Decision-1 | `azureopenai` | [Decision models](#decision-models) | Yes, as a decision model |
+| Claude (for example `claude-opus-4-5`) | `anthropic_messages_azure` | Anthropic Messages | No: enter the deployment name |
+
+Other Foundry Models deployments, such as Mistral chat models, are not listed or supported yet.
+
+### Add the provider
+
+1. In Azure AI Foundry, open the resource's deployment details page and copy the resource endpoint and key.
+2. For Azure OpenAI, Mistral Document AI and Microsoft-Decision-1 deployments, add an **Azure** › **OpenAI chat** provider (`azureopenai`) with the endpoint and key. Click **Check key and list models**: the list includes the resource's deployments by deployment name, with their type.
+3. For Claude, add an **Azure** › **Anthropic messages** provider (`anthropic_messages_azure`) with the key and the Base URL `https://<resource>.services.ai.azure.com`, then enter each deployment name (for example `claude-opus-4-5`). Azure does not list Claude deployments. When an `azureopenai` provider on the same resource finds Claude deployments, the console shows a note naming them and pointing to this provider type.
+
+The deployment list is read on a best-effort basis. If a resource does not return it, the models from Azure OpenAI's catalog are still listed, and you can add other deployment names yourself.
+
+### Azure document OCR example
+
+```bash
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/ocr \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "mistral-document-ai-2512", "document": {"type": "document_url", "document_url": "data:application/pdf;base64,<base64 PDF>"}}'
+```
+
+`model` is the deployment name. The request and response are Mistral's OCR format.
+
+### Azure Foundry behavior
+
+| Topic | Behavior |
+|-------|----------|
+| Documents | Azure cannot fetch URLs. Send `document_url` or `image_url` as a base64 `data:` URI. Any other URL returns `400 ocr_document_url_unsupported` before the request is counted or sent. Azure's own size and page limits apply. |
+| Model check | Model validation confirms that an OCR deployment exists on the OCR route without running OCR, under any deployment name: the gateway asks the resource which model the deployment runs. Unknown deployments return Azure's `404 DeploymentNotFound`. |
+| Usage accounting | OCR counts requests, like the other [endpoint families](../api-reference/endpoint-families). |
+| Guardrails | OCR runs no guardrails and no failover, like the other endpoint families. |
 
 ## xAI and Mistral
 
@@ -630,7 +671,7 @@ The three question types:
 ### Microsoft-Decision-1 on Azure
 
 1. In Azure AI Foundry, deploy **Microsoft-Decision-1** under a name of your choice (Azure does not allow the name `Microsoft-Decision-1` itself), for example `decision-1`.
-2. Add an Azure provider (`azureopenai`) with the resource endpoint and key from the deployment details page, and add the deployment name as a model. Model validation checks it on the decision route, since the model has no chat route.
+2. Add an Azure provider (`azureopenai`) with the resource endpoint and key from the deployment details page. **Check key and list models** lists the deployment as a decision model, or add its name yourself. Model validation checks it on the decision route, since the model has no chat route.
 3. Send the deployment name as `model`.
 
 ### TypeSafe
