@@ -28,7 +28,7 @@
     "@docusaurus/preset-classic": "3.9.2",
     "@docusaurus/theme-mermaid": "^3.9.2",
     "@easyops-cn/docusaurus-search-local": "^0.55.1",
-    "@fontsource/geist": "^5.2.8",
+    "@fontsource/figtree": "^5.3.0",
     "@fontsource/geist-mono": "^5.2.7",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",

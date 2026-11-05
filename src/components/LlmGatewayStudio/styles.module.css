@@ -1,7 +1,7 @@
 /*
  * LLM Gateway Studio - full-page, console-style playground.
  * Themes off the docs design tokens (--docs-light-* / --docs-dark-*) so it
- * tracks light/dark automatically. Geist for UI, Geist Mono for the wire.
+ * tracks light/dark automatically. Figtree for UI, Geist Mono for the wire.
  */
 
 .studio {

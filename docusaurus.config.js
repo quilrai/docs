@@ -69,7 +69,14 @@ async function sidebarItemsGenerator({ defaultSidebarItemsGenerator, ...args }) 
 const config = {
     title: 'QuilrAI Docs',
     tagline: 'Documentation for QuilrAI',
-    favicon: 'img/favicon.ico',
+
+    // Favicons set here, not via `favicon`, so the ICO carries `sizes` and
+    // browsers that support SVG pick the theme-aware favicon.svg instead.
+    headTags: [
+        {tagName: 'link', attributes: {rel: 'icon', href: '/img/favicon.ico', sizes: '32x32'}},
+        {tagName: 'link', attributes: {rel: 'icon', href: '/img/favicon.svg', type: 'image/svg+xml'}},
+        {tagName: 'link', attributes: {rel: 'apple-touch-icon', href: '/img/apple-touch-icon.png'}},
+    ],
 
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
     future: {
@@ -237,9 +244,9 @@ const config = {
             navbar: {
                 title: '',
                 logo: {
-                    alt: 'QuilrAi',
-                    src: 'img/QuilrAI-light.png',
-                    srcDark: 'img/QuilrAI-dark.png',
+                    alt: 'WhiteMatter',
+                    src: 'img/whitematter-logo-black.svg',
+                    srcDark: 'img/whitematter-logo-white.svg',
                 },
                 items: [
                     // One tab per product (styled by src/theme/Navbar/Content).

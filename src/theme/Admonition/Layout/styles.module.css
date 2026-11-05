@@ -10,7 +10,8 @@
 }
 
 .admonitionHeading {
-  font-family: var(--ifm-heading-font-family);
+  /* Short label (NOTE, TIP), so Figtree rather than the Radix heading face */
+  font-family: var(--ifm-font-family-base);
   text-transform: uppercase;
 }
 

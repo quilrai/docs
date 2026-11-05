@@ -1,7 +1,7 @@
 .hero{padding:2.25rem;border:1px solid color-mix(in srgb,var(--ifm-color-primary) 35%,var(--ifm-color-emphasis-300));border-radius:20px;background:radial-gradient(ellipse at 100% 0,color-mix(in srgb,var(--ifm-color-primary) 13%,transparent),transparent 60%),var(--ifm-background-surface-color);margin:1.5rem 0 2rem;overflow:hidden}
 .eyebrow{font:600 .7rem var(--ifm-font-family-monospace);letter-spacing:.09em;color:var(--ifm-color-primary);display:flex;align-items:center;gap:9px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--ifm-color-primary)}
-.hero h2{font-size:clamp(1.65rem,3vw,2.45rem);line-height:1.18;letter-spacing:-.04em;margin:1.3rem 0 1rem!important;border:0!important;padding:0!important}
+.hero h2{font-size:clamp(1.65rem,3vw,2.45rem);line-height:1.18;letter-spacing:-.01em;margin:1.3rem 0 1rem!important;border:0!important;padding:0!important}
 .hero h2 span{color:var(--ifm-color-content-secondary);font-weight:500}
 .hero>p{max-width:570px;font-size:.98rem;color:var(--ifm-color-content-secondary)}
 .heroActions{display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap;margin:1.5rem 0 1.8rem}
