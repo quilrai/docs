@@ -4,12 +4,12 @@ sidebar_label: "Administrator setup checklist"
 sidebar_position: 1
 sidebar_custom_props:
   icon: ClipboardList
-description: "Choose an MCP client, prepare gateway authentication and access, and roll out Quilr connections to users."
+description: "Choose an MCP client, prepare gateway authentication and access, and roll out WhiteMatter connections to users."
 ---
 
 # Administrator setup checklist
 
-Use this section to connect employee AI applications to Quilr MCP Gateway. Start with the exact product and runtime: GitHub Copilot in VS Code, GitHub's cloud agent, and Microsoft Copilot Studio have different configuration and authentication requirements.
+Use this section to connect employee AI applications to WhiteMatter MCP Gateway. Start with the exact product and runtime: GitHub Copilot in VS Code, GitHub's cloud agent, and Microsoft Copilot Studio have different configuration and authentication requirements.
 
 Claude, ChatGPT, and Gemini documentation was checked on **20 October 2026**; the other client guides were checked on **15 October 2026**. These guides describe vendor-documented setup and the gateway implementation; they are not a claim that every client version has passed a live interoperability test. Complete the pilot below for your deployed gateway and client version.
 
@@ -32,11 +32,11 @@ Use `<YOUR_MCP_BASE_URL>` for the base URL of your gateway deployment, including
 
 | Deployment | Example base URL |
 | --- | --- |
-| Quilr gateway | `https://mcpgateway.quilr.ai` |
-| Quilr gateway on quilrai.com | `https://mcpgateway.quilrai.com` |
+| WhiteMatter gateway | `https://mcpgateway.quilr.ai` |
+| WhiteMatter gateway on quilrai.com | `https://mcpgateway.quilrai.com` |
 | Assigned environment | The exact HTTPS hostname provided for your deployment under `quilrai.com` |
 
-Copy the base URL from your Quilr dashboard. Replace `<YOUR_MCP_BASE_URL>` in every configuration example before use. Do not enter a wildcard hostname or add another `https://` before the placeholder.
+Copy the base URL from your WhiteMatter dashboard. Replace `<YOUR_MCP_BASE_URL>` in every configuration example before use. Do not enter a wildcard hostname or add another `https://` before the placeholder.
 
 For example, a base of `https://mcpgateway.quilrai.com` gives the OneMCP URL `https://mcpgateway.quilrai.com/quilrone/mcp`.
 
@@ -45,21 +45,21 @@ For example, a base of `https://mcpgateway.quilrai.com` gives the OneMCP URL `ht
 | OneMCP | Access the user's permitted connectors through one URL | `<YOUR_MCP_BASE_URL>/quilrone/mcp` |
 | Direct MCP | Connect to one installed server | `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/mcp` |
 
-Use `/quilrone/mcp` on your assigned gateway hostname. Quilr resolves the organization from the signed-in account and applies that user's connector and tool permissions. For a direct MCP connection, copy its dashboard-provided URL; a backend UUID avoids ambiguous slugs. OneMCP excludes OAuth-passthrough servers; use their direct endpoint and discovered upstream authorization details.
+Use `/quilrone/mcp` on your assigned gateway hostname. WhiteMatter resolves the organization from the signed-in account and applies that user's connector and tool permissions. For a direct MCP connection, copy its dashboard-provided URL; a backend UUID avoids ambiguous slugs. OneMCP excludes OAuth-passthrough servers; use their direct endpoint and discovered upstream authorization details.
 
 ## 2. Assign responsibilities
 
 | Owner | Work to complete |
 | --- | --- |
-| Quilr administrator | Install the MCPs, configure upstream authentication, allow the client, grant the appropriate users/groups access, and choose OneMCP settings |
+| WhiteMatter administrator | Install the MCPs, configure upstream authentication, allow the client, grant the appropriate users/groups access, and choose OneMCP settings |
 | AI application administrator | Enable custom MCP integrations, approve/distribute the gateway connection, configure tool permissions and organization policy |
 | Identity administrator | Ensure the intended users can complete the configured platform SSO and any upstream consent required by their connectors |
 | Network/platform operator | Supply the canonical gateway hostname, valid TLS, reachable discovery/login endpoints, and an ingress that preserves MCP headers and streaming |
 | End user | Sign in with their own company account and connect upstream services that require personal authorization |
 
-Approving an integration for an organization does not sign in every user. Access to the AI application does not itself grant access to a Quilr tenant or upstream service.
+Approving an integration for an organization does not sign in every user. Access to the AI application does not itself grant access to a WhiteMatter tenant or upstream service.
 
-## 3. Prepare Quilr
+## 3. Prepare WhiteMatter {#3-prepare-quilr}
 
 1. In **Settings > AI Gateway > MCP Gateway**, install the required MCPs and verify their configuration. See [adding servers](../servers-and-connections/adding-mcp-servers).
 2. Configure shared upstream credentials or require personal credentials as appropriate. See [OAuth connections](../servers-and-connections/oauth-connect) and [provider setup](../provider-setup/overview).

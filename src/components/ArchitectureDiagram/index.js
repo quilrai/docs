@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './styles.module.css';
+import {BRAND_NAME} from '@site/src/constants/brandConstants';
 
 function DownArrow({ small }) {
   if (small) {
@@ -92,7 +93,7 @@ export default function ArchitectureDiagram({ source, gateway, destination }) {
 
       <div className={styles.brand}>
         <span className={styles.brandDot} />
-        QuilrAI
+        {BRAND_NAME}
       </div>
     </div>
   );

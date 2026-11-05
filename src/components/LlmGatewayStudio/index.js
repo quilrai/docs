@@ -28,6 +28,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import styles from './styles.module.css';
+import {BRAND_NAME} from '@site/src/constants/brandConstants';
 import { SdkAttachmentResults, SdkAttachmentUploads } from './SdkAttachments.js';
 import { buildSdkCheckPayload, compactSdkMedia, formatSdkSafeContent, sdkMayContainAttachments, sdkUploadModeError } from './sdkAttachments.mjs';
 
@@ -106,7 +107,7 @@ const SURFACES = [
       'Text completions and fill-in-the-middle (send a suffix) for OpenAI, Azure, Mistral Codestral, DeepSeek, Cerebras, and custom upstreams.',
     sample: {
       model: 'gpt-3.5-turbo-instruct',
-      prompt: 'Write one sentence from the QuilrAI gateway playground.',
+      prompt: `Write one sentence from the ${BRAND_NAME} gateway playground.`,
       temperature: 0.2,
       max_tokens: 128,
       stream: false,
@@ -211,7 +212,7 @@ const SURFACES = [
     sample: {
       model: 'gpt-4o-mini-tts',
       voice: 'alloy',
-      input: 'Hello from the QuilrAI gateway playground.',
+      input: `Hello from the ${BRAND_NAME} gateway playground.`,
       response_format: 'mp3',
     },
   },
@@ -277,7 +278,7 @@ const CODE_TABS = [
 ];
 
 const STARTER_PROMPTS = [
-  'Write a one sentence greeting from the QuilrAI gateway.',
+  `Write a one sentence greeting from the ${BRAND_NAME} gateway.`,
   'Explain what an LLM gateway does in two sentences.',
   'My SSN is 219-09-4823 - can you store it for me?',
 ];
@@ -921,7 +922,7 @@ function buildAssistantsCurl(base, key, p) {
     "  --header 'Content-Type: application/json' \\",
     "  --data '{}' | jq -r '.id')",
     '',
-    '# 3) Add your message (scanned by Quilr input guardrails)',
+    `# 3) Add your message (scanned by ${BRAND_NAME} input guardrails)`,
     `curl -s --request POST "${base}/openai_assistants/v1/threads/$THREAD_ID/messages" \\`,
     `  --header ${shellQuote(auth)} \\`,
     "  --header 'Content-Type: application/json' \\",
@@ -966,7 +967,7 @@ assistant = requests.post(f"{base}/openai_assistants/v1/assistants",
 # 2) Create a thread
 thread = requests.post(f"{base}/openai_assistants/v1/threads", headers=headers, json={}).json()
 
-# 3) Add your message (scanned by Quilr input guardrails)
+# 3) Add your message (scanned by ${BRAND_NAME} input guardrails)
 requests.post(f"{base}/openai_assistants/v1/threads/{thread['id']}/messages",
               headers=headers, json=${JSON.stringify(assistantsMessageBody(p))})
 `;
@@ -1026,7 +1027,7 @@ const thread = await (await fetch(\`\${base}/openai_assistants/v1/threads\`, {
   method: "POST", headers, body: JSON.stringify({}),
 })).json();
 
-// 3) Add your message (scanned by Quilr input guardrails)
+// 3) Add your message (scanned by ${BRAND_NAME} input guardrails)
 await fetch(\`\${base}/openai_assistants/v1/threads/\${thread.id}/messages\`, {
   method: "POST", headers, body: JSON.stringify(${JSON.stringify(assistantsMessageBody(p))}),
 });
@@ -1357,7 +1358,7 @@ export default function LlmGatewayStudio() {
   /* The request body shown in the code/inspect panels */
   const previewMessages = useMemo(() => {
     if (thread.length) return thread.map((m) => ({ role: m.role, content: m.content }));
-    const draft = composer.trim() || 'Hello from the QuilrAI gateway playground.';
+    const draft = composer.trim() || `Hello from the ${BRAND_NAME} gateway playground.`;
     return [{ role: 'user', content: draft }];
   }, [thread, composer]);
 
@@ -1450,7 +1451,7 @@ export default function LlmGatewayStudio() {
         temperature,
         maxTokens,
         stream: streamEnabled,
-        userMessage: previewMessages[previewMessages.length - 1]?.content || 'Hello from the QuilrAI gateway playground.',
+        userMessage: previewMessages[previewMessages.length - 1]?.content || `Hello from the ${BRAND_NAME} gateway playground.`,
       };
       if (codeTab === 'python') return buildAssistantsPython(normalizedBase, snippetKeyValue, p);
       if (codeTab === 'javascript') return buildAssistantsJs(normalizedBase, snippetKeyValue, p);
@@ -2102,7 +2103,7 @@ export default function LlmGatewayStudio() {
     <div className={styles.studio}>
       <header className={styles.topbar}>
         <div className={styles.brandBlock}>
-          <span className={styles.kicker}>QuilrAI</span>
+          <span className={styles.kicker}>{BRAND_NAME}</span>
           <h1 className={styles.title}>LLM Gateway Studio</h1>
         </div>
         <div className={styles.topbarMeta}>

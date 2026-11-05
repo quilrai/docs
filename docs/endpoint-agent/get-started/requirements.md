@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Requirements
 
-Check that your endpoints meet these requirements before you deploy the QuilrAI Endpoint Agent.
+Check that your endpoints meet these requirements before you deploy the WhiteMatter Endpoint Agent.
 
 <StepFlow steps={[
   { label: "OS", items: ["macOS 13+ (Ventura)", "Windows 10 1903+ / Server 2019+", "64-bit only"] },
@@ -38,11 +38,11 @@ The agent makes outbound HTTPS connections on port 443 only. No inbound ports ar
 
 | Destination | Purpose |
 | --- | --- |
-| QuilrAI discovery, backend and DLP hosts for your region | Tenant lookup at install and update, registration and check-ins (including the kill switch), policy sync, and DLP decisions. See [Backend connectivity](../how-it-works/backend-connectivity). Your QuilrAI representative provides the exact hostnames to allow. |
-| QuilrAI update hosts | Update checks and package downloads. Included in the list your representative provides. |
+| WhiteMatter discovery, backend and DLP hosts for your region | Tenant lookup at install and update, registration and check-ins (including the kill switch), policy sync, and DLP decisions. See [Backend connectivity](../how-it-works/backend-connectivity). Your WhiteMatter representative provides the exact hostnames to allow. |
+| WhiteMatter update hosts | Update checks and package downloads. Included in the list your representative provides. |
 | `login.microsoftonline.com` or `oauth2.googleapis.com` | User sign-in that links the device to a person. |
 
-Get the full list of hosts to allow from your QuilrAI representative. If endpoints go through a corporate proxy, let these destinations pass through without TLS inspection of the agent's own traffic. To test reachability from a device before you install, run the connectivity check scripts in <SopLink track="endpoint-agent" step="prerequisites-validation" />.
+Get the full list of hosts to allow from your WhiteMatter representative. If endpoints go through a corporate proxy, let these destinations pass through without TLS inspection of the agent's own traffic. To test reachability from a device before you install, run the connectivity check scripts in <SopLink track="endpoint-agent" step="prerequisites-validation" />.
 
 ## Platform specifics
 

@@ -2,29 +2,29 @@
 sidebar_position: 22
 sidebar_custom_props:
   icon: Database
-description: "Connect Snowflake two ways - the local Snowflake MCP from the MCP Library (Snowflake-Labs snowflake-labs-mcp, runs on each user's computer with SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, SNOWFLAKE_PASSWORD and SNOWFLAKE_WAREHOUSE, read-only SQL), or a Snowflake-managed MCP server - create the MCP server object in Snowflake with CREATE MCP SERVER (Cortex Agent, Cortex Analyst, Cortex Search, SQL execution and custom UDF/procedure tools), grant a least-privileged MCP access role, then either create a Snowflake OAuth security integration (OAUTH_CLIENT = CUSTOM, confidential client, QuilrAI callback URL) and paste its client ID and secret into QuilrAI, or use a role-restricted programmatic access token as an upstream API key. Covers the account URL format, hyphenated hostnames, network policies, the 50-tool limit and troubleshooting."
+description: "Connect Snowflake two ways - the local Snowflake MCP from the MCP Library (Snowflake-Labs snowflake-labs-mcp, runs on each user's computer with SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, SNOWFLAKE_PASSWORD and SNOWFLAKE_WAREHOUSE, read-only SQL), or a Snowflake-managed MCP server - create the MCP server object in Snowflake with CREATE MCP SERVER (Cortex Agent, Cortex Analyst, Cortex Search, SQL execution and custom UDF/procedure tools), grant a least-privileged MCP access role, then either create a Snowflake OAuth security integration (OAUTH_CLIENT = CUSTOM, confidential client, WhiteMatter callback URL) and paste its client ID and secret into WhiteMatter, or use a role-restricted programmatic access token as an upstream API key. Covers the account URL format, hyphenated hostnames, network policies, the 50-tool limit and troubleshooting."
 ---
 
 # Snowflake
 
-You can connect Snowflake to QuilrAI in two ways. Pick the one that matches who sets it up and where credentials should live:
+You can connect Snowflake to WhiteMatter in two ways. Pick the one that matches who sets it up and where credentials should live:
 
 | Option | Runs | Best for | What you set up |
 |--------|------|----------|-----------------|
 | [Snowflake-managed MCP](#snowflake-managed-mcp) | In your Snowflake account (remote) | Governed tools you define in Snowflake: Cortex Agents, Cortex Analyst, Cortex Search, SQL and custom functions | An MCP server object and an OAuth security integration in Snowflake |
 | [Local Snowflake MCP](#local-snowflake-mcp) | On each user's computer | Exploring databases and running read-only SQL with each user's own Snowflake login, without Snowflake admin setup | Approve **Snowflake** from the MCP Library; each user sets four environment variables |
 
-Both run through the QuilrAI gateway, so access control, guardrails and Activity apply either way.
+Both run through the WhiteMatter gateway, so access control, guardrails and Activity apply either way.
 
 See [Overview](./overview) for shared prerequisites and secret-handling guidance.
 
 ## Snowflake-managed MCP
 
-Snowflake runs MCP servers inside your own Snowflake account. You define each one as a schema-level **MCP server** object, choose which tools it exposes, and connect it to QuilrAI like any other remote MCP server. Requests run in Snowflake under the connecting user's role, so Snowflake's own grants and governance apply to every tool call.
+Snowflake runs MCP servers inside your own Snowflake account. You define each one as a schema-level **MCP server** object, choose which tools it exposes, and connect it to WhiteMatter like any other remote MCP server. Requests run in Snowflake under the connecting user's role, so Snowflake's own grants and governance apply to every tool call.
 
 <StepFlow steps={[
   { label: "MCP client", items: ["Agent or IDE"] },
-  { label: "QuilrAI MCP Gateway", items: ["Snowflake OAuth or PAT", "Guardrails, access control"] },
+  { label: "WhiteMatter MCP Gateway", items: ["Snowflake OAuth or PAT", "Guardrails, access control"] },
   { label: "Snowflake-managed MCP server", items: ["Your Snowflake account"] },
   { label: "Snowflake objects", items: ["Agents, semantic views, search, SQL"] },
 ]} />
@@ -32,7 +32,7 @@ Snowflake runs MCP servers inside your own Snowflake account. You define each on
 ### How Snowflake-Managed MCP Differs
 
 - **You build the server first.** There is no ready-made Snowflake MCP to install. An admin creates an MCP server object with `CREATE MCP SERVER` and lists the tools it exposes. Until then there is no URL to connect.
-- **You create an OAuth app, as a security integration.** Snowflake does not support Dynamic Client Registration. You create a Snowflake OAuth **security integration** and give QuilrAI its client ID and client secret. A programmatic access token (PAT) is the non-OAuth alternative.
+- **You create an OAuth app, as a security integration.** Snowflake does not support Dynamic Client Registration. You create a Snowflake OAuth **security integration** and give WhiteMatter its client ID and client secret. A programmatic access token (PAT) is the non-OAuth alternative.
 - **Access follows the role.** Tools run with the connecting user's default role, or the PAT's restricted role. That role needs `USAGE` on the MCP server and on every object its tools use.
 - **Tools only.** Snowflake implements MCP tools (protocol revision `2025-11-25`). It does not offer MCP resources, prompts or sampling. One server can expose up to 50 tools.
 
@@ -44,7 +44,7 @@ Snowflake runs MCP servers inside your own Snowflake account. You define each on
 | A role that can create the MCP server | `CREATE MCP SERVER` on the target schema. |
 | A role that can create a security integration | `ACCOUNTADMIN`, or a role with `CREATE INTEGRATION`. OAuth only. |
 | The objects the tools use | A Cortex Agent, a semantic view, a Cortex Search service, a warehouse for SQL, or a UDF or stored procedure. |
-| QuilrAI callback URL | Shown on the **Connect with OAuth** step in QuilrAI. Production is `https://mcpgateway.quilrai.com/oauth/callback`. |
+| WhiteMatter callback URL | Shown on the **Connect with OAuth** step in WhiteMatter. Production is `https://mcpgateway.quilrai.com/oauth/callback`. |
 
 :::warning Use hyphens in the hostname
 Snowflake account URLs can contain underscores, for example `myorg-my_account.snowflakecomputing.com`. MCP connections fail with underscores in the hostname. Replace them with hyphens: `myorg-my-account.snowflakecomputing.com`.
@@ -131,7 +131,7 @@ For a `CORTEX_AGENT_RUN` tool, also grant `USAGE ON AGENT <db>.<schema>.<agent>`
 An OAuth session uses the user's `DEFAULT_ROLE` as its primary role. If a user's default role cannot use the MCP server, connecting succeeds but tool discovery or calls fail. Setting `DEFAULT_ROLE` as above avoids that.
 :::
 
-#### 3. Choose How QuilrAI Signs In
+#### 3. Choose How WhiteMatter Signs In {#3-choose-how-quilrai-signs-in}
 
 | Option | Who the calls run as | Use when |
 |--------|----------------------|----------|
@@ -140,7 +140,7 @@ An OAuth session uses the user's `DEFAULT_ROLE` as its primary role. If a user's
 
 ##### 3a. Snowflake OAuth
 
-Create a confidential OAuth client whose redirect URI is the QuilrAI callback URL:
+Create a confidential OAuth client whose redirect URI is the WhiteMatter callback URL:
 
 ```sql
 CREATE OR REPLACE SECURITY INTEGRATION QUILR_MCP_OAUTH
@@ -154,7 +154,7 @@ CREATE OR REPLACE SECURITY INTEGRATION QUILR_MCP_OAUTH
   ALLOWED_ROLES_LIST = ('MCP_ACCESS_ROLE');
 ```
 
-Use the callback URL exactly as QuilrAI shows it on the **Connect with OAuth** step. `ALLOWED_ROLES_LIST` and `OAUTH_USE_SECONDARY_ROLES = NONE` keep MCP sessions on the MCP access role only. Snowflake blocks `ACCOUNTADMIN`, `ORGADMIN` and `SECURITYADMIN` from OAuth sessions by default.
+Use the callback URL exactly as WhiteMatter shows it on the **Connect with OAuth** step. `ALLOWED_ROLES_LIST` and `OAUTH_USE_SECONDARY_ROLES = NONE` keep MCP sessions on the MCP access role only. Snowflake blocks `ACCOUNTADMIN`, `ORGADMIN` and `SECURITYADMIN` from OAuth sessions by default.
 
 Read the client credentials. The integration name must be in upper case here:
 
@@ -164,21 +164,21 @@ SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('QUILR_MCP_OAUTH');
 
 The result is JSON. Copy `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET`.
 
-Then add the server in QuilrAI:
+Then add the server in WhiteMatter:
 
 1. Go to **MCP Gateway** and click **Add MCP server**.
 2. Enter a **Name** and paste the MCP server URL from step 1 as the **Transport URL**.
 3. Leave **How the gateway signs in** on **Auto-detect (recommended)** and click **Probe and continue**. Snowflake advertises OAuth, so the **Connect with OAuth** step opens.
 4. Paste `OAUTH_CLIENT_ID` as the **OAuth client ID** and `OAUTH_CLIENT_SECRET` as the **OAuth client secret**.
 5. Click **Create MCP**, then sign in to Snowflake as a user whose default role is the MCP access role, and approve the consent screen. This administrator sign-in only lets the gateway discover the tools.
-6. After authorization, QuilrAI fetches the tools. Enable the ones you want in **Tools**.
+6. After authorization, WhiteMatter fetches the tools. Enable the ones you want in **Tools**.
 
 Each user then connects their own Snowflake account the first time they use the server, and their calls run with their own default role. See [OAuth Connect](../servers-and-connections/oauth-connect).
 
-Give your MCP clients the QuilrAI gateway URL shown on the MCP card, not the `snowflakecomputing.com` URL, so traffic goes through the gateway's controls.
+Give your MCP clients the WhiteMatter gateway URL shown on the MCP card, not the `snowflakecomputing.com` URL, so traffic goes through the gateway's controls.
 
 :::note External OAuth
-If your account uses an external identity provider such as Okta or Microsoft Entra ID for Snowflake sign-in, Snowflake can bind an `EXTERNAL_OAUTH` security integration to the MCP server's schema, database or account with `OAUTH_AUTHORIZATION_SERVER`. Register the QuilrAI callback URL in that provider instead, and use that provider's client ID and secret. See Snowflake's [MCP server documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-mcp).
+If your account uses an external identity provider such as Okta or Microsoft Entra ID for Snowflake sign-in, Snowflake can bind an `EXTERNAL_OAUTH` security integration to the MCP server's schema, database or account with `OAUTH_AUTHORIZATION_SERVER`. Register the WhiteMatter callback URL in that provider instead, and use that provider's client ID and secret. See Snowflake's [MCP server documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-mcp).
 :::
 
 ##### 3b. Programmatic Access Token
@@ -190,7 +190,7 @@ ALTER USER mcp_service_user ADD PROGRAMMATIC ACCESS TOKEN quilr_mcp
   ROLE_RESTRICTION = 'MCP_ACCESS_ROLE';
 ```
 
-Snowflake shows the token once. Then add the server in QuilrAI:
+Snowflake shows the token once. Then add the server in WhiteMatter:
 
 1. Go to **MCP Gateway** and click **Add MCP server**, and paste the MCP server URL as the **Transport URL**.
 2. Under **How the gateway signs in**, choose **Upstream API key**.
@@ -199,7 +199,7 @@ Snowflake shows the token once. Then add the server in QuilrAI:
 5. Click **Create MCP** and enable the tools you want.
 
 :::warning Network policy
-By default Snowflake only accepts a PAT from a user who is subject to a network policy. Add the QuilrAI gateway's egress IPs, listed under [MCP Library: Internal MCPs](../servers-and-connections/mcp-library#internal-mcps), to that policy. An account-level network policy applies to OAuth sessions too.
+By default Snowflake only accepts a PAT from a user who is subject to a network policy. Add the WhiteMatter gateway's egress IPs, listed under [MCP Library: Internal MCPs](../servers-and-connections/mcp-library#internal-mcps), to that policy. An account-level network policy applies to OAuth sessions too.
 :::
 
 A PAT is a long-lived credential. Never commit it to Git or paste it into tickets or chat. Prefer OAuth when you can.
@@ -220,7 +220,7 @@ Using Snowflake, what was total revenue last quarter? Show the SQL you used.
 
 ## Local Snowflake MCP
 
-The MCP Library includes **Snowflake** as a local package: Snowflake Labs' open-source [`snowflake-labs-mcp`](https://github.com/Snowflake-Labs/mcp) (Python), pinned to a reviewed version. It runs on each user's computer through the [local MCP connector](../local-mcp/overview), signs in to Snowflake with that user's own credentials, and never sends those credentials to QuilrAI. Tool calls still pass through the gateway's access control and guardrails.
+The MCP Library includes **Snowflake** as a local package: Snowflake Labs' open-source [`snowflake-labs-mcp`](https://github.com/Snowflake-Labs/mcp) (Python), pinned to a reviewed version. It runs on each user's computer through the [local MCP connector](../local-mcp/overview), signs in to Snowflake with that user's own credentials, and never sends those credentials to WhiteMatter. Tool calls still pass through the gateway's access control and guardrails.
 
 ### How The Local Snowflake MCP Differs
 
@@ -295,12 +295,12 @@ These apply to Snowflake-managed MCP servers. For the local package, see [When S
 |-------|--------------|-----|
 | Connection fails or times out during probing | Underscore in the account hostname | Replace underscores with hyphens in the URL. |
 | `404` on the MCP URL | Wrong database, schema or server name, or the server was not created | Run `SHOW MCP SERVERS IN SCHEMA <db>.<schema>;` and rebuild the URL from it. |
-| `invalid_client` or redirect error on sign-in | Client ID or secret mistyped, or the redirect URI does not match | Re-read `SYSTEM$SHOW_OAUTH_CLIENT_SECRETS` and make `OAUTH_REDIRECT_URI` match the QuilrAI callback URL exactly. |
+| `invalid_client` or redirect error on sign-in | Client ID or secret mistyped, or the redirect URI does not match | Re-read `SYSTEM$SHOW_OAUTH_CLIENT_SECRETS` and make `OAUTH_REDIRECT_URI` match the WhiteMatter callback URL exactly. |
 | Sign-in fails with a role error | The user's default role is not in `ALLOWED_ROLES_LIST`, or is a blocked admin role | Set the user's `DEFAULT_ROLE` to the MCP access role. |
 | Connected, but no tools or `403` on calls | The role lacks `USAGE` on the MCP server or on a tool's object | Add the grants from [step 2](#2-grant-an-mcp-access-role). |
 | SQL tool rejects writes | `read_only: true` on `SYSTEM_EXECUTE_SQL` | Expected. Create a separate server for write access if it is really needed. |
 | `401` with a PAT | Token expired or revoked, or the caller is outside the network policy | Issue a new token and allow the gateway egress IPs in the user's network policy. |
-| Tools missing after editing the specification | The gateway cached the old tool list | Use **Refresh tools** on the server in QuilrAI. |
+| Tools missing after editing the specification | The gateway cached the old tool list | Use **Refresh tools** on the server in WhiteMatter. |
 
 :::note Replication
 MCP server objects are not replicated in failover groups. After a failover, recreate the MCP server on the secondary account. OAuth security integrations are replicated.

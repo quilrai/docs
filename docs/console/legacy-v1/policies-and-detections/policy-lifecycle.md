@@ -19,7 +19,7 @@ Create, scope, test, promote, maintain, and retire controls without exposing the
 
 ## Browser control: sensitive data shared with an AI application
 
-1. Select Add. Enter Quilr Staged Sensitive Data as the Control Name, High as Criticality, a description, Monitor Mode, and Enabled status.
+1. Select Add. Enter WhiteMatter Staged Sensitive Data as the Control Name, High as Criticality, a description, Monitor Mode, and Enabled status.
 
 2. Select the scenario “a user shares sensitive data with an AI application.”
 

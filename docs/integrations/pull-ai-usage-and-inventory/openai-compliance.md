@@ -8,22 +8,22 @@ sidebar_custom_props:
 
 # OpenAI Compliance
 
-The OpenAI Compliance integration brings OpenAI organization compliance events and governed inventory into Quilr, so ChatGPT workspace activity shows up next to the activity your sensors capture.
+The OpenAI Compliance integration brings OpenAI organization compliance events and governed inventory into WhiteMatter, so ChatGPT workspace activity shows up next to the activity your sensors capture.
 
 | | |
 |---|---|
 | **Capabilities** | Pull compliance data, Pull inventory |
-| **Direction** | Into Quilr |
+| **Direction** | Into WhiteMatter |
 | **Category** | Compliance provider |
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'OpenAI Compliance']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Integrations', 'Library', 'OpenAI Compliance']} />
 
-QuilrAI validates your key when you connect it and then syncs on its own.
+WhiteMatter validates your key when you connect it and then syncs on its own.
 
 ## Before you start
 
 - A **ChatGPT Enterprise or Edu** workspace. OpenAI offers its Compliance Platform only on these plans.
-- An OpenAI **Admin key** with compliance access, scoped to the workspace. See OpenAI's [Compliance Platform for Enterprise and Edu customers](https://help.openai.com/en/articles/9261474) and its guide to managing Admin keys. QuilrAI checks the key's permissions when you connect it and adapts to what is available.
+- An OpenAI **Admin key** with compliance access, scoped to the workspace. See OpenAI's [Compliance Platform for Enterprise and Edu customers](https://help.openai.com/en/articles/9261474) and its guide to managing Admin keys. WhiteMatter checks the key's permissions when you connect it and adapts to what is available.
 - Your **Workspace ID** (a UUID) or, for the Organization scope, your **Organization ID** (it starts with `org-`).
 
 ## What it brings in

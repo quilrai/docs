@@ -4,7 +4,7 @@ sidebar_label: "Gemini"
 sidebar_position: 7.5
 sidebar_custom_props:
   icon: Sparkles
-description: "Configure Gemini Enterprise to use Quilr MCP Gateway, including manual OAuth fields, PKCE, Google ADK agent access, organization controls, and a separate Gemini CLI setup."
+description: "Configure Gemini Enterprise to use WhiteMatter MCP Gateway, including manual OAuth fields, PKCE, Google ADK agent access, organization controls, and a separate Gemini CLI setup."
 aliases: [Gemini Enterprise, Gemini CLI, Google ADK, google-adk, Lucidchart, PKCE]
 ---
 
@@ -26,14 +26,14 @@ The Gemini app at `gemini.google.com` has a separate custom-app feature. Google'
 
 ## Prepare the gateway
 
-1. Install the MCP and configure its upstream authentication in Quilr. Grant the intended users/groups access to the server and approved tools.
+1. Install the MCP and configure its upstream authentication in WhiteMatter. Grant the intended users/groups access to the server and approved tools.
 2. Copy its full **Quilr gateway** URL, including `/mcp`. Use the gateway URL throughout this setup.
 3. Confirm that Google's hosted runtime can reach the endpoint over HTTPS with a publicly trusted certificate and Streamable HTTP. A URL reachable only through an employee's VPN is insufficient for this setup.
-4. Allow the actual runtime in Quilr as described below.
+4. Allow the actual runtime in WhiteMatter as described below.
 
 For several connectors through one URL, use [OneMCP](../get-started/onemcp) and its matching [OAuth values](./authentication#url-reference). Do not mix a direct MCP URL with OneMCP's authorization/token endpoints or client ID. OAuth-passthrough servers require their discovered provider-specific registration instead of the public-client example below.
 
-### Allow the Gemini runtime in Quilr
+### Allow the Gemini runtime in WhiteMatter {#allow-the-gemini-runtime-in-quilr}
 
 The Gemini connection in this deployment needed **`google-adk`** allowed. Turning on the built-in **Gemini** agent alone was insufficient because its keyword is `gemini`.
 
@@ -66,7 +66,7 @@ The [live discovery document](https://mcpgateway.quilrai.com/lucidchart/.well-kn
 **PKCE and Basic Auth are separate settings.** Enable PKCE; do not enable Basic Auth for this public client. The client sends its public `client_id` and PKCE `code_verifier` in the token request body. The [authentication reference](./authentication#manual-fields-for-a-direct-mcp) covers other paths and the current gateway enforcement limitations.
 
 :::note If Google requires a client secret
-Google's setup documentation lists a client-secret field, and some Gemini Enterprise flows require a value. This Quilr registration does not issue one. Leave it empty where supported; if the form refuses that, confirm compatibility for the specific edition and deployment before continuing. Do not paste an upstream Lucidchart secret, invent a placeholder, or enable Basic Auth to satisfy the field. Google's documented placeholder for [Looker](https://docs.cloud.google.com/looker/docs/mcp#gemini-enterprise) is provider-specific.
+Google's setup documentation lists a client-secret field, and some Gemini Enterprise flows require a value. This WhiteMatter registration does not issue one. Leave it empty where supported; if the form refuses that, confirm compatibility for the specific edition and deployment before continuing. Do not paste an upstream Lucidchart secret, invent a placeholder, or enable Basic Auth to satisfy the field. Google's documented placeholder for [Looker](https://docs.cloud.google.com/looker/docs/mcp#gemini-enterprise) is provider-specific.
 :::
 
 Do not request extra scopes or a refresh grant just to satisfy a form. Follow the endpoint's discovery and the [gateway token-lifecycle limitations](./authentication#scopes-refresh-and-token-format); upstream refresh support does not imply that the MCP client receives a refresh token.
@@ -83,7 +83,7 @@ The configuring administrator needs **Discovery Engine Editor** (`roles/discover
 2. Select **Custom MCP Server**, then **Add MCP server**.
 3. Select **OAuth 2.0**, enter the full MCP URL, authorization URL, token URL, and client ID above, and handle the secret field as described above.
 4. Enable PKCE and leave **Use HTTP Basic Auth** unchecked for this public-client registration.
-5. Use Google's exact OAuth redirect URI, `https://vertexaisearch.cloud.google.com/oauth-redirect`, wherever client registration or redirect validation requires it. This is the client's redirect, not Quilr's upstream `/oauth/callback`.
+5. Use Google's exact OAuth redirect URI, `https://vertexaisearch.cloud.google.com/oauth-redirect`, wherever client registration or redirect validation requires it. This is the client's redirect, not WhiteMatter's upstream `/oauth/callback`.
 6. Choose **Verify Auth**, complete company sign-in, then **Continue**. In **Configure your data connector**, select the region, enter the data-store name, and choose **Create**. Wait for its status to become **Active**.
 7. Open the data store's **Actions**, reload the available tools, and enable only the approved actions. Actions start disabled.
 8. Open **Apps > your app > Connected data stores > Add existing data stores** and attach the new data store.
@@ -126,17 +126,17 @@ Complete browser OAuth and inspect server status and tools. The CLI supports dis
 
 1. Use a normal employee account to complete fresh authentication and confirm initialization and tool discovery.
 2. For a direct MCP, inspect that server's tools and run one approved read-only operation. For OneMCP, list available connections, discover the intended tool, then call it.
-3. If Quilr requests upstream sign-in, complete it as the same employee and retry.
+3. If WhiteMatter requests upstream sign-in, complete it as the same employee and retry.
 4. Confirm gateway logs show the expected user, backend, client identity, and allowed result.
 5. Test a second employee with different permissions and verify that excluded tools/users stay blocked.
 6. Restart or reconnect the client and repeat the read. In Gemini Enterprise, confirm the tool is enabled in **Actions** and the data store is attached to the intended app.
 
 | Symptom | Check |
 | --- | --- |
-| OAuth succeeds, discovery or tool access is denied | Actual User-Agent, custom `google-adk` agent where applicable, and the effective Quilr policy |
+| OAuth succeeds, discovery or tool access is denied | Actual User-Agent, custom `google-adk` agent where applicable, and the effective WhiteMatter policy |
 | Client secret is required | Edition-specific public-client compatibility; no secret was issued for this registration |
 | Verify Auth fails | Exact endpoint family, PKCE, Basic Auth off, callback, and public reachability |
-| Connection is Active but no tools are usable | Reload and enable Actions; confirm app attachment and Quilr tool/user permissions |
+| Connection is Active but no tools are usable | Reload and enable Actions; confirm app attachment and WhiteMatter tool/user permissions |
 | Server cannot be created or contacted | Discovery Engine role, custom MCP organization policy, and applicable egress restrictions |
 
 Use the shared [validation and troubleshooting guide](./troubleshooting) to record the client version, timestamps, discovery metadata, and redacted errors. An Active data store or successful sign-in alone does not prove a tool can run.

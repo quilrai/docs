@@ -12,7 +12,7 @@ aliases: [exports, export center, download data, scheduled export, quick export,
 
 One place to create, schedule and download exports of console data.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Data management', 'Export Center']} action="Create export" />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Data management', 'Export Center']} action="Create export" />
 
 ## Quick exports
 

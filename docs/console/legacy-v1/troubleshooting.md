@@ -59,7 +59,7 @@ Resolve missing telemetry, unexpected outcomes, stale data, and export issues sy
 
 - The source guide documents procedures; it does not establish that an installer or policy change was tested on a managed production endpoint.
 
-- Obtain the tenant ID from the provisioning administrator or QuilrAI support; it was not visible in the inspected pages.
+- Obtain the tenant ID from the provisioning administrator or WhiteMatter support; it was not visible in the inspected pages.
 
 - Confirm the exact Custom Detection field set and test results in your tenant. The guide gives a workflow but does not establish every field.
 

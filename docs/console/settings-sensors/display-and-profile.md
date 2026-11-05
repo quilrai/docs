@@ -13,7 +13,7 @@ Two small settings pages: **Display** for presentation preferences, and **User P
 
 ## Display
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Display']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Display']} />
 
 ### Workspace-wide
 
@@ -37,7 +37,7 @@ These apply only to the browser you are using.
 
 ## User Profile
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'User Profile']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'User Profile']} />
 
 Your **Name** and **Email**, synced from your identity provider. They are read-only here; change them in your identity provider.
 

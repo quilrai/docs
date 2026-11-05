@@ -44,7 +44,7 @@ Choose your gateway's mode. Classic app routing settings stay stored while the P
 Without the Policy Engine, routing is set per app:
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Routing"
 />
@@ -223,7 +223,7 @@ A pinned conversation is routed again when:
 - the configuration that chose it is edited (any change, including weights or priority), removed or expires,
 - the routing group or API changes,
 - the pinned provider is disabled, loses its credential, or can no longer serve the request's API,
-- 3 requests in a row fail on it with a 5xx, 401, 403, 404, 408, 424 or 429 (requests blocked by QuilrAI guardrails do not count),
+- 3 requests in a row fail on it with a 5xx, 401, 403, 404, 408, 424 or 429 (requests blocked by WhiteMatter guardrails do not count),
 - a data route matches,
 - or [failover](#failover) moves it, in which case the conversation is pinned to the backup and does not move back.
 
@@ -456,7 +456,7 @@ Because **Max tries** is at most 3 and includes the first send, a request reache
 <DecisionLadder
   label="After a failed try"
   steps={[
-    { id: 'quilr', question: 'Was it a QuilrAI block or a gateway error?', hint: 'Guardrail, quota, access, conversion, configuration', yes: { label: 'Returned to the client', detail: 'Never retried', tone: 'danger' } },
+    { id: 'quilr', question: 'Was it a WhiteMatter block or a gateway error?', hint: 'Guardrail, quota, access, conversion, configuration', yes: { label: 'Returned to the client', detail: 'Never retried', tone: 'danger' } },
     { id: 'budget', question: 'Are Max tries or the Time budget used up?', yes: { label: "Last provider's error", tone: 'danger' } },
     { id: 'move', question: 'Is the error in Fail over on, and is a backup left?', hint: 'A 429 with Retry-After of 2 s or less retries in place instead', yes: { label: 'Next backup', detail: 'Same-model retry count resets', tone: 'info' } },
     { id: 'retry', question: 'Is it a timeout, connection error, 429 or 5xx in Fail over on, with same-model retries left?', yes: { label: 'Retry the same model', detail: '0.5 s, then 1 s, or Retry-After up to 10 s', tone: 'warning' } },

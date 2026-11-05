@@ -12,7 +12,7 @@ aliases: [agent team, agent schedule]
 
 A team combines published agents under a lead. Each member does its part, and the lead combines their answers into the one result people get back. A team runs from a console task, a chat, a Slack mention or a schedule, like any agent.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'AI Gateway', 'Workflow Agents']} action="Build a team" />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'AI Gateway', 'Workflow Agents']} action="Build a team" />
 
 ![Team builder with the Team assistant on the left, the Task, Add a member, Lead and Result canvas in the middle, and the Team name, deliverable and Before you publish checks on the right](/img/workflow-agents/build-a-team.jpg)
 

@@ -1,14 +1,14 @@
 ---
 sidebar_position: 1
 sidebar_label: "Console tour"
-description: "Find Observe, Govern, Assessments and Settings in the QuilrAI console."
+description: "Find Observe, Govern, Assessments and Settings in the WhiteMatter console."
 sidebar_custom_props:
   icon: LayoutGrid
 ---
 
 # Console tour
 
-The QuilrAI console is organised
+The WhiteMatter console is organised
 around what you manage (people, applications, agents, interactions and
 controls), not around the sensors that collect the data. This page shows how
 the sidebar is laid out and where each job lives.
@@ -42,7 +42,7 @@ The sidebar has four groups: Observe, Govern, Assessments and Settings.
 | [Graph](../observe/graph) | Interactive map of how people, apps, agents, MCP servers and data connect. |
 | [Findings & Interactions](../observe/findings-and-interactions) | Every finding and every AI interaction, with an investigation drawer. Includes the [Triage center](../observe/triage-center). |
 | [Users](../observe/users) | Each person's AI usage and risk, plus browser and endpoint deployment coverage. |
-| [Inventory](../observe/inventory) | Catalog of every AI asset Quilr discovered, with approval status and risk. |
+| [Inventory](../observe/inventory) | Catalog of every AI asset WhiteMatter discovered, with approval status and risk. |
 | [Agents](../observe/agents) | Every AI agent observed, with the skills, MCP servers, prompts and people behind it. |
 | [Dashboards](../observe/dashboards) | Custom dashboards you describe in plain language to an AI designer. |
 

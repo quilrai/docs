@@ -8,6 +8,8 @@
 // Plain data only: this file is imported by docusaurus.config.js (Node) and by
 // theme components (browser).
 
+import {BRAND_NAME} from '../constants/brandConstants.ts';
+
 export const products = [
   {
     id: 'console',
@@ -157,7 +159,7 @@ export const products = [
     icon: 'Plug',
     sub: 'Connect the platforms you already run',
     tagline:
-      'Pull AI usage from SaaS and agent platforms into QuilrAI, and send findings and audit events to your SIEM.',
+      `Pull AI usage from SaaS and agent platforms into ${BRAND_NAME}, and send findings and audit events to your SIEM.`,
     shot: '/img/products/integrations.jpg',
     shotCaption: 'Console › Settings › Integrations',
     primary: {label: 'How integrations work', to: '/integrations/get-started/how-integrations-work'},

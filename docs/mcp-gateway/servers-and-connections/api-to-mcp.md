@@ -17,10 +17,10 @@ Open **Settings > AI Gateway > MCP Gateway**, click **Add MCP server** and choos
 
 Choose how the gateway reaches the API under **Connection route**:
 
-- **Public internet**: the gateway calls the API directly from QuilrAI's network, so the **Base URL** (and a spec URL, if you use one) must resolve to a public address. Destinations that resolve to private, loopback, link-local or cloud metadata addresses (and the names `localhost`, `*.localhost` and `*.internal`) are blocked: tool calls fail with **Blocked destination**, and a spec URL fails at **Load spec** (select a Remote Connector, or upload or paste the spec instead).
+- **Public internet**: the gateway calls the API directly from WhiteMatter's network, so the **Base URL** (and a spec URL, if you use one) must resolve to a public address. Destinations that resolve to private, loopback, link-local or cloud metadata addresses (and the names `localhost`, `*.localhost` and `*.internal`) are blocked: tool calls fail with **Blocked destination**, and a spec URL fails at **Load spec** (select a Remote Connector, or upload or paste the spec instead).
 - **Via Remote Connector**: the gateway routes OpenAPI spec fetches at **Load spec** (and spec resyncs) and runtime REST tool calls (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`) through a deployed `quilr-connector` instance over its outbound WebSocket tunnel (see [Remote Connectors](./remote-connectors)). Internal Kubernetes service DNS (`*.svc.cluster.local`), private VPC addresses, `.internal` hosts, and `localhost` URLs are supported with no inbound firewall rules. Traffic is fail-closed and never falls back to the public internet if the connector is offline.
 
-For an internal API without a Remote Connector, you can also allowlist QuilrAI's published egress IPs on your firewall so the gateway can reach the API directly (see [MCP Library: Internal MCPs](./mcp-library#internal-mcps)). Tool calls do not follow redirects.
+For an internal API without a Remote Connector, you can also allowlist WhiteMatter's published egress IPs on your firewall so the gateway can reach the API directly (see [MCP Library: Internal MCPs](./mcp-library#internal-mcps)). Tool calls do not follow redirects.
 
 ## When to use it
 

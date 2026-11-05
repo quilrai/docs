@@ -16,7 +16,7 @@ Use a computer-linked GPO for the approved device group. Complete the [deploymen
 
 2. Create or edit a computer-linked GPO for the intended devices. For Chrome, open Administrative Templates > Google > Google Chrome > Extensions. For Edge, open Administrative Templates > Microsoft Edge > Extensions.
 
-3. Enable Extension management settings. Enter the compact, single-line JSON supplied for the browser, replacing `<TENANT_ID>` only after confirming the value. Keep the update URL on the approved QuilrAI extension host.
+3. Enable Extension management settings. Enter the compact, single-line JSON supplied for the browser, replacing `<TENANT_ID>` only after confirming the value. Keep the update URL on the approved WhiteMatter extension host.
 
 4. Enable the browser force-install policy and add `piajhjohgigijkddhdpgbjdcfhmammbk;https://quilr-extensions.quilr.ai/<TENANT_ID>/manifest.xml`.
 

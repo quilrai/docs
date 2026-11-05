@@ -13,7 +13,7 @@ Check content and optimize text directly from your application code - no LLM pro
 
 ## Overview
 
-SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the Quilr gateway, you call this endpoint yourself to scan messages, text, or structured JSON for sensitive data and adversarial inputs.
+SDK mode exposes a standalone content-checking endpoint (`POST /sdk/v1/check`) that you can call at any point in your pipeline. Instead of routing LLM traffic through the WhiteMatter gateway, you call this endpoint yourself to scan messages, text, or structured JSON for sensitive data and adversarial inputs.
 
 Request checks can also inspect inline images and documents using the same [attachment scanning](../protect/attachment-scanning) settings as proxied model requests. This includes document text, OCR and enabled Image Risks. Your application applies the returned allow, redact or block decision before continuing.
 
@@ -708,13 +708,13 @@ curl -X POST https://guardrails-usa-2.quilr.ai/sdk/v1/check \
 
 ## TrueFoundry Integration
 
-Use QuilrAI directly as a TrueFoundry custom guardrail for LLM inputs and outputs. Configure **Mutate**, **Custom Bearer Auth** with a `quilr_sdk` key, and the dedicated `POST /sdk/v1/check/truefoundry` endpoint. TrueFoundry sends its own request/response envelope and consumes the returned `verdict`, `transformed`, and `result` fields.
+Use WhiteMatter directly as a TrueFoundry custom guardrail for LLM inputs and outputs. Configure **Mutate**, **Custom Bearer Auth** with a `quilr_sdk` key, and the dedicated `POST /sdk/v1/check/truefoundry` endpoint. TrueFoundry sends its own request/response envelope and consumes the returned `verdict`, `transformed`, and `result` fields.
 
 See [TrueFoundry Integration](../../integrations/pull-ai-usage-and-inventory/truefoundry) for dashboard setup, selecting input/output rails, complete request examples, streaming requirements, and error handling.
 
 ## LiteLLM Guardrails Integration
 
-If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can add QuilrAI as a native LiteLLM guardrail. The plugin calls `/sdk/v1/check` for you on requests, responses, tool calls and MCP tool calls. No changes are needed in your application code.
+If you run a self-hosted [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start), you can add WhiteMatter as a native LiteLLM guardrail. The plugin calls `/sdk/v1/check` for you on requests, responses, tool calls and MCP tool calls. No changes are needed in your application code.
 
 **At a glance** (`QuilrUnifiedGuardrail`):
 
@@ -736,7 +736,7 @@ The plugin file has two classes. Use `QuilrUnifiedGuardrail` for new setups.
 
 ### Prerequisites
 
-- A Quilr guardrails API key (a `quilr_sdk` key), from either Quilr-hosted guardrails or a self-hosted Quilr guardrails deployment
+- A WhiteMatter guardrails API key (a `quilr_sdk` key), from either WhiteMatter-hosted guardrails or a self-hosted WhiteMatter guardrails deployment
 - Download [quilr_litellm_guardrails.py](https://github.com/quilrbusiness/quilr-sdks/blob/main/python-sdks/litellm_guardrails/quilr_litellm_guardrails.py) and place it in the same directory as your LiteLLM `config.yaml`
 
 :::note
@@ -758,7 +758,7 @@ QUILR_GUARDRAILS_SCAN_MCP_TOOLS=all # Optional: which MCP tools to check (QuilrU
 | `QUILR_GUARDRAILS_KEY` | Yes | - | Your `quilr_sdk` API key |
 | `QUILR_GUARDRAILS_BASE_URL` | No | `https://guardrails.quilr.ai` | Override with the closest regional endpoint for production or with a self-hosted deployment URL |
 | `QUILR_GUARDRAILS_TIMEOUT` | No | `3` | Seconds before a check times out |
-| `QUILR_GUARDRAILS_FAIL_CLOSED` | No | `false` | `true` blocks requests when Quilr can't be reached (`QuilrUnifiedGuardrail` only). See [When Quilr can't be reached](#when-quilr-cant-be-reached) |
+| `QUILR_GUARDRAILS_FAIL_CLOSED` | No | `false` | `true` blocks requests when WhiteMatter can't be reached (`QuilrUnifiedGuardrail` only). See [When WhiteMatter can't be reached](#when-quilr-cant-be-reached) |
 | `QUILR_GUARDRAILS_SCAN_MCP_TOOLS` | No | `all` | Which MCP tools to check: `all`, `none`, or a comma-separated mix of `readonly`, `writeonly`, `destructive` and tool names (`QuilrUnifiedGuardrail` only). See [Choosing which MCP tools to check](#choosing-which-mcp-tools-to-check) |
 | `APPLY_QUILR_GUARDRAILS_FOR_MODELS` | No | (all) | Comma-separated list of models to restrict guardrails to |
 | `APPLY_QUILR_GUARDRAILS_FOR_KEY_NAMES` | No | (all) | Comma-separated list of LiteLLM key names to restrict guardrails to |
@@ -815,8 +815,8 @@ With `post_call`, streamed answers are checked while they stream: every few chun
 
 | Setting | Default | What it does |
 |---------|---------|--------------|
-| `streaming_sampling_rate` | `5` | Check the answer so far every Nth chunk. Each check is a Quilr call |
-| `streaming_end_of_stream_only` | `false` | `true`: check once, after the whole answer has streamed (1 Quilr call, but the answer is already delivered) |
+| `streaming_sampling_rate` | `5` | Check the answer so far every Nth chunk. Each check is a WhiteMatter call |
+| `streaming_end_of_stream_only` | `false` | `true`: check once, after the whole answer has streamed (1 WhiteMatter call, but the answer is already delivered) |
 | `streaming_buffer_until_moderated` | `false` | `true`: send nothing to the client until the check passes |
 | `streaming_buffer_release_on_scan` | `false` | With buffering: release the held chunks after each passing check |
 | `streaming_transform_mode` | `block_only` | `incremental_diff`: also redact while streaming (OpenAI Chat Completions format only) |
@@ -826,10 +826,10 @@ Which setup to use:
 
 - Sensitive values must be redacted: `streaming_transform_mode: incremental_diff`
 - Block only, and nothing may reach the client before the check: `streaming_buffer_until_moderated: true`
-- Fewest Quilr calls (monitoring): `streaming_end_of_stream_only: true`, or a higher `streaming_sampling_rate`
+- Fewest WhiteMatter calls (monitoring): `streaming_end_of_stream_only: true`, or a higher `streaming_sampling_rate`
 
 :::note
-Only `incremental_diff` redacts while streaming. In the other setups, if Quilr redacts, LiteLLM drops the redaction and the client gets the original text. Use them to block.
+Only `incremental_diff` redacts while streaming. In the other setups, if WhiteMatter redacts, LiteLLM drops the redaction and the client gets the original text. Use them to block.
 :::
 
 #### Logging and tracing
@@ -837,21 +837,21 @@ Only `incremental_diff` redacts while streaming. In the other setups, if Quilr r
 Each check adds a guardrail record to LiteLLM's logs, so it shows in Langfuse, Datadog and the other LiteLLM logging integrations:
 
 - `guardrail_provider`: `quilr`
-- `guardrail_status`: `success`, `guardrail_intervened` (blocked), `guardrail_flagged` (categories found, allowed), `guardrail_failed_to_respond` (Quilr unreachable) or `not_run` (MCP tool skipped by `QUILR_GUARDRAILS_SCAN_MCP_TOOLS`)
-- `guardrail_response`: Quilr's status, action and categories
+- `guardrail_status`: `success`, `guardrail_intervened` (blocked), `guardrail_flagged` (categories found, allowed), `guardrail_failed_to_respond` (WhiteMatter unreachable) or `not_run` (MCP tool skipped by `QUILR_GUARDRAILS_SCAN_MCP_TOOLS`)
+- `guardrail_response`: WhiteMatter's status, action and categories
 - `masked_entity_count`: how many checks redacted each category
 
 The record never contains the checked content.
 
-To group checks by conversation and user in Quilr, the plugin sends:
+To group checks by conversation and user in WhiteMatter, the plugin sends:
 
 - `X-Conversation-Id`: the request's `metadata.session_id` (or LiteLLM's session ID)
-- `X-User-Email`: the first value that looks like an email from `metadata.trace_user_id`, the request's `user`, the end user, or the LiteLLM key owner's email. If Quilr rejects the email (domain not allowed on the app), the check is retried without it
-- The session and trace IDs in the check's metadata, to match Quilr logs with LiteLLM or Langfuse traces
+- `X-User-Email`: the first value that looks like an email from `metadata.trace_user_id`, the request's `user`, the end user, or the LiteLLM key owner's email. If WhiteMatter rejects the email (domain not allowed on the app), the check is retried without it
+- The session and trace IDs in the check's metadata, to match WhiteMatter logs with LiteLLM or Langfuse traces
 
-#### When Quilr can't be reached
+#### When WhiteMatter can't be reached {#when-quilr-cant-be-reached}
 
-By default the plugin fails open: if Quilr times out or returns an error, the content passes unchecked, a warning is logged, and the logging record shows `guardrail_failed_to_respond`. To block instead, set `quilr_fail_closed: true` on each guardrail that should fail closed, or `QUILR_GUARDRAILS_FAIL_CLOSED=true` for all of them. Blocked requests return HTTP 503.
+By default the plugin fails open: if WhiteMatter times out or returns an error, the content passes unchecked, a warning is logged, and the logging record shows `guardrail_failed_to_respond`. To block instead, set `quilr_fail_closed: true` on each guardrail that should fail closed, or `QUILR_GUARDRAILS_FAIL_CLOSED=true` for all of them. Blocked requests return HTTP 503.
 
 If you use fail-closed, consider a higher `QUILR_GUARDRAILS_TIMEOUT` so slow responses aren't blocked.
 
@@ -1014,7 +1014,7 @@ curl -X POST http://localhost:4000/v1/chat/completions \
 
 Not checked by the plugin:
 
-- Images in prompts (Quilr checks text only)
+- Images in prompts (WhiteMatter checks text only)
 - Tool definitions sent to the model (the `tools` list)
 
 Limits that come from LiteLLM:

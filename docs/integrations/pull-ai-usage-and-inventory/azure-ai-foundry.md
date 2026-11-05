@@ -12,10 +12,10 @@ The Azure AI Foundry integration discovers agents, projects, models, access, and
 | | |
 |---|---|
 | **Capabilities** | Pull inventory, Pull compliance data |
-| **Direction** | Into Quilr |
+| **Direction** | Into WhiteMatter |
 | **Category** | Cloud agent platform |
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'Azure AI Foundry']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Integrations', 'Library', 'Azure AI Foundry']} />
 
 ## Where it shows up
 
@@ -26,15 +26,15 @@ The Azure AI Foundry integration discovers agents, projects, models, access, and
 
 ## Set it up
 
-Setup is a four-step drawer. You use a service principal that you own; no Quilr-owned Entra application or redirect URI is needed.
+Setup is a four-step drawer. You use a service principal that you own; no WhiteMatter-owned Entra application or redirect URI is needed.
 
 ### 1. Prepare the Azure account
 
 1. In Microsoft Entra ID, create an app registration for accounts in this organization only. Record its **Directory (tenant) ID** and **Application (client) ID**.
 2. Under **Certificates & secrets**, create a client secret and copy the secret **Value** (not the secret ID).
-3. For every subscription Quilr should monitor, assign these roles to the app's service principal at subscription scope:
+3. For every subscription WhiteMatter should monitor, assign these roles to the app's service principal at subscription scope:
 
-| Role | Why Quilr needs it |
+| Role | Why WhiteMatter needs it |
 |------|--------------------|
 | **Reader** | Discover subscriptions and Azure AI resources. |
 | **Foundry User** | Read Foundry agent and project data-plane resources. |
@@ -43,16 +43,16 @@ Setup is a four-step drawer. You use a service principal that you own; no Quilr-
 The drawer shows the role definition IDs and an Azure CLI template for the role assignments. Repeat the assignments for each subscription.
 
 :::note
-The Foundry User role includes broad Foundry data-plane actions and permission to list Cognitive Services account keys. Quilr uses it for read-only discovery and monitoring only.
+The Foundry User role includes broad Foundry data-plane actions and permission to list Cognitive Services account keys. WhiteMatter uses it for read-only discovery and monitoring only.
 :::
 
 ### 2. Connect the service principal
 
-Enter **Connection name**, **Directory (tenant) ID**, **Application (client) ID**, and **Client secret value**, then click **Check credentials**. The secret is encrypted for your Quilr tenant and is never returned.
+Enter **Connection name**, **Directory (tenant) ID**, **Application (client) ID**, and **Client secret value**, then click **Check credentials**. The secret is encrypted for your WhiteMatter tenant and is never returned.
 
 ### 3. Choose subscriptions
 
-Quilr lists the Azure subscriptions it can see, with the effective access for **Management**, **Foundry**, and **Log Analytics**. Select the subscriptions to monitor. **Check Azure access** re-checks permissions. Click **Save subscriptions**.
+WhiteMatter lists the Azure subscriptions it can see, with the effective access for **Management**, **Foundry**, and **Log Analytics**. Select the subscriptions to monitor. **Check Azure access** re-checks permissions. Click **Save subscriptions**.
 
 ### 4. Configure project monitoring
 

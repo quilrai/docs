@@ -2,6 +2,7 @@ import React from 'react';
 import Link from '@docusaurus/Link';
 import {useDocsSidebar} from '@docusaurus/plugin-content-docs/client';
 import {productById} from '@site/src/data/products';
+import {DOCS_TITLE} from '@site/src/constants/brandConstants';
 import {ProductIcon} from '@site/src/utils/productIcons';
 
 // Product landing (docs/<product>/overview.mdx): hero with screenshot, four
@@ -93,7 +94,7 @@ export default function ProductLanding({product}) {
       <div className="qd-land-hero">
         <div className="qd-land-txt">
           <nav className="qd-crumb" aria-label="Breadcrumbs">
-            <Link to="/">QuilrAI Docs</Link>
+            <Link to="/">{DOCS_TITLE}</Link>
             <span aria-hidden="true">/</span>
             <span>{p.name}</span>
           </nav>

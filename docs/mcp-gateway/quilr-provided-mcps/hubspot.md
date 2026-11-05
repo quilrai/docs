@@ -14,9 +14,9 @@ description: "Nine consolidated tools for CRM search, batch reads, associations,
   official="Use HubSpot's generally available remote MCP when the agent needs the broadest first-party CRM feature coverage."
   officialPoints={['Broader provider surface', 'First-party hosted operation']}
   quilrTitle="Choose a compact operational schema"
-  quilr="Use Quilr when predictable search, record, note, task, and association workflows are more valuable than maximum raw breadth."
+  quilr="Use WhiteMatter when predictable search, record, note, task, and association workflows are more valuable than maximum raw breadth."
   quilrPoints={['Nine stable tools', 'Clear archive boundary and gateway controls']}
-  verdict="Start with Quilr for routine CRM agents; move to the official MCP when a specific workflow falls outside the curated surface."
+  verdict="Start with WhiteMatter for routine CRM agents; move to the official MCP when a specific workflow falls outside the curated surface."
 />
 
 | Capability | Read | Write | Destructive |
@@ -28,4 +28,4 @@ description: "Nine consolidated tools for CRM search, batch reads, associations,
 | Create notes and tasks | - | ✅ | - |
 | Archive a record | - | - | ✅ |
 
-HubSpot's official remote MCP is broader and generally available. Quilr's advantage is a compact, stable schema with gateway-managed tool exposure and a clear archive boundary.
+HubSpot's official remote MCP is broader and generally available. WhiteMatter's advantage is a compact, stable schema with gateway-managed tool exposure and a clear archive boundary.

@@ -4,12 +4,12 @@ sidebar_label: GitHub Copilot
 sidebar_position: 3
 sidebar_custom_props:
   icon: Bot
-description: "Configure Quilr MCP Gateway for GitHub Copilot in VS Code, Copilot CLI, and repository cloud agents, with administrator authentication and rollout checks."
+description: "Configure WhiteMatter MCP Gateway for GitHub Copilot in VS Code, Copilot CLI, and repository cloud agents, with administrator authentication and rollout checks."
 ---
 
 # GitHub Copilot
 
-Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your WhiteMatter dashboard; the placeholder includes `https://`.
 
 Use browser OAuth for interactive Copilot clients connecting to OneMCP. GitHub's repository cloud agent and code review require a separate token-based setup. These are different clients with different configuration and authentication capabilities.
 
@@ -17,17 +17,17 @@ Use browser OAuth for interactive Copilot clients connecting to OneMCP. GitHub's
 
 ## Administrator preparation
 
-Get the exact MCP URL from the Quilr dashboard and substitute its base URL in the examples below.
+Get the exact MCP URL from the WhiteMatter dashboard and substitute its base URL in the examples below.
 
 | Required item | Administrator action |
 |---|---|
 | Interactive endpoint | Use `<YOUR_MCP_BASE_URL>/quilrone/mcp`, after substituting your deployment base URL. |
 | Individual connector | Use `<YOUR_MCP_BASE_URL>/<backend-id>/mcp` for a single MCP. Copy the backend ID rather than inferring it from a display name. |
-| Quilr permissions | Permit the pilot users and actual client under server access control and Allowed Agents. Complete upstream connections for the pilot account. |
+| WhiteMatter permissions | Permit the pilot users and actual client under server access control and Allowed Agents. Complete upstream connections for the pilot account. |
 | Network | Allow HTTPS from the runtime running MCP and from the browser used for sign-in to the assigned gateway and its advertised authentication endpoints. A successful browser visit alone does not prove a remote development environment can connect. |
 | Client entitlement | Confirm users can use the chosen Copilot product and that organization/enterprise MCP policies allow the gateway. |
 
-See [client overview](./overview) and [authentication](./authentication) for endpoint selection, token types, and upstream credentials. A GitHub PAT used to sign in to Copilot is not a Quilr gateway credential.
+See [client overview](./overview) and [authentication](./authentication) for endpoint selection, token types, and upstream credentials. A GitHub PAT used to sign in to Copilot is not a WhiteMatter gateway credential.
 
 ## Copilot in VS Code
 
@@ -52,7 +52,7 @@ Replace `<YOUR_MCP_BASE_URL>` before saving. Merge this entry into an existing f
 
 4. Run **MCP: List Servers**, choose `quilr-onemcp`, and start it. Review any trust prompt.
 5. Complete browser sign-in with the permitted company identity.
-6. Open an agent chat with tools enabled, confirm the Quilr tools are available, and run the pilot checks below. [Server management](https://code.visualstudio.com/docs/agent-customization/mcp-servers).
+6. Open an agent chat with tools enabled, confirm the WhiteMatter tools are available, and run the pilot checks below. [Server management](https://code.visualstudio.com/docs/agent-customization/mcp-servers).
 
 ### Authentication fields
 
@@ -132,7 +132,7 @@ Example template:
 
 Create an Agents secret named `COPILOT_MCP_QUILR_TOKEN` and an Agents variable or secret named `COPILOT_MCP_QUILR_USER`. Replace the backend ID, host, and tool name before saving the repository configuration. GitHub only exposes names prefixed `COPILOT_MCP_` to this configuration. [Secret substitution and validation](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/configure-mcp-servers).
 
-For Quilr, use an explicitly approved automation identity and record its owner. This is a shared configured identity; it does not become each pull-request author's identity. Verify the token is scoped to the intended agent and backend, and that the email is allowed. If the server requires OAuth and cannot issue an API token, do not copy a browser token into a long-lived repository secret as a workaround; this integration needs an approved non-interactive authentication design.
+For WhiteMatter, use an explicitly approved automation identity and record its owner. This is a shared configured identity; it does not become each pull-request author's identity. Verify the token is scoped to the intended agent and backend, and that the email is allowed. If the server requires OAuth and cannot issue an API token, do not copy a browser token into a long-lived repository secret as a workaround; this integration needs an approved non-interactive authentication design.
 
 ## Pilot and acceptance checks
 
@@ -151,7 +151,7 @@ For Quilr, use an explicitly approved automation identity and record its owner. 
 | VS Code server missing | Confirm `.vscode/mcp.json` uses `servers`; check the active profile, workspace, and remote configuration. |
 | CLI server missing | Confirm the CLI configuration uses `mcpServers`; inspect `/mcp` and enterprise allowlist restrictions. |
 | No browser sign-in | Inspect the initial `401` and discovery metadata using [authentication checks](./authentication). Check the assigned host and browser popup restrictions. |
-| Sign-in succeeds, tool call denied | Check Quilr Allowed Agents, user/group access, and the user's upstream connection. |
+| Sign-in succeeds, tool call denied | Check WhiteMatter Allowed Agents, user/group access, and the user's upstream connection. |
 | Empty or stale tools | Reconnect; in VS Code use **MCP: Reset Cached Tools**. Check gateway visibility rules and OneMCP dynamic mode. |
 | Repository cloud agent cannot connect to OneMCP | Remote OAuth is unsupported there. Use the eligible direct-backend setup above. |
 | Code review omits a listed tool | Check the tool allowlist and the upstream tool's `readOnlyHint` annotation. |

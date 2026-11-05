@@ -3,14 +3,14 @@ sidebar_position: 2.5
 sidebar_label: "Remote connectors"
 sidebar_custom_props:
   icon: Route
-description: "Connect private LLM endpoints to the LLM Gateway through an outbound tunnel using the shared Quilr remote connector."
+description: "Connect private LLM endpoints to the LLM Gateway through an outbound tunnel using the shared WhiteMatter remote connector."
 console_path: []
 aliases: [remote connectors, private models, private endpoints, self-hosted models]
 ---
 
 # Remote Connectors
 
-Connect an LLM endpoint running in a private network, VPC, Kubernetes cluster, or on your laptop to the QuilrAI LLM Gateway. The connector opens an outbound WebSocket tunnel (`wss://`), so the model endpoint does not need public ingress or inbound firewall rules.
+Connect an LLM endpoint running in a private network, VPC, Kubernetes cluster, or on your laptop to the WhiteMatter LLM Gateway. The connector opens an outbound WebSocket tunnel (`wss://`), so the model endpoint does not need public ingress or inbound firewall rules.
 
 The process is the same as [MCP Gateway remote connectors](../../mcp-gateway/servers-and-connections/remote-connectors), using the same `quilr-connector` binaries and container image.
 

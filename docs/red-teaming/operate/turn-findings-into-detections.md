@@ -36,7 +36,7 @@ Some runs also suggest a **Token Limit** control, for example to cap oversized e
 
 ## Verify the fix
 
-Click **Apply & verify with the guardrail** in the report to re-run the assessment with Quilr's guardrail in front of the target and compare before/after grades. After you change the prompt or add detections, re-run the assessment (or let a [schedule](./runs-findings-and-schedules#schedules) do it) and close the finding in the [findings tracker](./runs-findings-and-schedules#findings-tracker).
+Click **Apply & verify with the guardrail** in the report to re-run the assessment with WhiteMatter's guardrail in front of the target and compare before/after grades. After you change the prompt or add detections, re-run the assessment (or let a [schedule](./runs-findings-and-schedules#schedules) do it) and close the finding in the [findings tracker](./runs-findings-and-schedules#findings-tracker).
 
 :::note
 These suggestions come from Agentic and Model Red Teaming reports. For LLM Intelligence Assessment runs, use the **Guardian counterfactual** (residual failures and potential over-blocks) to tune Guardian policy instead. See [Reading a report](../get-started/reading-a-report#guardian-counterfactual).

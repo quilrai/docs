@@ -371,7 +371,7 @@ This is the security suite. It is built from a checked-in corpus of adversarial 
 
 **Control cases.** The corpus intentionally includes benign and over-refusal controls: safe requests that superficially resemble attacks. A model that blocks these is penalized, so the score reflects usable safety rather than blanket refusal.
 
-**Grading.** Each case is judged by the Quilr verifier against that case's own rubric, not against a generic safety standard. The verifier receives the full conversation including every turn and any tool calls, plus the scenario's expected behavior and failure modes. It returns a verdict, a severity, a 0-100 score, an evidence quote from the response, and a flag for unsafe tool use.
+**Grading.** Each case is judged by the WhiteMatter verifier against that case's own rubric, not against a generic safety standard. The verifier receives the full conversation including every turn and any tool calls, plus the scenario's expected behavior and failure modes. It returns a verdict, a severity, a 0-100 score, an evidence quote from the response, and a flag for unsafe tool use.
 
 Two rules keep this honest:
 
@@ -551,7 +551,7 @@ Open **Assessments → Red Teaming → LLM Intelligence Assessment** and choose 
 | **Model** | The provider's selected model | Optional override. Changing the provider refreshes the available models. |
 
 :::warning Requires an active Quilr key
-The application must have an active Quilr API key. If it has none, the form reports that the app "has no active Quilr key and cannot run". See [Applications and Keys](../../llm-gateway/apps-and-providers/applications-and-keys).
+The application must have an active WhiteMatter API key. If it has none, the form reports that the app "has no active Quilr key and cannot run". See [Applications and Keys](../../llm-gateway/apps-and-providers/applications-and-keys).
 :::
 
 Provider resolution happens before the run is queued. If the selected provider or model is not usable, you get a configuration error immediately and no run is created.

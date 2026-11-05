@@ -9,7 +9,7 @@ description: "Use QuilrAI SDK checks as TrueFoundry custom input/output guardrai
 
 # TrueFoundry
 
-Use QuilrAI as a custom guardrail in TrueFoundry AI Gateway to scan, redact, or block LLM inputs and outputs. This integration is set up with an LLM Gateway app and in TrueFoundry, not from **Settings › Integrations**. Use QuilrAI logs to inspect the findings. Your application continues calling TrueFoundry. TrueFoundry calls QuilrAI for the configured checks and applies the result before forwarding the input or returning the output.
+Use WhiteMatter as a custom guardrail in TrueFoundry AI Gateway to scan, redact, or block LLM inputs and outputs. This integration is set up with an LLM Gateway app and in TrueFoundry, not from **Settings › Integrations**. Use WhiteMatter logs to inspect the findings. Your application continues calling TrueFoundry. TrueFoundry calls WhiteMatter for the configured checks and applies the result before forwarding the input or returning the output.
 
 The integration uses a dedicated [SDK Mode](../../llm-gateway/apps-and-providers/sdk-mode) endpoint:
 
@@ -17,7 +17,7 @@ The integration uses a dedicated [SDK Mode](../../llm-gateway/apps-and-providers
 POST https://guardrails-usa-2.quilr.ai/sdk/v1/check/truefoundry
 ```
 
-The example uses US East. Choose your [regional base URL](../../llm-gateway/get-started/integration-guide#region) or your QuilrAI deployment URL and append `/sdk/v1/check/truefoundry`. Both input and output guardrails use this same endpoint.
+The example uses US East. Choose your [regional base URL](../../llm-gateway/get-started/integration-guide#region) or your WhiteMatter deployment URL and append `/sdk/v1/check/truefoundry`. Both input and output guardrails use this same endpoint.
 
 ## 1. Create a QuilrAI SDK key
 
@@ -30,9 +30,9 @@ There are two separate credentials in this integration:
 | Connection | Credential |
 | --- | --- |
 | Your application to TrueFoundry | Your existing TrueFoundry API key |
-| TrueFoundry to QuilrAI | The QuilrAI SDK key, `sk-quilr-...` |
+| TrueFoundry to WhiteMatter | The QuilrAI SDK key, `sk-quilr-...` |
 
-Regular QuilrAI LLM proxy keys are rejected by the SDK endpoint. Guardrail settings come from the authenticated QuilrAI app and its effective policy. The TrueFoundry **Config** field does not override those settings.
+Regular WhiteMatter LLM proxy keys are rejected by the SDK endpoint. Guardrail settings come from the authenticated WhiteMatter app and its effective policy. The TrueFoundry **Config** field does not override those settings.
 
 ## 2. Add the custom guardrail in TrueFoundry
 
@@ -45,9 +45,9 @@ In TrueFoundry, open **AI Gateway → Guardrails**, create or select a guardrail
 | Auth Data | **Custom Bearer Auth**, with your QuilrAI SDK key as the token |
 | Config | `{}` |
 | Enforcement strategy | **Enforce** or **Enforce But Ignore On Error** to apply policy blocks |
-| Timeout | TrueFoundry's default is 10 seconds. Allow enough time for the QuilrAI checks you enable, especially image scanning and Guardian checks. |
+| Timeout | TrueFoundry's default is 10 seconds. Allow enough time for the WhiteMatter checks you enable, especially image scanning and Guardian checks. |
 
-TrueFoundry sends `Authorization: Bearer sk-quilr-...` to QuilrAI. The configured URL must be reachable from the TrueFoundry gateway. If your QuilrAI app restricts source IPs, allow the gateway's outbound IP.
+TrueFoundry sends `Authorization: Bearer sk-quilr-...` to WhiteMatter. The configured URL must be reachable from the TrueFoundry gateway. If your WhiteMatter app restricts source IPs, allow the gateway's outbound IP.
 
 **Mutate** is required for redaction. **Validate** ignores replacement content and can run input checks alongside an already-started model request. **Audit** records outcomes without enforcing policy blocks. See TrueFoundry's [operation and enforcement modes](https://www.truefoundry.com/docs/ai-gateway/guardrails-overview).
 
@@ -59,7 +59,7 @@ Use a TrueFoundry gateway that supports the current **HTTP 2xx + JSON `verdict`*
 
 ## 3. Attach input and output checks
 
-Attach `quilr/sdk-input` to the LLM input hook and `quilr/sdk-output` to the LLM output hook through a TrueFoundry policy, or select them with the `X-TFY-GUARDRAILS` request header. Both configurations can use the same QuilrAI URL, credentials, and `{}` config.
+Attach `quilr/sdk-input` to the LLM input hook and `quilr/sdk-output` to the LLM output hook through a TrueFoundry policy, or select them with the `X-TFY-GUARDRAILS` request header. Both configurations can use the same WhiteMatter URL, credentials, and `{}` config.
 
 Selectors use `<group-name>/<config-name>`. Replace the names below with those in your TrueFoundry dashboard. To check only one direction, include only that direction's selector.
 
@@ -88,7 +88,7 @@ TrueFoundry does not apply LLM output guardrails to streamed responses. Set **`s
 
 ## 4. Verify the integration
 
-Use synthetic content that matches an enabled QuilrAI detector. Run both a direct hook check and a request through TrueFoundry; a successful direct check alone does not verify that TrueFoundry selected and enforced the rail.
+Use synthetic content that matches an enabled WhiteMatter detector. Run both a direct hook check and a request through TrueFoundry; a successful direct check alone does not verify that TrueFoundry selected and enforced the rail.
 
 | Check | Expected result |
 | --- | --- |
@@ -96,11 +96,11 @@ Use synthetic content that matches an enabled QuilrAI detector. Run both a direc
 | Input redaction | With the matched category set to redact, the model receives redacted input. Inspect the TrueFoundry trace. |
 | Output redaction | With output scanning enabled and `stream: false`, detected content is redacted before the client receives it. Use synthetic content introduced by the model output to test this independently of input redaction. |
 | Policy block | With the matched category set to block and TrueFoundry enforcement enabled, the client receives `guardrail_checks_failed`. |
-| Monitor | Findings appear in QuilrAI logs; content is unchanged. |
+| Monitor | Findings appear in WhiteMatter logs; content is unchanged. |
 
 ### Direct input check
 
-This calls QuilrAI with the envelope TrueFoundry sends. Set `QUILR_BASE_URL` to your regional or deployment base URL without a trailing slash, and `QUILR_SDK_API_KEY` to your SDK key.
+This calls WhiteMatter with the envelope TrueFoundry sends. Set `QUILR_BASE_URL` to your regional or deployment base URL without a trailing slash, and `QUILR_SDK_API_KEY` to your SDK key.
 
 ```bash
 curl --request POST "${QUILR_BASE_URL}/sdk/v1/check/truefoundry" \
@@ -120,7 +120,7 @@ curl --request POST "${QUILR_BASE_URL}/sdk/v1/check/truefoundry" \
   }'
 ```
 
-If the email is detected and its action is redact, QuilrAI returns HTTP 200 with:
+If the email is detected and its action is redact, WhiteMatter returns HTTP 200 with:
 
 ```json
 {
@@ -173,7 +173,7 @@ TrueFoundry constructs the hook envelope automatically. If you test it directly:
 - `requestBody.messages` must be a nonempty OpenAI Chat Completions messages array.
 - Omit `responseBody` for input checks. Include a complete response with a nonempty `choices` array of assistant messages for output checks. A null or malformed response is rejected with HTTP 400.
 - `context.user` requires a nonempty `subjectId` and a `subjectType` of `user`, `team`, or `serviceaccount`.
-- `config` may be an object or null. Use `{}`; QuilrAI does not interpret config entries as guardrail settings.
+- `config` may be an object or null. Use `{}`; WhiteMatter does not interpret config entries as guardrail settings.
 
 Completed policy outcomes return HTTP 200:
 
@@ -183,7 +183,7 @@ Completed policy outcomes return HTTP 200:
 | Redact or partial-redact | `true` | `true` | `result` contains the complete modified request or response. |
 | Block | `false` | `false` | `message` explains the denial; `result` is omitted. |
 
-TrueFoundry consumes these fields. The native SDK's `predictions`, `placeholder_masking`, and original-content fields are not part of this response. Checks with request attachments also return `attachments` coverage metadata; use it and QuilrAI logs to inspect attachment findings and incomplete scans.
+TrueFoundry consumes these fields. The native SDK's `predictions`, `placeholder_masking`, and original-content fields are not part of this response. Checks with request attachments also return `attachments` coverage metadata; use it and WhiteMatter logs to inspect attachment findings and incomplete scans.
 
 ### Content coverage
 
@@ -197,23 +197,23 @@ Other content parts, custom tool-call types and extension fields pass through. T
 
 ### Identity and failures
 
-The TrueFoundry `context.user` fields are recorded as attribution. They do not replace QuilrAI authentication or verified user identity. Existing source-IP, identity, and conversation-ID requirements on your SDK app still apply. Configure any required identity headers according to [Identity Aware](../../llm-gateway/protect/identity-and-network-trust); `subjectSlug` alone does not satisfy an identity requirement.
+The TrueFoundry `context.user` fields are recorded as attribution. They do not replace WhiteMatter authentication or verified user identity. Existing source-IP, identity, and conversation-ID requirements on your SDK app still apply. Configure any required identity headers according to [Identity Aware](../../llm-gateway/protect/identity-and-network-trust); `subjectSlug` alone does not satisfy an identity requirement.
 
 Invalid envelopes and credentials return SDK errors with non-2xx status codes. TrueFoundry's enforcement strategy controls handling of propagated errors and timeouts.
 
-**Internal detection failures retain the SDK's fail-open behavior.** A failed scan can return HTTP 200 with `verdict: true`. TrueFoundry's **Enforce** or **Fail on error** setting cannot turn that successful HTTP response into an infrastructure failure. Monitor QuilrAI scan errors as well as TrueFoundry hook outcomes.
+**Internal detection failures retain the SDK's fail-open behavior.** A failed scan can return HTTP 200 with `verdict: true`. TrueFoundry's **Enforce** or **Fail on error** setting cannot turn that successful HTTP response into an infrastructure failure. Monitor WhiteMatter scan errors as well as TrueFoundry hook outcomes.
 
 ## Troubleshooting
 
 | Symptom | Check |
 | --- | --- |
-| HTTP 404 from QuilrAI | Confirm the deployment includes TrueFoundry support and the URL ends in `/sdk/v1/check/truefoundry`. |
-| HTTP 401 or 403 from QuilrAI | Use a valid `quilr_sdk` key; check expiry, source-IP restrictions, and required identity headers. |
-| HTTP 400 from QuilrAI | Inspect the error code; validate `requestBody`, `context.user`, output `choices`, supported content shapes, and any required conversation ID. |
-| Redaction is ignored | Select **Mutate**, verify the rail selector/policy, and check that QuilrAI returned `transformed: true`. |
+| HTTP 404 from WhiteMatter | Confirm the deployment includes TrueFoundry support and the URL ends in `/sdk/v1/check/truefoundry`. |
+| HTTP 401 or 403 from WhiteMatter | Use a valid `quilr_sdk` key; check expiry, source-IP restrictions, and required identity headers. |
+| HTTP 400 from WhiteMatter | Inspect the error code; validate `requestBody`, `context.user`, output `choices`, supported content shapes, and any required conversation ID. |
+| Redaction is ignored | Select **Mutate**, verify the rail selector/policy, and check that WhiteMatter returned `transformed: true`. |
 | A policy block is ignored | Check enforcement strategy, rail selection, and support for the current `2xx + verdict` contract. |
-| Output checks do not run | Set `stream: false`, attach the output rail, and enable the relevant response scopes in QuilrAI. |
-| Changing TrueFoundry Config has no effect | Change the authenticated QuilrAI app's guardrail settings or policy. Config entries are not interpreted by this adapter. |
+| Output checks do not run | Set `stream: false`, attach the output rail, and enable the relevant response scopes in WhiteMatter. |
+| Changing TrueFoundry Config has no effect | Change the authenticated WhiteMatter app's guardrail settings or policy. Config entries are not interpreted by this adapter. |
 
 ## References
 

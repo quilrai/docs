@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './styles.module.css';
+import {BRAND_NAME} from '@site/src/constants/brandConstants';
 
 /**
  * "Ordered checks, first match wins" diagram.
@@ -122,7 +123,7 @@ export default function DecisionLadder({
       </ol>
       <div className={styles.brand}>
         <span className={styles.brandDot} />
-        QuilrAI
+        {BRAND_NAME}
       </div>
     </div>
   );

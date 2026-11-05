@@ -14,9 +14,9 @@ description: "Nine-tool Confluence surface for spaces, pages, CQL search, page c
   official="Use Atlassian Rovo when the same agent needs context and actions across Jira, Confluence, JSM, Compass, or Bitbucket."
   officialPoints={['Cross-product Atlassian context', 'Broader first-party surface']}
   quilrTitle="Choose a bounded knowledge surface"
-  quilr="Use Quilr when the agent should search, read, create, update, and comment in Confluence without receiving destructive tools."
+  quilr="Use WhiteMatter when the agent should search, read, create, update, and comment in Confluence without receiving destructive tools."
   quilrPoints={['Nine focused tools', 'No content deletion path']}
-  verdict="Choose by boundary: Atlassian-wide work belongs in Rovo; a governed knowledge-base agent fits Quilr Confluence."
+  verdict="Choose by boundary: Atlassian-wide work belongs in Rovo; a governed knowledge-base agent fits WhiteMatter Confluence."
 />
 
 | Capability | Read | Write | Destructive |
@@ -30,4 +30,4 @@ description: "Nine-tool Confluence surface for spaces, pages, CQL search, page c
 
 The current surface contains seven read tools and two write tools. It intentionally exposes no destructive tools.
 
-Choose Atlassian Rovo for cross-product Atlassian breadth; choose Quilr Confluence for a bounded knowledge-base connection.
+Choose Atlassian Rovo for cross-product Atlassian breadth; choose WhiteMatter Confluence for a bounded knowledge-base connection.

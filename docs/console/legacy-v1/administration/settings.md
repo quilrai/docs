@@ -9,11 +9,11 @@ description: "Console V1 settings areas, save behavior, responsibilities, and au
 
 Configure tenant-wide context, sensor deployment, gateway protection, end-user messaging, compliance connectors, and detection rules from one place, in the order an administrator normally needs them.
 
-**Navigation:** Select Settings (gear icon) at the bottom of the main navigation. The Settings rail lists Organizational Context, Browser Extension, Endpoint, AI Gateway, User Interaction Hub, Compliance, Detection Policy, and AI Telemetry. AI Telemetry appears only on tenants where QuilrAI has enabled it.
+**Navigation:** Select Settings (gear icon) at the bottom of the main navigation. The Settings rail lists Organizational Context, Browser Extension, Endpoint, AI Gateway, User Interaction Hub, Compliance, Detection Policy, and AI Telemetry. AI Telemetry appears only on tenants where WhiteMatter has enabled it.
 
 **Configuration and options:** Each area is independent. Deployment switches apply as soon as they are set. Per-application endpoint panels save as you edit. Scoped group and user rules save only when you select Save rule. Everything else stages until you select Save, and the footer of each panel states which rule applies. Build every control in Monitor first, confirm the findings, then move to enforcement.
 
-**Role-specific value:** Quilr Administrators own tenant context, deployment, gateway keys, and change control. Security Engineers tune guardrails, detection rules, and end-user messaging, and verify results in Findings and the Audit Logging Console.
+**Role-specific value:** WhiteMatter Administrators own tenant context, deployment, gateway keys, and change control. Security Engineers tune guardrails, detection rules, and end-user messaging, and verify results in Findings and the Audit Logging Console.
 
 **Verification:** Review the [Audit Logging Console](../reporting/audit-log) for the acting administrator, time, category, and resource after making a change. Preserve the saved state and change record alongside any available audit event.
 

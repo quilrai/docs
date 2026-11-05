@@ -54,7 +54,7 @@ Endpoint Agent and Browser Extension control sets are still undergoing minor
 changes. Their data is already in V2: device status under Users, agentic
 inventory under Agents and Inventory, interactions in the feed. Keep authoring
 their controls where you do today, and do not use **Convert to Policy Engine**
-on the Endpoint Agent tab yet, even if your console shows the button. Quilr will
+on the Endpoint Agent tab yet, even if your console shows the button. WhiteMatter will
 confirm when they are settled.
 
 ## Phase 3: data, access and the last of V1

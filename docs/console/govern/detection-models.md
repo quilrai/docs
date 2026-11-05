@@ -9,11 +9,11 @@ aliases: [classifiers, DLP models, data risks, adversarial, detection models, pr
 
 # Detection Models
 
-Detection Models define what counts as sensitive data or an adversarial prompt. Policies and controls refer to these detections by name, so this page is where you decide what Quilr looks for, and how risky each finding is by default.
+Detection Models define what counts as sensitive data or an adversarial prompt. Policies and controls refer to these detections by name, so this page is where you decide what WhiteMatter looks for, and how risky each finding is by default.
 
 ![Detection Models in the console](/img/console-v2/pages/detection-models.jpg)
 
-<ConsolePath console="QuilrAI Console" path={['Govern', 'Detection Models']} />
+<ConsolePath console="WhiteMatter Console" path={['Govern', 'Detection Models']} />
 
 The page has two tabs: **Data Risks** and **AI Adversarial Risks**.
 

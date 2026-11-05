@@ -101,12 +101,12 @@ https://mcp-preview.goskope.com/mytenant/ABC123/mcp
 Multi-region tenants are the common mistake here. A four-level hostname such as `eurocorp.eu.goskope.com` becomes `eurocorp_eu`, with an underscore. Using `eurocorp` or `eurocorp.eu` will not resolve to your tenant.
 :::
 
-### 5. Add Netskope MCP to QuilrAI
+### 5. Add Netskope MCP to WhiteMatter {#5-add-netskope-mcp-to-quilrai}
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
+1. In WhiteMatter, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the full MCP URL, including the tenant identifier and access code.
 3. Supply the Netskope REST API v2 token as the bearer credential. Paste only the token value, with no `Bearer` prefix, quotes, or surrounding spaces.
-4. Save, then let QuilrAI fetch the tool list.
+4. Save, then let WhiteMatter fetch the tool list.
 5. Before enabling the MCP broadly, restrict it to the intended users and agents, and review the write-capable tools below.
 
 If the tool list comes back empty or the connection fails, work through [Troubleshooting](#troubleshooting) starting with the egress IPs.
@@ -135,7 +135,7 @@ The preview also ships 8 prepared prompts for multi-step workflows, including Se
 :::warning Write tools change your security posture
 This is not a read-only integration, and the write tools are not low-stakes. `deploy_policy`, `deploy_dns_profiles`, `delete_url_list`, `create_ipsec_tunnel`, and `create_scim_user` modify enforcement configuration and identity data in the product that polices your traffic. An agent with these tools can weaken your security controls.
 
-Scope the API token to read-only privileges unless a specific workflow genuinely needs to write. The token's privileges, not QuilrAI, are the real boundary here.
+Scope the API token to read-only privileges unless a specific workflow genuinely needs to write. The token's privileges, not WhiteMatter, are the real boundary here.
 :::
 
 Because the tool set is a moving preview, treat the [live tools list](https://mcp-preview.goskope.com/#tools) as authoritative over any snapshot, including this table.
@@ -167,7 +167,7 @@ If both succeed, the access code, token, and IP allowlisting are all correct. Ke
 | Connection fails, or the tenant is not found | Wrong tenant identifier format | For multi-region tenants, replace dots with underscores, for example `eurocorp_eu`. |
 | Connection is refused despite a valid token | Wrong or mistyped access code | Confirm the 6-character code with your Netskope representative. It is tied to your specific tenant URL. |
 | Some tools work, others return permission errors | The token lacks privileges for those endpoints | Grant the specific RBAC groups those toolsets need, such as `dem_user` for DEM and ADEM. |
-| Tools disappeared or were renamed | The preview changed | Re-fetch capabilities in QuilrAI and compare against the [live tools list](https://mcp-preview.goskope.com/#tools). |
+| Tools disappeared or were renamed | The preview changed | Re-fetch capabilities in WhiteMatter and compare against the [live tools list](https://mcp-preview.goskope.com/#tools). |
 | No access, or the access code was never issued | No signed Test Evaluation Agreement | Contact your Netskope representative or `support@netskope.com`. |
 
 ## Rotate Or Remove The Credentials
@@ -176,7 +176,7 @@ When a token is exposed, rotated, or no longer needed:
 
 1. Revoke the old token in **Settings** > **Tools** > **REST API v2**.
 2. Generate a replacement with the same, or narrower, privileges and allowlist entries.
-3. Update the saved credential for the Netskope MCP in QuilrAI.
+3. Update the saved credential for the Netskope MCP in WhiteMatter.
 4. Re-run the read-only verification above.
 
 If the MCP URL itself leaked, treat the access code as exposed too and ask Netskope to reissue it. Rotating only the token is not enough, since the URL is half the credential.

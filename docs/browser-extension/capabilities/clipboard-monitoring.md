@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Clipboard monitoring
 
-Clipboard monitoring catches sensitive data at the copy step. The QuilrAI agent on the endpoint watches clipboard events, sends them to the Browser Extension for a DLP decision, and then allows the copy, clears the clipboard, or asks the user for a justification.
+Clipboard monitoring catches sensitive data at the copy step. The WhiteMatter agent on the endpoint watches clipboard events, sends them to the Browser Extension for a DLP decision, and then allows the copy, clears the clipboard, or asks the user for a justification.
 
 <StepFlow steps={[
   { label: "Detect", items: ["OS clipboard hook", "Debounce + type gates", "Payload size cap"] },
@@ -17,7 +17,7 @@ Clipboard monitoring catches sensitive data at the copy step. The QuilrAI agent 
 
 ## Set it up
 
-The clipboard monitor is part of the QuilrAI agent that you deploy with the extension (see [Prerequisites](../get-started/prerequisites)). It starts automatically after deployment.
+The clipboard monitor is part of the WhiteMatter agent that you deploy with the extension (see [Prerequisites](../get-started/prerequisites)). It starts automatically after deployment.
 
 | Platform | Requirement |
 | --- | --- |
@@ -26,7 +26,7 @@ The clipboard monitor is part of the QuilrAI agent that you deploy with the exte
 
 ## Settings
 
-Clipboard settings are managed with your QuilrAI representative and pushed to the agent. They take effect on the next agent restart.
+Clipboard settings are managed with your WhiteMatter representative and pushed to the agent. They take effect on the next agent restart.
 
 | Setting | Default | Description |
 | --- | --- | --- |

@@ -10,7 +10,7 @@ aliases: [Azure DevOps]
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">ENGINEERING INTELLIGENCE</span><h2>Delivery context, not just API calls.</h2><p>Repositories, pull requests, boards, pipelines, tests, wiki, and security with compound engineering insights.</p></div>
 
-Azure DevOps Advanced is a Quilr-built MCP for Azure DevOps Services (`dev.azure.com`). It provides 47 tools across organizations, projects, Azure Repos, pull requests, Boards, Pipelines, Test Plans, Wiki, Search and Advanced Security. Each user signs in with their own Microsoft account through Microsoft Entra delegated OAuth, so Azure DevOps applies that user's existing permissions.
+Azure DevOps Advanced is a WhiteMatter-built MCP for Azure DevOps Services (`dev.azure.com`). It provides 47 tools across organizations, projects, Azure Repos, pull requests, Boards, Pipelines, Test Plans, Wiki, Search and Advanced Security. Each user signs in with their own Microsoft account through Microsoft Entra delegated OAuth, so Azure DevOps applies that user's existing permissions.
 
 ```text
 MCP client -> QuilrAI Gateway -> Azure DevOps MCP -> Microsoft Entra -> Azure DevOps
@@ -112,12 +112,12 @@ The MCP uses a Microsoft Entra application with the delegated `user_impersonatio
 |-----|----------------|
 | Your Entra administrator | Creates or approves the Entra application, redirect URI, delegated Azure DevOps permission and client secret. |
 | Azure DevOps MCP service | Owns the Entra OAuth configuration and exposes the MCP authorization flow. |
-| QuilrAI administrator | Adds the server to the MCP Gateway and sets tools, access and guardrails. |
+| WhiteMatter administrator | Adds the server to the MCP Gateway and sets tools, access and guardrails. |
 | Each user | Signs in with Microsoft and reaches only the Azure DevOps resources they already have. |
 
 ### 1. Create the Microsoft Entra application
 
-If Quilr already provides a managed Entra application for your tenant, skip this step and ask your tenant administrator to approve it.
+If WhiteMatter already provides a managed Entra application for your tenant, skip this step and ask your tenant administrator to approve it.
 
 1. In the [Microsoft Entra admin center](https://entra.microsoft.com/), open **Entra ID** > **App registrations** > **New registration**.
 2. Enter a name such as `QuilrAI Azure DevOps MCP`.
@@ -129,7 +129,7 @@ If Quilr already provides a managed Entra application for your tenant, skip this
 8. Open **Certificates & secrets** > **Client secrets** > **New client secret**, then copy the secret **Value** (not the Secret ID).
 
 :::warning Protect the secret
-Microsoft shows the client secret value only once. Store it in your approved secret manager and hand it to Quilr through the authorized onboarding channel. Never put it in an MCP client file, chat, ticket, repository or URL.
+Microsoft shows the client secret value only once. Store it in your approved secret manager and hand it to WhiteMatter through the authorized onboarding channel. Never put it in an MCP client file, chat, ticket, repository or URL.
 :::
 
 The service requests these scopes. `499b84ac-1321-427f-aa17-267ca6975798` is the Azure DevOps resource ID.
@@ -211,13 +211,13 @@ References: [Entra OAuth for Azure DevOps](https://learn.microsoft.com/en-us/azu
   officialTitle="Choose official for local IDE work"
   official="Use Microsoft's server when developers need first-party Azure DevOps operations directly inside a supported local coding environment."
   officialPoints={['Excellent IDE-native workflow', 'First-party core domain coverage']}
-  quilrTitle="Choose Quilr for organization-wide access"
-  quilr="Use Quilr when teams need one hosted endpoint with delegated OAuth, gateway policy, compound delivery intelligence, and controlled destructive actions."
+  quilrTitle="Choose WhiteMatter for organization-wide access"
+  quilr="Use WhiteMatter when teams need one hosted endpoint with delegated OAuth, gateway policy, compound delivery intelligence, and controlled destructive actions."
   quilrPoints={['Remote multi-tenant operation', 'Briefs, dashboards, and confirmed deletes']}
-  verdict="Local developer assistance favors the official server; centrally governed engineering agents favor Quilr Advanced."
+  verdict="Local developer assistance favors the official server; centrally governed engineering agents favor WhiteMatter Advanced."
 />
 
-| Capability | Official Azure DevOps MCP | Quilr Advanced |
+| Capability | Official Azure DevOps MCP | WhiteMatter Advanced |
 |---|:---:|:---:|
 | Core Azure DevOps domains | ✅ | ✅ |
 | Local IDE server | ✅ | - |
@@ -230,4 +230,4 @@ References: [Entra OAuth for Azure DevOps](https://learn.microsoft.com/en-us/azu
 | Traceability and security dashboards | - | ✅ |
 | Separately confirmed destructive operations | - | ✅ 8 tools |
 
-The official server is excellent for local IDE use. Quilr Advanced is designed for organization-wide access through gateway policy and auditing.
+The official server is excellent for local IDE use. WhiteMatter Advanced is designed for organization-wide access through gateway policy and auditing.

@@ -8,7 +8,7 @@ description: "Create, use and revoke direct-connection tokens for a server, sent
 
 # API Tokens
 
-Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your WhiteMatter dashboard; the placeholder includes `https://`.
 
 Issue a direct-connection token so a script, service or AI client can call one MCP server through the gateway without signing in.
 

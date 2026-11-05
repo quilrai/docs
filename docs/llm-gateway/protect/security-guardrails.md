@@ -27,7 +27,7 @@ Choose the mode used by your gateway. When the Policy Engine is on, published ru
 ## Turn it on for an app {#turn-it-on-for-an-app}
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Guardrails"
 />

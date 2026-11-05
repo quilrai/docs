@@ -11,7 +11,7 @@ import TabItem from '@theme/TabItem';
 
 # Integration Guide
 
-Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your WhiteMatter dashboard; the placeholder includes `https://`.
 
 MCP endpoints, authentication methods, and connection examples for integrating AI agents with MCP Gateway.
 
@@ -76,7 +76,7 @@ OAuth passthrough MCPs are not exposed through OneMCP and do not use gateway tok
 
 To choose a mode when you add a server, see [Adding MCP Servers](../servers-and-connections/adding-mcp-servers). For manual OAuth setup steps, see [MCP Provider Setup](../provider-setup/overview). For OneMCP unified access, memory tools, and inline authentication, see [OneMCP](./onemcp).
 
-Non-OAuth MCPs can also receive the authenticated Quilr user identity in a gateway-generated `X-User-Claims` JSON header. Turn it on with **Forward user claims** in the server's **Settings > General**. It works for direct MCP and OneMCP requests and is off by default. See [Claims forwarding](../protect/claims-forwarding) for configuration, schema, and trust requirements.
+Non-OAuth MCPs can also receive the authenticated WhiteMatter user identity in a gateway-generated `X-User-Claims` JSON header. Turn it on with **Forward user claims** in the server's **Settings > General**. It works for direct MCP and OneMCP requests and is off by default. See [Claims forwarding](../protect/claims-forwarding) for configuration, schema, and trust requirements.
 
 ## Token-Based Connection Example
 

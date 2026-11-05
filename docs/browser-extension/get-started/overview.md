@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Browser Extension overview
 
-The QuilrAI Browser Extension governs how people use AI in the browser. It runs in managed Chrome and Edge browsers, together with a small native component (the Browser Agent) that handles device-level tasks the extension cannot do on its own.
+The WhiteMatter Browser Extension governs how people use AI in the browser. It runs in managed Chrome and Edge browsers, together with a small native component (the Browser Agent) that handles device-level tasks the extension cannot do on its own.
 
 ## What it sees and enforces
 

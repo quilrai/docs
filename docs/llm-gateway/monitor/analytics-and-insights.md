@@ -48,7 +48,7 @@ Use this tab to separate provider time, gateway time and request failures.
 
 ![Performance and errors with Where the time goes and Why requests failed panels](/img/gateway-updates-2026-11/llm-insights-performance-errors.jpg)
 
-**Where the time goes** compares total latency, time waiting on the provider and time added by Quilr. These measurements can overlap, so the parts do not add up to the total.
+**Where the time goes** compares total latency, time waiting on the provider and time added by WhiteMatter. These measurements can overlap, so the parts do not add up to the total.
 
 Review failure causes and affected apps, then inspect streaming endings, rate limiting, output limits and reasoning tokens. **Model versions served**, **Requests by provider**, and **Same model on different deployments** help distinguish a model-wide issue from one provider connection. Select an app or failure entry for the requests behind it.
 

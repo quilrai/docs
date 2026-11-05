@@ -16,7 +16,7 @@ Want the concepts first? See the [Overview](./overview). Setting self-service up
 
 Sign in with your work account. If you have self-service access, you land in the **Self-Service portal** instead of the full admin dashboard.
 
-You only see the apps an admin granted you. If the portal is empty, nobody has given you access to an app yet - ask your QuilrAI platform admin.
+You only see the apps an admin granted you. If the portal is empty, nobody has given you access to an app yet - ask your WhiteMatter platform admin.
 
 ## Your Apps
 

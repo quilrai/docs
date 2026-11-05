@@ -13,13 +13,13 @@ description: "Eight read-only tools for search, extraction, site mapping, crawli
   officialTitle="Choose basic Tavily for search"
   official="Use Tavily's basic MCP setup when search and URL extraction are sufficient and provider-style API-key configuration is acceptable."
   officialPoints={['Simple search and extraction', 'Familiar provider setup']}
-  quilrTitle="Choose Quilr for the research lifecycle"
-  quilr="Use Quilr when agents also need site mapping, bounded crawling, asynchronous deep research, usage reporting, and managed authentication."
+  quilrTitle="Choose WhiteMatter for the research lifecycle"
+  quilr="Use WhiteMatter when agents also need site mapping, bounded crawling, asynchronous deep research, usage reporting, and managed authentication."
   quilrPoints={['Eight read-only tools', 'Search through research-job completion']}
   verdict="For only search and retrieval, use the smaller Web Search surface. Choose Tavily when the workflow genuinely needs research depth."
 />
 
-| Capability | Tavily Basic MCP Docs | Quilr Tavily |
+| Capability | Tavily Basic MCP Docs | WhiteMatter Tavily |
 |---|:---:|:---:|
 | Web search | ✅ | ✅ |
 | URL extraction | ✅ | ✅ |

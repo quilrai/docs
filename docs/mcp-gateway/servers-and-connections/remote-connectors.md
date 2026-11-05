@@ -8,7 +8,7 @@ description: "Connect MCP servers and internal REST APIs running inside private 
 
 # Remote Connectors
 
-Connect MCP servers and internal REST APIs running inside a private network, VPC, Kubernetes cluster, or developer laptop to the Quilr MCP Gateway over an outbound WebSocket tunnel (`wss://`) with no inbound firewall rules or public ingress.
+Connect MCP servers and internal REST APIs running inside a private network, VPC, Kubernetes cluster, or developer laptop to the WhiteMatter MCP Gateway over an outbound WebSocket tunnel (`wss://`) with no inbound firewall rules or public ingress.
 
 <StepFlow steps={[
   {

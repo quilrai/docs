@@ -9,7 +9,7 @@ aliases: [MCP library]
 
 # MCP Library
 
-Install ready-made MCP servers and local packages without entering URLs. The MCP Library includes provider-native servers and MCPs built by Quilr across productivity, developer tools, data, communication, cloud, security and web search.
+Install ready-made MCP servers and local packages without entering URLs. The MCP Library includes provider-native servers and MCPs built by WhiteMatter across productivity, developer tools, data, communication, cloud, security and web search.
 
 Go to **Settings > AI Gateway > MCP Gateway** and click **Library**.
 
@@ -27,7 +27,7 @@ Type in **Search by name or what it does**, or filter:
 
 Each row shows whether it is a **Remote server** or a local package (with its runtime and version), how it signs in, and an **Installed** or **Inactive** tag once installed.
 
-For what each Quilr-built MCP can do, see [Quilr-Provided MCPs](../quilr-provided-mcps/overview).
+For what each WhiteMatter-built MCP can do, see [WhiteMatter-Provided MCPs](../quilr-provided-mcps/overview).
 
 ## Install
 
@@ -65,7 +65,7 @@ To add an MCP that is not in the MCP Library, click **Add MCP server** to regist
 To connect an MCP server or internal REST API hosted inside your private network, VPC, Kubernetes cluster, or developer laptop, choose one of two options:
 
 - **Outbound tunnel (no inbound firewall rules)**: run `quilr-connector` next to your MCP server or REST API and select **Via Remote Connector: `<name>`** under **Connection route** when adding the server or API. See [Remote Connectors](./remote-connectors).
-- **Inbound IP allowlisting**: allowlist these Quilr gateway IPs on your firewall, VPC security group or reverse proxy so the gateway can reach your server directly:
+- **Inbound IP allowlisting**: allowlist these WhiteMatter gateway IPs on your firewall, VPC security group or reverse proxy so the gateway can reach your server directly:
 
 ```
 132.226.119.116
@@ -82,4 +82,4 @@ Once the URL is reachable from these IPs, add it with **Add MCP server** like an
 - [Adding MCP Servers](./adding-mcp-servers) - remote servers and sign-in modes.
 - [Remote Connectors](./remote-connectors) - outbound WebSocket tunnel for private-network and localhost MCP servers and REST APIs.
 - [OAuth Connect](./oauth-connect) - how admins and users connect OAuth servers.
-- [Quilr-Provided MCPs](../quilr-provided-mcps/overview) - what each Quilr-built MCP does.
+- [WhiteMatter-Provided MCPs](../quilr-provided-mcps/overview) - what each WhiteMatter-built MCP does.

@@ -3,14 +3,14 @@ sidebar_position: 1
 sidebar_label: "Agent monitoring"
 sidebar_custom_props:
   icon: Activity
-description: "Correlate gateway LLM calls with agent runs, traces, workflows, and conversations via W3C/vendor tracing headers, Quilr agent headers, baggage, or provider request-body metadata."
+description: "Correlate gateway LLM calls with agent runs, traces, workflows, and conversations via W3C/vendor tracing headers, WhiteMatter agent headers, baggage, or provider request-body metadata."
 ---
 
 # Agent Monitoring
 
 Updated on 3 November 2026.
 
-Correlate every gateway LLM call with the agent run, trace, workflow, or conversation that produced it - using standard distributed-tracing headers, Quilr agent headers, or provider request-body metadata. No Quilr SDK required.
+Correlate every gateway LLM call with the agent run, trace, workflow, or conversation that produced it - using standard distributed-tracing headers, WhiteMatter agent headers, or provider request-body metadata. No Quilr SDK required.
 
 In **Settings > AI Gateway > LLM Gateway**, select **Logs** on an application card. **Activity > Requests** lists each call, **Interactions** groups calls into conversations, and **Findings** lists guardrail detections. For aggregated configurations, runs and tool behavior, select **Overall analytics > Agents & tools** instead; see [Analytics and insights](./analytics-and-insights#agents--tools).
 
@@ -111,7 +111,7 @@ If you already run a different tracing system, send its headers and the gateway 
 
 When more than one trace system is present, the primary `trace` is chosen by precedence - W3C, then B3, Datadog, AWS X-Ray, Google Cloud Trace, Sentry - and the rest are retained in `vendor_trace_context`.
 
-### Quilr Agent Headers
+### WhiteMatter Agent Headers {#quilr-agent-headers}
 
 There is no universal HTTP standard for agent/run identity, so the gateway defines a canonical `X-Quilr-Agent-*` set and accepts short `X-Agent-*` aliases for compatibility. Both forms map to the same fields.
 

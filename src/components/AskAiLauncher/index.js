@@ -9,6 +9,7 @@ import {
   buildProductIndexAiPrompt,
 } from '@site/src/data/aiProviders';
 import {productForPath} from '@site/src/data/products';
+import {BRAND_NAME, DOCS_TITLE} from '@site/src/constants/brandConstants';
 
 // Other components (the homepage "Open in AI" button) open the panel with
 // window.dispatchEvent(new Event(ASK_AI_EVENT)).
@@ -31,10 +32,13 @@ function writeDismissed() {
   }
 }
 
+// Page titles end in " | <site title>"; strip it to get the page's own title.
+const TITLE_SUFFIX = new RegExp(`\\s*\\|\\s*${DOCS_TITLE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+
 function pageTitle() {
   const h1 = document.querySelector('.theme-doc-markdown h1, main h1');
   if (h1 && h1.textContent) return h1.textContent.trim();
-  return document.title.replace(/\s*\|\s*QuilrAI Docs$/, '');
+  return document.title.replace(TITLE_SUFFIX, '');
 }
 
 export default function AskAiLauncher() {
@@ -64,10 +68,10 @@ export default function AskAiLauncher() {
 
   const effectiveScope = isDoc ? scope : 'docs';
   const site = siteConfig.url.replace(/\/$/, '');
-  const docsName = product ? `QuilrAI ${product.name}` : 'QuilrAI';
+  const docsName = product ? `${BRAND_NAME} ${product.name}` : BRAND_NAME;
   const prompt =
     effectiveScope === 'page'
-      ? buildDocPageAiPrompt(title || 'QuilrAI docs page', `${site}${path}.md`, {site, product})
+      ? buildDocPageAiPrompt(title || `${BRAND_NAME} docs page`, `${site}${path}.md`, {site, product})
       : buildProductIndexAiPrompt(docsName, {site, product});
 
   const close = useCallback((refocus = true) => {

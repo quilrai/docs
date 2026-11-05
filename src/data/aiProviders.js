@@ -1,4 +1,5 @@
 import React from "react";
+import {BRAND_NAME} from "@site/src/constants/brandConstants";
 
 function IconChatGPT(props) {
   return (
@@ -94,7 +95,7 @@ export const AI_PROVIDERS = [
 // Prompts point assistants at markdown sources generated from the docs at
 // build time (plugins/llms-txt.js), so answers use the current docs.
 function productSources(site, product) {
-  if (!product) return [`- All QuilrAI docs (index): ${site}/llms.txt`];
+  if (!product) return [`- All ${BRAND_NAME} docs (index): ${site}/llms.txt`];
   const out = [
     `- ${product.name} docs, full text in one file: ${site}/llms/${product.slug}-full.txt`,
     `- ${product.name} docs index (page list with links): ${site}/llms/${product.slug}.txt`,
@@ -116,7 +117,7 @@ const ANSWER_RULES =
  */
 export function buildDocPageAiPrompt(pageTitle, pageMarkdownUrl, {site, product} = {}) {
   const lines = [
-    `I have questions about this QuilrAI documentation page: "${pageTitle}".`,
+    `I have questions about this ${BRAND_NAME} documentation page: "${pageTitle}".`,
     '',
     'Read it first:',
     `- ${pageMarkdownUrl.replace(/\.md$/, '.txt')} (plain text)`,

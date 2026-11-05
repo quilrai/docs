@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 sidebar_label: "User Interaction Hub"
-description: "Brand the popups people see when Quilr steps in on risky activity, link them to your policies, and edit each popup's message and justification options."
+description: "Brand the popups people see when WhiteMatter steps in on risky activity, link them to your policies, and edit each popup's message and justification options."
 sidebar_custom_props:
   icon: MessageSquareText
 console_path: [/settings/user-interaction-hub, /settings/user-interaction-hub/visual-styling, /settings/user-interaction-hub/popup-content]
@@ -10,9 +10,9 @@ aliases: [user interaction hub, end-user popups, popups, popup branding, popup t
 
 # User Interaction Hub
 
-When Quilr steps in on risky activity, for example to ask for a reason or to block an action, the person sees a popup from the Browser Extension or Endpoint Agent. User Interaction Hub controls how those popups look and what they say.
+When WhiteMatter steps in on risky activity, for example to ask for a reason or to block an action, the person sees a popup from the Browser Extension or Endpoint Agent. User Interaction Hub controls how those popups look and what they say.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'User Interaction Hub']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'User Interaction Hub']} />
 
 ## What you can do
 
@@ -26,7 +26,7 @@ The page has two tabs. **Visual Style** sets the logo and links for all popups. 
 ## Before you start
 
 - To open the page, your role needs access to the **User Interaction Hub settings** page and the **Read policies** permission. To make changes, it also needs **Update policies**. Without it, you can view the settings but not change them. See [Roles and permissions](../settings-organization/roles-and-permissions).
-- If **User Interaction Hub** is missing from **Settings**, your role doesn't include it or the feature isn't turned on for your organization. Ask your Quilr admin.
+- If **User Interaction Hub** is missing from **Settings**, your role doesn't include it or the feature isn't turned on for your organization. Ask your WhiteMatter admin.
 
 ## Visual Style
 
@@ -51,7 +51,7 @@ Logo requirements:
 - 2 MB or smaller.
 - The longest edge of the saved crop is limited to 512 px.
 
-To go back to the QuilrAI logo, select **Reset to QuilrAI**, then **Save changes**.
+To go back to the WhiteMatter logo, select **Reset to QuilrAI**, then **Save changes**.
 
 ### Link popups to your policies
 
@@ -107,7 +107,7 @@ You see **Popup content saved**. The new wording appears wherever this template 
 Press **Enter** for a new line. For emphasis or a link, use basic HTML tags: `<b>`, `<strong>`, `<i>`, `<em>` and `<a href="...">`. Other tags are removed when you save. The editor preview shows tags as plain text.
 :::
 
-### Restore the QuilrAI default
+### Restore the WhiteMatter default {#restore-the-quilrai-default}
 
 You can undo your changes to one template or to many at once.
 

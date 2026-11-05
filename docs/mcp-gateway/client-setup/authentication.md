@@ -9,17 +9,17 @@ description: "Exact MCP and OAuth URLs, client registration, scopes, callback ow
 
 # Authentication reference
 
-Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your WhiteMatter dashboard; the placeholder includes `https://`.
 
 Use this reference when a client asks for authorization-server details. First identify the exact MCP endpoint. A valid token for one endpoint family is not automatically valid for another.
 
 ## Separate the three connections
 
 1. **Client to Quilr:** Copilot, Claude, Cursor, or another client obtains a gateway token or uses an approved direct API token.
-2. **User to platform SSO:** Quilr identifies the employee through the platform's configured login provider.
-3. **Quilr to upstream service:** Quilr uses the user's saved OAuth connection, a personal API key, or an administrator-configured shared credential.
+2. **User to platform SSO:** WhiteMatter identifies the employee through the platform's configured login provider.
+3. **Quilr to upstream service:** WhiteMatter uses the user's saved OAuth connection, a personal API key, or an administrator-configured shared credential.
 
-An upstream OAuth app's client secret belongs in the gateway's provider setup. It is not the OAuth client secret to paste into Copilot or Claude. The user may need to sign in twice: once to Quilr, then to an upstream service.
+An upstream OAuth app's client secret belongs in the gateway's provider setup. It is not the OAuth client secret to paste into Copilot or Claude. The user may need to sign in twice: once to WhiteMatter, then to an upstream service.
 
 ## URL reference
 
@@ -38,7 +38,7 @@ The table uses `<YOUR_MCP_BASE_URL>` as defined above. For direct MCP connection
 | Registration response token authentication | `none` |
 | Issued client secret | None |
 
-The client uses `/quilrone/mcp`. Quilr identifies the organization from the authenticated account and applies the user's access rules. Confirm that employee sign-in domains and any company-domain aliases are configured for the intended organization.
+The client uses `/quilrone/mcp`. WhiteMatter identifies the organization from the authenticated account and applies the user's access rules. Confirm that employee sign-in domains and any company-domain aliases are configured for the intended organization.
 
 For **direct MCP**, start at `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/mcp` and follow its challenge and metadata. Gateway-managed flows generally use `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/authorize`, `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/token`, and `<YOUR_MCP_BASE_URL>/<backend-id-or-slug>/oauth/register`. OAuth-passthrough servers can advertise upstream issuer URLs and credentials instead. Do not construct manual values without inspecting that server's discovery response.
 
@@ -131,7 +131,7 @@ Authorization: Bearer <gateway-api-token>
 mcpuser: employee@customer.example
 ```
 
-The email must be valid and its domain must be allowed for the persisted Quilr company. Additional configured company-domain aliases may also be accepted. New API tokens require a selected agent; the actual request User-Agent must match that binding. Resolve the correct agent configuration rather than spoofing a User-Agent to evade a restriction.
+The email must be valid and its domain must be allowed for the persisted WhiteMatter company. Additional configured company-domain aliases may also be accepted. New API tokens require a selected agent; the actual request User-Agent must match that binding. Resolve the correct agent configuration rather than spoofing a User-Agent to evade a restriction.
 
 The token holder supplies `mcpuser`; this is delegated attribution, not proof that the named person completed an interactive login. Distribute tokens only to trusted clients that control that identity value appropriately. The gateway still applies user/server/tool policy and upstream credential rules.
 

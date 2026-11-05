@@ -26,7 +26,7 @@ This policy applies only to the built-in **QuilrAI Web Search** server. Other MC
 ## Connect ZIA
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'MCP Gateway', '...']}
   action="ZIA integration"
 />
@@ -47,7 +47,7 @@ Choose the instructions for the mode that governs your MCP Gateway. See [Switchi
 ## Set the policy
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'QuilrAI Web Search card', 'Configure']}
   action="General"
 />

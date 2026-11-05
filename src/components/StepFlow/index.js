@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './styles.module.css';
+import {BRAND_NAME} from '@site/src/constants/brandConstants';
 
 function Chevron() {
   return (
@@ -59,7 +60,7 @@ export default function StepFlow({ steps = [] }) {
       </div>
       <div className={styles.brand}>
         <span className={styles.brandDot} />
-        QuilrAI
+        {BRAND_NAME}
       </div>
     </div>
   );

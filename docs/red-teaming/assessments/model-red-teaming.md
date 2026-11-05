@@ -3,7 +3,7 @@ sidebar_position: 4
 sidebar_label: "Model red teaming"
 sidebar_custom_props:
   icon: BrainCircuit
-description: "Red team one model or compare 2-8 models side by side, from your gateway models, QuilrAI-provided models, or manual entry, with system prompts and Tool Studio."
+description: "Red team one model or compare 2-8 models side by side, from your gateway models, WhiteMatter-provided models, or manual entry, with system prompts and Tool Studio."
 console_path: /red-teaming/model-red-teaming
 aliases: [model red teaming, red team a model, attack a model, provider model, your models, QuilrAI provided models, model source, enter manually, OpenAI, Anthropic, Gemini, Hugging Face, Groq, Together, Fireworks, OpenRouter, Mistral, DeepSeek, Grok, Perplexity, Cohere, Azure OpenAI, AWS Bedrock, Vertex AI, compare models, model comparison, model id, base model assessment, prompt hardening]
 ---
@@ -43,7 +43,7 @@ Model Red Teaming is the **Model Red Teaming** tab on **Assessments → Red Team
 | Source | What you enter | How it runs |
 |--------|----------------|-------------|
 | **Your models** | Pick a model from a list | Models you connected in the Models tab. Runs through the LLM gateway with the key already saved for that provider, so nothing is entered here. See [Providers and Models](../../llm-gateway/apps-and-providers/providers-and-models). |
-| **QuilrAI provided models** | Pick a hosted model | Models QuilrAI hosts for you, run through your managed access with no key. See [QuilrAI Provided Models](../../llm-gateway/apps-and-providers/providers-and-models). |
+| **QuilrAI provided models** | Pick a hosted model | Models WhiteMatter hosts for you, run through your managed access with no key. See [WhiteMatter Provided Models](../../llm-gateway/apps-and-providers/providers-and-models). |
 | **Enter manually** (default) | Provider, model id, endpoint URL, API key | Calls the provider directly with the key you type. |
 
 ![Model source set to Your models, with the Your model dropdown and the system prompt and Tools fields below](/img/red-teaming/model-source-your-models.png)
@@ -112,7 +112,7 @@ Steps 02 and 03 are the same as in [Agentic Red Teaming](./agentic-red-teaming#0
 
 Open the campaign from **Runs**. The header shows progress, such as "Multi-model assessment · 2 of 2 targets finished".
 
-![Multi-model campaign: gpt-oss-120b-ultrafast with 2 vulnerable and gpt-oss-120b with 4 vulnerable, both QuilrAI provided and 14/14 objectives, plus Result analytics charts](/img/red-teaming/model-compare-campaign-results.png)
+![Multi-model campaign: gpt-oss-120b-ultrafast with 2 vulnerable and gpt-oss-120b with 4 vulnerable, both WhiteMatter provided and 14/14 objectives, plus Result analytics charts](/img/red-teaming/model-compare-campaign-results.png)
 
 | Section | What it shows |
 |---------|---------------|
@@ -130,7 +130,7 @@ How to read the matrix:
 - **Not reported** means that objective did not run against that model. Tool-targeted objectives are synthesized per target, so each model can get different ones. The page warns "Targets were evaluated with different coverage" when this happens.
 - **Comparable risk score** stays N/A until every target result is comparable.
 
-**Example.** Comparing two QuilrAI-provided models on a quick scan: `gpt-oss-120b-ultrafast` had 2 vulnerable (grade C, risk 33/100: 2 breached, 5 partial, 7 held, 14 tested), while `gpt-oss-120b` had 4 vulnerable (grade F). Click **Report** on either row to open its full report.
+**Example.** Comparing two WhiteMatter-provided models on a quick scan: `gpt-oss-120b-ultrafast` had 2 vulnerable (grade C, risk 33/100: 2 breached, 5 partial, 7 held, 14 tested), while `gpt-oss-120b` had 4 vulnerable (grade F). Click **Report** on either row to open its full report.
 
 ## Next steps
 

@@ -12,7 +12,7 @@ aliases: [build an agent, create an agent, create agent, agent variables, agent 
 
 The builder walks through eight steps. Steps are listed on the left with a summary of what you set, the **Overview** panel on the right shows the agent at a glance and the checks left before you can publish, and the **Assistant** tab drafts or changes the agent for you.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'AI Gateway', 'Workflow Agents']} action="Create agent" />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'AI Gateway', 'Workflow Agents']} action="Create agent" />
 
 Nothing is saved until you choose to. **Save draft** keeps the agent private to you; **Save & publish agent** runs the checks and publishes a version. **More** has **Read the definition** and **Check definition**. If you leave with unsaved changes, the builder asks before it discards them.
 
@@ -68,7 +68,7 @@ Extra reach beyond your connected tools. Each one runs through your MCP Gateway 
 | Capability | What it does |
 |------------|--------------|
 | **Web search** | Looks things up on the public web through the QuilrAI Web Search MCP. Results flow through your MCP Gateway like any other tool call. |
-| **Browser** | Opens and reads web pages, clicks and fills forms in a headless browser through the QuilrAI Browser MCP. Actions that change a page can be set to need confirmation in the MCP Gateway. Shows **Unavailable** if browser access is not enabled for your organization. |
+| **Browser** | Opens and reads web pages, clicks and fills forms in a headless browser through the WhiteMatter Browser MCP. Actions that change a page can be set to need confirmation in the MCP Gateway. Shows **Unavailable** if browser access is not enabled for your organization. |
 | **Memory** | Remembers across runs: the agent can search and save each person's own memories, the same ones [OneMCP](../../mcp-gateway/get-started/onemcp) uses. Memories stay private to that person, and the **Memories enabled** switch in the [OneMCP settings](../../mcp-gateway/get-started/onemcp) can turn this off for everyone. |
 
 ## 5. Skills

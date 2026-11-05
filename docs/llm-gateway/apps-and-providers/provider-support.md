@@ -67,7 +67,7 @@ One row per provider type. The type is what you select in the console and what y
 - **Manual**: enter Oracle model IDs yourself.
 - **Endpoint families:** moderations, images, completions (FIM), files, batches and videos are served for several of these types. See [Endpoint families](#endpoint-families). Mistral, xAI and Cohere also have vendor routes ([Mistral and xAI](#vendor-routes), [Cohere](#cohere-routes)).
 - `azureopenai` also serves Microsoft-Decision-1 deployments on the decision routes, `perplexity` serves its `pplx-decider` models there, and `typesafe` serves only those routes. See [Decision models](#decision-models).
-- **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [QuilrAI-Provided Models](./providers-and-models).
+- **QuilrAI-provided models** back an app through a `general` provider with base URL `https://models.quilrai.dev/v1`. Direct integration is coming soon. See [WhiteMatter-Provided Models](./providers-and-models).
 
 ## Endpoints
 
@@ -235,7 +235,7 @@ Other providers (Claude on Anthropic, Bedrock or Azure AI Foundry, Gemini, Mistr
 
 ## xAI and Mistral
 
-`xai` and `xai_responses` call `https://api.x.ai/v1`; `mistral` calls `https://api.mistral.ai/v1`. Each takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored.
+`xai` and `xai_responses` call `https://api.x.ai/v1`; `mistral` calls `https://api.mistral.ai/v1`. Each takes one API key; the base URL is fixed by WhiteMatter, and any `base_url` sent through the Management API is ignored.
 
 | Provider type | Console tile and API | What one key serves |
 |---------------|----------------------|---------------------|
@@ -327,7 +327,7 @@ When a converted request reaches xAI or Mistral, the gateway adapts parameters t
 
 ## Cerebras
 
-`cerebras` calls `https://api.cerebras.ai/v1`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored.
+`cerebras` calls `https://api.cerebras.ai/v1`. It takes one API key; the base URL is fixed by WhiteMatter, and any `base_url` sent through the Management API is ignored.
 
 | Provider type | Console tile and API | What one key serves |
 |---------------|----------------------|---------------------|
@@ -381,7 +381,7 @@ curl https://guardrails-usa-2.quilr.ai/anthropic_messages/v1/messages \
 
 ## Groq
 
-`groq` calls `https://api.groq.com/openai/v1`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored.
+`groq` calls `https://api.groq.com/openai/v1`. It takes one API key; the base URL is fixed by WhiteMatter, and any `base_url` sent through the Management API is ignored.
 
 | Provider type | Console tile and API | What one key serves |
 |---------------|----------------------|---------------------|
@@ -445,7 +445,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/speech \
 
 ## Perplexity
 
-`perplexity` calls `https://api.perplexity.ai`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored. Perplexity's Agent API needs paid API credits on the Perplexity account (without them it answers `403 restricted_api_key`).
+`perplexity` calls `https://api.perplexity.ai`. It takes one API key; the base URL is fixed by WhiteMatter, and any `base_url` sent through the Management API is ignored. Perplexity's Agent API needs paid API credits on the Perplexity account (without them it answers `403 restricted_api_key`).
 
 | Provider type | Console tile and API | What one key serves |
 |---------------|----------------------|---------------------|
@@ -517,7 +517,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/embeddings \
 
 ## Cohere
 
-`cohere` calls `https://api.cohere.com`. It takes one API key; the endpoint is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored. Chat, OpenAI-shaped embeddings and transcription use Cohere's OpenAI-compatible API (`https://api.cohere.com/compatibility/v1`); rerank, Cohere-shaped embeddings and the [Cohere routes](#cohere-routes) use Cohere's own API.
+`cohere` calls `https://api.cohere.com`. It takes one API key; the endpoint is fixed by WhiteMatter, and any `base_url` sent through the Management API is ignored. Chat, OpenAI-shaped embeddings and transcription use Cohere's OpenAI-compatible API (`https://api.cohere.com/compatibility/v1`); rerank, Cohere-shaped embeddings and the [Cohere routes](#cohere-routes) use Cohere's own API.
 
 | Provider type | Console tile and API | What one key serves |
 |---------------|----------------------|---------------------|
@@ -635,7 +635,7 @@ The three question types:
 
 ### TypeSafe
 
-`typesafe` calls `https://api.typesafe.ai/v1`. It takes one API key; the base URL is fixed by QuilrAI, and any `base_url` sent through the Management API is ignored. TypeSafe serves only decision models, so the provider is available on the decision routes and nowhere else.
+`typesafe` calls `https://api.typesafe.ai/v1`. It takes one API key; the base URL is fixed by WhiteMatter, and any `base_url` sent through the Management API is ignored. TypeSafe serves only decision models, so the provider is available on the decision routes and nowhere else.
 
 1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
 2. Search for `typesafe` and select the **TypeSafe** tile ("Decision models · Direct API"). It has one API, **System One**.

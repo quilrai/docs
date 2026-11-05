@@ -8,9 +8,9 @@ description: "Tenant configuration, enterprise prerequisites, deployment choices
 
 # Deployment prerequisites
 
-Deploy the QuilrAI Browser Extension and its native Browser Agent manually or centrally through Group Policy, Microsoft Intune, or Jamf Pro. The Browser Agent is a small native process that runs beside the extension and handles device-level tasks such as [clipboard monitoring](../capabilities/clipboard-monitoring) and [file indexing](../capabilities/file-indexing).
+Deploy the WhiteMatter Browser Extension and its native Browser Agent manually or centrally through Group Policy, Microsoft Intune, or Jamf Pro. The Browser Agent is a small native process that runs beside the extension and handles device-level tasks such as [clipboard monitoring](../capabilities/clipboard-monitoring) and [file indexing](../capabilities/file-indexing).
 
-- **Central deployment:** Get the tenant-specific extension policy (JSON for Windows, mobileconfig for macOS) from **Settings › Browser Extension** in the console or from your QuilrAI representative, then deploy it with Group Policy Management, Microsoft Intune, or Jamf Pro.
+- **Central deployment:** Get the tenant-specific extension policy (JSON for Windows, mobileconfig for macOS) from **Settings › Browser Extension** in the console or from your WhiteMatter representative, then deploy it with Group Policy Management, Microsoft Intune, or Jamf Pro.
 - **Manual installation:** Follow <SopLink track="browser-extension" step="manual-installation" /> in the [installation SOP](../deploy/installation-sop).
 - **Change control:** Keep the tenant ID, extension ID, manifest URL, package architecture, Full Disk Access profile, assignment scope, retries, and detection rules under change control.
 - **Ownership:** Security administrators own deployment configuration and scope; endpoint and directory administrators implement GPO or MDM assignments; security engineers validate policy, process, connectivity, and telemetry.
@@ -26,7 +26,7 @@ Deploy the QuilrAI Browser Extension and its native Browser Agent manually or ce
 | Network | HTTPS 443 to the approved tenant, extension-update, authentication, and DLP endpoints. | Same network requirement on every managed endpoint. |
 | macOS | Not applicable. | Correct Intel/Apple Silicon PKG; deploy Full Disk Access before the PKG. |
 
-The deployment examples use extension ID `piajhjohgigijkddhdpgbjdcfhmammbk` and manifest URL `https://quilr-extensions.quilr.ai/<TENANT_ID>/manifest.xml`. Get the tenant ID from QuilrAI support or your provisioning administrator, and confirm the current tenant configuration and package URLs before production deployment.
+The deployment examples use extension ID `piajhjohgigijkddhdpgbjdcfhmammbk` and manifest URL `https://quilr-extensions.quilr.ai/<TENANT_ID>/manifest.xml`. Get the tenant ID from WhiteMatter support or your provisioning administrator, and confirm the current tenant configuration and package URLs before production deployment.
 
 ![Browser extension deployment options with MDM provider, browser, operating system, and tenant-specific configuration download.](/img/console-v1/browser-extension-deployment.png)
 
@@ -42,7 +42,7 @@ The [installation SOP](../deploy/installation-sop) walks through the same rollou
 
 ## Endpoint Agent is a separate package
 
-These GPO and MDM procedures cover the Browser Extension and its native Browser Agent only. The standalone Endpoint Agent uses its own package, which you get from your QuilrAI representative; do not reuse Browser Agent install commands for it. See [Endpoint Agent requirements](../../endpoint-agent/get-started/requirements) and [Deployment and status](../../endpoint-agent/deploy-and-operate/deployment-and-status).
+These GPO and MDM procedures cover the Browser Extension and its native Browser Agent only. The standalone Endpoint Agent uses its own package, which you get from your WhiteMatter representative; do not reuse Browser Agent install commands for it. See [Endpoint Agent requirements](../../endpoint-agent/get-started/requirements) and [Deployment and status](../../endpoint-agent/deploy-and-operate/deployment-and-status).
 
 ## Before you expand the rollout
 

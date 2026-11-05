@@ -2,7 +2,7 @@
 sidebar_position: 8
 sidebar_custom_props:
   icon: Video
-description: "Connect Zoom's remote MCP server - create a Zoom Marketplace General App with user-managed OAuth, add the QuilrAI callback to the redirect URL and allow list, register the granular scopes for the Zoom, Docs, or Whiteboard server, and copy the Client ID and Client Secret for manual OAuth."
+description: "Connect Zoom's remote MCP server - create a Zoom Marketplace General App with user-managed OAuth, add the WhiteMatter callback to the redirect URL and allow list, register the granular scopes for the Zoom, Docs, or Whiteboard server, and copy the Client ID and Client Secret for manual OAuth."
 ---
 
 # Zoom
@@ -13,7 +13,7 @@ See [Overview](./overview) for prerequisites and secret-handling guidance.
 
 ## What You Need To Know First
 
-Zoom operates the MCP server. QuilrAI proxies and governs the connection; it does not host the tools. Install **Zoom** from the MCP Library, then supply the credentials from the app you create below.
+Zoom operates the MCP server. WhiteMatter proxies and governs the connection; it does not host the tools. Install **Zoom** from the MCP Library, then supply the credentials from the app you create below.
 
 | Property | Value |
 |---|---|
@@ -33,11 +33,11 @@ Zoom publishes additional MCP servers on the same host. The Docs server is at `h
 3. Click **Develop**, then **Build App**.
 4. Select **General App** and click **Create**. A General App uses user-managed OAuth 2.0, which is the authorization model Zoom's remote MCP servers use.
 5. Open **Basic Information**. Under **App Credentials**, locate the **Client ID** and **Client Secret**. Zoom provides separate Development and Production credentials, so use the set that matches your environment.
-6. Under **OAuth Information**, paste the QuilrAI callback URL into the **OAuth Redirect URL** field, then add the same URL to the **OAuth Allow List**. Copy the callback URL from the QuilrAI MCP setup screen and match it exactly.
+6. Under **OAuth Information**, paste the WhiteMatter callback URL into the **OAuth Redirect URL** field, then add the same URL to the **OAuth Allow List**. Copy the callback URL from the WhiteMatter MCP setup screen and match it exactly.
 7. Open **Scopes** and add the scopes listed in [Required Scopes For The Main Zoom MCP Server](#required-scopes-for-the-main-zoom-mcp-server). The main Zoom MCP server, the Docs server, and the Whiteboard server can expose different scope sets, so use the list for the specific server you are enabling.
 8. Activate the app. Zoom cannot issue tokens for an app that is not activated.
 9. Copy the **Client ID** and **Client Secret** from **App Credentials**.
-10. Paste the Client ID and Client Secret into the QuilrAI manual OAuth setup screen, then click **Connect** and authorize Zoom. Zoom completes the OAuth 2.1 authorization-code flow with PKCE, and access is scoped to the authorizing user's own Zoom permissions.
+10. Paste the Client ID and Client Secret into the WhiteMatter manual OAuth setup screen, then click **Connect** and authorize Zoom. Zoom completes the OAuth 2.1 authorization-code flow with PKCE, and access is scoped to the authorizing user's own Zoom permissions.
 
 ## Required Scopes For The Main Zoom MCP Server
 
@@ -80,7 +80,7 @@ configured scopes.
 
 - Zoom remote MCP servers do not support Dynamic Client Registration, so you must create a provider-owned OAuth app and enter the Client ID and Client Secret manually.
 - A General App uses user-managed OAuth. Each user authorizes individually, and access is limited to that user's own Zoom permissions, so per-user authorization is enforced by Zoom rather than by a single shared service identity.
-- Zoom apps provide separate Development and Production credentials and redirect URLs. Create a separate app, or use the matching credential set, for each QuilrAI environment whose callback URL differs.
+- Zoom apps provide separate Development and Production credentials and redirect URLs. Create a separate app, or use the matching credential set, for each WhiteMatter environment whose callback URL differs.
 - The app must be activated in Zoom before tokens can be issued. If the app is later deactivated, existing tokens stop working.
 - If your Zoom account restricts app installs, an account admin may need to approve the app before users can authorize it.
 - For account-level automation that runs without a signed-in user, create a Server-to-Server OAuth app instead and use the account-credentials flow. The standard MCP path is the user-managed General App described above.
@@ -89,10 +89,10 @@ configured scopes.
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| `redirect_uri_mismatch`, `invalid_redirect`, or failed callback | The Zoom OAuth Redirect URL or OAuth Allow List entry does not match the QuilrAI callback URL. | Copy the callback URL from QuilrAI again, update both the Redirect URL and the OAuth Allow List in Zoom, save, and retry. |
-| `invalid_client` or `bad_client_secret` | Wrong Client ID, wrong secret, mismatched Development and Production credentials, or app not activated. | Copy the Zoom Client ID and Client Secret again for the correct environment, confirm the app is activated, update QuilrAI, and retry. |
+| `redirect_uri_mismatch`, `invalid_redirect`, or failed callback | The Zoom OAuth Redirect URL or OAuth Allow List entry does not match the WhiteMatter callback URL. | Copy the callback URL from WhiteMatter again, update both the Redirect URL and the OAuth Allow List in Zoom, save, and retry. |
+| `invalid_client` or `bad_client_secret` | Wrong Client ID, wrong secret, mismatched Development and Production credentials, or app not activated. | Copy the Zoom Client ID and Client Secret again for the correct environment, confirm the app is activated, update WhiteMatter, and retry. |
 | Consent succeeds but tools are missing | The app was authorized with narrower scopes than the tools need. | Add the missing Zoom scopes, reconnect, and re-fetch capabilities. |
-| `invalid_grant` when refreshing | The user revoked authorization, or the Client Secret was rotated. | Reconnect to re-authorize. After rotating the secret, update the QuilrAI manual OAuth credentials. |
+| `invalid_grant` when refreshing | The user revoked authorization, or the Client Secret was rotated. | Reconnect to re-authorize. After rotating the secret, update the WhiteMatter manual OAuth credentials. |
 
 ## References
 

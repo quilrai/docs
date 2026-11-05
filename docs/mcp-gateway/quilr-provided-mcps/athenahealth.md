@@ -15,12 +15,12 @@ description: "Safety-first athenaOne and FHIR MCP with capability packs, allowli
   official="Use athenaOne and FHIR APIs directly when your integration team wants full control of the application, workflow, and clinical safeguards."
   officialPoints={['Maximum implementation flexibility', 'Your team owns every safety control']}
   quilrTitle="Add a clinical safety boundary"
-  quilr="Use Quilr when an agent needs a deliberately constrained surface with PHI-safe telemetry, gated writes, and idempotent operations."
+  quilr="Use WhiteMatter when an agent needs a deliberately constrained surface with PHI-safe telemetry, gated writes, and idempotent operations."
   quilrPoints={['Capability packs disabled by default', 'Confirmed writes with no automatic retry']}
   verdict="For agent access, the safety model is the product: start with the narrowest capability pack and enable writes only for a validated workflow."
 />
 
-| Safety control | Quilr Athenahealth |
+| Safety control | WhiteMatter Athenahealth |
 |---|:---:|
 | Customer-owned Athena system application | ✅ |
 | Operator allowlists and capability packs | ✅ Disabled by default |
@@ -31,4 +31,4 @@ description: "Safety-first athenaOne and FHIR MCP with capability packs, allowli
 | FHIR bulk-export job start/status without PHI download | ✅ |
 | PHI in app state, logs, traces, or persistent audit | - Prohibited |
 
-Athenahealth publishes athenaOne and FHIR APIs but no official MCP was identified. Quilr supplies the MCP boundary and its clinical safety model.
+Athenahealth publishes athenaOne and FHIR APIs but no official MCP was identified. WhiteMatter supplies the MCP boundary and its clinical safety model.

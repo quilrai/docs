@@ -122,7 +122,7 @@ When a request is translated, each parameter is mapped to the target API's field
 | Bedrock Converse options (`additionalModelRequestFields`, `performanceConfig` ...) | Dropped | Dropped | Dropped | Dropped | Mapped |
 | Other fields (`metadata`, `store`, `service_tier`, ...) | Dropped | Dropped | Dropped | Dropped | Dropped |
 
-Effort values are moved to the nearest value the target accepts. Streams sent to a Chat Completions target always ask for usage, so billing has it; a Chat Completions client gets the usage chunk only when it sets `stream_options.include_usage`. A Converse `guardrailConfig` sent to a non-Bedrock provider is dropped and the request still runs; QuilrAI guardrails on the app still apply (see [Limits](#limits)).
+Effort values are moved to the nearest value the target accepts. Streams sent to a Chat Completions target always ask for usage, so billing has it; a Chat Completions client gets the usage chunk only when it sets `stream_options.include_usage`. A Converse `guardrailConfig` sent to a non-Bedrock provider is dropped and the request still runs; WhiteMatter guardrails on the app still apply (see [Limits](#limits)).
 
 Per-model rules, applied only to translated requests:
 
@@ -189,7 +189,7 @@ Some features live inside one provider, such as a stored conversation or a hoste
 | Hosted and server tool definitions: Responses `web_search`, `file_search`, `code_interpreter`, computer use, MCP, image generation, shell; Chat `web_search_options`; Anthropic server tools (web search, web fetch, code execution, MCP toolset, tool search); Gemini built-in tools (Google Search, code execution, URL context, file search, Maps) | Dropped, request still runs. The model answers without the hosted tool; your function tools are kept. A `tool_choice` that forces a dropped tool becomes `auto`. | None |
 | Hosted-tool history: earlier hosted tool calls and their results in the conversation | Dropped, request still runs. The call and result structures are removed; their readable text output (such as MCP results or code output) is kept in the conversation as plain text. | None |
 | Anthropic `container` and `mcp_servers` to providers outside the Anthropic family | Dropped, request still runs. | None |
-| Bedrock Converse `guardrailConfig` on non-Bedrock providers | Dropped, request still runs. QuilrAI guardrails on the app still apply. | None |
+| Bedrock Converse `guardrailConfig` on non-Bedrock providers | Dropped, request still runs. WhiteMatter guardrails on the app still apply. | None |
 | Anthropic-schema client tools (`bash`, `text_editor`, `computer`, `memory`) on non-Anthropic providers | Not supported. These tools use a schema only Claude understands. | `translation_unsupported_state` |
 | Provider file ids (OpenAI `file_id`, Anthropic Files API, Gemini Files URIs) | Not supported. The file lives in one provider account. | `state_not_portable` |
 | Gemini `cachedContent` on non-Google providers | Coming soon. Today returns an error. | `translation_unsupported_state` |

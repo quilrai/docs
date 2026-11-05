@@ -4,7 +4,7 @@ sidebar_label: "Microsoft Copilot Studio"
 sidebar_custom_props:
   badge: new
   icon: Bot
-description: "Connect Microsoft Copilot Studio external threat detection to QuilrAI guardrails before tool execution, and bring Copilot Studio agents and activity into the console with the inventory card."
+description: "Connect Microsoft Copilot Studio external threat detection to WhiteMatter guardrails before tool execution, and bring Copilot Studio agents and activity into the console with the inventory card."
 ---
 
 # Microsoft Copilot Studio
@@ -13,7 +13,7 @@ The Microsoft Copilot Studio integration works in two ways:
 
 | Part | What it does | Where you set it up |
 |------|--------------|---------------------|
-| **Runtime threat detection** | Copilot Studio asks QuilrAI to allow or block each tool execution. | An LLM Gateway app plus Power Platform admin center (see [Runtime threat detection](#runtime-threat-detection)) |
+| **Runtime threat detection** | Copilot Studio asks WhiteMatter to allow or block each tool execution. | An LLM Gateway app plus Power Platform admin center (see [Runtime threat detection](#runtime-threat-detection)) |
 | **Inventory and activity** | Discovers Copilot Studio agents, their Dataverse definitions, capabilities, governance, and sanitized activity metadata. | **Settings › Integrations**, **Microsoft Copilot Studio** card |
 
 ## Inventory and activity
@@ -46,13 +46,13 @@ The card shows **INSTALLED** on the **Installed** tab, and Copilot Studio agents
 |-----|--------|
 | A Microsoft 365 or Power Platform admin (an Entra ID role that can grant tenant-wide admin consent) | Admin consent for the QuilrAI Microsoft Entra application. See [Admin consent](#admin-consent). |
 | A Power Platform admin | Turns on additional threat detection for each environment in Power Platform admin center. |
-| A QuilrAI admin who can create LLM Gateway apps | Creates the `copilot_studio` app and key. |
+| A WhiteMatter admin who can create LLM Gateway apps | Creates the `copilot_studio` app and key. |
 
 Threat detection is configured per Power Platform environment: repeat the Power Platform steps for each environment whose agents you want to protect.
 
 ## Runtime threat detection
 
-Copilot Studio calls QuilrAI before a tool executes. QuilrAI scans the user's recent prompt context and proposed tool inputs, then returns an allow/block decision. This integration checks content without forwarding an LLM request to a provider.
+Copilot Studio calls WhiteMatter before a tool executes. WhiteMatter scans the user's recent prompt context and proposed tool inputs, then returns an allow/block decision. This integration checks content without forwarding an LLM request to a provider.
 
 ## When to use it
 
@@ -60,7 +60,7 @@ Use the Copilot Studio integration when you want to:
 
 - Block sensitive data before a Copilot tool receives it
 - Prevent risky tool inputs generated from a user prompt
-- Log Copilot tool-execution checks alongside other QuilrAI gateway logs
+- Log Copilot tool-execution checks alongside other WhiteMatter gateway logs
 - Apply the same PII, PHI, PCI, financial, adversarial, and custom-intent policies you use elsewhere
 
 Microsoft external threat detection is called for generative agents that use generative orchestration. Microsoft skips this flow for classic agents.
@@ -93,7 +93,7 @@ Copilot Studio appends these paths to the endpoint base:
 
 | Route | Purpose |
 |-------|---------|
-| `POST /validate` | Checks that the QuilrAI endpoint is reachable and ready. |
+| `POST /validate` | Checks that the WhiteMatter endpoint is reachable and ready. |
 | `POST /analyze-tool-execution` | Sends proposed tool execution context for allow/block evaluation. |
 
 For example, if the endpoint base is `https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx`, Copilot Studio calls:
@@ -103,11 +103,11 @@ https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx/validate
 https://guardrails-usa-2.quilr.ai/copilot_studio/sk-quilr-xxx/analyze-tool-execution
 ```
 
-Copilot Studio may also include an `api-version` query parameter. QuilrAI ignores unknown query parameters.
+Copilot Studio may also include an `api-version` query parameter. WhiteMatter ignores unknown query parameters.
 
 ## Admin consent
 
-A Microsoft 365 or Power Platform admin must grant tenant-wide consent to the QuilrAI Microsoft Entra application before the organization can use the QuilrAI Copilot Studio integration.
+A Microsoft 365 or Power Platform admin must grant tenant-wide consent to the QuilrAI Microsoft Entra application before the organization can use the WhiteMatter Copilot Studio integration.
 
 <a
   className="docs-admin-consent-button"
@@ -126,36 +126,36 @@ Use this same Microsoft Entra App ID when Power Platform asks for the Azure Entr
 
 ## Power Platform setup
 
-1. In QuilrAI, open **Settings > LLM Gateway > Create App**, choose **App-only credentials** and select the **Copilot Studio** tile (guardrails only, no models).
+1. In WhiteMatter, open **Settings > LLM Gateway > Create App**, choose **App-only credentials** and select the **Copilot Studio** tile (guardrails only, no models).
 2. Copy the full endpoint base URL, including the `sk-quilr-...` key.
-3. Have a Microsoft 365 or Power Platform admin grant tenant-wide consent for the QuilrAI Copilot Studio integration.
+3. Have a Microsoft 365 or Power Platform admin grant tenant-wide consent for the WhiteMatter Copilot Studio integration.
 4. Open Power Platform admin center.
 5. Go to **Security** and then **Threat detection**.
 6. Select **Additional threat detection**.
 7. Select the environment, then select **Set up**.
 8. Enable **Allow Copilot Studio to share data with a threat detection provider**.
 9. Enter the QuilrAI Microsoft Entra App ID: `54abe80d-4f95-4e44-a19a-d360e5cdb617`.
-10. Enter the QuilrAI endpoint base URL as the endpoint link.
+10. Enter the WhiteMatter endpoint base URL as the endpoint link.
 11. Choose the Power Platform error behavior and save.
 12. Verify: Power Platform calls the `/validate` route when you save. Then run a test agent with a tool and a prompt containing a harmless test value your policy blocks, and check that the tool call is blocked and the check appears in your LLM Gateway logs.
 
 Microsoft documents the setup flow in [Enable external threat detection and protection for Copilot Studio custom agents](https://learn.microsoft.com/en-us/microsoft-copilot-studio/external-security-provider). Their webhook contract is documented in [Build a runtime threat detection system for Copilot Studio agents](https://learn.microsoft.com/en-us/microsoft-copilot-studio/external-security-webhooks-interface-developers).
 
-## What QuilrAI scans
+## What WhiteMatter scans {#what-quilrai-scans}
 
-For `analyze-tool-execution`, QuilrAI scans:
+For `analyze-tool-execution`, WhiteMatter scans:
 
 - Recent user messages from `plannerContext.chatHistory`
 - `plannerContext.userMessage` when chat history does not provide user text
 - Scalar values inside `inputValues`, including nested object and array values
 
-QuilrAI stores Copilot metadata for review, including conversation ID, tool name, tool ID, correlation ID, and user/tenant identifiers when Copilot provides them.
+WhiteMatter stores Copilot metadata for review, including conversation ID, tool name, tool ID, correlation ID, and user/tenant identifiers when Copilot provides them.
 
-If Copilot includes a bearer token, QuilrAI uses available claims such as `email`, `preferred_username`, `upn`, `oid`, `sub`, and `tid` for identity-aware logging. The webhook is authenticated by the QuilrAI key in the endpoint path.
+If Copilot includes a bearer token, WhiteMatter uses available claims such as `email`, `preferred_username`, `upn`, `oid`, `sub`, and `tid` for identity-aware logging. The webhook is authenticated by the QuilrAI key in the endpoint path.
 
 ## Decision behavior
 
-| QuilrAI result | Copilot response |
+| WhiteMatter result | Copilot response |
 |----------------|------------------|
 | Allowed or monitored | `{"blockAction": false}` |
 | Blocked | `{"blockAction": true, "reasonCode": 112, ...}` |
@@ -163,7 +163,7 @@ If Copilot includes a bearer token, QuilrAI uses available claims such as `email
 | No user input/tool values found | Allowed with `reason: "no_user_input"` |
 | DLP timeout/internal error | Allowed with fail-open diagnostics |
 
-Copilot Studio expects a fast decision. QuilrAI returns a fail-open allow decision on DLP timeout or internal DLP errors so the agent can continue during temporary guardrail service interruptions.
+Copilot Studio expects a fast decision. WhiteMatter returns a fail-open allow decision on DLP timeout or internal DLP errors so the agent can continue during temporary guardrail service interruptions.
 
 Redaction-style actions become blocks because Copilot Studio cannot accept rewritten tool input from the external threat detection response. Use monitor actions for detections you want to observe without blocking.
 

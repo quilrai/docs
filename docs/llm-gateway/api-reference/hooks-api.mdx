@@ -19,8 +19,8 @@ Hooks are created and changed only through the Management API. The console lists
 
 | Stage | When it runs | What your endpoint can do | Requests |
 | --- | --- | --- | --- |
-| `pre_call` | After Quilr's request checks, before the model call. Also on response-cache hits. | Allow, flag or block the request. | Streaming and non-streaming |
-| `post_call` | After Quilr's response checks, before the response is returned or cached. Also on response-cache hits. | Allow, flag or block the response. | Non-streaming only (streams skip it) |
+| `pre_call` | After WhiteMatter's request checks, before the model call. Also on response-cache hits. | Allow, flag or block the request. | Streaming and non-streaming |
+| `post_call` | After WhiteMatter's response checks, before the response is returned or cached. Also on response-cache hits. | Allow, flag or block the response. | Non-streaming only (streams skip it) |
 | `on_complete` | After the request finishes. | Receive a record of it, in batches. Never changes the request. | Streaming and non-streaming |
 
 ## Where hooks run
@@ -33,12 +33,12 @@ Hooks are created and changed only through the Management API. The console lists
 app: support-bot   user: dana@example.com`,
   }}
   gateway={{
-    label: "QuilrAI LLM Gateway",
+    label: "WhiteMatter LLM Gateway",
     phases: [
       {
         label: "Admit",
         stages: [
-          { label: "Quilr checks", items: ["Access, routing, limits", "Request guardrails"] },
+          { label: "WhiteMatter checks", items: ["Access, routing, limits", "Request guardrails"] },
           { label: "pre_call hooks", items: ["Your API, in parallel", "allow / flag / block", "Blocked: 403, no tokens used"] },
         ],
       },
@@ -51,7 +51,7 @@ app: support-bot   user: dana@example.com`,
       {
         label: "Return",
         stages: [
-          { label: "Quilr checks", items: ["Response guardrails"] },
+          { label: "WhiteMatter checks", items: ["Response guardrails"] },
           { label: "post_call hooks", items: ["Non-streaming only", "allow / flag / block", "Blocked: 403, tokens already used"] },
         ],
       },
@@ -139,8 +139,8 @@ Everything about the HTTP call is yours to shape, so a hook can call an existing
   {label: 'URL', items: ['Fixed https host', 'Fields in path and query']},
   {label: 'Headers', items: ['Fixed text, secrets', 'Fields, client headers']},
   {label: 'Auth and signing', items: ['Bearer, basic, API key', 'HMAC signature']},
-  {label: 'Body', items: ['Quilr envelope', 'Your template, raw, none']},
-  {label: 'Reply', items: ['Quilr decision JSON', 'or mapped from yours']},
+  {label: 'Body', items: ['WhiteMatter envelope', 'Your template, raw, none']},
+  {label: 'Reply', items: ['WhiteMatter decision JSON', 'or mapped from yours']},
 ]} />
 
 ### URL and method
@@ -177,7 +177,7 @@ Every hook call also carries these headers from the gateway:
 
 ### Client headers
 
-`send.request_headers` forwards headers the client sent: up to 50 names or prefixes ending in `*` (for example `x-team-*`). They appear under `request_headers` in the Quilr envelope. Credential and identity headers (`Authorization`, API key headers, cookies, identity headers) and `X-Quilr-*`, `X-Amz-*` and `X-Forwarded-*` headers are never sent.
+`send.request_headers` forwards headers the client sent: up to 50 names or prefixes ending in `*` (for example `x-team-*`). They appear under `request_headers` in the WhiteMatter envelope. Credential and identity headers (`Authorization`, API key headers, cookies, identity headers) and `X-Quilr-*`, `X-Amz-*` and `X-Forwarded-*` headers are never sent.
 
 ### Auth presets
 
@@ -188,7 +188,7 @@ Every hook call also carries these headers from the gateway:
 | `basic` | `username_secret`, `password_secret` | `Authorization: Basic <base64>` |
 | `api_key` | `secret`, and exactly one of `header` or `query` | The secret in that header or query parameter. |
 
-Every setting names a secret, never the value itself. A hook with no auth, no signing and no secret header saves with the warning `hook_unauthenticated`, because your endpoint cannot tell the call comes from Quilr.
+Every setting names a secret, never the value itself. A hook with no auth, no signing and no secret header saves with the warning `hook_unauthenticated`, because your endpoint cannot tell the call comes from WhiteMatter.
 
 ### HMAC signing
 
@@ -239,12 +239,12 @@ Sign over the raw body bytes you received, before any JSON parsing. With a `pref
 
 | Format | Body |
 | --- | --- |
-| `quilr` (default) | The Quilr envelope below. |
+| `quilr` (default) | The WhiteMatter envelope below. |
 | `template` | Your own JSON shape (up to 16 KB, 16 levels deep). `{"$value": "<field>"}` inserts a field's JSON value, strings take `{{field}}` and `{{request_header.name}}` placeholders, `{"$raw": "request_body"}` inserts the client's request body and `{"$raw": "response_body"}` the response body (`post_call` and `on_complete`, with `send.response_body: true`). Secrets are never allowed in the body. |
 | `raw` | The client's request body exactly as received. Call hooks only. |
 | `none` | An empty body. Call hooks only. |
 
-The Quilr envelope of a `pre_call` call:
+The WhiteMatter envelope of a `pre_call` call:
 
 ```json
 {
@@ -269,7 +269,7 @@ The Quilr envelope of a `pre_call` call:
 }
 ```
 
-- `body` is the client's body exactly as it was received, before any Quilr redaction. A body that is not JSON (some Bedrock InvokeModel bodies) is base64 text with `"body_encoding": "base64"`.
+- `body` is the client's body exactly as it was received, before any WhiteMatter redaction. A body that is not JSON (some Bedrock InvokeModel bodies) is base64 text with `"body_encoding": "base64"`.
 - `body_omitted` is `null` when the body is included, `"not_requested"` with `send.body: "none"`, or `"too_large"` when it exceeded `send.max_body_bytes`.
 - `response_body` (`post_call` and `on_complete` with `send.response_body: true`) is the response exactly as it is sent to the client. A response that is not JSON is base64 text with `"response_body_encoding": "base64"`.
 - `response_body_omitted` is `null` when the response body is included, `"not_requested"`, `"too_large"`, or `"stream"` (streaming responses never carry a body).
@@ -292,7 +292,7 @@ The Quilr envelope of a `pre_call` call:
 | `on_oversize` | When the body is larger: `send_without_body` (default; `body_omitted: "too_large"`), `skip_hook` (the hook does not run; call hooks) or `apply_on_failure` (the hook's `on_failure` applies; call hooks). |
 
 - **`minimal`** sends `request_id`, `api_family`, `stream`, `user.email`, `app.name`, `model.requested` and `model.target`.
-- **`standard`** adds the identity, client agent, Smart Group, app, provider and request fields, Quilr's findings (`quilr.status`, `quilr.categories`, `quilr.action` and their response versions) and `budgets`, and the outcome, usage, cost and latency fields at the stages that have them.
+- **`standard`** adds the identity, client agent, Smart Group, app, provider and request fields, WhiteMatter's findings (`quilr.status`, `quilr.categories`, `quilr.action` and their response versions) and `budgets`, and the outcome, usage, cost and latency fields at the stages that have them.
 - **`full_export`** sends every non-sensitive field available at the stage, including `client.headers` and `failover`.
 - **`empty`** sends no fields, for a hook that needs only the body or its own template.
 
@@ -310,7 +310,7 @@ The Quilr envelope of a `pre_call` call:
 | `user.email` | string | all | User the gateway attributed the request to (`null` when anonymous). |
 | `user.id`, `user.full_name` | string | all | User id and display name. |
 | `user.identity_source` | string | all | Where the identity came from: `jwt_claims`, `token_header`, `self_service`, `admin_api_key`, `identity_header`, `body` or `none`. |
-| `user.verified` | boolean | all | `true` only for a validated token or a Quilr-issued key. Identity headers are client-supplied. |
+| `user.verified` | boolean | all | `true` only for a validated token or a WhiteMatter-issued key. Identity headers are client-supplied. |
 | `user.department`, `user.groups` | string, list | all | From your identity directory. |
 | `client.ip` | string | all | Client IP address. **Sensitive.** |
 | `client.agent.name`, `.version`, `.confidence` | string | all | Detected agent or SDK, for example `claude-code`, and how confident the detection is. |
@@ -327,14 +327,14 @@ The Quilr envelope of a `pre_call` call:
 | `policy.revision` | number | all | Policy revision serving the request. |
 | `key.self_service` | object | all | Personal key id and name, when the request used one. |
 | `identity.jwt_claims` | object | all | Captured identity-token claims. **Sensitive.** |
-| `quilr.status` | string | all | Whether Quilr's request checks ran: `ran`, `not_run`, or `not_run_cache_hit` (a response-cache hit skips them). |
-| `quilr.categories` | list | all | Category ids Quilr detected in the request, for example `["data_risk_category_pii"]`. `null` when `quilr.status` is not `ran`. |
-| `quilr.action` | string | all | What Quilr did with the request: `Allow`, `Block_Prompt`, `Anonymize_Prompt`, or `failed` (findings in monitor-only categories). `null` when the checks did not run. |
+| `quilr.status` | string | all | Whether WhiteMatter's request checks ran: `ran`, `not_run`, or `not_run_cache_hit` (a response-cache hit skips them). |
+| `quilr.categories` | list | all | Category ids WhiteMatter detected in the request, for example `["data_risk_category_pii"]`. `null` when `quilr.status` is not `ran`. |
+| `quilr.action` | string | all | What WhiteMatter did with the request: `Allow`, `Block_Prompt`, `Anonymize_Prompt`, or `failed` (findings in monitor-only categories). `null` when the checks did not run. |
 | `quilr.entities` | list | all | Detected values in the request, `[{category, subcategory, value, offsets}]` (`subcategory` and `offsets` when known), at most 200. **Sensitive.** |
 | `budgets` | list | all | Budgets that matched at admission: `[{id, name, metric, window, limit, used, remaining, unit}]`. See below. `null` when no budget matched. |
-| `quilr.response_status` | string | `post_call`, `on_complete` | Whether Quilr's response checks ran (same values as `quilr.status`). |
-| `quilr.response_categories` | list | `post_call`, `on_complete` | Category ids Quilr detected in the response. |
-| `quilr.response_action` | string | `post_call`, `on_complete` | What Quilr did with the response (same values as `quilr.action`). |
+| `quilr.response_status` | string | `post_call`, `on_complete` | Whether WhiteMatter's response checks ran (same values as `quilr.status`). |
+| `quilr.response_categories` | list | `post_call`, `on_complete` | Category ids WhiteMatter detected in the response. |
+| `quilr.response_action` | string | `post_call`, `on_complete` | What WhiteMatter did with the response (same values as `quilr.action`). |
 | `quilr.response_entities` | list | `post_call`, `on_complete` | Detected values in the response (same shape as `quilr.entities`). **Sensitive.** |
 | `outcome.status` | number | `post_call`, `on_complete` | HTTP status returned to the client (at `post_call`, of the response about to be returned). |
 | `outcome.error_type` | string | `on_complete` | Error type, when the request failed or was blocked. |
@@ -352,7 +352,7 @@ A field used at a stage that does not have it is `422 field_not_available_at_sta
 
 ## What your endpoint returns
 
-### The Quilr reply (default)
+### The WhiteMatter reply (default) {#the-quilr-reply-default}
 
 Answer `2xx` with JSON:
 
@@ -436,7 +436,7 @@ A call fails on a timeout, a connection error (connecting is retried once within
 
 ## on_complete export
 
-An `on_complete` hook delivers one record per finished request to `export.url`, in batches. Records cover requests that reached the hook stage (after access, routing, limits and Quilr's request checks), including requests a hook blocked and requests the provider failed.
+An `on_complete` hook delivers one record per finished request to `export.url`, in batches. Records cover requests that reached the hook stage (after access, routing, limits and WhiteMatter's request checks), including requests a hook blocked and requests the provider failed.
 
 ```json
 {
@@ -454,7 +454,7 @@ An `on_complete` hook delivers one record per finished request to `export.url`, 
 }
 ```
 
-Your endpoint receives a `POST` with `{"records": [...]}`. Each record is the Quilr envelope (with `stage: "on_complete"`) or your `export.record.template`:
+Your endpoint receives a `POST` with `{"records": [...]}`. Each record is the WhiteMatter envelope (with `stage: "on_complete"`) or your `export.record.template`:
 
 ```json
 {
@@ -500,10 +500,10 @@ Your endpoint receives a `POST` with `{"records": [...]}`. Each record is the Qu
 ## Security
 
 - **Secrets are write-only.** Up to 10 per hook, named `[a-z][a-z0-9_]*`, up to 4096 characters each. Reads return `********`. Sending `********` back (or leaving `secrets` out of a PATCH) keeps the stored value. Secrets go only in headers, query values, auth and signing, never in the body (`422 secret_not_allowed_here`). A secret that is defined but never used saves with the warning `hook_secret_unused`.
-- **Destinations.** Only `https://` URLs to public addresses. Quilr hosts, `localhost` and private or loopback addresses are refused at save (`422 destination_not_allowed`), and every connection resolves the host again and connects only to a public address. Dedicated and on-premises deployments can allow private networks through deployment configuration, never through the API.
+- **Destinations.** Only `https://` URLs to public addresses. WhiteMatter hosts, `localhost` and private or loopback addresses are refused at save (`422 destination_not_allowed`), and every connection resolves the host again and connects only to a public address. Dedicated and on-premises deployments can allow private networks through deployment configuration, never through the API.
 - **Credentials never leave the gateway.** The client's credential and identity headers can never be sent to a hook, in any setting.
 - **Loop protection.** Every hook call carries `X-Quilr-Hook-Request`. If your endpoint calls the LLM Gateway itself (for example to ask a model), forward that header unchanged: hooks do not run on that inner request, so a hook cannot call itself in a loop. The value is signed for your organization and that request, so a forged or copied value never skips hooks.
-- **Hooks see the original request.** The body is sent exactly as the client sent it, before any Quilr redaction. Use `send.body: "none"` or an `exclude` list when a hook does not need content.
+- **Hooks see the original request.** The body is sent exactly as the client sent it, before any WhiteMatter redaction. Use `send.body: "none"` or an `exclude` list when a hook does not need content.
 
 ## Preview, test and stats
 
@@ -563,7 +563,7 @@ A test result:
 | 422 | `header_not_allowed` | A framing, hop-by-hop or `X-Quilr-*` header. |
 | 422 | `header_conflict` | A header is set twice, or also by auth or signing. |
 | 422 | `request_header_not_allowed` | A credential, identity or `X-Quilr-*` client header can never be sent. |
-| 422 | `destination_not_allowed` | Not `https`, or a Quilr, local or private host. |
+| 422 | `destination_not_allowed` | Not `https`, or a WhiteMatter, local or private host. |
 | 422 | `api_family_unsupported` | The API family does not run hooks. |
 | 422 | `validation_failed`, `unsupported_fields` | Any other invalid value, or a field the resource does not take. |
 | 409 | `policy_not_enabled` | The Policy Engine is off for the LLM Gateway. |
@@ -599,5 +599,5 @@ Writes also return the usual control errors (`412 version_conflict`, `428 precon
 
 - [Management API](./management-api) - authentication, scopes, errors and retry rules.
 - [Routing and failover API](./routing-and-failover-api) - the write, ETag and dry-run rules shared by every control.
-- [Security guardrails](../protect/security-guardrails) - Quilr's own request and response checks, which run before your hooks.
+- [Security guardrails](../protect/security-guardrails) - WhiteMatter's own request and response checks, which run before your hooks.
 - [Management API playground](/llm-gateway-management-playground?tab=hooks) - list, preview, create and test hooks from the browser.

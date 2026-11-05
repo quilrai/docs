@@ -10,7 +10,7 @@ aliases: [apps, assets, catalog, models, agents, skills, MCP servers, shadow app
 
 # Inventory
 
-Inventory is the catalog of every AI asset Quilr has discovered: applications,
+Inventory is the catalog of every AI asset WhiteMatter has discovered: applications,
 browser extensions, AI clients, models, MCP servers, agents, skills, plugins,
 hooks, repositories and more. Open it from **Observe > Inventory**.
 

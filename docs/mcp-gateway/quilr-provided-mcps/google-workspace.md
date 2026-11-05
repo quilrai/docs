@@ -8,11 +8,11 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">GMAIL + CALENDAR + DRIVE + DIRECTORY</span><h2>Four Workspace surfaces. One governed connection.</h2><p>Forty-two tools for communication, scheduling, file operations, and people lookups with customer-owned Google OAuth.</p></div>
 
-Google Workspace is a Quilr-built MCP in the Library for Gmail, Google Calendar, Google Drive and Workspace directory lookups. There is no shared Quilr-owned Google client: each tenant connects with its own Google OAuth client.
+Google Workspace is a WhiteMatter-built MCP in the Library for Gmail, Google Calendar, Google Drive and Workspace directory lookups. There is no shared WhiteMatter-owned Google client: each tenant connects with its own Google OAuth client.
 
 ## Tools
 
-**42 tools** are offered by default. One more, `share_google_drive_file`, is registered but disabled until a Quilr operator turns it on.
+**42 tools** are offered by default. One more, `share_google_drive_file`, is registered but disabled until a WhiteMatter operator turns it on.
 
 ### Gmail
 
@@ -83,7 +83,7 @@ Sending mail is irreversible. Trashing is recoverable until Google purges the it
 3. In **APIs & Services** > **OAuth consent screen**, choose **Internal** if every user is in your Workspace organization (no Google verification needed), or **External** for any Google account (restricted Gmail and Drive scopes then require [Google OAuth verification](https://support.google.com/cloud/answer/9110914), including the security assessment Google requires for restricted scopes, before the app can serve users outside its **Test users** list).
 4. Add the fifteen scopes below. The MCP accepts a token only if both `openid` and `userinfo.email` were granted; other tools return `insufficient_scope` if their product scope is missing.
 5. In **APIs & Services** > **Credentials**, click **Create Credentials** > **OAuth client ID** and choose **Web application**. Other client types do not work with the gateway callback.
-6. Under **Authorized redirect URIs**, add the **OAuth callback URL** shown on the Google Workspace setup screen in QuilrAI. It must match exactly; use a separate client per environment with a different callback.
+6. Under **Authorized redirect URIs**, add the **OAuth callback URL** shown on the Google Workspace setup screen in WhiteMatter. It must match exactly; use a separate client per environment with a different callback.
 7. Click **Create** and copy the **Client ID** and **Client Secret**.
 
 | Scope | Why it is needed | Google class |
@@ -125,8 +125,8 @@ Tool failures return a JSON error with a `code`, the HTTP `status`, whether it i
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| `redirect_uri_mismatch` | The redirect URI in Google Cloud differs from the QuilrAI callback URL. | Add the exact callback URL under **Authorized redirect URIs** and retry. |
-| `invalid_client` | Wrong client ID or secret, or a deleted secret. | Copy both values again and update QuilrAI. |
+| `redirect_uri_mismatch` | The redirect URI in Google Cloud differs from the WhiteMatter callback URL. | Add the exact callback URL under **Authorized redirect URIs** and retry. |
+| `invalid_client` | Wrong client ID or secret, or a deleted secret. | Copy both values again and update WhiteMatter. |
 | `Access blocked: app has not been verified` | An External app uses restricted scopes before verification. | Add the user as a test user, complete verification, or use an Internal app. |
 | Consent succeeds but every call returns 401 | `openid` was not granted. | Reconnect and grant all scopes. |
 | `insufficient_scope` from one product | A scope is missing from the consent screen, or the connection predates it. | Add the scope named in the error and reconnect. |
@@ -134,7 +134,7 @@ Tool failures return a JSON error with a `code`, the HTTP `status`, whether it i
 | `not_found` on a directory search | The account is not in a Workspace domain. | Directory lookups need a Workspace account. |
 | `sync_expired` from a `sync_*` tool | The sync marker is older than Google's retention window. | Start a fresh sync without a marker. |
 | `invalid_cursor` when paging | The cursor was altered, reused by another user, or the deployment lost its cursor signing secret. | Re-run the query without a cursor. |
-| `share_google_drive_file` is not listed | The tool is disabled by default. | Ask Quilr to set `GOOGLE_ENABLE_DRIVE_SHARING=true` for your deployment. |
+| `share_google_drive_file` is not listed | The tool is disabled by default. | Ask WhiteMatter to set `GOOGLE_ENABLE_DRIVE_SHARING=true` for your deployment. |
 
 References: [Create an OAuth client ID](https://support.google.com/cloud/answer/6158849), [OAuth API verification FAQ](https://support.google.com/cloud/answer/9110914), [People API](https://developers.google.com/people).
 
@@ -145,9 +145,9 @@ References: [Create an OAuth client ID](https://support.google.com/cloud/answer/
   official="Use Google's separate preview endpoints when the agent needs first-party product depth or a Workspace surface this MCP does not cover, such as Chat."
   officialPoints={['Provider-native endpoints', 'Google Chat coverage']}
   quilrTitle="Choose one combined connection"
-  quilr="Use Quilr when Gmail, Calendar, Drive, and directory lookups should share customer-owned OAuth, one gateway boundary, and forty-two consistent tools."
+  quilr="Use WhiteMatter when Gmail, Calendar, Drive, and directory lookups should share customer-owned OAuth, one gateway boundary, and forty-two consistent tools."
   quilrPoints={['Four surfaces, one connection', 'Governed writes, sync, and destructive controls']}
-  verdict="Official endpoints reach Chat; Quilr minimizes connection and policy sprawl across the four surfaces agents use most."
+  verdict="Official endpoints reach Chat; WhiteMatter minimizes connection and policy sprawl across the four surfaces agents use most."
 />
 
 | Capability | Gmail | Calendar | Drive | Directory |
@@ -165,4 +165,4 @@ References: [Create an OAuth client ID](https://support.google.com/cloud/answer/
 | Irreversible send | Send email | - | - | - |
 | Change who can reach a file | - | - | Opt-in | - |
 
-Google's official Workspace MCPs are separate product endpoints in Developer Preview and also cover Google Chat. Quilr is the combined, gateway-managed option for Gmail, Calendar, Drive and directory lookups.
+Google's official Workspace MCPs are separate product endpoints in Developer Preview and also cover Google Chat. WhiteMatter is the combined, gateway-managed option for Gmail, Calendar, Drive and directory lookups.

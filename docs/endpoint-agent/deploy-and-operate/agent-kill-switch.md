@@ -19,7 +19,7 @@ Use the kill switch to stop the Endpoint Agent on one device or across your tena
 
 ## Which switch controls what
 
-QuilrAI has three separately installed components on a device. Each switch stops only its own component.
+WhiteMatter has three separately installed components on a device. Each switch stops only its own component.
 
 | Switch | Where | Stops | Scope | Time to effect |
 | --- | --- | --- | --- | --- |
@@ -117,7 +117,7 @@ Enable-ScheduledTask -TaskName "QuilrAI-Endpoint-Update"
 | Event | Result |
 | --- | --- |
 | Console disable (tenant or workstation) | At the next check-in the agent stops its traffic proxy (new connections are refused and in-flight requests finish) and its monitoring services. The core service keeps running so it can receive a re-enable. |
-| Agent restarts while disabled | The disabled state is held by QuilrAI, not on the device. The agent applies it again at its next check-in. |
+| Agent restarts while disabled | The disabled state is held by WhiteMatter, not on the device. The agent applies it again at its next check-in. |
 | Console re-enable | At the next check-in the agent restarts its services. No process restart or reinstall is needed. |
 | Check-in fails (for example no network) | The agent keeps its last known state. |
 | Local stop | The service and its child processes exit at once. The updater starts it again within 30 minutes unless you also stopped the updater. |
@@ -147,4 +147,4 @@ Record what was disabled, when, and why, for your own change log.
 
 ## Version problems
 
-The updater checks for a new version every 30 minutes. After installing one, it waits for the agent to run stably and restores the previous version if it does not. If a device still misbehaves after an update, disable it as above and contact your QuilrAI representative. Check the installed version in the **Agent version** column of **Users › Endpoint deployment**.
+The updater checks for a new version every 30 minutes. After installing one, it waits for the agent to run stably and restores the previous version if it does not. If a device still misbehaves after an update, disable it as above and contact your WhiteMatter representative. Check the installed version in the **Agent version** column of **Users › Endpoint deployment**.

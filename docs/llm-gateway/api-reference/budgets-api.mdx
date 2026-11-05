@@ -67,7 +67,7 @@ Try every operation with your own key in the [Management API playground](/llm-ga
 - **Row state.** Each usage row is `blocked` (at the hard stop), `overflow` (in the soft band), `alerting` (past the lowest alert threshold), `granted` or `ok`.
 - **Grants need an adjustable budget.** A budget accepts grants only when it has an `adjustments` ceiling (`409 budget_not_adjustable` otherwise), and a grant cannot exceed that ceiling (`422 grant_above_ceiling`). A new grant for the same subject supersedes the active one; the response returns it as `superseded`.
 - **Subjects.** Name a grant subject by `user` (email), `app`, `smart_group` or `model`, or by the budget's grouping field. Every grouping field of the budget must be supplied (`422 subject_unresolved`).
-- **Prices.** `GET /budget-pricing` shows where each price comes from: `policy` (a tenant-wide rate set here), `provider` (the provider's model costs), `catalog` (QuilrAI catalog), `mixed` or `unpriced`. A tenant-wide rate wins over the provider's cost, which wins over the catalog.
+- **Prices.** `GET /budget-pricing` shows where each price comes from: `policy` (a tenant-wide rate set here), `provider` (the provider's model costs), `catalog` (WhiteMatter catalog), `mixed` or `unpriced`. A tenant-wide rate wins over the provider's cost, which wins over the catalog.
 
 ## Endpoints
 

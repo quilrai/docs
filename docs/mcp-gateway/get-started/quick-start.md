@@ -34,7 +34,7 @@ Add an MCP server, choose what agents may call, connect an AI app and review the
     label: "Connect your AI app",
     items: [
       "OneMCP URL",
-      "Or the server's Quilr gateway URL",
+      "Or the server's WhiteMatter gateway URL",
     ],
   },
   {
@@ -107,7 +107,7 @@ Users sign in at `mcpgateway.quilr.ai`, connect their accounts and copy a URL fr
 | URL | Use it for |
 |-----|-----------|
 | OneMCP, `https://mcpgateway.quilr.ai/quilrone/mcp` | Every MCP the user may use, through one connection. See [OneMCP](./onemcp). |
-| Quilr gateway URL from the server card, `https://mcpgateway.quilr.ai/<slug>/mcp` | One server only |
+| WhiteMatter gateway URL from the server card, `https://mcpgateway.quilr.ai/<slug>/mcp` | One server only |
 
 The base domain can differ by environment. Copy the exact URL from the server card or the user dashboard.
 

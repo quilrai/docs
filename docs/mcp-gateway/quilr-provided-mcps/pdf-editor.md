@@ -8,7 +8,7 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">READ AND EDIT PDFS</span><h2>Change a PDF without it looking changed.</h2><p>Replace text in the document's own font and position, fill forms, stamp watermarks, and read scans - then get the file back. Nothing to authorize.</p></div>
 
-PDF Editor is a Quilr-built MCP that reads, searches and edits PDF documents, including scanned ones, and hands back a finished file. There is no OAuth app, client ID, client secret or API key: PDF Editor is enabled, not connected.
+PDF Editor is a WhiteMatter-built MCP that reads, searches and edits PDF documents, including scanned ones, and hands back a finished file. There is no OAuth app, client ID, client secret or API key: PDF Editor is enabled, not connected.
 
 ## Tools
 
@@ -70,7 +70,7 @@ There is nothing to prepare: no account, no API key and no OAuth consent.
 2. Click **Install**. There is no credential prompt.
 3. Make sure the tools are enabled in [Tool visibility](../protect/tool-visibility).
 
-If **PDF Editor** is not in your Library, contact Quilr.
+If **PDF Editor** is not in your Library, contact WhiteMatter.
 
 ### Verify
 

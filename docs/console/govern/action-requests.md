@@ -12,7 +12,7 @@ aliases: [action request, action requests, extension action request, justificati
 
 When a Browser Extension control asks for a justification, the person can explain why they need to continue and request access. Those requests appear on this page, where you approve or reject them. You can revoke an approval later.
 
-<ConsolePath console="QuilrAI Console" path={['Govern', 'Action Requests']} />
+<ConsolePath console="WhiteMatter Console" path={['Govern', 'Action Requests']} />
 
 ## Before you start
 

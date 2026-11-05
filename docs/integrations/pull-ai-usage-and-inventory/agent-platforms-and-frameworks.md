@@ -8,9 +8,9 @@ description: "Install the Amazon Bedrock Agents, Google Vertex AI Agent Builder,
 
 # Agent platforms and frameworks
 
-These Library cards register cloud agent platforms, agent frameworks and the LiteLLM proxy with Quilr. They discover agents, tools and models (**Pull inventory**) and bring the platform's runtime telemetry into Quilr (**Send logs**, which for these cards flows into Quilr).
+These Library cards register cloud agent platforms, agent frameworks and the LiteLLM proxy with WhiteMatter. They discover agents, tools and models (**Pull inventory**) and bring the platform's runtime telemetry into WhiteMatter (**Send logs**, which for these cards flows into WhiteMatter).
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Integrations', 'Library']} />
 
 ## Set it up
 
@@ -40,7 +40,7 @@ For the cloud platforms, **Pull inventory** is the primary capability and **Send
 - To change the fields or capabilities later, click **Configure** on the installed card. **Uninstall** removes it.
 
 :::tip
-To also apply Quilr's guardrails to model traffic from these frameworks, point them at the [LLM Gateway](../../llm-gateway). That works independently of these cards.
+To also apply WhiteMatter's guardrails to model traffic from these frameworks, point them at the [LLM Gateway](../../llm-gateway). That works independently of these cards.
 :::
 
 ## Related

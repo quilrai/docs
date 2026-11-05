@@ -14,9 +14,9 @@ description: "Compact ten-tool Jira surface for projects, issue retrieval and se
   official="Use Atlassian Rovo when agents need one first-party context layer across Jira, Confluence, JSM, Compass, and Bitbucket."
   officialPoints={['Cross-product context', 'Broader first-party workflows']}
   quilrTitle="Choose a Jira-only boundary"
-  quilr="Use Quilr when the job is intentionally limited to projects, issues, search, assignments, transitions, and comments."
+  quilr="Use WhiteMatter when the job is intentionally limited to projects, issues, search, assignments, transitions, and comments."
   quilrPoints={['Ten predictable tools', 'Independent gateway controls']}
-  verdict="Breadth favors Rovo. Simplicity, least privilege, and a stable Jira-only schema favor Quilr."
+  verdict="Breadth favors Rovo. Simplicity, least privilege, and a stable Jira-only schema favor WhiteMatter."
 />
 
 | Workflow | Tools | Risk |
@@ -27,4 +27,4 @@ description: "Compact ten-tool Jira surface for projects, issue retrieval and se
 | Workflow progress | `transition_issue` | Write |
 | Collaboration | `add_comment` | Write |
 
-Atlassian's Rovo MCP is broader across Jira, Confluence, JSM, Compass, and Bitbucket. Choose Quilr Jira when the agent should receive a small Jira-only surface with independent gateway controls.
+Atlassian's Rovo MCP is broader across Jira, Confluence, JSM, Compass, and Bitbucket. Choose WhiteMatter Jira when the agent should receive a small Jira-only surface with independent gateway controls.

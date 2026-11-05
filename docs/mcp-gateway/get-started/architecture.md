@@ -8,7 +8,7 @@ description: "Tool call processing pipeline - Authenticate, Authorize, Scan, Pol
 
 # Architecture
 
-How the QuilrAI MCP Gateway processes every tool call - from your AI agent to the MCP server and back.
+How the WhiteMatter MCP Gateway processes every tool call - from your AI agent to the MCP server and back.
 
 <ArchitectureDiagram
   source={{
@@ -23,7 +23,7 @@ How the QuilrAI MCP Gateway processes every tool call - from your AI agent to th
 }`,
   }}
   gateway={{
-    label: "QuilrAI MCP Gateway",
+    label: "WhiteMatter MCP Gateway",
     phases: [
       {
         label: "Authenticate",

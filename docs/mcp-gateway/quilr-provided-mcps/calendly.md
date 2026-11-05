@@ -8,10 +8,10 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">SCHEDULING OPERATIONS</span><h2>Enterprise-owned OAuth for the full scheduling lifecycle.</h2><p>Forty tools across event types, availability, meetings, routing, webhooks, organizations, and compliance.</p></div>
 
-The Quilr-built Calendly MCP connects with a Calendly OAuth application that your organization owns. A Calendly administrator creates the application and gives its **Client ID** and **Client Secret** to the MCP Gateway. Each Calendly user then authorizes their own account in the browser.
+The WhiteMatter-built Calendly MCP connects with a Calendly OAuth application that your organization owns. A Calendly administrator creates the application and gives its **Client ID** and **Client Secret** to the MCP Gateway. Each Calendly user then authorizes their own account in the browser.
 
 :::warning Custom MCP only
-These steps are for the Quilr Calendly MCP at `https://calendly-custom.mcp.quilr.ai/mcp`. Calendly's official MCP (`https://mcp.calendly.com/`) uses Dynamic Client Registration and does not accept manually created OAuth credentials.
+These steps are for the WhiteMatter Calendly MCP at `https://calendly-custom.mcp.quilr.ai/mcp`. Calendly's official MCP (`https://mcp.calendly.com/`) uses Dynamic Client Registration and does not accept manually created OAuth credentials.
 :::
 
 ## Tools
@@ -27,13 +27,13 @@ Keep write and external-action tools off in [Tool visibility](../protect/tool-vi
 | Calendly developer account | Create one with GitHub or Google at the developer portal. It is separate from your normal Calendly account. |
 | Application owner | An administrator responsible for credential storage, rotation and scope approval. |
 | Environment | Start with **Sandbox**. Create a separate **Production** application before using real data. |
-| Redirect URI | The exact **OAuth callback URL** QuilrAI shows. Production is normally `https://mcpgateway.quilr.ai/oauth/callback`. |
+| Redirect URI | The exact **OAuth callback URL** WhiteMatter shows. Production is normally `https://mcpgateway.quilr.ai/oauth/callback`. |
 
 ### 1. Create the Calendly OAuth application
 
 1. Open the [Calendly developer portal](https://developer.calendly.com/) and create a new OAuth application, for example `QuilrAI Calendly - Sandbox`.
 2. Select **Web** as the application kind, and **Sandbox** or **Production**.
-3. In **Redirect URI**, paste the exact callback URL from QuilrAI. Production applications require HTTPS. Do not add a trailing slash unless QuilrAI's URL has one.
+3. In **Redirect URI**, paste the exact callback URL from WhiteMatter. Production applications require HTTPS. Do not add a trailing slash unless WhiteMatter's URL has one.
 4. Select the scopes below, then create the application.
 5. Copy the **Client ID** and **Client Secret** immediately into your secret manager.
 
@@ -118,7 +118,7 @@ Confirm the returned user and organization are the ones you intended, and that n
 |------------------|--------------|-----|
 | `invalid_client` before consent | Wrong client ID or secret, or a secret from another application | Re-enter the matching credentials. If the secret was not saved when the app was created, issue replacement credentials through the Calendly developer portal. |
 | `invalid_scope` | The MCP advertises a scope not enabled on your application | Make the enabled and advertised scopes identical, then reconnect. |
-| Redirect URI error | Callback differs in environment, scheme, path or trailing slash | Paste QuilrAI's callback exactly into Calendly and reconnect. |
+| Redirect URI error | Callback differs in environment, scheme, path or trailing slash | Paste WhiteMatter's callback exactly into Calendly and reconnect. |
 | `403` or missing-scope error | The application or the user's grant lacks a scope | Add the minimum scope and reconnect. |
 | Unexpected account connected | The browser was signed in to another Calendly account | Disconnect, sign out of that account and reconnect. |
 | No tools, or **Loading tools** | Wrong upstream URL, OAuth not completed, or the client uses Calendly's official URL | Check both URLs, finish **Connect**, refresh tools and restart the client entry. |
@@ -133,13 +133,13 @@ References: [Creating an OAuth app](https://developer.calendly.com/creating-an-o
   officialTitle="Choose official for DCR clients"
   official="Use Calendly's hosted server when your MCP client supports Dynamic Client Registration and provider-managed onboarding fits your environment."
   officialPoints={['Provider-hosted remote MCP', 'Modern DCR-native onboarding']}
-  quilrTitle="Choose Quilr for owned credentials"
-  quilr="Use Quilr when the enterprise must own the OAuth application or the client depends on pre-registered credentials."
+  quilrTitle="Choose WhiteMatter for owned credentials"
+  quilr="Use WhiteMatter when the enterprise must own the OAuth application or the client depends on pre-registered credentials."
   quilrPoints={['Customer-owned OAuth app', 'Forty lifecycle tools behind gateway policy']}
   verdict="The deciding factor is credential ownership and client compatibility, not scheduling feature coverage."
 />
 
-| Capability | Calendly Official MCP | Quilr Calendly |
+| Capability | Calendly Official MCP | WhiteMatter Calendly |
 |---|:---:|:---:|
 | Hosted remote MCP | ✅ | ✅ |
 | Dynamic Client Registration | ✅ Required | - |
@@ -150,4 +150,4 @@ References: [Creating an OAuth app](https://developer.calendly.com/creating-an-o
 | Webhook and organization workflows | ✅ | ✅ |
 | Gateway guardrails and audit | Via gateway | ✅ Native deployment model |
 
-Use Calendly's official server for modern DCR-compatible clients. Use Quilr when the organization must own the OAuth application or the client requires pre-registered credentials.
+Use Calendly's official server for modern DCR-compatible clients. Use WhiteMatter when the organization must own the OAuth application or the client requires pre-registered credentials.

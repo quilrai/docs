@@ -4,6 +4,7 @@ import Link from '@docusaurus/Link';
 import Heading from '@theme/Heading';
 import {ArrowRight, ArrowUpRight, Check, CirclePlay, Code, CodeXml, History, Play, Search, Sparkles} from 'lucide-react';
 import {productById} from '@site/src/data/products';
+import {BRAND_NAME, DOCS_TITLE} from '@site/src/constants/brandConstants';
 import {updates} from '@site/src/data/updates';
 import {openSourceProjects} from '@site/src/data/openSource';
 import {videos} from '@site/src/data/videos';
@@ -98,9 +99,9 @@ function PlatformMap() {
   const agents = productById.agents;
   const integ = productById.integ;
   return (
-    <div className="qd-pmap" role="group" aria-label="QuilrAI platform map">
+    <div className="qd-pmap" role="group" aria-label={`${BRAND_NAME} platform map`}>
       <div className="qd-pmap-cap">
-        <h2>How QuilrAI fits together</h2>
+        <h2>How {BRAND_NAME} fits together</h2>
         <p>Select any part to open its docs.</p>
       </div>
       <div className="qd-cp">
@@ -199,7 +200,7 @@ function FeatureCards() {
       <div className="qd-feature-card qd-feature-card--oss">
         <div className="qd-feature-card__body">
           <span className="qd-feature-card__kicker">
-            <CodeXml size={15} aria-hidden="true" /> QuilrAI for Open Source
+            <CodeXml size={15} aria-hidden="true" /> {BRAND_NAME} for Open Source
             <span className="qd-feature-card__badge">Free</span>
           </span>
           <h2>
@@ -257,14 +258,14 @@ function FeatureCards() {
 export default function Home() {
   return (
     <Layout
-      title="QuilrAI Docs"
-      description="Documentation for the QuilrAI platform: Console, LLM Gateway, MCP Gateway, Workflow Agents, Red Teaming, Browser Extension, Endpoint Agent and Integrations."
+      title={DOCS_TITLE}
+      description={`Documentation for the ${BRAND_NAME} platform: Console, LLM Gateway, MCP Gateway, Workflow Agents, Red Teaming, Browser Extension, Endpoint Agent and Integrations.`}
       wrapperClassName="qd-home-wrap">
       <main className="qd-home">
         <div className="qd-home-hero">
           <h1>Govern every AI interaction across your enterprise</h1>
           <p>
-            QuilrAI sits wherever your people and agents use AI: in the browser, on the device, and in front of the
+            {BRAND_NAME} sits wherever your people and agents use AI: in the browser, on the device, and in front of the
             models and tools your teams build with. The Console is where you see it all and set the rules.
           </p>
           <div className="qd-ask">
@@ -315,7 +316,7 @@ export default function Home() {
         <section className="qd-home-sec">
           <div className="qd-sec-h">
             <Heading as="h2" id="open-source">
-              QuilrAI for Open Source
+              {BRAND_NAME} for Open Source
             </Heading>
             <p>Free tools we build in the open.</p>
           </div>

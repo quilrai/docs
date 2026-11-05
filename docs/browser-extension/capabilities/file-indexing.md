@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # File indexing
 
-File indexing keeps a local index of files on the endpoint so the DLP engine can quickly resolve the real file behind an upload or download and scan it. The QuilrAI agent builds the index from paths you configure, keeps it current with OS file events, and re-scans on a schedule.
+File indexing keeps a local index of files on the endpoint so the DLP engine can quickly resolve the real file behind an upload or download and scan it. The WhiteMatter agent builds the index from paths you configure, keeps it current with OS file events, and re-scans on a schedule.
 
 <StepFlow steps={[
   { label: "Configure", items: ["Root paths", "Ignore patterns", "Scan interval"] },
@@ -18,7 +18,7 @@ File indexing keeps a local index of files on the endpoint so the DLP engine can
 
 ## Settings
 
-File indexing settings are managed with your QuilrAI representative and pushed to the agent. Each update triggers an immediate re-scan.
+File indexing settings are managed with your WhiteMatter representative and pushed to the agent. Each update triggers an immediate re-scan.
 
 | Setting | Description |
 | --- | --- |
@@ -51,7 +51,7 @@ Scans run at reduced OS priority (background priority on macOS, below-normal thr
 
 ## Monitor index health
 
-Index state is reported back to QuilrAI and includes:
+Index state is reported back to WhiteMatter and includes:
 
 - **Scan status**: Idle, Running, or Failed, with the last run time and duration.
 - **File count**: total indexed files and any paths pruned by safety limits.

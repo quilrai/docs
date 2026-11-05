@@ -14,7 +14,7 @@ Roll the Endpoint Agent out to your fleet, then use the console to track coverag
 
 ## What you receive
 
-Your QuilrAI representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates) with your tenant ID. For a step-by-step walk-through, from prerequisites to troubleshooting, follow the [installation SOP](./installation-sop). This page is the reference for silent installs.
+Your WhiteMatter representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates) with your tenant ID. For a step-by-step walk-through, from prerequisites to troubleshooting, follow the [installation SOP](./installation-sop). This page is the reference for silent installs.
 
 | Platform | Package |
 | --- | --- |
@@ -42,7 +42,7 @@ The installer needs your tenant ID. It uses it to look up your tenant's backend 
    msiexec /i quilrai-endpoint-agent.msi /qn /l*v C:\Windows\Temp\quilrai-install.log TENANTID=<your-tenant-id>
    ```
 
-2. The install fails with exit code `1603` if the tenant's backend cannot be resolved, for example because the tenant ID is wrong or the QuilrAI discovery host is blocked (see [Requirements](../get-started/requirements)). Details are in the log file.
+2. The install fails with exit code `1603` if the tenant's backend cannot be resolved, for example because the tenant ID is wrong or the WhiteMatter discovery host is blocked (see [Requirements](../get-started/requirements)). Details are in the log file.
 3. **Detection rule:** the file `%ProgramFiles%\QuilrAI\quilrai.exe` exists, or the MSI product code.
 4. **Uninstall:** `msiexec /x <ProductCode> /qn`, or assign the app for uninstall in your management tool.
 
@@ -69,11 +69,11 @@ Deploy to a small group first, confirm the checks in [Confirm a healthy rollout]
 
 ## Watch coverage
 
-<ConsolePath console="QuilrAI console" path={['Users', 'Endpoint deployment']} />
+<ConsolePath console="WhiteMatter console" path={['Users', 'Endpoint deployment']} />
 
 | KPI | Meaning |
 | --- | --- |
-| **Workstations** | Workstations where the agent has checked in with QuilrAI. |
+| **Workstations** | Workstations where the agent has checked in with WhiteMatter. |
 | **Enabled** | Workstations where the agent is enabled. |
 | **Disabled** | Workstations where the agent is disabled. |
 | **Without persona** | Workstations where no persona links activity to a person. Check the persona options in [Agent settings](../configure/agent-settings). |
@@ -96,7 +96,7 @@ The **Workstations** count shows devices whose agent has checked in, not devices
 | Listed, **Last registered** old and MDM check-in also old | The device is offline. | No action until it comes back online. |
 | Listed, not in the MDM group | Installed outside your assignment. | Decide whether to keep it, and add it to the group or uninstall. |
 
-A running agent checks in with QuilrAI about every 2 minutes.
+A running agent checks in with WhiteMatter about every 2 minutes.
 
 ## Enable or disable workstations
 

@@ -1,20 +1,20 @@
 ---
 sidebar_position: 4
 sidebar_label: "Microsoft Sentinel"
-description: "Send Quilr activity and findings to a Microsoft Sentinel workspace: what it sends, setup fields and how to check events arrive."
+description: "Send WhiteMatter activity and findings to a Microsoft Sentinel workspace: what it sends, setup fields and how to check events arrive."
 sidebar_custom_props:
   icon: ShieldCheck
 ---
 
 # Microsoft Sentinel
 
-The Microsoft Sentinel integration sends Quilr activity and findings into a Sentinel security workspace, so your SOC can investigate AI risk alongside other security events.
+The Microsoft Sentinel integration sends WhiteMatter activity and findings into a Sentinel security workspace, so your SOC can investigate AI risk alongside other security events.
 
 - **Capabilities:** Send logs, Alerts & notifications
-- **Direction:** From Quilr
+- **Direction:** From WhiteMatter
 - **Category:** Observability
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'Microsoft Sentinel']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Integrations', 'Library', 'Microsoft Sentinel']} />
 
 ## Set it up
 
@@ -44,7 +44,7 @@ Check the settings and save. The configuration is encrypted and stored for your 
 ## Check that it works
 
 - The card shows **INSTALLED** on the **Installed** tab. An error badge means it needs attention; open it to see the error.
-- Confirm that Quilr activity and findings arrive in the Sentinel workspace you named.
+- Confirm that WhiteMatter activity and findings arrive in the Sentinel workspace you named.
 - To change the settings later, click **Configure** on the installed card. **Uninstall** removes it.
 
 ## Related

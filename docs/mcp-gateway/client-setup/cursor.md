@@ -4,12 +4,12 @@ sidebar_label: "Cursor"
 sidebar_position: 6
 sidebar_custom_props:
   icon: PenTool
-description: "Configure Cursor with Quilr OneMCP, distribute the endpoint, apply enterprise controls, and verify user authentication."
+description: "Configure Cursor with WhiteMatter OneMCP, distribute the endpoint, apply enterprise controls, and verify user authentication."
 ---
 
 # Cursor
 
-Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your WhiteMatter dashboard; the placeholder includes `https://`.
 
 Use `<YOUR_MCP_BASE_URL>/quilrone/mcp` for OneMCP. Confirm the [administrator checklist](./overview) before rollout.
 
@@ -29,21 +29,21 @@ Cursor supports remote Streamable HTTP and OAuth. Use `.cursor/mcp.json` for a p
 }
 ```
 
-Use `/quilrone/mcp` on your assigned gateway hostname. Quilr resolves the organization from the signed-in account. For one server use its direct gateway URL. Keep the endpoint and OAuth issuer from the same deployment.
+Use `/quilrone/mcp` on your assigned gateway hostname. WhiteMatter resolves the organization from the signed-in account. For one server use its direct gateway URL. Keep the endpoint and OAuth issuer from the same deployment.
 
 Open **Customize**, enable the server, and complete the offered OAuth sign-in. Review the available tools and approvals before using them. [Cursor server management](https://cursor.com/docs/mcp).
 
-For Quilr OneMCP, begin with the URL-only configuration so the client discovers registration. Do not add an `auth.CLIENT_SECRET` or copy an upstream provider's credentials into this file. Gateway DCR returns a public client without a secret. See [authentication](./authentication) for current protocol and token-lifecycle limitations.
+For WhiteMatter OneMCP, begin with the URL-only configuration so the client discovers registration. Do not add an `auth.CLIENT_SECRET` or copy an upstream provider's credentials into this file. Gateway DCR returns a public client without a secret. See [authentication](./authentication) for current protocol and token-lifecycle limitations.
 
 ## Administrator distribution and restrictions
 
 Cursor distinguishes distribution from policy. Team servers are managed in **Dashboard > Plugins & MCPs**; existing team servers can be linked to a team marketplace. Enterprise MCP allowlists are configured in **Team Settings > MCP Configuration**. URL entries approve remote endpoints; allowing one does not install it. [Cursor enterprise controls](https://cursor.com/docs/mcp#enterprise-admin-controls).
 
-For a Quilr rollout:
+For a WhiteMatter rollout:
 
 1. Distribute the exact approved URL, never an administrator's token or personal connection.
 2. Set the enterprise URL rule to match that endpoint. Match `/quilrone/mcp` for OneMCP or the exact backend path for a direct server.
-3. Allow the actual Cursor runtime under Quilr Allowed Agents and configure the permitted user groups and tools.
+3. Allow the actual Cursor runtime under WhiteMatter Allowed Agents and configure the permitted user groups and tools.
 4. Have users authenticate with their own company accounts and connect required upstream services.
 5. Validate IDE, CLI, and cloud runtimes separately if the organization enables them. Endpoint distribution alone does not establish credentials or network reachability in each runtime.
 

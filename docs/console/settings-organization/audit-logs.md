@@ -12,7 +12,7 @@ aliases: [audit logs, audit trail, change history, who changed what, activity lo
 
 The audit log records who did what in the console, and when: sign-ins, changes to settings and access, and sensitive actions such as revealing masked data or exporting reports. Use it to review changes, investigate incidents and collect compliance evidence.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'Audit Logs']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Organization', 'Audit Logs']} />
 
 ## Before you start
 

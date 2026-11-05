@@ -20,7 +20,7 @@ There is no quota setting in a server's **Configure** sections. Quotas and concu
 ## Where to set it
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Govern', 'Policy Engine', 'MCP Gateway']}
   action="Usage Quotas & Concurrency"
 />

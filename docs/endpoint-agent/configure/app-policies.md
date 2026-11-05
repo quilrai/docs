@@ -12,7 +12,7 @@ aliases: [endpoint agent policies, detection configurations, application configu
 
 App policies decide how the Endpoint Agent detects and acts on sensitive data in each AI application. They live on the **Endpoint Agent** tab of the Policy Engine. For how the Policy Engine works across surfaces, see [Policy Engine](../../console/govern/policy-engine).
 
-<ConsolePath console="QuilrAI console" path={['Policy Engine', 'Endpoint Agent']} />
+<ConsolePath console="WhiteMatter console" path={['Policy Engine', 'Endpoint Agent']} />
 
 The Endpoint Agent tab runs in **Basic policies** mode: you configure each application on its own card. The tab has two sub-tabs, **Detection configurations** and **Application configuration**.
 
@@ -47,4 +47,4 @@ Policy changes reach agents without a restart. See [Backend connectivity](../how
 
 ## Convert to Policy Engine
 
-The **Convert to Policy Engine** button moves the Endpoint Agent from Basic policies to the Policy Engine model used by the gateways. Your QuilrAI representative can help you plan the conversion.
+The **Convert to Policy Engine** button moves the Endpoint Agent from Basic policies to the Policy Engine model used by the gateways. Your WhiteMatter representative can help you plan the conversion.

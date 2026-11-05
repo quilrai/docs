@@ -24,12 +24,12 @@ description: "Flagship unified Microsoft 365 MCP for Outlook mail and calendar, 
   official="Use first-party Microsoft APIs or approved product connectors when the job is primarily searching and reading one workload inside a supported client."
   officialPoints={['Focused retrieval context', 'Provider-native authorization model']}
   quilrTitle="Choose one operational Microsoft surface"
-  quilr="Use Quilr when an agent must safely move from search to action across mail, calendars, files, SharePoint, Teams, people, OneNote, and sync."
+  quilr="Use WhiteMatter when an agent must safely move from search to action across mail, calendars, files, SharePoint, Teams, people, OneNote, and sync."
   quilrPoints={['Nine workloads through one connection', 'Writes, batch, sync, and destructive controls']}
-  verdict="Retrieval-only use cases can stay native. Cross-workload operational agents benefit from the unified Quilr surface."
+  verdict="Retrieval-only use cases can stay native. Cross-workload operational agents benefit from the unified WhiteMatter surface."
 />
 
-## Quilr vs ChatGPT Microsoft Connectors
+## WhiteMatter vs ChatGPT Microsoft Connectors {#quilr-vs-chatgpt-microsoft-connectors}
 
 | Capability | **Quilr Microsoft 365 v3** | **ChatGPT Outlook** | **ChatGPT SharePoint** |
 |---|:---:|:---:|:---:|
@@ -54,7 +54,7 @@ description: "Flagship unified Microsoft 365 MCP for Outlook mail and calendar, 
 | Gateway guardrails and destructive-tool controls | ✅ | - | - |
 
 <div className="mcp-verdict">
-  <strong>The difference:</strong> ChatGPT's documented Outlook and SharePoint connector tools are excellent for retrieval. Quilr Microsoft 365 v3 is an operational MCP for end-to-end work across Microsoft 365.
+  <strong>The difference:</strong> ChatGPT's documented Outlook and SharePoint connector tools are excellent for retrieval. WhiteMatter Microsoft 365 v3 is an operational MCP for end-to-end work across Microsoft 365.
 </div>
 
 :::note Comparison scope
@@ -93,4 +93,4 @@ The ChatGPT columns reflect the Outlook Email, Outlook Calendar, and SharePoint 
 | Workbook calculations and formatting only | [Excel](./excel) |
 | Personal and team task management only | [Microsoft Tasks & Planner](./microsoft-tasks-planner) |
 
-The production endpoint and OAuth callback are provided by the Quilr MCP Library for your environment.
+The production endpoint and OAuth callback are provided by the WhiteMatter MCP Library for your environment.

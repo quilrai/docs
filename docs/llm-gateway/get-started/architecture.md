@@ -8,7 +8,7 @@ description: "Request processing pipeline - Validate, Scan, Transform, Route - w
 
 # Architecture
 
-How the QuilrAI LLM Gateway processes every request - from your application to the LLM provider and back.
+How the WhiteMatter LLM Gateway processes every request - from your application to the LLM provider and back.
 
 <ArchitectureDiagram
   source={{
@@ -23,7 +23,7 @@ client.chat.completions.create(
 )`,
   }}
   gateway={{
-    label: "QuilrAI LLM Gateway",
+    label: "WhiteMatter LLM Gateway",
     phases: [
       {
         label: "Validate",
@@ -84,7 +84,7 @@ Responses from the LLM provider pass back through the **security guardrails** fo
 
 Non-streaming chat completions, including provider-native models reached through OpenAI-compatible translations such as Bedrock `Converse`, Vertex AI Gemini `generateContent`, and Anthropic Messages, native Anthropic Messages, AWS Bedrock Runtime boto3 `converse` / supported `invoke_model`, native Vertex/Gemini `generateContent`, the OpenAI Responses API, and the Sarvam translation, transliteration, and language detection APIs all follow the full request -> scan -> forward -> scan -> return pipeline. Requests converted between formats by [any-to-any formats](../api-reference/any-to-any-formats) follow it too: request-side scanning runs on the client's format before conversion, and response-side scanning on the converted-back response. Sarvam speech is scanned on the side that carries text: synthesis on the request, transcription on the response. For **streaming** responses (SSE), request-side scanning runs as usual but response-side scanning is skipped so chunks pass through unchanged; request-side prediction results are still logged. AWS Bedrock Runtime `converse_stream` follows the same request-scan / response-passthrough pattern for AWS EventStream responses. **Realtime** websocket sessions pass through unchanged - neither request-side nor response-side DLP runs on live Realtime events, though session-level logs are still recorded.
 
-Copilot Studio is different from LLM proxy routes: Copilot calls QuilrAI before tool execution, QuilrAI scans the user context and proposed tool input values, and the response is only an allow/block decision.
+Copilot Studio is different from LLM proxy routes: Copilot calls WhiteMatter before tool execution, WhiteMatter scans the user context and proposed tool input values, and the response is only an allow/block decision.
 
 ## Observability
 

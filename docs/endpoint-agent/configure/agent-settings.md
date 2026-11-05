@@ -11,10 +11,10 @@ aliases: [endpoint agent, desktop agent, endpoint sensor, fleet, device agent, r
 
 Tenant-wide Endpoint Agent behavior is set on one page in the console. These settings apply to every enrolled workstation. Per-app detection and enforcement rules are set separately in [App policies](./app-policies).
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Endpoint Agent']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Endpoint Agent']} />
 
 :::note Installers
-Your QuilrAI representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates). Follow the [installation SOP](../deploy-and-operate/installation-sop) to install them, and see [Deployment and status](../deploy-and-operate/deployment-and-status) to track coverage.
+Your WhiteMatter representative supplies the agent packages (MSI, PKG, macOS configuration profiles and certificates). Follow the [installation SOP](../deploy-and-operate/installation-sop) to install them, and see [Deployment and status](../deploy-and-operate/deployment-and-status) to track coverage.
 :::
 
 ## Deployment

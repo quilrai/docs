@@ -17,7 +17,7 @@ A shared provider is a reusable tenant-owned connection. Apps hold references to
 
 ### Provider inputs
 
-Creation requires `label`, `provider_name` and credentials for the selected provider type in `provider_settings`. Optional `selected_models`, `model_costs` and `enabled` configure availability. Optional `tags`, `upstream_limits` and per-model `model_metadata` describe the provider (region, service tier, context window, capabilities, known upstream limits and shared [quota pools](#quota-pools)); they are descriptive and do not change routing or limit enforcement. Use the provider-settings field reference below and the credential requirements for your provider family. Managed QuilrAI providers do not require customer credentials.
+Creation requires `label`, `provider_name` and credentials for the selected provider type in `provider_settings`. Optional `selected_models`, `model_costs` and `enabled` configure availability. Optional `tags`, `upstream_limits` and per-model `model_metadata` describe the provider (region, service tier, context window, capabilities, known upstream limits and shared [quota pools](#quota-pools)); they are descriptive and do not change routing or limit enforcement. Use the provider-settings field reference below and the credential requirements for your provider family. Managed WhiteMatter providers do not require customer credentials.
 
 | Family | Provider types | Credential choices |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ Creation requires `label`, `provider_name` and credentials for the selected prov
 | AWS | `bedrock`, `anthropic_messages_bedrock`, `bedrock_embeddings`, `bedrock_rerank`. | Static keys or assume-role; fields from different modes cannot be mixed. |
 | Vertex AI | `vertex_ai`. | API key, express, service-account JSON or ADC. |
 | Oracle OCI | `oracle`, `oracle_responses`. | API key, gateway user principal, user/session principal, instance/resource principal. |
-| QuilrAI managed | `quilr_ai`. | Deployment-owned identity; no customer secret or endpoint. |
+| WhiteMatter managed | `quilr_ai`. | Deployment-owned identity; no customer secret or endpoint. |
 
 SDK and Copilot Studio are app modes, not shared-provider types. Provider/protocol support remains deployment-dependent. See [provider support](../apps-and-providers/provider-support).
 

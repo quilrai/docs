@@ -10,7 +10,7 @@ description: "Verify management assignment, browser policy, native processes, co
 
 Prove the extension, native agent, browser policy, network path, console registration, and detections as separate layers.
 
-**Navigation:** Use the GPO or MDM status, `chrome://policy` or `edge://policy`, the browser extensions page, Task Manager or Activity Monitor, **Users › Browser deployment**, **Findings**, and **Audit Logs** in the QuilrAI console.
+**Navigation:** Use the GPO or MDM status, `chrome://policy` or `edge://policy`, the browser extensions page, Task Manager or Activity Monitor, **Users › Browser deployment**, **Findings**, and **Audit Logs** in the WhiteMatter console.
 
 **Configuration and options:** Validate with the same assignment scope and time window used for deployment. Use approved synthetic data only; record versions, timestamps, device, user, policy, control, and finding ID.
 
@@ -33,7 +33,7 @@ Prove the extension, native agent, browser policy, network path, console registr
 
 1. Force the applicable GPO or MDM synchronization and confirm a successful task, app, or profile result for one targeted device.
 
-2. Open `chrome://policy` or `edge://policy`, reload policies, and verify the QuilrAI extension ID and update URL are present without conflict.
+2. Open `chrome://policy` or `edge://policy`, reload policies, and verify the WhiteMatter extension ID and update URL are present without conflict.
 
 3. Open the browser extensions page and confirm the extension is enabled and enterprise managed.
 
@@ -47,7 +47,7 @@ Prove the extension, native agent, browser policy, network path, console registr
 
 7. For Endpoint Agent coverage, repeat the console health and telemetry checks in **Users › Endpoint deployment**. See [Endpoint Agent deployment and status](../../endpoint-agent/deploy-and-operate/deployment-and-status).
 
-**Expected result:** Installation, connectivity, and expected operation are supported by evidence from the management plane, endpoint, and QuilrAI console.
+**Expected result:** Installation, connectivity, and expected operation are supported by evidence from the management plane, endpoint, and WhiteMatter console.
 
 **Verification:** Store the management result, policy output, version/process evidence, Browser deployment status, finding ID, test time, and reviewer. Do not expand scope when any layer remains contradictory or stale.
 

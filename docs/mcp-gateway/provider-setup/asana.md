@@ -2,7 +2,7 @@
 sidebar_position: 14
 sidebar_custom_props:
   icon: ListChecks
-description: "Connect the Asana V2 MCP server (https://mcp.asana.com/v2/mcp) - create an Asana MCP app in the developer console, add the QuilrAI redirect URL, configure workspace distribution, and paste the Client ID and Client Secret into QuilrAI with Auto-detect auth mode. Covers the retired V1 /sse endpoint and workspace-distribution errors."
+description: "Connect the Asana V2 MCP server (https://mcp.asana.com/v2/mcp) - create an Asana MCP app in the developer console, add the WhiteMatter redirect URL, configure workspace distribution, and paste the Client ID and Client Secret into WhiteMatter with Auto-detect auth mode. Covers the retired V1 /sse endpoint and workspace-distribution errors."
 ---
 
 # Asana
@@ -30,7 +30,7 @@ The V1 beta server (`https://mcp.asana.com/sse`) was deprecated and scheduled to
 
 - An Asana account with access to the workspace you want to connect.
 - Permission to create an app in the Asana developer console for that account.
-- The QuilrAI callback URL. Copy it from the MCP setup screen when you click **Add MCP server**; production is normally `https://mcpgateway.quilrai.com/oauth/callback`.
+- The WhiteMatter callback URL. Copy it from the MCP setup screen when you click **Add MCP server**; production is normally `https://mcpgateway.quilrai.com/oauth/callback`.
 
 ## Create The Asana MCP App
 
@@ -48,11 +48,11 @@ The Client Secret is a credential. Never commit it to version control or paste i
 
 ### Set The OAuth Redirect URL
 
-In the app's left sidebar, click **OAuth** and add the QuilrAI callback URL exactly as QuilrAI displays it. A mismatch here is the most common cause of a failed authorization.
+In the app's left sidebar, click **OAuth** and add the WhiteMatter callback URL exactly as WhiteMatter displays it. A mismatch here is the most common cause of a failed authorization.
 
 | Environment | Redirect URL |
 |-------------|--------------|
-| QuilrAI production gateway | `https://mcpgateway.quilrai.com/oauth/callback` |
+| WhiteMatter production gateway | `https://mcpgateway.quilrai.com/oauth/callback` |
 
 ### Configure Workspace Distribution
 
@@ -61,24 +61,24 @@ In the app's left sidebar, click **OAuth** and add the QuilrAI callback URL exac
 3. If you chose **Specific workspaces**, add at least one workspace. Leaving it empty causes a "This app is not available to your Asana workspace" error.
 4. Click **Save changes**.
 
-## Add Asana MCP To QuilrAI
+## Add Asana MCP To WhiteMatter {#add-asana-mcp-to-quilrai}
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
+1. In WhiteMatter, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the Asana MCP endpoint URL: `https://mcp.asana.com/v2/mcp`
 3. Set **Auth Mode** to **Auto-detect**.
 4. Paste the **Client ID** and **Client Secret** from the Asana app.
 5. Click **Create** to start Asana's OAuth flow. A new screen opens and asks you to approve access.
-6. After authorization, QuilrAI connects and fetches the available tools.
+6. After authorization, WhiteMatter connects and fetches the available tools.
 
-![QuilrAI MCP Gateway showing the connected Asana MCP with its gateway URL, OAuth auth mode, and fetched tool count](/img/asana-mcp-connected.png)
+![WhiteMatter MCP Gateway showing the connected Asana MCP with its gateway URL, OAuth auth mode, and fetched tool count](/img/asana-mcp-connected.png)
 
-The installed MCP card shows the QuilrAI gateway URL your agents point at, the original Asana MCP URL behind it, and the tool count fetched from Asana. Give this gateway URL - not `https://mcp.asana.com/v2/mcp` - to your MCP clients so traffic passes through the gateway's controls.
+The installed MCP card shows the WhiteMatter gateway URL your agents point at, the original Asana MCP URL behind it, and the tool count fetched from Asana. Give this gateway URL - not `https://mcp.asana.com/v2/mcp` - to your MCP clients so traffic passes through the gateway's controls.
 
 ## Keep In Mind
 
 - **No Dynamic Client Registration.** Asana V2 always needs a provider-owned app with a manually entered Client ID and Client Secret.
 - **Use the MCP app type.** Tokens from a standard Asana OAuth app do not work against the MCP server.
-- **One app per environment.** Create a separate Asana app for each QuilrAI tenant or environment whose callback URL differs, so rotation and testing stay isolated.
+- **One app per environment.** Create a separate Asana app for each WhiteMatter tenant or environment whose callback URL differs, so rotation and testing stay isolated.
 - **Access follows the authorizing user.** Each user authorizes individually, and tools operate with that user's own Asana permissions.
 - **Restrict write tools before rollout.** The MCP can create and update tasks and projects. Use [Tool visibility](../protect/tool-visibility), [Access Control](../protect/server-access), and [Security Guardrails](../protect/security-guardrails) to limit which operations agents can reach.
 
@@ -86,12 +86,12 @@ The installed MCP card shows the QuilrAI gateway URL your agents point at, the o
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| `redirect_uri_mismatch` or failed callback | The redirect URL on the Asana app's **OAuth** tab does not match the QuilrAI callback URL exactly. | Copy the callback URL from QuilrAI again, update the Asana app, save, and retry. |
+| `redirect_uri_mismatch` or failed callback | The redirect URL on the Asana app's **OAuth** tab does not match the WhiteMatter callback URL exactly. | Copy the callback URL from WhiteMatter again, update the Asana app, save, and retry. |
 | "This app is not available to your Asana workspace" | **Manage distribution** is set to **Specific workspaces** with no workspace added, or without the workspace you are authorizing from. | Add the workspace (or switch to **Any workspace**), click **Save changes**, and retry. |
-| `invalid_client` or `bad_client_secret` | Wrong Client ID, wrong secret, or a rotated secret that QuilrAI does not have. | Copy the Client ID and Client Secret again from the developer console, update QuilrAI, and retry. |
+| `invalid_client` or `bad_client_secret` | Wrong Client ID, wrong secret, or a rotated secret that WhiteMatter does not have. | Copy the Client ID and Client Secret again from the developer console, update WhiteMatter, and retry. |
 | Connection fails against `https://mcp.asana.com/sse` | The V1 beta endpoint is retired. | Use `https://mcp.asana.com/v2/mcp`. |
 | Wrong app type was selected | Tokens issued to a non-MCP Asana app are rejected by the MCP server. | Create a new app with **MCP app** as the type and reconnect with its credentials. |
-| `invalid_grant` when refreshing | The user revoked authorization, or the Client Secret was rotated. | Reconnect to re-authorize. After rotating the secret, update the manual OAuth credentials in QuilrAI. |
+| `invalid_grant` when refreshing | The user revoked authorization, or the Client Secret was rotated. | Reconnect to re-authorize. After rotating the secret, update the manual OAuth credentials in WhiteMatter. |
 
 ## References
 

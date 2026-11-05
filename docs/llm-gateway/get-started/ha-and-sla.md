@@ -153,7 +153,7 @@ Your upstream provider deployment is a separate routing choice. Select provider 
 
 ### Uptime
 
-QuilrAI provides a contractual **99.6% uptime SLA** for the gateway. Your agreement defines the covered endpoints, measurement period, exclusions and applicable remedies.
+WhiteMatter provides a contractual **99.6% uptime SLA** for the gateway. Your agreement defines the covered endpoints, measurement period, exclusions and applicable remedies.
 
 Same-region endpoint failover improves resilience to an individual entry point failing. It does not change the contractual SLA or guarantee availability when shared regional dependencies or the upstream provider are unavailable.
 

@@ -7,13 +7,13 @@ description: "Connect the dbt platform remote MCP server - no OAuth app or Clien
 
 # dbt Labs
 
-dbt Labs operates its own remote MCP server as part of the dbt platform. Like Datadog and Zoho, you do **not** create an OAuth app or supply a Client ID and Client Secret. The dbt platform displays a ready-made **MCP Endpoint URL** in your account settings, and you add that URL to QuilrAI manually through **Add MCP server**.
+dbt Labs operates its own remote MCP server as part of the dbt platform. Like Datadog and Zoho, you do **not** create an OAuth app or supply a Client ID and Client Secret. The dbt platform displays a ready-made **MCP Endpoint URL** in your account settings, and you add that URL to WhiteMatter manually through **Add MCP server**.
 
 ## How dbt Labs Differs
 
 - **No custom OAuth credentials.** dbt handles authorization with your existing dbt platform login, so there is nothing to register in a dbt "app" console.
 - **The URL is per-account, and dbt generates it for you.** Unlike Zoho, you do not configure a server to produce a URL. Unlike Datadog, it is not one shared site-wide endpoint. dbt shows one account-specific URL that already contains your account prefix and region.
-- **Browser sign-in with MFA.** Authorization happens through the dbt sign-in page, and dbt enforces multi-factor authentication on the account. If the authorizing user has not enrolled a second factor yet, dbt interrupts the flow to enroll one before it will return to QuilrAI. See [Expect An MFA Prompt](#4-expect-an-mfa-prompt).
+- **Browser sign-in with MFA.** Authorization happens through the dbt sign-in page, and dbt enforces multi-factor authentication on the account. If the authorizing user has not enrolled a second factor yet, dbt interrupts the flow to enroll one before it will return to WhiteMatter. See [Expect An MFA Prompt](#4-expect-an-mfa-prompt).
 - **Remote is read-focused, not a dbt CLI.** The remote server covers Semantic Layer, Discovery, Administrative API, SQL, Fusion, and product-docs tools. It cannot run `dbt run`, `dbt build`, or `dbt test` - those are self-hosted-only toolsets. See [Available Tools](#available-tools).
 - **An account admin has to enable AI features first.** Without that, the endpoint exists but will not authorize.
 
@@ -61,20 +61,20 @@ Copy the value from **Access URLs** rather than hand-constructing it. The accoun
 dbt's documentation specifies the endpoint with a trailing slash (`/api/ai/v1/mcp/`), while the value shown in the settings UI may omit it. If the connection fails to initialize, add the trailing slash and retry.
 :::
 
-### 3. Add dbt MCP to QuilrAI
+### 3. Add dbt MCP to WhiteMatter {#3-add-dbt-mcp-to-quilrai}
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
+1. In WhiteMatter, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the MCP Endpoint URL you copied above.
-3. Leave auth mode on auto-detect. dbt's remote server advertises OAuth, so QuilrAI does not need a Client ID or Client Secret.
+3. Leave auth mode on auto-detect. dbt's remote server advertises OAuth, so WhiteMatter does not need a Client ID or Client Secret.
 4. Authorize when prompted. The dbt sign-in page opens in the browser.
 5. Sign in as the dbt user whose permissions the tools should run with, complete MFA, and approve the requested scopes.
-6. After authorization, QuilrAI connects and fetches the available tools.
+6. After authorization, WhiteMatter connects and fetches the available tools.
 
 The session persists after the first authorization, so later connections do not re-prompt until the session expires or is revoked.
 
 ### 4. Expect An MFA Prompt
 
-dbt enforces multi-factor authentication on the account, so the browser sign-in can divert to a **Keep Your Account Safe** screen asking you to add another authentication method before it returns to QuilrAI. dbt offers three options:
+dbt enforces multi-factor authentication on the account, so the browser sign-in can divert to a **Keep Your Account Safe** screen asking you to add another authentication method before it returns to WhiteMatter. dbt offers three options:
 
 | Method | Notes |
 |--------|-------|
@@ -82,7 +82,7 @@ dbt enforces multi-factor authentication on the account, so the browser sign-in 
 | SMS | **US phone numbers only.** Not usable for most non-US teams. |
 | Security key | Hardware key or platform passkey. |
 
-Enroll the factor, finish the sign-in, and the flow returns to QuilrAI and completes. The authorization does not fail here, it just pauses until enrollment is done.
+Enroll the factor, finish the sign-in, and the flow returns to WhiteMatter and completes. The authorization does not fail here, it just pauses until enrollment is done.
 
 :::tip
 Enroll MFA on the authorizing dbt user **before** starting **Add MCP server**. Hitting enrollment mid-flow is the most common reason this setup looks stuck.

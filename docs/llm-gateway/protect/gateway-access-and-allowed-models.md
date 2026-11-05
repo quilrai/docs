@@ -29,7 +29,7 @@ Linked providers and enabled models define an app's model catalog in both modes.
 In app settings, an app's usable models are the models of the providers linked to it. To limit an app to certain models, link only the providers (and enable only the models) it should use:
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Providers"
 />

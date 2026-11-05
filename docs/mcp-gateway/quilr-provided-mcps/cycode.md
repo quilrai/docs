@@ -14,7 +14,7 @@ description: "Remotely operated Cycode CLI MCP wrapper for service status and se
   official="Use Cycode's packaged CLI capability when local execution is desired and the client environment can safely operate the provider tooling."
   officialPoints={['Provider-packaged capability', 'Local execution model']}
   quilrTitle="Choose a remote governed wrapper"
-  quilr="Use Quilr when teams need the same focused scan capability through HTTPS with health monitoring, gateway policy, and no general-purpose shell."
+  quilr="Use WhiteMatter when teams need the same focused scan capability through HTTPS with health monitoring, gateway policy, and no general-purpose shell."
   quilrPoints={['Remote production operation', 'Only status and secret-scan tools']}
   verdict="The security result is similar; the meaningful choice is local CLI control versus a centrally operated, tightly bounded service."
 />

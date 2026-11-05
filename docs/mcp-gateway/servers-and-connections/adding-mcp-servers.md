@@ -14,7 +14,7 @@ Register a remote MCP server by its URL, install one from the MCP Library, or ad
 
 Go to **Settings > AI Gateway > MCP Gateway** and click **Add MCP server**. The drawer asks **Where does this MCP run?**
 
-![Add MCP drawer with Remote server selected, the Name, Slug and Transport URL fields, the Quilr gateway endpoint preview and the How the gateway signs in choices](/img/mcp-gateway/ui/add-mcp-remote.png)
+![Add MCP drawer with Remote server selected, the Name, Slug and Transport URL fields, the WhiteMatter gateway endpoint preview and the How the gateway signs in choices](/img/mcp-gateway/ui/add-mcp-remote.png)
 
 | Choice | Use it for | Next |
 |--------|------------|------|

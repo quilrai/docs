@@ -1,22 +1,22 @@
 ---
 sidebar_position: 1
 sidebar_label: "Claude Compliance API"
-description: "Bring Claude.ai activity, chats, files and projects into QuilrAI with an Anthropic Compliance Access Key: prerequisites, key registration, sync and verification."
+description: "Bring Claude.ai activity, chats, files and projects into WhiteMatter with an Anthropic Compliance Access Key: prerequisites, key registration, sync and verification."
 sidebar_custom_props:
   icon: Layers
 ---
 
 # Claude Compliance API
 
-The Claude Compliance integration gives your organization visibility into Claude.ai usage through Anthropic's Compliance API. After you register a Compliance API key, Quilr continuously fetches your organization's activity and runs DLP scanning on user inputs, surfacing findings in the console.
+The Claude Compliance integration gives your organization visibility into Claude.ai usage through Anthropic's Compliance API. After you register a Compliance API key, WhiteMatter continuously fetches your organization's activity and runs DLP scanning on user inputs, surfacing findings in the console.
 
 | | |
 |---|---|
 | **Capabilities** | Pull compliance data, Pull inventory |
-| **Direction** | Into Quilr |
+| **Direction** | Into WhiteMatter |
 | **Category** | Compliance provider |
 
-<ConsolePath console="QuilrAI console V1" path={['Settings', 'Compliance', 'Claude']} />
+<ConsolePath console="WhiteMatter console V1" path={['Settings', 'Compliance', 'Claude']} />
 
 :::note Where to set it up
 Install the **Claude Compliance** card from **Settings › Integrations › Library**, and register the Compliance Access Key under **Settings › Compliance › Claude** in [Console V1](../../console/legacy-v1/overview).
@@ -28,7 +28,7 @@ You need a Claude Enterprise organization with the Compliance API turned on, and
 
 1. The primary owner turns on the Compliance API in claude.ai under **Organization settings › API**.
 2. In the **Keys** section of the same page, the primary owner (or an organization owner, for that organization only) clicks **Create key**.
-3. Select the read scopes QuilrAI uses: `read:compliance_activities`, `read:compliance_user_data` and `read:compliance_org_data`. QuilrAI does not need `delete:compliance_user_data`.
+3. Select the read scopes WhiteMatter uses: `read:compliance_activities`, `read:compliance_user_data` and `read:compliance_org_data`. WhiteMatter does not need `delete:compliance_user_data`.
 4. Copy the key (it starts with `sk-ant-api01-`). Anthropic shows it only once.
 
 A key created for the parent organization covers every linked organization. Admin API keys (`sk-ant-admin01-`) and Claude API keys (`sk-ant-api03-`) do not work. See Anthropic's [Set up the Compliance API](https://platform.claude.com/docs/en/manage-claude/compliance-api-access).
@@ -67,7 +67,7 @@ The key is validated immediately with a live call to the Compliance API. If it c
 
 ## Sync and verification
 
-After registration, Quilr automatically:
+After registration, WhiteMatter automatically:
 
 - **Syncs data** about every 5 minutes: the latest organizations, users, chats, projects, and activity events. Organizations covered by the key are discovered automatically.
 - **Runs DLP scans** on all new user inputs since the last pass.
@@ -87,7 +87,7 @@ If data stops arriving, check in claude.ai that the key still exists and that th
 In **Settings › Compliance › Claude** (Console V1), find the key and click **Revoke**. A revoked key is removed from all future sync and DLP passes. Data already fetched and scanned stays in the system unless it is explicitly deleted.
 
 :::note
-Revoking a key in QuilrAI does **not** invalidate it with Anthropic. To fully disable access, delete the key in claude.ai under **Organization settings › API**.
+Revoking a key in WhiteMatter does **not** invalidate it with Anthropic. To fully disable access, delete the key in claude.ai under **Organization settings › API**.
 :::
 
 ## DLP severity levels

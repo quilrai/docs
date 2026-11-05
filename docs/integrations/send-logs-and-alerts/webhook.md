@@ -10,12 +10,12 @@ sidebar_custom_props:
 
 Forwards Extension findings and audit log events to your webhook endpoint.
 
-Use it to send QuilrAI findings and audit activity to your SIEM, SOAR, ticketing system or any HTTPS receiver you run.
+Use it to send WhiteMatter findings and audit activity to your SIEM, SOAR, ticketing system or any HTTPS receiver you run.
 
 | | |
 |---|---|
 | **Sends** | Finding events (`FINDING`) and audit log events (`AUDIT_LOG`) |
-| **Direction** | From Quilr |
+| **Direction** | From WhiteMatter |
 
 ## Setup
 
@@ -25,7 +25,7 @@ Use it to send QuilrAI findings and audit activity to your SIEM, SOAR, ticketing
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| Webhook URL | Yes | The HTTPS endpoint Quilr will POST events to |
+| Webhook URL | Yes | The HTTPS endpoint WhiteMatter will POST events to |
 | API Key | Yes | Passed as both `X-API-KEY` and `Authorization: Bearer` on every request. Stored encrypted. |
 
 4. Click **Allow**.

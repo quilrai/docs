@@ -12,7 +12,7 @@ Deploy the native Browser Agent package and the tenant-specific extension policy
 
 ## Windows Browser Agent package
 
-1. Download the current `QuilrInstaller.exe` from the approved QuilrAI distribution location and convert it to `QuilrInstaller.intunewin` with the Microsoft Win32 Content Prep Tool.
+1. Download the current `QuilrInstaller.exe` from the approved WhiteMatter distribution location and convert it to `QuilrInstaller.intunewin` with the Microsoft Win32 Content Prep Tool.
 
 2. In Intune, open Apps > All apps > Add and select Windows app (Win32). Upload the intunewin package.
 
@@ -26,7 +26,7 @@ Optional installer switches are `--pinned "false"` to hide the extension from th
 
 ## Windows and macOS extension policy
 
-1. Get the tenant extension policy for Microsoft Intune, for your browser and operating system, from your QuilrAI representative. The current console's **Settings › Browser Extension** page does not offer this download.
+1. Get the tenant extension policy for Microsoft Intune, for your browser and operating system, from your WhiteMatter representative. The current console's **Settings › Browser Extension** page does not offer this download.
 
 2. For Windows, download the tenant JSON. In Intune, open Devices > Configuration > Create > Import Policy, upload the JSON, name the policy, save it, and assign the required groups.
 
@@ -38,9 +38,9 @@ Optional installer switches are `--pinned "false"` to hide the extension from th
 
 *Microsoft Intune Devices > Configuration path and Import Policy action for the tenant JSON.*
 
-![Intune policy import fields for the downloaded QuilrAI browser-extension configuration.](/img/console-v1/intune-policy-configuration.png)
+![Intune policy import fields for the downloaded WhiteMatter browser-extension configuration.](/img/console-v1/intune-policy-configuration.png)
 
-*Intune policy import fields for the downloaded QuilrAI browser-extension configuration.*
+*Intune policy import fields for the downloaded WhiteMatter browser-extension configuration.*
 
 ## macOS Browser Agent package
 

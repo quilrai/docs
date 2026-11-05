@@ -20,12 +20,12 @@ See [Overview](./overview) for prerequisites and secret-handling guidance.
    ![Slack app settings showing the Model Context Protocol feature toggle](/img/slack-mcp-feature.png)
 
 4. Open **OAuth & Permissions**.
-5. Under **Redirect URLs**, click **Add New Redirect URL**, paste the QuilrAI callback URL, and save.
+5. Under **Redirect URLs**, click **Add New Redirect URL**, paste the WhiteMatter callback URL, and save.
 6. Under **User Token Scopes**, add the scopes required by the Slack MCP tools you plan to enable.
 7. If you also run an in-Slack bot experience, add those bot scopes separately under **Bot Token Scopes**. Slack MCP tool permissions are granted on the user token.
 8. Open **Basic Information**.
 9. Under **App Credentials**, copy the **Client ID** and **Client Secret**.
-10. Paste those values into the QuilrAI manual OAuth setup screen, then click **Connect** and authorize Slack.
+10. Paste those values into the WhiteMatter manual OAuth setup screen, then click **Connect** and authorize Slack.
 
 ## User-Token Scopes
 
@@ -48,16 +48,16 @@ See [Overview](./overview) for prerequisites and secret-handling guidance.
 
 - Use **Client Secret**, not **Signing Secret**. The signing secret is for verifying Slack events and is not used as the OAuth client secret.
 - Slack requires MCP clients to be backed by a registered Slack app. Only internal apps or Slack Marketplace-published apps can use MCP; unlisted apps cannot use MCP.
-- Slack's MCP server uses user tokens for tool access. Add only the scopes needed by the tools you enable in QuilrAI.
+- Slack's MCP server uses user tokens for tool access. Add only the scopes needed by the tools you enable in WhiteMatter.
 - For a single internal workspace, the app can stay private to that workspace.
 - If the same Slack app must be installed across multiple workspaces, configure Slack app distribution before sharing the install flow.
-- Slack redirect URLs must match the URL used by the OAuth flow. If QuilrAI shows a new callback URL later, add it to Slack before reconnecting.
+- Slack redirect URLs must match the URL used by the OAuth flow. If WhiteMatter shows a new callback URL later, add it to Slack before reconnecting.
 
 ## Troubleshooting
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| `invalid_client` or `bad_client_secret` | Wrong Client ID, wrong secret, or the Slack Signing Secret pasted instead of the Client Secret. | Copy the Slack Client ID and Client Secret again, update QuilrAI, and retry. |
+| `invalid_client` or `bad_client_secret` | Wrong Client ID, wrong secret, or the Slack Signing Secret pasted instead of the Client Secret. | Copy the Slack Client ID and Client Secret again, update WhiteMatter, and retry. |
 | Slack MCP access denied | The Slack app is not enabled for MCP, is not an internal or Marketplace-published app, or lacks required user-token scopes. | Turn on **Model Context Protocol** under **Agents & AI Apps**, confirm the app is eligible for MCP, add missing **User Token Scopes**, and reconnect. |
 | `invalid_scope` | The Slack app does not include a user-token scope requested by the MCP integration. | Add the missing scope in **OAuth & Permissions**, save, and reconnect. |
 

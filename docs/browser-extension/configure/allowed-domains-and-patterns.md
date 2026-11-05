@@ -11,7 +11,7 @@ aliases: [whitelist]
 
 Use the allowlist to exclude trusted sites, such as internal tools, from Browser Extension monitoring. It lives on the **Whitelist Domain & Pattern** tab of the Browser Extension settings.
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Browser Extension', 'Whitelist Domain & Pattern']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Browser Extension', 'Whitelist Domain & Pattern']} />
 
 ## Add a domain or pattern
 

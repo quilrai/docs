@@ -10,9 +10,9 @@ aliases: [smart groups, groups, create smart group, import from CSV, bulk add me
 
 # Smart Groups
 
-Smart Groups are named sets of people that you reuse across Quilr: in Policy Engine rules, gateway access settings, role assignments and sharing. When you change a group's members, every rule that uses the group follows.
+Smart Groups are named sets of people that you reuse across WhiteMatter: in Policy Engine rules, gateway access settings, role assignments and sharing. When you change a group's members, every rule that uses the group follows.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'Smart Groups']} action="Create Smart Group" />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Organization', 'Smart Groups']} action="Create Smart Group" />
 
 ## Before you start
 
@@ -102,7 +102,7 @@ The import runs in the background, so you can close the dialog. To check on it, 
 The import skips:
 
 - Invalid email addresses.
-- People who aren't in Quilr.
+- People who aren't in WhiteMatter.
 - People who are already in every group you chose.
 
 An import only adds people. It never removes anyone, so importing the same file again changes nothing. To make a group match a list exactly, [remove](#remove-people-from-a-group) the extra members.
@@ -124,7 +124,7 @@ You see **Users removed**. Policies and access rules that target the group no lo
 Everyone is removed from the group and the group is deleted.
 
 :::warning
-Deleting can't be undone, and Quilr doesn't check whether a policy or access rule still uses the group. Rules that name the group stop matching anyone. Update those rules before you delete the group.
+Deleting can't be undone, and WhiteMatter doesn't check whether a policy or access rule still uses the group. Rules that name the group stop matching anyone. Update those rules before you delete the group.
 :::
 
 ## Groups converted from your identity provider

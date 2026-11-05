@@ -10,7 +10,7 @@ aliases: [costs, spend, savings, tokens, optimization, costly models, long sessi
 # Costs & Savings
 
 Costs & Savings shows what your organisation spends on AI, how many tokens it
-uses, how many tokens Quilr already saves, and which settings would save more.
+uses, how many tokens WhiteMatter already saves, and which settings would save more.
 Open it from **Observe > Costs & Savings**.
 
 ![Costs & Savings in the console](/img/console-v2/pages/costs-and-savings.jpg)

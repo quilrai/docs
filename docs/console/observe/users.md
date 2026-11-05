@@ -9,7 +9,7 @@ aliases: [people, employees, directory, user list, identities, flagged people, q
 
 # Users
 
-Users shows each person's AI usage and risk, and how well Quilr's sensors
+Users shows each person's AI usage and risk, and how well WhiteMatter's sensors
 cover them. Open it from **Observe > Users**. The page has five tabs: **All
 users**, **Browser deployment**, **Endpoint deployment**, **Accounts** and
 **Quilly**.
@@ -84,6 +84,6 @@ people. See
 
 ## Quilly
 
-Quilly is Quilr's AI coach for end users. This tab is the feed of Quilly
+Quilly is WhiteMatter's AI coach for end users. This tab is the feed of Quilly
 conversations, split into **Findings**, **Coach** and **User initiated**. Each entry shows a summary, the user, the control, status,
 the action taken, tools used and severity.

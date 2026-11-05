@@ -19,7 +19,7 @@ What changed in Red Teaming, newest first.
 
 ## Model scans say when a model was rate limited (2026-11-04)
 
-- When a model from the QuilrAI catalog is rate limited during a scan, each affected test now says the model was rate limited instead of showing a generic error
+- When a model from the WhiteMatter catalog is rate limited during a scan, each affected test now says the model was rate limited instead of showing a generic error
 
 ## Back to assessments from a live run (2026-11-03)
 

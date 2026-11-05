@@ -4,14 +4,14 @@ sidebar_label: "ChatGPT and Codex"
 sidebar_position: 7
 sidebar_custom_props:
   icon: Sparkles
-description: "Connect ChatGPT hosted MCP integrations and Codex local clients to Quilr, with separate admin controls and OAuth validation."
+description: "Connect ChatGPT hosted MCP integrations and Codex local clients to WhiteMatter, with separate admin controls and OAuth validation."
 ---
 
 # ChatGPT and Codex
 
-Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your WhiteMatter dashboard; the placeholder includes `https://`.
 
-Choose the runtime before configuring access. A hosted ChatGPT custom MCP integration and a local Codex MCP server definition are separate setup paths. Use the deployment base URL from your Quilr dashboard.
+Choose the runtime before configuring access. A hosted ChatGPT custom MCP integration and a local Codex MCP server definition are separate setup paths. Use the deployment base URL from your WhiteMatter dashboard.
 
 **Documentation checked: 20 October 2026.** OpenAI product names and administration surfaces evolve. Follow the current official links if a menu has moved, and complete a deployment-specific pilot. This page does not claim a live interoperability test.
 
@@ -19,7 +19,7 @@ Choose the runtime before configuring access. A hosted ChatGPT custom MCP integr
 
 The current official flow starts at [ChatGPT Plugins](https://chatgpt.com/plugins): select **+ > Add custom MCP server**, enter a name and description, choose the public endpoint connection, configure authentication, acknowledge the displayed warning, then **Create as a plugin**. Review the discovered tools, install the result, and select it with `@` in a new conversation. Account and workspace policies control availability. [OpenAI connection and testing guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
-| Field | Quilr configuration |
+| Field | WhiteMatter configuration |
 | --- | --- |
 | Name | `Quilr OneMCP` |
 | Description | The approved business tasks provided by your configured MCPs |
@@ -28,7 +28,7 @@ The current official flow starts at [ChatGPT Plugins](https://chatgpt.com/plugin
 | Authentication | OAuth using gateway discovery and dynamic registration |
 | Client ID / secret | Let DCR supply the public client ID; no OneMCP client secret is issued |
 
-Use `/quilrone/mcp` on your assigned gateway hostname. Complete user sign-in; Quilr resolves the organization from that account. Then connect any upstream services that require personal authorization.
+Use `/quilrone/mcp` on your assigned gateway hostname. Complete user sign-in; WhiteMatter resolves the organization from that account. Then connect any upstream services that require personal authorization.
 
 For a single gateway-managed MCP, use its direct URL instead. The verified Lucidchart example is `https://mcpgateway.quilrai.com/lucidchart/mcp`; use the same discovery/DCR flow. Keep manual client ID and secret fields unset when using DCR so registration supplies the public client. If selecting a preconfigured client, use the [gateway-issued values](./authentication#manual-fields-for-a-direct-mcp), not Lucidchart's upstream application credentials.
 
@@ -37,21 +37,21 @@ ChatGPT uses authorization-code OAuth with **S256 PKCE automatically** and expec
 ### Workspace administrator tasks
 
 1. In **Workspace apps** and **Permissions & roles**, confirm that the intended roles can add and use the integration. If the add action is missing, resolve the workspace permission before proceeding. See [OpenAI enterprise plugin controls](https://learn.chatgpt.com/docs/enterprise/apps-and-connectors).
-2. Use a pilot audience and approved tool set. A descriptive name does not restrict access; configure the actual permissions in Quilr.
+2. Use a pilot audience and approved tool set. A descriptive name does not restrict access; configure the actual permissions in WhiteMatter.
 3. Confirm that the hosted runtime can reach the gateway's public HTTPS endpoint and OAuth metadata. A private corporate browser route is not enough.
 4. Test fresh authentication and a read-only operation with two different users. Verify their separate identities in gateway logs.
-5. Review **Action control** and **App permissions** where available. Limit actions to the intended operations and review confirmation behavior. These client controls are separate from Quilr's server/tool access rules.
+5. Review **Action control** and **App permissions** where available. Limit actions to the intended operations and review confirmation behavior. These client controls are separate from WhiteMatter's server/tool access rules.
 6. To distribute the tested plugin, a workspace admin opens **Plugins > Personal**, selects its three-dot menu, then **Publish** and the permitted workspace roles. Review **Share plugins** and **Publish plugins to workspace** permissions for the intended distribution method. This publishes within the workspace; it is not public-directory publication. Users need the plugin installed, either individually or by an administrator, and must complete any required account connection. See [workspace publication](https://developers.openai.com/plugins/build/plugins#publish-a-local-plugin-to-your-workspace) and [sharing permissions](https://learn.chatgpt.com/docs/build-plugins#share-the-plugin-with-your-team).
 
 Custom MCP integrations can expose read and write tools; they do not require tools named `search` and `fetch`. Write actions require confirmation by default, and tools without `readOnlyHint` are treated as write actions. Account for that when testing OneMCP's generic `call_tool`, and validate an actual permitted operation. [OpenAI custom MCP behavior](https://developers.openai.com/api/docs/guides/custom-mcp-server).
 
-OpenAI also documents Secure MCP Tunnel for private servers. That is a separate networking integration, not something this guide configures or verifies. An externally reachable Quilr deployment does not require a tunnel. [OpenAI endpoint requirements](https://developers.openai.com/plugins/deploy/connect-chatgpt).
+OpenAI also documents Secure MCP Tunnel for private servers. That is a separate networking integration, not something this guide configures or verifies. An externally reachable WhiteMatter deployment does not require a tunnel. [OpenAI endpoint requirements](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
 ### Refresh and connection recovery
 
 After tool descriptions, schemas, authentication, or UI resources change, refresh the custom server connection, inspect the new metadata, and retest in a new conversation. Published plugins have a separate review/update lifecycle. [OpenAI metadata refresh](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
-Quilr OneMCP does not issue downstream refresh tokens, signed ID tokens, or confidential-client secrets. Do not add `offline_access` or invent a refresh URL to resolve a required-field error. If the workspace's integration flow insists on unsupported authentication properties, stop the rollout and review compatibility with the gateway operator. The [authentication reference](./authentication) distinguishes actual behavior from advertised metadata.
+WhiteMatter OneMCP does not issue downstream refresh tokens, signed ID tokens, or confidential-client secrets. Do not add `offline_access` or invent a refresh URL to resolve a required-field error. If the workspace's integration flow insists on unsupported authentication properties, stop the rollout and review compatibility with the gateway operator. The [authentication reference](./authentication) distinguishes actual behavior from advertised metadata.
 
 ## Codex CLI and local clients
 
@@ -80,13 +80,13 @@ Current Codex chooses registration based on server metadata. If you need to expl
 codex mcp login quilr_onemcp --oauth-client-registration dcr
 ```
 
-Do not configure `auth = "chatgpt"` for Quilr; that mode targets trusted first-party session authentication. For static client registration, Codex shows the actual callback to register. Use the callback emitted by the installed client rather than guessing a fixed port. [OpenAI OAuth configuration](https://developers.openai.com/codex/mcp).
+Do not configure `auth = "chatgpt"` for WhiteMatter; that mode targets trusted first-party session authentication. For static client registration, Codex shows the actual callback to register. Use the callback emitted by the installed client rather than guessing a fixed port. [OpenAI OAuth configuration](https://developers.openai.com/codex/mcp).
 
 ### Administrative controls
 
-Distribute only the server definition. Keep each user's credentials local to their authentication flow. Review managed configuration and server/tool restrictions for the deployed Codex host. Client-side tool selection and approval controls do not replace Quilr's server and tool authorization.
+Distribute only the server definition. Keep each user's credentials local to their authentication flow. Review managed configuration and server/tool restrictions for the deployed Codex host. Client-side tool selection and approval controls do not replace WhiteMatter's server and tool authorization.
 
-When adding an enabled-tool allowlist, account for OneMCP dynamic mode: allowing `call_tool` is not a per-backend authorization policy. Restrict the underlying servers/tools in Quilr and validate the resulting access as an ordinary user.
+When adding an enabled-tool allowlist, account for OneMCP dynamic mode: allowing `call_tool` is not a per-backend authorization policy. Restrict the underlying servers/tools in WhiteMatter and validate the resulting access as an ordinary user.
 
 ### Direct non-OAuth backend with an API token
 

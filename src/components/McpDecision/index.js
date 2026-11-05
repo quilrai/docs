@@ -1,6 +1,7 @@
 import React from 'react';
 import {ArrowRight, Building2, ShieldCheck, Sparkles} from 'lucide-react';
 import styles from './styles.module.css';
+import {BRAND_NAME} from '@site/src/constants/brandConstants';
 
 function ChoiceCard({kind, eyebrow, title, children, points = []}) {
   const Icon = kind === 'quilr' ? ShieldCheck : Building2;
@@ -39,7 +40,7 @@ export default function McpDecision({
         <ChoiceCard kind="official" eyebrow="Provider-native" title={officialTitle} points={officialPoints}>
           {official}
         </ChoiceCard>
-        <ChoiceCard kind="quilr" eyebrow="Quilr-managed" title={quilrTitle} points={quilrPoints}>
+        <ChoiceCard kind="quilr" eyebrow={`${BRAND_NAME}-managed`} title={quilrTitle} points={quilrPoints}>
           {quilr}
         </ChoiceCard>
       </div>

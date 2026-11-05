@@ -12,7 +12,7 @@ aliases: [policy, policies, rules, playbooks, controls, enforcement rules, DLP p
 
 A browser control tells the extension what to watch for and what to do when it happens, for example "a user shares sensitive data with an AI application". Controls live on the **Browser Extension** tab of the Policy Engine. For how the Policy Engine works across all surfaces, see [Policy Engine](../../console/govern/policy-engine).
 
-<ConsolePath console="QuilrAI console" path={['Policy Engine', 'Browser Extension']} />
+<ConsolePath console="WhiteMatter console" path={['Policy Engine', 'Browser Extension']} />
 
 ## Controls table
 

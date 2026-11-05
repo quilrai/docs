@@ -196,7 +196,7 @@ For the same **original text, selected methods, tool provenance and QuilrAI impl
 
 This is useful for provider prompt caching: repeated content can remain identical as a conversation grows. Apply the same settings to every eligible text slot throughout the history you send, including earlier turns. Always optimize the original text, then reuse or rebuild the conversation from that result.
 
-Keep methods and provenance consistent across turns. Changing either, or a QuilrAI transformation update, can change the optimized prefix and cause a cache miss. Provider cache hits also depend on the rest of your request and the provider's caching requirements.
+Keep methods and provenance consistent across turns. Changing either, or a WhiteMatter transformation update, can change the optimized prefix and cause a cache miss. Provider cache hits also depend on the rest of your request and the provider's caching requirements.
 
 The endpoint returns optimized text and metrics. SDK content checks have a separate [placeholder hashing mode](./sdk-mode#placeholder-masking-and-hashing-mode) for redacted entities.
 

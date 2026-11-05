@@ -7,7 +7,7 @@ description: "Customize prompt branding, message templates, justification option
 
 # User Interaction Hub
 
-Control exactly what an end user sees when QuilrAI coaches them, asks them to justify an action, or blocks it.
+Control exactly what an end user sees when WhiteMatter coaches them, asks them to justify an action, or blocks it.
 
 **Navigation:** Settings > User Interaction Hub. Tabs: Customize Logo, Customize Content, and Customize Links. A live preview of the end-user prompt is shown on the right of every tab, and it updates as you edit.
 
@@ -21,7 +21,7 @@ Control exactly what an end user sees when QuilrAI coaches them, asks them to ju
 
 3. Select Upload Logo and choose the organization logo. The file must be a .png, should use transparency, and must be no larger than 2 MB.
 
-4. Check the preview on the right, then select Save Changes. Select Reset to return to the QuilrAI logo.
+4. Check the preview on the right, then select Save Changes. Select Reset to return to the WhiteMatter logo.
 
 ![Customize Logo, with the company logo options and the live end-user prompt preview. Example tenant.](/img/console-v1/prompt-logo.png)
 
@@ -43,7 +43,7 @@ Control exactly what an end user sees when QuilrAI coaches them, asks them to ju
 
 6. Under Pre-defined Justifications, type a reason into Add justification options and select Add. Remove an option with the cross on its chip. These become the choices the user picks from when the action is Justify.
 
-7. Check the preview on the right, then select Save. Select Revert to QuilrAI Default to restore the shipped wording for that one message.
+7. Check the preview on the right, then select Save. Select Revert to WhiteMatter Default to restore the shipped wording for that one message.
 
 ![Customize Content: the message library, one row per posture, use case, and control. Example tenant.](/img/console-v1/prompt-message-library.png)
 
@@ -53,7 +53,7 @@ Control exactly what an end user sees when QuilrAI coaches them, asks them to ju
 
 *Editing a justification template, with header, body, pre-defined justifications, and the live preview. Example tenant.*
 
-**Note:** To restore the shipped wording for every message at once, select Actions, then Revert to QuilrAI Default. This affects the whole library, not one row, so export or record your wording first.
+**Note:** To restore the shipped wording for every message at once, select Actions, then Revert to WhiteMatter Default. This affects the whole library, not one row, so export or record your wording first.
 
 ![The Actions menu, with the tenant-wide revert and the shortcut to Customize Links. Example tenant.](/img/console-v1/prompt-library-actions.png)
 

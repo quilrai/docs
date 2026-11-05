@@ -22,7 +22,7 @@ The LLM Gateway sits between your applications and your LLM providers. Your appl
     ],
   },
   {
-    label: "QuilrAI LLM Gateway",
+    label: "WhiteMatter LLM Gateway",
     items: [
       "Guardrails on request and response",
       "Routing, limits, token saving",

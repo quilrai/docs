@@ -136,7 +136,7 @@ Moderations, images, OCR and completions are on by default. Files, batches and v
 | `all` | Every family |
 | `none` | No family routes |
 
-On QuilrAI-hosted gateways, contact QuilrAI to turn on files, batches or videos.
+On WhiteMatter-hosted gateways, contact WhiteMatter to turn on files, batches or videos.
 
 | Setting | Default |
 |---------|---------|

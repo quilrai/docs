@@ -12,7 +12,7 @@ aliases: [workflow agent, agent builder, publish agent]
 
 Workflow Agents lets you build AI agents that do real work with your tools, share them with the people who need them, and run them from the console, a chat, Slack or a schedule. Every agent uses your organization's models and MCP connections, so each model call and tool call goes through the same gateways, guardrails and logs as the rest of your AI traffic.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'AI Gateway', 'Workflow Agents']} action="Create agent" />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'AI Gateway', 'Workflow Agents']} action="Create agent" />
 
 <StepFlow steps={[
   {
@@ -78,7 +78,7 @@ Each agent card has **Explore agent**, **Manage** (for agents you own or manage)
 
 ## How runs are governed
 
-- **Models** come from the providers your organization connected to the [LLM Gateway](../../llm-gateway), or from QuilrAI-provided models that draw on your shared credit.
+- **Models** come from the providers your organization connected to the [LLM Gateway](../../llm-gateway), or from WhiteMatter-provided models that draw on your shared credit.
 - **Tools** are your [MCP Gateway](../../mcp-gateway) connections. Only the tools you tick are available to the agent, and each person's own connections are used unless you choose otherwise.
 - **Approvals**: by default every tool action waits for the person running the agent. Owners can let shared runs skip that wait, but confirmations your MCP Gateway requires still pause the run.
 - **Limits**: **Maximum turns** and **Run timeout (seconds)** stop a run that goes on too long.

@@ -28,7 +28,7 @@ OneMCP handles remote services and does not choose a computer automatically. To 
 
 ## Endpoint
 
-Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your Quilr dashboard; the placeholder includes `https://`.
+Replace `<YOUR_MCP_BASE_URL>` in the examples with your deployment's HTTPS base URL, without a trailing slash. This can be `https://mcpgateway.quilr.ai`, `https://mcpgateway.quilrai.com`, or another exact hostname assigned under `quilrai.com`. Copy the base from your WhiteMatter dashboard; the placeholder includes `https://`.
 
 The OneMCP URL is:
 
@@ -38,7 +38,7 @@ The OneMCP URL is:
 
 For example, if your base is `https://mcpgateway.quilrai.com`, use `https://mcpgateway.quilrai.com/quilrone/mcp`.
 
-Quilr resolves the organization from the signed-in account and applies that user's connector and tool permissions.
+WhiteMatter resolves the organization from the signed-in account and applies that user's connector and tool permissions.
 
 OneMCP accepts gateway-issued OneMCP OAuth proxy tokens, which the AI client gets when the user signs in. There is no token to copy. For quick examples see [Connect an AI client](./integration-guide#connect-an-ai-client). Administrators should use the detailed [AI client setup guides](../client-setup/overview), including Copilot Studio, GitHub Copilot, Claude, Cursor, ChatGPT, and Codex.
 

@@ -34,7 +34,7 @@ Choose the instructions for the mode that governs your MCP Gateway. See [Switchi
 ## Configure it on the server
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="Tools"
 />
@@ -94,12 +94,12 @@ The approval request appears in the user's AI app. Each app supports different t
 | How approval appears | What it is | Does the tool run as soon as the user approves? |
 |----------------------|------------|-------------------------------------------------|
 | **In-chat prompt** | The app pauses the call and shows its own approval form in the chat, with the tool, the arguments, **Approve** or **Deny**, and a justification box. | Yes. The waiting call continues the moment the user answers. |
-| **Approval card** | Quilr draws an **Approval required** card inside the conversation, with the server, the tool and its arguments, a **Justification** box, and **Approve** and **Deny** buttons. | Yes. **Approve** runs the tool once and the card shows the result. |
+| **Approval card** | WhiteMatter draws an **Approval required** card inside the conversation, with the server, the tool and its arguments, a **Justification** box, and **Approve** and **Deny** buttons. | Yes. **Approve** runs the tool once and the card shows the result. |
 | **Approval link** | The assistant receives an **Approve in Quilr** link. It opens an **Approval required** page in the browser with the server, the tool, the arguments, **Why approval is needed**, a **Justification** box, and **Approve** and **Deny** buttons. Apps that support it open the link for the user from inside the app instead of showing it as text. | No. The approval is recorded, and the tool runs when the assistant calls it again. |
 
 If an in-chat prompt can't be shown or isn't answered, the gateway falls back to an approval link. Cards always come with the **Approve in Quilr** link underneath, in case the card doesn't load. Card and link resolve the same request, so approving in one place is enough.
 
-![Approval required card in ChatGPT showing the server, the search_web tool and its arguments, the expiry countdown, a Justification box, Approve and Deny buttons, and the Approve in Quilr link below](/img/mcp-gateway/ui/approval-card-chatgpt.png)
+![Approval required card in ChatGPT showing the server, the search_web tool and its arguments, the expiry countdown, a Justification box, Approve and Deny buttons, and the Approve in WhiteMatter link below](/img/mcp-gateway/ui/approval-card-chatgpt.png)
 
 
 ### Support by client
@@ -126,13 +126,13 @@ Based on what each app reports to the gateway when it connects, as of October 20
 3. Review the arguments, add a justification if asked, and click **Approve**. The tool runs once and the card shows **Approved - completed** with the result.
 4. claude.ai then places a short message in your message box, starting with **Approved**, that asks Claude to continue with the result. claude.ai shows its own caution notice above it. Press Enter to send it, and Claude continues from the result.
 
-![claude.ai conversation with the Quilr card showing Completed, Claude's earlier text asking for approval, the red "Use caution before running this prompt" notice, and the pre-filled Approved message in the message box](/img/mcp-gateway/ui/approval-card-claude-ai.png)
+![claude.ai conversation with the WhiteMatter card showing Completed, Claude's earlier text asking for approval, the red "Use caution before running this prompt" notice, and the pre-filled Approved message in the message box](/img/mcp-gateway/ui/approval-card-claude-ai.png)
 
 :::note claude.ai web chat shows a caution warning
 After you approve, claude.ai shows a red notice above the message box: **Use caution before running this prompt. Malicious content could trick Claude into attempting harmful actions or sharing your data.** claude.ai shows this for any message an app or card fills in for you, not because anything is wrong with the call. The tool has already run once with the arguments you approved. Check that the message is the short **Approved** follow-up from the card, then press Enter.
 :::
 
-The last step is a claude.ai safeguard: claude.ai doesn't let a card send a message for you without your say-so, and Quilr can't bypass it. The tool has already run at step 3. Sending the message only lets Claude read the result and carry on. claude.ai doesn't support in-chat prompts today, which is why it uses the card.
+The last step is a claude.ai safeguard: claude.ai doesn't let a card send a message for you without your say-so, and WhiteMatter can't bypass it. The tool has already run at step 3. Sending the message only lets Claude read the result and carry on. claude.ai doesn't support in-chat prompts today, which is why it uses the card.
 
 If the tool takes a long time, the card shows **Approved - still running** and a **Check result** button. If you use the **Approve in Quilr** link under the card instead of the card's own button, the tool doesn't run yet: ask Claude to try the tool again.
 
@@ -142,7 +142,7 @@ If the tool takes a long time, the card shows **Approved - still running** and a
 2. Click **Approve**. The tool runs once and the card shows the result.
 3. The card sends a short follow-up to ChatGPT, and ChatGPT continues with the result without you typing anything.
 
-![ChatGPT conversation with the Quilr card showing Completed and ChatGPT continuing with the search results below it](/img/mcp-gateway/ui/approval-card-chatgpt-completed.png)
+![ChatGPT conversation with the WhiteMatter card showing Completed and ChatGPT continuing with the search results below it](/img/mcp-gateway/ui/approval-card-chatgpt-completed.png)
 
 ChatGPT's text written before the card may still ask you to approve or reply "Approved". That is expected: it was written before you clicked, and ChatGPT carries on once the card reports the result.
 
@@ -188,7 +188,7 @@ A request that was already approved or denied elsewhere shows **Already decided*
 - **Time limits.** An unanswered request expires after 10 minutes. An approval given through the link must be used within 5 minutes. A stored result from a card approval is kept for 10 minutes.
 - **Approval doesn't skip other controls.** The approved call still passes through [Security guardrails](./security-guardrails), usage quotas and the other policies in force when it runs. If they block it, it is blocked. Quotas count an approved call once, even if the assistant retries.
 - **Apps remember tool lists.** Most apps cache the list of tools and the card when they connect. After you turn approval on or off for a tool, users may need to reconnect the server, or start a new chat, before the change shows. Until then, the **Approve in Quilr** link still works.
-- **Signing in to approve.** By default the approval link works without signing in: having the link is enough, and the decision is recorded as the user who made the call. The link is part of the reply, so the assistant can read it too. If you need the approver to be signed in to QuilrAI as that same user, ask QuilrAI to turn on sign-in for approval pages for your deployment (for self-hosted gateways, set `MCP_APPROVAL_PAGE_AUTH=cookie`).
+- **Signing in to approve.** By default the approval link works without signing in: having the link is enough, and the decision is recorded as the user who made the call. The link is part of the reply, so the assistant can read it too. If you need the approver to be signed in to WhiteMatter as that same user, ask WhiteMatter to turn on sign-in for approval pages for your deployment (for self-hosted gateways, set `MCP_APPROVAL_PAGE_AUTH=cookie`).
 - **The caller must be known.** Approval is tied to a person. If the gateway can't tell which user is making a call, calls to tools that need approval are blocked rather than run.
 - **Unattended agents.** Automations such as n8n workflows or scheduled scripts have nobody to click the link, so their calls wait and expire. Leave approval off for those callers with [Group and user rules](./group-and-user-rules), or match on **agent name** in the Policy Engine (below).
 
@@ -200,7 +200,7 @@ Open **Inspect > Logs** on the server card, choose **Tool calls**, and click a c
 
 Based on each vendor's public documentation as of October 2026. Products change often, so check the vendor's current docs before deciding.
 
-| | QuilrAI | MintMCP | TrueFoundry | Runlayer |
+| | WhiteMatter | MintMCP | TrueFoundry | Runlayer |
 |---|---|---|---|---|
 | Per-call approval at the gateway | Yes | Yes | Yes | Yes, in beta |
 | Where approval happens | In the chat (in-chat prompt or card) when the app supports it, otherwise a link | A link to an approval page | The vendor console, with alerts by email, Slack, Teams or PagerDuty | Not documented |

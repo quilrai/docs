@@ -12,7 +12,7 @@ aliases: [data retention, retention policy, retention horizon, zero data retenti
 
 Control how long LLM Gateway data is kept and how detected values are masked in stored content. **LLM Gateway is the only source configurable from the console today.** Support for other sources is releasing soon.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Data management', 'Data Retention']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Data management', 'Data Retention']} />
 
 ## Choose a default
 
@@ -35,7 +35,7 @@ Templates update Default and template masking settings; existing cards remain. R
 
 **Never store** removes the selected fields as requests are written. With prompt and response content set to Never store, conversation replay is unavailable. Basic usage and cost metadata remains available, so Zero data retention does not mean every record disappears.
 
-Cards targeting users or smart groups may require user identity to be retained. Check **User identity** in Default after applying the ZDR template. These settings control QuilrAI retention; they do not configure your model provider's retention.
+Cards targeting users or smart groups may require user identity to be retained. Check **User identity** in Default after applying the ZDR template. These settings control WhiteMatter retention; they do not configure your model provider's retention.
 
 ## Read and combine quick cards
 

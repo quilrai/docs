@@ -21,9 +21,9 @@ The **Models** page (**Settings > AI Gateway > Models**) is where you manage eve
 | Tab | What it is for |
 |-----|----------------|
 | **Models** | **Your models** (your own provider connections and their costs) and **QuilrAI provided models** (the hosted catalog with retail prices). |
-| **API keys** | Model API keys for calling QuilrAI-provided models directly. |
-| **Usage** | Credit remaining, spend, requests, tokens and per-model throughput for QuilrAI-provided models. |
-| **Playground** | Chat with any active QuilrAI-provided model. |
+| **API keys** | Model API keys for calling WhiteMatter-provided models directly. |
+| **Usage** | Credit remaining, spend, requests, tokens and per-model throughput for WhiteMatter-provided models. |
+| **Playground** | Chat with any active WhiteMatter-provided model. |
 
 A **platform provider** is a provider connection you set up once for the whole tenant and then link to any number of apps. You manage them in **Settings > AI Gateway > Models** under **Your models**, or with **Provider configuration** on the **Settings > AI Gateway > LLM Gateway** page, which opens the same list.
 
@@ -57,7 +57,7 @@ Go to **Settings > AI Gateway > Models > Models** and select **Your models**.
 
 Each card is one provider connection. It shows the label, the provider and API (for example `Anthropic · Messages`), its status, and each model's input, cached input and output price in USD per 1M tokens. **Price source** shows `Published` when the price came from the provider's published list.
 
-The **QuilrAI provided models** switch shows the models QuilrAI hosts. See [QuilrAI-provided models](#quilrai-provided-models).
+The **QuilrAI provided models** switch shows the models WhiteMatter hosts. See [WhiteMatter-provided models](#quilrai-provided-models).
 
 ## Add a provider
 
@@ -152,26 +152,26 @@ If none exist, the wizard says **No platform providers yet** and offers **Add a 
 
 To send a request to one specific linked provider, pass its label. See [Selecting a provider](./provider-support#selecting-a-provider-on-multi-provider-apps).
 
-## QuilrAI-provided models
+## WhiteMatter-provided models {#quilrai-provided-models}
 
-QuilrAI hosts a catalog of chat models behind one OpenAI-compatible endpoint, `https://models.quilrai.dev/v1`. You do not need a provider account: create a model API key, select the models it may call, and send requests.
+WhiteMatter hosts a catalog of chat models behind one OpenAI-compatible endpoint, `https://models.quilrai.dev/v1`. You do not need a provider account: create a model API key, select the models it may call, and send requests.
 
-- **Billing:** each request is charged at the catalog's listed prices (USD per 1M tokens) and drawn from your organization's model credit. Contact QuilrAI support to raise your credit limit.
-- **Shared credit:** the [Playground](#playground), [Workflow Agents](../../workflow-agents/get-started/overview) and [Red Teaming](../../red-teaming/assessments/agentic-red-teaming) runs that use QuilrAI-provided models draw from the same credit.
+- **Billing:** each request is charged at the catalog's listed prices (USD per 1M tokens) and drawn from your organization's model credit. Contact WhiteMatter support to raise your credit limit.
+- **Shared credit:** the [Playground](#playground), [Workflow Agents](../../workflow-agents/get-started/overview) and [Red Teaming](../../red-teaming/assessments/agentic-red-teaming) runs that use WhiteMatter-provided models draw from the same credit.
 
 | You want to | Use |
 |---|---|
-| Call a hosted model directly, billed from your QuilrAI credit | A [model API key](#model-api-keys) against `https://models.quilrai.dev/v1` |
-| Use QuilrAI-provided models with gateway guardrails, routing, limits and logging | An LLM Gateway app with a General LLM provider ([steps](#use-quilrai-provided-models-in-a-gateway-app)) |
+| Call a hosted model directly, billed from your WhiteMatter credit | A [model API key](#model-api-keys) against `https://models.quilrai.dev/v1` |
+| Use WhiteMatter-provided models with gateway guardrails, routing, limits and logging | An LLM Gateway app with a General LLM provider ([steps](#use-quilrai-provided-models-in-a-gateway-app)) |
 | Use your own OpenAI, Anthropic, Azure, Bedrock or Vertex accounts | An LLM Gateway app with [your own providers](#add-a-provider) |
 
-A model API key can only call QuilrAI-provided models. Your own provider models cannot be added to it.
+A model API key can only call WhiteMatter-provided models. Your own provider models cannot be added to it.
 
 ### Browse the catalog
 
 Go to **Settings > AI Gateway > Models > Models** and select **QuilrAI provided models**.
 
-![QuilrAI-provided models catalog](/img/llm-gateway/ui/models-quilrai-provided-catalog.png)
+![WhiteMatter-provided models catalog](/img/llm-gateway/ui/models-quilrai-provided-catalog.png)
 
 | Control | What it does |
 |---|---|
@@ -266,9 +266,9 @@ console.log(response.choices[0].message.content);
 
 The Playground's **Use this model in your app** panel generates these snippets for the selected model, prompt and settings.
 
-### Use QuilrAI-provided models in a gateway app
+### Use WhiteMatter-provided models in a gateway app {#use-quilrai-provided-models-in-a-gateway-app}
 
-Route QuilrAI-provided models through an LLM Gateway app to apply the app's guardrails, routing, limits and logs.
+Route WhiteMatter-provided models through an LLM Gateway app to apply the app's guardrails, routing, limits and logs.
 
 1. [Create a model API key](#model-api-keys) whose **Allowed models** include every model the app should use.
 2. Add a **General LLM** provider to the app (the **Custom endpoint** tile with the **Chat completions** API, `general`), as a platform provider or with app-only credentials:
@@ -279,9 +279,9 @@ Route QuilrAI-provided models through an LLM Gateway app to apply the app's guar
    | `api_key` | Your model API key (`sk-quilrllm-...`) |
    | Models | The exact catalog IDs, for example `deepseek/deepseek-v3.2` |
 
-3. Call the app with its QuilrAI gateway key (`sk-quilr-...`) as in the [Quick Start](../get-started/quick-start), using the catalog ID as `model`.
+3. Call the app with its WhiteMatter gateway key (`sk-quilr-...`) as in the [Quick Start](../get-started/quick-start), using the catalog ID as `model`.
 
-Usage is billed from your organization credit either way and appears in the key's spend and the **Usage** tab. Selecting QuilrAI-provided models directly in **Create App**, without a General LLM provider, is coming soon.
+Usage is billed from your organization credit either way and appears in the key's spend and the **Usage** tab. Selecting WhiteMatter-provided models directly in **Create App**, without a General LLM provider, is coming soon.
 
 ### Playground
 

@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Endpoint Agent overview
 
-The QuilrAI Endpoint Agent discovers and governs AI use that happens outside the browser: desktop AI apps, coding agents, local models, and the MCP servers and skills they use. It runs as a background service on macOS and Windows and syncs what it finds to the QuilrAI console.
+The WhiteMatter Endpoint Agent discovers and governs AI use that happens outside the browser: desktop AI apps, coding agents, local models, and the MCP servers and skills they use. It runs as a background service on macOS and Windows and syncs what it finds to the WhiteMatter console.
 
 ## What it discovers and governs
 
@@ -33,7 +33,7 @@ The QuilrAI Endpoint Agent discovers and governs AI use that happens outside the
 ## Get started
 
 1. Check the [requirements](./requirements) for your endpoints.
-2. Get the agent packages from your QuilrAI representative and [roll them out](../deploy-and-operate/deployment-and-status), following the step-by-step [installation SOP](../deploy-and-operate/installation-sop).
+2. Get the agent packages from your WhiteMatter representative and [roll them out](../deploy-and-operate/deployment-and-status), following the step-by-step [installation SOP](../deploy-and-operate/installation-sop).
 3. Review [agent settings](../configure/agent-settings) and set [app policies](../configure/app-policies).
 4. Keep the [kill switch](../deploy-and-operate/agent-kill-switch) procedure handy for incidents.
 

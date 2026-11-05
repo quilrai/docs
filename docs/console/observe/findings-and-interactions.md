@@ -10,7 +10,7 @@ aliases: [findings, conversations, chats, prompts, activity, alerts, incidents, 
 # Findings & Interactions
 
 Findings & Interactions is the one place to see what people did with AI and
-what Quilr flagged along the way. Open it from **Observe > Findings &
+what WhiteMatter flagged along the way. Open it from **Observe > Findings &
 Interactions** in the sidebar.
 
 Use it to:
@@ -29,8 +29,8 @@ activity.
 
 | Tab | Shows | Use it to |
 |---|---|---|
-| **Findings** | Events that matched one of your policies or a data detection, grouped so repeats of the same thing appear once. | Review what was flagged and how Quilr responded. |
-| **Interactions** | Every AI interaction Quilr captured, from every sensor, whether or not anything was flagged. | Answer "what did this person or app do with AI?" |
+| **Findings** | Events that matched one of your policies or a data detection, grouped so repeats of the same thing appear once. | Review what was flagged and how WhiteMatter responded. |
+| **Interactions** | Every AI interaction WhiteMatter captured, from every sensor, whether or not anything was flagged. | Answer "what did this person or app do with AI?" |
 
 ![Findings tab in the Cards layout, with the period picker, quick filters, the All, Open and Resolved toggle, and a list of finding cards showing person, app, policy and outcome](/img/console-v2/findings-and-interactions/findings-cards.png)
 

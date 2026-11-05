@@ -27,7 +27,7 @@ App prompt definitions stay editable in both modes. Choose Classic settings for 
 ## Turn it on for an app {#turn-it-on-for-an-app}
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Prompts"
 />
@@ -142,7 +142,7 @@ Scenarios:
     ],
   },
   {
-    label: "QuilrAI Resolves",
+    label: "WhiteMatter Resolves",
     items: [
       '"You are a formal reviewer"',
       "Sent to LLM ✓",
@@ -208,7 +208,7 @@ A universal system prompt is one prompt per app, with no Prompt ID, that the gat
 <TabItem value="classic" label="Classic settings">
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'LLM Gateway', 'your app', 'Configure']}
   action="Prompts"
 />

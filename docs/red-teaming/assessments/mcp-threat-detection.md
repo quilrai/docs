@@ -11,7 +11,7 @@ aliases: [MCP scan, scan an MCP server, MCP assessment, MCP red teaming, MCP thr
 
 Vet any MCP server before you trust it. MCP Threat Detection is a supply-chain check: it scans an MCP server's code and dependencies and enumerates what the server exposes, then builds a threat model from the results.
 
-<ConsolePath console="QuilrAI console" path={['Assessments', 'Red Teaming', 'MCP Threat Detection']} />
+<ConsolePath console="WhiteMatter console" path={['Assessments', 'Red Teaming', 'MCP Threat Detection']} />
 
 ## What a scan does
 

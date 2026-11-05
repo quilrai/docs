@@ -25,7 +25,7 @@ Choose the instructions for the mode that governs your MCP Gateway. See [Switchi
 ## Configure it on the server
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="Token Saving"
 />

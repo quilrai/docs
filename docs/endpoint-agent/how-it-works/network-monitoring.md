@@ -41,7 +41,7 @@ export HTTPS_PROXY=http://localhost:8443
 export HTTP_PROXY=http://localhost:8080
 ```
 
-Transparent redirection is turned on from the QuilrAI dashboard; configuration reaches the agent in real time.
+Transparent redirection is turned on from the WhiteMatter dashboard; configuration reaches the agent in real time.
 
 ## DLP settings
 

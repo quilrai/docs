@@ -9,15 +9,15 @@ description: "Connect Excalidraw - no OAuth app or Client ID/Secret needed; self
 
 **Excalidraw** is an open-source virtual whiteboard for hand-drawn style diagrams. Excalidraw does not publish an official hosted MCP endpoint, so you connect it through the community **Excalidraw MCP server** ([`mcp-excalidraw-server`](https://github.com/yctimlin/mcp_excalidraw)), which you self-host alongside a live canvas UI. Agents create and edit diagram elements through MCP tools while you watch the canvas update in real time.
 
-Unlike Slack and GitHub, you do **not** create an OAuth app or provide a Client ID and Client Secret for Excalidraw. Like [Zoho](./zoho), you add the MCP server URL to QuilrAI manually.
+Unlike Slack and GitHub, you do **not** create an OAuth app or provide a Client ID and Client Secret for Excalidraw. Like [Zoho](./zoho), you add the MCP server URL to WhiteMatter manually.
 
 See [Overview](./overview) for prerequisites and secret-handling guidance.
 
 ## How Excalidraw Differs
 
-- **No OAuth credentials.** The Excalidraw MCP server has no built-in authentication, so there is no Client ID or Client Secret to create or paste into QuilrAI. Access control comes from your network and from the gateway's [access controls](../protect/server-access).
+- **No OAuth credentials.** The Excalidraw MCP server has no built-in authentication, so there is no Client ID or Client Secret to create or paste into WhiteMatter. Access control comes from your network and from the gateway's [access controls](../protect/server-access).
 - **Self-hosted.** There is no vendor-hosted endpoint. You run the MCP server and its canvas yourself (Node.js or Docker) and expose it to the gateway.
-- **stdio transport by default.** The server speaks MCP over stdio. QuilrAI registers MCPs by a transport URL ending in `/sse` or `/mcp`, so you put a stdio-to-HTTP bridge such as [Supergateway](https://github.com/supercorp-ai/supergateway) in front of it.
+- **stdio transport by default.** The server speaks MCP over stdio. WhiteMatter registers MCPs by a transport URL ending in `/sse` or `/mcp`, so you put a stdio-to-HTTP bridge such as [Supergateway](https://github.com/supercorp-ai/supergateway) in front of it.
 
 ## What This MCP Can Do
 
@@ -56,9 +56,9 @@ The server exposes 26 tools:
 
    The MCP endpoint is now `http://<host>:8000/mcp`.
 
-3. Make the endpoint reachable from the QuilrAI gateway over HTTPS - for example behind your reverse proxy or an internal load balancer. Do not expose it to the public internet unprotected; the server has no authentication of its own.
+3. Make the endpoint reachable from the WhiteMatter gateway over HTTPS - for example behind your reverse proxy or an internal load balancer. Do not expose it to the public internet unprotected; the server has no authentication of its own.
 
-4. In QuilrAI, go to the **MCP Gateway** tab, click **Add MCP server**, and paste the `/mcp` URL manually. No OAuth authorization step is required.
+4. In WhiteMatter, go to the **MCP Gateway** tab, click **Add MCP server**, and paste the `/mcp` URL manually. No OAuth authorization step is required.
 
 5. Open the canvas UI (`http://<host>:3000`) in a browser, then ask a connected agent to draw something - for example "create a flowchart of our deployment pipeline" - and confirm the elements appear on the canvas in real time.
 
@@ -76,14 +76,14 @@ The server exposes 26 tools:
 
 - **No built-in authentication.** Anyone who can reach the bridged endpoint can drive the canvas. Keep it on a private network, terminate TLS in front of it, and restrict who can use the MCP with the gateway's [access controls](../protect/server-access) and [agent configuration](../servers-and-connections/allowed-agents).
 - **The canvas is shared state.** All connected agents and browsers see and edit the same scene. Use `snapshot_scene` before risky operations, and consider disabling `clear_canvas` for agent use.
-- **One canvas per server.** To give teams isolated whiteboards, run separate instances (or containers) and add each one to QuilrAI as its own MCP.
+- **One canvas per server.** To give teams isolated whiteboards, run separate instances (or containers) and add each one to WhiteMatter as its own MCP.
 - **Exports land on the server host.** `export_to_image` and `export_scene` write files under `EXCALIDRAW_EXPORT_DIR` on the machine running the MCP server, not on the agent's machine.
 
 ## Troubleshooting
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| Gateway cannot connect to the URL | The Supergateway bridge is not running, or the URL does not end in `/mcp`. | Confirm the bridge process is up, then re-copy the full endpoint URL including the `/mcp` path into QuilrAI. |
+| Gateway cannot connect to the URL | The Supergateway bridge is not running, or the URL does not end in `/mcp`. | Confirm the bridge process is up, then re-copy the full endpoint URL including the `/mcp` path into WhiteMatter. |
 | Tools succeed but nothing appears on the canvas | The canvas server is not running, or the MCP server cannot reach it. | Start the canvas, and set `EXPRESS_SERVER_URL` to the canvas URL reachable from the MCP server. Check `ENABLE_CANVAS_SYNC` is not set to `false`. |
 | Canvas only reachable from localhost | The canvas binds to `127.0.0.1` by default. | Set `HOST=0.0.0.0` (or front it with a reverse proxy) and open the port to your users' network only. |
 | Connection drops mid-session | The bridge ran in stateless mode and the session timed out. | Run Supergateway with `--stateful` and a suitable `--sessionTimeout`. |

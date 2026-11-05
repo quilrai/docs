@@ -9,15 +9,15 @@ aliases: [organizational policies, policy documents, add policy]
 
 # Organizational policies
 
-Upload your written policies, such as an AI acceptable-use policy, so Quilr can cite them in controls, detections and the guidance users see when Quilr intervenes.
+Upload your written policies, such as an AI acceptable-use policy, so WhiteMatter can cite them in controls, detections and the guidance users see when WhiteMatter intervenes.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'Organizational Policies']} action="Add policy" />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Organization', 'Organizational Policies']} action="Add policy" />
 
 ## Add a policy
 
 1. Select **Add policy**.
 2. Upload the approved document (for example a PDF).
-3. Quilr generates a policy from it, listed as **Generated policy for &lt;file&gt;**.
+3. WhiteMatter generates a policy from it, listed as **Generated policy for &lt;file&gt;**.
 4. **Preview** the result and check it reads as your policy intends.
 
 ## The list

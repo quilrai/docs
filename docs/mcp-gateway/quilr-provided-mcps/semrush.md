@@ -9,7 +9,7 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">SEO + MARKET INTELLIGENCE</span><h2>Twenty-three explicit tools. Fewer schema-guessing loops.</h2><p>Domains, keywords, backlinks, traffic, audiences, and projects with compound research briefs.</p></div>
 
-Semrush Advanced is a Quilr-built MCP for SEO, keyword, backlink, traffic, market and project research. It signs in with a Semrush API key, not an OAuth app.
+Semrush Advanced is a WhiteMatter-built MCP for SEO, keyword, backlink, traffic, market and project research. It signs in with a Semrush API key, not an OAuth app.
 
 ## Tools
 
@@ -30,7 +30,7 @@ Database coverage, row limits and API unit cost depend on the Semrush subscripti
 
 ## Setup
 
-You need a Semrush account with API access, enough API units for the reports you plan to run, and permission to store the key in QuilrAI.
+You need a Semrush account with API access, enough API units for the reports you plan to run, and permission to store the key in WhiteMatter.
 
 ### 1. Get the API key
 
@@ -49,7 +49,7 @@ Sign in to Semrush, open **Subscription Info** > **API Units** and copy the API 
 
 4. Click **Install**.
 
-If **Semrush Advanced** is not in your Library, contact Quilr.
+If **Semrush Advanced** is not in your Library, contact WhiteMatter.
 
 ### 3. Verify
 
@@ -81,7 +81,7 @@ per-domain errors without failing the whole batch.
 
 ### Rotate or remove the key
 
-Rotate or replace the key in Semrush, update the saved credential in QuilrAI, re-run the unit-balance check, and revoke the old key under your credential policy.
+Rotate or replace the key in Semrush, update the saved credential in WhiteMatter, re-run the unit-balance check, and revoke the old key under your credential policy.
 
 ### Troubleshooting
 
@@ -102,13 +102,13 @@ References: [Find your API key](https://www.semrush.com/kb/92-api-key), [Semrush
   officialTitle="Choose official for raw report breadth"
   official="Use Semrush's MCP when analysts need the newest report inventory and are comfortable discovering and executing generic schemas."
   officialPoints={['Broad generic report discovery', 'Fastest access to new provider reports']}
-  quilrTitle="Choose Quilr for agent-ready research"
-  quilr="Use Quilr when the agent benefits from explicit schemas, compound briefs, comparison outputs, project batches, and visible quota boundaries."
+  quilrTitle="Choose WhiteMatter for agent-ready research"
+  quilr="Use WhiteMatter when the agent benefits from explicit schemas, compound briefs, comparison outputs, project batches, and visible quota boundaries."
   quilrPoints={['Twenty-three named tools', 'Pre-composed SEO and market workflows']}
-  verdict="Exploration favors the official server; repeatable briefs and predictable automation favor Quilr Advanced."
+  verdict="Exploration favors the official server; repeatable briefs and predictable automation favor WhiteMatter Advanced."
 />
 
-| Capability | Semrush Official MCP | Quilr Advanced |
+| Capability | Semrush Official MCP | WhiteMatter Advanced |
 |---|:---:|:---:|
 | Broad generic report discovery | ✅ | - |
 | Schema-driven execution | ✅ | - |
@@ -120,4 +120,4 @@ References: [Find your API key](https://www.semrush.com/kb/92-api-key), [Semrush
 | Batch project reads | Limited | ✅ |
 | Standard and Trends quota visibility | ✅ | ✅ Explicit |
 
-Choose the official server for the newest raw report breadth. Choose Quilr Advanced for predictable tools and pre-composed research workflows.
+Choose the official server for the newest raw report breadth. Choose WhiteMatter Advanced for predictable tools and pre-composed research workflows.

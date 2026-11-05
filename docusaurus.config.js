@@ -7,6 +7,7 @@
 import { prismLight } from './src/themes/prismLight.js';
 import { prismDark } from './src/themes/prismDark.js';
 import { products, crossLinks, syntheticCategories } from './src/data/products.js';
+import { BRAND_NAME, DOCS_TITLE } from './src/constants/brandConstants.ts';
 import movedPages from './src/data/redirects.json' with { type: 'json' };
 
 // Every page that moved in the platform restructure keeps working at its old
@@ -67,8 +68,8 @@ async function sidebarItemsGenerator({ defaultSidebarItemsGenerator, ...args }) 
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-    title: 'QuilrAI Docs',
-    tagline: 'Documentation for QuilrAI',
+    title: DOCS_TITLE,
+    tagline: `Documentation for ${BRAND_NAME}`,
 
     // Favicons set here, not via `favicon`, so the ICO carries `sizes` and
     // browsers that support SVG pick the theme-aware favicon.svg instead.
@@ -244,7 +245,7 @@ const config = {
             navbar: {
                 title: '',
                 logo: {
-                    alt: 'WhiteMatter',
+                    alt: BRAND_NAME,
                     src: 'img/whitematter-logo-black.svg',
                     srcDark: 'img/whitematter-logo-white.svg',
                 },
@@ -309,7 +310,7 @@ const config = {
                     },
 
                 ],
-                copyright: `Copyright © ${new Date().getFullYear()} QuilrAI. Built with Docusaurus.`,
+                copyright: `Copyright © ${new Date().getFullYear()} ${BRAND_NAME}. Built with Docusaurus.`,
             },
             prism: {
                 theme: prismLight,

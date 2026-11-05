@@ -2,19 +2,19 @@
 sidebar_position: 7
 sidebar_custom_props:
   icon: Activity
-description: "Connect Datadog MCP - no OAuth app or Client ID/Secret needed; register the QuilrAI callback URL in Datadog Organization Settings under MCP OAuth Redirect URLs, enable MCP Access and the separate MCP Write Access opt-in, pick the core or toolsets=all endpoint for your Datadog site, and add that endpoint URL manually."
+description: "Connect Datadog MCP - no OAuth app or Client ID/Secret needed; register the WhiteMatter callback URL in Datadog Organization Settings under MCP OAuth Redirect URLs, enable MCP Access and the separate MCP Write Access opt-in, pick the core or toolsets=all endpoint for your Datadog site, and add that endpoint URL manually."
 ---
 
 # Datadog
 
-Datadog exposes its MCP server through an OAuth flow tied to your Datadog organization. Unlike Slack and GitHub, you do **not** create a separate OAuth app or supply a Client ID and Client Secret. Instead, you register the QuilrAI callback URL in Datadog's organization settings and then add your site-specific Datadog MCP server URL to QuilrAI.
+Datadog exposes its MCP server through an OAuth flow tied to your Datadog organization. Unlike Slack and GitHub, you do **not** create a separate OAuth app or supply a Client ID and Client Secret. Instead, you register the WhiteMatter callback URL in Datadog's organization settings and then add your site-specific Datadog MCP server URL to WhiteMatter.
 
 ## How Datadog Differs
 
 - **No custom OAuth credentials.** Datadog handles authorization using your existing org login, so there is no Client ID or Client Secret to create.
 - **Site-specific MCP URL.** Each Datadog site (US1, US3, US5, EU1, AP1, AP2, UK1) has its own MCP endpoint. You copy your endpoint from the [Datadog MCP Server setup page](https://docs.datadoghq.com/mcp_server/setup/) after selecting your site.
 - **Two endpoint variants per site.** The same site exposes a core toolset endpoint and an all-toolsets endpoint, and they return very different numbers of tools. See [Choose Your Toolset Endpoint](#choose-your-toolset-endpoint) below. This trips people up more than the OAuth setup does.
-- **Redirect URL allowlist.** Datadog requires you to explicitly trust the QuilrAI callback URL before the OAuth flow will succeed.
+- **Redirect URL allowlist.** Datadog requires you to explicitly trust the WhiteMatter callback URL before the OAuth flow will succeed.
 - **Write tools need a second, separate opt-in.** Holding the `mcp_write` permission on your Datadog role is not enough by itself. Write tools also have to be turned on at the organization level, or they will not show up even for an authorized write-capable user. See [Required Datadog Permissions](#required-datadog-permissions).
 
 ## Connect Datadog
@@ -33,10 +33,10 @@ Both the redirect URL allowlist and the org-level MCP toggles live on the same D
 
 ![Datadog Organization Settings Preferences page showing the MCP Access and MCP Write Access toggles](/img/datadog-mcp-write-access.png)
 
-![Datadog MCP OAuth Redirect URLs settings showing the QuilrAI callback URL added to the allowlist](/img/datadog-mcp-redirect-urls.png)
+![Datadog MCP OAuth Redirect URLs settings showing the WhiteMatter callback URL added to the allowlist](/img/datadog-mcp-redirect-urls.png)
 
 :::note
-The QuilrAI callback URL must appear in the allowlist before you authorize the MCP connection. If it is missing, the OAuth redirect will be rejected by Datadog.
+The WhiteMatter callback URL must appear in the allowlist before you authorize the MCP connection. If it is missing, the OAuth redirect will be rejected by Datadog.
 :::
 
 ### 2. Get Your MCP Server Endpoint URL
@@ -63,12 +63,12 @@ Always confirm the exact value on the setup page for your site rather than hand-
 The MCP server URL and every OAuth endpoint must match your organization's actual Datadog site. Mixing sites is the most common cause of a failed connection. Datadog government sites (`ddog-gov.com`) are not supported.
 :::
 
-### 3. Add Datadog MCP to QuilrAI
+### 3. Add Datadog MCP to WhiteMatter {#3-add-datadog-mcp-to-quilrai}
 
-1. In QuilrAI, go to **MCP Gateway** and click **Add MCP server**.
+1. In WhiteMatter, go to **MCP Gateway** and click **Add MCP server**.
 2. Paste the Datadog MCP endpoint URL you copied above (core or `?toolsets=all`, per [Choose Your Toolset Endpoint](#choose-your-toolset-endpoint)).
 3. Authorize when prompted. Datadog's OAuth flow opens and asks you to approve access.
-4. After authorization, QuilrAI connects and fetches available tools.
+4. After authorization, WhiteMatter connects and fetches available tools.
 
 ## Required Datadog Permissions
 

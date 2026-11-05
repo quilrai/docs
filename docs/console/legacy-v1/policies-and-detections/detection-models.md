@@ -11,7 +11,7 @@ Control which sensitive-data concepts and patterns can participate in detections
 
 **Navigation:** Detection Models > Data Risk. Switch between Out of the box and Custom, then Contextual and Non contextual.
 
-**Configuration and options:** Contextual models use the QuilrAI engine to recognize meaning beyond regex-only matching; non-contextual models use explicit patterns and may increase finding volume. Each available item exposes a risk level and enablement state.
+**Configuration and options:** Contextual models use the WhiteMatter engine to recognize meaning beyond regex-only matching; non-contextual models use explicit patterns and may increase finding volume. Each available item exposes a risk level and enablement state.
 
 **Role-specific value:** Administrators approve the model catalog and risk posture; Engineers test representative samples, watch volume, and tune sources of false positives.
 

@@ -11,7 +11,7 @@ aliases: [detection library, detection model builder, custom detection model, pr
 
 When the built-in [Detection Models](./detection-models) do not cover what you need caught, such as an internal project codename, a customer ID format or a topic you want to keep out of AI tools, add a custom detection model. You can install a pre-built one from the **Detection library** or build your own with the **Detection Model builder**.
 
-<ConsolePath console="QuilrAI Console" path={['Govern', 'Detection Models', 'Data Risks', 'Custom']} />
+<ConsolePath console="WhiteMatter Console" path={['Govern', 'Detection Models', 'Data Risks', 'Custom']} />
 
 ## Detection types
 

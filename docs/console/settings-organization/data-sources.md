@@ -11,7 +11,7 @@ aliases: [data sources]
 
 Choose which sensors and integrations feed data into the console views.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'Data Sources']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Organization', 'Data Sources']} />
 
 :::warning Visibility only
 Turning a source off **hides its data in the console. It does not stop ingestion.** The sensor or integration keeps collecting and enforcing, and the data reappears when you turn the source back on. To stop collection, disable the sensor or uninstall the integration itself.

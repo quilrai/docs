@@ -3,14 +3,14 @@ sidebar_position: 5
 sidebar_label: "Splunk, Datadog and Slack"
 sidebar_custom_props:
   icon: BarChart2
-description: "Install the Splunk, Datadog and Slack cards to send Quilr activity, findings and notifications out: the fields each Install drawer asks for, the capabilities you can enable, and how to check the result."
+description: "Install the Splunk, Datadog and Slack cards to send WhiteMatter activity, findings and notifications out: the fields each Install drawer asks for, the capabilities you can enable, and how to check the result."
 ---
 
 # Splunk, Datadog and Slack
 
-These Library cards send Quilr data **from** Quilr to your security and operations tools.
+These Library cards send WhiteMatter data **from** WhiteMatter to your security and operations tools.
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Integrations', 'Library']} />
 
 ## Set it up
 
@@ -24,10 +24,10 @@ These Library cards send Quilr data **from** Quilr to your security and operatio
 | Card | Category | Connection fields | Capabilities | Sends |
 |---|---|---|---|---|
 | **Splunk** | Observability | **Splunk deployment label** (for example "Security Cloud"); **Index label**, the destination index (for example `quilr_events`) | **Send logs** (primary), **Alerts & notifications** | Governed activity and findings to a Splunk security index |
-| **Datadog** | Observability | **Datadog site**, the log delivery region (US1, US5, EU1); **Service label**, the service receiving Quilr events (for example `quilr-security`) | **Send logs** (primary), **Alerts & notifications** | Quilr events, and selected alerts routed to operations teams |
+| **Datadog** | Observability | **Datadog site**, the log delivery region (US1, US5, EU1); **Service label**, the service receiving WhiteMatter events (for example `quilr-security`) | **Send logs** (primary), **Alerts & notifications** | WhiteMatter events, and selected alerts routed to operations teams |
 | **Slack** | Workflow | **Slack workspace label**; **Channel label**, the destination for notifications (for example `#ai-security-alerts`) | **Alerts & notifications** | Findings and operational notifications to a Slack channel |
 
-The Slack card is for Quilr notifications. It is not the same as connecting Slack as an MCP tool ([Slack MCP setup](../../mcp-gateway/provider-setup/slack)) or talking to a Workflow Agent from Slack ([Chat from Slack](../../workflow-agents/slack/chat-from-slack)).
+The Slack card is for WhiteMatter notifications. It is not the same as connecting Slack as an MCP tool ([Slack MCP setup](../../mcp-gateway/provider-setup/slack)) or talking to a Workflow Agent from Slack ([Chat from Slack](../../workflow-agents/slack/chat-from-slack)).
 
 ## Check that it works
 

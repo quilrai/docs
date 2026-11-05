@@ -231,7 +231,7 @@ Completed reports show turn-referenced evidence, not full transcripts. Full tran
   ]}
 />
 
-1. **Verify with the Quilr guardrail.** Re-runs the same assessment with Quilr's guardrail in front of the target and shows before/after grade cards. It is the same task-adherence classifier the LLM Gateway [Guardian Agent](../../llm-gateway/protect/guardian-agent) enforces inline. Options: **Guardrail scope** (Both, Incoming, Replies; Both is the default) and **Enforcement** (Block or Monitor; Block is the default).
+1. **Verify with the Quilr guardrail.** Re-runs the same assessment with WhiteMatter's guardrail in front of the target and shows before/after grade cards. It is the same task-adherence classifier the LLM Gateway [Guardian Agent](../../llm-gateway/protect/guardian-agent) enforces inline. Options: **Guardrail scope** (Both, Incoming, Replies; Both is the default) and **Enforcement** (Block or Monitor; Block is the default).
 2. **Prompt hardening suggestions.** Auto-generated from the findings: why the changes help, a checklist of key changes, and recommended system-prompt guardrails to copy.
 3. **Guardian Agent and custom detection recommendations.** A **Guardian Agent prompt** (agent purpose plus Do and Don't rules, with suggested settings) to paste into the app's Guardian Agent, and **Custom detection suggestions**, each with an action (for example BLOCK or MONITOR), a control type, a rationale, and patterns to add. Some runs also suggest a **Token Limit** control.
 

@@ -11,7 +11,7 @@ import TabItem from '@theme/TabItem';
 
 # Integration Guide
 
-Connect to the QuilrAI gateway with your existing SDK. Change the base URL and the API key; keep everything else.
+Connect to the WhiteMatter gateway with your existing SDK. Change the base URL and the API key; keep everything else.
 
 ## 1. Choose Your Endpoint
 
@@ -1002,7 +1002,7 @@ See [Copilot Studio](../../integrations/pull-ai-usage-and-inventory/microsoft-co
 
 ### TrueFoundry custom guardrails
 
-Add QuilrAI as a TrueFoundry custom input/output guardrail: URL = your regional base plus `/sdk/v1/check/truefoundry`, mode **Mutate**, **Custom Bearer Auth** with a Quilr key from a `quilr_sdk` app. See [TrueFoundry Integration](../../integrations/pull-ai-usage-and-inventory/truefoundry).
+Add WhiteMatter as a TrueFoundry custom input/output guardrail: URL = your regional base plus `/sdk/v1/check/truefoundry`, mode **Mutate**, **Custom Bearer Auth** with a Quilr key from a `quilr_sdk` app. See [TrueFoundry Integration](../../integrations/pull-ai-usage-and-inventory/truefoundry).
 
 ## 3. Optional Headers
 

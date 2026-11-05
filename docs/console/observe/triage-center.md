@@ -48,7 +48,7 @@ The four tabs below the tiles are the four ways to work the queue.
 
 ## Suggestions: close findings in bulk
 
-Quilr looks for open findings that no longer need action and groups them into
+WhiteMatter looks for open findings that no longer need action and groups them into
 suggestions, for example **Apps now approved**, **Now using a company
 account**, **People no longer active**, **Blocked, not retried for 14 days**
 and **Old notices**. Each finding counts under one suggestion only.

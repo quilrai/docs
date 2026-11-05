@@ -8,7 +8,7 @@ description: "Run administrator-approved Python and Node MCP servers on a user's
 
 # Local MCP Overview
 
-Local MCP lets an administrator approve a version of a Python or Node MCP server, and lets a user run that server **on their own computer**. The Quilr MCP Gateway still checks the user's access and every tool call.
+Local MCP lets an administrator approve a version of a Python or Node MCP server, and lets a user run that server **on their own computer**. The WhiteMatter MCP Gateway still checks the user's access and every tool call.
 
 No endpoint agent is required.
 
@@ -22,7 +22,7 @@ Some MCP servers cannot run as a shared remote service. They need access to loca
 
 | | OneMCP (remote) | Local MCP |
 |---|---|---|
-| Where the MCP runs | Quilr-hosted or vendor-hosted service | The user's own computer |
+| Where the MCP runs | WhiteMatter-hosted or vendor-hosted service | The user's own computer |
 | Best for | Shared SaaS integrations (Slack, GitHub, Jira) | Local files, local browsers, developer workspaces |
 | Compute used | Hosted | The user's CPU, memory and browser processes |
 | Access checks | Gateway | Gateway (same controls) |
@@ -30,7 +30,7 @@ Some MCP servers cannot run as a shared remote service. They need access to loca
 
 Both can be active at the same time. A local connection exposes only local tools, and an existing remote OneMCP entry continues to handle remote services.
 
-To use a local MCP, you install a small Quilr connector on your computer. It links your AI app to the gateway, so local files and local browser processes stay on your machine while the gateway still decides what you are allowed to call.
+To use a local MCP, you install a small WhiteMatter connector on your computer. It links your AI app to the gateway, so local files and local browser processes stay on your machine while the gateway still decides what you are allowed to call.
 
 ## The two roles
 

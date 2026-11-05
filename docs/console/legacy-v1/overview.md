@@ -11,7 +11,7 @@ description: "Reading paths for deployment, administration, governance, investig
 This is the guide for the legacy Console V1. For the current console, start with the [Console V2 tour](../get-started/console-tour).
 :::
 
-This guide helps Security Administrators and Security Engineers deploy QuilrAI sensors, establish organization settings, configure controls, investigate findings, and preserve evidence in **Console V1**. It is adapted from the QuilrAI Administrator Guide, edition 2.0. The guide edition is separate from the console version.
+This guide helps Security Administrators and Security Engineers deploy WhiteMatter sensors, establish organization settings, configure controls, investigate findings, and preserve evidence in **Console V1**. It is adapted from the WhiteMatter Administrator Guide, edition 2.0. The guide edition is separate from the console version.
 
 The running examples use a staged deployment group and approved synthetic data. Start controls in Monitor, verify their findings and scope, then enable the intended user-facing action.
 
@@ -19,7 +19,7 @@ The running examples use a staged deployment group and approved synthetic data. 
 
 | Goal | Reading path |
 | --- | --- |
-| Deploy QuilrAI for the first time | [Deployment prerequisites](../../browser-extension/get-started/prerequisites), your GPO or MDM procedure, [Validation](../../browser-extension/deploy/validate-deployment), [Settings](./administration/settings), and [Access control](./administration/access-control). Finish with the [completion checklist](./troubleshooting#completion-checklist). |
+| Deploy WhiteMatter for the first time | [Deployment prerequisites](../../browser-extension/get-started/prerequisites), your GPO or MDM procedure, [Validation](../../browser-extension/deploy/validate-deployment), [Settings](./administration/settings), and [Access control](./administration/access-control). Finish with the [completion checklist](./troubleshooting#completion-checklist). |
 | Configure governance | [Organizational context](./administration/organizational-context), [User Interaction Hub](./administration/user-interaction-hub), [Policy lifecycle](./policies-and-detections/policy-lifecycle), and [Detection models](./policies-and-detections/detection-models). |
 | Investigate a finding | [AI Assets](./investigations/ai-assets), [Users and Accounts](./investigations/users-and-accounts), [Findings](./investigations/findings), and the [end-to-end investigation](./investigations/end-to-end-workflow). |
 | Review posture and reporting | [Insights and Governance Reports](./reporting/insights-and-governance-reports), [Dashboards and Exports](./reporting/dashboards-and-exports), and [Audit Logging Console](./reporting/audit-log). |

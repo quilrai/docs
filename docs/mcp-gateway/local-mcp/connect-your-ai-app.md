@@ -130,7 +130,7 @@ That command:
 
 - Installs a private, versioned connector
 - Preserves your existing MCP entries
-- Registers one Quilr connection for this organization
+- Registers one WhiteMatter connection for this organization
 - Opens browser sign-in
 
 It does not depend on a temporary npm or uvx cache after setup.
@@ -192,13 +192,13 @@ Later calls are fast, because the package is already set up.
 
 ## Signing in from inside the AI app
 
-If Quilr is not connected, your AI app can call `quilr_connect`, which opens the same browser approval flow. `quilr_connection_status` reports progress.
+If WhiteMatter is not connected, your AI app can call `quilr_connect`, which opens the same browser approval flow. `quilr_connection_status` reports progress.
 
 The AI never receives the connector credential, and no password is ever pasted into chat. The initial client registration described above is still required before either tool exists.
 
 ### Third-party provider sign-in
 
-Signing in to a third-party provider is separate from connecting to Quilr. An approved MCP can ask you to sign in at an approved web address; depending on your AI client, that arrives either as a prompt or as a sign-in link. You are never asked to type a provider password into the chat.
+Signing in to a third-party provider is separate from connecting to WhiteMatter. An approved MCP can ask you to sign in at an approved web address; depending on your AI client, that arrives either as a prompt or as a sign-in link. You are never asked to type a provider password into the chat.
 
 After you finish a provider sign-in, check the operation before retrying it. Actions that may have partly completed are not retried automatically.
 

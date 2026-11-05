@@ -28,15 +28,15 @@ The spec has one server, `https://{region}.quilr.ai`, with the region as a varia
 
 <RegionTable />
 
-Configuration, keys and limits apply per region: use the regional host your organization uses. For a dedicated or on-premises gateway, replace the URL with your gateway's. Your Quilr contact can provide a copy of the spec with your gateway URL as its server, or you can edit `servers` yourself.
+Configuration, keys and limits apply per region: use the regional host your organization uses. For a dedicated or on-premises gateway, replace the URL with your gateway's. Your WhiteMatter contact can provide a copy of the spec with your gateway URL as its server, or you can edit `servers` yourself.
 
 ## Authentication {#authentication}
 
-Send a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses and the key headers common API gateways use. Each operation lists the headers it accepts under **ACCEPTS**.
+Send a WhiteMatter API key (`sk-quilr-...`) or a WhiteMatter-verified JWT. Every family accepts `Authorization: Bearer`, plus the header its provider's SDK uses and the key headers common API gateways use. Each operation lists the headers it accepts under **ACCEPTS**.
 
 - **Send one credential header.** When `Authorization` is present it decides: a malformed value is rejected and no other header is tried. Otherwise the protocol header is read (for example `api-key`, `x-api-key` or `x-goog-api-key`), then `apikey`, `ocp-apim-subscription-key` and `x-apikey`.
 - **Credentials are never forwarded.** The gateway removes the credential header before calling the provider, which is authenticated with the credential configured on the app.
-- **Bedrock.** AWS SDKs sign requests with Signature Version 4, using the Quilr API key as the access key id. A Bearer Quilr API key is accepted instead.
+- **Bedrock.** AWS SDKs sign requests with Signature Version 4, using the WhiteMatter API key as the access key id. A Bearer WhiteMatter API key is accepted instead.
 - **Realtime.** Browser clients that cannot set headers on a WebSocket handshake can send the key as a query parameter or a `Sec-WebSocket-Protocol` entry. Prefer a header: query strings can appear in proxy access logs.
 
 <CredentialTable />
@@ -145,7 +145,7 @@ The spec is ready to convert with decK. Use the combined document, or one docume
 
 The spec has exactly one server, `https://{region}.quilr.ai`, because openapi2kong pools several servers into one load-balanced upstream. Import one region per Kong setup:
 
-- **Get a pinned copy.** Add `?region=<value>` to the live spec route, `GET /llmgateway_inference_apis/v1/openapi.json`, and the document lists that region's URL as its only server (for example `?region=guardrails-europe-1` for Europe only). Combine it with `?family=<key>` for one family. The route needs a Quilr API key or JWT, and an unknown region returns 400 `unknown_region`.
+- **Get a pinned copy.** Add `?region=<value>` to the live spec route, `GET /llmgateway_inference_apis/v1/openapi.json`, and the document lists that region's URL as its only server (for example `?region=guardrails-europe-1` for Europe only). Combine it with `?family=<key>` for one family. The route needs a WhiteMatter API key or JWT, and an unknown region returns 400 `unknown_region`.
 - **Or set the variable.** In a downloaded file, set the `region` variable's default to your region (or edit `servers` to your gateway URL) before converting.
 
 Pick a region and family to get the matching live URL:

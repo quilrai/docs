@@ -46,7 +46,7 @@ Scopes match like this:
 ## Configure Model Visibility {#model-visibility-card}
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Govern', 'Policy Engine', 'LLM Gateway', 'Controls']}
   action="Model Visibility"
 />

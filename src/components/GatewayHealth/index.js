@@ -3,6 +3,7 @@ import { Activity, Boxes, ChevronRight, Gauge, Loader2, RefreshCw, Server, Wifi 
 import GatewayTimeline from './GatewayTimeline';
 import { summarizeGateways, toneOf, useGatewayRollup } from './gatewayRollup';
 import styles from './styles.module.css';
+import {BRAND_NAME} from '@site/src/constants/brandConstants';
 
 /* ────────────────────────────────── Config ─────────────────────────── */
 
@@ -90,7 +91,7 @@ const STATUS_META = {
 const TABS = [
   { id: 'gateway', label: 'Gateway Health', Icon: Gauge },
   { id: 'provider', label: 'Provider Health', Icon: Boxes },
-  { id: 'infra', label: 'QuilrAI Infrastructure', Icon: Server },
+  { id: 'infra', label: `${BRAND_NAME} Infrastructure`, Icon: Server },
 ];
 
 const DOT_TONE_CLASS = {
@@ -626,16 +627,16 @@ export default function GatewayHealth() {
         {/* Header */}
         <header className={styles.header}>
           <div className={styles.headLeft}>
-            <span className={styles.kicker}>QuilrAI Status</span>
+            <span className={styles.kicker}>{BRAND_NAME} Status</span>
             <h1 className={styles.title}>System Health</h1>
             <p className={styles.subtitle}>
-              Availability of the QuilrAI gateways, reported separately from the upstream
+              Availability of the {BRAND_NAME} gateways, reported separately from the upstream
               model providers they route to.
             </p>
           </div>
           <div className={styles.headRight}>
             <div className={styles.statusStack}>
-              <span className={styles.pillCaption}>QuilrAI Gateways</span>
+              <span className={styles.pillCaption}>{BRAND_NAME} Gateways</span>
               <span className={`${styles.overallPill} ${styles[`tone_${toneOf(overall.state)}`]}`}>
                 <span className={styles.dot} />
                 {overall.label}
@@ -710,9 +711,9 @@ export default function GatewayHealth() {
               </div>
 
               <p className={styles.scopeNote}>
-                Third-party model endpoints QuilrAI routes to. Degradation here is upstream, not
-                a QuilrAI incident, and does not count against gateway uptime - where you have
-                fallbacks configured, the gateway routes around it. QuilrAI's own status is
+                Third-party model endpoints {BRAND_NAME} routes to. Degradation here is upstream, not
+                a {BRAND_NAME} incident, and does not count against gateway uptime - where you have
+                fallbacks configured, the gateway routes around it. {BRAND_NAME}'s own status is
                 under{' '}
                 <button type="button" className={styles.linkBtn} onClick={() => setTab('gateway')}>
                   Gateway Health
@@ -797,7 +798,7 @@ export default function GatewayHealth() {
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <Server size={15} />
-            <h2 className={styles.sectionTitle}>QuilrAI Infrastructure</h2>
+            <h2 className={styles.sectionTitle}>{BRAND_NAME} Infrastructure</h2>
             <span className={styles.sectionNote}>
               <Wifi size={12} /> Measured from your location · refreshes every {REFRESH_MS / 1000}s
             </span>
@@ -839,7 +840,7 @@ export default function GatewayHealth() {
             Latency is the HTTPS round-trip from your browser to each host (not an
             ICMP ping). Global auto-routing (<code>guardrails.quilr.ai</code>) is
             omitted; probe regional hosts directly. These readings measure the path between
-            you and QuilrAI, so a proxy, VPN or captive portal shows up here as unreachable -
+            you and {BRAND_NAME}, so a proxy, VPN or captive portal shows up here as unreachable -
             that is why they do not feed the headline status.
           </p>
         </section>

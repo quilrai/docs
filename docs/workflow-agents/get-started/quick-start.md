@@ -50,7 +50,7 @@ Build an agent, publish it and give it its first task.
 
 ## Before you start
 
-- At least one model your organization can use: a provider on the [LLM Gateway](../../llm-gateway/apps-and-providers/providers-and-models) or a QuilrAI-provided model.
+- At least one model your organization can use: a provider on the [LLM Gateway](../../llm-gateway/apps-and-providers/providers-and-models) or a WhiteMatter-provided model.
 - The MCP servers your agent needs, added to the [MCP Gateway](../../mcp-gateway/servers-and-connections/adding-mcp-servers). An agent without tools can only answer from the model.
 
 ## 1. Describe the agent

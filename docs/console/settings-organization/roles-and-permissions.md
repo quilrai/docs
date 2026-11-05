@@ -12,7 +12,7 @@ aliases: [RBAC, roles, permissions, access control, platform users, console user
 
 Roles and permissions control who can open which console pages and which data they see. Access is defined by one versioned access policy: roles hold permissions, and people and Smart Groups hold roles.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'Roles & Permissions']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Organization', 'Roles & Permissions']} />
 
 :::warning Check which model your tenant is on
 Everything below the next section applies **after** your tenant migrates to Access Control V2. Until then, V1 roles decide access and this page is read-only, with a **Review the migration** banner. Migration is optional and permanent.

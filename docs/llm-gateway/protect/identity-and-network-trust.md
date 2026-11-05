@@ -99,7 +99,7 @@ Start from a recipe or a section's add menu, choose who it applies to, then **Sa
     ],
   },
   {
-    label: "QuilrAI Identifies",
+    label: "WhiteMatter Identifies",
     items: [
       "User: alice@acme.com",
       "Domain: acme.com ✓",

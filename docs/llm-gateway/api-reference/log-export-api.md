@@ -30,19 +30,19 @@ See [Metrics View](#metrics-view).
 
 ## Authentication
 
-Pass a log export key from the QuilrAI LLM Gateway UI:
+Pass a log export key from the WhiteMatter LLM Gateway UI:
 
 ```http
 X-Quilr-Log-Export-Key: sk-export-...
 ```
 
-Do not use your QuilrAI gateway API key as the request credential for this endpoint. The log export key is separate from model-call authentication.
+Do not use your WhiteMatter gateway API key as the request credential for this endpoint. The log export key is separate from model-call authentication.
 
 The UI exposes two export scopes:
 
 | Export key | Scope |
 |------------|-------|
-| `log_export_key` | Exports logs only for the underlying QuilrAI API key it belongs to. |
+| `log_export_key` | Exports logs only for the underlying WhiteMatter API key it belongs to. |
 | `all_apps_log_export_key` | Exports logs for all active, non-expired LLM Gateway apps in the tenant. |
 
 Both scopes use the same endpoint, header, query parameters, pagination model, and response format. In all-apps exports, each `llmgateway.request` event still includes the concrete app name in `app.name`.
@@ -408,7 +408,7 @@ Each request row is emitted as one `llmgateway.request` event.
 | Field | Type | Description |
 |-------|------|-------------|
 | `upstream` | number or null | Time spent waiting on the upstream provider. |
-| `quilr_processing` | number or null | Time spent in QuilrAI gateway processing. |
+| `quilr_processing` | number or null | Time spent in WhiteMatter gateway processing. |
 | `guardrails` | number or null | Time spent evaluating guardrails. |
 | `first_response` | number or null | Time to first response token or first response byte, when available. |
 | `total` | number or null | Total gateway request duration. |
@@ -814,14 +814,14 @@ below, so they always add up to `total_requests`.
 | `total_requests` | number | Same value as `governance_metrics.total_requests`. |
 | `successful_requests` | number | Requests that completed with an HTTP status below 400. |
 | `failed_requests` | number | Requests that returned an HTTP status of 400 or above, excluding guardrail blocks. |
-| `blocked_by_guardrails` | number | Requests stopped by a Quilr guardrail policy. |
+| `blocked_by_guardrails` | number | Requests stopped by a WhiteMatter guardrail policy. |
 | `status_unknown` | number | Requests with no recorded HTTP status. |
 | `success_rate_percent` | number \| null | `successful_requests` as a percentage of `successful_requests + failed_requests`. `null` when both are 0. |
 | `failures_by_status_code` | array | Up to 10 `{status_code, count}` entries for failed requests, most frequent first. |
 | `by_app` | array | Per application: `{name, requests, successful, failed, blocked_by_guardrails, success_rate_percent}`, highest `requests` first. |
 | `latency_ms.total` | object | End-to-end request latency. |
 | `latency_ms.upstream` | object | Time spent waiting on the model provider. |
-| `latency_ms.quilr_processing` | object | Time Quilr added for guardrails and routing. |
+| `latency_ms.quilr_processing` | object | Time WhiteMatter added for guardrails and routing. |
 | `latency_ms.first_response` | object | Time to the first response byte or streamed chunk. |
 
 Each `latency_ms` entry has the shape `{avg, p50, p95, p99, max, samples}`, in

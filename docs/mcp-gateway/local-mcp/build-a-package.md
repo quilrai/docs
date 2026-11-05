@@ -112,7 +112,7 @@ The `tools/list` result must match `tools.json` exactly, or review fails.
 
 ### Bundle and check the definition
 
-There is no QuilrAI command for building definitions. This script bundles a folder into a definition and applies the same file, size and lock checks the gateway and connector apply, so you catch errors before review:
+There is no WhiteMatter command for building definitions. This script bundles a folder into a definition and applies the same file, size and lock checks the gateway and connector apply, so you catch errors before review:
 
 ```python title="build_definition.py"
 """Bundle a folder into a local MCP package definition and check it."""

@@ -12,7 +12,7 @@ aliases: [general settings, organization, org settings, organization name, tenan
 
 The General page holds your organization's identity: its name, tenant ID and work domains. It also turns email and password sign-in on or off, and decides what happens when someone uses a browser your organization doesn't manage.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'Organization', 'General']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'Organization', 'General']} />
 
 ## Before you start
 
@@ -26,7 +26,7 @@ If your organization still uses V1 roles, Platform MFA follows the **Integration
 
 ### Organization name
 
-The name the Quilr browser agent reports for your organization.
+The name the WhiteMatter browser agent reports for your organization.
 
 1. Enter the name in **Organization name**.
 2. Select **Save**.
@@ -35,11 +35,11 @@ To undo an unsaved edit, select **Discard**. The name can't be empty.
 
 ### Tenant ID
 
-The unique identifier for your organization. Select the copy icon in the field to copy it, and share it with Quilr support when you need help. You can't change it.
+The unique identifier for your organization. Select the copy icon in the field to copy it, and share it with WhiteMatter support when you need help. You can't change it.
 
 ### Domains
 
-The domains your organization uses, for example `example.com`. Quilr uses them to recognize your organization's accounts and for access control.
+The domains your organization uses, for example `example.com`. WhiteMatter uses them to recognize your organization's accounts and for access control.
 
 #### Add a domain
 
@@ -78,11 +78,11 @@ Platform MFA must be on before you can add a console user who signs in with an e
 
 ## Unmanaged Browsers
 
-An unmanaged browser is one your MDM (mobile device management) provider doesn't manage. These settings decide what Quilr does when someone uses one.
+An unmanaged browser is one your MDM (mobile device management) provider doesn't manage. These settings decide what WhiteMatter does when someone uses one.
 
 | Setting | What it does |
 |---|---|
-| **Redirect to QuilrAI page** | **On** sends people using an unmanaged browser to the QuilrAI sign-in page instead of letting them continue. |
+| **Redirect to QuilrAI page** | **On** sends people using an unmanaged browser to the WhiteMatter sign-in page instead of letting them continue. |
 | **HTML for custom IDP page** | **Download** gives you a page to host on your identity provider instead. See [Use your own page](#use-your-own-page). |
 | **Allow bypass** | **Allowed** lets people dismiss the redirect and keep working in the unmanaged browser. **Not allowed** keeps them on the page. |
 

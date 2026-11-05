@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw, ShieldCheck } from 'lucide-react';
+import {BRAND_NAME} from '@site/src/constants/brandConstants';
 import { ADMIN_PREFIX, newIdempotencyKey, seg, versionOf } from './client.mjs';
 import {
   ApiChips,
@@ -45,11 +46,11 @@ export default function Administration() {
     <div className={styles.stack}>
       <Panel
         title="Tenant administration"
-        subtitle="Turn management on for a tenant and issue management keys. These calls use a tenant-admin token from your QuilrAI console sign-in, not a management key, so you can bootstrap access before any key exists."
+        subtitle={`Turn management on for a tenant and issue management keys. These calls use a tenant-admin token from your ${BRAND_NAME} console sign-in, not a management key, so you can bootstrap access before any key exists.`}
       >
         <ul className={styles.bullets}>
           <li>
-            The token must be a verified QuilrAI sign-in token that identifies you and lists the tenant in its tenantIds.
+            The token must be a verified {BRAND_NAME} sign-in token that identifies you and lists the tenant in its tenantIds.
             Paste it from your console session; this page keeps it in memory only and never stores it.
           </li>
           <li>

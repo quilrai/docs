@@ -8,7 +8,7 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">DIAGRAMS AND CHARTS</span><h2>A description in, a finished render out.</h2><p>Eight read-only tools for deterministic diagrams, charts, and presentation layouts - no server, no credential, no upstream call.</p></div>
 
-SketchIt is a Quilr-built MCP that turns a description of a process, structure or dataset into a rendered diagram or chart. It has no upstream service and no credential: it makes no API calls, no LLM calls and fetches no external assets. Every render is deterministic, so the same input always produces the same output.
+SketchIt is a WhiteMatter-built MCP that turns a description of a process, structure or dataset into a rendered diagram or chart. It has no upstream service and no credential: it makes no API calls, no LLM calls and fetches no external assets. Every render is deterministic, so the same input always produces the same output.
 
 ## Tools
 
@@ -41,7 +41,7 @@ There is nothing to prepare: no account, no API key and no OAuth consent.
 2. Click **Install**. There is no credential prompt.
 3. Make sure the tools are enabled in [Tool visibility](../protect/tool-visibility).
 
-If **SketchIt** is not in your Library, contact Quilr.
+If **SketchIt** is not in your Library, contact WhiteMatter.
 
 ### Verify
 

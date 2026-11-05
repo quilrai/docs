@@ -7,7 +7,7 @@ description: "Configure organization identity, corporate domains, timezone, acce
 
 # Organizational Context
 
-Give QuilrAI the organization's own identity and policy language so coaching and justification prompts quote your rules, not generic guidance, and so console access is granted by role.
+Give WhiteMatter the organization's own identity and policy language so coaching and justification prompts quote your rules, not generic guidance, and so console access is granted by role.
 
 **Navigation:** Settings > Organizational Context. Tabs: General, Organizational Policies, Profile, and Manage Users (sub-tabs Users and Groups).
 
@@ -17,13 +17,13 @@ Give QuilrAI the organization's own identity and policy language so coaching and
 
 1. Open Settings > Organizational Context. The General tab opens first.
 
-2. Under Organization, select Edit next to Name and enter the organization's display name. This name is used across the Quilr workspace and in end-user prompts.
+2. Under Organization, select Edit next to Name and enter the organization's display name. This name is used across the WhiteMatter workspace and in end-user prompts.
 
 3. Under Domains, type your corporate domain in the Domain field and select Add. Repeat for every domain your users sign in with. Domains identify which accounts are corporate and which are personal.
 
 4. Under Display, set Timezone display to the timezone your security team works in. Every timestamp in the console is rendered in this timezone.
 
-5. Under Unmanaged Browsers, select Redirect to QuilrAI Page to send browsers that your MDM does not manage to a QuilrAI landing page. Select Allow Bypass only if users may dismiss that page.
+5. Under Unmanaged Browsers, select Redirect to WhiteMatter Page to send browsers that your MDM does not manage to a WhiteMatter landing page. Select Allow Bypass only if users may dismiss that page.
 
 6. Select Download under HTML for Custom IDP page if you want to host your own version of that page.
 
@@ -37,7 +37,7 @@ Give QuilrAI the organization's own identity and policy language so coaching and
 
 | Option | Behavior | When to use it |
 | --- | --- | --- |
-| Redirect to Quilr Page | Uses the Quilr-hosted experience for an unmanaged-browser path. | When the organization does not host a custom identity page. |
+| Redirect to WhiteMatter Page | Uses the WhiteMatter-hosted experience for an unmanaged-browser path. | When the organization does not host a custom identity page. |
 | Download HTML for Custom IDP Page | Provides the HTML used by the identity team for a custom identity-provider experience. | When corporate branding or identity routing requires a customer-hosted page. |
 | Allow Bypass | Permits continuation from the unmanaged-browser experience. | Only when risk acceptance and policy explicitly allow it. |
 
@@ -71,7 +71,7 @@ Give QuilrAI the organization's own identity and policy language so coaching and
 
 ## Check your own console profile
 
-Profile is read-only. The banner states that the profile is created through an integration with Microsoft and that details are synced directly and are not editable here. The tab shows Name, Email, and Notifications. Change these values in your identity provider, not in QuilrAI.
+Profile is read-only. The banner states that the profile is created through an integration with Microsoft and that details are synced directly and are not editable here. The tab shows Name, Email, and Notifications. Change these values in your identity provider, not in WhiteMatter.
 
 ![Profile Settings, showing the identity-provider-synced name, email, and notification channel. Example tenant.](/img/console-v1/console-profile.png)
 

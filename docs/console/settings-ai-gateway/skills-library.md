@@ -11,7 +11,7 @@ aliases: [skills, skills library, skill catalog, installed skills, discovered sk
 
 Agent Skills are packaged instructions and tools that AI coding agents and assistants load on demand. The Skills Library lets you discover the skills already in use on your endpoints, vet skills from pinned public repositories, and install approved ones for your organization.
 
-<ConsolePath console="QuilrAI Console" path={['Settings', 'AI Gateway', 'Skills Library']} />
+<ConsolePath console="WhiteMatter Console" path={['Settings', 'AI Gateway', 'Skills Library']} />
 
 ## Summary tiles
 
@@ -55,7 +55,7 @@ Pinning a source to a commit means the library does not change silently when the
    - **Audience**: **All users** (tenant-wide) or **Smart Group** (one [Smart Group](../settings-organization/smart-groups), entered by name).
    - **Requested compression**: **Original package**, or **Text compression · pending**, which the console marks as pending.
    - If the license is not MIT, Apache or BSD, tick **I attest that this tenant has distribution rights**.
-   - If the skill declares shell/Bash or wildcard tool preapproval, read the declarations under **Administrator capability review** and tick **I reviewed these exact declarations for this immutable version**. Quilr records the version and a digest of the declarations as review evidence. This does not grant Endpoint permissions.
+   - If the skill declares shell/Bash or wildcard tool preapproval, read the declarations under **Administrator capability review** and tick **I reviewed these exact declarations for this immutable version**. WhiteMatter records the version and a digest of the declarations as review evidence. This does not grant Endpoint permissions.
 5. Select **Install for audience**. The skill appears on **Installed**.
 
 The install dialog warns when security has not been evaluated: installing records your intent, it does not certify the package as safe.

@@ -47,7 +47,7 @@ Approval and dismissal take effect immediately. Check [tool access](./tool-visib
 
 ## Servers that can't be watched
 
-Quilr can only check servers it can reach with its own credentials. For these servers the card says why it isn't watching:
+WhiteMatter can only check servers it can reach with its own credentials. For these servers the card says why it isn't watching:
 
 | Server | Card message |
 |--------|--------------|

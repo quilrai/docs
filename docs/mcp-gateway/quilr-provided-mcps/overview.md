@@ -2,12 +2,12 @@
 sidebar_position: 1
 sidebar_custom_props:
   icon: LayoutGrid
-description: "Compare Quilr-built and operated MCP integrations by use case, capabilities, connection method, and whether their tool surface can change provider data."
+description: "Compare WhiteMatter-built and operated MCP integrations by use case, capabilities, connection method, and whether their tool surface can change provider data."
 ---
 
-# Quilr-Provided MCPs
+# WhiteMatter-Provided MCPs
 
-Quilr-provided MCPs are integrations built and operated by Quilr for products that need a broader, safer, or more agent-friendly tool surface than a provider's standard connector. Install them from the MCP Library, then use the MCP Gateway to control tools, guardrails, access, and audit logs.
+WhiteMatter-provided MCPs are integrations built and operated by WhiteMatter for products that need a broader, safer, or more agent-friendly tool surface than a provider's standard connector. Install them from the MCP Library, then use the MCP Gateway to control tools, guardrails, access, and audit logs.
 
 <div className="mcp-showcase-grid">
   <a className="mcp-showcase-card featured" href="./microsoft-365-v3"><span>FLAGSHIP</span><strong>Microsoft 365 v3</strong><small>9 workloads. 1 governed MCP.</small></a>
@@ -18,7 +18,7 @@ Quilr-provided MCPs are integrations built and operated by Quilr for products th
 
 This is different from a **custom MCP server** that your organization registers by URL. See [MCP Library](../servers-and-connections/mcp-library) for that workflow.
 
-If the provider also publishes an MCP server, use the [Official MCP Comparison](./official-comparison) to understand which option is broader and what Quilr adds.
+If the provider also publishes an MCP server, use the [Official MCP Comparison](./official-comparison) to understand which option is broader and what WhiteMatter adds.
 
 ## Choose An Integration
 
@@ -51,15 +51,15 @@ If the provider also publishes an MCP server, use the [Official MCP Comparison](
 “Changes data?” describes the integration's available tool surface, not what every user can do. Administrators can disable write or destructive tools in [Tool visibility](../protect/tool-visibility) and restrict agent access through [Server access](../protect/server-access).
 :::
 
-## Quilr-Provided vs Provider-Native vs Your Own
+## WhiteMatter-Provided vs Provider-Native vs Your Own {#quilr-provided-vs-provider-native-vs-your-own}
 
 | Option | Choose it when | Operations | Credentials and updates |
 |---|---|---|---|
-| **Quilr-provided MCP** | You want a curated tool surface with gateway-aware safety and enterprise workflows. | Quilr operates the MCP; your admin controls exposure through the gateway. | Quilr maintains the server. Users or admins still supply provider authorization where required. |
-| **Provider-native MCP** | The provider's official MCP already covers the workflows you need. | The provider operates the upstream server; Quilr secures and governs access. | Follow the provider's connection model. See [Provider Setup](../provider-setup/overview). |
-| **Organization custom MCP** | You have an internal system or your own MCP implementation. | Your organization operates the server; Quilr proxies and governs it. | Register its reachable `/mcp` or `/sse` URL in the library. |
+| **Quilr-provided MCP** | You want a curated tool surface with gateway-aware safety and enterprise workflows. | WhiteMatter operates the MCP; your admin controls exposure through the gateway. | WhiteMatter maintains the server. Users or admins still supply provider authorization where required. |
+| **Provider-native MCP** | The provider's official MCP already covers the workflows you need. | The provider operates the upstream server; WhiteMatter secures and governs access. | Follow the provider's connection model. See [Provider Setup](../provider-setup/overview). |
+| **Organization custom MCP** | You have an internal system or your own MCP implementation. | Your organization operates the server; WhiteMatter proxies and governs it. | Register its reachable `/mcp` or `/sse` URL in the library. |
 
-Provider-native MCPs in the library that need a setup guide, including Slack, GitHub, Zoho, Datadog, Zoom, Asana, Excalidraw, dbt Labs, Netskope, and PitchBook, are documented under [MCP Provider Setup](../provider-setup/overview). They are operated by the provider, not by Quilr, so they do not appear in the table above.
+Provider-native MCPs in the library that need a setup guide, including Slack, GitHub, Zoho, Datadog, Zoom, Asana, Excalidraw, dbt Labs, Netskope, and PitchBook, are documented under [MCP Provider Setup](../provider-setup/overview). They are operated by the provider, not by WhiteMatter, so they do not appear in the table above.
 
 ## Common Safety Model
 

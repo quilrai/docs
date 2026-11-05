@@ -9,7 +9,7 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">TEST OPERATIONS</span><h2>Forty-eight auditable tools for test infrastructure.</h2><p>Automate, App Automate, diagnostics, screenshots, and deep Test Management operations.</p></div>
 
-BrowserStack Advanced is a Quilr-built MCP for BrowserStack account discovery, browser and device inventories, Automate and App Automate sessions, diagnostics, app uploads and Test Management. It signs in with a BrowserStack username and access key, not an OAuth app.
+BrowserStack Advanced is a WhiteMatter-built MCP for BrowserStack account discovery, browser and device inventories, Automate and App Automate sessions, diagnostics, app uploads and Test Management. It signs in with a BrowserStack username and access key, not an OAuth app.
 
 ## Tools
 
@@ -30,7 +30,7 @@ The hosted MCP does not run BrowserStack Local tunnels or reach files on a user'
 
 ## Setup
 
-You need a BrowserStack account with the products you plan to use, its **Username** and **Access Key**, and permission to store them in QuilrAI. For a company-wide connection, use a BrowserStack service account where your plan supports it, so the connection is not tied to one employee's key.
+You need a BrowserStack account with the products you plan to use, its **Username** and **Access Key**, and permission to store them in WhiteMatter. For a company-wide connection, use a BrowserStack service account where your plan supports it, so the connection is not tied to one employee's key.
 
 ### 1. Get the credentials
 
@@ -66,12 +66,12 @@ printf '%s' 'YOUR_BROWSERSTACK_USERNAME:YOUR_BROWSERSTACK_ACCESS_KEY' | base64 |
 
    | Scope | Use when |
    |-------|----------|
-   | **Shared by the whole tenant** | You have an approved service account or shared credential. Limit access in both BrowserStack and QuilrAI. |
+   | **Shared by the whole tenant** | You have an approved service account or shared credential. Limit access in both BrowserStack and WhiteMatter. |
    | **Each user brings their own** | Each user's BrowserStack permissions and activity must stay separate. |
 
 4. Click **Install**, then review [Tool visibility](../protect/tool-visibility) and keep destructive tools off unless a workflow needs deletion or archival.
 
-If **BrowserStack Advanced** is not in your Library, contact Quilr.
+If **BrowserStack Advanced** is not in your Library, contact WhiteMatter.
 
 ### 3. Verify
 
@@ -103,7 +103,7 @@ read-only: <session-id-1>, <session-id-2>.
 
 ### Rotate the access key
 
-Rotating a BrowserStack access key invalidates the old one. Rotate it in BrowserStack, update the saved credential in QuilrAI with the same username and the new key, re-run the read-only test, and delete old copies from notes, shell history or secret stores. Rotate immediately if the key appears in a screenshot, chat, ticket or repository.
+Rotating a BrowserStack access key invalidates the old one. Rotate it in BrowserStack, update the saved credential in WhiteMatter with the same username and the new key, re-run the read-only test, and delete old copies from notes, shell history or secret stores. Rotate immediately if the key appears in a screenshot, chat, ticket or repository.
 
 ### Troubleshooting
 
@@ -124,13 +124,13 @@ References: [API authentication](https://www.browserstack.com/docs/enterprise/ap
   officialTitle="Choose official for product breadth"
   official="Use BrowserStack's MCP when the agent needs the widest first-party coverage, including Percy, Accessibility, and BrowserStack AI agents."
   officialPoints={['Broadest BrowserStack portfolio', 'First-party feature velocity']}
-  quilrTitle="Choose Quilr for controlled operations"
-  quilr="Use Quilr for explicit API-shaped tools, bounded diagnostics, bulk Test Management workflows, and clearly labeled destructive actions."
+  quilrTitle="Choose WhiteMatter for controlled operations"
+  quilr="Use WhiteMatter for explicit API-shaped tools, bounded diagnostics, bulk Test Management workflows, and clearly labeled destructive actions."
   quilrPoints={['48 predictable tools', 'Bulk operations with auditable boundaries']}
-  verdict="Coverage breadth favors the official MCP. Repeatable test operations and controlled bulk changes favor Quilr Advanced."
+  verdict="Coverage breadth favors the official MCP. Repeatable test operations and controlled bulk changes favor WhiteMatter Advanced."
 />
 
-| Capability | BrowserStack Official MCP | Quilr Advanced |
+| Capability | BrowserStack Official MCP | WhiteMatter Advanced |
 |---|:---:|:---:|
 | Browser and device inventories | ✅ | ✅ |
 | Automate and App Automate | ✅ | ✅ |
@@ -143,4 +143,4 @@ References: [API authentication](https://www.browserstack.com/docs/enterprise/ap
 | Bulk result submission and ordered assignment | Limited | ✅ |
 | Explicit destructive labels | Varies | ✅ |
 
-Use the official MCP for maximum BrowserStack product breadth. Use Quilr Advanced for predictable API automation and controlled bulk Test Management.
+Use the official MCP for maximum BrowserStack product breadth. Use WhiteMatter Advanced for predictable API automation and controlled bulk Test Management.

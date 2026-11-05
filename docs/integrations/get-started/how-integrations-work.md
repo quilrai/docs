@@ -9,9 +9,9 @@ aliases: [integrations, connectors, github, azure ai foundry, openai compliance,
 
 # How integrations work
 
-Integrations connect third-party platforms to QuilrAI. Some bring AI usage, inventory, and compliance data **into** Quilr; others send Quilr activity, findings, and alerts **from** Quilr to your security and operations tools.
+Integrations connect third-party platforms to WhiteMatter. Some bring AI usage, inventory, and compliance data **into** WhiteMatter; others send WhiteMatter activity, findings, and alerts **from** WhiteMatter to your security and operations tools.
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Integrations']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Integrations']} />
 
 ## Availability
 
@@ -39,7 +39,7 @@ The Integrations page has two tabs:
 
 Use the search box (providers, types, and capabilities) or the **Capability** filter to narrow either list.
 
-Each card shows the provider and vendor, a status badge, a short description, capability chips, and a category with its direction, for example "Cloud agent platform · Into Quilr" or "Observability · From Quilr".
+Each card shows the provider and vendor, a status badge, a short description, capability chips, and a category with its direction, for example "Cloud agent platform · Into WhiteMatter" or "Observability · From WhiteMatter".
 
 | Status badge | Meaning |
 |--------------|---------|
@@ -52,11 +52,11 @@ Each card shows the provider and vendor, a status badge, a short description, ca
 
 | Capability | Direction | What it does |
 |------------|-----------|--------------|
-| **Pull inventory** | Into Quilr | Discovers agents, projects, models, repositories, users, and other AI assets. They appear in **Inventory**, **Agents**, and **Graph**. |
-| **Pull compliance data** | Into Quilr | Brings in activity and compliance events, which appear in **Findings & Interactions** and **Overview**. |
-| **Send logs** | Depends on the integration | On observability tools (for example Microsoft Sentinel, Splunk, Datadog), sends Quilr activity and findings out. On agent frameworks and platforms (for example LangChain, Amazon Bedrock Agents), the platform sends its runtime telemetry into Quilr. |
-| **Alerts & notifications** | From Quilr | Sends findings and operational notifications to another tool. |
-| **Federated sign-in** | Into Quilr | Identity provider sign-in (SAML). See [Single sign-on](../../console/settings-organization/single-sign-on). |
+| **Pull inventory** | Into WhiteMatter | Discovers agents, projects, models, repositories, users, and other AI assets. They appear in **Inventory**, **Agents**, and **Graph**. |
+| **Pull compliance data** | Into WhiteMatter | Brings in activity and compliance events, which appear in **Findings & Interactions** and **Overview**. |
+| **Send logs** | Depends on the integration | On observability tools (for example Microsoft Sentinel, Splunk, Datadog), sends WhiteMatter activity and findings out. On agent frameworks and platforms (for example LangChain, Amazon Bedrock Agents), the platform sends its runtime telemetry into WhiteMatter. |
+| **Alerts & notifications** | From WhiteMatter | Sends findings and operational notifications to another tool. |
+| **Federated sign-in** | Into WhiteMatter | Identity provider sign-in (SAML). See [Single sign-on](../../console/settings-organization/single-sign-on). |
 
 ## Install, manage, and uninstall
 
@@ -92,11 +92,11 @@ To stop showing an integration's data in the console without uninstalling it, us
 
 | Integration | Sends |
 |-------------|-------|
-| [Microsoft Sentinel](../send-logs-and-alerts/microsoft-sentinel) | Quilr activity and findings to a Sentinel workspace |
+| [Microsoft Sentinel](../send-logs-and-alerts/microsoft-sentinel) | WhiteMatter activity and findings to a Sentinel workspace |
 | [Webhook](../send-logs-and-alerts/webhook) | Governed events and notifications to an HTTP receiver |
 | [Syslog](../send-logs-and-alerts/syslog) and [Syslog audit events](../send-logs-and-alerts/syslog-audit-events) | Findings and audit events to a syslog server |
 | [Splunk, Datadog and Slack](../send-logs-and-alerts/splunk-datadog-and-slack) | Activity and findings to a Splunk index or Datadog service, and notifications to a Slack channel |
 
 ### Runtime guardrail integrations
 
-[TrueFoundry](../pull-ai-usage-and-inventory/truefoundry) calls QuilrAI guardrails from the partner gateway. You set it up with an LLM Gateway app and in the partner product, not from the Integrations page. [Microsoft Copilot Studio](../pull-ai-usage-and-inventory/microsoft-copilot-studio) supports the same pattern for tool-execution checks, in addition to its inventory card.
+[TrueFoundry](../pull-ai-usage-and-inventory/truefoundry) calls WhiteMatter guardrails from the partner gateway. You set it up with an LLM Gateway app and in the partner product, not from the Integrations page. [Microsoft Copilot Studio](../pull-ai-usage-and-inventory/microsoft-copilot-studio) supports the same pattern for tool-execution checks, in addition to its inventory card.

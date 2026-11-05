@@ -7,7 +7,7 @@ sidebar_custom_props:
 
 # Backend connectivity
 
-The Endpoint Agent talks to the QuilrAI backend over outbound HTTPS only. It pushes what it discovers, pulls governance decisions, and reports enforcement activity.
+The Endpoint Agent talks to the WhiteMatter backend over outbound HTTPS only. It pushes what it discovers, pulls governance decisions, and reports enforcement activity.
 
 <StepFlow steps={[
   { label: "Configure", items: ["Tenant ID at install", "Backend found by lookup"] },

@@ -16,7 +16,7 @@ Use the Policy Engine to decide who can use your gateways, what requests are che
 
 ![LLM Gateway controls organized by access, checks, routing and responses](/img/gateway-updates-2026-11/llm-policy-controls.jpg)
 
-<ConsolePath console="QuilrAI Console" path={['Govern', 'Policy Engine']} />
+<ConsolePath console="WhiteMatter Console" path={['Govern', 'Policy Engine']} />
 
 ## Policy workspaces {#the-four-surfaces}
 

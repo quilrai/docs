@@ -31,7 +31,7 @@ How widely and how deeply people use AI.
 | Subscriptions & usage | Paid plans compared with free tiers observed in use. |
 | What AI is used for | Usage modes (**Chat assistants**, **Coding agents**, **MCP agents**, **API & service accounts**, **Other**), switchable to gateway requests, plus interactions per day and the top AI apps. |
 | Across the organization | A flow chart from **Departments**, **Teams** or **People** to the apps they use, marked sanctioned or unapproved, and what is **New this period** (new apps and topics). |
-| Quilr coverage | Devices reporting, surfaces covered and people seen. |
+| WhiteMatter coverage | Devices reporting, surfaces covered and people seen. |
 
 Use it to report adoption, spot dormant licences and see new apps as they
 appear.
@@ -62,7 +62,7 @@ example from discovery to verification, see
 
 ## Posture & risk
 
-What was flagged and how Quilr handled it.
+What was flagged and how WhiteMatter handled it.
 
 - **Headline tiles**: **Interactions with findings**, **Blocked or
   redacted**, **Apps with findings** and **People involved**.

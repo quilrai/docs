@@ -12,12 +12,12 @@ The GitHub integration discovers repositories, AI projects, workflows, and relat
 | | |
 |---|---|
 | **Capabilities** | Pull inventory, Pull compliance data |
-| **Direction** | Into Quilr |
+| **Direction** | Into WhiteMatter |
 | **Category** | Developer tool |
 
-<ConsolePath console="QuilrAI console" path={['Settings', 'Integrations', 'Library', 'GitHub']} />
+<ConsolePath console="WhiteMatter console" path={['Settings', 'Integrations', 'Library', 'GitHub']} />
 
-You connect a GitHub App that your organization owns (the drawer asks for its slug, client ID and client secret, and shows the OAuth callback URL to register in the app), then attach the installations it can access. Quilr scans only the default-branch head and syncs on the **Synchronization interval** you choose, for example 3 hours. Stopping sync never removes existing Inventory or Findings results.
+You connect a GitHub App that your organization owns (the drawer asks for its slug, client ID and client secret, and shows the OAuth callback URL to register in the app), then attach the installations it can access. WhiteMatter scans only the default-branch head and syncs on the **Synchronization interval** you choose, for example 3 hours. Stopping sync never removes existing Inventory or Findings results.
 
 ## Where it shows up
 

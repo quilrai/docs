@@ -14,12 +14,12 @@ description: "Hosted ten-tool Writer surface for chat, applications, Knowledge G
   official="Use Writer's package when local execution and the newest SDK-level capability coverage are the priorities."
   officialPoints={['Provider SDK feature breadth', 'Local environment execution']}
   quilrTitle="Choose a hosted curated connector"
-  quilr="Use Quilr when teams need a centrally operated HTTP endpoint with per-user key validation and ten deliberate tools."
+  quilr="Use WhiteMatter when teams need a centrally operated HTTP endpoint with per-user key validation and ten deliberate tools."
   quilrPoints={['Remote streamable HTTP', 'Small, predictable agent surface']}
-  verdict="Local breadth favors Writer's package; centralized operation and schema restraint favor Quilr."
+  verdict="Local breadth favors Writer's package; centralized operation and schema restraint favor WhiteMatter."
 />
 
-| Capability | Writer Official Package | Quilr Writer |
+| Capability | Writer Official Package | WhiteMatter Writer |
 |---|:---:|:---:|
 | Local SDK MCP | ✅ | - |
 | Hosted streamable HTTP | - | ✅ |
@@ -30,4 +30,4 @@ description: "Hosted ten-tool Writer surface for chat, applications, Knowledge G
 | File discovery | ✅ | ✅ |
 | Translation, vision, and web search | API-dependent | ✅ Curated tools |
 
-Choose Writer's package for the newest SDK breadth and local execution. Choose Quilr for a centrally operated remote connector with a deliberately small tool surface.
+Choose Writer's package for the newest SDK breadth and local execution. Choose WhiteMatter for a centrally operated remote connector with a deliberately small tool surface.

@@ -12,34 +12,34 @@ Connect AWS Bedrock to the LLM Gateway with an IAM role instead of long-lived ac
 
 | Section | Use it when |
 |---------|-------------|
-| [Connect Bedrock with an assumed role](#connect-bedrock-with-an-assumed-role) | You want QuilrAI to reach Bedrock with short-lived STS credentials. |
+| [Connect Bedrock with an assumed role](#connect-bedrock-with-an-assumed-role) | You want WhiteMatter to reach Bedrock with short-lived STS credentials. |
 | [Call Bedrock with boto3](#call-bedrock-with-boto3) | Your app already uses `bedrock-runtime` and you want to keep AWS request shapes. |
 
 ## Connect Bedrock with an assumed role
 
 ### Why assume role
 
-With static keys, you paste an AWS access key and secret into the QuilrAI console; those credentials live in the provider settings until you rotate them.
+With static keys, you paste an AWS access key and secret into the WhiteMatter console; those credentials live in the provider settings until you rotate them.
 
-With assume role, you hand QuilrAI an IAM **role ARN** plus an **ExternalId**. At request time QuilrAI calls `sts:AssumeRole` on that role using its own gateway IAM user, gets short-lived credentials (default 1 hour), and uses those to call Bedrock. No long-lived AWS secrets leave your account, you can revoke access at any time by deleting or detaching the role, and every call is attributable in CloudTrail via the session name.
+With assume role, you hand WhiteMatter an IAM **role ARN** plus an **ExternalId**. At request time WhiteMatter calls `sts:AssumeRole` on that role using its own gateway IAM user, gets short-lived credentials (default 1 hour), and uses those to call Bedrock. No long-lived AWS secrets leave your account, you can revoke access at any time by deleting or detaching the role, and every call is attributable in CloudTrail via the session name.
 
 ExternalId is required. AWS recommends it for any cross-account role assumption scenario to prevent the [confused-deputy problem](https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html), and a multi-tenant gateway assuming a customer-owned role is exactly that scenario.
 
-### What QuilrAI gives you
+### What WhiteMatter gives you {#what-quilrai-gives-you}
 
-QuilrAI's gateway runs under a dedicated IAM user whose only permission is `sts:AssumeRole`. Copy its ARN - you will paste it into the trust policy of the IAM role you create in step 2.
+WhiteMatter's gateway runs under a dedicated IAM user whose only permission is `sts:AssumeRole`. Copy its ARN - you will paste it into the trust policy of the IAM role you create in step 2.
 
 <CopyFieldGroup
   tone="aws"
   fields={[
     {
-      label: 'QuilrAI gateway IAM user ARN',
+      label: 'WhiteMatter gateway IAM user ARN',
       icon: 'user',
       value: 'arn:aws:iam::975050335771:user/quilr-gateway',
       hint: 'Goes in Principal.AWS of your role trust policy.',
     },
     {
-      label: 'QuilrAI AWS account ID',
+      label: 'WhiteMatter AWS account ID',
       icon: 'account',
       value: '975050335771',
       hint: 'Same account as the ARN above. Useful if your review process asks for the account ID on its own.',
@@ -57,7 +57,7 @@ uuidgen
 python -c "import uuid; print(uuid.uuid4())"
 ```
 
-Save it - you'll paste it in two places: the role's trust policy (step 2) and the QuilrAI provider form (step 4).
+Save it - you'll paste it in two places: the role's trust policy (step 2) and the WhiteMatter provider form (step 4).
 
 ### 2. Create the IAM role in your AWS account
 
@@ -161,10 +161,10 @@ Then copy the role ARN from the role's **Summary** panel - the copy icon sits ne
   hint="Copy your real ARN from the console rather than editing this template by hand."
 />
 
-### 4. Enter these values in QuilrAI
+### 4. Enter these values in WhiteMatter {#4-enter-these-values-in-quilrai}
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'Models']}
   action="Add your own models"
   note="Or add Bedrock as app-only credentials in Create App. See Providers and models."
@@ -201,7 +201,7 @@ Save the provider, then send a test request through an app that uses it. If the 
 
 #### Optional: local CLI check
 
-You **cannot** run `aws sts assume-role` against this role from your own terminal as written - the trust policy in step 2 pins the `Principal` to `arn:aws:iam::975050335771:user/quilr-gateway`, so AWS denies any caller that isn't the QuilrAI gateway user before it even looks at the ExternalId.
+You **cannot** run `aws sts assume-role` against this role from your own terminal as written - the trust policy in step 2 pins the `Principal` to `arn:aws:iam::975050335771:user/quilr-gateway`, so AWS denies any caller that isn't the WhiteMatter gateway user before it even looks at the ExternalId.
 
 If you still want to exercise the trust policy locally, temporarily add your own IAM user or role to the `Principal.AWS` array:
 
@@ -229,7 +229,7 @@ aws sts assume-role \
 # Should succeed.
 ```
 
-If the first call succeeds, the trust policy is missing the ExternalId condition - fix it before using the role. **Remove your own ARN from the `Principal` block before going live** so only the QuilrAI gateway user can assume the role.
+If the first call succeeds, the trust policy is missing the ExternalId condition - fix it before using the role. **Remove your own ARN from the `Principal` block before going live** so only the WhiteMatter gateway user can assume the role.
 
 ### How the gateway uses these values at runtime
 
@@ -289,7 +289,7 @@ For assume-role setup, see [Connect Bedrock with an assumed role](#connect-bedro
 
 ### Configure boto3
 
-Set `endpoint_url` to the closest regional QuilrAI Bedrock Runtime endpoint. Use the app's QuilrAI key (`sk-quilr-...`) for both `aws_access_key_id` and `aws_secret_access_key`; the gateway uses SigV4 to authenticate the request.
+Set `endpoint_url` to the closest regional WhiteMatter Bedrock Runtime endpoint. Use the app's QuilrAI key (`sk-quilr-...`) for both `aws_access_key_id` and `aws_secret_access_key`; the gateway uses SigV4 to authenticate the request.
 
 ```python
 import boto3
@@ -330,7 +330,7 @@ Both endpoint styles are accepted.
 
 ### InvokeModel example
 
-`invoke_model` keeps the provider-native Bedrock JSON body. QuilrAI supports deterministic text schemas for Amazon Nova, Anthropic, and OpenAI-style Bedrock models.
+`invoke_model` keeps the provider-native Bedrock JSON body. WhiteMatter supports deterministic text schemas for Amazon Nova, Anthropic, and OpenAI-style Bedrock models.
 
 ```python
 import json
@@ -358,7 +358,7 @@ print(payload)
 
 ### ConverseStream example
 
-`converse_stream` is proxied as raw AWS EventStream after request-side DLP succeeds. QuilrAI logs stream byte count, event count, usage, and best-effort text, but it does not run response-side DLP on stream chunks.
+`converse_stream` is proxied as raw AWS EventStream after request-side DLP succeeds. WhiteMatter logs stream byte count, event count, usage, and best-effort text, but it does not run response-side DLP on stream chunks.
 
 ```python
 stream = bedrock.converse_stream(
@@ -382,7 +382,7 @@ for event in stream["stream"]:
 
 `converse` can call any selected Bedrock model that supports the Bedrock `Converse` API, including inference profile IDs supported by Bedrock.
 
-`invoke_model` keeps provider-native Bedrock JSON bodies, so QuilrAI only parses deterministic text schemas for these Bedrock families:
+`invoke_model` keeps provider-native Bedrock JSON bodies, so WhiteMatter only parses deterministic text schemas for these Bedrock families:
 
 - Amazon Nova (`amazon.nova-*`)
 - Anthropic (`anthropic.*`)
@@ -394,11 +394,11 @@ Unknown `invoke_model` families are rejected instead of being parsed best-effort
 
 ### Guardrail behavior
 
-For non-streaming `converse` and supported `invoke_model` calls, QuilrAI scans user text before the upstream Bedrock call and scans text in the Bedrock response before returning it.
+For non-streaming `converse` and supported `invoke_model` calls, WhiteMatter scans user text before the upstream Bedrock call and scans text in the Bedrock response before returning it.
 
-For `converse_stream`, QuilrAI scans user text before opening the upstream stream. The response stream is passed through unchanged.
+For `converse_stream`, WhiteMatter scans user text before opening the upstream stream. The response stream is passed through unchanged.
 
-Bedrock-native guardrail passthrough is not supported on this surface. Requests that include `x-amzn-bedrock-guardrailidentifier`, `x-amzn-bedrock-guardrailversion`, `guardrailConfig`, or `amazon-bedrock-guardrailConfig` are rejected with `ValidationException`. Configure QuilrAI guardrails on the app instead.
+Bedrock-native guardrail passthrough is not supported on this surface. Requests that include `x-amzn-bedrock-guardrailidentifier`, `x-amzn-bedrock-guardrailversion`, `guardrailConfig`, or `amazon-bedrock-guardrailConfig` are rejected with `ValidationException`. Configure WhiteMatter guardrails on the app instead.
 
 ### boto3 troubleshooting
 
@@ -408,5 +408,5 @@ Bedrock-native guardrail passthrough is not supported on this surface. Requests 
 | `SignatureDoesNotMatch` | The request was not signed for the `bedrock` service, the host changed after signing, or the key/secret values differ. |
 | `AccessDeniedException` | The model is not selected on the gateway app. |
 | `ValidationException` for `invoke_model` model family | The model is not in a supported `invoke_model` text family. Use `converse` or OpenAI-compatible chat for Converse-capable models. |
-| `ValidationException` for guardrails | Bedrock-native guardrail headers/body fields were sent. Use QuilrAI guardrail settings instead. |
+| `ValidationException` for guardrails | Bedrock-native guardrail headers/body fields were sent. Use WhiteMatter guardrail settings instead. |
 | `ModelTimeoutException` | The upstream Bedrock Runtime request timed out. |

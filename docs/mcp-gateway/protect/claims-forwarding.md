@@ -23,7 +23,7 @@ Choose the instructions for the mode that governs your MCP Gateway. See [Switchi
 ## Configure it on the server
 
 <ConsolePath
-  console="QuilrAI console"
+  console="WhiteMatter console"
   path={['Settings', 'AI Gateway', 'MCP Gateway', 'server card', 'Configure']}
   action="General"
 />
@@ -66,8 +66,8 @@ X-User-Claims: {"v":1,"iss":"quilr-gateway","email":"user@example.com","preferre
 | `iss` | Yes | Issuer. Always `quilr-gateway`. |
 | `email` | Yes | The person's email, in lowercase. |
 | `preferred_username` | Yes | Same as `email`. |
-| `sub` | When available | The person's Quilr user ID. |
-| `quilr_tenant_id` | When available | Your Quilr tenant ID. |
+| `sub` | When available | The person's WhiteMatter user ID. |
+| `quilr_tenant_id` | When available | Your WhiteMatter tenant ID. |
 | `auth_method` | When available | How the person signed in, for example `sso`. |
 | `oid` | When available | The person's object ID from your identity provider. |
 | `tid` | When available | Your identity provider's tenant ID. |

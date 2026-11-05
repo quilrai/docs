@@ -4,35 +4,35 @@ sidebar_label: "Oracle OCI"
 sidebar_custom_props:
   badge: new
   icon: KeyRound
-description: "Grant QuilrAI cross-tenancy access to OCI Generative AI for Chat Completions and Responses without sharing an Oracle API key or signing key."
+description: "Grant WhiteMatter cross-tenancy access to OCI Generative AI for Chat Completions and Responses without sharing an Oracle API key or signing key."
 ---
 
 # Oracle OCI
 
-Connect OCI Generative AI to QuilrAI without giving QuilrAI an Oracle API key or a customer-owned signing key. Your OCI administrator creates a cross-tenancy policy that admits QuilrAI's gateway IAM group, and QuilrAI signs each request using its own OCI identity.
+Connect OCI Generative AI to WhiteMatter without giving WhiteMatter an Oracle API key or a customer-owned signing key. Your OCI administrator creates a cross-tenancy policy that admits WhiteMatter's gateway IAM group, and WhiteMatter signs each request using its own OCI identity.
 
 This setup supports:
 
 - OpenAI-compatible Chat Completions through the `oracle` provider
 - OpenAI-compatible Responses through the `oracle_responses` provider
 
-## What QuilrAI gives you
+## What WhiteMatter gives you {#what-quilrai-gives-you}
 
 Copy these public OCIDs - you will paste them into your OCI policy in step 2.
 
 <CopyFieldGroup
   tone="oracle"
-  title="QuilrAI OCIDs for your Admit policy"
-  note="These OCIDs identify QuilrAI to Oracle. They are not credentials and cannot be used to sign requests."
+  title="WhiteMatter OCIDs for your Admit policy"
+  note="These OCIDs identify WhiteMatter to Oracle. They are not credentials and cannot be used to sign requests."
   fields={[
     {
-      label: 'QuilrAI tenancy OCID',
+      label: 'WhiteMatter tenancy OCID',
       icon: 'tenancy',
       value: 'ocid1.tenancy.oc1..aaaaaaaabcp64qggjkgspajuc3o5a66t6isnz5rudglu5vnmft3apun4mevq',
       hint: 'Used in the Define tenancy QuilrAI statement.',
     },
     {
-      label: 'QuilrAI gateway IAM group OCID',
+      label: 'WhiteMatter gateway IAM group OCID',
       icon: 'group',
       value: 'ocid1.group.oc1..aaaaaaaajwg3vbuahquqywu46gx6xv23a6yiyb4lf3bbedxnguvvncq3tnlq',
       hint: 'Used in the Define group QuilrGateway statement.',
@@ -42,17 +42,17 @@ Copy these public OCIDs - you will paste them into your OCI policy in step 2.
 
 ## 1. Choose the access scope
 
-Both scopes work with the same QuilrAI API key configuration:
+Both scopes work with the same WhiteMatter API key configuration:
 
 | Scope | When to use it | OCI policy location |
 |-------|----------------|---------------------|
-| One compartment | Recommended. Limits QuilrAI to Generative AI resources in the selected compartment. | Root compartment of your tenancy |
+| One compartment | Recommended. Limits WhiteMatter to Generative AI resources in the selected compartment. | Root compartment of your tenancy |
 | Entire tenancy | Simpler when Generative AI projects span several compartments. Covers current and future compartments. | Root compartment of your tenancy |
 
-The scope is controlled entirely by your OCI policy. You do not select tenancy-wide or compartment-only access in the QuilrAI dashboard. In both cases, you enter the specific project and compartment that each QuilrAI provider should use.
+The scope is controlled entirely by your OCI policy. You do not select tenancy-wide or compartment-only access in the WhiteMatter dashboard. In both cases, you enter the specific project and compartment that each WhiteMatter provider should use.
 
 :::warning Use the smallest practical scope
-Tenancy-wide access is supported, but it grants the QuilrAI gateway group access to eligible Generative AI resources across your tenancy. Prefer a dedicated compartment when your OCI structure permits it.
+Tenancy-wide access is supported, but it grants the WhiteMatter gateway group access to eligible Generative AI resources across your tenancy. Prefer a dedicated compartment when your OCI structure permits it.
 :::
 
 ## 2. Create the cross-tenancy policy
@@ -105,9 +105,9 @@ If you will use only Chat Completions, omit the `generative-ai-response` stateme
 
 ## 3. Collect your Oracle target values
 
-You need four non-secret values from OCI. Keep them handy - you paste them into QuilrAI in step 4.
+You need four non-secret values from OCI. Keep them handy - you paste them into WhiteMatter in step 4.
 
-| QuilrAI field | Example | Required |
+| WhiteMatter field | Example | Required |
 |---------------|---------|----------|
 | OCI region | `us-chicago-1` | Always |
 | Project OCID | `ocid1.generativeaiproject.oc1...` | Always |
@@ -153,13 +153,13 @@ You need four non-secret values from OCI. Keep them handy - you paste them into 
   href="https://cloud.oracle.com"
   path={['Analytics & AI', 'AI Services', 'Generative AI', 'Playground']}
   action="Copy the exact model name"
-  note="Oracle model discovery is manual in QuilrAI, so copy the model ID exactly as Oracle spells it, and only from the region you selected above."
+  note="Oracle model discovery is manual in WhiteMatter, so copy the model ID exactly as Oracle spells it, and only from the region you selected above."
 />
 
-## 4. Configure the provider in QuilrAI
+## 4. Configure the provider in WhiteMatter {#4-configure-the-provider-in-quilrai}
 
 <ConsolePath
-  console="QuilrAI dashboard"
+  console="WhiteMatter dashboard"
   path={['LLM Gateway']}
   action="Create New Key"
   note="Editing an existing key works too - open it and add Oracle as an additional provider."
@@ -195,12 +195,12 @@ In the provider form:
 | Compartment OCID | Recommended; optional for this provider |
 | Selected models | One or more Oracle model IDs |
 
-Do not enter an Oracle API key, user OCID, tenancy OCID, fingerprint, private key, session token, or passphrase. QuilrAI supplies its gateway signing identity at request time.
+Do not enter an Oracle API key, user OCID, tenancy OCID, fingerprint, private key, session token, or passphrase. WhiteMatter supplies its gateway signing identity at request time.
 
 ## 5. Verify the connection
 
 <ConsolePath
-  console="QuilrAI dashboard"
+  console="WhiteMatter dashboard"
   path={['LLM Gateway', 'your key', 'Oracle provider']}
   note="Save the provider, then run its model validation."
 />
@@ -209,7 +209,7 @@ A successful validation confirms all of the following:
 
 - The project and compartment IDs are correct
 - The model is available in the selected region
-- Your Admit policy matches QuilrAI's tenancy and group
+- Your Admit policy matches WhiteMatter's tenancy and group
 - Oracle authorizes the requested API
 
 Policy changes can take a few minutes to propagate. If the first validation fails immediately after creating the policy, wait briefly and retry.
@@ -224,14 +224,14 @@ Policy changes can take a few minutes to propagate. If the first validation fail
   action="Delete"
 />
 
-Deleting the policy, or removing its two Admit statements, revokes QuilrAI's access immediately. No credential rotation is required because no customer signing key was shared.
+Deleting the policy, or removing its two Admit statements, revokes WhiteMatter's access immediately. No credential rotation is required because no customer signing key was shared.
 
 ## Troubleshooting
 
 | Error | Likely cause |
 |-------|--------------|
-| `NotAuthorizedOrNotFound` or HTTP 404 | The Admit policy is missing, has the wrong QuilrAI OCID, uses the wrong compartment, or has not propagated yet. Oracle can mask authorization failures as not-found responses. |
-| HTTP 401 | Request signing failed. Contact QuilrAI support; customers do not manage the gateway signing key. |
+| `NotAuthorizedOrNotFound` or HTTP 404 | The Admit policy is missing, has the wrong WhiteMatter OCID, uses the wrong compartment, or has not propagated yet. Oracle can mask authorization failures as not-found responses. |
+| HTTP 401 | Request signing failed. Contact WhiteMatter support; customers do not manage the gateway signing key. |
 | Project or compartment error | The OCID does not belong to the selected region/scope, or the policy does not cover its compartment. |
 | Model not found or unavailable | The model ID is incorrect or is not available in the selected OCI region. |
 | Chat works but Responses fails | Add the `manage generative-ai-response` Admit statement. |

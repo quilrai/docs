@@ -94,8 +94,8 @@ The **Platform providers** option exists only in the V2 console, and it is the d
 
 ![OpenAI provider form with Provider label, API key, Get available models, Add a model by name, Remove provider and Add another provider](/img/llm-gateway/ui/create-app-app-only-credentials-models.png)
 
-:::tip Use QuilrAI-provided models
-To connect an app to [QuilrAI-provided models](../apps-and-providers/providers-and-models), add a **Custom endpoint** provider with the **Chat completions** API (`general`), base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > AI Gateway > Models > API keys**.
+:::tip Use WhiteMatter-provided models
+To connect an app to [WhiteMatter-provided models](../apps-and-providers/providers-and-models), add a **Custom endpoint** provider with the **Chat completions** API (`general`), base URL `https://models.quilrai.dev/v1` and a model API key from **Settings > AI Gateway > Models > API keys**.
 :::
 
 Click **Create app**. There is no guardrail step. New apps have the following classic settings, which you can change in [Security Guardrails](../protect/security-guardrails). When the Policy Engine is enabled, published policies decide the effective protection instead.

@@ -23,6 +23,8 @@
  * Options: {products} from src/data/products.js, {extraLinks} per product id:
  * [{title, url, description}] for non-doc resources (e.g. console guides).
  */
+const {BRAND_NAME} = require('../src/constants/brandConstants.ts');
+
 module.exports = function llmsTxtPlugin(context, options) {
   const {siteDir, siteConfig} = context;
   const {products = [], extraLinks = {}} = options;
@@ -115,10 +117,10 @@ module.exports = function llmsTxtPlugin(context, options) {
         index.push(body);
 
         files[`llms/${product.slug}.txt`] = tidy(
-          `# QuilrAI ${product.name} documentation\n\n> ${product.tagline}\n\n${body.replace(/^## .*\n\n.*\n\n/, '')}`,
+          `# ${BRAND_NAME} ${product.name} documentation\n\n> ${product.tagline}\n\n${body.replace(/^## .*\n\n.*\n\n/, '')}`,
         );
 
-        const full = [`# QuilrAI ${product.name} documentation (full)`, '', `> ${product.tagline}`, ''];
+        const full = [`# ${BRAND_NAME} ${product.name} documentation (full)`, '', `> ${product.tagline}`, ''];
         full.push(
           '',
           '---',
@@ -135,10 +137,10 @@ module.exports = function llmsTxtPlugin(context, options) {
       }
 
       const intro =
-        '> QuilrAI governs how an enterprise uses AI: a Console to observe and set policy, an LLM Gateway and MCP Gateway in front of models and tools, a Browser Extension and Endpoint Agent on the workforce side, Red Teaming to test AI systems, and Integrations with the platforms you already run.\n\n' +
+        `> ${BRAND_NAME} governs how an enterprise uses AI: a Console to observe and set policy, an LLM Gateway and MCP Gateway in front of models and tools, a Browser Extension and Endpoint Agent on the workforce side, Red Teaming to test AI systems, and Integrations with the platforms you already run.\n\n` +
         'Every page is available as markdown by adding `.md` to its URL, and as the same content in plain text by adding `.txt` instead (use the `.txt` form if a `.md` link cannot be opened). Each product also has its own index at /llms/<product>.txt and its full content in one plain-text file at /llms/<product>-full.txt.';
-      files['llms.txt'] = tidy(`# QuilrAI Documentation\n\n${intro}\n\n${index.join('\n\n')}`);
-      files['llms-full.txt'] = tidy(`# QuilrAI Documentation (full)\n\n${intro}\n${fullAll.join('\n')}`);
+      files['llms.txt'] = tidy(`# ${BRAND_NAME} Documentation\n\n${intro}\n\n${index.join('\n\n')}`);
+      files['llms-full.txt'] = tidy(`# ${BRAND_NAME} Documentation (full)\n\n${intro}\n${fullAll.join('\n')}`);
       files['api/v1/index.json'] = json.build();
     },
 

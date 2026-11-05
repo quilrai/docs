@@ -10,18 +10,18 @@ description: "Find MCP server management, Insights, tool updates, call logs and 
 
 Updated on 3 November 2026.
 
-The MCP Gateway sits between your AI apps and the MCP servers they call. Users connect their AI app to a Quilr gateway URL instead of the server itself, and every tool call is checked against your tool rules and guardrails, then logged with the user, the agent and the result.
+The MCP Gateway sits between your AI apps and the MCP servers they call. Users connect their AI app to a WhiteMatter gateway URL instead of the server itself, and every tool call is checked against your tool rules and guardrails, then logged with the user, the agent and the result.
 
 <StepFlow steps={[
   {
     label: "Your AI app",
     items: [
       "Claude, ChatGPT, Cursor, VS Code",
-      "Connects to a Quilr gateway URL",
+      "Connects to a WhiteMatter gateway URL",
     ],
   },
   {
-    label: "QuilrAI MCP Gateway",
+    label: "WhiteMatter MCP Gateway",
     items: [
       "Tool rules and guardrails",
       "Access by agent, group and user",

@@ -135,7 +135,7 @@ Management requests go to the same regional hosts as inference traffic. Configur
 | **India 2** (Mumbai) | `https://guardrails-india-2.quilr.ai` |
 | **Japan** (Tokyo) | `https://guardrails-jp-1.quilr.ai` |
 
-Self-hosted deployments use their own gateway URL. A self-hosted node that is connected to a QuilrAI-hosted service answers management calls with `503 central_service_required`; call the regional host instead.
+Self-hosted deployments use their own gateway URL. A self-hosted node that is connected to a WhiteMatter-hosted service answers management calls with `503 central_service_required`; call the regional host instead.
 
 In the console, turn on **Allow management keys for this organization** and issue a key (see [Enable in the console](#enable-in-the-console)). For this workflow, the key needs `read`, `providers:write`, `config:write` and `credentials:write`.
 
@@ -163,7 +163,7 @@ A `200` response lists every `scopes` value, your key's own scopes in `caller.sc
 | `403 insufficient_scope` | The key lacks `read`. |
 | `403 management_disabled_for_tenant` | **Allow management keys for this organization** is off. |
 | `404` | Management is turned off for this deployment, or the URL or path is wrong. |
-| `503 central_service_required` | You called a self-hosted node connected to a QuilrAI-hosted service. Use the regional host. |
+| `503 central_service_required` | You called a self-hosted node connected to a WhiteMatter-hosted service. Use the regional host. |
 
 ### 2. Create a shared provider
 
@@ -343,7 +343,7 @@ Key creation requires `Idempotency-Key`. The same administrator can replay the c
 
 ### Enablement and authentication
 
-Call the [regional host](#1-prepare-access) your organization uses. Self-hosted deployments can turn management off; both route families then return `404`. Self-hosted nodes connected to a QuilrAI-hosted service return `503 central_service_required`.
+Call the [regional host](#1-prepare-access) your organization uses. Self-hosted deployments can turn management off; both route families then return `404`. Self-hosted nodes connected to a WhiteMatter-hosted service return `503 central_service_required`.
 
 Resource routes use `/llmgateway/management/v1` and `Authorization: Bearer <qlmgmt_...>`. The key establishes the tenant. Administrator routes use `/llmgateway/management-admin/v1` and a verified tenant-admin JWT; see [authentication](#authentication).
 

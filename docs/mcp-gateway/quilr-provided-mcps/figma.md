@@ -8,7 +8,7 @@ sidebar_custom_props:
 
 <div className="mcp-product-hero compact"><span className="mcp-product-kicker">DESIGN SYSTEM OPERATIONS</span><h2>Design context with the integration controls included.</h2><p>Nineteen tools spanning context, variables, screenshots, comments, assets, libraries, and Code Connect.</p></div>
 
-Figma is a Quilr-built MCP in the Library for design context, comments and Code Connect. There is no shared Quilr-owned Figma app: each tenant connects with its own Figma OAuth app, which keeps tenants isolated.
+Figma is a WhiteMatter-built MCP in the Library for design context, comments and Code Connect. There is no shared WhiteMatter-owned Figma app: each tenant connects with its own Figma OAuth app, which keeps tenants isolated.
 
 ## Tools
 
@@ -35,7 +35,7 @@ Keep in mind:
 ### 1. Create the Figma OAuth app
 
 1. Open the [Figma developer portal](https://www.figma.com/developers/apps), click **Create new app**, name it and choose the organization that should own it.
-2. Under **Redirect URIs**, click **Add URI** and paste the **OAuth callback URL** shown on the Figma setup screen in QuilrAI. It must match exactly. Use a separate Figma app for each QuilrAI environment with a different callback URL.
+2. Under **Redirect URIs**, click **Add URI** and paste the **OAuth callback URL** shown on the Figma setup screen in WhiteMatter. It must match exactly. Use a separate Figma app for each WhiteMatter environment with a different callback URL.
 3. Enable all seven scopes below. The MCP rejects tokens that are missing any of them.
 4. Click **Save**, then copy the **Client ID** and **Client Secret**.
 
@@ -62,8 +62,8 @@ Do not request `projects:read`. It needs Figma's approval and is not available t
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| `redirect_uri_mismatch` | The Figma app's redirect URI differs from the QuilrAI callback URL. | Copy the callback URL again, update the Figma app, save and retry. |
-| `invalid_client` | Wrong client ID or secret, or a deleted secret. | Copy both values again and update QuilrAI. |
+| `redirect_uri_mismatch` | The Figma app's redirect URI differs from the WhiteMatter callback URL. | Copy the callback URL again, update the Figma app, save and retry. |
+| `invalid_client` | Wrong client ID or secret, or a deleted secret. | Copy both values again and update WhiteMatter. |
 | `Figma OAuth client_id and client_secret are required` | The gateway has no OAuth credentials for this server. | Enter the client ID and secret on the setup screen. |
 | `OAuth app with client id X doesn't exist` | Invalid client ID, or the app is limited to another Figma organization. | Check the app exists and the signing-in user belongs to that organization. |
 | `403 Forbidden` on team endpoints | Free or Professional plan restriction. | Upgrade, or use file-scoped tools. |
@@ -77,13 +77,13 @@ References: [Manage OAuth apps](https://www.figma.com/developers/apps), [Figma R
   officialTitle="Choose official for canvas creation"
   official="Use Figma's server when the agent should create or modify designs natively on the canvas with first-party product context."
   officialPoints={['Canvas-native creation', 'Deep design context and variables']}
-  quilrTitle="Choose Quilr for API operations"
-  quilr="Use Quilr for governed review, asset upload, comments, library search, and Code Connect mapping administration."
+  quilrTitle="Choose WhiteMatter for API operations"
+  quilr="Use WhiteMatter for governed review, asset upload, comments, library search, and Code Connect mapping administration."
   quilrPoints={['Nineteen explicit tools', 'Saved defaults and gateway policy']}
-  verdict="Creative canvas work favors Figma's official MCP; repeatable design-system and review operations favor Quilr."
+  verdict="Creative canvas work favors Figma's official MCP; repeatable design-system and review operations favor WhiteMatter."
 />
 
-| Capability | Figma Official MCP | Quilr Figma |
+| Capability | Figma Official MCP | WhiteMatter Figma |
 |---|:---:|:---:|
 | Design context and metadata | ✅ | ✅ |
 | Screenshots and variables | ✅ | ✅ |
@@ -95,4 +95,4 @@ References: [Manage OAuth apps](https://www.figma.com/developers/apps), [Figma R
 | Asset upload | - | ✅ |
 | Design-system library search | ✅ | ✅ |
 
-Use Figma's official server for canvas-native creation. Use Quilr for API-oriented review, asset, comment, and mapping workflows under gateway policy.
+Use Figma's official server for canvas-native creation. Use WhiteMatter for API-oriented review, asset, comment, and mapping workflows under gateway policy.
