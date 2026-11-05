@@ -19,8 +19,8 @@ Mistral OCR and fill-in-the-middle, and xAI images, videos and batches, are serv
 | Family | Default | Endpoints | Providers | Streaming |
 |--------|---------|-----------|-----------|:---------:|
 | `moderations` | On | `POST /moderations` | `openai`, `mistral`, `general` | - |
-| `images` | On | `POST /images/generations` | `openai`, `azureopenai`, `gemini_chatcompletions`, `general` | - |
-| | | `POST /images/edits` | `openai`, `general`, `azureopenai` (multipart) | - |
+| `images` | On | `POST /images/generations` | `openai`, `azureopenai`, `gemini_chatcompletions`, `general` | ✓ (`openai`) |
+| | | `POST /images/edits` | `openai`, `general`, `azureopenai` (multipart) | ✓ (`openai`) |
 | | | `POST /images/variations` | `openai` (multipart) | - |
 | `completions` | On | `POST /completions` | `openai`, `azureopenai`, `deepseek` (FIM beta), `cerebras`, `general` | ✓ |
 | `files` | Off | `POST`, `GET /files`; `GET`, `DELETE /files/{file_id}`; `GET /files/{file_id}/content` | `openai`, `azureopenai`, `mistral`, `xai` | - |
@@ -88,6 +88,12 @@ curl https://guardrails.quilr.ai/openai_compatible/v1/images/generations \
   -H "Authorization: Bearer $QUILR_KEY" -H "Content-Type: application/json" \
   -d '{"model": "gpt-image-1", "prompt": "A plain white square.", "n": 1}'
 
+# Streamed GPT Image 2.6 generation: OpenAI fields such as complexity and safety_identifier pass through
+curl -N https://guardrails.quilr.ai/openai_compatible/v1/images/generations \
+  -H "Authorization: Bearer $QUILR_KEY" -H "Content-Type: application/json" \
+  -d '{"model": "gpt-image-2.6-flare", "prompt": "A plain white square.", "complexity": "low",
+       "safety_identifier": "user-hash", "stream": true, "partial_images": 1}'
+
 # xAI image generation on its vendor route, with xAI's own fields
 curl https://guardrails.quilr.ai/xai/v1/images/generations \
   -H "Authorization: Bearer $QUILR_KEY" -H "Content-Type: application/json" \
@@ -123,7 +129,9 @@ Family routes are not scanned for sensitive data. A Policy Engine detection rule
 
 **Usage accounting:** `completions` and `images` count tokens and spend like chat and enforce output-token limits. `moderations`, `ocr`, `files`, `batches` and `videos` count requests. An image response without token counts charges no tokens; the provider's usage is kept on the log.
 
-**Logging:** each request is logged with its family and operation. Base64 payloads are left out of the log and logged bodies are capped (256 KiB by default). File and video downloads stream through byte for byte.
+**Image streaming:** OpenAI image generations and edits stream when the request sets `stream: true` (`"true"` as a multipart form field on edits). The gateway relays OpenAI's `partial_image` and `completed` events unchanged. OpenAI may skip partial images when the final image is ready first. The request's tokens and spend come from the usage on the final `image_generation.completed` or `image_edit.completed` event, as on a buffered response. Other image providers refuse a JSON `stream: true` with `400 streaming_not_supported`.
+
+**Logging:** each response carries `x-quilr-request-id`, the `request_id` of its log row. Each request is logged with its family and operation. Base64 payloads are left out of the log and logged bodies are capped (256 KiB by default). File and video downloads stream through byte for byte.
 
 ## Enabling families
 
