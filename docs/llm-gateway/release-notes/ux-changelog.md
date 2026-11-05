@@ -10,6 +10,12 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Azure AI Foundry follow-ups (2026-11-05)
+
+- Adding an Azure (`azureopenai`) provider no longer shows a note about the resource's Claude deployments; add Claude under **Azure** › **Anthropic messages** by deployment name
+- Mistral OCR requests (Mistral and Azure) are billed per processed page, for example $3 per 1,000 pages for `mistral-document-ai-2512`
+- Details: [Azure AI Foundry models](../apps-and-providers/provider-support#azure-ai-foundry-models)
+
 ## Azure AI Foundry models (2026-11-04)
 
 - **Check key and list models** on an Azure (`azureopenai`) provider now also lists the resource's Mistral Document AI and Microsoft-Decision-1 deployments, by deployment name and type

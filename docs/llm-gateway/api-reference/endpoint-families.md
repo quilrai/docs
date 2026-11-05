@@ -128,7 +128,7 @@ The OpenAI SDKs work unchanged: point `base_url` at `https://<region>/openai_com
 Family routes are not scanned for sensitive data. A Policy Engine detection rule on these surfaces reports `unsupported_route_capability`. Use the chat, Responses or embeddings endpoints where content must be scanned, or restrict which models an app can reach.
 :::
 
-**Usage accounting:** `completions` and `images` count tokens and spend like chat and enforce output-token limits. `moderations`, `ocr`, `files`, `batches` and `videos` count requests. An image response without token counts charges no tokens; the provider's usage is kept on the log.
+**Usage accounting:** `completions` and `images` count tokens and spend like chat and enforce output-token limits. `moderations`, `ocr`, `files`, `batches` and `videos` count requests. Mistral OCR (Mistral and Azure) is also billed per processed page at the catalog's per-page rate. An image response without token counts charges no tokens; the provider's usage is kept on the log.
 
 **Image streaming:** OpenAI image generations and edits stream when the request sets `stream: true` (`"true"` as a multipart form field on edits). The gateway relays OpenAI's `partial_image` and `completed` events unchanged. OpenAI may skip partial images when the final image is ready first. The request's tokens and spend come from the usage on the final `image_generation.completed` or `image_edit.completed` event, as on a buffered response. Other image providers refuse a JSON `stream: true` with `400 streaming_not_supported`.
 
