@@ -10,6 +10,11 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Full report says Compromised instead of Breached (2026-11-05)
+
+- On a run's full report, attacks that got through are now called **Compromised** instead of **Breached**: in the posture tallies, the warning above the findings, the **Compromised & partial** findings filter, each conversation's status and the guardrail check
+- The PDF, the Markdown export and the full-report email use the same wording, for example **Confirmed compromises** and the **Compromises** column in the attack-technique table
+
 ## Framework rings average their categories again (2026-11-05)
 
 - Each framework ring on a run's Standards & Framework Coverage panel is again the average pass rate of that framework's categories, the same rates shown in the **Categories** table, with each category counted equally. Tests under **Other** are still left out
