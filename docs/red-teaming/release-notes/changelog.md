@@ -10,6 +10,12 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Framework rings average their categories again (2026-11-05)
+
+- Each framework ring on a run's Standards & Framework Coverage panel is again the average pass rate of that framework's categories, the same rates shown in the **Categories** table, with each category counted equally. Tests under **Other** are still left out
+- Since the 2026-11-03 change, rings counted each test once, so a run whose tests fell under every framework showed the same number on every card. Each framework now shows its own score
+- The large ring is still the average of the framework rings
+
 ## Forward summary can email the full report (2026-11-05)
 
 - In **Forward summary** on a run's page, tick **Email the full report instead of the summary** to send each email address the run's full report. It has the same content as the report's PDF: every finding with its evidence, the attack details and the recommended fixes
