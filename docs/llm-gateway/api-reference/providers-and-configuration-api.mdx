@@ -74,7 +74,9 @@ Saving configuration never contacts the upstream provider. Run a test or a disco
 | `tag` | Repeatable. `key` matches any non-empty tag value; `key:value` matches a string, a list member, or a boolean or number by its JSON text. Matches provider tags or any selected model's tags, for example `tag=region:us-east-1` or `tag=canonical_model:gpt-4.1-mini`. |
 | `include_deleted` | `true` adds deleted providers. |
 
-Saves and reads return `{ "provider": { ... }, "request_id": "..." }`; ordinary responses omit upstream secrets.
+Any other query parameter (for example `q` or `label`) is `400 invalid_request` naming it in `fields`, instead of being ignored and returning every provider.
+
+Saves and reads return `{ "provider": { ... }, "request_id": "..." }`; ordinary responses omit upstream secrets. A PATCH that sends the same secret already stored returns the warning `credentials_unchanged`, and `credentials_updated_at` does not move (it records when the secret last changed). A provider test returns the warning `model_deprecated` when the provider says a tested model is deprecated or retired.
 
 ### Provider endpoints
 
@@ -94,7 +96,7 @@ When a provider starts offering a model after the gateway began watching it, the
 | Action | Call | Scope |
 | --- | --- | --- |
 | List reviews across providers, newest first (`status`: `pending`, `approved` or `rejected`) | [`GET /provider-model-reviews`](#List_provider_model_reviews) with optional `status`, `provider`, `app`, `limit`, `cursor` | `read` |
-| Read one provider's last model listing and its pending, approved and rejected models | [`GET /provider-model-reviews/{label}`](#Read_a_provider_model_review) (add `app_name` for a provider an app holds with its own keys) | `read` |
+| Read one provider's last model listing and its pending, approved and rejected models | [`GET /provider-model-reviews/{label}`](#Read_a_provider_model_review) (a provider one app holds with its own keys is found without `app_name`; pass `app_name` or `app` when several apps use the label, otherwise `409 app_name_required` lists them) | `read` |
 | Approve or reject models of a shared provider | [`POST /provider-model-reviews/{label}/decisions`](#Approve_or_reject_provider_models) | `providers:write` |
 | Approve or reject models of a provider an app holds with its own keys (`{label}` is the app's own provider label) | [`POST /provider-model-reviews/{label}/app-decisions`](#Approve_or_reject_app_provider_models) with `app_name` | `config:write` |
 
@@ -236,7 +238,7 @@ Read existing tenant resources and inspect configuration changes. These endpoint
 
 ### Catalogs
 
-`GET /smart-groups` and `GET /custom-definitions` support `limit` and `cursor`; a `q` search filter is **Not Generally Available**. Individual resource reads use `group_name` or `definition_id`. Definition catalog records use the stable `edm_id`; pass that value as `definition_id` when selecting it in an app.
+`GET /smart-groups` and `GET /custom-definitions` support `limit` and `cursor`; a `q` search filter is **Not Generally Available**. Individual resource reads use `group_name` or `definition_id`. Each definition carries `definition_id` (the same value as `edm_id`): use it in the path and as `definition_id` when selecting it in an app.
 
 Existing groups/definitions can be referenced in app configuration. Group/membership writes and regex/EDM/semantic/intent authoring are **Not Generally Available** through these APIs.
 
@@ -248,7 +250,7 @@ Rollback requires the current **app ETag** and `Idempotency-Key`. It restores el
 
 ### Audit
 
-`GET /audit` returns tenant management events, newest first, with `event_id`, `actor`, `operation`, `resource`, `request_id`, `result`, `created_at` and `changes`. Rejected writes are recorded with their error code, and provider tests and discovery with their outcome only. `created_at` uses Unix seconds. Events are kept for 90 days. New events never invalidate a cursor; they appear on a fresh listing. Only `limit` and `cursor` are supported; app-name, operation, management-key and time-range filters are **Not Generally Available**.
+`GET /audit` returns tenant management events, newest first, with `event_id`, `actor`, `operation`, `resource`, `request_id`, `result`, `created_at` and `changes`. Rejected writes are recorded with their error code, and provider tests and discovery with their outcome only. `created_at` uses Unix seconds. Events are kept for 90 days. New events never invalidate a cursor; they appear on a fresh listing. Filter with `actor` (a management key id or administrator), `operation` (for example `provider_update`), `resource`, and `since` / `until` (RFC 3339 time, a date meaning UTC midnight, or epoch seconds). Unknown parameters are `400`.
 
 ### Operation recovery
 

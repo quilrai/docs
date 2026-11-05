@@ -18,7 +18,8 @@ Manage app-scoped templates. Prompt content remains live independently of QuilrQ
 | App locator | Encoded app-name path, or `/app/prompts?...` with `app_name` in the query. |
 | `prompt_id` | 1-200 characters: letters, digits, hyphens and underscores. |
 | `content` | Nonempty template string. The complete JSON body must fit within 1 MiB. |
-| Every mutation | Current **app** ETag in `If-Match`, including creation. |
+| Creating a new prompt | No `If-Match` needed (`201`). Sending the app ETag still works. |
+| Replacing or deleting a prompt | Current **app** ETag in `If-Match` (`428` without it, `412` when stale). |
 
 PUT creates a missing prompt (`201`) or replaces an existing prompt (`200`). It preserves other prompts/settings. Create-only prompt preconditions are **Not Generally Available**; `If-None-Match` is not implemented as a create-only guard. DELETE returns `200` with `prompt:null`, `prompt_id`, the updated app `version` and `request_id`.
 

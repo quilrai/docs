@@ -124,7 +124,7 @@ A limit response replaces the default message of a blocked request for its scope
 {"scope": {"apps": ["support-bot"]}, "message": "Limit {limit} reached; resets {reset}", "url": "https://help.example.com/limits", "retry": "never"}
 ```
 
-`message` may use `{limit}`, `{reset}` and `{budget}`. `url` must be `https://`. `retry: "never"` tells clients not to retry; `default` keeps the normal retry hint. Two limit responses must name app lists with no app in common, otherwise `422 limit_response_conflict`, so each app gets exactly one message.
+`message` may use `{limit}`, `{reset}` and `{budget}`. `url` must be `https://`. `retry: "never"` tells clients not to retry: the 429 sends `x-should-retry: false` and no `Retry-After`. `default` keeps the normal retry hint. Two limit responses must name app lists with no app in common, otherwise `422 limit_response_conflict`, so each app gets exactly one message.
 
 ## Effective limits
 

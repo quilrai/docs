@@ -1,0 +1,85 @@
+---
+title: "Access and gateway features API"
+sidebar_position: 6.75
+sidebar_label: "Access and features API"
+sidebar_custom_props:
+  badge: new
+  icon: ShieldCheck
+description: "LLM Gateway Management API v1: access controls (block, require identity or a conversation ID, allowed source IPs) and gateway features such as token saving, response cache, cache warm, model visibility, error messages, conversation headers and prompt enforcement."
+aliases: [access controls api, gateway features api, token saving api, response cache api, cache warm api, model visibility api, error messages api, conversation headers api, prompt enforcement api, allowed source ips, require conversation id]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Access and gateway features API
+
+**Set access rules and gateway features for apps, users and smart groups without writing policy.** Each resource names who it applies to (`scope`) and what it sets (`settings`). Every write publishes one new policy revision, so these APIs need the Policy Engine on for the LLM Gateway. Try every operation in the [Management API playground](/llm-gateway-management-playground?tab=features).
+
+| Collection | Path | What it sets | Read scope | Write scope |
+| --- | --- | --- | --- | --- |
+| Access controls | `/controls/access` | `block`, `require_identity`, `require_conversation_id` (each only `true`) and `allowed_source_ips`. | `read` | `config:write` |
+| Token saving | `/controls/token-saving` | Which [token saving](../cost-and-traffic/token-saving) methods run on request bodies. | `read` | `config:write` |
+| Response cache | `/controls/response-cache` | `enabled`: exact-match cache for non-streaming chat, Messages and embeddings requests. | `read` | `config:write` |
+| Cache warm | `/controls/cache-warm` | `extend_cache_lifetime`, `refresh_requests`, `min_prompt_tokens`, `stop_after_idle_minutes`. | `read` | `config:write` |
+| Model visibility | `/controls/model-visibility` | What [model lists](../protect/model-visibility) show: `show_only`, `hide`, `hide_all`, `hide_aliases`, `reveal_hidden`. Never what can be called. | `read` | `config:write` |
+| Error messages | `/controls/error-messages` | [Friendly messages](../protect/error-messages) and help links for matching gateway or provider errors. Status, type and code never change. | `read` | `config:write` |
+| Conversation headers | `/controls/conversation-headers` | `id_headers`: extra request headers that carry a conversation ID. | `read` | `config:write` |
+| Prompt enforcement | `/controls/prompt-enforcement` | `require_system_from_store` and a `universal_system_prompt` from the [Prompt Store](../cost-and-traffic/prompt-store). | `read` | `config:write` |
+
+## Scope
+
+`scope` takes any of `apps`, `app_tags`, `smart_groups` and `users`. A resource applies to a request that matches every key it sets (within a key, any listed value matches).
+
+- **Access controls** with an empty scope apply to every request of every app. That is allowed only with `all_apps: true`; without it the write is `422 access_scope_required`, and `all_apps: true` with a non-empty scope is `400`. The response still carries the warning `access_applies_to_everyone`.
+- **Feature settings** with an empty scope apply to every app.
+
+## How they combine
+
+| Kind | Rule |
+| --- | --- |
+| Access controls | Only tighten. Every matching control applies and the strictest wins: any `block` blocks, any `require_*` requires, and `allowed_source_ips` lists from every matching control intersect. They also combine with access rules written in the console. A control that sets nothing restrictive, or sets a value to `false`, is `422 access_not_restrictive`. |
+| Feature settings | Win over console rules of the same kind where they match. Between two feature resources that match a request, the higher `rank` (0 to 49) wins. The list settings `show_only`, `hide`, `mappings` and `id_headers` combine across every matching resource and console rule. Two resources of one collection with the same rank, scopes that can overlap and different values are `422 feature_conflict`. |
+
+## Writes and versions
+
+These collections follow the same rules as routing and limit controls: `PUT /controls/{collection}/{id}` creates (`201`) or replaces (`200`), an unchanged PUT publishes nothing (`changed: false`), changing or deleting needs the resource ETag in `If-Match`, PATCH is a JSON merge patch, and `?dry_run=true` previews without publishing. Batch writes across collections go through `POST /controls/_batch`. See [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency).
+
+Lists also show console rules of the same kind as read-only rows (`source: "console"`); writing one is `409 rule_not_api_managed`.
+
+## Examples
+
+```bash
+API=https://guardrails-usa-1.quilr.ai/llmgateway/management/v1
+auth=(-H "Authorization: Bearer $QUILR_MANAGEMENT_KEY" -H "Content-Type: application/json")
+
+# Contractors: office network only, signed-in users only
+curl -X PUT "$API/controls/access/contractors-office" "${auth[@]}" \
+  -d '{"scope": {"smart_groups": ["contractors"]},
+       "settings": {"require_identity": true, "allowed_source_ips": ["203.0.113.0/24"]},
+       "description": "Contractors: office network only"}'
+
+# Every app: require a conversation ID (an empty scope needs all_apps)
+curl -X PUT "$API/controls/access/conversation-id-everywhere" "${auth[@]}" \
+  -d '{"all_apps": true, "settings": {"require_conversation_id": true}}'
+
+# Support bot: minify JSON and clean up tool output
+curl -X PUT "$API/controls/token-saving/support-bot" "${auth[@]}" \
+  -d '{"scope": {"apps": ["support-bot"]}, "rank": 10,
+       "settings": {"json_minification": true, "tool_output_cleanup": true}}'
+```
+
+## Endpoints
+
+### Access controls
+
+<ApiReference tags={['Access']} paths={['/controls/access']} />
+
+### Gateway features
+
+<ApiReference tags={['Gateway features']} />
+
+## Related
+
+- [Routing and failover API](./routing-and-failover-api) - write rules, ETags, batch and revision restore shared by every control collection.
+- [Rate limits API](./rate-limits-api) - request and token limits, request guards and limit responses.
+- [Management API](./management-api) - authentication, scopes, errors and response formats.

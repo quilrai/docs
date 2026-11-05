@@ -25,13 +25,14 @@ Configure the same routing and failover that the Policy Engine's **Routing Group
 
 | Resource | What it is | Read scope | Write scope |
 | --- | --- | --- | --- |
-| Destinations | A named weighted pool (weights total 100) or an ordered target list. Routes reference it by id. Quick operations: `:set-weights`, `:replace-member`. | `routing:read` | `routing:write` |
+| Destinations | A named weighted pool (weights total 100) or an ordered target list. Routes reference it by id. Quick operations: `:set-weights` (new weights for the same members), `:replace-member`. | `routing:read` | `routing:write` |
 | Routes | Which destination serves a requested model, for which apps, smart groups, users or app tags. Quick operation: `:set-mode`. | `routing:read` | `routing:write` |
 | Failover profiles | Reusable failover settings (tier, backups, tries, retries, timeouts). | `routing:read` | `routing:write` |
 | Failover rules | Failover for a scope when the deciding route has none. | `routing:read` | `routing:write` |
 | Failover default | One tenant-wide failover setting; deleting it returns to the built-in default. | `routing:read` | `routing:write` |
 | Routing constraints | Hard limits on where requests may go: provider tags such as `provider.geo`, required capabilities, allowed or excluded provider labels. | `routing:read` | `routing:constraints` |
 | Model access | Allow and deny lists of requested models for a scope. | `routing:read` | `routing:write` |
+| Complexity levels | Named complexity levels and context thresholds that content routes match on, for a scope. | `routing:read` | `routing:write` |
 | References, revisions, diagnostics | Find everything that uses a provider, revision history and restore, rollout status, explain a route, dry-run test. | `routing:read` | write scope of each restored collection |
 
 `routing:read` does not need `read`. Try every operation with your own key in the [Management API playground](/llm-gateway-management-playground?tab=routing).
@@ -91,7 +92,7 @@ app: support-bot   user: dana@example.com`,
   }}
 />
 
-A tier is used only when the tiers before it have no usable candidate left. The failover object's `scope` (`route`, `same_model` or `app`) is how far down this list a request may go. On reads it is also returned as `candidate_scope`, so it is not confused with the resource `scope` (apps, smart groups, users, app tags).
+A tier is used only when the tiers before it have no usable candidate left. The failover object's `candidate_scope` (`route`, `same_model` or `app`) is how far down this list a request may go. It is not the resource `scope` (apps, smart groups, users, app tags). Writes also accept the older name `scope` inside the failover object; reads return both.
 
 ### Who owns a request's failover
 
@@ -146,6 +147,7 @@ The winner supplies the whole failover object; settings from different levels ar
 | POST needs a key | Quick operations, `_batch` and restore need `Idempotency-Key` (`400 idempotency_key_required`). A retry with the same key replays the original result for 24 hours, including a no-op; the same key with another body is `409 idempotency_conflict`. |
 | Dry run | `?dry_run=true` returns `diff.spec` (one `{collection, id, op, before, after}` per changed resource), `diagnostics`, `warnings`, `impact` (`apps`, `routes`, `models`, `routes_without_candidates`, `pins`) and `capacity`, and publishes nothing. |
 | Batch | `POST /controls/_batch` applies up to 100 operations across collections as one revision, all or nothing. Each op is `{op, collection, id, body?, if_match?, if_none_match?}`; a failure names `op_index`. |
+| Warnings | `warnings` and `validation_warnings` never block a publish. A warning that repeats for many rules (`unsupported_route_capability`) is listed once with `occurrences` and `lines`. A destination, route or fallback that names a model its provider marks deprecated or retired returns `model_deprecated`. |
 | Capacity | `GET /controls/_capacity` shows rules, policies and policy size against the tenant caps; a write past them is `422 policy_capacity_exceeded`. |
 | Console rows | Lists show console-authored rules of the same kind as read-only rows (`source: "console"`). Writing one is `409 rule_not_api_managed`. |
 
@@ -173,7 +175,7 @@ A dropped conversation routes again and its next request starts with a cold prov
 
 1. **Rollout.** `GET /controls/revisions/{revision}/status` counts gateway processes that served the tenant in the last hour: `processes_reporting`, `processes_on_rev`, `lagging`, and `complete` (at least one reports and none lags). `processes_reporting: 0` means no recent traffic, not "not applied"; an idle gateway picks the revision up on its next request.
 2. **Explain.** `GET /routing/effective?app=&requested_model=&user=&surface=` shows the route that wins, its destination, `failover_owner` and resolved failover, the rules it outranked (`shadowed`), constraints, candidates left and active mark-downs, for the evaluated revision (`revision_current`). Nothing is sent upstream.
-3. **Test a proposal.** `POST /routing/test` runs the routing dry run for a sample body, optionally with `proposed` controls (`{collection: {id: resource | null}}`) rendered in memory. Nothing is published, pinned or sent upstream. `POST /routing/target-check` says whether each provider model can serve each client API (native, converted or not at all).
+3. **Test a proposal.** `POST /routing/test` runs the routing dry run for a sample body, optionally with `proposed` controls rendered in memory: either `{collection: {id: resource | null}}` or the same op list as `POST /controls/_batch` (`[{op: "put" | "delete", collection, id, body}]`, also accepted as `{ops: [...]}`). Nothing is published, pinned or sent upstream. `POST /routing/target-check` says whether each provider model can serve each client API (native, converted or not at all).
 4. **Watch traffic.** `GET /routing/summary` shows traffic per route and destination member against its weight; `GET /failover/summary` shows retries, failovers and outcomes per target.
 
 ## Revision history and restore
@@ -202,7 +204,7 @@ curl -X PUT "$API/controls/destinations/smart-pool" "${auth[@]}" \
 
 # 2. How it fails over: two tries, then the mini model, then the same model elsewhere
 curl -X PUT "$API/controls/failover-profiles/standard" "${auth[@]}" \
-  -d '{"scope": "same_model", "max_attempts": 2, "fallbacks": [{"provider_label": "azure-eu", "model": "gpt-4.1-mini"}]}'
+  -d '{"candidate_scope": "same_model", "max_attempts": 2, "fallbacks": [{"provider_label": "azure-eu", "model": "gpt-4.1-mini"}]}'
 
 # 3. Preview the route, then publish it
 body='{"match": {"requested_models": ["smart"]}, "scope": {"apps": ["support-bot"]},
@@ -292,7 +294,7 @@ curl -X POST "$API/controls/revisions/41:restore" "${auth[@]}" -H "If-Match: $CO
 | 404 | `not_found`, `revision_not_found`, `app_not_found` |
 | 409 | `policy_not_enabled`, `managed_controls_disabled` (writes turned off for the deployment; dry runs still answer), `rule_not_api_managed`, `destination_in_use`, `failover_profile_in_use`, `idempotency_conflict`, `collection_changed`, `managed_controls_changed`, `policy_conflict`, `restore_conflict` |
 | 412 | `version_conflict` |
-| 422 | `validation_failed`, `route_rank_conflict`, `policy_capacity_exceeded`, `invalid_named_reference`, `invalid_weights`, `member_not_found`, `surface_family_required`, `surface_family_overlap`, `invalid_route_decision`, `too_many_resources`, `routing_constraint_no_candidates` (with `?strict=true`; otherwise a warning), `repin_scope_confirmation_required`, `surface_not_supported_for_explain`, `time_range_not_supported` |
+| 422 | `members_mismatch` (`:set-weights` must name exactly the current members; `details.current`. Add or remove members with PUT), `validation_failed`, `route_rank_conflict`, `policy_capacity_exceeded`, `invalid_named_reference`, `invalid_weights`, `member_not_found`, `surface_family_required`, `surface_family_overlap`, `invalid_route_decision`, `too_many_resources`, `routing_constraint_no_candidates` (with `?strict=true`; otherwise a warning), `repin_scope_confirmation_required`, `surface_not_supported_for_explain`, `time_range_not_supported` |
 | 428 | `precondition_required` |
 | 429 | `test_routing_busy` |
 | 503 | `central_service_required`, `revision_status_unavailable`, `test_routing_unavailable` |
@@ -311,9 +313,9 @@ curl -X POST "$API/controls/revisions/41:restore" "${auth[@]}" -H "If-Match: $CO
 
 <ApiReference tags={['Routing']} paths={['/controls/failover-profiles', '/controls/failover-rules', '/controls/failover-default']} />
 
-### Routing constraints and model access
+### Routing constraints, model access and complexity levels
 
-<ApiReference tags={['Routing']} paths={['/controls/routing-constraints', '/controls/model-access']} />
+<ApiReference tags={['Routing']} paths={['/controls/routing-constraints', '/controls/model-access', '/controls/complexity-levels']} />
 
 ### References, batch and capacity
 

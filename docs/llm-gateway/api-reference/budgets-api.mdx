@@ -50,7 +50,7 @@ Try every operation with your own key in the [Management API playground](/llm-ga
 | Write | Effect |
 | --- | --- |
 | Budget, pricing and exemption edits | Validated like a console publish, then published as **one new policy revision**. Policy text outside the edited budget is kept as is. |
-| Batch (`POST /budgets/_batch`) | Up to 100 budget, rate and exemption operations published as one revision, all or nothing. |
+| Batch (`POST /budgets/_batch`) | Up to 100 budget, rate and exemption operations published as one revision, all or nothing. Each op has the same shape as a `POST /controls/_batch` op: `{op, id?, body?, if_match?}`, where `body` is the patch, the new budget, the rate, the exemption or the unpriced-models value. A failure names `op_index`. |
 | Grants | Stored outside the policy. Issuing, changing or revoking a grant never publishes a revision. |
 | Alert destinations | Replaces the whole webhook list. Stored targets are redacted on read; send the redacted value back to keep a stored URL. |
 
@@ -59,6 +59,9 @@ Try every operation with your own key in the [Management API playground](/llm-ga
 - **Creates take an `Idempotency-Key`.** Budget, batch, exemption and grant creation replay the original result for the same key.
 - **API-managed vs hand-written.** Budgets created here go into an API-managed policy. Budgets written by hand in the policy editor can have their limit, label, mode, alerts and adjustments changed, but cannot be deleted or re-scoped (`409 budget_not_api_managed`). The same applies to exemptions (`409 exemption_not_api_managed`).
 - **Identity fields are fixed.** `id`, `metric`, grouping (`per`) and `window` cannot change (`422 identity_field_immutable`), because usage is tracked against them. Create a new budget instead.
+- **Grouping names.** `per` takes the same short names as rate limits (`user`, `app`, `smart_group`, `model`, `provider`, ...) or the full field names (`user.email`, `application.group_key`, ...). Budgets store and return the full names.
+- **New exemptions.** `POST /budget-exemptions` returns the new entry as `exemption` and its `exemption_id` in `ids`.
+- **Events.** `GET /budget-events` types are past tense: `grant.created`, `grant.updated`, `grant.revoked`, `grant.superseded`, `budget.created`, `budget.updated`, `budget.deleted`, `budget.batch_applied`, `exemption.created`, `exemption.deleted`, `token_rate.updated`, `token_rate.deleted` and `unpriced_models.updated`. Filter with `type`.
 
 ## Usage, grants and prices
 
