@@ -10,6 +10,17 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Forward summary can email the full report (2026-11-05)
+
+- In **Forward summary** on a run's page, tick **Email the full report instead of the summary** to send each email address the run's full report. It has the same content as the report's PDF: every finding with its evidence, the attack details and the recommended fixes
+- Slack still gets the summary
+- Unlike the summary, the full report can be read without signing in to the console, so send it only to people who should see attack details
+
+## Full report text matches the run page (2026-11-05)
+
+- Text on a run's full report now uses the same sizes and styles as the run page, so the two pages read alike. Small labels that were hard to read are larger, and the monospace font is kept for tool names, framework IDs, prompts and other code-like values
+- The report's **PDF**, **Markdown** and **copy** buttons now match the console's other buttons
+
 ## Agent card renamed to AI App / Agent (2026-11-05)
 
 - On the **Assessments** page, the first card in the **New assessment** row is now called **AI App / Agent**. It starts the same assessment as before
