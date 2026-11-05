@@ -10,6 +10,11 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Gateway-connected card removed from New assessment (2026-11-05)
+
+- The **New assessment** row on the **Assessments** page now shows four cards: **Agent**, **AI Workflow**, **Model** and **MCP**. The **Gateway-connected** card is no longer shown
+- Past Gateway-connected runs still appear under **Recent runs**, and you can still filter by them
+
 ## MCP scans can sign in to the server (2026-11-04)
 
 - A live MCP scan can now sign in the same ways an agent assessment can: bearer token, API key (in a header or query parameter), username and password, OAuth client credentials, a login that returns a token, or a sign-in form's session cookie. Choose the method under **Sign-in** when you scan a live server. Credentials are used for that scan only and are never stored
