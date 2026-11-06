@@ -31,12 +31,12 @@ const initial = {
   apps: '',
   groups: '',
 };
-const split = (value) =>
+export const split = (value) =>
   value
     .split(',')
     .map((v) => v.trim())
     .filter(Boolean);
-function amount(value, metric) {
+export function amount(value, metric) {
   if (metric === 'spend_usd') {
     if (!/^\d+(\.\d{1,6})?$/.test(value))
       throw new Error(

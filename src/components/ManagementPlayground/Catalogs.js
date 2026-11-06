@@ -1,52 +1,36 @@
 import React, { useState } from 'react';
 import { MANAGEMENT_PREFIX, seg } from './client.mjs';
-import { ApiChips, ConnectFirst, ErrorBox, JsonView, Pager, Panel, Table, Tabs, fmt, useAction, useCollection, usePlayground } from './ui';
+import { ApiChips, ConnectFirst, ErrorBox, JsonView, Notice, Pager, Panel, Table, fmt, useAction, useCollection, usePlayground } from './ui';
 import { idOf } from './shared';
 import styles from './styles.module.css';
 
-const KINDS = {
-  groups: {
-    title: 'Smart groups',
-    subtitle: 'Groups of users that app settings and budgets can reference. Read only here; edit them in the console.',
-    path: '/smart-groups',
-    item: '/smart-groups/{group_name}',
-    id: (r) => idOf(r, 'group_name', 'name', 'id'),
-    columns: [
-      { label: 'Members', render: (r) => fmt(r.member_count ?? r.members?.length) },
-      { label: 'Description', render: (r) => fmt(r.description) },
-    ],
-  },
-  definitions: {
-    title: 'Custom definitions',
-    subtitle: 'Custom detection definitions an app can select in detection.custom_definitions. Read only here.',
-    path: '/custom-definitions',
-    item: '/custom-definitions/{definition_id}',
-    // Rows are keyed by edm_id; the detail route matches it too.
-    id: (r) => idOf(r, 'edm_id', 'reference'),
-    columns: [
-      { label: 'Name', render: (r) => fmt(r.display_name || r.name) },
-      { label: 'Type', render: (r) => fmt(r.type) },
-      { label: 'Enabled', render: (r) => fmt(r.enabled) },
-    ],
-  },
+// Smart groups have their own workspace (SmartGroups.js).
+const DEFINITIONS = {
+  title: 'Custom definitions',
+  subtitle: 'Custom detection definitions an app can select in detection.custom_definitions. Read only here.',
+  path: '/custom-definitions',
+  item: '/custom-definitions/{definition_id}',
+  // Rows are keyed by edm_id; the detail route matches it too.
+  id: (r) => idOf(r, 'edm_id', 'reference'),
+  columns: [
+    { label: 'Name', render: (r) => fmt(r.display_name || r.name) },
+    { label: 'Type', render: (r) => fmt(r.type) },
+    { label: 'Enabled', render: (r) => fmt(r.enabled) },
+  ],
 };
 
 export default function Catalogs() {
-  const { client } = usePlayground();
-  const [kind, setKind] = useState('groups');
-  if (!client) return <ConnectFirst what="browse smart groups and custom definitions" />;
+  const { client, navigate } = usePlayground();
+  if (!client) return <ConnectFirst what="browse custom definitions" />;
   return (
     <div className={styles.stack}>
-      <Tabs
-        label="Catalog"
-        value={kind}
-        onChange={setKind}
-        tabs={[
-          ['groups', 'Smart groups'],
-          ['definitions', 'Custom definitions'],
-        ]}
-      />
-      <Catalog key={kind} config={KINDS[kind]} />
+      <Notice>
+        Smart groups, their ranks and virtual groups have their own workspace.{' '}
+        <button type="button" className={styles.linkBtn} onClick={() => navigate('smart-groups')}>
+          Open Smart groups
+        </button>
+      </Notice>
+      <Catalog config={DEFINITIONS} />
     </div>
   );
 }

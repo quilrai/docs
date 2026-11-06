@@ -5,6 +5,7 @@ import { createBudgetsClient } from './api.mjs';
 import Settings from './Settings';
 import BudgetEditor from './BudgetEditor';
 import Grants from './Grants';
+import BudgetSets from './BudgetSets';
 import {
   Panel,
   Field,
@@ -24,6 +25,7 @@ import styles from './styles.module.css';
 const storageKey = 'quilr-budgets-playground-session';
 const tabs = [
   ['budgets', 'Budgets'],
+  ['sets', 'Group budget sets'],
   ['subjects', 'Who uses what'],
   ['grants', 'Grants'],
   ['models', 'Models & costs'],
@@ -398,6 +400,9 @@ export default function BudgetsAdmin({ connection: shared, onResponse, embedded 
           </nav>
           {canRead && tab === 'budgets' && (
             <Budgets key={connection.id} budgets={inventory} {...props} />
+          )}
+          {canRead && tab === 'sets' && (
+            <BudgetSets key={connection.id} budgets={inventory} {...props} />
           )}
           {canRead && tab === 'subjects' && (
             <Subjects key={connection.id} {...props} />
