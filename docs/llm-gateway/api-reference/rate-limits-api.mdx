@@ -75,7 +75,7 @@ This page covers rate limits (requests and tokens over a window). Spend budgets,
 | --- | --- |
 | `user` / `user_id` | user email / user id |
 | `app` / `app_key` | app / gateway key |
-| `smart_group` | the user's active smart group |
+| `smart_group` | the person's strongest smart group (lowest [rank](./smart-groups-api#rank)). For separate budgets per group, use a [group budget set](./budgets-api#group-budget-sets) instead. |
 | `model` / `provider` / `provider_label` | served model / provider type / provider label |
 | `method_type` | client API family (Chat Completions, Responses, ...) |
 | `tenant` | the whole organization |

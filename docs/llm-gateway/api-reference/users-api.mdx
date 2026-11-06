@@ -49,7 +49,7 @@ Each entry has:
 | `source` | `directory` (in your synced identity directory), `configured` (named in gateway configuration but not in the directory) or `traffic` (known only from gateway requests). |
 | `sources` | Every place the gateway knows the person from: `directory`, `app_access_list`, `smart_group`, `self_service_access`, `self_service_key`, `traffic`. |
 | `apps`, `all_apps` | Apps granted to the person specifically (allowed users, self-service access, an active personal key). `all_apps: true` when every app is listed for them in the console. An app saved without a name appears as `Unnamed app`. |
-| `smart_groups`, `directory_groups`, `department` | Enabled smart groups (highest priority first), identity-provider groups and department. |
+| `smart_groups`, `directory_groups`, `department` | Enabled smart groups, strongest first (lowest [rank](./smart-groups-api#rank) number), identity-provider groups and department. |
 | `self_service_keys` | Number of active personal keys. |
 | `last_active_at` | Latest gateway request or personal-key use. |
 | `requests_30d`, `cost_usd_30d` | Served requests and logged cost for the last 30 days. `requests_30d` is `0` without traffic; both are `null` when usage is unavailable. |
