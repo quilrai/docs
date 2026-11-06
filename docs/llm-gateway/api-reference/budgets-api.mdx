@@ -74,7 +74,7 @@ A group budget set is one budget per smart group, for example $50 a month for Em
 | `strongest` | **Their strongest group's budget applies (by rank)** | Only the budget of the person's best-ranked group in the set is checked and charged, with its own limit, counter and grants. The other groups' budgets are skipped. Default for new sets. |
 | `strictest` | **Every group's budget applies (strictest wins)** | The person is charged in every group budget they belong to; the first to run out blocks them. |
 
-The best-ranked group is the one with the lowest rank number, the `priority` field of the [Smart groups API](./smart-groups-api#rank) (ties by name; disabled groups never count). Its strength, the `rank` field, is `1`. See [Budgets for several groups](../cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups) for the full rules and a diagram.
+The best-ranked group is, among the person's groups in the set, the one with the lowest rank number: the `priority` field of the [Smart groups API](./smart-groups-api#rank) (ties by name; disabled groups never count). It is the one with the smallest `rank` (Strength) among them, not necessarily `1`. See [Budgets for several groups](../cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups) for the full rules and a diagram.
 
 | Call | Body and effect |
 | --- | --- |
@@ -108,6 +108,7 @@ curl -X POST "$API/budget-sets" \
 | `400` | `invalid_budget_set` | The body has the wrong shape. |
 | `404` | `budget_set_not_found`, `budget_set_group_not_found` | No such set, or the group is not in it. |
 | `409` | `budget_set_exists`, `budget_set_group_exists` | The set id or the group is already taken. |
+| `409` | `budget_in_group_set` | `PATCH /budgets/{id}` tried to change the smart-group scope of a budget that belongs to a set. Add or remove the group through the set instead. |
 | `409` | `budget_set_not_api_managed` | The set was written in the console; edit it there (switching `resolve` still works here). |
 
 Publishing also checks that every budget of a set shares `resolve`, metric and grouping (`quota_group_set_mismatch`), that each group has one budget per window (`quota_group_set_duplicate_group`) and that a set has at most 32 groups (`quota_group_set_exceeds_cap`).

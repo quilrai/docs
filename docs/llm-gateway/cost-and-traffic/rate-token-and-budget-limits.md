@@ -118,7 +118,7 @@ flowchart LR
 
   ![Change group rank dialog listing people who change governing group and switch budget](/img/llm-gateway/ui/groups-rank-change-preview.png)
 
-- **A new governing group starts a fresh counter.** If someone's strongest group changes mid-period, the new group's budget counts from zero; usage already recorded stays on the old group's budget.
+- **Each group's budget keeps its own counter.** If someone's strongest group changes mid-period, their spend counts against the new group's budget from then on; usage already recorded stays on the old group's budget. Usage is not carried over: a per-person budget they never used starts at zero, a shared group budget keeps the group's running total, and switching back finds the old budget where they left it.
 - **Group lookup unavailable.** If the gateway cannot look up a person's groups for a request, it does not pick a governing group: every budget of the set that matches applies.
 - **Budgets created before group sets** keep behaving as **Every group's budget applies** until you change the option.
 - **Sets created through the [Budgets API](../api-reference/budgets-api#group-budget-sets)** are shown read-only with **Managed by API**; change them through the API.

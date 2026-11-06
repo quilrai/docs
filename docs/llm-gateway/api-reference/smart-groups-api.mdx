@@ -42,7 +42,10 @@ Try every operation with your own key in the [Management API playground](/llm-ga
 Every group has a rank number, the **`priority`** field (console **Rank**). A lower number is stronger. When a person is in several **enabled** groups, the group with the lowest priority is their **governing group**; equal priorities are ordered by group name. Disabled groups never govern anyone.
 
 - **`rank`** (console **Strength**) is computed from that order: the group's 1-based position among enabled groups, `1` being the strongest. It is `null` for a disabled group. You never send it; change `priority` instead.
-- The governing group decides whose guardrails apply to the person (per-group app settings, `smart_group_policies`), and which budget applies in a [group budget set](./budgets-api#group-budget-sets) that uses the strongest group's budget.
+- Rank order decides:
+  - **Per-group guardrails** (`smart_group_policies` in app settings): the person's groups are tried in rank order, and the first one that has a policy applies.
+  - **Group budget sets** that use the strongest group's budget: the best-ranked of the person's groups *in that set* governs, which need not be a group with `rank` `1`. See [group budget sets](./budgets-api#group-budget-sets).
+- Rules that check membership (for example access rules on `user.smart_groups`) match every group the person is in; rank does not matter there.
 - Lists are returned strongest first.
 
 ## Synced and virtual groups {#synced-and-virtual}
@@ -104,7 +107,7 @@ Before saving a `priority`, send the changes to `POST /smart-groups/_priority-pr
 | `budget_moves`, `budget_moves_count`, `budget_moves_truncated` | People whose governing budget would change in a group budget set that uses the strongest group's budget: `set_id`, `set_label`, `from_group`, `to_group`, the budget ids and, when known, `metric`, `window`, `from_limit` and `to_limit`. `apps` lists the apps where the move happens (`"*"` means every other app) and is `null` when it happens everywhere. In sets with app-scoped budgets the governing group can depend on the request: `conditional` is then `true` and `from_groups` / `to_groups` list the possible groups. |
 | `budget_moves_unavailable` | Set when budgets could not be read; `budget_moves` is then empty. |
 
-A person who moves starts counting in the new group's budget from zero; their earlier usage stays on the old group's budget. Send `null` as the priority to preview a reset to the synced value (synced groups only). Up to 1,000 changes per preview.
+A person who moves counts against the new group's budget from then on; their earlier usage stays on the old group's budget and is not carried over (a per-person budget they never used starts at zero; a shared group budget keeps its running total). Send `null` as the priority to preview a reset to the synced value (synced groups only). Up to 1,000 changes per preview.
 
 ## Writes and errors
 

@@ -72616,7 +72616,7 @@
         ]
       },
       "post": {
-        "description": "Create an admin-managed group with a static member list. It is stored as virtual:<name>, is never changed by the directory sync and can be referenced like any other group. A person in several groups gets the enabled group with the lowest priority number (ties: group name); access rules, budgets and group policies use that group. Requires an Idempotency-Key; 409 smart_group_exists when the name is taken.",
+        "description": "Create an admin-managed group with a static member list. It is stored as virtual:<name>, is never changed by the directory sync and can be referenced like any other group. Enabled groups are ranked by priority number, lowest first (ties: group name). Per-group guardrail policies apply from the person's first ranked group that has one; strongest group budget sets charge the person's best-ranked group in the set; membership rules match every group. Requires an Idempotency-Key; 409 smart_group_exists when the name is taken.",
         "operationId": "Create_a_virtual_smart_group",
         "parameters": [
           {
@@ -72740,7 +72740,7 @@
     },
     "/llmgateway/management/v1/smart-groups/_priority-preview": {
       "post": {
-        "description": "Who would change active group if these priorities were applied, plus the priority ties the change creates (a changed group lands on another enabled group's priority and they share members; existing ties are not listed), and budget_moves: people whose governing budget in a strongest group budget set would move to another group's budget (a fresh counter). Nothing is saved. Lists at most 500 people per list (truncated / budget_moves_truncated).",
+        "description": "Who would change active group if these priorities were applied, plus the priority ties the change creates (a changed group lands on another enabled group's priority and they share members; existing ties are not listed), and budget_moves: people whose governing budget in a strongest group budget set would move to another group's budget (its own counter; usage is not carried over). Nothing is saved. Lists at most 500 people per list (truncated / budget_moves_truncated).",
         "operationId": "Preview_smart_group_priorities",
         "parameters": [],
         "requestBody": {
@@ -73042,7 +73042,7 @@
         ]
       },
       "patch": {
-        "description": "Virtual group: change display_name, emails, enabled or priority. Synced group: only priority, which sets an override the directory sync never replaces; null resets it to the synced priority (other fields: 409 synced_group_read_only). A person in several groups gets the enabled group with the lowest priority number (ties: group name); access rules, budgets and group policies use that group. Requires the group's version in If-Match.",
+        "description": "Virtual group: change display_name, emails, enabled or priority. Synced group: only priority, which sets an override the directory sync never replaces; null resets it to the synced priority (other fields: 409 synced_group_read_only). Enabled groups are ranked by priority number, lowest first (ties: group name). Per-group guardrail policies apply from the person's first ranked group that has one; strongest group budget sets charge the person's best-ranked group in the set; membership rules match every group. Requires the group's version in If-Match.",
         "operationId": "Update_a_smart_group",
         "parameters": [
           {
