@@ -43,7 +43,7 @@ export default function Overview() {
           <div className={styles.cards}>
             {[
               ['usage', BarChart3, 'Usage', 'Requests, tokens and spend by day, week or month, per app, model, provider, user or key.'],
-              ['monitoring', HeartPulse, 'Monitoring', 'Guardrail activity, provider health, and why one request was routed, blocked or failed over.'],
+              ['monitoring', HeartPulse, 'Monitoring', 'Latency, feature metrics, requests, guardrail activity, provider health, and why one request was routed, blocked or failed over.'],
               ['users', Users, 'Users', 'Who uses the gateway: app access, personal keys, last activity and usage.'],
               ['apps', Layers, 'Apps and credentials', 'Create apps, change settings, attach providers, issue and revoke gateway keys.'],
               ['providers', Server, 'Providers and quota pools', 'Configure shared providers, test models and discover what an upstream offers.'],

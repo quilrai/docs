@@ -5,7 +5,7 @@ sidebar_label: "Monitoring API"
 sidebar_custom_props:
   badge: new
   icon: HeartPulse
-description: "LLM Gateway Management API v1: guardrail activity by category, action and direction, provider and model health with routing state, and an explanation of why one request was routed, blocked, limited or failed over."
+description: "LLM Gateway Management API v1: latency distributions, gateway feature metrics, a searchable request list, guardrail activity, provider and model health with routing state, and an explanation of why one request was routed, blocked, limited or failed over."
 aliases: [monitoring api, guardrail activity, guardrails summary, provider health, model health, success rate, latency percentiles, explain request, debug request, x-quilr-request-id, why was my request blocked]
 ---
 
@@ -13,15 +13,18 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 # Monitoring API
 
-Read-only views of how the gateway is behaving: what the guardrails did, how each provider and model is doing, and why one request behaved the way it did. None of them returns prompt or response text, detected values or original provider error messages.
+Read-only views of how the gateway is behaving: how fast it answers, how its features perform, which requests it handled, what the guardrails did, how each provider and model is doing, and why one request behaved the way it did. Together with the [Usage API](./usage-api) they are enough to build your own dashboards. None of them returns prompt or response text, detected values or original provider error messages.
 
 | Call | Answers | Scope |
 | --- | --- | --- |
+| [`GET /latency`](#latency) | Latency distributions (total, provider, gateway overhead, guardrails, time to first token) as percentiles and histograms, by app, model, provider, surface, stream, outcome and period. | `read` |
+| [`GET /features/summary`](#feature-metrics) | Response cache hit rate and savings, token saving, provider prompt caching, retries and failover, streaming share, status classes and top error codes. | `read` |
+| [`GET /requests`](#request-list) | Individual requests, newest first, with filters: outcome, status, latency, tokens, cost and guardrail detections per request. | `read` |
 | [`GET /guardrails/summary`](#guardrail-activity) | How many requests were scanned, flagged, blocked, redacted or monitored, by category, action, direction, app, user, model and period. | `read` |
 | [`GET /provider-health`](#provider-health) | Success rate, error classes, latency and time to first token, failovers away and current routing state per provider and model. | `read` |
 | [`GET /requests/{request_id}/explain`](#explain-a-request) | Why one request was routed, blocked, limited or failed over. | `read` |
 
-Try all three in the [Management API playground](/llm-gateway-management-playground?tab=monitoring).
+All of them use the existing `read` scope; no extra scope is needed. Try them in the [Management API playground](/llm-gateway-management-playground?tab=monitoring).
 
 ## Which call to use
 
@@ -29,6 +32,9 @@ Try all three in the [Management API playground](/llm-gateway-management-playgro
   label="Which monitoring call answers your question"
   steps={[
     { id: 'one', question: 'Is it about one request?', hint: 'A user reports a block, an error or a slow answer', yes: { label: 'Explain a request', detail: 'GET /requests/{id}/explain', tone: 'info' } },
+    { id: 'list', question: 'Do you need the individual requests behind a number?', hint: 'Slow requests, 5xx errors, blocks for one user', yes: { label: 'Request list', detail: 'GET /requests', tone: 'info' } },
+    { id: 'latency', question: 'Is it about speed?', hint: 'p95 by model, gateway overhead, time to first token', yes: { label: 'Latency', detail: 'GET /latency', tone: 'accent' } },
+    { id: 'features', question: 'Is it about gateway features?', hint: 'Cache hit rate, tokens saved, failover, error codes', yes: { label: 'Feature metrics', detail: 'GET /features/summary', tone: 'success' } },
     { id: 'guard', question: 'Is it about what the guardrails caught?', hint: 'Top categories, blocks per app, redactions per week', yes: { label: 'Guardrail activity', detail: 'GET /guardrails/summary', tone: 'accent' } },
     { id: 'provider', question: 'Is it about a provider or model?', hint: 'Error spikes, latency, cooldowns, mark-downs', yes: { label: 'Provider health', detail: 'GET /provider-health', tone: 'success' } },
     { id: 'spend', question: 'Is it about spend, tokens or request volume?', hint: 'By app, user, model, key or period', yes: { label: 'Usage API', detail: 'GET /usage', tone: 'warning' } },
@@ -36,7 +42,107 @@ Try all three in the [Management API playground](/llm-gateway-management-playgro
   fallback={{ label: 'Every request log line: Log Export API', tone: 'neutral' }}
 />
 
-The explain call is for single requests. To pull request logs in bulk into your data platform or SIEM, use the [Log Export API](./log-export-api).
+The explain call is for single requests. To browse and filter requests, use the [request list](#request-list); to pull every request log line in bulk into your data platform or SIEM, use the [Log Export API](./log-export-api).
+
+## Build a dashboard
+
+<StepFlow steps={[
+  {label: '1. Pick a report', items: ['/latency · /features/summary', '/guardrails/summary · /usage']},
+  {label: '2. Range and periods', items: ['from / to', 'granularity: total · month · week · day · hour']},
+  {label: '3. Breakdown', items: ['group_by (up to 2)', 'app, model, provider ...']},
+  {label: '4. Chart', items: ['rows per period', 'totals for headline numbers']},
+  {label: '5. Drill down', items: ['GET /requests', 'GET /requests/{id}/explain']},
+]} />
+
+The aggregate reports share one shape: `rows` (one per period and group) and `totals` (the whole selection), with the same `from`, `to`, `granularity`, `group_by`, `limit` and `cursor` parameters. `granularity=hour` covers at most 14 days and returns `period_start` as `YYYY-MM-DDTHH:00:00Z`; the other periods return a date. Periods without traffic are omitted, so fill gaps with zero.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY")
+FROM=$(date -u -d '1 day ago' +%FT%TZ 2>/dev/null || date -u -v-1d +%FT%TZ)
+
+# Hourly p95 end-to-end latency per model, last 24 hours
+curl -s "$API/latency?from=$FROM&granularity=hour&group_by=model" "${auth[@]}" \
+  | jq -r '.rows[] | [.period_start, .model, .latency.total.p95_ms] | @tsv'
+
+# Response cache hit rate and tokens saved per app, last 30 days (the default range)
+curl -s "$API/features/summary?group_by=app" "${auth[@]}" \
+  | jq -r '.rows[] | [.app, .response_cache.hit_rate_pct, .token_saving.tokens_saved] | @tsv'
+
+# The 50 slowest-looking requests: everything over 10 seconds in the last 24 hours
+curl -s "$API/requests?min_latency_ms=10000" "${auth[@]}" \
+  | jq -r '.items[] | [.timestamp, .app, .model, .latency.total_ms, .links.explain] | @tsv'
+```
+
+## Latency
+
+`GET /latency` returns latency distributions of your gateway requests. Each row and `totals` carry five measures:
+
+| Measure | What it measures |
+| --- | --- |
+| `total` | End to end: from the gateway receiving the request to the response finishing (the whole stream for streaming requests). |
+| `upstream` | Time spent waiting on the model provider. |
+| `gateway_overhead` | Time the gateway itself added: request handling and guardrail checks. |
+| `guardrails` | Time spent in guardrail checks alone (part of `gateway_overhead`). |
+| `time_to_first_token` | Streaming requests only: time until the first response chunk reached the client. Always counts successful streams. |
+
+Every measure is `{count, avg_ms, p50_ms, p90_ms, p95_ms, p99_ms, max_ms, histogram}`. Percentiles are estimates; `histogram` holds exact request counts per bucket of `histogram_buckets_ms`, the same twelve buckets on every response (0-25, 25-50, 50-100, 100-250, 250-500, 500 ms-1 s, 1-2.5 s, 2.5-5 s, 5-10 s, 10-30 s, 30-60 s, 60 s and over; `from` inclusive, `to` exclusive). A request without a recorded value for a measure is not counted in it, so `count` can differ between measures.
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `from`, `to` | A date or an RFC 3339 timestamp with a timezone; `to` is exclusive. At most 92 days apart. | UTC midnight 7 days ago, to now |
+| `granularity` | `total`, `month`, `week`, `day` or `hour` (at most 14 days). | `total` |
+| `group_by` | Up to two of `app`, `model`, `provider`, `surface`, `stream`, `outcome`. | No breakdown |
+| `outcome` | `success` (status below 400, not blocked), `error`, `blocked` or `all`. | `success` |
+| `app`, `model`, `provider`, `surface`, `stream` | Exact app name (case-insensitive), served model, provider name, API surface (for example `chat`), `true` or `false`. | None |
+| `limit`, `cursor` | 1 to 200 rows per page and the previous `next_cursor`. | `50` |
+
+- **Combining rows.** Percentiles of different rows cannot be added or averaged. Ask for the grouping you need (`totals` is computed directly), or add up the histogram buckets, which are exact.
+- **Not counted.** Requests refused by rate limits, quotas or access rules, and background cache-refresh requests.
+- Results can be up to 60 seconds old. Queries are limited to 20 seconds (`503 query_timeout`); at most 5,000 rows (`truncated`).
+
+## Feature metrics
+
+`GET /features/summary` shows how the gateway features performed on your traffic. Each row and `totals` carry:
+
+| Field | Meaning |
+| --- | --- |
+| `response_cache` | `hits` (answered from the gateway response cache), `misses` (looked up, sent to the provider), `bypassed` (cache on but not used, for example a stream or `Cache-Control: no-store`), `hit_rate_pct` (hits / (hits + misses)), and what hits saved: `saved_input_tokens`, `saved_output_tokens`, `saved_cost_usd`. |
+| `token_saving` | Requests the gateway shrank, input tokens removed in total and `by_method`. |
+| `prompt_cache` | The provider's own prompt caching: input tokens, cached input tokens read and written, and `cached_input_pct`. |
+| `failover` | Requests retried on the same target, moved to another target, `recovered` (a later attempt served) and `exhausted` (every eligible attempt failed). |
+| `streaming`, `status_classes` | Streaming requests and their share; requests by HTTP status class (`2xx`, `3xx`, `4xx`, `5xx`, `none` when no status was recorded). |
+| `totals.top_error_codes` | The 20 most frequent error codes of failed requests. |
+
+Parameters are those of [latency](#latency) without `outcome` and `stream`; `group_by` takes up to two of `app`, `model`, `provider`, `surface`. The range defaults to the last 30 days (from UTC midnight) and is at most 92 days.
+
+`coverage.response_cache_from` is the time from which response cache metrics are recorded. Requests before it carry no cache data, and a period or range entirely before it returns `response_cache: null` rather than zeros. While it is `null`, counts cover the requests that recorded cache data.
+
+## Request list
+
+`GET /requests` lists your gateway requests, newest first, so you can drill down from a dashboard number to the requests behind it.
+
+<StepFlow steps={[
+  {label: '1. Filter', items: ['outcome, status, user, app', 'min_latency_ms, category']},
+  {label: '2. Read a page', items: ['items, newest first', 'up to 200 per page']},
+  {label: '3. Next page', items: ['cursor = next_cursor', 'same other parameters']},
+  {label: '4. Explain one', items: ['links.explain', 'routing, guardrails, limits']},
+]} />
+
+Each item has the `request_id` (the `x-quilr-request-id` the client received), `timestamp`, `app`, `key_id`, `user` (`null` without identity or after data retention removed it), `requested_model` and served `model`, `provider`, `surface`, `stream`, `outcome` (`served`, `blocked`, `error` or `rate_limited`, as in the [Usage API](./usage-api)), `status_code`, `error_code`, `latency` (total, upstream, gateway overhead, guardrails, time to first token), `tokens`, `cost_usd`, `response_cache`, `failover`, the guardrail `detections` (`{category, action, direction}`, no detected values) and `links.explain`.
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `from`, `to` | A date or an RFC 3339 timestamp with a timezone; `to` is exclusive. At most 31 days apart. | 24 hours ago, to now |
+| `app`, `model`, `provider`, `user`, `key`, `surface` | Exact app name or email (case-insensitive), served model, provider name, gateway key id, API surface. | None |
+| `outcome` | `served`, `blocked`, `error` or `rate_limited`. | None |
+| `status` | An HTTP status code (`429`) or a class (`5xx`). | None |
+| `category`, `action` | A guardrail category (id or name, a custom definition's id or name, or `unattributed`) and `blocked`, `redacted` or `monitored`. | None |
+| `stream`, `min_latency_ms` | `true` or `false`; requests whose total latency was at least this many milliseconds. | None |
+| `limit`, `cursor` | 1 to 200 items per page and the previous `next_cursor`. | `50` |
+
+- **Paging.** Pages continue from the last item, so requests that arrive while you page never shift or repeat items. A cursor only works with the same other parameters (`400` otherwise). Without `from`, the first page fixes the start of the range for the following pages.
+- Rate-limited and refused requests are included (see `outcome`); background cache-refresh requests are not. Recent requests appear within a few minutes. For every log line in bulk, use the [Log Export API](./log-export-api).
 
 ## Debug a request
 
@@ -91,8 +197,8 @@ Sections that do not apply, or that the gateway did not record for this request,
 
 | Parameter | Values | Default |
 | --- | --- | --- |
-| `from`, `to` | A date (`YYYY-MM-DD`) or an RFC 3339 timestamp with a timezone. `from` is inclusive (a date means UTC midnight); `to` is **exclusive**, and a date `to` includes that whole UTC day. | All history to now |
-| `granularity` | `total` (one row per group), `month`, `week` (starts Monday) or `day`, UTC. `period_start` is the period's first day (`YYYY-MM-DD`). | `total` |
+| `from`, `to` | A date (`YYYY-MM-DD`) or an RFC 3339 timestamp with a timezone. `from` is inclusive (a date means UTC midnight); `to` is **exclusive**, and a date `to` includes that whole UTC day. Pass an early `from` for all history. | UTC midnight 30 days ago, to now |
+| `granularity` | `total` (one row per group), `month`, `week` (starts Monday), `day` or `hour` (at most 14 days), UTC. `period_start` is the period's first day (`YYYY-MM-DD`), or `YYYY-MM-DDTHH:00:00Z` for `hour`. | `total` |
 | `group_by` | Up to two of `category`, `action`, `direction`, `app`, `user`, `model`, repeated (`group_by=category&group_by=action`) or comma-separated (`group_by=category,action`). | No breakdown |
 | `app`, `user`, `model` | Exact app name or email (case-insensitive), or served model. | None |
 | `category` | A category id or display name, a custom definition's id or name, or `unattributed`. | None |
@@ -146,6 +252,7 @@ For failover totals and recovery, see [Read failover summary](./routing-and-fail
 ## Related
 
 - [Usage API](./usage-api) - requests, tokens and cost by any dimension.
+- [Explain a request](#explain-a-request) - follow `links.explain` from the request list.
 - [Incidents API](./incidents-api) - mark a provider down during an outage.
 - [Routing and failover API](./routing-and-failover-api) - routes, failover and routing diagnostics.
 - [Log Export API](./log-export-api) - every request log line, for your own data platform.
