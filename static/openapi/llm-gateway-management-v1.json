@@ -21634,7 +21634,7 @@
             "type": "integer"
           },
           "smart_groups": {
-            "description": "Enabled smart groups this person belongs to, highest priority first.",
+            "description": "Enabled smart groups this person belongs to, strongest first (lowest priority number).",
             "items": {
               "type": "string"
             },
@@ -21747,7 +21747,7 @@
                 "type": "null"
               }
             ],
-            "description": "The highest-priority group; group policies use it."
+            "description": "The strongest group (lowest priority number). Kept for compatibility; per-group budgets use group budget sets."
           },
           "all_apps": {
             "type": "boolean"
@@ -32462,6 +32462,13 @@
               "null"
             ]
           },
+          "rank": {
+            "description": "1-based position among enabled groups (priority, then name); 1 is the strongest. Null for a disabled group. The console shows this as Strength and the priority number as Rank.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
           "source": {
             "description": "synced: maintained by the directory sync; virtual: created by an admin.",
             "enum": [
@@ -32682,6 +32689,20 @@
             "items": {
               "additionalProperties": true,
               "properties": {
+                "apps": {
+                  "description": "Apps where the move happens (\"*\" = every other app); null when it happens for every app. Only sets with app-scoped budgets narrow this.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "conditional": {
+                  "description": "The governing group depends on the request (app-scoped budgets); from_groups / to_groups then list the possible groups.",
+                  "type": "boolean"
+                },
                 "email": {
                   "type": "string"
                 },
@@ -32690,6 +32711,12 @@
                     "string",
                     "null"
                   ]
+                },
+                "from_groups": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 "from_limit": {
                   "description": "First window's base limit (spend as a decimal USD string).",
@@ -32724,6 +32751,12 @@
                     "string",
                     "null"
                   ]
+                },
+                "to_groups": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 "to_limit": {
                   "type": [
@@ -72707,7 +72740,7 @@
     },
     "/llmgateway/management/v1/smart-groups/_priority-preview": {
       "post": {
-        "description": "Who would change active group if these priorities were applied, plus priority ties among enabled groups after the change, and budget_moves: people whose governing budget in a strongest group budget set would move to another group's budget (a fresh counter). Nothing is saved. Lists at most 500 people per list (truncated / budget_moves_truncated).",
+        "description": "Who would change active group if these priorities were applied, plus the priority ties the change creates (a changed group lands on another enabled group's priority and they share members; existing ties are not listed), and budget_moves: people whose governing budget in a strongest group budget set would move to another group's budget (a fresh counter). Nothing is saved. Lists at most 500 people per list (truncated / budget_moves_truncated).",
         "operationId": "Preview_smart_group_priorities",
         "parameters": [],
         "requestBody": {
@@ -74134,7 +74167,7 @@
       "name": "Hooks"
     },
     {
-      "description": "Read-only catalogs referenced by app settings: smart groups and custom detection definitions.",
+      "description": "Catalogs referenced by app settings: smart groups (virtual groups can be created and edited; synced groups take a priority override) and custom detection definitions (read-only).",
       "name": "Catalogs"
     },
     {
