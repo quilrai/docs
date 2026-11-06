@@ -74,7 +74,7 @@ A group budget set is one budget per smart group, for example $50 a month for Em
 | `strongest` | **Their strongest group's budget applies (by rank)** | Only the budget of the person's best-ranked group in the set is checked and charged, with its own limit, counter and grants. The other groups' budgets are skipped. Default for new sets. |
 | `strictest` | **Every group's budget applies (strictest wins)** | The person is charged in every group budget they belong to; the first to run out blocks them. |
 
-Rank comes from the [Smart groups API](./smart-groups-api#rank) (lower priority wins, ties by name, disabled groups never count). See [Budgets for several groups](../cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups) for the full rules and a diagram.
+The best-ranked group is the one with the lowest rank number, the `priority` field of the [Smart groups API](./smart-groups-api#rank) (ties by name; disabled groups never count). Its strength, the `rank` field, is `1`. See [Budgets for several groups](../cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups) for the full rules and a diagram.
 
 | Call | Body and effect |
 | --- | --- |

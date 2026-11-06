@@ -5,7 +5,7 @@ sidebar_label: "Smart groups API"
 sidebar_custom_props:
   badge: new
   icon: Layers
-description: "LLM Gateway Management API v1: list smart groups with their rank, create and edit virtual groups, change members, override a synced group's rank and preview who changes governing group before you save."
+description: "LLM Gateway Management API v1: list smart groups with their rank (priority) and strength, create and edit virtual groups, change members, override a synced group's rank and preview who changes governing group before you save."
 aliases: [smart groups api, virtual groups, group rank, group priority, priority override, governing group, group members api, priority preview]
 ---
 
@@ -13,31 +13,35 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 # Smart groups API
 
-Read the smart groups the LLM Gateway uses, create **virtual groups** with a fixed member list, and set the **rank** that decides which group governs a person who is in several groups. The same groups and ranks appear in the **Groups** section of **Govern > Policy Engine > LLM Gateway** in the console.
+Read the smart groups the LLM Gateway uses, create **virtual groups** with a fixed member list, and set the **rank** that decides which group governs a person who is in several groups. The same groups appear in the **Groups** section of **Govern > Policy Engine > LLM Gateway** in the console.
+
+:::note Rank, strength and the API fields
+The console **Rank** column is the API field **`priority`**: the number you edit, where a lower number wins. The console **Strength** column (**#1** is the strongest) is the API field **`rank`**: a computed position you cannot set.
+:::
 
 <StepFlow steps={[
   {label: 'Groups', items: ['Synced from your directory', 'Virtual: fixed member list']},
-  {label: 'Rank', items: ['Lower number wins', 'Ties: group name']},
+  {label: 'Rank (priority)', items: ['Lower number wins', 'Ties: group name']},
   {label: 'Governing group', items: ['Best-ranked enabled group', 'One per person']},
   {label: 'Used by', items: ['Per-group app settings', 'Group budget sets']},
 ]} />
 
 | Call | What it does | Scope |
 | --- | --- | --- |
-| [`GET /smart-groups`](#List_smart_groups), [`GET /smart-groups/{group_name}`](#Read_a_smart_group) | List or read groups with members, priority and rank. | `read` |
+| [`GET /smart-groups`](#List_smart_groups), [`GET /smart-groups/{group_name}`](#Read_a_smart_group) | List or read groups with members, `priority` and `rank`. | `read` |
 | [`POST /smart-groups`](#Create_a_virtual_smart_group) | Create a virtual group. | `config:write` |
-| [`PATCH /smart-groups/{group_name}`](#Update_a_smart_group) | Edit a virtual group, or override a synced group's priority. | `config:write` |
+| [`PATCH /smart-groups/{group_name}`](#Update_a_smart_group) | Edit a virtual group, or override a synced group's rank (`priority`). | `config:write` |
 | [`POST /smart-groups/{group_name}/members`](#Change_smart_group_members) | Add or remove members of a virtual group without replacing the list. | `config:write` |
 | [`DELETE /smart-groups/{group_name}`](#Delete_a_virtual_smart_group) | Delete a virtual group. | `config:write` |
-| [`POST /smart-groups/_priority-preview`](#Preview_smart_group_priorities) | See who would change governing group, and which budgets they would switch, before you save a rank. No writes. | `read` |
+| [`POST /smart-groups/_priority-preview`](#Preview_smart_group_priorities) | See who would change governing group, and which budgets they would switch, before you save a `priority`. No writes. | `read` |
 
 Try every operation with your own key in the [Management API playground](/llm-gateway-management-playground?tab=explorer).
 
 ## Rank and the governing group {#rank}
 
-Every group has a **priority**. A lower number is stronger. When a person is in several **enabled** groups, the group with the lowest priority is their **governing group**; equal priorities are ordered by group name. Disabled groups never govern anyone.
+Every group has a rank number, the **`priority`** field (console **Rank**). A lower number is stronger. When a person is in several **enabled** groups, the group with the lowest priority is their **governing group**; equal priorities are ordered by group name. Disabled groups never govern anyone.
 
-- `rank` is a group's position in that order: `1` is the strongest enabled group. It is `null` for a disabled group.
+- **`rank`** (console **Strength**) is computed from that order: the group's 1-based position among enabled groups, `1` being the strongest. It is `null` for a disabled group. You never send it; change `priority` instead.
 - The governing group decides whose guardrails apply to the person (per-group app settings, `smart_group_policies`), and which budget applies in a [group budget set](./budgets-api#group-budget-sets) that uses the strongest group's budget.
 - Lists are returned strongest first.
 
@@ -48,9 +52,9 @@ Every group has a **priority**. A lower number is stronger. When a person is in 
 | Where they come from | Your organization's [Smart Groups](../../console/settings-organization/smart-groups) and directory, kept up to date by a sync. | Created in the console **Groups** tab or with `POST /smart-groups`. |
 | Name | The synced name. | Stored as `virtual:<name>`. The console shows the name without the prefix and a **Virtual group** label. Use the full name in policy conditions and budgets. |
 | Members | Managed by the sync. | A fixed list of emails you manage. The sync never changes or deletes a virtual group. |
-| What you can change here | Only the priority (an override). | Display name, members, enabled state and priority. |
+| What you can change here | Only the rank, as a `priority` override. | Display name, members, enabled state and rank (`priority`). |
 
-**Priority override.** A synced group's priority is set by the sync (by default the groups are ordered by name). Send `PATCH {"priority": n}` to override it. The override survives every later sync. Send `{"priority": null}` to reset to the synced value. Reads show both: `priority` is the value in effect, `synced_priority` is the sync's value and `priority_override` is your override (or `null`).
+**Rank override.** A synced group's `priority` is set by the sync (by default the groups are ordered by name). Send `PATCH {"priority": n}` to override it. The override survives every later sync. Send `{"priority": null}` to reset to the synced value. Reads show both: `priority` is the value in effect, `synced_priority` is the sync's value and `priority_override` is your override (or `null`).
 
 ## Group fields
 
@@ -59,11 +63,11 @@ Every group has a **priority**. A lower number is stronger. When a person is in 
 | `group_name` | Full name; virtual groups start with `virtual:`. Use it in the path. |
 | `name` | Name without the `virtual:` prefix. |
 | `display_name`, `emails`, `member_count`, `enabled` | What the group shows and who is in it. |
-| `priority` | Priority in effect: the override when set, else the synced priority. Lower wins. |
+| `priority` | The editable rank number (console **Rank**) in effect: the override when set, else the synced value. Lower wins. |
 | `synced_priority`, `priority_override` | The sync's priority (a virtual group's own priority) and the admin override (`null` when none). |
 | `priority_override_updated_at`, `priority_override_updated_by` | When and by whom the override was last set or reset. A Management API write is recorded as `management_key:<key_id>`. |
 | `source` | `synced` or `virtual`. |
-| `rank` | 1-based position among enabled groups; `null` when disabled. |
+| `rank` | Computed 1-based position among enabled groups (console **Strength**); `null` when disabled. Read only. |
 | `version` | Send it as `If-Match` on `PATCH`, `DELETE` and the members call. |
 
 ## Create and edit virtual groups
@@ -87,7 +91,7 @@ Emails match case-insensitively and are stored lowercase.
 
 ## Preview a rank change {#priority-preview}
 
-Before saving a priority, send the changes to `POST /smart-groups/_priority-preview`. Nothing is saved.
+Before saving a `priority`, send the changes to `POST /smart-groups/_priority-preview`. Nothing is saved.
 
 ```json
 {"changes": [{"group_name": "executives", "priority": 1}, {"group_name": "virtual:sales leads", "priority": 20}]}
@@ -96,7 +100,7 @@ Before saving a priority, send the changes to `POST /smart-groups/_priority-prev
 | Response field | Meaning |
 | --- | --- |
 | `affected_users`, `affected_count`, `truncated` | People whose governing group would change (`email`, `from_group`, `to_group`), the first 500, and the total. |
-| `ties` | Every priority held by two or more enabled groups after the change, with `shared_members`. Ties are ordered by name; give groups distinct priorities to be explicit. |
+| `ties` | Ties the change creates: a `priority` that a moved group would share with another enabled group that has members in common (`shared_members`). Existing ties the change does not touch are not listed. Tied groups are ordered by name; give them distinct priorities to be explicit. |
 | `budget_moves`, `budget_moves_count`, `budget_moves_truncated` | People whose governing budget would change in a group budget set that uses the strongest group's budget: `set_id`, `set_label`, `from_group`, `to_group`, the budget ids and, when known, `metric`, `window`, `from_limit` and `to_limit`. A conditional move (app-scoped sets) adds `from_groups` / `to_groups`. |
 | `budget_moves_unavailable` | Set when budgets could not be read; `budget_moves` is then empty. |
 

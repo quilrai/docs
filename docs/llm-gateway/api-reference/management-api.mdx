@@ -78,7 +78,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Users | Everyone who uses the gateway, with app access, personal keys, last activity and usage. See the [Users API](./users-api). | Read only; people are added through your identity provider or the console. |
 | QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. The typed budgets, routing and limits APIs cover those cards without QuilrQL. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
-| Smart groups | List groups with their rank, create and edit virtual groups and their members, override a synced group's rank, and preview who changes governing group. See the [Smart groups API](./smart-groups-api). | Synced groups' members come from your directory; only their rank can be overridden. |
+| Smart groups | List groups with their rank (`priority`) and strength (`rank`), create and edit virtual groups and their members, override a synced group's rank (`priority`), and preview who changes governing group. See the [Smart groups API](./smart-groups-api). | Synced groups' members come from your directory; only their rank can be overridden. |
 | Custom definitions | Read and use existing definitions in app configuration. | Definition editing: **Not Generally Available**. |
 | History | Read redacted config versions and audit, restore eligible app settings. | Request logs come from the [Log Export API](./log-export-api). Red-team jobs: **Not Generally Available** through management v1. |
 

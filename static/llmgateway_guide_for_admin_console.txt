@@ -155,9 +155,11 @@ TASK -> WHERE
 POLICY ENGINE (LLM)
 - Workspace: /policy/engine/llm-gateway. Selector: LLM Gateway | MCP Gateway | Endpoint Agent | Cloud & SaaS.
 - Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Groups | Test | History.
-- Groups (/policy/engine/llm-gateway/groups): Strength column (#1 = strongest; lower rank number wins, ties by name,
-  turned-off groups govern no one), Edit rank / Reset to synced rank, New virtual group, Edit group, Delete group.
-  Saving a rank opens "Change group rank?" listing people who change governing group and budgets they switch.
+- Groups (/policy/engine/llm-gateway/groups): Rank column = editable number (API field priority; lower wins, ties by
+  name, turned-off groups govern no one); Strength column = resulting position, #1 strongest (API field rank).
+  Edit rank / Reset to synced rank, New virtual group, Edit group, Delete group.
+  Saving a rank opens "Change group rank?" listing people who change governing group, budgets they switch
+  and only the rank ties the change creates.
 - Controls groups and areas:
   Who can use AI?: Gateway Access, Identity & Network Trust, Allowed Models, Model Visibility,
   Prompt Store & Enforcement.

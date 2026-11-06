@@ -107,14 +107,14 @@ A per-group budget gives each chosen Smart group its own budget, for example $50
 
 ```mermaid
 flowchart LR
-    P["Dana is in<br/>Employees, Engineering<br/>and Executives"] --> R["Rank on the Groups tab<br/>1 Executives<br/>2 Engineering<br/>3 Employees"]
+    P["Dana is in<br/>Employees, Engineering<br/>and Executives"] --> R["Groups section<br/>Rank 10: Executives (#1)<br/>Rank 20: Engineering (#2)<br/>Rank 30: Employees (#3)"]
     R --> Q{"Monthly AI spend<br/>group budget set"}
     Q -->|"Strongest group's budget applies"| S["Executives $500 is checked and charged<br/>Engineering and Employees budgets are skipped"]
     Q -->|"Every group's budget applies"| T["$500, $200 and $50 are all charged<br/>the $50 Employees budget blocks first"]
 ```
 
-- **Rank** is set in the **Groups** section of **Govern > Policy Engine > LLM Gateway**. The **Strength** column shows each group's position; a lower number wins, equal numbers are ordered by group name, and a turned-off group governs no one. Synced groups can be re-ranked with **Edit rank**; the rank you set survives directory syncs until you choose **Reset to synced rank**. **New virtual group** creates a group with a fixed member list that the directory sync never touches.
-- **Check before you re-rank.** Saving a rank opens **Change group rank?**, which lists the people whose governing group changes and the budgets they switch to.
+- **Rank** is set in the **Groups** section of **Govern > Policy Engine > LLM Gateway**. The **Rank** column is the number you edit (`priority` in the API): a lower number wins, equal numbers are ordered by group name, and a turned-off group governs no one. The **Strength** column (**#1** is the strongest) shows the resulting position (`rank` in the API). Synced groups can be re-ranked with **Edit rank**; the rank you set survives directory syncs until you choose **Reset to synced rank**. **New virtual group** creates a group with a fixed member list that the directory sync never touches.
+- **Check before you re-rank.** Saving a rank opens **Change group rank?**, which lists the people whose governing group changes and the budgets they switch to. It also warns about rank ties the change creates between groups that share members; ties that already existed are not listed.
 
   ![Change group rank dialog listing people who change governing group and switch budget](/img/llm-gateway/ui/groups-rank-change-preview.png)
 
@@ -122,7 +122,7 @@ flowchart LR
 - **Group lookup unavailable.** If the gateway cannot look up a person's groups for a request, it does not pick a governing group: every budget of the set that matches applies.
 - **Budgets created before group sets** keep behaving as **Every group's budget applies** until you change the option.
 - **Sets created through the [Budgets API](../api-reference/budgets-api#group-budget-sets)** are shown read-only with **Managed by API**; change them through the API.
-- The rank also decides which group governs a person for guardrails (per-group app settings). Manage ranks and virtual groups from scripts with the [Smart groups API](../api-reference/smart-groups-api).
+- The rank also decides which group governs a person for guardrails (per-group app settings). Manage ranks (`priority`) and virtual groups from scripts with the [Smart groups API](../api-reference/smart-groups-api).
 
 ### Scenarios {#scenarios}
 
