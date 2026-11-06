@@ -251,7 +251,7 @@ Other Foundry Models deployments, such as Mistral chat models, are not listed or
 
 1. In Azure AI Foundry, open the resource's deployment details page and copy the resource endpoint and key.
 2. For Azure OpenAI, Mistral Document AI and Microsoft-Decision-1 deployments, add an **Azure** › **OpenAI chat** provider (`azureopenai`) with the endpoint and key. Click **Check key and list models**: the list includes the resource's deployments by deployment name, with their type.
-3. For Claude, add an **Azure** › **Anthropic messages** provider (`anthropic_messages_azure`) with the key and the Base URL `https://<resource>.services.ai.azure.com`, then enter each deployment name (for example `claude-opus-4-5`). Azure does not list Claude deployments. When an `azureopenai` provider on the same resource finds Claude deployments, the console shows a note naming them and pointing to this provider type.
+3. For Claude, add an **Azure** › **Anthropic messages** provider (`anthropic_messages_azure`) with the key and the Base URL `https://<resource>.services.ai.azure.com`, then enter each deployment name (for example `claude-opus-4-5`). Azure does not list Claude deployments.
 
 The deployment list is read on a best-effort basis. If a resource does not return it, the models from Azure OpenAI's catalog are still listed, and you can add other deployment names yourself.
 
@@ -271,7 +271,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/ocr \
 |-------|----------|
 | Documents | Azure cannot fetch URLs. Send `document_url` or `image_url` as a base64 `data:` URI. Any other URL returns `400 ocr_document_url_unsupported` before the request is counted or sent. Azure's own size and page limits apply. |
 | Model check | Model validation confirms that an OCR deployment exists on the OCR route without running OCR, under any deployment name: the gateway asks the resource which model the deployment runs. Unknown deployments return Azure's `404 DeploymentNotFound`. |
-| Usage accounting | OCR counts requests, like the other [endpoint families](../api-reference/endpoint-families). |
+| Usage accounting | OCR counts requests, like the other [endpoint families](../api-reference/endpoint-families), and is billed per processed page (`usage_info.pages_processed`): $3 per 1,000 pages for `mistral-document-ai-2512`. Annotation pages are not billed. |
 | Guardrails | OCR runs no guardrails and no failover, like the other endpoint families. |
 
 ## xAI and Mistral
