@@ -15,6 +15,7 @@ Manage the same spend, request and token budgets that the Policy Engine's **Budg
 
 <StepFlow steps={[
   {label: 'Budgets', items: ['Limit, metric, window', 'Who it applies to']},
+  {label: 'Group budget sets', items: ['One budget per group', 'Strongest group or every group']},
   {label: 'Usage & subjects', items: ['Used vs limit per subject', 'Tightest budget first']},
   {label: 'Grants', items: ['Time-boxed per-subject limit', 'Up to the budget ceiling']},
   {label: 'Pricing & exemptions', items: ['Model rates for spend', 'Skip budgets for some users']},
@@ -24,6 +25,7 @@ Manage the same spend, request and token budgets that the Policy Engine's **Budg
 | Resource | What you can do | Scope |
 | --- | --- | --- |
 | Budgets | List, read, create, update and delete budgets; apply up to 100 changes as one batch. | `budgets:read`, `budgets:policy` |
+| Group budget sets | List and read per-group budget sets, create one, choose whether a person's strongest group or every group applies, add and remove groups, delete it. | `budgets:read`, `budgets:policy` |
 | Usage and subjects | Read usage per subject in the current or a past calendar window, a per-budget summary, and every budget that counts a user, app, key or smart group. | `budgets:read` |
 | Grants | Give one subject (or every member of a smart group) a temporary limit, then change or revoke it. | `budgets:read`, `budgets:grant` |
 | Pricing | Read the effective price of every configured model, set or remove tenant-wide rates, and choose how unpriced models are charged. | `budgets:read`, `budgets:policy` |
@@ -63,6 +65,53 @@ Try every operation with your own key in the [Management API playground](/llm-ga
 - **New exemptions.** `POST /budget-exemptions` returns the new entry as `exemption` and its `exemption_id` in `ids`.
 - **Events.** `GET /budget-events` types are past tense: `grant.created`, `grant.updated`, `grant.revoked`, `grant.superseded`, `budget.created`, `budget.updated`, `budget.deleted`, `budget.batch_applied`, `exemption.created`, `exemption.deleted`, `token_rate.updated`, `token_rate.deleted` and `unpriced_models.updated`. Filter with `type`.
 
+## Group budget sets {#group-budget-sets}
+
+A group budget set is one budget per smart group, for example $50 a month for Employees and $500 for Executives. The set decides what happens to someone who is in several of its groups:
+
+| `resolve` | Console option | Effect |
+| --- | --- | --- |
+| `strongest` | **Their strongest group's budget applies (by rank)** | Only the budget of the person's best-ranked group in the set is checked and charged, with its own limit, counter and grants. The other groups' budgets are skipped. Default for new sets. |
+| `strictest` | **Every group's budget applies (strictest wins)** | The person is charged in every group budget they belong to; the first to run out blocks them. |
+
+Rank comes from the [Smart groups API](./smart-groups-api#rank) (lower priority wins, ties by name, disabled groups never count). See [Budgets for several groups](../cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups) for the full rules and a diagram.
+
+| Call | Body and effect |
+| --- | --- |
+| [`GET /budget-sets`](#List_budget_sets), [`GET /budget-sets/{set_id}`](#Read_a_budget_set) | Every set, including per-group budgets written before sets existed. |
+| [`POST /budget-sets`](#Create_a_budget_set) | `label`, `metric`, `limit`, `window` and `groups` are required; optional `id` (default `set_<12 hex>`), `per`, `mode`, `alerts`, `adjustments`, `kind`, `applies_to.apps` and `resolve` (default `strongest`). `groups` lists 1 to 32 group names, or `{group, limit}` to give one group its own limit. Creates one budget per group, labelled `<label> · <group>`. Returns `201` with `set`, `budgets`, `revision` and `etag`. |
+| [`PATCH /budget-sets/{set_id}`](#Switch_budget_set_resolution) | `{"resolve": "strongest" \| "strictest"}` only. Works on every set, including console-written ones. Counters are kept. |
+| [`POST /budget-sets/{set_id}/groups`](#Add_a_group_to_a_budget_set) | `{group, limit?}`: copies the first group's budgets (every window) for the new group; `limit` defaults to the first group's. |
+| [`DELETE /budget-sets/{set_id}/groups/{group}`](#Remove_a_group_from_a_budget_set) | Removes that group's budgets. URL-encode the name (`virtual%3Asales`). Removing the last group deletes the set. |
+| [`DELETE /budget-sets/{set_id}`](#Delete_a_budget_set) | Deletes every budget in the set. |
+
+```bash
+curl -X POST "$API/budget-sets" \
+  -H "Authorization: Bearer $MANAGEMENT_KEY" \
+  -H "Idempotency-Key: monthly-ai-spend-by-group" \
+  -H "Content-Type: application/json" \
+  -d '{"label": "Monthly AI spend", "metric": "spend_usd", "limit": "50.00",
+       "window": {"kind": "calendar", "unit": "month"},
+       "groups": ["employees", {"group": "executives", "limit": "500.00"}]}'
+```
+
+**Set fields.** `id`, `label`, `resolve`, `inferred`, `metric`, `per`, `windows`, `groups` (`[{group, budget_ids}]`), `budget_ids`, `policy`, `revision`, `managed`, `managed_by`, `editable_in_console` and `etag`. Each budget record also carries `group_set: {id, group, resolve, inferred}` (or `null`); change it through the set, not `PATCH /budgets/{id}`.
+
+- **Who can edit a set.** `managed_by: "management_api"` means the set was created through this API: it is editable only here, and the console shows it read-only with **Managed by API**. `managed_by: "console"` sets were written in the console; this API can read them and switch `resolve`, but adding or removing groups and deleting answer `409 budget_set_not_api_managed`.
+- **Budgets from before sets.** Per-group budgets created in the console before sets existed are listed with `inferred: true` and `resolve: strictest`, which is how they always behaved. Nothing changes until you switch one with `PATCH`.
+- **Writes.** Every write accepts `?dry_run=true` and `message`, and publishes one policy revision. `PATCH`, `DELETE` and removing a group need `If-Match` with the set's `etag` (`"s<16 hex>"`; `428` / `412 version_conflict`); it is optional when adding a group. `POST` calls take an `Idempotency-Key`; a retry after the publish landed returns the original result with `replayed: true`. A dry run lists sets whose resolution or groups change under `not_simulated.group_sets_changed`, because usage per bucket cannot show which people a switch would newly block.
+- **Who is governed.** `GET /budget-subjects/user/{email}` marks each set budget with `group_set: {id, resolve, inferred, group, governing_group, governs}`. `governs: false` means the budget does not apply to that person under `strongest`; `"conditional"` (with `possible_groups`) means it depends on the app, so pass `?app=` for a definite answer.
+- **At the limit.** A `429 quota_exceeded` from a set budget names it in `quota` and `blocked_by[]` with `group_set: {id, group, resolve}`, where `group` is the governing group under `strongest`. A person's own usage view lists only the budgets that govern them.
+
+| Status | Code | When |
+| --- | --- | --- |
+| `400` | `invalid_budget_set` | The body has the wrong shape. |
+| `404` | `budget_set_not_found`, `budget_set_group_not_found` | No such set, or the group is not in it. |
+| `409` | `budget_set_exists`, `budget_set_group_exists` | The set id or the group is already taken. |
+| `409` | `budget_set_not_api_managed` | The set was written in the console; edit it there (switching `resolve` still works here). |
+
+Publishing also checks that every budget of a set shares `resolve`, metric and grouping (`quota_group_set_mismatch`), that each group has one budget per window (`quota_group_set_duplicate_group`) and that a set has at most 32 groups (`quota_group_set_exceeds_cap`).
+
 ## Usage, grants and prices
 
 - **Amounts.** Spend amounts are decimal USD strings such as `"12.50"`. Request and token amounts are numbers.
@@ -79,6 +128,7 @@ Try every operation with your own key in the [Management API playground](/llm-ga
 ## Related
 
 - [Rate, token and budget limits](../cost-and-traffic/rate-token-and-budget-limits) - how budgets count usage and what happens at the limit.
+- [Smart groups API](./smart-groups-api) - group ranks and virtual groups that group budget sets resolve by.
 - [Management API](./management-api) - authentication, errors and retry rules for every endpoint.
 - [Providers and configuration API](./providers-and-configuration-api) - provider model costs that price spend budgets.
 - [QuilrQL behavior](./policy-api) - how the management API behaves while the Policy Engine is on.

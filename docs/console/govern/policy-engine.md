@@ -24,7 +24,7 @@ The workspace selector shows **LLM Gateway**, **MCP Gateway**, **Endpoint Agent*
 
 ### Gateway workspaces {#llm-gateway-and-mcp-gateway}
 
-Each gateway has its own engine status and four sections:
+Each gateway has its own engine status and these sections:
 
 | Section | Use it to |
 |---|---|
@@ -32,6 +32,7 @@ Each gateway has its own engine status and four sections:
 | **Policies** | Search and filter policies, inspect their scope and outcome, add a rule, or open **Edit technical source**. |
 | **Test** | **Try a situation** or **Replay activity** before publishing. |
 | **History** | Compare published versions and review what changed. |
+| **Groups** (LLM Gateway only) | Rank smart groups and create virtual groups. The best-ranked group governs a person who is in several groups. See [Budgets for several groups](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups). |
 
 **POLICY ENGINE ON** means published policies govern that gateway. The header shows when it was updated. A control's status summarizes its configured scope; it is not proof that a particular request will match.
 

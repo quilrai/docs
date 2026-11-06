@@ -238,9 +238,9 @@ Read existing tenant resources and inspect configuration changes. These endpoint
 
 ### Catalogs
 
-`GET /smart-groups` and `GET /custom-definitions` support `limit` and `cursor`; a `q` search filter is **Not Generally Available**. Individual resource reads use `group_name` or `definition_id`. Each definition carries `definition_id` (the same value as `edm_id`): use it in the path and as `definition_id` when selecting it in an app.
+`GET /custom-definitions` supports `limit` and `cursor`; a `q` search filter is **Not Generally Available**. Read one definition by `definition_id` (the same value as `edm_id`): use it in the path and as `definition_id` when selecting it in an app. Existing definitions can be referenced in app configuration; regex/EDM/semantic/intent authoring is **Not Generally Available** through these APIs.
 
-Existing groups/definitions can be referenced in app configuration. Group/membership writes and regex/EDM/semantic/intent authoring are **Not Generally Available** through these APIs.
+Smart groups, their rank and virtual groups have their own page: the [Smart groups API](./smart-groups-api).
 
 ### Configuration history
 
@@ -260,4 +260,6 @@ After `503 operation_pending`, retain `error.operation_id`. Read `/operations/{o
 
 App/provider/credential creation recovers by retrying the **original POST and Idempotency-Key**, not the recovery endpoint. Read the [retry contract](./management-api#idempotency-and-recovery) before automating recovery.
 
-<ApiReference tags={['Catalogs', 'History']} />
+<ApiReference tags={['Catalogs']} paths={['/custom-definitions']} />
+
+<ApiReference tags={['History']} />

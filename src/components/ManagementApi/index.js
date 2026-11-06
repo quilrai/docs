@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {BarChart3, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Users, Wallet, Webhook, Workflow} from 'lucide-react';
+import {BarChart3, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Users, UsersRound, Wallet, Webhook, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -52,7 +52,8 @@ const api = createApiReference({
     ['Apps','Create, read, configure and pause applications.','apps-and-credentials-api',Layers],
     ['Providers & catalogs','Configure shared credentials, test and discover models, review new models, and read catalogs and config history.','providers-and-configuration-api',SlidersHorizontal],
     ['Quota pools','Describe upstream limits that several providers or models share.','providers-and-configuration-api#quota-pools',Boxes],
-    ['Budgets','Set spend, request and token budgets, track usage and issue grants.','budgets-api',Wallet],
+    ['Budgets','Set spend, request and token budgets and group budget sets, track usage and issue grants.','budgets-api',Wallet],
+    ['Smart groups','Rank groups, manage virtual groups and preview who changes governing group.','smart-groups-api',UsersRound],
     ['Routing and failover','Routes, weighted destinations, failover and constraints, with dry runs, history and restore.','routing-and-failover-api',Route],
     ['Rate limits','Request and token rate limits, request guards, temporary raises and effective limits.','rate-limits-api',Timer],
     ['Access and features','Access controls, token saving, response cache, cache warm, model visibility, error messages and prompt enforcement.','gateway-features-api',Lock],
@@ -70,7 +71,7 @@ const api = createApiReference({
   aliasOf: op => op['x-alias-of'],
   shortPath,
   directoryNote: ({aliasCount}) => aliasCount>0 && <> (plus {aliasCount} <Link to="./management-api#names-and-pagination"><code>/app?app_name=</code> aliases</Link> for app names that contain <code>/</code> or <code>%</code>)</>,
-  href: op => `./${pageFor[op.tags[0]] || 'management-api'}#${op.operationId}`,
+  href: op => `./${shortPath(op.path).startsWith('/smart-groups') ? 'smart-groups-api' : pageFor[op.tags[0]] || 'management-api'}#${op.operationId}`,
   requirements: op => <div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : scopeNote(op) ? <code>{scopeNote(op)}</code> : <code>Verified tenant administrator</code>}</div>,
   aliasNote: (op, [alias]) => <p className={styles.aliasNote}>Also at <code>{shortPath(alias.path)}?app_name=...</code> for app names that contain <code>/</code> or <code>%</code>.</p>,
   curl: curlFor,
