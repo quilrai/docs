@@ -53,7 +53,7 @@ const JOURNEYS = [
       ['mcp', 'Quick start', '/mcp-gateway/get-started/quick-start'],
       ['mcp', 'MCP Library', '/mcp-gateway/servers-and-connections/mcp-library'],
       ['mcp', 'Server access', '/mcp-gateway/protect/server-access'],
-      ['red', 'MCP Threat Detection', '/red-teaming/assessments/mcp-threat-detection'],
+      ['red', 'MCP Threat Detection', '/red-teaming/configure-and-run/mcp-threat-detection'],
     ],
   },
 ];
