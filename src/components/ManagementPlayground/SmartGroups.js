@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import { MANAGEMENT_PREFIX, newIdempotencyKey, seg, versionOf } from './client.mjs';
 import {
@@ -70,6 +70,27 @@ function RankCell({ group }) {
       )}
     </>
   );
+}
+
+/**
+ * Idempotency key per request body: an identical retry (after an error or a
+ * lost response) reuses the key, a changed body gets a new one, and a success
+ * starts over.
+ */
+function useRequestKey(prefix) {
+  const current = useRef(null);
+  return {
+    keyFor(request) {
+      const fingerprint = JSON.stringify(request);
+      if (!current.current || current.current.fingerprint !== fingerprint) {
+        current.current = { fingerprint, key: newIdempotencyKey(prefix) };
+      }
+      return current.current.key;
+    },
+    done() {
+      current.current = null;
+    },
+  };
 }
 
 const memberCount = (g) => g.member_count ?? (Array.isArray(g.emails) ? g.emails.length : undefined);
@@ -149,7 +170,7 @@ export default function SmartGroups() {
 function CreateVirtualGroup({ onCreated }) {
   const { client } = usePlayground();
   const [form, setForm] = useState({ name: '', display_name: '', emails: '', enabled: true, priority: '' });
-  const [idemKey, setIdemKey] = useState(newIdempotencyKey('create-group'));
+  const requestKey = useRequestKey('create-group');
   const action = useAction();
   const priority = form.priority.trim() ? parsePriority(form.priority) : undefined;
   const name = bareName(form.name.trim());
@@ -191,8 +212,8 @@ function CreateVirtualGroup({ onCreated }) {
           disabled={!name || priority === null}
           onClick={() =>
             action.run(async () => {
-              const res = await client.call({ method: 'POST', path: P, body, headers: { 'Idempotency-Key': idemKey }, source: 'Create virtual group' });
-              setIdemKey(newIdempotencyKey('create-group'));
+              const res = await client.call({ method: 'POST', path: P, body, headers: { 'Idempotency-Key': requestKey.keyFor(body) }, source: 'Create virtual group' });
+              requestKey.done();
               onCreated(res.smart_group?.group_name || `${VIRTUAL}${name}`);
               return res;
             }, `Created ${VIRTUAL}${name}.`)
@@ -302,8 +323,16 @@ function RankEditor({ group, path, etag, onSaved }) {
   const [preview, setPreview] = useState(null);
   const action = useAction();
   const parsed = parsePriority(draft);
+  // Bumped by every preview and edit: a preview answering after the rank was
+  // edited is dropped, so Save never sends a value other than the shown one.
+  const generation = useRef(0);
+  const discard = () => {
+    generation.current += 1;
+    setPreview(null);
+  };
 
   async function runPreview(priority) {
+    const current = ++generation.current;
     setPreview(null);
     await action.run(async () => {
       const res = await client.call({
@@ -312,7 +341,7 @@ function RankEditor({ group, path, etag, onSaved }) {
         body: { changes: [{ group_name: group.group_name, priority }] },
         source: 'Preview rank change',
       });
-      setPreview({ priority, result: res, etag });
+      if (current === generation.current) setPreview({ priority, result: res, etag });
       return res;
     });
   }
@@ -331,7 +360,7 @@ function RankEditor({ group, path, etag, onSaved }) {
             value={draft}
             onChange={(e) => {
               setDraft(e.target.value);
-              setPreview(null);
+              discard();
             }}
             aria-invalid={!!draft && parsed === null}
           />
@@ -371,7 +400,7 @@ function RankEditor({ group, path, etag, onSaved }) {
             >
               {preview.priority === null ? 'Save reset' : `Save rank ${preview.priority}`}
             </ActionButton>
-            <Btn onClick={() => setPreview(null)}>Discard preview</Btn>
+            <Btn onClick={discard}>Discard preview</Btn>
           </div>
         </>
       )}
@@ -522,7 +551,7 @@ function VirtualDetails({ group, path, etag, onSaved }) {
 function MembersEditor({ group, path, etag, onSaved }) {
   const { client } = usePlayground();
   const [form, setForm] = useState({ add: '', remove: '' });
-  const [idemKey, setIdemKey] = useState(newIdempotencyKey('group-members'));
+  const requestKey = useRequestKey('group-members');
   const action = useAction();
   const add = emailList(form.add);
   const remove = emailList(form.remove);
@@ -553,10 +582,10 @@ function MembersEditor({ group, path, etag, onSaved }) {
                   method: 'POST',
                   path: `${path}/members`,
                   body,
-                  headers: { 'Idempotency-Key': idemKey, 'If-Match': etag },
+                  headers: { 'Idempotency-Key': requestKey.keyFor([path, body]), 'If-Match': etag },
                   source: 'Change group members',
                 });
-                setIdemKey(newIdempotencyKey('group-members'));
+                requestKey.done();
                 setForm({ add: '', remove: '' });
                 onSaved();
                 return res;

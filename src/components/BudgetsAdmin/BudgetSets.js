@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { amount, split } from './BudgetEditor';
 import {
   Panel,
@@ -229,17 +229,21 @@ function usePlan(run) {
   const [plan, setPlan] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  // Every preview, clear or input edit bumps the generation, so a dry run
+  // that answers after an edit is ignored instead of restoring its request.
+  const generation = useRef(0);
   async function preview(op) {
+    const current = ++generation.current;
     setError(null);
     setPlan(null);
     setBusy(true);
     try {
       const response = await op.call({ dryRun: true });
-      setPlan({ ...op, response });
+      if (current === generation.current) setPlan({ ...op, response });
     } catch (e) {
-      setError(e);
+      if (current === generation.current) setError(e);
     } finally {
-      setBusy(false);
+      if (current === generation.current) setBusy(false);
     }
   }
   async function publish() {
@@ -260,10 +264,14 @@ function usePlan(run) {
     preview,
     publish,
     fail: (e) => {
+      generation.current += 1;
+      setBusy(false);
       setPlan(null);
       setError(e);
     },
     clear: () => {
+      generation.current += 1;
+      setBusy(false);
       setPlan(null);
       setError(null);
     },
