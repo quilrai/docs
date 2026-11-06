@@ -20292,6 +20292,696 @@
         "description": "The console failover summary.",
         "type": "object"
       },
+      "FeatureMetricsRow": {
+        "description": "One aggregate. Holds `period_start` when granularity is not total and one key per group_by dimension.",
+        "properties": {
+          "app": {
+            "description": "App name.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failover": {
+            "description": "Gateway retries and failover.",
+            "properties": {
+              "exhausted": {
+                "description": "Requests that failed after every eligible attempt.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "recovered": {
+                "description": "Requests whose first attempt failed and a later one served.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "requests_moved": {
+                "description": "Requests moved to another target.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "requests_retried": {
+                "description": "Requests retried on the same target.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "requests_retried",
+              "requests_moved",
+              "recovered",
+              "exhausted"
+            ],
+            "type": "object"
+          },
+          "model": {
+            "description": "Served model.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period_start": {
+            "description": "Start of the period, UTC: a date (YYYY-MM-DD; weeks start Monday) for day, week and month, or an RFC 3339 timestamp (YYYY-MM-DDTHH:00:00Z) for hour; absent when granularity is total.",
+            "type": "string"
+          },
+          "prompt_cache": {
+            "description": "The provider's own prompt caching.",
+            "properties": {
+              "cache_write_tokens": {
+                "description": "Input tokens written to the provider's prompt cache.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "cached_input_pct": {
+                "description": "cached_input_tokens / input_tokens.",
+                "maximum": 100,
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cached_input_tokens": {
+                "description": "Input tokens read from the provider's prompt cache.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "input_tokens": {
+                "description": "Input tokens the provider reported.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "input_tokens",
+              "cached_input_tokens",
+              "cache_write_tokens",
+              "cached_input_pct"
+            ],
+            "type": "object"
+          },
+          "provider": {
+            "description": "Provider name as configured.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requests": {
+            "description": "Requests in this row.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "response_cache": {
+            "description": "The gateway response cache (only apps with it enabled have hits, misses or bypasses). Counted from coverage.response_cache_from; null when the whole range is before it.",
+            "properties": {
+              "bypassed": {
+                "description": "Response cache on but not used for the request (for example streaming, or the client asked for no cache).",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "hit_rate_pct": {
+                "description": "hits / (hits + misses); null without lookups.",
+                "maximum": 100,
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hits": {
+                "description": "Answered from the gateway's response cache.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "misses": {
+                "description": "Looked up, not found, sent to the provider.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "saved_cost_usd": {
+                "description": "Cost of the original responses that hits reused, in USD.",
+                "minimum": 0,
+                "type": "number"
+              },
+              "saved_input_tokens": {
+                "description": "Input tokens hits did not send to the provider.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "saved_output_tokens": {
+                "description": "Output tokens hits did not generate.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "hits",
+              "misses",
+              "bypassed",
+              "hit_rate_pct",
+              "saved_input_tokens",
+              "saved_output_tokens",
+              "saved_cost_usd"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "status_classes": {
+            "description": "Requests by HTTP status class returned to the client; `none` when no status was recorded (for example a dropped connection).",
+            "properties": {
+              "2xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "3xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "4xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "5xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "none": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "2xx",
+              "3xx",
+              "4xx",
+              "5xx",
+              "none"
+            ],
+            "type": "object"
+          },
+          "streaming": {
+            "properties": {
+              "requests": {
+                "description": "Streaming requests.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "share_pct": {
+                "description": "Streaming share of requests; null without requests.",
+                "maximum": 100,
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "requests",
+              "share_pct"
+            ],
+            "type": "object"
+          },
+          "surface": {
+            "description": "API surface (for example chat).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "token_saving": {
+            "description": "Gateway token saving.",
+            "properties": {
+              "by_method": {
+                "description": "Tokens removed per method.",
+                "properties": {
+                  "base64_blob_elision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "html_to_text": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "json_minification": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "markdown_to_text": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "smart_json_compression": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "text_compression": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "tool_output_cleanup": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "smart_json_compression",
+                  "html_to_text",
+                  "markdown_to_text",
+                  "text_compression",
+                  "json_minification",
+                  "tool_output_cleanup",
+                  "base64_blob_elision"
+                ],
+                "type": "object"
+              },
+              "requests": {
+                "description": "Requests the gateway shrank before sending.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "tokens_saved": {
+                "description": "Input tokens removed, all methods.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "requests",
+              "tokens_saved",
+              "by_method"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "requests",
+          "streaming",
+          "status_classes",
+          "response_cache",
+          "token_saving",
+          "prompt_cache",
+          "failover"
+        ],
+        "type": "object"
+      },
+      "FeatureMetricsSummary": {
+        "properties": {
+          "coverage": {
+            "properties": {
+              "response_cache_from": {
+                "description": "Response cache metrics count requests from this time on; earlier requests did not record them. null while the start is still being established: counts then cover only requests that recorded them.",
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "response_cache_from"
+            ],
+            "type": "object"
+          },
+          "data_through": {
+            "description": "Effective exclusive end of the data counted: the requested `to`, or the time of the read when `to` is omitted. Requests are written a few seconds to minutes after they finish, so the most recent ones can be missing.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "filters": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "from": {
+            "description": "Inclusive start.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "generated_at": {
+            "description": "When the data behind this response was read from storage (UTC). Results are cached, so this can be up to 60 seconds before the response.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "granularity": {
+            "enum": [
+              "total",
+              "month",
+              "week",
+              "day",
+              "hour"
+            ]
+          },
+          "group_by": {
+            "items": {
+              "enum": [
+                "app",
+                "model",
+                "provider",
+                "surface"
+              ]
+            },
+            "maxItems": 2,
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/FeatureMetricsRow"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "const": "UTC"
+          },
+          "to": {
+            "description": "Exclusive end; null for now.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "totals": {
+            "$ref": "#/components/schemas/FeatureMetricsTotals"
+          },
+          "truncated": {
+            "description": "More than 5000 rows matched.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "granularity",
+          "timezone",
+          "group_by",
+          "coverage",
+          "totals",
+          "rows",
+          "next_cursor",
+          "truncated",
+          "generated_at",
+          "data_through"
+        ],
+        "type": "object"
+      },
+      "FeatureMetricsTotals": {
+        "properties": {
+          "failover": {
+            "description": "Gateway retries and failover.",
+            "properties": {
+              "exhausted": {
+                "description": "Requests that failed after every eligible attempt.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "recovered": {
+                "description": "Requests whose first attempt failed and a later one served.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "requests_moved": {
+                "description": "Requests moved to another target.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "requests_retried": {
+                "description": "Requests retried on the same target.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "requests_retried",
+              "requests_moved",
+              "recovered",
+              "exhausted"
+            ],
+            "type": "object"
+          },
+          "prompt_cache": {
+            "description": "The provider's own prompt caching.",
+            "properties": {
+              "cache_write_tokens": {
+                "description": "Input tokens written to the provider's prompt cache.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "cached_input_pct": {
+                "description": "cached_input_tokens / input_tokens.",
+                "maximum": 100,
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cached_input_tokens": {
+                "description": "Input tokens read from the provider's prompt cache.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "input_tokens": {
+                "description": "Input tokens the provider reported.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "input_tokens",
+              "cached_input_tokens",
+              "cache_write_tokens",
+              "cached_input_pct"
+            ],
+            "type": "object"
+          },
+          "requests": {
+            "description": "Requests in this row.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "response_cache": {
+            "description": "The gateway response cache (only apps with it enabled have hits, misses or bypasses). Counted from coverage.response_cache_from; null when the whole range is before it.",
+            "properties": {
+              "bypassed": {
+                "description": "Response cache on but not used for the request (for example streaming, or the client asked for no cache).",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "hit_rate_pct": {
+                "description": "hits / (hits + misses); null without lookups.",
+                "maximum": 100,
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hits": {
+                "description": "Answered from the gateway's response cache.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "misses": {
+                "description": "Looked up, not found, sent to the provider.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "saved_cost_usd": {
+                "description": "Cost of the original responses that hits reused, in USD.",
+                "minimum": 0,
+                "type": "number"
+              },
+              "saved_input_tokens": {
+                "description": "Input tokens hits did not send to the provider.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "saved_output_tokens": {
+                "description": "Output tokens hits did not generate.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "hits",
+              "misses",
+              "bypassed",
+              "hit_rate_pct",
+              "saved_input_tokens",
+              "saved_output_tokens",
+              "saved_cost_usd"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "status_classes": {
+            "description": "Requests by HTTP status class returned to the client; `none` when no status was recorded (for example a dropped connection).",
+            "properties": {
+              "2xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "3xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "4xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "5xx": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "none": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "2xx",
+              "3xx",
+              "4xx",
+              "5xx",
+              "none"
+            ],
+            "type": "object"
+          },
+          "streaming": {
+            "properties": {
+              "requests": {
+                "description": "Streaming requests.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "share_pct": {
+                "description": "Streaming share of requests; null without requests.",
+                "maximum": 100,
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "requests",
+              "share_pct"
+            ],
+            "type": "object"
+          },
+          "token_saving": {
+            "description": "Gateway token saving.",
+            "properties": {
+              "by_method": {
+                "description": "Tokens removed per method.",
+                "properties": {
+                  "base64_blob_elision": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "html_to_text": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "json_minification": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "markdown_to_text": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "smart_json_compression": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "text_compression": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "tool_output_cleanup": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "smart_json_compression",
+                  "html_to_text",
+                  "markdown_to_text",
+                  "text_compression",
+                  "json_minification",
+                  "tool_output_cleanup",
+                  "base64_blob_elision"
+                ],
+                "type": "object"
+              },
+              "requests": {
+                "description": "Requests the gateway shrank before sending.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "tokens_saved": {
+                "description": "Input tokens removed, all methods.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "requests",
+              "tokens_saved",
+              "by_method"
+            ],
+            "type": "object"
+          },
+          "top_error_codes": {
+            "description": "The most frequent error codes of failed requests, most frequent first. `none`: a failed request without a code; `other`: a code that is not a plain identifier.",
+            "items": {
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "requests": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "requests"
+              ],
+              "type": "object"
+            },
+            "maxItems": 20,
+            "type": "array"
+          }
+        },
+        "required": [
+          "requests",
+          "streaming",
+          "status_classes",
+          "response_cache",
+          "token_saving",
+          "prompt_cache",
+          "failover",
+          "top_error_codes"
+        ],
+        "type": "object"
+      },
       "GatewayKey": {
         "additionalProperties": true,
         "properties": {
@@ -21266,8 +21956,7 @@
             ]
           },
           "period_start": {
-            "description": "First UTC day of the period (weeks start Monday); absent when granularity is total.",
-            "format": "date",
+            "description": "Start of the period, UTC: a date (YYYY-MM-DD; weeks start Monday) for day, week and month, or an RFC 3339 timestamp (YYYY-MM-DDTHH:00:00Z) for hour; absent when granularity is total.",
             "type": "string"
           },
           "requests_blocked": {
@@ -21348,7 +22037,8 @@
               "total",
               "month",
               "week",
-              "day"
+              "day",
+              "hour"
             ]
           },
           "group_by": {
@@ -22427,6 +23117,304 @@
             ]
           }
         },
+        "type": "object"
+      },
+      "LatencyDistribution": {
+        "properties": {
+          "avg_ms": {
+            "description": "Mean; null when count is 0.",
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "count": {
+            "description": "Requests with a recorded value for this measure.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "histogram": {
+            "description": "Exact request counts per bucket of histogram_buckets_ms, in the same order; they add up to count.",
+            "items": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 12,
+            "minItems": 12,
+            "type": "array"
+          },
+          "max_ms": {
+            "description": "Slowest value.",
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "p50_ms": {
+            "description": "Median (estimated); null when count is 0.",
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "p90_ms": {
+            "description": "90th percentile (estimated).",
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "p95_ms": {
+            "description": "95th percentile (estimated).",
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "p99_ms": {
+            "description": "99th percentile (estimated).",
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "count",
+          "avg_ms",
+          "p50_ms",
+          "p90_ms",
+          "p95_ms",
+          "p99_ms",
+          "max_ms",
+          "histogram"
+        ],
+        "type": "object"
+      },
+      "LatencyMeasures": {
+        "properties": {
+          "gateway_overhead": {
+            "$ref": "#/components/schemas/LatencyDistribution",
+            "description": "Time the gateway itself added: request handling and guardrail checks."
+          },
+          "guardrails": {
+            "$ref": "#/components/schemas/LatencyDistribution",
+            "description": "Time spent in guardrail checks alone (part of gateway_overhead)."
+          },
+          "time_to_first_token": {
+            "$ref": "#/components/schemas/LatencyDistribution",
+            "description": "Streaming requests only: time until the first response chunk reached the client. Always counts successful streams, whatever the outcome filter."
+          },
+          "total": {
+            "$ref": "#/components/schemas/LatencyDistribution",
+            "description": "End-to-end time: from the gateway receiving the request to the response finishing (the whole stream for streaming requests)."
+          },
+          "upstream": {
+            "$ref": "#/components/schemas/LatencyDistribution",
+            "description": "Time spent waiting on the model provider."
+          }
+        },
+        "required": [
+          "total",
+          "upstream",
+          "gateway_overhead",
+          "guardrails",
+          "time_to_first_token"
+        ],
+        "type": "object"
+      },
+      "LatencyRow": {
+        "description": "One aggregate. Holds `period_start` when granularity is not total and one key per group_by dimension.",
+        "properties": {
+          "app": {
+            "description": "App name.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latency": {
+            "$ref": "#/components/schemas/LatencyMeasures"
+          },
+          "model": {
+            "description": "Served model.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "error",
+              "blocked"
+            ]
+          },
+          "period_start": {
+            "description": "Start of the period, UTC: a date (YYYY-MM-DD; weeks start Monday) for day, week and month, or an RFC 3339 timestamp (YYYY-MM-DDTHH:00:00Z) for hour; absent when granularity is total.",
+            "type": "string"
+          },
+          "provider": {
+            "description": "Provider name as configured (or the provider type when no name was recorded).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requests": {
+            "description": "Requests in this row.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stream": {
+            "type": "boolean"
+          },
+          "surface": {
+            "description": "API surface (for example chat, responses, messages, embeddings).",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "requests",
+          "latency"
+        ],
+        "type": "object"
+      },
+      "LatencySummary": {
+        "properties": {
+          "data_through": {
+            "description": "Effective exclusive end of the data counted: the requested `to`, or the time of the read when `to` is omitted. Requests are written a few seconds to minutes after they finish, so the most recent ones can be missing.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "filters": {
+            "description": "The filters applied, as normalized (outcome is always present).",
+            "type": "object"
+          },
+          "from": {
+            "description": "Inclusive start.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "generated_at": {
+            "description": "When the data behind this response was read from storage (UTC). Results are cached, so this can be up to 60 seconds before the response.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "granularity": {
+            "enum": [
+              "total",
+              "month",
+              "week",
+              "day",
+              "hour"
+            ]
+          },
+          "group_by": {
+            "items": {
+              "enum": [
+                "app",
+                "model",
+                "provider",
+                "surface",
+                "stream",
+                "outcome"
+              ]
+            },
+            "maxItems": 2,
+            "type": "array"
+          },
+          "histogram_buckets_ms": {
+            "description": "Histogram buckets shared by every distribution: `from` inclusive, `to` exclusive (null: no upper bound), in milliseconds.",
+            "items": {
+              "properties": {
+                "from": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "to": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "from",
+                "to"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/LatencyRow"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "const": "UTC"
+          },
+          "to": {
+            "description": "Exclusive end; null for now.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "totals": {
+            "properties": {
+              "latency": {
+                "$ref": "#/components/schemas/LatencyMeasures"
+              },
+              "requests": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "requests",
+              "latency"
+            ],
+            "type": "object"
+          },
+          "truncated": {
+            "description": "More than 5000 rows matched; only the first 5000 (in row order) are returned. Narrow the query.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "granularity",
+          "timezone",
+          "group_by",
+          "histogram_buckets_ms",
+          "totals",
+          "rows",
+          "next_cursor",
+          "truncated",
+          "generated_at",
+          "data_through"
+        ],
         "type": "object"
       },
       "LimitsEffective": {
@@ -29899,6 +30887,380 @@
         ],
         "type": "object"
       },
+      "RequestList": {
+        "properties": {
+          "data_through": {
+            "description": "Effective exclusive end of the data counted: the requested `to`, or the time of the read when `to` is omitted. Requests are written a few seconds to minutes after they finish, so the most recent ones can be missing.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "filters": {
+            "description": "The filters applied, as normalized.",
+            "type": "object"
+          },
+          "from": {
+            "description": "Inclusive start.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "generated_at": {
+            "description": "When the data behind this response was read from storage (UTC). Results are cached, so this can be up to 60 seconds before the response.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RequestListItem"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next (older) page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "to": {
+            "description": "Exclusive end; null for now.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "filters",
+          "items",
+          "next_cursor",
+          "generated_at",
+          "data_through"
+        ],
+        "type": "object"
+      },
+      "RequestListItem": {
+        "properties": {
+          "app": {
+            "description": "App name.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cost_usd": {
+            "description": "Recorded cost in USD; null when the request was not priced.",
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "error_code": {
+            "description": "Error code of a failed or refused request; `other` when the stored code is not a plain identifier.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failover": {
+            "properties": {
+              "moved": {
+                "description": "The request moved to another target.",
+                "type": "boolean"
+              },
+              "sends": {
+                "description": "Upstream sends, retries included.",
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "sends",
+              "moved"
+            ],
+            "type": "object"
+          },
+          "guardrails": {
+            "description": "Categories and actions only; detected values are never returned.",
+            "properties": {
+              "actions": {
+                "items": {
+                  "enum": [
+                    "blocked",
+                    "redacted",
+                    "monitored"
+                  ]
+                },
+                "type": "array"
+              },
+              "detections": {
+                "items": {
+                  "properties": {
+                    "action": {
+                      "enum": [
+                        "blocked",
+                        "redacted",
+                        "monitored"
+                      ]
+                    },
+                    "category": {
+                      "$ref": "#/components/schemas/GuardrailCategory"
+                    },
+                    "direction": {
+                      "enum": [
+                        "request",
+                        "response",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "category",
+                    "action",
+                    "direction"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "scanned": {
+                "description": "Guardrails checked this request.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scanned",
+              "actions",
+              "detections"
+            ],
+            "type": "object"
+          },
+          "key_id": {
+            "description": "Id of the app gateway key used; null for other credentials and requests before key attribution.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latency": {
+            "description": "Milliseconds; null when not recorded. time_to_first_token_ms is set for streams only.",
+            "properties": {
+              "gateway_overhead_ms": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "guardrails_ms": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "time_to_first_token_ms": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "total_ms": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "upstream_ms": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "total_ms",
+              "upstream_ms",
+              "gateway_overhead_ms",
+              "guardrails_ms",
+              "time_to_first_token_ms"
+            ],
+            "type": "object"
+          },
+          "links": {
+            "properties": {
+              "explain": {
+                "description": "Path of this request's explanation.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "explain"
+            ],
+            "type": "object"
+          },
+          "model": {
+            "description": "Model that served the request.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "description": "served, blocked (guardrails, access or hooks), error (status 400 or above) or rate_limited (rate limits and quotas).",
+            "enum": [
+              "served",
+              "blocked",
+              "error",
+              "rate_limited"
+            ]
+          },
+          "provider": {
+            "description": "Provider name as configured (else the provider type).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_type": {
+            "description": "Provider type, for example openai or anthropic.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "The x-quilr-request-id the client received.",
+            "type": "string"
+          },
+          "requested_model": {
+            "description": "Model the client asked for.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "response_cache": {
+            "description": "Gateway response cache: hit, miss, bypass; null when not used.",
+            "enum": [
+              "hit",
+              "miss",
+              "bypass",
+              null
+            ]
+          },
+          "status_code": {
+            "description": "HTTP status returned to the client.",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "stream": {
+            "type": "boolean"
+          },
+          "surface": {
+            "description": "API surface, for example chat, responses or messages.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timestamp": {
+            "description": "When the request arrived (UTC).",
+            "format": "date-time",
+            "type": "string"
+          },
+          "tokens": {
+            "properties": {
+              "cache_write": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "cached_input": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "input": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "output": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "reasoning": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "input",
+              "output",
+              "cached_input",
+              "cache_write",
+              "reasoning"
+            ],
+            "type": "object"
+          },
+          "user": {
+            "description": "User email; null without identity or after data retention removed it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "timestamp",
+          "app",
+          "key_id",
+          "user",
+          "requested_model",
+          "model",
+          "provider",
+          "provider_type",
+          "surface",
+          "stream",
+          "outcome",
+          "status_code",
+          "error_code",
+          "latency",
+          "tokens",
+          "cost_usd",
+          "response_cache",
+          "failover",
+          "guardrails",
+          "links"
+        ],
+        "type": "object"
+      },
       "ResponseCache": {
         "additionalProperties": false,
         "description": "Exact-match response cache for non-streaming requests. Partial updates merge. Under QuilrQL the policy decides enabled.",
@@ -30938,7 +32300,8 @@
               "total",
               "month",
               "week",
-              "day"
+              "day",
+              "hour"
             ],
             "type": "string"
           },
@@ -31082,8 +32445,7 @@
             "type": "integer"
           },
           "period_start": {
-            "description": "First UTC day of the period (weeks start Monday); absent when granularity is total.",
-            "format": "date",
+            "description": "Start of the period, UTC: a date (YYYY-MM-DD; weeks start Monday) for day, week and month, or an RFC 3339 timestamp (YYYY-MM-DDTHH:00:00Z) for hour; absent when granularity is total.",
             "type": "string"
           },
           "provider": {
@@ -63268,9 +64630,312 @@
         ]
       }
     },
+    "/llmgateway/management/v1/features/summary": {
+      "get": {
+        "description": "How the gateway's features performed on the tenant's traffic: response cache hits, misses, bypasses, hit rate and what hits saved; token saving per method; the provider's prompt caching; retries and failover; streaming share and HTTP status classes. `totals` also lists the most frequent error codes (at most 20).\n\nGroup by up to two of `app`, `model`, `provider` and `surface`, and bucket by `granularity`: total (the default), or UTC `month`, `week` (starting Monday), `day` or `hour` (a range of at most 14 days). `from` defaults to UTC midnight 30 days before `to`; the range is at most 92 days. Requests refused by rate limits, quotas or access rules and background cache-refresh requests are not counted.\n\nResults can be up to 60 seconds old. Recent requests appear within a few minutes. At most 5000 rows are returned (`truncated`). Queries are limited to 20 seconds. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now. 429 `report_busy` (with a Retry-After header) when too many reports are being computed at once; retry after that many seconds.",
+        "operationId": "Read_feature_metrics_summary",
+        "parameters": [
+          {
+            "description": "Inclusive start: a date (YYYY-MM-DD, UTC midnight) or an RFC 3339 timestamp with a timezone. Omitted: UTC midnight 30 days before `to` (or today).",
+            "example": "2026-10-01",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exclusive end: an RFC 3339 timestamp with a timezone, or a date (YYYY-MM-DD) to include that whole UTC day. Omitted: now.",
+            "example": "2026-10-31",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday), day or hour. hour needs `from` and `to` at most 14 days apart.",
+            "in": "query",
+            "name": "granularity",
+            "schema": {
+              "default": "total",
+              "enum": [
+                "total",
+                "month",
+                "week",
+                "day",
+                "hour"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Up to 2 of: app, model, provider, surface. Repeat the parameter (group_by=a&group_by=b) or separate values with commas (group_by=a,b).",
+            "example": [
+              "app"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "group_by",
+            "schema": {
+              "items": {
+                "enum": [
+                  "app",
+                  "model",
+                  "provider",
+                  "surface"
+                ],
+                "type": "string"
+              },
+              "maxItems": 2,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "style": "form"
+          },
+          {
+            "description": "Only this app (exact name, case-insensitive).",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this served model (exact).",
+            "in": "query",
+            "name": "model",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this provider name (exact).",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this API surface (exact, for example chat).",
+            "in": "query",
+            "name": "surface",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size: 1 to 200, default 50.",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the previous page; send the same other parameters.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "coverage": {
+                    "response_cache_from": "2026-09-15T00:00:00Z"
+                  },
+                  "data_through": "2026-11-01T00:00:00Z",
+                  "filters": {
+                    "app": "Support Bot"
+                  },
+                  "from": "2026-10-01T00:00:00Z",
+                  "generated_at": "2026-11-01T09:15:02Z",
+                  "granularity": "total",
+                  "group_by": [],
+                  "next_cursor": null,
+                  "request_id": "req_example",
+                  "rows": [
+                    {
+                      "failover": {
+                        "exhausted": 12,
+                        "recovered": 281,
+                        "requests_moved": 96,
+                        "requests_retried": 214
+                      },
+                      "prompt_cache": {
+                        "cache_write_tokens": 4100000,
+                        "cached_input_pct": 37.01,
+                        "cached_input_tokens": 22650000,
+                        "input_tokens": 61204000
+                      },
+                      "requests": 48210,
+                      "response_cache": {
+                        "bypassed": 2210,
+                        "hit_rate_pct": 24.76,
+                        "hits": 3120,
+                        "misses": 9480,
+                        "saved_cost_usd": 18.42,
+                        "saved_input_tokens": 2954000,
+                        "saved_output_tokens": 611000
+                      },
+                      "status_classes": {
+                        "2xx": 47120,
+                        "3xx": 0,
+                        "4xx": 812,
+                        "5xx": 263,
+                        "none": 15
+                      },
+                      "streaming": {
+                        "requests": 20113,
+                        "share_pct": 41.72
+                      },
+                      "token_saving": {
+                        "by_method": {
+                          "base64_blob_elision": 0,
+                          "html_to_text": 0,
+                          "json_minification": 0,
+                          "markdown_to_text": 0,
+                          "smart_json_compression": 182400,
+                          "text_compression": 0,
+                          "tool_output_cleanup": 0
+                        },
+                        "requests": 5102,
+                        "tokens_saved": 182400
+                      }
+                    }
+                  ],
+                  "timezone": "UTC",
+                  "to": "2026-11-01T00:00:00Z",
+                  "totals": {
+                    "failover": {
+                      "exhausted": 12,
+                      "recovered": 281,
+                      "requests_moved": 96,
+                      "requests_retried": 214
+                    },
+                    "prompt_cache": {
+                      "cache_write_tokens": 4100000,
+                      "cached_input_pct": 37.01,
+                      "cached_input_tokens": 22650000,
+                      "input_tokens": 61204000
+                    },
+                    "requests": 48210,
+                    "response_cache": {
+                      "bypassed": 2210,
+                      "hit_rate_pct": 24.76,
+                      "hits": 3120,
+                      "misses": 9480,
+                      "saved_cost_usd": 18.42,
+                      "saved_input_tokens": 2954000,
+                      "saved_output_tokens": 611000
+                    },
+                    "status_classes": {
+                      "2xx": 47120,
+                      "3xx": 0,
+                      "4xx": 812,
+                      "5xx": 263,
+                      "none": 15
+                    },
+                    "streaming": {
+                      "requests": 20113,
+                      "share_pct": 41.72
+                    },
+                    "token_saving": {
+                      "by_method": {
+                        "base64_blob_elision": 0,
+                        "html_to_text": 0,
+                        "json_minification": 0,
+                        "markdown_to_text": 0,
+                        "smart_json_compression": 182400,
+                        "text_compression": 0,
+                        "tool_output_cleanup": 0
+                      },
+                      "requests": 5102,
+                      "tokens_saved": 182400
+                    },
+                    "top_error_codes": [
+                      {
+                        "code": "rate_limit_error",
+                        "requests": 402
+                      },
+                      {
+                        "code": "invalid_request_error",
+                        "requests": 351
+                      }
+                    ]
+                  },
+                  "truncated": false
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureMetricsSummary"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Summarize gateway feature metrics",
+        "tags": [
+          "Monitoring"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/llmgateway/management/v1/guardrails/summary": {
       "get": {
-        "description": "Counts what the gateway guardrails did to the tenant's traffic: requests scanned, flagged, blocked, redacted and monitored, and the detections behind them. Group by up to two of `category`, `action`, `direction`, `app`, `user` and `model`, and bucket by `granularity`: total (the default), or UTC `month`, `week` (starting Monday) or `day`. `from` is inclusive and `to` exclusive; a date `to` includes that whole UTC day.\n\nOnly counts and identifiers are returned, never prompt or response text or the detected values. Categories are `{id, name, type}`: the ids and display names from app settings and policies; custom definitions use their id and the name you gave them. Actions are `blocked`, `redacted` (masked or partially masked) and `monitored` (allowed and recorded, including advisory notes). Requests refused by rate limits, quotas or access rules before they were scanned are not counted, and neither are the background cache-refresh requests or requests from apps with guardrails off.\n\n`totals` always covers the whole selection, whatever the page. With a category, action or direction filter, the flagged, blocked, redacted, monitored and detection counts include only matching detections, while `requests_scanned` still counts every scanned request in scope. Rows grouped by `category`, `action` or `direction` count detections, so their `requests_scanned` is null (as in the example, grouped by category and action); `totals.requests_scanned` is always set. Results can be up to 60 seconds old. Recent requests appear within a few minutes. Pages are ordered by period and then group keys; a cursor stops working (409) when the set of rows changes between pages. At most 5000 rows are returned (`truncated`). Queries are limited to 20 seconds. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now. 429 `report_busy` (with a Retry-After header) when too many reports are being computed at once; retry after that many seconds.",
+        "description": "Counts what the gateway guardrails did to the tenant's traffic: requests scanned, flagged, blocked, redacted and monitored, and the detections behind them. Group by up to two of `category`, `action`, `direction`, `app`, `user` and `model`, and bucket by `granularity`: total (the default), or UTC `month`, `week` (starting Monday), `day` or `hour` (a range of at most 14 days). `from` is inclusive and `to` exclusive; a date `to` includes that whole UTC day.\n\nOnly counts and identifiers are returned, never prompt or response text or the detected values. Categories are `{id, name, type}`: the ids and display names from app settings and policies; custom definitions use their id and the name you gave them. Actions are `blocked`, `redacted` (masked or partially masked) and `monitored` (allowed and recorded, including advisory notes). Requests refused by rate limits, quotas or access rules before they were scanned are not counted, and neither are the background cache-refresh requests or requests from apps with guardrails off.\n\n`totals` always covers the whole selection, whatever the page. With a category, action or direction filter, the flagged, blocked, redacted, monitored and detection counts include only matching detections, while `requests_scanned` still counts every scanned request in scope. Rows grouped by `category`, `action` or `direction` count detections, so their `requests_scanned` is null (as in the example, grouped by category and action); `totals.requests_scanned` is always set. Results can be up to 60 seconds old. Recent requests appear within a few minutes. Pages are ordered by period and then group keys; a cursor stops working (409) when the set of rows changes between pages. At most 5000 rows are returned (`truncated`). Queries are limited to 20 seconds. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now. 429 `report_busy` (with a Retry-After header) when too many reports are being computed at once; retry after that many seconds.",
         "operationId": "Read_guardrail_activity_summary",
         "parameters": [
           {
@@ -63292,7 +64957,7 @@
             }
           },
           {
-            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday) or day.",
+            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday), day or hour. hour needs `from` and `to` at most 14 days apart.",
             "in": "query",
             "name": "granularity",
             "schema": {
@@ -63301,7 +64966,8 @@
                 "total",
                 "month",
                 "week",
-                "day"
+                "day",
+                "hour"
               ],
               "type": "string"
             }
@@ -64517,6 +66183,519 @@
         ],
         "x-scopes": [
           "incidents:read"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/latency": {
+      "get": {
+        "description": "Latency distributions of the tenant's gateway requests, for building your own dashboards. Each row and `totals` carry five measures: `total` (end to end), `upstream` (waiting on the provider), `gateway_overhead` (time the gateway added, guardrails included), `guardrails` and `time_to_first_token` (streams only). Every measure has a count, mean, p50/p90/p95/p99 (estimated), maximum and an exact histogram over the fixed `histogram_buckets_ms`. A request without a recorded value for a measure is not counted in it.\n\nGroup by up to two of `app`, `model`, `provider`, `surface`, `stream` and `outcome`, and bucket by `granularity`: total (the default), or UTC `month`, `week` (starting Monday), `day` or `hour` (a range of at most 14 days). `from` defaults to UTC midnight 7 days before `to`; the range is at most 92 days. `outcome` selects successful requests by default; pass `error`, `blocked` or `all`. Requests refused by rate limits, quotas or access rules and background cache-refresh requests are not counted. Percentiles of different rows cannot be combined; query with the grouping you need instead.\n\nResults can be up to 60 seconds old. Recent requests appear within a few minutes. At most 5000 rows are returned (`truncated`). Queries are limited to 20 seconds. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now. 429 `report_busy` (with a Retry-After header) when too many reports are being computed at once; retry after that many seconds.",
+        "operationId": "Read_latency_summary",
+        "parameters": [
+          {
+            "description": "Inclusive start: a date (YYYY-MM-DD, UTC midnight) or an RFC 3339 timestamp with a timezone. Omitted: UTC midnight 7 days before `to` (or today).",
+            "example": "2026-11-01",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exclusive end: an RFC 3339 timestamp with a timezone, or a date (YYYY-MM-DD) to include that whole UTC day. Omitted: now.",
+            "example": "2026-11-01",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday), day or hour. hour needs `from` and `to` at most 14 days apart.",
+            "in": "query",
+            "name": "granularity",
+            "schema": {
+              "default": "total",
+              "enum": [
+                "total",
+                "month",
+                "week",
+                "day",
+                "hour"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Up to 2 of: app, model, provider, surface, stream, outcome. Repeat the parameter (group_by=a&group_by=b) or separate values with commas (group_by=a,b).",
+            "example": [
+              "model"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "group_by",
+            "schema": {
+              "items": {
+                "enum": [
+                  "app",
+                  "model",
+                  "provider",
+                  "surface",
+                  "stream",
+                  "outcome"
+                ],
+                "type": "string"
+              },
+              "maxItems": 2,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "style": "form"
+          },
+          {
+            "description": "Only this app (exact name, case-insensitive).",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this served model (exact).",
+            "in": "query",
+            "name": "model",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this provider name (exact).",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this API surface (exact, for example chat).",
+            "in": "query",
+            "name": "surface",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only streaming (true) or non-streaming (false) requests.",
+            "in": "query",
+            "name": "stream",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Which requests to measure: success (default), error, blocked or all.",
+            "in": "query",
+            "name": "outcome",
+            "schema": {
+              "default": "success",
+              "enum": [
+                "success",
+                "error",
+                "blocked",
+                "all"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size: 1 to 200, default 50.",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the previous page; send the same other parameters.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data_through": "2026-11-02T00:00:00Z",
+                  "filters": {
+                    "app": "Support Bot",
+                    "outcome": "success"
+                  },
+                  "from": "2026-11-01T00:00:00Z",
+                  "generated_at": "2026-11-02T09:15:02Z",
+                  "granularity": "total",
+                  "group_by": [
+                    "model"
+                  ],
+                  "histogram_buckets_ms": [
+                    {
+                      "from": 0,
+                      "to": 25
+                    },
+                    {
+                      "from": 25,
+                      "to": 50
+                    },
+                    {
+                      "from": 50,
+                      "to": 100
+                    },
+                    {
+                      "from": 100,
+                      "to": 250
+                    },
+                    {
+                      "from": 250,
+                      "to": 500
+                    },
+                    {
+                      "from": 500,
+                      "to": 1000
+                    },
+                    {
+                      "from": 1000,
+                      "to": 2500
+                    },
+                    {
+                      "from": 2500,
+                      "to": 5000
+                    },
+                    {
+                      "from": 5000,
+                      "to": 10000
+                    },
+                    {
+                      "from": 10000,
+                      "to": 30000
+                    },
+                    {
+                      "from": 30000,
+                      "to": 60000
+                    },
+                    {
+                      "from": 60000,
+                      "to": null
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "req_example",
+                  "rows": [
+                    {
+                      "latency": {
+                        "gateway_overhead": {
+                          "avg_ms": 96.4,
+                          "count": 1200,
+                          "histogram": [
+                            41,
+                            260,
+                            480,
+                            352,
+                            51,
+                            12,
+                            4,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "max_ms": 1980.0,
+                          "p50_ms": 71.0,
+                          "p90_ms": 160.2,
+                          "p95_ms": 240.8,
+                          "p99_ms": 610.0
+                        },
+                        "guardrails": {
+                          "avg_ms": 63.1,
+                          "count": 1180,
+                          "histogram": [
+                            120,
+                            410,
+                            420,
+                            200,
+                            22,
+                            6,
+                            2,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "max_ms": 1720.0,
+                          "p50_ms": 48.0,
+                          "p90_ms": 120.5,
+                          "p95_ms": 180.0,
+                          "p99_ms": 450.2
+                        },
+                        "time_to_first_token": {
+                          "avg_ms": 610.8,
+                          "count": 640,
+                          "histogram": [
+                            0,
+                            0,
+                            0,
+                            40,
+                            260,
+                            250,
+                            82,
+                            8,
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "max_ms": 7400.0,
+                          "p50_ms": 480.0,
+                          "p90_ms": 1100.0,
+                          "p95_ms": 1450.2,
+                          "p99_ms": 2600.0
+                        },
+                        "total": {
+                          "avg_ms": 1840.2,
+                          "count": 1200,
+                          "histogram": [
+                            0,
+                            0,
+                            0,
+                            12,
+                            61,
+                            233,
+                            588,
+                            214,
+                            79,
+                            13,
+                            0,
+                            0
+                          ],
+                          "max_ms": 28411.0,
+                          "p50_ms": 1320.0,
+                          "p90_ms": 3410.5,
+                          "p95_ms": 4870.0,
+                          "p99_ms": 9120.3
+                        },
+                        "upstream": {
+                          "avg_ms": 1702.6,
+                          "count": 1200,
+                          "histogram": [
+                            0,
+                            0,
+                            0,
+                            20,
+                            70,
+                            260,
+                            570,
+                            198,
+                            70,
+                            12,
+                            0,
+                            0
+                          ],
+                          "max_ms": 28102.0,
+                          "p50_ms": 1205.0,
+                          "p90_ms": 3260.1,
+                          "p95_ms": 4700.4,
+                          "p99_ms": 8980.0
+                        }
+                      },
+                      "model": "gpt-4.1",
+                      "requests": 1200
+                    }
+                  ],
+                  "timezone": "UTC",
+                  "to": "2026-11-02T00:00:00Z",
+                  "totals": {
+                    "latency": {
+                      "gateway_overhead": {
+                        "avg_ms": 96.4,
+                        "count": 1200,
+                        "histogram": [
+                          41,
+                          260,
+                          480,
+                          352,
+                          51,
+                          12,
+                          4,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0
+                        ],
+                        "max_ms": 1980.0,
+                        "p50_ms": 71.0,
+                        "p90_ms": 160.2,
+                        "p95_ms": 240.8,
+                        "p99_ms": 610.0
+                      },
+                      "guardrails": {
+                        "avg_ms": 63.1,
+                        "count": 1180,
+                        "histogram": [
+                          120,
+                          410,
+                          420,
+                          200,
+                          22,
+                          6,
+                          2,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0
+                        ],
+                        "max_ms": 1720.0,
+                        "p50_ms": 48.0,
+                        "p90_ms": 120.5,
+                        "p95_ms": 180.0,
+                        "p99_ms": 450.2
+                      },
+                      "time_to_first_token": {
+                        "avg_ms": 610.8,
+                        "count": 640,
+                        "histogram": [
+                          0,
+                          0,
+                          0,
+                          40,
+                          260,
+                          250,
+                          82,
+                          8,
+                          0,
+                          0,
+                          0,
+                          0
+                        ],
+                        "max_ms": 7400.0,
+                        "p50_ms": 480.0,
+                        "p90_ms": 1100.0,
+                        "p95_ms": 1450.2,
+                        "p99_ms": 2600.0
+                      },
+                      "total": {
+                        "avg_ms": 1840.2,
+                        "count": 1200,
+                        "histogram": [
+                          0,
+                          0,
+                          0,
+                          12,
+                          61,
+                          233,
+                          588,
+                          214,
+                          79,
+                          13,
+                          0,
+                          0
+                        ],
+                        "max_ms": 28411.0,
+                        "p50_ms": 1320.0,
+                        "p90_ms": 3410.5,
+                        "p95_ms": 4870.0,
+                        "p99_ms": 9120.3
+                      },
+                      "upstream": {
+                        "avg_ms": 1702.6,
+                        "count": 1200,
+                        "histogram": [
+                          0,
+                          0,
+                          0,
+                          20,
+                          70,
+                          260,
+                          570,
+                          198,
+                          70,
+                          12,
+                          0,
+                          0
+                        ],
+                        "max_ms": 28102.0,
+                        "p50_ms": 1205.0,
+                        "p90_ms": 3260.1,
+                        "p95_ms": 4700.4,
+                        "p99_ms": 8980.0
+                      }
+                    },
+                    "requests": 1200
+                  },
+                  "truncated": false
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/LatencySummary"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Summarize request latency",
+        "tags": [
+          "Monitoring"
+        ],
+        "x-scopes": [
+          "read"
         ]
       }
     },
@@ -67423,6 +69602,289 @@
         ]
       }
     },
+    "/llmgateway/management/v1/requests": {
+      "get": {
+        "description": "The tenant's individual gateway requests, newest first: app, key, user, requested and served model, provider, outcome, status and error code, latency, tokens, cost, response cache, failover and the guardrail categories and actions. Prompt and response text, detected values and provider error messages are never returned; follow `links.explain` for why one request behaved as it did.\n\n`from` defaults to 24 hours before `to` (or now); the range is at most 31 days. Requests refused by rate limits, quotas or access rules are included (see `outcome`); background cache-refresh requests are not. Filters combine with AND. Pages are ordered by time then request id and continue with `next_cursor`; new requests never shift a page, and a cursor only works with the same other parameters. Recent requests appear within a few minutes. Queries are limited to 20 seconds. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now. 429 `report_busy` (with a Retry-After header) when too many reports are being computed at once; retry after that many seconds.",
+        "operationId": "List_requests",
+        "parameters": [
+          {
+            "description": "Inclusive start: a date (YYYY-MM-DD, UTC midnight) or an RFC 3339 timestamp with a timezone. Omitted: 24 hours before `to` (or now).",
+            "example": "2026-11-05T09:00:00Z",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exclusive end: an RFC 3339 timestamp with a timezone, or a date (YYYY-MM-DD) to include that whole UTC day. Omitted: now.",
+            "example": "2026-11-06",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this app (exact name, case-insensitive).",
+            "in": "query",
+            "name": "app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this served model (exact).",
+            "in": "query",
+            "name": "model",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this provider name (exact).",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this user email (case-insensitive).",
+            "in": "query",
+            "name": "user",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this app gateway key id.",
+            "in": "query",
+            "name": "key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this outcome.",
+            "in": "query",
+            "name": "outcome",
+            "schema": {
+              "enum": [
+                "served",
+                "blocked",
+                "error",
+                "rate_limited"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this HTTP status code (429) or class (4xx).",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only requests with a detection of this category: its id or display name (case-insensitive), a custom definition's id or name, or `unattributed`.",
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only requests the guardrails handled with this action.",
+            "in": "query",
+            "name": "action",
+            "schema": {
+              "enum": [
+                "blocked",
+                "redacted",
+                "monitored"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only streaming (true) or non-streaming (false) requests.",
+            "in": "query",
+            "name": "stream",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only requests whose total latency was at least this many milliseconds.",
+            "in": "query",
+            "name": "min_latency_ms",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Only this API surface (exact, for example chat).",
+            "in": "query",
+            "name": "surface",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size: 1 to 200, default 50.",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the previous page; send the same other parameters.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data_through": "2026-11-06T09:00:01Z",
+                  "filters": {
+                    "app": "Support Bot",
+                    "outcome": "blocked"
+                  },
+                  "from": "2026-11-05T09:00:00Z",
+                  "generated_at": "2026-11-06T09:00:01Z",
+                  "items": [
+                    {
+                      "app": "Support Bot",
+                      "cost_usd": null,
+                      "error_code": "request_blocked_by_policy",
+                      "failover": {
+                        "moved": false,
+                        "sends": null
+                      },
+                      "guardrails": {
+                        "actions": [
+                          "blocked"
+                        ],
+                        "detections": [
+                          {
+                            "action": "blocked",
+                            "category": {
+                              "id": "adversarial_risk_category_direct_prompt_injection",
+                              "name": "Direct Prompt Injection",
+                              "type": "adversarial"
+                            },
+                            "direction": "request"
+                          }
+                        ],
+                        "scanned": true
+                      },
+                      "key_id": "00000000-0000-4000-8000-0000000000c1",
+                      "latency": {
+                        "gateway_overhead_ms": 212,
+                        "guardrails_ms": 188,
+                        "time_to_first_token_ms": null,
+                        "total_ms": 212,
+                        "upstream_ms": null
+                      },
+                      "links": {
+                        "explain": "/llmgateway/management/v1/requests/4f9a2c1e-8b7d-4e3a-9c21-0d5e6f7a8b90/explain"
+                      },
+                      "model": "gpt-4.1",
+                      "outcome": "blocked",
+                      "provider": "Prod OpenAI",
+                      "provider_type": "openai",
+                      "request_id": "4f9a2c1e-8b7d-4e3a-9c21-0d5e6f7a8b90",
+                      "requested_model": "gpt-4.1",
+                      "response_cache": null,
+                      "status_code": 403,
+                      "stream": false,
+                      "surface": "chat",
+                      "timestamp": "2026-11-06T08:41:12.512000Z",
+                      "tokens": {
+                        "cache_write": null,
+                        "cached_input": null,
+                        "input": null,
+                        "output": null,
+                        "reasoning": null
+                      },
+                      "user": "dana@example.com"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "req_example",
+                  "to": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/RequestList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List gateway requests",
+        "tags": [
+          "Monitoring"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/llmgateway/management/v1/requests/{request_id}/explain": {
       "get": {
         "description": "Why one gateway request of your tenant behaved the way it did, without prompt or response content: a summary (app, user, models, provider, status, outcome, latency, tokens, cost, response cache), how the target was chosen (route source and rule with its public route id, content-routing verdicts, routing constraints, conversation pinning, upstream API mode), every failover attempt, guardrail categories and actions per direction with the rules that decided them, limit and budget outcomes with the charged amounts, and the error code with whether a friendly error message replaced it. Detected values, message text and original provider error messages are never returned. Sections that do not apply, or that the gateway did not record for this request, are omitted. Actions use the guardrail summary's `blocked`, `redacted` and `monitored` with the same category objects, and failure classes match GET /provider-health. `gateway_request_id` is the explained request; the top-level `request_id` identifies this management call.\n\n`request_id` is the value of the `x-quilr-request-id` response header. Provider response ids are not accepted. Requests are searched in the last 30 days; for an older request pass `timestamp` (any time within a day of the request). Explanations are available a short time after the request completes. 404 `request_not_found` when no request with this id exists in your tenant within the searched window. 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now.",
@@ -68398,7 +70860,7 @@
     },
     "/llmgateway/management/v1/usage": {
       "get": {
-        "description": "Requests, outcomes, tokens and cost of every app in the tenant, over all time by default (`from` inclusive, `to` exclusive; a date `to` includes that whole UTC day). Rows are per period (`granularity`: total by default, or UTC month, week starting Monday, or day) and optionally per one or two dimensions: app, model, provider, user, key (gateway credential), source or outcome. Filters narrow every number, including totals, and `totals` always equals the sum of every row across all pages. Cost is the cost recorded with each request at request time; requests without one are counted in unpriced_requests instead of being estimated. Request counts exclude the background cache-refresh requests the gateway sends on its own, while tokens and cost include them because the provider bills them. Requests whose user identity was removed by data retention are kept with user null. Periods without traffic are omitted. Credential ids are recorded from 2026-10-16; earlier requests report key null. Grouping or filtering by key reads more data, so prefer a bounded range with it. Results can be up to 60 seconds old. Page with `limit` and `cursor` while the query stays the same; a cursor answers 409 `collection_changed` when the result was recomputed and differs (restart without cursor; a fixed `to` in the past keeps results stable). Rows group by the app's current name while it exists, otherwise the name recorded with its requests, and by the served model. `generated_at` says when the data was read and `data_through` the effective end of the range; `totals.priced_coverage_pct` says how much of the billable traffic has a recorded cost. Queries are limited to {QUERY_TIMEOUT_SECONDS} seconds and 100,000 result rows (422 `result_too_large`). 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now. 429 `report_busy` (with a Retry-After header) when too many reports are being computed at once; retry after that many seconds.",
+        "description": "Requests, outcomes, tokens and cost of every app in the tenant, over all time by default (`from` inclusive, `to` exclusive; a date `to` includes that whole UTC day). Rows are per period (`granularity`: total by default, or UTC month, week starting Monday, day or hour) and optionally per one or two dimensions: app, model, provider, user, key (gateway credential), source or outcome. Filters narrow every number, including totals, and `totals` always equals the sum of every row across all pages. Cost is the cost recorded with each request at request time; requests without one are counted in unpriced_requests instead of being estimated. Request counts exclude the background cache-refresh requests the gateway sends on its own, while tokens and cost include them because the provider bills them. Requests whose user identity was removed by data retention are kept with user null. Periods without traffic are omitted. Credential ids are recorded from 2026-10-16; earlier requests report key null. Grouping or filtering by key reads more data, so prefer a bounded range with it. Results can be up to 60 seconds old. Page with `limit` and `cursor` while the query stays the same; a cursor answers 409 `collection_changed` when the result was recomputed and differs (restart without cursor; a fixed `to` in the past keeps results stable). Rows group by the app's current name while it exists, otherwise the name recorded with its requests, and by the served model. `generated_at` says when the data was read and `data_through` the effective end of the range; `totals.priced_coverage_pct` says how much of the billable traffic has a recorded cost. Queries are limited to {QUERY_TIMEOUT_SECONDS} seconds and 100,000 result rows (422 `result_too_large`). 503 `query_timeout` when the query exceeds its time or read limits (narrow it and retry); 503 `data_unavailable` when the data cannot be read right now. 429 `report_busy` (with a Retry-After header) when too many reports are being computed at once; retry after that many seconds.",
         "operationId": "Read_usage",
         "parameters": [
           {
@@ -68420,7 +70882,7 @@
             }
           },
           {
-            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday) or day.",
+            "description": "Period of each row: total (one row per group), or UTC month, week (starting Monday), day or hour. hour needs `from` and `to` at most 14 days apart.",
             "in": "query",
             "name": "granularity",
             "schema": {
@@ -68429,7 +70891,8 @@
                 "total",
                 "month",
                 "week",
-                "day"
+                "day",
+                "hour"
               ],
               "type": "string"
             }

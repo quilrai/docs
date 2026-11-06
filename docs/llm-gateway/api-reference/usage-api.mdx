@@ -26,8 +26,8 @@ No extra scope is needed: a key with `read` can call all three. Try them with yo
 ## Build a report
 
 <StepFlow steps={[
-  {label: '1. Range', items: ['from / to', 'Omit both for all time']},
-  {label: '2. Periods', items: ['granularity', 'total · month · week · day']},
+  {label: '1. Range', items: ['from / to', 'Default: the last 30 days']},
+  {label: '2. Periods', items: ['granularity', 'total · month · week · day · hour']},
   {label: '3. Breakdown', items: ['group_by (up to 2)', 'app, model, provider, user, key, source, outcome']},
   {label: '4. Narrow', items: ['Filters on any dimension', 'Up to 50 values each']},
   {label: '5. Read', items: ['rows + totals', 'sort, limit, cursor']},
@@ -35,9 +35,9 @@ No extra scope is needed: a key with `read` can call all three. Try them with yo
 
 | Parameter | Values | Default |
 | --- | --- | --- |
-| `from` | Inclusive start: a date (`YYYY-MM-DD`, UTC midnight) or an RFC 3339 timestamp with a timezone. | The first recorded request |
+| `from` | Inclusive start: a date (`YYYY-MM-DD`, UTC midnight) or an RFC 3339 timestamp with a timezone. Pass an early date (for example `from=2024-01-01`) for all time. | UTC midnight 30 days before `to` |
 | `to` | **Exclusive** end: an RFC 3339 timestamp with a timezone, or a date to include that whole UTC day (`to=2026-10-31` ends at `2026-11-01T00:00:00Z`). | Now |
-| `granularity` | `total` (one row per group), `month`, `week` (starts Monday) or `day`. All periods are UTC, and `period_start` is the period's first day (`YYYY-MM-DD`). | `total` |
+| `granularity` | `total` (one row per group), `month`, `week` (starts Monday), `day` or `hour`. All periods are UTC, and `period_start` is the period's first day (`YYYY-MM-DD`), or `YYYY-MM-DDTHH:00:00Z` for `hour`. `hour` needs `from` and `to` at most 14 days apart. | `total` |
 | `group_by` | Up to two of `app`, `model`, `provider`, `user`, `key`, `source`, `outcome`, repeated (`group_by=app&group_by=model`) or comma-separated (`group_by=app,model`). | No breakdown |
 | `app`, `model`, `provider`, `user`, `key`, `source`, `outcome` | Filters, comma-separated, at most 50 values each. Apps and emails match case-insensitively. `source` is `gateway`, `sdk` or `copilot_studio`; `outcome` is `served`, `blocked`, `error` or `rate_limited`. | None |
 | `sort` | `period` (oldest period first, then highest cost), or `cost`, `requests`, `tokens` (highest first). | `period` |
@@ -65,7 +65,7 @@ Filters narrow every number, including `totals`, and `totals` always equals the 
 - **Errors.** An invalid parameter returns `400 invalid_request` with a message such as `to must be after from` or `group_by accepts at most 2 dimensions`. `503 query_timeout` means the query exceeded its time or read limits: narrow it and retry. `503 data_unavailable` means usage data cannot be read right now.
 
 :::tip Need individual requests?
-This API returns aggregates. To pull every request log line into your warehouse or SIEM, use the [Log Export API](./log-export-api). To understand one request, use [Explain a request](./monitoring-api#explain-a-request).
+This API returns aggregates. To browse the requests behind a number, use the [request list](./monitoring-api#request-list). To pull every request log line into your warehouse or SIEM, use the [Log Export API](./log-export-api). To understand one request, use [Explain a request](./monitoring-api#explain-a-request). For latency and cache, token-saving and failover metrics, see [latency](./monitoring-api#latency) and [feature metrics](./monitoring-api#feature-metrics).
 :::
 
 ## Admin recipes
@@ -102,7 +102,7 @@ usage_rows "from=$FROM&granularity=day" | jq -r '[.period_start, .requests, .cos
 ### All-time spend by app
 
 ```bash
-usage_rows "granularity=total&group_by=app&sort=cost" \
+usage_rows "from=2024-01-01&granularity=total&group_by=app&sort=cost" \
   | jq -r '[.app, .requests, .cost_usd, .unpriced_requests] | @tsv'
 ```
 

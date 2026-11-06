@@ -26,6 +26,9 @@ import styles from './styles.module.css';
 
 const P = MANAGEMENT_PREFIX;
 const VIEWS = [
+  ['latency', 'Latency'],
+  ['features', 'Feature metrics'],
+  ['requests', 'Requests'],
   ['guardrails', 'Guardrail activity'],
   ['health', 'Provider health'],
   ['explain', 'Explain a request'],
@@ -33,11 +36,14 @@ const VIEWS = [
 
 export default function Monitoring() {
   const { client, urlParam, setParam } = usePlayground();
-  if (!client) return <ConnectFirst what="see guardrail activity, provider health and why a request behaved the way it did" />;
+  if (!client) return <ConnectFirst what="see latency, feature metrics, requests, guardrail activity, provider health and why a request behaved the way it did" />;
   const view = VIEWS.some(([id]) => id === urlParam('view')) ? urlParam('view') : urlParam('request_id') ? 'explain' : 'guardrails';
   return (
     <div className={styles.stack}>
       <Tabs tabs={VIEWS} value={view} onChange={(id) => setParam('view', id)} label="Monitoring views" />
+      {view === 'latency' && <Latency />}
+      {view === 'features' && <Features />}
+      {view === 'requests' && <Requests />}
       {view === 'guardrails' && <Guardrails />}
       {view === 'health' && <ProviderHealth />}
       {view === 'explain' && <Explain />}
@@ -134,7 +140,7 @@ function Guardrails() {
           setApplied(form);
         }}
       >
-        <Field label="From" hint="Inclusive. Empty: all history.">
+        <Field label="From" hint="Inclusive. Empty: the last 30 days.">
           <input type="date" value={form.from} onChange={(e) => set({ from: e.target.value })} />
         </Field>
         <Field label="To" hint="Exclusive; a date includes that whole UTC day. Empty: now.">
@@ -142,7 +148,7 @@ function Guardrails() {
         </Field>
         <Field label="Granularity">
           <select value={form.granularity} onChange={(e) => set({ granularity: e.target.value })}>
-            {['total', 'month', 'week', 'day'].map((g) => (
+            {GRANULARITIES.map((g) => (
               <option key={g}>{g}</option>
             ))}
           </select>
@@ -409,6 +415,398 @@ function ProviderHealth() {
           <JsonView value={data} maxHeight={420} />
         </details>
       )}
+    </Panel>
+  );
+}
+
+// ── Shared report form ─────────────────────────────────────────────────────
+
+const GRANULARITIES = ['total', 'month', 'week', 'day', 'hour'];
+const period = (r, granularity) =>
+  granularity === 'hour' ? String(r.period_start || '').replace('T', ' ').slice(0, 16) : String(r.period_start || '').slice(0, 10);
+
+function ReportForm({ form, set, dims, onSubmit, submit, children }) {
+  return (
+    <form
+      className={styles.filters}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+    >
+      <Field label="From" hint="Inclusive date. hour needs a range of at most 14 days.">
+        <input type="date" value={form.from} onChange={(e) => set({ from: e.target.value })} />
+      </Field>
+      <Field label="To" hint="Exclusive; a date includes that whole UTC day. Empty: now.">
+        <input type="date" value={form.to} onChange={(e) => set({ to: e.target.value })} />
+      </Field>
+      <Field label="Granularity">
+        <select value={form.granularity} onChange={(e) => set({ granularity: e.target.value })}>
+          {GRANULARITIES.map((g) => (
+            <option key={g}>{g}</option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Group by">
+        <select value={form.g1} onChange={(e) => set({ g1: e.target.value, g2: e.target.value ? form.g2 : '' })}>
+          <option value="">None</option>
+          {dims.map((d) => (
+            <option key={d}>{d}</option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Then by">
+        <select value={form.g2} onChange={(e) => set({ g2: e.target.value })} disabled={!form.g1}>
+          <option value="">None</option>
+          {dims.filter((d) => d !== form.g1).map((d) => (
+            <option key={d}>{d}</option>
+          ))}
+        </select>
+      </Field>
+      <details style={{ flexBasis: '100%' }}>
+        <summary>Filters</summary>
+        <div className={styles.filters} style={{ marginTop: 10 }}>
+          <Field label="App">
+            <input value={form.app} onChange={(e) => set({ app: e.target.value })} placeholder="Support Bot" />
+          </Field>
+          <Field label="Served model">
+            <input value={form.model} onChange={(e) => set({ model: e.target.value })} />
+          </Field>
+          <Field label="Provider">
+            <input value={form.provider} onChange={(e) => set({ provider: e.target.value })} />
+          </Field>
+          <Field label="Surface" hint="For example chat.">
+            <input value={form.surface} onChange={(e) => set({ surface: e.target.value })} />
+          </Field>
+          {children}
+        </div>
+      </details>
+      <Btn type="submit" variant="primary">
+        {submit}
+      </Btn>
+    </form>
+  );
+}
+
+function groupColumns(data) {
+  const groups = data?.group_by || [];
+  return [
+    ...(data && data.granularity !== 'total' ? [{ label: 'Period', render: (r) => fmt(period(r, data.granularity)) }] : []),
+    ...groups.map((g) => ({ label: g, render: (r) => fmt(g === 'stream' ? String(r.stream) : r[g]) })),
+  ];
+}
+
+const groupKey = (data) => (r) => [r.period_start, ...(data?.group_by || []).map((g) => r[g])].join('|');
+
+// ── Latency ────────────────────────────────────────────────────────────────
+
+const L_DIMS = ['app', 'model', 'provider', 'surface', 'stream', 'outcome'];
+const L_BLANK = { from: daysAgo(7), to: '', granularity: 'day', g1: 'model', g2: '', app: '', model: '', provider: '', surface: '', stream: '', outcome: 'success' };
+const MEASURES = [
+  ['total', 'Total'],
+  ['upstream', 'Provider'],
+  ['gateway_overhead', 'Gateway overhead'],
+  ['guardrails', 'Guardrails'],
+  ['time_to_first_token', 'First token'],
+];
+const msv = (v) => (v === null || v === undefined ? '-' : `${Math.round(v).toLocaleString()} ms`);
+const bucketLabel = (b) => (b.to == null ? `${b.from / 1000}s+` : b.to < 1000 ? `<${b.to}ms` : `<${b.to / 1000}s`);
+
+function Latency() {
+  const { client } = usePlayground();
+  const [form, setForm] = useState(L_BLANK);
+  const [applied, setApplied] = useState(L_BLANK);
+  const [measure, setMeasure] = useState('total');
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const list = useCollection(
+    (cursor) =>
+      client.call({
+        path: `${P}/latency`,
+        query: { ...applied, g1: undefined, g2: undefined, group_by: [applied.g1, applied.g2].filter(Boolean), limit: 200, cursor },
+        source: 'Latency',
+      }),
+    [client, JSON.stringify(applied)],
+  );
+  const data = list.data;
+  const total = data?.totals?.latency?.[measure];
+  const buckets = data?.histogram_buckets_ms || [];
+  return (
+    <Panel
+      title="Latency"
+      subtitle="Latency distributions of your gateway requests: percentiles (estimated) and an exact histogram for end to end, provider, gateway overhead, guardrails and time to first token."
+      actions={
+        <>
+          <ApiChips calls={[['GET', '/latency']]} />
+          <Btn onClick={list.reload}>
+            <RefreshCw size={13} aria-hidden /> Refresh
+          </Btn>
+        </>
+      }
+    >
+      <ReportForm form={form} set={set} dims={L_DIMS} onSubmit={() => setApplied(form)} submit="Run latency report">
+        <Field label="Outcome">
+          <select value={form.outcome} onChange={(e) => set({ outcome: e.target.value })}>
+            {['success', 'error', 'blocked', 'all'].map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Streaming">
+          <select value={form.stream} onChange={(e) => set({ stream: e.target.value })}>
+            <option value="">Any</option>
+            <option value="true">streaming</option>
+            <option value="false">non-streaming</option>
+          </select>
+        </Field>
+      </ReportForm>
+      <ErrorBox error={list.error} />
+      <Tabs tabs={MEASURES} value={measure} onChange={setMeasure} label="Latency measure" />
+      {total && (
+        <Stats
+          items={[
+            ['Requests', num(total.count)],
+            ['p50', msv(total.p50_ms)],
+            ['p90', msv(total.p90_ms)],
+            ['p95', msv(total.p95_ms)],
+            ['p99', msv(total.p99_ms)],
+            ['Max', msv(total.max_ms)],
+          ]}
+        />
+      )}
+      {total && total.count > 0 && (
+        <BarChart points={buckets.map((b, i) => ({ label: bucketLabel(b), value: total.histogram[i] || 0 }))} label="Requests per latency bucket" />
+      )}
+      {data?.truncated && <Notice tone="warn">More than 5,000 rows matched; only the first 5,000 are returned.</Notice>}
+      <Table
+        rows={data?.rows || []}
+        rowKey={groupKey(data)}
+        empty={list.loading ? 'Loading...' : 'No requests match.'}
+        columns={[
+          ...groupColumns(data),
+          { label: 'Requests', render: (r) => <span className={styles.num}>{num(r.latency?.[measure]?.count)}</span> },
+          { label: 'p50', render: (r) => <span className={styles.num}>{msv(r.latency?.[measure]?.p50_ms)}</span> },
+          { label: 'p95', render: (r) => <span className={styles.num}>{msv(r.latency?.[measure]?.p95_ms)}</span> },
+          { label: 'p99', render: (r) => <span className={styles.num}>{msv(r.latency?.[measure]?.p99_ms)}</span> },
+          { label: 'Max', render: (r) => <span className={styles.num}>{msv(r.latency?.[measure]?.max_ms)}</span> },
+        ]}
+      />
+      <Pager list={list} />
+      <p className={styles.muted}>Percentiles of different rows cannot be added; the histogram counts can.</p>
+    </Panel>
+  );
+}
+
+// ── Feature metrics ────────────────────────────────────────────────────────
+
+const F_DIMS = ['app', 'model', 'provider', 'surface'];
+const F_BLANK = { from: daysAgo(30), to: '', granularity: 'total', g1: 'app', g2: '', app: '', model: '', provider: '', surface: '' };
+
+function Features() {
+  const { client } = usePlayground();
+  const [form, setForm] = useState(F_BLANK);
+  const [applied, setApplied] = useState(F_BLANK);
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const list = useCollection(
+    (cursor) =>
+      client.call({
+        path: `${P}/features/summary`,
+        query: { ...applied, g1: undefined, g2: undefined, group_by: [applied.g1, applied.g2].filter(Boolean), limit: 200, cursor },
+        source: 'Feature metrics',
+      }),
+    [client, JSON.stringify(applied)],
+  );
+  const data = list.data;
+  const t = data?.totals;
+  const rc = t?.response_cache;
+  return (
+    <Panel
+      title="Feature metrics"
+      subtitle="Response cache, token saving, provider prompt caching, retries and failover, streaming and status classes, with the most frequent error codes."
+      actions={
+        <>
+          <ApiChips calls={[['GET', '/features/summary']]} />
+          <Btn onClick={list.reload}>
+            <RefreshCw size={13} aria-hidden /> Refresh
+          </Btn>
+        </>
+      }
+    >
+      <ReportForm form={form} set={set} dims={F_DIMS} onSubmit={() => setApplied(form)} submit="Run feature report" />
+      <ErrorBox error={list.error} />
+      {t && (
+        <Stats
+          items={[
+            ['Requests', num(t.requests)],
+            ['Cache hit rate', rc ? pct(rc.hit_rate_pct) : '-'],
+            ['Cache saved', rc ? usd(rc.saved_cost_usd) : '-'],
+            ['Tokens saved', num(t.token_saving?.tokens_saved)],
+            ['Prompt cache share', pct(t.prompt_cache?.cached_input_pct)],
+            ['Failovers', num(t.failover?.requests_moved)],
+          ]}
+        />
+      )}
+      {data?.coverage && (
+        <p className={styles.muted}>
+          {data.coverage.response_cache_from
+            ? `Response cache metrics are recorded from ${data.coverage.response_cache_from}.`
+            : 'Response cache metrics cover the requests that recorded them.'}
+        </p>
+      )}
+      <Table
+        rows={data?.rows || []}
+        rowKey={groupKey(data)}
+        empty={list.loading ? 'Loading...' : 'No requests match.'}
+        columns={[
+          ...groupColumns(data),
+          { label: 'Requests', render: (r) => <span className={styles.num}>{num(r.requests)}</span> },
+          { label: 'Cache hits / misses', render: (r) => (r.response_cache ? `${num(r.response_cache.hits)} / ${num(r.response_cache.misses)}` : '-') },
+          { label: 'Hit rate', render: (r) => <span className={styles.num}>{r.response_cache ? pct(r.response_cache.hit_rate_pct) : '-'}</span> },
+          { label: 'Tokens saved', render: (r) => <span className={styles.num}>{num(r.token_saving?.tokens_saved)}</span> },
+          { label: 'Cached input', render: (r) => <span className={styles.num}>{pct(r.prompt_cache?.cached_input_pct)}</span> },
+          { label: 'Retried / moved', render: (r) => `${num(r.failover?.requests_retried)} / ${num(r.failover?.requests_moved)}` },
+          { label: '4xx / 5xx', render: (r) => `${num(r.status_classes?.['4xx'])} / ${num(r.status_classes?.['5xx'])}` },
+        ]}
+      />
+      <Pager list={list} />
+      {t?.top_error_codes?.length > 0 && (
+        <Table
+          rows={t.top_error_codes}
+          rowKey={(r) => r.code}
+          columns={[
+            { label: 'Error code', render: (r) => <code>{r.code}</code> },
+            { label: 'Requests', render: (r) => <span className={styles.num}>{num(r.requests)}</span> },
+          ]}
+        />
+      )}
+    </Panel>
+  );
+}
+
+// ── Requests ───────────────────────────────────────────────────────────────
+
+const R_BLANK = { app: '', model: '', provider: '', user: '', outcome: '', status: '', category: '', action: '', min_latency_ms: '', stream: '' };
+const outcomeTone = (o) => (o === 'served' ? 'ok' : o === 'error' ? 'err' : 'warn');
+
+function Requests() {
+  const { client, navigate } = usePlayground();
+  const [form, setForm] = useState(R_BLANK);
+  const [applied, setApplied] = useState(R_BLANK);
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const list = useCollection(
+    (cursor) => client.call({ path: `${P}/requests`, query: { ...applied, limit: 50, cursor }, source: 'Requests' }),
+    [client, JSON.stringify(applied)],
+  );
+  const data = list.data;
+  return (
+    <Panel
+      title="Requests"
+      subtitle="Your gateway requests, newest first (the last 24 hours by default). Metadata only: never prompt or response text or detected values."
+      actions={
+        <>
+          <ApiChips calls={[['GET', '/requests']]} />
+          <Btn onClick={list.reload}>
+            <RefreshCw size={13} aria-hidden /> Refresh
+          </Btn>
+        </>
+      }
+    >
+      <form
+        className={styles.filters}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setApplied(form);
+        }}
+      >
+        <Field label="App">
+          <input value={form.app} onChange={(e) => set({ app: e.target.value })} placeholder="Support Bot" />
+        </Field>
+        <Field label="User email">
+          <input value={form.user} onChange={(e) => set({ user: e.target.value })} />
+        </Field>
+        <Field label="Outcome">
+          <select value={form.outcome} onChange={(e) => set({ outcome: e.target.value })}>
+            <option value="">Any</option>
+            {['served', 'blocked', 'error', 'rate_limited'].map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Status" hint="A code (429) or class (5xx).">
+          <input value={form.status} onChange={(e) => set({ status: e.target.value })} />
+        </Field>
+        <Field label="Slower than (ms)">
+          <input value={form.min_latency_ms} onChange={(e) => set({ min_latency_ms: e.target.value })} inputMode="numeric" />
+        </Field>
+        <details style={{ flexBasis: '100%' }}>
+          <summary>More filters</summary>
+          <div className={styles.filters} style={{ marginTop: 10 }}>
+            <Field label="Served model">
+              <input value={form.model} onChange={(e) => set({ model: e.target.value })} />
+            </Field>
+            <Field label="Provider">
+              <input value={form.provider} onChange={(e) => set({ provider: e.target.value })} />
+            </Field>
+            <Field label="Category" hint="Id or display name, or unattributed.">
+              <input value={form.category} onChange={(e) => set({ category: e.target.value })} />
+            </Field>
+            <Field label="Action">
+              <select value={form.action} onChange={(e) => set({ action: e.target.value })}>
+                <option value="">Any</option>
+                {['blocked', 'redacted', 'monitored'].map((a) => (
+                  <option key={a}>{a}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Streaming">
+              <select value={form.stream} onChange={(e) => set({ stream: e.target.value })}>
+                <option value="">Any</option>
+                <option value="true">streaming</option>
+                <option value="false">non-streaming</option>
+              </select>
+            </Field>
+          </div>
+        </details>
+        <Btn type="submit" variant="primary">
+          <Search size={13} aria-hidden /> List requests
+        </Btn>
+      </form>
+      <ErrorBox error={list.error} />
+      <Table
+        rows={data?.items || []}
+        rowKey={(r) => r.request_id}
+        empty={list.loading ? 'Loading...' : 'No requests match.'}
+        columns={[
+          { label: 'Time', render: (r) => <span className={styles.nowrap}>{when(r.timestamp)}</span> },
+          { label: 'App', render: (r) => fmt(r.app) },
+          { label: 'User', render: (r) => fmt(r.user) },
+          { label: 'Model', render: (r) => <code>{fmt(r.model)}</code> },
+          {
+            label: 'Outcome',
+            render: (r) => (
+              <span className={styles.nowrap}>
+                <Pill tone={outcomeTone(r.outcome)}>{r.outcome}</Pill> {r.status_code || ''}
+              </span>
+            ),
+          },
+          { label: 'Latency', render: (r) => <span className={styles.num}>{msv(r.latency?.total_ms)}</span> },
+          { label: 'Tokens in / out', render: (r) => `${num(r.tokens?.input)} / ${num(r.tokens?.output)}` },
+          { label: 'Cost', render: (r) => <span className={styles.num}>{r.cost_usd == null ? '-' : usd(r.cost_usd)}</span> },
+          {
+            label: 'Guardrails',
+            render: (r) =>
+              r.guardrails?.actions?.length ? r.guardrails.actions.map((a) => <Pill key={a} tone={actionTone(a)}>{a}</Pill>) : '-',
+          },
+          {
+            label: '',
+            render: (r) => (
+              <Btn onClick={() => navigate('monitoring', { view: 'explain', request_id: r.request_id })}>
+                Explain
+              </Btn>
+            ),
+          },
+        ]}
+      />
+      <Pager list={list} />
     </Panel>
   );
 }

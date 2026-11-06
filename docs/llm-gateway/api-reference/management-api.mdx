@@ -74,7 +74,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Incidents | Mark a provider down for every app or chosen apps with an expiry, preview, restore, reset cooldowns and drop session pins. | Not a policy change; works with the Policy Engine on or off. |
 | Hooks | Call your own HTTPS API before the model call (`pre_call`) or before a non-streaming response is returned (`post_call`) to allow, flag or block, or export finished requests in batches (`on_complete`). Preview, test and stats. See the [Hooks API](./hooks-api). | Each write publishes a policy revision. Needs the Policy Engine on. The console lists hooks read-only under **Configured hooks**. |
 | Usage | Requests, outcomes, tokens and cost over all time or any range, by period and up to two of app, model, provider, user, key, source and outcome. Per-key last use. See the [Usage API](./usage-api). | Aggregates only; bulk request logs come from the [Log Export API](./log-export-api). |
-| Monitoring | Guardrail activity, provider and model health with routing state, and why one request was routed, blocked, limited or failed over. See the [Monitoring API](./monitoring-api). | Read only. Never returns prompt or response text or detected values. |
+| Monitoring | Latency distributions, gateway feature metrics (cache, token saving, failover), a filterable request list, guardrail activity, provider and model health with routing state, and why one request was routed, blocked, limited or failed over. See the [Monitoring API](./monitoring-api). | Read only. Never returns prompt or response text or detected values. |
 | Users | Everyone who uses the gateway, with app access, personal keys, last activity and usage. See the [Users API](./users-api). | Read only; people are added through your identity provider or the console. |
 | QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. The typed budgets, routing and limits APIs cover those cards without QuilrQL. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
@@ -265,7 +265,7 @@ To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expir
 | Set request and token rate limits | [Rate limits API](./rate-limits-api) |
 | Take a provider out of routing during an outage | [Incidents API](./incidents-api) |
 | Report spend, requests and tokens | [Usage API](./usage-api) |
-| Check guardrail activity or provider health, or explain one request | [Monitoring API](./monitoring-api) |
+| Build latency, cache or error dashboards, list requests, check guardrail activity or provider health, or explain one request | [Monitoring API](./monitoring-api) |
 | Review who uses the gateway | [Users API](./users-api) |
 | Approve models a provider started offering | [Review new models](./providers-and-configuration-api#model-reviews) |
 | Try any call from the browser | [Management API playground](/llm-gateway-management-playground) |
