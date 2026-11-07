@@ -141,7 +141,8 @@ export function createBudgetsClient({
         response.headers.get('etag') ||
         payload.etag ||
         payload.budget?.etag ||
-        payload.grant?.etag,
+        payload.grant?.etag ||
+        payload.set?.etag,
       requestId: payload.request_id || response.headers.get('x-request-id'),
     };
     onResponse?.({
@@ -232,6 +233,35 @@ export function createBudgetsClient({
           query: { ...query, provider_label: providerLabel },
         },
       ),
+    listSets: () => request('/budget-sets'),
+    getSet: (id) => request(`/budget-sets/${pathSegment(id)}`),
+    createSet: (body, options) =>
+      request('/budget-sets', { ...options, method: 'POST', body }),
+    patchSet: (id, body, options) =>
+      request(`/budget-sets/${pathSegment(id)}`, {
+        ...options,
+        method: 'PATCH',
+        body,
+      }),
+    deleteSet: (id, options) =>
+      request(`/budget-sets/${pathSegment(id)}`, {
+        ...options,
+        method: 'DELETE',
+      }),
+    addSetGroup: (id, body, options) =>
+      request(`/budget-sets/${pathSegment(id)}/groups`, {
+        ...options,
+        method: 'POST',
+        body,
+      }),
+    // Group names such as virtual:sales are encoded (virtual%3Asales).
+    removeSetGroup: (id, group, options) =>
+      request(
+        `/budget-sets/${pathSegment(id)}/groups/${pathSegment(group)}`,
+        { ...options, method: 'DELETE' },
+      ),
+    // Smart-group ranks for set views; needs the read scope.
+    listSmartGroups: (query) => request('/smart-groups', { query }),
     listExemptions: () => request('/budget-exemptions'),
     createExemption: (body, options) =>
       request('/budget-exemptions', { ...options, method: 'POST', body }),

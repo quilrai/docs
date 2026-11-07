@@ -68,7 +68,8 @@ export function versionOf(payload) {
     payload.app?.version ||
     payload.provider?.version ||
     payload.pool?.version ||
-    payload.key?.version;
+    payload.key?.version ||
+    payload.smart_group?.version;
   return version ? `"${version}"` : null;
 }
 

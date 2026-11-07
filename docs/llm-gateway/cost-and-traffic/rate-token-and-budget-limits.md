@@ -13,7 +13,7 @@ import TabItem from '@theme/TabItem';
 
 # Rate, token and budget limits
 
-Updated on 3 November 2026.
+Updated on 7 November 2026.
 
 Cap how long calls run, how many run at once, how many requests an app makes and how many tokens or dollars it spends. The gateway enforces the limits; request counts are checked at admission, while tokens and spend are accounted as requests complete.
 
@@ -82,7 +82,7 @@ Cap spend in USD, or requests and tokens, over a reset period.
 | Resets | Rolling minute to year, calendar day to year (calendar weeks start Monday), or Lifetime | Calendar month |
 | Timezone | IANA timezone, calendar periods only | UTC |
 
-- **Every matching budget applies.** A request must fit inside all of them, so the tightest one stops it first.
+- **Every matching budget applies.** A request must fit inside all of them, so the tightest one stops it first. The exception is a per-group budget set to use the strongest group's budget; see [Budgets for several groups](#budgets-for-several-groups).
 - **Requests count at the start; tokens and spend count at completion.** One in-flight request can carry a counter past its limit.
 - Requests without a user email do not count toward a per-person budget.
 
@@ -93,6 +93,36 @@ Each budget gets a generated ID that its usage is tracked against. Keep the ID w
 :::warning Spend budgets need prices
 A spend budget prices usage with the rates in the **Model prices** tab (USD per 1M input and output tokens, per provider and model, optionally per credential). With the Policy Engine on, this section is the only price source: a model with no rate under a spend budget is rejected with `503 quota_price_unavailable`. Price every model the budget can reach, including [routing](./routing-and-fallbacks) fallbacks. Coverage is checked when you add the budget and before publishing. Every matching model-price configuration contributes its rates, so avoid pricing the same model differently in overlapping scopes.
 :::
+
+### Budgets for several groups {#budgets-for-several-groups}
+
+A per-group budget gives each chosen Smart group its own budget, for example $50 a month for Employees and $500 for Executives. These budgets form one **group budget set**. In the budget dialog, **When someone is in several of these groups** decides what a person in more than one of them gets:
+
+| Option | What happens |
+|---|---|
+| **Their strongest group's budget applies (by rank)** | Only the budget of the person's best-ranked group in the set is checked and charged, with its own limit, counter and grants. Default for new per-group budgets. |
+| **Every group's budget applies (strictest wins)** | The person is charged in every group budget they belong to; the first to run out blocks them. |
+
+![Per-group budget dialog with the When someone is in several of these groups choice](/img/llm-gateway/ui/budget-group-set-option.png)
+
+```mermaid
+flowchart LR
+    P["Dana is in<br/>Employees, Engineering<br/>and Executives"] --> R["Groups section<br/>Rank 10: Executives (#1)<br/>Rank 20: Engineering (#2)<br/>Rank 30: Employees (#3)"]
+    R --> Q{"Monthly AI spend<br/>group budget set"}
+    Q -->|"Strongest group's budget applies"| S["Executives $500 is checked and charged<br/>Engineering and Employees budgets are skipped"]
+    Q -->|"Every group's budget applies"| T["$500, $200 and $50 are all charged<br/>the $50 Employees budget blocks first"]
+```
+
+- **Rank** is set in the **Groups** section of **Govern > Policy Engine > LLM Gateway**. The **Rank** column is the number you edit (`priority` in the API): a lower number wins, equal numbers are ordered by group name, and a turned-off group governs no one. The **Strength** column (**#1** is the strongest) shows the resulting position (`rank` in the API). Synced groups can be re-ranked with **Edit rank**; the rank you set survives directory syncs until you choose **Reset to synced rank**. **New virtual group** creates a group with a fixed member list that the directory sync never touches.
+- **Check before you re-rank.** Saving a rank opens **Change group rank?**, which lists the people whose governing group changes and the budgets they switch to. It also warns about rank ties the change creates between groups that share members; ties that already existed are not listed.
+
+  ![Change group rank dialog listing people who change governing group and switch budget](/img/llm-gateway/ui/groups-rank-change-preview.png)
+
+- **Each group's budget keeps its own counter.** If someone's strongest group changes mid-period, their spend counts against the new group's budget from then on; usage already recorded stays on the old group's budget. Usage is not carried over: a per-person budget they never used starts at zero, a shared group budget keeps the group's running total, and switching back finds the old budget where they left it.
+- **Group lookup unavailable.** If the gateway cannot read a person's groups for a request, it treats them as in no group for that request: group budgets do not apply to it, and the request is not blocked. This is rare (the gateway reads groups from a local copy) and is recorded in the request log.
+- **Budgets created before group sets** keep behaving as **Every group's budget applies** until you change the option.
+- **Sets created through the [Budgets API](../api-reference/budgets-api#group-budget-sets)** are shown read-only with **Managed by API**; change them through the API.
+- The rank also decides which group governs a person for guardrails (per-group app settings). Manage ranks (`priority`) and virtual groups from scripts with the [Smart groups API](../api-reference/smart-groups-api).
 
 ### Scenarios {#scenarios}
 
@@ -125,7 +155,7 @@ Use **Exemptions** for an explicit exception rather than assuming that a more ge
 
 ## When a limit is hit {#when-a-limit-is-hit}
 
-The gateway rejects the call with HTTP `429` without contacting the provider. Raise the limit or wait for the window to roll forward. A reached budget returns `429 quota_exceeded` until its period resets.
+The gateway rejects the call with HTTP `429` without contacting the provider. Raise the limit or wait for the window to roll forward. A reached budget returns `429 quota_exceeded` until its period resets. For a group budget set, the response names the set and, when the strongest group's budget applies, the governing group.
 
 ## Related {#related}
 

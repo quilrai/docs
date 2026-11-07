@@ -67,7 +67,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Shared providers | Create, read, filter, rotate credentials, configure models, disable, enable, delete, test and discover models, and approve or reject [new models](./providers-and-configuration-api#model-reviews) a provider starts offering. | Deleting needs every app detached first. Detaching affects one app only. |
 | Quota pools | Register, read, update and delete shared upstream ceilings; assign providers and models to them. | Pools describe limits; they do not enforce them. |
 | Gateway keys | Issue, list metadata, rename, change expiry, reveal with a dedicated scope and revoke. | Management keys are a different credential type. |
-| Budgets | Create and edit spend, request and token budgets, read usage, issue grants, set prices and exemptions. | Each budget, pricing or exemption edit publishes a policy revision. Needs the Policy Engine on. |
+| Budgets | Create and edit spend, request and token budgets and group budget sets, read usage, issue grants, set prices and exemptions. | Each budget, pricing or exemption edit publishes a policy revision. Needs the Policy Engine on. |
 | Routing and failover | Routes, weighted and ordered destinations, failover profiles, rules and default, routing constraints and model access; dry runs, revision history and restore, routing diagnostics. | Each write publishes a policy revision with no QuilrQL to write. Needs the Policy Engine on. |
 | Rate limits | Request and token rate limits, temporary raises, request guards, model limits, exemptions, custom limit responses, live usage and effective limits. | Counters are regional. Each limit write publishes a policy revision; raises do not. Needs the Policy Engine on. |
 | Access and gateway features | Access controls (block, require identity or a conversation ID, allowed source IPs) and gateway features: token saving, response cache, cache warm, model visibility, error messages, conversation headers and prompt enforcement. See the [Access and gateway features API](./gateway-features-api). | Each write publishes a policy revision. Needs the Policy Engine on. |
@@ -78,7 +78,8 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Users | Everyone who uses the gateway, with app access, personal keys, last activity and usage. See the [Users API](./users-api). | Read only; people are added through your identity provider or the console. |
 | QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. The typed budgets, routing and limits APIs cover those cards without QuilrQL. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
-| Smart groups and custom definitions | Read and use existing resources in app configuration. | Definition/membership editing: **Not Generally Available**. |
+| Smart groups | List groups with their rank (`priority`) and strength (`rank`), create and edit virtual groups and their members, override a synced group's rank (`priority`), and preview who changes governing group. See the [Smart groups API](./smart-groups-api). | Synced groups' members come from your directory; only their rank can be overridden. |
+| Custom definitions | Read and use existing definitions in app configuration. | Definition editing: **Not Generally Available**. |
 | History | Read redacted config versions and audit, restore eligible app settings. | Request logs come from the [Log Export API](./log-export-api). Red-team jobs: **Not Generally Available** through management v1. |
 
 ## Availability
@@ -89,7 +90,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | --- | --- | --- |
 | Policy schema/catalog, preview, validation, simulation, drafts, publication, policy rollback and authority changes | **Not Generally Available** | Use the existing policy workflow. Management keys cannot use policy scopes or policy lifecycle endpoints. The policy-backed writes are typed: the [Budgets API](./budgets-api), the [Routing and failover API](./routing-and-failover-api) and the [Rate limits API](./rate-limits-api). |
 | App rename and deletion | **Not Generally Available** | Enable/disable existing apps. Shared providers can be deleted once no app attaches them. |
-| Custom-definition authoring and smart-group/membership writes | **Not Generally Available** | Read and reference existing resources. |
+| Custom-definition authoring and synced smart-group membership writes | **Not Generally Available** | Read and reference existing definitions. Virtual groups and rank overrides are available through the [Smart groups API](./smart-groups-api). |
 | Dedicated key rotation and individual management-key pause/resume | **Not Generally Available** | Issue a replacement and revoke the old key; tenant-wide suspension is supported. |
 | Later management-key secret retrieval and expired/revoked gateway-key reveal | **Not Generally Available** | Management secrets are returned on issuance/replay; explicit gateway-key reveal requires an active key. |
 | Create-only prompt preconditions | **Not Generally Available** | PUT creates a new prompt without `If-Match` and replaces an existing one with the app ETag. |

@@ -2615,8 +2615,26 @@
               }
             ]
           },
+          "budgets": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetRecord"
+            },
+            "type": "array"
+          },
           "changed": {
             "type": "boolean"
+          },
+          "created_budget_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "deleted_budget_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "diagnostics": {
             "items": {
@@ -2663,6 +2681,16 @@
           },
           "revision": {
             "type": "integer"
+          },
+          "set": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BudgetSetView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "warnings": {
             "items": {
@@ -4014,6 +4042,34 @@
               "null"
             ]
           },
+          "group_set": {
+            "oneOf": [
+              {
+                "properties": {
+                  "group": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "inferred": {
+                    "description": "A per-group budget written before group budget sets existed, shown as a strictest set; PATCH the set to make it explicit.",
+                    "type": "boolean"
+                  },
+                  "resolve": {
+                    "enum": [
+                      "strongest",
+                      "strictest"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string"
           },
@@ -4059,6 +4115,363 @@
           "metric",
           "base_limit",
           "window",
+          "etag"
+        ],
+        "type": "object"
+      },
+      "BudgetSetCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustments": {
+            "$ref": "#/components/schemas/BudgetAdjustments"
+          },
+          "alerts": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "at_pct": {
+                  "maximum": 100,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "at_pct"
+              ],
+              "type": "object"
+            },
+            "maxItems": 5,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "applies_to": {
+            "additionalProperties": false,
+            "properties": {
+              "apps": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "groups": {
+            "description": "One budget per group; {group, limit} overrides that group's limit.",
+            "items": {
+              "oneOf": [
+                {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "group": {
+                      "maxLength": 256,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "limit": {
+                      "oneOf": [
+                        {
+                          "pattern": "^\\d+(\\.\\d{1,6})?$",
+                          "type": "string"
+                        },
+                        {
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "group"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "type": "array"
+          },
+          "id": {
+            "description": "Default set_<12 hex>. Also written as each member's family.",
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "budget",
+              "rate"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "description": "Members are labelled \"<label> · <group>\".",
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "limit": {
+            "oneOf": [
+              {
+                "pattern": "^\\d+(\\.\\d{1,6})?$",
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "number"
+              }
+            ]
+          },
+          "message": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "enforce",
+              "alert",
+              "paused"
+            ],
+            "type": "string"
+          },
+          "per": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "resolve": {
+            "default": "strongest",
+            "description": "strongest: a person in several of the set's groups gets only their best-ranked group's budget (smart-group rank: lowest priority, then name). strictest: every group's budget applies (stacking; the tightest blocks first).",
+            "enum": [
+              "strongest",
+              "strictest"
+            ]
+          },
+          "window": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "label",
+          "metric",
+          "limit",
+          "window",
+          "groups"
+        ],
+        "type": "object"
+      },
+      "BudgetSetGet": {
+        "properties": {
+          "budgets": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetRecord"
+            },
+            "type": "array"
+          },
+          "etag": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "set": {
+            "$ref": "#/components/schemas/BudgetSetView"
+          }
+        },
+        "required": [
+          "set",
+          "etag"
+        ],
+        "type": "object"
+      },
+      "BudgetSetGroupAdd": {
+        "additionalProperties": false,
+        "properties": {
+          "group": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "limit": {
+            "oneOf": [
+              {
+                "pattern": "^\\d+(\\.\\d{1,6})?$",
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "number"
+              }
+            ]
+          },
+          "message": {
+            "maxLength": 500,
+            "type": "string"
+          }
+        },
+        "required": [
+          "group"
+        ],
+        "type": "object"
+      },
+      "BudgetSetList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetSetView"
+            },
+            "type": "array"
+          },
+          "policy_engine": {
+            "properties": {
+              "active_revision": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "revision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "BudgetSetPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "resolve": {
+            "description": "strongest: a person in several of the set's groups gets only their best-ranked group's budget (smart-group rank: lowest priority, then name). strictest: every group's budget applies (stacking; the tightest blocks first).",
+            "enum": [
+              "strongest",
+              "strictest"
+            ]
+          }
+        },
+        "required": [
+          "resolve"
+        ],
+        "type": "object"
+      },
+      "BudgetSetView": {
+        "properties": {
+          "budget_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "editable_in_console": {
+            "type": "boolean"
+          },
+          "etag": {
+            "description": "If-Match for PATCH/DELETE (\"s<16 hex>\")",
+            "type": "string"
+          },
+          "groups": {
+            "items": {
+              "properties": {
+                "budget_ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "group": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "inferred": {
+            "type": "boolean"
+          },
+          "label": {
+            "type": "string"
+          },
+          "managed": {
+            "description": "Every member budget is API-managed (groups can be added and removed here).",
+            "type": "boolean"
+          },
+          "managed_by": {
+            "description": "management_api: created through this API and editable only here (the console shows it read-only); console: written in the console policy editor (this API can read it and switch resolve).",
+            "enum": [
+              "management_api",
+              "console"
+            ]
+          },
+          "metric": {
+            "type": "string"
+          },
+          "per": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "policy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "resolve": {
+            "enum": [
+              "strongest",
+              "strictest"
+            ]
+          },
+          "revision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "windows": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "resolve",
+          "inferred",
+          "groups",
           "etag"
         ],
         "type": "object"
@@ -21221,7 +21634,7 @@
             "type": "integer"
           },
           "smart_groups": {
-            "description": "Enabled smart groups this person belongs to, highest priority first.",
+            "description": "Enabled smart groups this person belongs to, strongest first (lowest priority number).",
             "items": {
               "type": "string"
             },
@@ -21334,7 +21747,7 @@
                 "type": "null"
               }
             ],
-            "description": "The highest-priority group; group policies use it."
+            "description": "The strongest group (lowest priority number). Kept for compatibility; per-group budgets use group budget sets."
           },
           "all_apps": {
             "type": "boolean"
@@ -32003,10 +32416,138 @@
         "additionalProperties": true,
         "description": "Smart group definition with secret values omitted.",
         "properties": {
+          "display_name": {
+            "type": "string"
+          },
+          "emails": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "group_name": {
+            "description": "Full name; virtual groups start with virtual:.",
+            "type": "string"
+          },
+          "member_count": {
+            "type": "integer"
+          },
+          "name": {
+            "description": "Name without the virtual: prefix.",
+            "type": "string"
+          },
+          "priority": {
+            "description": "Effective priority: the override when set, else the synced priority. Lower wins.",
+            "type": "integer"
+          },
+          "priority_override": {
+            "description": "Admin override of a synced group's priority; null: none.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "priority_override_updated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priority_override_updated_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rank": {
+            "description": "1-based position among enabled groups (priority, then name); 1 is the strongest. Null for a disabled group. The console shows this as Strength and the priority number as Rank.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source": {
+            "description": "synced: maintained by the directory sync; virtual: created by an admin.",
+            "enum": [
+              "synced",
+              "virtual"
+            ]
+          },
+          "synced_priority": {
+            "description": "Priority from the directory sync (a virtual group's own priority).",
+            "type": "integer"
+          },
+          "version": {
+            "description": "If-Match value for PATCH and DELETE.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SmartGroupCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "description": "Shown in the console. Default: name.",
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "emails": {
+            "description": "Member email addresses (case-insensitive; stored lowercase, duplicates removed).",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50000,
+            "type": "array"
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Name without the virtual: prefix (lowercased, spaces collapsed). The group is stored as virtual:<name>. The name priority is reserved.",
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "priority": {
+            "default": 100,
+            "description": "Lower number wins when a person is in several groups.",
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "SmartGroupDeleted": {
+        "additionalProperties": true,
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          },
+          "forced_references": {
+            "description": "References that were present when force=true was used.",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
           "group_name": {
             "type": "string"
           }
         },
+        "required": [
+          "deleted",
+          "group_name"
+        ],
         "type": "object"
       },
       "SmartGroupList": {
@@ -32029,6 +32570,311 @@
         "required": [
           "items",
           "next_cursor"
+        ],
+        "type": "object"
+      },
+      "SmartGroupMembersChange": {
+        "additionalProperties": false,
+        "description": "At least one email in add or remove; virtual groups only.",
+        "properties": {
+          "add": {
+            "description": "Emails to add (already-present ones are ignored).",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50000,
+            "type": "array"
+          },
+          "remove": {
+            "description": "Emails to remove (absent ones are ignored).",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50000,
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SmartGroupMembersResult": {
+        "additionalProperties": true,
+        "properties": {
+          "added": {
+            "type": "integer"
+          },
+          "removed": {
+            "type": "integer"
+          },
+          "smart_group": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "smart_group",
+          "added",
+          "removed"
+        ],
+        "type": "object"
+      },
+      "SmartGroupPatch": {
+        "additionalProperties": false,
+        "description": "At least one field. Synced groups accept only priority.",
+        "properties": {
+          "display_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "emails": {
+            "description": "Replaces the member list (virtual groups only).",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50000,
+            "type": "array"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "priority": {
+            "description": "Virtual group: its priority (not null). Synced group: the priority override; null resets to the synced priority.",
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "SmartGroupPriorityPreview": {
+        "additionalProperties": true,
+        "properties": {
+          "affected_count": {
+            "type": "integer"
+          },
+          "affected_users": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "from_group": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to_group": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "email",
+                "from_group",
+                "to_group"
+              ],
+              "type": "object"
+            },
+            "maxItems": 500,
+            "type": "array"
+          },
+          "budget_moves": {
+            "description": "People whose governing budget in a strongest group budget set would change. The new group's budget starts its own counter; usage stays on the old one.",
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "apps": {
+                  "description": "Apps where the move happens (\"*\" = every other app); null when it happens for every app. Only sets with app-scoped budgets narrow this.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "conditional": {
+                  "description": "The governing group depends on the request (app-scoped budgets); from_groups / to_groups then list the possible groups.",
+                  "type": "boolean"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "from_group": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "from_groups": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "from_limit": {
+                  "description": "First window's base limit (spend as a decimal USD string).",
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                },
+                "from_quota_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "from_quota_ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "metric": {
+                  "type": "string"
+                },
+                "set_id": {
+                  "type": "string"
+                },
+                "set_label": {
+                  "type": "string"
+                },
+                "to_group": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to_groups": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "to_limit": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                },
+                "to_quota_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to_quota_ids": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "window": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "email",
+                "set_id",
+                "from_group",
+                "to_group"
+              ],
+              "type": "object"
+            },
+            "maxItems": 500,
+            "type": "array"
+          },
+          "budget_moves_count": {
+            "type": "integer"
+          },
+          "budget_moves_truncated": {
+            "type": "boolean"
+          },
+          "budget_moves_unavailable": {
+            "description": "Set when budget sets could not be read (budget_moves empty).",
+            "type": "string"
+          },
+          "ties": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "groups": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "priority": {
+                  "type": "integer"
+                },
+                "shared_members": {
+                  "description": "People in more than one of these groups (decided by name).",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "priority",
+                "groups",
+                "shared_members"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "truncated": {
+            "description": "True when affected_users holds only the first 500.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "affected_users",
+          "affected_count",
+          "truncated",
+          "ties"
+        ],
+        "type": "object"
+      },
+      "SmartGroupPriorityPreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "group_name": {
+                  "description": "Full group name.",
+                  "type": "string"
+                },
+                "priority": {
+                  "description": "Proposed priority; null: reset a synced group's override.",
+                  "maximum": 1000000,
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "group_name",
+                "priority"
+              ],
+              "type": "object"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "changes"
         ],
         "type": "object"
       },
@@ -36792,7 +37638,7 @@
         ]
       },
       "post": {
-        "description": "Creates an app and issues its first gateway key (returned once in `key.secret`). Requires both config:write and credentials:write. When QuilrQL governs the tenant, the app's configured models are allowed for all its users by default and a `quilrql_governs_app` warning is returned. If that default policy would exceed the tenant's QuilrQL capacity (200 policies), creation is refused with 422 policy_capacity_exceeded (`limits`, `exceeded`) before anything is written. Retrying with the same Idempotency-Key returns the same app and key.",
+        "description": "Creates an app and issues its first gateway key (returned once in `key.secret`). Requires both config:write and credentials:write. When QuilrQL governs the tenant, the app's configured models are allowed for all its users by default and a `quilrql_governs_app` warning is returned. If that default policy would exceed the tenant's QuilrQL capacity (1,000 policies), creation is refused with 422 policy_capacity_exceeded (`limits`, `exceeded`) before anything is written. Retrying with the same Idempotency-Key returns the same app and key.",
         "operationId": "Create_an_app",
         "parameters": [
           {
@@ -40212,7 +41058,7 @@
         "operationId": "Replace_budget_alert_destinations",
         "parameters": [
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -40702,7 +41548,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -40875,7 +41721,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -41181,7 +42027,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -41409,7 +42255,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -41626,7 +42472,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -41777,7 +42623,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -41915,7 +42761,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -42018,6 +42864,997 @@
           }
         ],
         "summary": "Set a model rate",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:policy"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/budget-sets": {
+      "get": {
+        "description": "Group budget sets of the active policy: one budget split per smart group. resolve strongest gives a person in several of the set's groups only their best-ranked group's budget (smart-group rank); strictest applies every group's budget. Per-group budgets created before sets existed are listed as strictest sets with inferred: true.",
+        "operationId": "List_budget_sets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "budget_ids": [
+                        "bgt_1a2b3c4d5e6f",
+                        "bgt_6f5e4d3c2b1a"
+                      ],
+                      "etag": "\"s0f1e2d3c4b5a6978\"",
+                      "groups": [
+                        {
+                          "budget_ids": [
+                            "bgt_1a2b3c4d5e6f"
+                          ],
+                          "group": "executives"
+                        },
+                        {
+                          "budget_ids": [
+                            "bgt_6f5e4d3c2b1a"
+                          ],
+                          "group": "employees"
+                        }
+                      ],
+                      "id": "set_9c2e4b1a7f30",
+                      "inferred": false,
+                      "label": "Monthly AI spend",
+                      "managed": true,
+                      "metric": "spend_usd",
+                      "per": [],
+                      "policy": null,
+                      "resolve": "strongest",
+                      "revision": 13,
+                      "windows": [
+                        {
+                          "kind": "calendar",
+                          "unit": "month"
+                        }
+                      ]
+                    }
+                  ],
+                  "request_id": "req_example",
+                  "revision": 13
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetSetList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List group budget sets",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:read"
+        ]
+      },
+      "post": {
+        "description": "Creates one API-managed budget per group (each scoped to its group's members, family = set id) and publishes one policy revision (201; 200 with dry_run). resolve defaults to strongest.",
+        "operationId": "Create_a_budget_set",
+        "parameters": [
+          {
+            "description": "Return the policy diff, diagnostics and impact without publishing.",
+            "in": "query",
+            "name": "dry_run",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body replays the original result for 24 hours; the same key with a different body is a 409. Not needed with dry_run=true.",
+            "example": "create-support-bot-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "groups": [
+                  {
+                    "group": "executives",
+                    "limit": "500.00"
+                  },
+                  "employees"
+                ],
+                "label": "Monthly AI spend",
+                "limit": "50.00",
+                "metric": "spend_usd",
+                "resolve": "strongest",
+                "window": {
+                  "kind": "calendar",
+                  "unit": "month"
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/BudgetSetCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetEditResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "etag": "\"r13\"",
+                  "ids": [
+                    "support_spend"
+                  ],
+                  "ops": [
+                    "create",
+                    "create",
+                    "create_set"
+                  ],
+                  "previous_revision": 12,
+                  "request_id": "req_example",
+                  "revision": 13,
+                  "set": {
+                    "budget_ids": [
+                      "bgt_1a2b3c4d5e6f",
+                      "bgt_6f5e4d3c2b1a"
+                    ],
+                    "etag": "\"s0f1e2d3c4b5a6978\"",
+                    "groups": [
+                      {
+                        "budget_ids": [
+                          "bgt_1a2b3c4d5e6f"
+                        ],
+                        "group": "executives"
+                      },
+                      {
+                        "budget_ids": [
+                          "bgt_6f5e4d3c2b1a"
+                        ],
+                        "group": "employees"
+                      }
+                    ],
+                    "id": "set_9c2e4b1a7f30",
+                    "inferred": false,
+                    "label": "Monthly AI spend",
+                    "managed": true,
+                    "metric": "spend_usd",
+                    "per": [],
+                    "policy": null,
+                    "resolve": "strongest",
+                    "revision": 13,
+                    "windows": [
+                      {
+                        "kind": "calendar",
+                        "unit": "month"
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetEditResult"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Create a group budget set",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:policy"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/budget-sets/{set_id}": {
+      "delete": {
+        "description": "Deletes every member budget (API-managed sets only; 409 budget_set_not_api_managed). If-Match required.",
+        "operationId": "Delete_a_budget_set",
+        "parameters": [
+          {
+            "description": "Group budget set id (GET /budget-sets).",
+            "example": "set_9c2e4b1a7f30",
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Return the policy diff, diagnostics and impact without publishing.",
+            "in": "query",
+            "name": "dry_run",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "example": "\"s0f1e2d3c4b5a6978\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetDelete"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "etag": "\"r13\"",
+                  "ids": [
+                    "support_spend"
+                  ],
+                  "ops": [
+                    "delete",
+                    "delete_set"
+                  ],
+                  "previous_revision": 12,
+                  "request_id": "req_example",
+                  "revision": 13
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetEditResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Delete a group budget set",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:policy"
+        ]
+      },
+      "get": {
+        "description": "One set with its member budgets. etag is the If-Match for PATCH and DELETE.",
+        "operationId": "Read_a_budget_set",
+        "parameters": [
+          {
+            "description": "Group budget set id (GET /budget-sets).",
+            "example": "set_9c2e4b1a7f30",
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "budgets": [],
+                  "etag": "\"s0f1e2d3c4b5a6978\"",
+                  "request_id": "req_example",
+                  "revision": 13,
+                  "set": {
+                    "budget_ids": [
+                      "bgt_1a2b3c4d5e6f",
+                      "bgt_6f5e4d3c2b1a"
+                    ],
+                    "etag": "\"s0f1e2d3c4b5a6978\"",
+                    "groups": [
+                      {
+                        "budget_ids": [
+                          "bgt_1a2b3c4d5e6f"
+                        ],
+                        "group": "executives"
+                      },
+                      {
+                        "budget_ids": [
+                          "bgt_6f5e4d3c2b1a"
+                        ],
+                        "group": "employees"
+                      }
+                    ],
+                    "id": "set_9c2e4b1a7f30",
+                    "inferred": false,
+                    "label": "Monthly AI spend",
+                    "managed": true,
+                    "metric": "spend_usd",
+                    "per": [],
+                    "policy": null,
+                    "resolve": "strongest",
+                    "revision": 13,
+                    "windows": [
+                      {
+                        "kind": "calendar",
+                        "unit": "month"
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetSetGet"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a group budget set",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:read"
+        ]
+      },
+      "patch": {
+        "description": "Sets resolve on every member budget (counters are kept). Works on any set, also an inferred one (its group_set keys are written into the policy). If-Match (set etag) is required.",
+        "operationId": "Switch_budget_set_resolution",
+        "parameters": [
+          {
+            "description": "Group budget set id (GET /budget-sets).",
+            "example": "set_9c2e4b1a7f30",
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Return the policy diff, diagnostics and impact without publishing.",
+            "in": "query",
+            "name": "dry_run",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "example": "\"s0f1e2d3c4b5a6978\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "resolve": "strictest"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/BudgetSetPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "etag": "\"r13\"",
+                  "ids": [
+                    "support_spend"
+                  ],
+                  "ops": [
+                    "set_resolve"
+                  ],
+                  "previous_revision": 12,
+                  "request_id": "req_example",
+                  "revision": 13
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetEditResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Switch how a group budget set resolves",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:policy"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/budget-sets/{set_id}/groups": {
+      "post": {
+        "description": "Copies the set's first group's budgets (every window) for the new group, with an optional limit. API-managed sets only. Optional If-Match (set etag).",
+        "operationId": "Add_a_group_to_a_budget_set",
+        "parameters": [
+          {
+            "description": "Group budget set id (GET /budget-sets).",
+            "example": "set_9c2e4b1a7f30",
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Return the policy diff, diagnostics and impact without publishing.",
+            "in": "query",
+            "name": "dry_run",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "example": "\"s0f1e2d3c4b5a6978\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body replays the original result for 24 hours; the same key with a different body is a 409. Not needed with dry_run=true.",
+            "example": "create-support-bot-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "group": "contractors",
+                "limit": "20.00"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/BudgetSetGroupAdd"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetEditResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "etag": "\"r13\"",
+                  "ids": [
+                    "support_spend"
+                  ],
+                  "ops": [
+                    "create",
+                    "add_set_group"
+                  ],
+                  "previous_revision": 12,
+                  "request_id": "req_example",
+                  "revision": 13
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetEditResult"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Add a group to a budget set",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:policy"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/budget-sets/{set_id}/groups/{group}": {
+      "delete": {
+        "description": "Deletes that group's budgets (API-managed sets only). If-Match (set etag) required. Removing the last group deletes the set.",
+        "operationId": "Remove_a_group_from_a_budget_set",
+        "parameters": [
+          {
+            "description": "Group budget set id (GET /budget-sets).",
+            "example": "set_9c2e4b1a7f30",
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Smart group name, URL-encoded (virtual groups: virtual%3A<name>).",
+            "example": "engineering",
+            "in": "path",
+            "name": "group",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Return the policy diff, diagnostics and impact without publishing.",
+            "in": "query",
+            "name": "dry_run",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "example": "\"s0f1e2d3c4b5a6978\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetDelete"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "changed": true,
+                  "etag": "\"r13\"",
+                  "ids": [
+                    "support_spend"
+                  ],
+                  "ops": [
+                    "delete",
+                    "remove_set_group"
+                  ],
+                  "previous_revision": 12,
+                  "request_id": "req_example",
+                  "revision": 13
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetEditResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Remove a group from a budget set",
         "tags": [
           "Budgets"
         ],
@@ -42824,7 +44661,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"r12\"",
             "in": "header",
             "name": "If-Match",
@@ -42988,7 +44825,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"b3f9c0a1b2c4d5e6f\"",
             "in": "header",
             "name": "If-Match",
@@ -43233,7 +45070,7 @@
             }
           },
           {
-            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
+            "description": "Budget etag \"b<16 hex>\" (required on PATCH/DELETE of a budget; the legacy \"r<revision>-<id>\" is accepted while the revision is unchanged); grant etag \"<version>\" (required on PATCH/DELETE of a grant); budget set etag \"s<16 hex>\" (required on PATCH/DELETE of a set and DELETE of a set group, optional on adding a group); optional policy etag \"r<revision>\" on pricing, exemption and batch writes; optional alert-destinations etag on PUT /budget-alert-destinations.",
             "example": "\"b3f9c0a1b2c4d5e6f\"",
             "in": "header",
             "name": "If-Match",
@@ -44276,7 +46113,7 @@
     },
     "/llmgateway/management/v1/controls/_capacity": {
       "get": {
-        "description": "Rules, policies and policy bytes used against the tenant caps (500 rules, 200 policies, 400,000 bytes). A write that would exceed them is a 422 policy_capacity_exceeded.",
+        "description": "Rules, policies and policy bytes used against the tenant caps (2,500 rules, 1,000 policies, 1,000,000 bytes). A write that would exceed them is a 422 policy_capacity_exceeded.",
         "operationId": "Read_policy_capacity",
         "parameters": [],
         "responses": {
@@ -44285,11 +46122,11 @@
               "application/json": {
                 "example": {
                   "limits": {
-                    "policies_max": 200,
+                    "policies_max": 1000,
                     "policies_used": 6,
-                    "rules_max": 500,
+                    "rules_max": 2500,
                     "rules_used": 42,
-                    "source_bytes_max": 400000,
+                    "source_bytes_max": 1000000,
                     "source_bytes_used": 18234
                   },
                   "request_id": "req_example",
@@ -70688,7 +72525,7 @@
     },
     "/llmgateway/management/v1/smart-groups": {
       "get": {
-        "description": "Smart groups that app access rules and group policies can reference. Read-only.",
+        "description": "Smart groups that app access rules, budgets and group policies can reference, in effective priority order. Synced groups come from the directory sync; virtual groups are created here or in the console.",
         "operationId": "List_smart_groups",
         "parameters": [
           {
@@ -70777,9 +72614,356 @@
         "x-scopes": [
           "read"
         ]
+      },
+      "post": {
+        "description": "Create an admin-managed group with a static member list. It is stored as virtual:<name>, is never changed by the directory sync and can be referenced like any other group. Enabled groups are ranked by priority number, lowest first (ties: group name). Per-group guardrail policies apply from the person's first ranked group that has one; strongest group budget sets charge the person's best-ranked group in the set; membership rules match every group. Requires an Idempotency-Key; 409 smart_group_exists when the name is taken.",
+        "operationId": "Create_a_virtual_smart_group",
+        "parameters": [
+          {
+            "description": "Unique per logical write. A retry with the same key and body replays the original result; the same key with a different body is a 409.",
+            "example": "create-contractors-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "display_name": "Contractors",
+                "emails": [
+                  "dana@example.com"
+                ],
+                "name": "contractors",
+                "priority": 5
+              },
+              "schema": {
+                "$ref": "#/components/schemas/SmartGroupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request_id": "req_example",
+                  "smart_group": {
+                    "display_name": "Contractors",
+                    "emails": [
+                      "dana@example.com"
+                    ],
+                    "enabled": true,
+                    "group_name": "virtual:contractors",
+                    "is_active": true,
+                    "member_count": 1,
+                    "name": "contractors",
+                    "priority": 5,
+                    "priority_override": null,
+                    "priority_override_updated_at": null,
+                    "priority_override_updated_by": null,
+                    "source": "virtual",
+                    "synced_priority": 5,
+                    "version": "9b2e4f0c7a1d"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SmartGroupResponse"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Create a virtual smart group",
+        "tags": [
+          "Catalogs"
+        ],
+        "x-scopes": [
+          "config:write"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/smart-groups/_priority-preview": {
+      "post": {
+        "description": "Who would change active group if these priorities were applied, plus the priority ties the change creates (a changed group lands on another enabled group's priority and they share members; existing ties are not listed), and budget_moves: people whose governing budget in a strongest group budget set would move to another group's budget (its own counter; usage is not carried over). Nothing is saved. Lists at most 500 people per list (truncated / budget_moves_truncated).",
+        "operationId": "Preview_smart_group_priorities",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "changes": [
+                  {
+                    "group_name": "virtual:contractors",
+                    "priority": 1
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/SmartGroupPriorityPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "affected_count": 1,
+                  "affected_users": [
+                    {
+                      "email": "dana@example.com",
+                      "from_group": "engineering",
+                      "to_group": "virtual:contractors"
+                    }
+                  ],
+                  "request_id": "req_example",
+                  "ties": [],
+                  "truncated": false
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SmartGroupPriorityPreview"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Preview priority changes",
+        "tags": [
+          "Catalogs"
+        ],
+        "x-scopes": [
+          "read"
+        ]
       }
     },
     "/llmgateway/management/v1/smart-groups/{group_name}": {
+      "delete": {
+        "description": "Virtual groups only (synced: 409 synced_group_read_only). When the active policy, budgets, exemptions, managed controls or app settings name the group the response is 409 group_in_use with references; pass force=true to delete anyway. Requires the group's version in If-Match.",
+        "operationId": "Delete_a_virtual_smart_group",
+        "parameters": [
+          {
+            "example": "engineering",
+            "in": "path",
+            "name": "group_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted version from the latest read of the group; 412 when it changed.",
+            "example": "\"9b2e4f0c7a1d\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Delete even when the group is referenced.",
+            "in": "query",
+            "name": "force",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "deleted": true,
+                  "forced_references": [],
+                  "group_name": "virtual:contractors",
+                  "request_id": "req_example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SmartGroupDeleted"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Delete a virtual smart group",
+        "tags": [
+          "Catalogs"
+        ],
+        "x-scopes": [
+          "config:write"
+        ]
+      },
       "get": {
         "description": "One smart group (name matched case-insensitively).",
         "operationId": "Read_a_smart_group",
@@ -70855,6 +73039,285 @@
         ],
         "x-scopes": [
           "read"
+        ]
+      },
+      "patch": {
+        "description": "Virtual group: change display_name, emails, enabled or priority. Synced group: only priority, which sets an override the directory sync never replaces; null resets it to the synced priority (other fields: 409 synced_group_read_only). Enabled groups are ranked by priority number, lowest first (ties: group name). Per-group guardrail policies apply from the person's first ranked group that has one; strongest group budget sets charge the person's best-ranked group in the set; membership rules match every group. Requires the group's version in If-Match.",
+        "operationId": "Update_a_smart_group",
+        "parameters": [
+          {
+            "example": "engineering",
+            "in": "path",
+            "name": "group_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted version from the latest read of the group; 412 when it changed.",
+            "example": "\"9b2e4f0c7a1d\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "priority": 1
+              },
+              "schema": {
+                "$ref": "#/components/schemas/SmartGroupPatch"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request_id": "req_example",
+                  "smart_group": {
+                    "display_name": "Contractors",
+                    "emails": [
+                      "dana@example.com"
+                    ],
+                    "enabled": true,
+                    "group_name": "virtual:contractors",
+                    "is_active": true,
+                    "member_count": 1,
+                    "name": "contractors",
+                    "priority": 1,
+                    "priority_override": null,
+                    "priority_override_updated_at": null,
+                    "priority_override_updated_by": null,
+                    "source": "virtual",
+                    "synced_priority": 1,
+                    "version": "9b2e4f0c7a1d"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SmartGroupResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Update a smart group or its priority",
+        "tags": [
+          "Catalogs"
+        ],
+        "x-scopes": [
+          "config:write"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/smart-groups/{group_name}/members": {
+      "post": {
+        "description": "Virtual groups only (synced: 409 synced_group_read_only). Adds and removes members without replacing the list; already-present adds and absent removes are ignored (added/removed count actual changes). Requires an Idempotency-Key; If-Match (group version) is optional.",
+        "operationId": "Change_smart_group_members",
+        "parameters": [
+          {
+            "example": "engineering",
+            "in": "path",
+            "name": "group_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unique per logical write. A retry with the same key and body replays the original result; the same key with a different body is a 409.",
+            "example": "create-contractors-001",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted version from the latest read of the group; 412 when it changed.",
+            "example": "\"9b2e4f0c7a1d\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "add": [
+                  "lee@example.com"
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/SmartGroupMembersChange"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "added": 1,
+                  "removed": 0,
+                  "request_id": "req_example",
+                  "smart_group": {
+                    "display_name": "Contractors",
+                    "emails": [
+                      "dana@example.com",
+                      "lee@example.com"
+                    ],
+                    "enabled": true,
+                    "group_name": "virtual:contractors",
+                    "is_active": true,
+                    "member_count": 2,
+                    "name": "contractors",
+                    "priority": 5,
+                    "priority_override": null,
+                    "priority_override_updated_at": null,
+                    "priority_override_updated_by": null,
+                    "source": "virtual",
+                    "synced_priority": 5,
+                    "version": "9b2e4f0c7a1d"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SmartGroupMembersResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Add or remove smart group members",
+        "tags": [
+          "Catalogs"
+        ],
+        "x-scopes": [
+          "config:write"
         ]
       }
     },
@@ -71704,7 +74167,7 @@
       "name": "Hooks"
     },
     {
-      "description": "Read-only catalogs referenced by app settings: smart groups and custom detection definitions.",
+      "description": "Catalogs referenced by app settings: smart groups (virtual groups can be created and edited; synced groups take a priority override) and custom detection definitions (read-only).",
       "name": "Catalogs"
     },
     {

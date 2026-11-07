@@ -154,7 +154,12 @@ TASK -> WHERE
 
 POLICY ENGINE (LLM)
 - Workspace: /policy/engine/llm-gateway. Selector: LLM Gateway | MCP Gateway | Endpoint Agent | Cloud & SaaS.
-- Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Test | History.
+- Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Groups | Test | History.
+- Groups (/policy/engine/llm-gateway/groups): Rank column = editable number (API field priority; lower wins, ties by
+  name, turned-off groups govern no one); Strength column = resulting position, #1 strongest (API field rank).
+  Edit rank / Reset to synced rank, New virtual group, Edit group, Delete group.
+  Saving a rank opens "Change group rank?" listing people who change governing group, budgets they switch
+  and only the rank ties the change creates.
 - Controls groups and areas:
   Who can use AI?: Gateway Access, Identity & Network Trust, Allowed Models, Model Visibility,
   Prompt Store & Enforcement.
@@ -179,6 +184,8 @@ POLICY ENGINE (LLM)
   filter by All, Limits, Split, Try in order, Content, Watch only.
 - Budgets & Usage Limits: Budgets & rate limits | Usage | Grants | Request guards | Alerts & response |
   Exemptions | Model prices. Search limits; there is no separate Rate, Token & Timeout Limits area.
+  Per-group budgets: "When someone is in several of these groups" > Their strongest group's budget applies (by rank)
+  (default for new) | Every group's budget applies (strictest wins). Sets created via the API show "Managed by API".
 - Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression,
   Minify JSON tool outputs, Clean up tool output, Remove encoded content, Response cache.
 - Error Messages: ordered matching messages/help links; status/error codes unchanged.

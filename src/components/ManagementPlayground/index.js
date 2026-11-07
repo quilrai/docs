@@ -28,6 +28,7 @@ import {
   FileText,
   HeartPulse,
   Users as UsersIcon,
+  UsersRound,
   Webhook,
   SlidersHorizontal,
 } from 'lucide-react';
@@ -53,6 +54,7 @@ import Features from './Features';
 import Usage from './Usage';
 import Monitoring from './Monitoring';
 import Users from './Users';
+import SmartGroups from './SmartGroups';
 import Catalogs from './Catalogs';
 import HistoryWorkspace from './HistoryWorkspace';
 import Administration from './Administration';
@@ -75,6 +77,7 @@ export const WORKSPACES = [
   { id: 'quota-pools', label: 'Quota pools', Icon: Boxes, Component: QuotaPools },
   { id: 'credentials', label: 'Credentials', Icon: KeyRound, Component: Credentials },
   { id: 'users', label: 'Users', Icon: UsersIcon, Component: Users },
+  { id: 'smart-groups', label: 'Smart groups', Icon: UsersRound, Component: SmartGroups },
   { id: 'prompts', label: 'Prompts', Icon: FileText, Component: Prompts },
   { id: 'budgets', label: 'Budgets', Icon: Wallet, Component: Budgets },
   { id: 'routing', label: 'Routing', Icon: Route, Component: Routing },
@@ -409,7 +412,7 @@ export default function ManagementPlayground() {
             <div className={styles.eyebrow}>LLM GATEWAY / MANAGEMENT API V1</div>
             <h1>Management API playground</h1>
             <p>
-              Administer apps, providers, credentials, prompts, budgets, routing, limits, incidents and hooks, review usage,
+              Administer apps, providers, credentials, prompts, smart groups, budgets, routing, limits, incidents and hooks, review usage,
               guardrail activity, provider health and users, and see the exact API call behind every action.
             </p>
           </div>
