@@ -75,6 +75,15 @@ Do not assume that a narrower audience always wins. Scope shortcuts seed a prior
 
 Every policy also has a QuilrQL text form. Use **Policies > Edit technical source** when a visual control cannot express the condition or effect you need.
 
+### Size limits {#size-limits}
+
+| Workspace | Policies | Rules, across all policies |
+|---|---|---|
+| LLM Gateway | 1,000 | 2,500 |
+| Other workspaces | 200 | 500 |
+
+Budgets, rate limits and app-specific settings all count toward these limits. A publish that goes over one is rejected (`too_many_policies` or `too_many_rules`) and the live policy stays as it was.
+
 ## Where each control is documented
 
 ### LLM Gateway controls {#llm-gateway-cards}
