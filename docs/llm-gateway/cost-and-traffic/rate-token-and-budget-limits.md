@@ -91,7 +91,7 @@ Each budget gets a generated ID that its usage is tracked against. Keep the ID w
 :::
 
 :::warning Spend budgets need prices
-A spend budget prices usage with the rates in the **Model prices** tab (USD per 1M input and output tokens, per provider and model, optionally per credential). With the Policy Engine on, this section is the only price source: a model with no rate under a spend budget is rejected with `503 quota_price_unavailable`. Price every model the budget can reach, including [routing](./routing-and-fallbacks) fallbacks. Coverage is checked when you add the budget and before publishing. Every matching model-price configuration contributes its rates, so avoid pricing the same model differently in overlapping scopes.
+A spend budget prices usage with the rates in the **Model prices** tab (USD per 1M input and output tokens, per provider and model, optionally per credential). A rate set there wins; a model without one uses the provider's model costs, then the QuilrAI model catalog. When a model has no input and output price from any of these, the **Model prices** tab decides what a spend budget does: **Block the request** (`403 quota_price_unavailable`) or **Count it as $0**. Check every model the budget can reach, including [routing](./routing-and-fallbacks) fallbacks. Coverage is checked when you add the budget and before publishing. Every matching model-price configuration contributes its rates, so avoid pricing the same model differently in overlapping scopes.
 :::
 
 ### Budgets for several groups {#budgets-for-several-groups}
@@ -100,7 +100,7 @@ A per-group budget gives each chosen Smart group its own budget, for example $50
 
 | Option | What happens |
 |---|---|
-| **Their strongest group's budget applies (by rank)** | Only the budget of the person's best-ranked group in the set is checked and charged, with its own limit, counter and grants. Default for new per-group budgets. |
+| **Their strongest group's budget applies (by rank)** | Only the budget of the person's best-ranked group in the set is checked and charged, with its own limit and counter. Default for new per-group budgets. |
 | **Every group's budget applies (strictest wins)** | The person is charged in every group budget they belong to; the first to run out blocks them. |
 
 ![Per-group budget dialog with the When someone is in several of these groups choice](/img/llm-gateway/ui/budget-group-set-option.png)
@@ -125,6 +125,8 @@ flowchart LR
 - The rank also decides which group governs a person for guardrails (per-group app settings). Manage ranks (`priority`) and virtual groups from scripts with the [Smart groups API](../api-reference/smart-groups-api).
 
 ### Scenarios {#scenarios}
+
+For step-by-step setups (per person, per group, per app, grants and monthly top-ups), see [Budget recipes](./budget-recipes).
 
 - **Tighter rate for contractors.** Support Copilot allows 1,000 requests a minute; a narrower row for the Contractors Smart group sets 100. A narrower row asking for 5,000 would have no effect.
 - **Monthly allowance per person.** Spend (USD) 500, Calendar month, counted separately for each user email, scoped to one application.
@@ -163,4 +165,5 @@ The gateway rejects the call with HTTP `429` without contacting the provider. Ra
 - [Providers and models](../apps-and-providers/providers-and-models) - model prices for cost reporting.
 - [Costs and savings](../../console/observe/costs-and-savings) - spend across sources.
 - [Alerts](../monitor/alerts) - get notified when calls start failing.
+- [Budget recipes](./budget-recipes) - common enterprise budget setups.
 - [Budgets API](../api-reference/budgets-api) - manage budgets, usage and grants from scripts.
