@@ -119,7 +119,7 @@ flowchart LR
   ![Change group rank dialog listing people who change governing group and switch budget](/img/llm-gateway/ui/groups-rank-change-preview.png)
 
 - **Each group's budget keeps its own counter.** If someone's strongest group changes mid-period, their spend counts against the new group's budget from then on; usage already recorded stays on the old group's budget. Usage is not carried over: a per-person budget they never used starts at zero, a shared group budget keeps the group's running total, and switching back finds the old budget where they left it.
-- **Group lookup unavailable.** If the gateway cannot look up a person's groups for a request, it does not pick a governing group: every budget of the set that matches applies.
+- **Group lookup unavailable.** If the gateway cannot read a person's groups for a request, it treats them as in no group for that request: group budgets do not apply to it, and the request is not blocked. This is rare (the gateway reads groups from a local copy) and is recorded in the request log.
 - **Budgets created before group sets** keep behaving as **Every group's budget applies** until you change the option.
 - **Sets created through the [Budgets API](../api-reference/budgets-api#group-budget-sets)** are shown read-only with **Managed by API**; change them through the API.
 - The rank also decides which group governs a person for guardrails (per-group app settings). Manage ranks (`priority`) and virtual groups from scripts with the [Smart groups API](../api-reference/smart-groups-api).
