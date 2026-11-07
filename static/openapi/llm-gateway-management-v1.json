@@ -37638,7 +37638,7 @@
         ]
       },
       "post": {
-        "description": "Creates an app and issues its first gateway key (returned once in `key.secret`). Requires both config:write and credentials:write. When QuilrQL governs the tenant, the app's configured models are allowed for all its users by default and a `quilrql_governs_app` warning is returned. If that default policy would exceed the tenant's QuilrQL capacity (200 policies), creation is refused with 422 policy_capacity_exceeded (`limits`, `exceeded`) before anything is written. Retrying with the same Idempotency-Key returns the same app and key.",
+        "description": "Creates an app and issues its first gateway key (returned once in `key.secret`). Requires both config:write and credentials:write. When QuilrQL governs the tenant, the app's configured models are allowed for all its users by default and a `quilrql_governs_app` warning is returned. If that default policy would exceed the tenant's QuilrQL capacity (1,000 policies), creation is refused with 422 policy_capacity_exceeded (`limits`, `exceeded`) before anything is written. Retrying with the same Idempotency-Key returns the same app and key.",
         "operationId": "Create_an_app",
         "parameters": [
           {
@@ -46113,7 +46113,7 @@
     },
     "/llmgateway/management/v1/controls/_capacity": {
       "get": {
-        "description": "Rules, policies and policy bytes used against the tenant caps (500 rules, 200 policies, 400,000 bytes). A write that would exceed them is a 422 policy_capacity_exceeded.",
+        "description": "Rules, policies and policy bytes used against the tenant caps (2,500 rules, 1,000 policies, 1,000,000 bytes). A write that would exceed them is a 422 policy_capacity_exceeded.",
         "operationId": "Read_policy_capacity",
         "parameters": [],
         "responses": {
@@ -46122,11 +46122,11 @@
               "application/json": {
                 "example": {
                   "limits": {
-                    "policies_max": 200,
+                    "policies_max": 1000,
                     "policies_used": 6,
-                    "rules_max": 500,
+                    "rules_max": 2500,
                     "rules_used": 42,
-                    "source_bytes_max": 400000,
+                    "source_bytes_max": 1000000,
                     "source_bytes_used": 18234
                   },
                   "request_id": "req_example",
