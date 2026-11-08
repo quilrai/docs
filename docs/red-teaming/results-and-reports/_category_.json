@@ -1,10 +1,10 @@
 {
-  "label": "Operate",
+  "label": "Results and reports",
   "position": 3,
   "collapsible": true,
   "collapsed": false,
   "link": null,
   "customProps": {
-    "icon": "Wrench"
+    "icon": "BarChart2"
   }
 }

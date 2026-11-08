@@ -1,4 +1,5 @@
 ---
+unlisted: true
 sidebar_position: 2
 sidebar_label: "MCP Threat Detection"
 sidebar_custom_props:
@@ -35,5 +36,5 @@ You can give a repository, a live server, or both.
 Completed and in-progress scans are listed under **Recent scans**, with their findings and coverage. Open a scan to review its findings.
 
 :::tip
-Use MCP Threat Detection before you add a server to the [MCP Gateway](../../mcp-gateway/servers-and-connections/adding-mcp-servers) or approve it for your users. For an agent that already uses MCP tools, follow up with [Agentic Red Teaming](./agentic-red-teaming) to test how the agent behaves under attack.
+Use MCP Threat Detection before you add a server to the [MCP Gateway](../../mcp-gateway/servers-and-connections/adding-mcp-servers) or approve it for your users. For an agent that already uses MCP tools, follow up with [Agentic Red Teaming](./agent.md) to test how the agent behaves under attack.
 :::

@@ -53,7 +53,7 @@ const JOURNEYS = [
       ['mcp', 'Quick start', '/mcp-gateway/get-started/quick-start'],
       ['mcp', 'MCP Library', '/mcp-gateway/servers-and-connections/mcp-library'],
       ['mcp', 'Server access', '/mcp-gateway/protect/server-access'],
-      ['red', 'MCP Threat Detection', '/red-teaming/assessments/mcp-threat-detection'],
+      ['red', 'MCP Threat Detection', '/red-teaming/configure-and-run/mcp-threat-detection'],
     ],
   },
 ];
@@ -130,7 +130,7 @@ function PlatformMap() {
             <ProductIcon product={red} size={18} />
             <span>{red.name}</span>
           </div>
-          <p>Attacks your gateway apps, agents, models and MCP servers on demand or on a schedule, and turns what it finds into detections.</p>
+          <p>Attacks your AI apps, agents, AI workflows, models and MCP servers on demand or on a schedule, and turns what it finds into detections.</p>
         </Link>
       </div>
       <div className="qd-flowlabel" aria-hidden="true">
