@@ -15,7 +15,7 @@ Terms used in Quilr Red Teaming and in these docs.
 | --- | --- |
 | Assessment | A configured test of one target: its mode, coverage, custom attacks, and schedule. |
 | Run | One execution of an assessment. Runs are listed under Recent runs. |
-| Mode | The kind of target being tested: Gateway-connected, Agent, AI Workflow, or Model. |
+| Mode | The kind of target being tested: AI App / Agent, AI Workflow, or Model. |
 | Objective | One attack goal, such as System Prompt Extraction. The attack library holds the built-in objectives. |
 | Quick scan | About 8 core objectives, for a fast check. |
 | Full library | Every objective in the attack library. |

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 4
 sidebar_label: "Examples"
 sidebar_custom_props:
   icon: Sparkles
@@ -20,7 +20,7 @@ Quilr attacks the target as it is described to it. Two optional inputs, both on 
 | System prompt | The instructions, persona, and rules your application uses today. This is the boundary that extraction and override attacks try to break. |
 | Tools | The functions your application can call. They give the Red Team Agent something to misuse, leak, or trick the target into calling with harmful arguments. |
 
-You can add both in every mode: on the Target step for [gateway-connected apps](./gateway-connected.md) and [agents](./agent.md), and under **System prompt & tools** for [models](./model.md). Tools are written as a JSON array in OpenAI function format.
+You can add both in every mode: on the Target step for [AI apps and agents](./agent.md), and under **System prompt & tools** for [models](./model.md). Tools are written as a JSON array in OpenAI function format.
 
 ## What makes a good system prompt and tool list
 

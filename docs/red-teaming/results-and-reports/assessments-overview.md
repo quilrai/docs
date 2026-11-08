@@ -15,7 +15,7 @@ The Red Teaming landing page shows how your AI systems are holding up across eve
 
 *Figure 1. The Red Teaming landing page.*
 
-The page has three parts, from top to bottom: the summary cards, the **New assessment** cards for starting a test, and the **Recent runs** table. To start a new assessment, see the guides under [Configure and run](../configure-and-run/gateway-connected.md).
+The page has three parts, from top to bottom: the summary cards, the **New assessment** cards for starting a test, and the **Recent runs** table. To start a new assessment, see the guides under [Configure and run](../configure-and-run/agent.md).
 
 ## Navigate Red Teaming
 

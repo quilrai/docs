@@ -164,7 +164,7 @@ Once a request is approved (or saved directly), the change is live on the next r
 2. Open the **Findings** tab to see which guardrails fired and what action was applied - the categories and actions are explained in [Security Guardrails](../protect/security-guardrails).
 3. Open the **Logs** tab for the request itself, including token counts, which show the effect of [Token Saving](../cost-and-traffic/token-saving) and of the model your [routing group](../cost-and-traffic/routing-and-fallbacks) picked.
 
-If your admin runs a [gateway-connected red teaming assessment](../../red-teaming/configure-and-run/gateway-connected) against the app, those results are a broader check on the same guardrail configuration.
+If your admin runs a [red teaming assessment](../../red-teaming/configure-and-run/agent) against the app, those results are a broader check on the same guardrail configuration.
 
 ## Troubleshooting
 

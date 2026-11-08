@@ -10,6 +10,12 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Gateway-connected merged into AI App / Agent (2026-11-08)
+
+- The **New assessment** page now has four cards: **AI App / Agent**, **AI Workflow**, **Model** and **MCP**
+- The **Gateway-connected** card is removed. To test an app or agent behind the Quilr LLM Gateway, use **AI App / Agent**
+- Details: [Red team an AI app or agent](../configure-and-run/agent.md)
+
 ## Back to assessments from a live run (2026-11-03)
 
 - While an assessment is running, **Back to assessments** now returns to the **Assessments** page, where the run stays listed as **Running**, instead of the older runs list

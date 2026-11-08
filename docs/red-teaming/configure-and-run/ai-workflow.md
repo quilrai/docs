@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 sidebar_label: "AI workflow"
 sidebar_custom_props:
   icon: FileText
@@ -28,7 +28,7 @@ The workflow can be reached directly, or through the Quilr LLM Gateway if it sit
 
 On the **New assessment** page, select **Start** on the **AI Workflow** card.
 
-![The New assessment page with five mode cards. The AI Workflow card, marked New, is highlighted.](/img/red-teaming/workflow/1-select-mode.png)
+![The New assessment page with four mode cards: AI App / Agent, AI Workflow (marked New), Model, and MCP, each with a Start link.](/img/red-teaming/new-assessment-modes.png)
 
 *Figure 1. Select **AI Workflow** on the New assessment page.*
 

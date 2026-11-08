@@ -13,30 +13,24 @@ Quilr Red Teaming is the adversarial testing component of the QuilrAI platform. 
 
 Most security teams test AI applications once before launch, using a fixed list of prompts. Models, system prompts, retrieval sources, and connected tools keep changing after launch, so a one-time test goes stale quickly. Quilr Red Teaming treats testing as a continuous control. Each assessment generates fresh attacks for the current state of the target, and a schedule can repeat it as the target changes.
 
-You can red team five kinds of AI systems: applications and agents already behind the Quilr LLM Gateway, chat and voice agents that run outside it, AI workflows that process documents, images, or data, foundation models straight from the provider, and MCP servers.
+You can red team four kinds of AI systems: AI apps and chat or voice agents, whether or not they sit behind the Quilr LLM Gateway; AI workflows that process documents, images, or data; foundation models straight from the provider; and MCP servers.
 
 ## What you can red team
 
 When you start a new test, you first choose the type of system to attack. The type decides how the Red Team Agent connects, which attacks apply, and what the evaluation inspects.
 
-![The New test page in the QuilrAI console, showing five target type cards: Gateway-connected, Agent, AI Workflow, Model, and MCP, each with a Start link.](/img/red-teaming/new-assessment-modes.png)
+![The New assessment page with four mode cards: AI App / Agent, AI Workflow (marked New), Model, and MCP, each with a Start link.](/img/red-teaming/new-assessment-modes.png)
 
-*Figure 1. Supported red-teaming modes: Gateway-connected, Agent, AI Workflow, Model, and MCP.*
+*Figure 1. Supported red-teaming modes: AI App / Agent, AI Workflow, Model, and MCP.*
 
-### Gateway-connected
+### AI App / Agent
 
-An application or agent that already sends its traffic through the Quilr LLM Gateway. Because the gateway sees every request, Red Teaming discovers the model routes, MCP servers, and native tools the system uses, so you do not need to configure a separate connection.
-
-Gateway-connected tests get the deepest coverage. It is also the simplest to set up: attacks travel through the gateway with the application's own key and policies, so you do not configure an endpoint or credentials.
-
-### Agent
-
-A chat or voice agent that runs outside the Quilr gateway and is reached through its own endpoint. Use this type for agents hosted on another platform, built by a vendor, or not yet onboarded to QuilrAI.
+An AI application, or a chat or voice agent, reached through its own endpoint. It can sit behind the Quilr LLM Gateway, behind another vendor's gateway, or behind no gateway at all. Use this type for apps and agents you build, host on another platform, or buy from a vendor.
 
 - **Chat agents** are tested over their text endpoint, single-turn or multi-turn.
 - **Voice agents** are tested over their voice endpoint. The Red Team Agent speaks its attacks as audio, transcribes the replies, and tests voice-specific techniques such as instructions hidden in background audio and caller impersonation.
 
-If you list the MCP tools the agent can call, the Red Team Agent also tries to make the agent misuse them.
+If you list the MCP tools the app or agent can call, the Red Team Agent also tries to make it misuse them.
 
 ### AI Workflow
 
@@ -66,13 +60,12 @@ MCP server testing is in Red Teaming for now. It will move to Quilr Code Advisor
 
 | Type | Connects through | Main risks tested | Typical use |
 | --- | --- | --- | --- |
-| Gateway-connected | Quilr LLM Gateway | Prompt injection, data leakage, tool abuse, privilege escalation | Apps and agents already onboarded to QuilrAI |
-| Agent | The agent's chat or voice endpoint | Prompt injection, jailbreak, data leakage, tool misuse | Agents hosted elsewhere or built by vendors |
+| AI App / Agent | The app's or agent's own endpoint, directly or through a gateway | Prompt injection, jailbreak, data leakage, tool misuse | AI apps and agents, wherever they are hosted |
 | AI Workflow | The workflow's input API or upload | Indirect injection in files, manipulated decisions, data leakage | Document, image, and data pipelines |
 | Model | The model provider's API | Jailbreak, harmful content, system prompt leakage | Model selection and new version baselines |
 | MCP | The MCP server endpoint | Tool poisoning, injection, authorization gaps, data leaks | Vetting and publishing MCP servers |
 
-Each mode has its own step-by-step guide under [Configure and run](../configure-and-run/gateway-connected.md).
+Each mode has its own step-by-step guide under [Configure and run](../configure-and-run/agent.md).
 
 ## Features of Quilr Red Teaming
 
@@ -117,4 +110,4 @@ After you fix a finding, Red Teaming retests the target to verify the fix. Sched
 
 - Read [How Quilr Red Teaming works](./how-it-works.md) for the architecture.
 - Check [Requirements and permissions](./requirements.md).
-- Pick a mode under [Configure and run](../configure-and-run/gateway-connected.md) and follow its step-by-step guide.
+- Pick a mode under [Configure and run](../configure-and-run/agent.md) and follow its step-by-step guide.

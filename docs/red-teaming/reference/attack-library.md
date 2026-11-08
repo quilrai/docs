@@ -10,7 +10,7 @@ aliases: [attack library, objectives, quick scan, full library]
 
 # Attack library
 
-The built-in attack objectives that Red Teaming runs against agents, AI workflows, gateway-connected apps, and models, grouped by OWASP category.
+The built-in attack objectives that Red Teaming runs against AI apps and agents, AI workflows, and models, grouped by OWASP category.
 
 ## At a glance
 

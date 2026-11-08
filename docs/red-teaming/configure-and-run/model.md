@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 3
 sidebar_label: "Model"
 sidebar_custom_props:
   icon: BrainCircuit
@@ -34,7 +34,7 @@ Each model you assess can come from one of three sources:
 
 On the **New assessment** page, select **Start** on the **Model** card.
 
-![The New assessment page with five mode cards. The Model card is highlighted.](/img/red-teaming/model/1-select-mode.png)
+![The New assessment page with four mode cards: AI App / Agent, AI Workflow (marked New), Model, and MCP, each with a Start link.](/img/red-teaming/new-assessment-modes.png)
 
 *Figure 1. Select **Model** on the New assessment page.*
 

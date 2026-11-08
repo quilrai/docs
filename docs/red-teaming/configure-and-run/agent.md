@@ -1,19 +1,19 @@
 ---
-sidebar_position: 2
-sidebar_label: "Agent"
+sidebar_position: 1
+sidebar_label: "AI app / agent"
 sidebar_custom_props:
   icon: Bot
-description: "Red team a text or voice agent through its own HTTP, WebSocket, or voice endpoint."
-aliases: [agent, chat agent, voice agent, websocket, http endpoint]
+description: "Red team an AI app or a text or voice agent through its own HTTP, WebSocket, or voice endpoint."
+aliases: [ai app, agent, chat agent, voice agent, websocket, http endpoint]
 ---
 
-# Red team an agent
+# Red team an AI app or agent
 
-Test a text or voice agent through its own endpoint, including the MCP tools it can call.
+Test an AI application, or a text or voice agent, through its own endpoint, including the MCP tools it can call.
 
 ## When to use this mode
 
-Use this mode to test an agent by connecting to its endpoint directly. It works whether the agent is:
+Use this mode to test an AI app or agent by connecting to its endpoint directly. It works whether the app or agent is:
 
 - protected behind the Quilr LLM Gateway,
 - protected behind another vendor's gateway, or
@@ -29,11 +29,11 @@ It supports both **text agents**, reached over HTTP or WebSocket, and **voice ag
 
 ## Start an agent assessment
 
-On the **New assessment** page, select **Start** on the **Agent** card.
+On the **New assessment** page, select **Start** on the **AI App / Agent** card.
 
-![The New assessment page with five mode cards. The Agent card is highlighted.](/img/red-teaming/agent/1-select-mode.png)
+![The New assessment page with four mode cards: AI App / Agent, AI Workflow (marked New), Model, and MCP, each with a Start link.](/img/red-teaming/new-assessment-modes.png)
 
-*Figure 1. Select **Agent** on the New assessment page.*
+*Figure 1. Select **AI App / Agent** on the New assessment page.*
 
 The **New agent assessment** setup opens. It has five steps: **Target**, **Coverage**, **Custom Attacks**, **Schedule**, and **Review**.
 
@@ -88,7 +88,7 @@ Choose the settings that match how your agent works. The development team can co
 
 ### Add context (optional)
 
-As with gateway-connected apps, you can add the agent's system prompt and the tools it can call: MCP Gateway servers, other MCP servers, and native tools. These are optional but recommended. The more context you give, the more the attacks are curated to your agent, and a tool list lets the Red Team Agent try to make the agent misuse those tools.
+You can add the agent's system prompt and the tools it can call: MCP Gateway servers, other MCP servers, and native tools. These are optional but recommended. The more context you give, the more the attacks are curated to your agent, and a tool list lets the Red Team Agent try to make the agent misuse those tools.
 
 Select **Continue**.
 

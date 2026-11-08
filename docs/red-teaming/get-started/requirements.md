@@ -14,7 +14,6 @@ Check these requirements before you add your first target. The most important on
 ## Account requirements
 
 - A QuilrAI tenant with the Red Teaming module enabled.
-- For gateway mode, the target must already be onboarded to the LLM Gateway or MCP Gateway.
 
 ## Know your target application
 

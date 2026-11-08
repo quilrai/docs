@@ -131,7 +131,7 @@ The floor can make the grade much worse than the score alone suggests, so read t
 
 ## Reproduction
 
-When an attack breaches the target, Quilr replays the winning attack to check that it works again. The finding is **Reproduced** when most replays breach again. Live agents, AI workflows, gateway-connected apps, and models reached through an OpenAI-compatible endpoint are replayed only when the target is marked replay-safe; otherwise the finding says **Not attempted**.
+When an attack breaches the target, Quilr replays the winning attack to check that it works again. The finding is **Reproduced** when most replays breach again. Live AI apps and agents, AI workflows, and models reached through an OpenAI-compatible endpoint are replayed only when the target is marked replay-safe; otherwise the finding says **Not attempted**.
 
 Reproduction is evidence only. A breach that was not reproduced still counts in full toward the risk score and grade.
 

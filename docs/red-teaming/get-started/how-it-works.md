@@ -18,24 +18,22 @@ flowchart LR
   RTA["Red Team Agent<br/>studies the target, plans attacks,<br/>adapts every turn"]
   GW["Quilr LLM Gateway"]
   DC["Direct connection<br/>endpoint, API, or upload"]
-  T1["Gateway-connected app or agent"]
-  T2["Agent: chat or voice"]
+  T2["AI app or agent: chat or voice"]
   T3["AI Workflow"]
   T4["Model"]
   EV["Evaluators<br/>detectors and model judge"]
   F["Findings"]
   RTA <-->|"attack / reply"| GW
   RTA <-->|"attack / reply"| DC
-  GW <--> T1
   GW <--> T2
   GW <--> T3
   DC <--> T2
   DC <--> T3
   DC <--> T4
-  T1 & T2 & T3 & T4 -->|"replies, tool calls, actions"| EV
+  T2 & T3 & T4 -->|"replies, tool calls, actions"| EV
   EV -.->|"verdict shapes the next attack"| RTA
   EV -->|"confirmed"| F
-  linkStyle 0,2,3,4 stroke:#3b66d6,stroke-width:2px
+  linkStyle 0,2,3 stroke:#3b66d6,stroke-width:2px
 ```
 
 *Figure 1. Targets are reached through the Quilr LLM Gateway (blue) or directly (grey). Every reply and verdict shapes the next attack.*
@@ -44,7 +42,7 @@ flowchart LR
 
 Every assessment moves through the same stages, in order.
 
-1. **Connect.** You choose the mode and tell Quilr how to reach the target. See the guides under [Configure and run](../configure-and-run/gateway-connected.md).
+1. **Connect.** You choose the mode and tell Quilr how to reach the target. See the guides under [Configure and run](../configure-and-run/agent.md).
 2. **Choose coverage.** You pick a Quick scan, the Full library, or a custom selection, and add any custom objectives.
 3. **Launch.** You record the authorized scope and confirm the authorization.
 4. **Study the target.** Quilr first sends harmless requests to learn what the target does, then generates objectives aimed at its own tools. These appear as **Synthesized** in reports.
@@ -57,7 +55,7 @@ Every assessment moves through the same stages, in order.
 
 | Mode | How attacks reach the target | Used by |
 | --- | --- | --- |
-| Through the gateway | Through the Quilr LLM Gateway, using the application's own key and policies. | Gateway-connected apps and agents, and agents or AI workflows that sit behind the gateway. |
-| Direct | Straight to the target's own endpoint: an HTTP or WebSocket API, a voice endpoint, a document upload endpoint, or a model provider's API. | Agents, AI workflows, and models. |
+| Through the gateway | Through the Quilr LLM Gateway, using the application's own key and policies. | AI apps, agents, and AI workflows that sit behind the gateway. |
+| Direct | Straight to the target's own endpoint: an HTTP or WebSocket API, a voice endpoint, a document upload endpoint, or a model provider's API. | AI apps and agents, AI workflows, and models. |
 
 You can leave the page while an assessment runs. Full turn-by-turn transcripts are shown only in the live run view; completed reports show turn-referenced evidence instead.
