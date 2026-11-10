@@ -99,10 +99,10 @@ curl -X POST "$API/controls/rate-limits/support-rpm/grants" "${auth[@]}" -H "Ide
 ```
 
 - The rate limit needs `adjustments` (`409 rate_limit_not_adjustable`). A grant above `ceiling` is `422 grant_above_ceiling`; longer than `max_duration` is `422 grant_too_long`.
-- A new grant for the same subject supersedes the active one (returned as `superseded`).
+- A new grant for the same subject replaces only grants whose time range overlaps its own; grants for other periods stay. `superseded` is the newest grant it replaced, or `null`. `409 budget_changed` means the rate limit changed or was removed while the grant was being created; read it again and retry.
 - Revoke with `DELETE /controls/rate-limits/{id}/grants/{grant_id}?reason=...` and the grant ETag in `If-Match`.
 - A grant with a later `starts_at` shows as `scheduled` until it starts; `status=active` lists grants in effect now.
-- Deleting the rate limit revokes its active and scheduled grants (listed in `grants_revoked`). A rate limit created again with the same id starts without them.
+- Any publish that removes the rate limit revokes its active and scheduled grants: deleting it here (the ids are listed in `grants_revoked`), removing it in the console or restoring an older revision. A rate limit created again with the same id, or brought back by a restore, starts without them.
 - Grants never publish a policy revision.
 
 ### Usage

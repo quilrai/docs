@@ -128,9 +128,9 @@ The grant shows on the **Grants** tab with **Raised** or **Lowered**, the new an
 
 ![Active grant on the Grants tab](/img/llm-gateway/ui/budget-grant-list.png)
 
-A grant takes effect right away, without publishing, unless it has a later start: then it shows as **scheduled** until that time (`status: scheduled` in the API, where `status=active` lists only grants in effect now). Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, a Smart group grant that covers Dana takes over if there is one; otherwise the limit returns to $100. A new grant for the same person on the same budget replaces the current one. A grant above the highest allowed limit or longer than the longest grant is refused.
+A grant takes effect right away, without publishing, unless it has a later start: then it shows as **scheduled** until that time (`status: scheduled` in the API, where `status=active` lists only grants in effect now). Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, a Smart group grant that covers Dana takes over if there is one; otherwise the limit returns to $100. A new grant for the same person on the same budget replaces only the grants whose dates overlap it; a grant for another period stays, so a person can have one grant in effect and others scheduled. A grant above the highest allowed limit or longer than the longest grant is refused.
 
-A grant belongs to one budget. In a per-group budget set, if the person's strongest group changes, a grant on the old group's budget no longer applies to them. Deleting a budget (or a rate limit) revokes its active and scheduled grants, so a budget created later with the same ID starts without them.
+A grant belongs to one budget. In a per-group budget set, if the person's strongest group changes, a grant on the old group's budget no longer applies to them. Removing a budget (or a rate limit) revokes its active and scheduled grants, whether you delete it through the API, remove it in the console or restore an older revision without it. A budget created later with the same ID, or brought back by a restore, starts without them. Moving or pausing a budget keeps its grants.
 
 ## A raise for a whole group {#group-grant}
 
@@ -195,6 +195,10 @@ curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants" \
 
 The grant reads back with `no_end_date: true`. To change the allowance, change the grant; to end it, revoke it.
 
+![Grants tab: a permanent allowance, an extra grant, and a short raise next to a December grant that has not started](/img/llm-gateway/ui/budget-grants-list-extra-scheduled.png)
+
+Grants for different dates coexist: Sam's December grant shows **Not started** while his current raise applies, and its usage line counts spend under the current limit.
+
 ### A different amount for one month only {#monthly-top-up}
 
 To give a group more for a single month, grant it with a start and an end. The budget must allow grants with a **Longest grant** of at least `31d`. You can create it before the month starts: it shows as **scheduled** until `starts_at`, and the grant in effect keeps applying until its own end or the new grant's start, whichever comes first.
@@ -221,12 +225,14 @@ curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants/_bu
 
 **Dana should get $50 more than the per-person budget this month.**
 
-A grant takes exactly one of two amounts (in the API):
+A grant takes exactly one of two amounts. In the console's **New grant** form, choose **Set a limit** or **Add on top of the budget limit** under **Limit**; in the API, send `limit` or `extra`:
 
 | Field | Meaning | Budget limit later changes from $100 to $120 |
 |---|---|---|
 | `limit` | The person's limit, absolute. | Dana stays at the granted limit. |
 | `extra` | Added on top of the budget's limit. | Dana's limit follows: $150, then $170. |
+
+![New grant form with Add on top of the budget limit selected](/img/llm-gateway/ui/budget-grant-form-extra.png)
 
 ```bash
 curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants" \
@@ -240,6 +246,7 @@ curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants" \
 - Reads show the resulting `limit` and the `extra` amount.
 - Changing a grant with `limit` makes it absolute; changing it with `extra` makes it follow the budget again.
 - Bulk grants take a top-level `limit` or `extra`, and each item may override it with its own.
+- On the **Grants** tab, an extra grant reads like **+$25.00 over the budget limit (now $75.00)**.
 
 ## Raise limits automatically {#automatic-raises}
 
@@ -324,6 +331,10 @@ flowchart LR
 - The `x-quilr-*` headers are removed before the request reaches the model provider.
 
 ![Refuse requests that have no conversation id, under Who](/img/llm-gateway/ui/budget-refuse-missing-id.png)
+
+The budget card then reads **each conversation · one-time allowance · never resets** and **Requests without a conversation id are refused**.
+
+![Conversation cap card on Budgets & Usage Limits](/img/llm-gateway/ui/budget-conversation-cap-card.png)
 
 ## See who will run out {#running-out}
 
