@@ -127,7 +127,7 @@ The grant shows on the **Grants** tab with **Raised** or **Lowered**, the new an
 
 ![Active grant on the Grants tab](/img/llm-gateway/ui/budget-grant-list.png)
 
-A grant takes effect right away, without publishing. Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, the limit returns to $100. A new grant for the same person on the same budget replaces the current one. A grant above the highest allowed limit or longer than the longest grant is refused.
+A grant takes effect right away, without publishing. Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, a Smart group grant that covers Dana takes over if there is one; otherwise the limit returns to $100. A new grant for the same person on the same budget replaces the current one. A grant above the highest allowed limit or longer than the longest grant is refused.
 
 A grant belongs to one budget. In a per-group budget set, if the person's strongest group changes, a grant on the old group's budget no longer applies to them.
 
@@ -144,13 +144,11 @@ On a budget counted **per person** with grants allowed, choose **New grant**, th
 - **Which grant applies:** a person's own grant wins over a group grant. A person in several groups with grants gets the grant of their best-ranked group (the **Rank** in **Groups**, the same order group budget sets use). Otherwise the budget limit applies.
 - Revoking a person's own grant leaves them on the group grant, if one covers them. Revoking a group grant leaves people's own grants in place.
 
-![A person's own grant and a group grant on the Grants tab](/img/llm-gateway/ui/budget-grant-list-group.png)
-
-**Who is counted** shows where each person's limit comes from, for example `Grant $8.00 via enf-live-group-a`, with **Give their own grant** and **Change the group grant** on each row.
+**Who is counted** shows where each person's limit comes from (`Grant ... via <group>`), with **Give their own grant** and **Change the group grant** on each row.
 
 ![Members with limits from a group grant and one person's own grant](/img/llm-gateway/ui/budget-group-grant-members.png)
 
-Group grants work only on budgets counted per person. A budget counted per app, per group pool or by more than the person refuses them (`422 group_grant_not_supported`).
+Group grants work only on budgets counted per person.
 
 ## A permanent different limit for one person {#own-limit}
 
@@ -189,7 +187,7 @@ curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants/_bu
 - One call grants up to 1,000 people; a larger Smart group is refused as a whole. For more people, send batches of up to 1,000 under `grants`, each item just `{"subject": {"user": "..."}}`: the top-level `limit`, dates and `reason` apply to every item.
 - Each person succeeds or fails on their own; check `errors` in the response.
 - People who join the group later need the next run or a grant of their own. A [group grant](#group-grant) covers them right away.
-- You can run the job before the month starts: the current grant keeps applying until the new one's `starts_at`.
+- You can run the job before the month starts: the current grant keeps applying until its own end or the new grant's `starts_at`, whichever comes first.
 
 ## Raise limits automatically {#automatic-raises}
 
@@ -201,16 +199,16 @@ Edit the budget, open **More options**, turn on **Allow grants for this budget**
 
 - **+ % of the limit each time**: each raise adds this share of the budget limit, never above the highest allowed limit.
 - **Up to N times per period**: the most raises one person gets in a reset period.
-- **When**: **At the limit** raises when a request would be refused, so that request goes through. **At a share used** raises earlier, after a request takes someone past the share you enter.
+- **When**: **At the limit** tries a raise when a request would be refused; the request goes through if the raise succeeds and every other matching budget has room. **At a share used** checks recorded usage after requests and raises once someone is at or past the share you enter.
 - **Only for these smart groups**: leave empty for everyone the budget counts.
 
-Raises are off until you turn them on. Each raise is a grant marked **Automatic** on the **Grants** tab and ends when the budget resets. Turning raises off stops new ones; raises already made stay until the reset or until you revoke them. A person whose limit an admin lowered is never raised. Automatic raises work on budgets that reset every day, week or month; a one-time allowance or a rolling window has no reset for them to end at.
+Raises are off until you turn them on. Each raise is a grant marked **Automatic** on the **Grants** tab and ends when the budget resets, or sooner if the **Longest grant** is shorter. Turning raises off stops new ones; raises already made stay until they end or you revoke them. Revoking an automatic raise also stops further raises for that person until the next reset. A person whose limit an admin lowered is never raised. Automatic raises work on budgets that reset every day, week or month; a one-time allowance or a rolling window has no reset for them to end at.
 
 Without automatic raises, an enforced budget refuses the request once it is used up (`429 quota_exceeded`).
 
 ## Cap a conversation or an agent {#conversation-agent-caps}
 
-**No single conversation may spend more than $20. Each agent may spend $50 a day.**
+**A $20 allowance for each conversation, and $50 a day for each agent.**
 
 Use the **Cap each conversation**, **Daily cap per agent** or **Cap each agent run** recipe, or pick **Each conversation**, **Each agent** or **Each agent run** under **Who**.
 
@@ -229,6 +227,7 @@ The caller declares the ids:
 | Each agent run | `x-quilr-agent-run-id` | `metadata.agent_run_id` |
 
 - A request without the id is not counted by that budget. Ids are 1 to 256 characters.
+- Spend is counted when a request completes, so requests already in flight can take a conversation past its allowance before the next one is refused.
 - A conversation cap is counted per person too, so two people reusing an id do not share a counter.
 - Ids come from the caller, so a cap is a guard against runaway loops, not a security boundary: keep a per-person or per-app budget alongside it.
 - The `x-quilr-*` headers are removed before the request reaches the model provider.
@@ -245,7 +244,7 @@ For budgets that reset every day, week or month, the gateway projects each perso
 
 **Once someone has used 80% of their monthly budget, send their chat requests to a smaller model.**
 
-A routing rule can read how much of a budget the requester has used, with grants included. In a policy:
+A routing rule can read how much of a budget the requester has used, with grants included. In a policy, replacing `monthly_ai_spend` with your budget's ID and the target with one of your models:
 
 ```text
 policy cheaper_after_80 priority 700 {
@@ -257,9 +256,10 @@ policy cheaper_after_80 priority 700 {
 }
 ```
 
-Or with the [Routing and failover API](../api-reference/routing-and-failover-api), add `"conditions": {"budget": {"budget_id": "monthly_ai_spend", "used_pct_at_least": 80}}` to a route.
+Or add a budget condition to a route with the [Routing and failover API](../api-reference/routing-and-failover-api).
 
-- Route below 100%: an enforced budget that is used up still refuses the request, whatever the route.
+- Route below 100%: an enforced budget that is used up still refuses the request if it applies to the chosen model, unless an automatic raise succeeds.
+- Use a budget counted per person, app or group. A budget counted per model or provider has no value before the model is chosen, so the rule never matches.
 - If the usage cannot be read in time, or the requester is not counted by that budget, the rule does not match and normal routing applies.
 - The value is the requester's usage of that budget even when the budget's own scope does not cover this request; add an app condition to the rule if needed.
 
