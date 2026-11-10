@@ -121,6 +121,18 @@ kubectl apply -n <namespace> -f quilr-llm-connector.yaml
 
 Use your normal secret management process for the token in production.
 
+### Allow outbound access to the tunnel
+
+The connector only makes outbound connections. If your network restricts outbound traffic (firewall, proxy, or egress allowlist), allow the connector to reach the tunnel host for the region you chose when you set it up:
+
+| Region | Tunnel host |
+|--------|-------------|
+| United States | `tunnel.us.quilr.ai` |
+| Europe | `tunnel.eu.quilr.ai` |
+| India | `tunnel.in.quilr.ai` |
+
+Allow outbound HTTPS and WebSocket (`wss://`) traffic on TCP port `443` to that host. No inbound rules are needed. If you are not sure which region you chose, allow all three hosts.
+
 ## 3. Route a provider through the connector
 
 Once the connector shows **Connected** in the console:
