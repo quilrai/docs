@@ -181,6 +181,18 @@ Apply the manifest:
 kubectl apply -f deployment.yaml
 ```
 
+### Allow outbound access to the tunnel
+
+The connector only makes outbound connections. If your network restricts outbound traffic (firewall, proxy, or egress allowlist), allow the connector to reach the tunnel host for the region you chose when you set it up:
+
+| Region | Tunnel host |
+|--------|-------------|
+| United States | `tunnel.us.quilr.ai` |
+| Europe | `tunnel.eu.quilr.ai` |
+| India | `tunnel.in.quilr.ai` |
+
+Allow outbound HTTPS and WebSocket (`wss://`) traffic on TCP port `443` to that host. No inbound rules are needed. If you are not sure which region you chose, allow all three hosts.
+
 ## 3. Add the MCP server or REST API via the Remote Connector
 
 Once your connector shows **Connected** in **Remote Connectors**, you can route either a **Remote server** or an **API** (REST API to MCP) through it.
