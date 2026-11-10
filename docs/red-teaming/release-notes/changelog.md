@@ -10,6 +10,13 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Model cards for your models (2026-11-10)
+
+- Every model in your model library now has a **model card**. For your own providers, open a model and select the **Model card** tab. For models in the QuilrAI catalog, click **Model card** on the model's row
+- The card brings together what the model is and what it can do, who added its provider and who approved it, its latest Red Teaming results, its Drift & Bias scores, baseline, drift and alert rule, and its last 7 days of use
+- Red Teaming results include batch runs and single assessments started by picking the model from the model library
+- Save a card as PDF or Markdown from its menu to keep as audit evidence. Each download is recorded in the audit log
+
 ## Drift & Bias alerts can go to Splunk and Datadog (2026-11-10)
 
 - The Splunk and Datadog integrations can now be set up and receive Drift & Bias alerts. Splunk uses an HTTP Event Collector URL and token, and Datadog uses your site and an API key
