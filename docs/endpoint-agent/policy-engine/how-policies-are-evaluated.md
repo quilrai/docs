@@ -118,7 +118,10 @@ The device gets **Record only** and shows no message. If sensitive data was foun
 
 **Application Monitoring**, in **Settings > Endpoint Agent**, sets which apps are monitored, and in which browsers. No policy can override it.
 
-While an app is off, none of its policies or controls apply, including **Accounts** and **Apps** rules. Nothing from it is inspected or logged, so no new findings or interactions appear. Findings recorded earlier are kept. Requests from a browser that is off for the app are not checked either.
+While an app is off, its policies and controls stop applying, and requests from a browser that is off for the app are not checked. Findings recorded earlier are kept. Two exceptions apply:
+
+- **Endpoint Agent 1.3.316 or earlier** does not check this setting itself. As devices pick up the change, they remove the app's hooks and stop intercepting traffic that only the app uses. They still apply **Apps** rules to it, keep reporting its usage and discovery details, may inspect some of its requests as another app's when the two apps share a host, and may still record LM Studio chats and Codex activity from hooks your organization manages. The console shows the same note under **Application Monitoring**.
+- **Requests that still reach QuilrAI** for an app that is off can still be checked and recorded, so new findings for the app can appear.
 
 Application Monitoring does not change the Browser Extension, which keeps applying its own policies where it is installed. **Pause enforcement** does not change which apps or browsers are monitored.
 
