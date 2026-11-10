@@ -71,12 +71,15 @@ const config = {
     title: DOCS_TITLE,
     tagline: `Documentation for ${BRAND_NAME}`,
 
-    // Favicons set here, not via `favicon`, so the ICO carries `sizes` and
-    // browsers that support SVG pick the theme-aware favicon.svg instead.
+    // Favicons: one solid tile (white WM on black) in every format, so the icon
+    // shows on light and dark tab bars. No prefers-color-scheme in the SVG:
+    // Safari 26+ uses SVG favicons but ignores media queries in them.
+    // Set here, not via `favicon`, so the ICO carries `sizes` and browsers
+    // that support SVG pick the SVG. static/favicon.ico covers /favicon.ico.
     headTags: [
-        {tagName: 'link', attributes: {rel: 'icon', href: '/img/favicon.ico', sizes: '32x32'}},
-        {tagName: 'link', attributes: {rel: 'icon', href: '/img/favicon.svg', type: 'image/svg+xml'}},
-        {tagName: 'link', attributes: {rel: 'apple-touch-icon', href: '/img/apple-touch-icon.png'}},
+        {tagName: 'link', attributes: {rel: 'icon', href: '/img/whitematter-favicon.ico', sizes: '32x32'}},
+        {tagName: 'link', attributes: {rel: 'icon', href: '/img/whitematter-favicon.svg', type: 'image/svg+xml'}},
+        {tagName: 'link', attributes: {rel: 'apple-touch-icon', href: '/img/whitematter-apple-touch-icon.png'}},
     ],
 
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
