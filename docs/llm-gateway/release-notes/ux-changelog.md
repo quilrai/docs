@@ -10,6 +10,16 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Budgets: group grants, automatic raises, caps and forecasts (2026-11-10)
+
+- **Smart group grants**: give every member of a Smart group a different limit, including people who join later; a person's own grant wins
+- **Grants with no end date** where a budget allows it, and **Ending soonest** / **Ending in 7 days** views on the **Grants** tab, with each grant's usage
+- **Automatic raises**: raise a person's limit by a share of the budget when they reach it (or earlier), a set number of times per period, never above the highest allowed limit; off by default
+- **Conversation and agent caps**: **Each conversation**, **Each agent** and **Each agent run** under **Who**, counted from caller-declared ids; conversation and run caps start as one-time allowances
+- **Forecasts**: **Runs out** on usage rows and a **Running out soon** list; `GET /budget-forecast` and `GET /budgets/{id}/burn-rate` in the Management API
+- **Budget-aware routing**: `budget_used_pct()` in policies and `conditions.budget` on API routes move requests to another model as a budget runs low
+- Details: [Budget recipes](../cost-and-traffic/budget-recipes) and [Budgets API](../api-reference/budgets-api#forecasts-and-grant-views)
+
 ## Azure AI Foundry follow-ups (2026-11-05)
 
 - Adding an Azure (`azureopenai`) provider no longer shows a note about the resource's Claude deployments; add Claude under **Azure** › **Anthropic messages** by deployment name

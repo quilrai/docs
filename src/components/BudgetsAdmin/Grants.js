@@ -70,8 +70,11 @@ function parseSubject(text) {
 }
 
 function timeFields(form) {
-  const expires_at = utcDate(form.expires, 'Expiry');
   const starts_at = form.starts ? utcDate(form.starts, 'Start') : undefined;
+  // No end date: omit expires_at. The API accepts it only when the budget's
+  // adjustments.max_duration is "unlimited" and answers an error otherwise.
+  if (form.noEnd) return starts_at ? { starts_at } : {};
+  const expires_at = utcDate(form.expires, 'Expiry');
   if (
     new Date(expires_at).getTime() <=
     (starts_at ? new Date(starts_at).getTime() : Date.now())
@@ -83,27 +86,60 @@ function timeFields(form) {
   return { expires_at, ...(starts_at ? { starts_at } : {}) };
 }
 
-function GrantTimes({ form, setForm }) {
+const allowsNoEnd = (budget) =>
+  budget?.adjustments?.max_duration === 'unlimited';
+
+function NoEndDate({ form, setForm, budget }) {
   return (
-    <div className={styles.grid}>
-      <Field label="Expiry (UTC, required)">
+    <>
+      <label className={styles.check}>
         <input
-          type="datetime-local"
-          step="1"
-          required
-          value={form.expires}
-          onChange={(e) => setForm((v) => ({ ...v, expires: e.target.value }))}
+          type="checkbox"
+          checked={!!form.noEnd}
+          onChange={(e) => setForm((v) => ({ ...v, noEnd: e.target.checked }))}
         />
-      </Field>
-      <Field label="Start (UTC, optional)" hint="Leave empty to start now.">
-        <input
-          type="datetime-local"
-          step="1"
-          value={form.starts}
-          onChange={(e) => setForm((v) => ({ ...v, starts: e.target.value }))}
-        />
-      </Field>
-    </div>
+        No end date
+      </label>
+      {form.noEnd && budget && !allowsNoEnd(budget) && (
+        <p className={styles.notice}>
+          This budget's maximum grant duration is{' '}
+          {budget.adjustments?.max_duration || '366d'}, so the API will refuse
+          a grant with no end date. Set the budget's maximum duration to
+          unlimited first.
+        </p>
+      )}
+    </>
+  );
+}
+
+function GrantTimes({ form, setForm, budget }) {
+  return (
+    <>
+      <div className={styles.grid}>
+        <Field
+          label={form.noEnd ? 'Expiry (none)' : 'Expiry (UTC, required)'}
+          hint="No end date is allowed only when the budget's maximum duration is unlimited."
+        >
+          <input
+            type="datetime-local"
+            step="1"
+            required={!form.noEnd}
+            disabled={!!form.noEnd}
+            value={form.expires}
+            onChange={(e) => setForm((v) => ({ ...v, expires: e.target.value }))}
+          />
+        </Field>
+        <Field label="Start (UTC, optional)" hint="Leave empty to start now.">
+          <input
+            type="datetime-local"
+            step="1"
+            value={form.starts}
+            onChange={(e) => setForm((v) => ({ ...v, starts: e.target.value }))}
+          />
+        </Field>
+      </div>
+      <NoEndDate form={form} setForm={setForm} budget={budget} />
+    </>
   );
 }
 
@@ -158,7 +194,7 @@ function GrantResult({ result }) {
                 render: (r) => (
                   <>
                     {format(r.grant?.limit)}
-                    <small>{r.grant?.expires_at}</small>
+                    <small>{r.grant?.expires_at || 'No end date'}</small>
                   </>
                 ),
               },
@@ -196,9 +232,28 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
     budget_id: '',
     status: 'all',
     bucket: '',
+    source: '',
+    members_of: '',
   });
+  // newest: created_at (API default); expires: sort=expires_at, soonest
+  // first with no end date last; ends_within: active grants ending soon.
+  const [view, setView] = useState({ kind: 'newest', within: '7d' });
+  const [includeUsage, setIncludeUsage] = useState(false);
   const [cursor, setCursor] = useState('');
-  const query = { ...filter, cursor, limit: 50 };
+  const query = {
+    budget_id: filter.budget_id,
+    bucket: filter.bucket,
+    source: filter.source,
+    'subject.members_of': filter.members_of,
+    // ends_within lists active grants only, so the status filter is not sent.
+    ...(view.kind === 'ends_within'
+      ? { ends_within: view.within }
+      : { status: filter.status }),
+    ...(view.kind === 'expires' ? { sort: 'expires_at' } : {}),
+    ...(includeUsage ? { include_usage: 'true' } : {}),
+    cursor,
+    limit: 50,
+  };
   const grants = useLoad(
     () => api.listGrants(query),
     [api, version, JSON.stringify(query)],
@@ -214,6 +269,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
     expires: utcInput(Date.now() + 24 * 60 * 60 * 1000),
     starts: '',
     reason: '',
+    noEnd: false,
   }));
   const [bulkMode, setBulkMode] = useState('json');
   const [bulkJson, setBulkJson] = useState(
@@ -225,7 +281,12 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
   const [detailError, setDetailError] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [writing, setWriting] = useState(false);
-  const [edit, setEdit] = useState({ limit: '', expires: '', reason: '' });
+  const [edit, setEdit] = useState({
+    limit: '',
+    expires: '',
+    reason: '',
+    noEnd: false,
+  });
   const [revokeReason, setRevokeReason] = useState('');
   const readGeneration = useRef(0);
 
@@ -249,6 +310,12 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
     selected?.grant?.metric ||
     definitions.find((item) => item.id === selected?.grant?.budget_id)?.metric;
   const terminal = ['revoked', 'superseded'].includes(selected?.grant?.status);
+  const editBudget = definitions.find(
+    (item) => item.id === selected?.grant?.budget_id,
+  );
+  const perPerson =
+    budget?.per?.length === 1 &&
+    ['user.email', 'user'].includes(budget.per[0]);
 
   function changeFilter(name, value) {
     setFilter((previous) => ({ ...previous, [name]: value }));
@@ -271,6 +338,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
         limit: String(response.grant.limit),
         expires: utcInput(response.grant.expires_at),
         reason: response.grant.reason || '',
+        noEnd: response.grant.expires_at == null,
       });
       setRevokeReason('');
     } catch (error) {
@@ -292,6 +360,9 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
   async function createGrant() {
     if (!canGrant) return;
     const response = await run(() => {
+      // members_of is a Smart group grant: one grant every current member
+      // gets. Only budgets counted per person by email accept it; others
+      // answer 422 group_grant_not_supported.
       const subject =
         subjectMode === 'json'
           ? parseSubject(subjectJson)
@@ -340,7 +411,8 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
           pinned.grant.id,
           {
             limit: amount(edit.limit, editMetric),
-            expires_at: utcDate(edit.expires, 'Expiry'),
+            // An explicit null asks for no end date (max_duration unlimited only).
+            expires_at: edit.noEnd ? null : utcDate(edit.expires, 'Expiry'),
             reason: edit.reason,
           },
           { etag: pinned.etag },
@@ -406,9 +478,40 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
               ))}
             </select>
           </Field>
-          <Field label="Status">
+          <Field label="View">
             <select
-              value={filter.status}
+              value={view.kind}
+              onChange={(e) => {
+                setView((v) => ({ ...v, kind: e.target.value }));
+                setCursor('');
+              }}
+            >
+              <option value="newest">Newest first</option>
+              <option value="expires">Ending soonest</option>
+              <option value="ends_within">Ending within…</option>
+            </select>
+          </Field>
+          {view.kind === 'ends_within' && (
+            <Field label="Ending within" hint="Duration such as 12h or 7d.">
+              <input
+                value={view.within}
+                pattern="[0-9]+[hd]"
+                onChange={(e) => {
+                  setView((v) => ({ ...v, within: e.target.value }));
+                  setCursor('');
+                }}
+              />
+            </Field>
+          )}
+          <Field
+            label="Status"
+            hint={
+              view.kind === 'ends_within' ? 'Active grants only.' : undefined
+            }
+          >
+            <select
+              value={view.kind === 'ends_within' ? 'active' : filter.status}
+              disabled={view.kind === 'ends_within'}
               onChange={(e) => changeFilter('status', e.target.value)}
             >
               {['all', 'active', 'expired', 'revoked', 'superseded'].map(
@@ -420,6 +523,16 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
               )}
             </select>
           </Field>
+          <Field label="Source">
+            <select
+              value={filter.source}
+              onChange={(e) => changeFilter('source', e.target.value)}
+            >
+              <option value="">All sources</option>
+              <option value="admin">Admin (API or console)</option>
+              <option value="auto">Automatic raises</option>
+            </select>
+          </Field>
           <Field label="Canonical bucket (exact)">
             <input
               value={filter.bucket}
@@ -427,7 +540,33 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
               placeholder="Optional bucket filter"
             />
           </Field>
+          <Field label="Smart group grant for">
+            <input
+              value={filter.members_of}
+              onChange={(e) => changeFilter('members_of', e.target.value)}
+              placeholder="Smart group name"
+            />
+          </Field>
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={includeUsage}
+              onChange={(e) => {
+                setIncludeUsage(e.target.checked);
+                setCursor('');
+              }}
+            />
+            Include usage
+          </label>
         </div>
+        {includeUsage && grants.data?.usage_as_of && (
+          <div className={styles.freshness}>
+            <Badge state={grants.data.usage_stale ? 'stale' : 'ok'}>
+              {grants.data.usage_stale ? 'Stale usage' : 'Fresh usage'}
+            </Badge>
+            <span>Usage as of {grants.data.usage_as_of}</span>
+          </div>
+        )}
         <LoadState state={grants} />
         {grants.data && (
           <>
@@ -439,7 +578,11 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                   render: (row) => (
                     <>
                       <strong>{row.id}</strong>
-                      <small>{row.budget_id}</small>
+                      <small>
+                        {row.budget_label
+                          ? `${row.budget_label} · ${row.budget_id}`
+                          : row.budget_id}
+                      </small>
                     </>
                   ),
                 },
@@ -447,7 +590,14 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                   label: 'Subject',
                   render: (row) => (
                     <>
-                      {format(row.subject)}
+                      {row.subject?.members_of ? (
+                        <>
+                          <strong>Members of {row.subject.members_of}</strong>
+                          <small>Smart group grant</small>
+                        </>
+                      ) : (
+                        format(row.subject)
+                      )}
                       <details>
                         <summary>Canonical bucket</summary>
                         <code>{row.bucket}</code>
@@ -462,19 +612,52 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                       {row.metric === 'spend_usd' ? '$' : ''}
                       {format(row.limit)}
                       <small>{row.metric}</small>
+                      <small>
+                        Base {format(row.base_limit)} applies again when it
+                        ends
+                      </small>
                     </>
                   ),
                 },
+                ...(includeUsage
+                  ? [
+                      {
+                        label: 'Usage',
+                        render: (row) =>
+                          row.usage ? (
+                            <>
+                              {format(row.usage.used)} used
+                              <small>
+                                {row.usage.pct == null
+                                  ? 'No percent'
+                                  : `${row.usage.pct}% of the grant`}
+                              </small>
+                            </>
+                          ) : (
+                            'Unavailable'
+                          ),
+                      },
+                    ]
+                  : []),
                 {
                   label: 'Status',
-                  render: (row) => <Badge>{row.status}</Badge>,
+                  render: (row) => (
+                    <>
+                      <Badge>{row.status}</Badge>
+                      {row.source === 'auto' && <Badge>auto</Badge>}
+                    </>
+                  ),
                 },
                 {
                   label: 'Validity (UTC)',
                   render: (row) => (
                     <>
                       {row.starts_at}
-                      <small>Expires {row.expires_at}</small>
+                      <small>
+                        {row.no_end_date || row.expires_at == null
+                          ? 'No end date'
+                          : `Expires ${row.expires_at}`}
+                      </small>
                     </>
                   ),
                 },
@@ -586,17 +769,25 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                         }
                       />
                     </Field>
-                    <Field label="Expiry (UTC, required)">
+                    <Field
+                      label={edit.noEnd ? 'Expiry (none)' : 'Expiry (UTC, required)'}
+                    >
                       <input
                         type="datetime-local"
                         step="1"
-                        required
+                        required={!edit.noEnd}
+                        disabled={edit.noEnd}
                         value={edit.expires}
                         onChange={(e) =>
                           setEdit((v) => ({ ...v, expires: e.target.value }))
                         }
                       />
                     </Field>
+                    <NoEndDate
+                      form={edit}
+                      setForm={setEdit}
+                      budget={editBudget}
+                    />
                     <Field label="Reason">
                       <textarea
                         maxLength="1000"
@@ -704,7 +895,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
               />
             </Field>
           </div>
-          <GrantTimes form={create} setForm={setCreate} />
+          <GrantTimes form={create} setForm={setCreate} budget={budget} />
         </div>
         <div className={styles.split}>
           <div>
@@ -723,6 +914,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                     ['user', 'User email'],
                     ['app', 'App name'],
                     ['smart_group', 'Active smart group'],
+                    ['members_of', 'Members of a Smart group'],
                     ['model', 'Model'],
                     ['bucket', 'Canonical bucket'],
                     ['json', 'Composite / raw JSON'],
@@ -741,13 +933,31 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                   rows={5}
                 />
               ) : (
-                <Field label="Subject value">
+                <Field
+                  label={
+                    subjectMode === 'members_of'
+                      ? 'Smart group name'
+                      : 'Subject value'
+                  }
+                >
                   <input
                     required
                     value={subjectValue}
                     onChange={(e) => setSubjectValue(e.target.value)}
                   />
                 </Field>
+              )}
+              {subjectMode === 'members_of' && (
+                <p className={budget && !perPerson ? styles.notice : styles.muted}>
+                  One grant that every current member of the group gets;
+                  members who join or leave follow automatically. A member's
+                  own grant wins, and a member of several granted groups gets
+                  the best-ranked group's grant. Only budgets counted per person
+                  by email accept it
+                  {budget && !perPerson
+                    ? `; this budget is counted per ${budget.per?.join(', ') || 'shared bucket'}, so the API will answer 422 group_grant_not_supported.`
+                    : '.'}
+                </p>
               )}
               <p className={styles.muted}>
                 For per-key budgets use raw JSON such as{' '}

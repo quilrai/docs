@@ -160,6 +160,7 @@ Every write response carries `revision`, `changed`, `resource`, `etag`, `warning
 - `mode` is `active`, `observe` (evaluated and reported, never routes) or `disabled` (kept, not applied). `enabled: false` is an alias for `disabled`. `POST /controls/routes/{id}:set-mode` switches it without resending the route.
 - `surface_family` names the client API family: `chat_completion`, `anthropic_messages`, `vertex_ai`, `responses`, `realtime` or `bedrock_runtime`. It is required for weighted destinations. A list makes one rule per family, each matching only that API; `chat_completion` and `anthropic_messages` cannot share a list (`422 surface_family_overlap`).
 - `session.route_decision` is `per_conversation` (default) or `per_message`.
+- `conditions.budget: {"budget_id": "<id>", "used_pct_at_least": 80}` makes a route apply only once the requester has used that share of the budget, grants included. Such a route is always decided per message, cannot be in `observe` mode (`422 invalid_route_mode`) and cannot be combined with data-type conditions. If the usage cannot be read, the route does not match.
 
 ## Conversations and repin
 

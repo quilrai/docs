@@ -116,11 +116,26 @@ Publishing also checks that every budget of a set shares `resolve`, metric and g
 ## Usage, grants and prices
 
 - **Amounts.** Spend amounts are decimal USD strings such as `"12.50"`. Request and token amounts are numbers.
-- **Usage is a snapshot.** Usage responses carry `as_of` and `stale`; the snapshot refreshes periodically. `period` selects `current` (default), `previous` or the start of a past calendar window. Rolling and lifetime windows only show the current period.
+- **Usage is a snapshot.** Usage responses carry `as_of` and `stale`; the snapshot refreshes every few seconds, and `stale: true` means a refresh failed. `period` selects `current` (default), `previous` or the start of a past calendar window. Rolling and lifetime windows only show the current period.
 - **Row state.** Each usage row is `blocked` (at the hard stop), `overflow` (in the soft band), `alerting` (past the lowest alert threshold), `granted` or `ok`.
 - **Grants need an adjustable budget.** A budget accepts grants only when it has an `adjustments` ceiling (`409 budget_not_adjustable` otherwise), and a grant cannot exceed that ceiling (`422 grant_above_ceiling`). A new grant for the same subject supersedes the active one; the response returns it as `superseded`.
 - **Subjects.** Name a grant subject by `user` (email), `app`, `smart_group` or `model`, or by the budget's grouping field. Every grouping field of the budget must be supplied (`422 subject_unresolved`).
+- **Smart group grants.** `{"members_of": "<group>"}` grants every current and future member of a Smart group, on budgets counted per person only (`422 group_grant_not_supported`). A person's own grant wins; otherwise their best-ranked group's grant applies. List them with `subject.members_of=<group>`, across budgets or for one.
+- **Scheduled grants.** A grant with a later `starts_at` leaves the grant in effect running until it starts; that grant's `expires_at` moves to the new start.
+- **No end date.** A budget with `adjustments.max_duration: "unlimited"` accepts grants without `expires_at`; they run until revoked and read back with `no_end_date: true`. Other budgets refuse a grant without an end.
+- **Automatic raises.** `adjustments.auto_raise: {enabled, add_pct, max_count, at_pct, smart_groups}` raises a person's limit by `add_pct` percent of the base limit when they reach it (or, with `at_pct`, once they pass that share), at most `max_count` times per window, never above `ceiling`. Calendar windows only; off unless `enabled: true`. `smart_groups` limits who can trigger a raise. Each raise is a grant with `source: "auto"` that ends at the reset, or after `max_duration` if sooner (`GET /budget-grants?source=auto`). Turning raises off stops new ones; raises already made stay until they end or you revoke them.
+- **Conversation and agent caps.** `per` accepts `conversation`, `agent` and `agent_run`, counted from the caller-declared `x-conversation-id`, `x-quilr-agent-id` and `x-quilr-agent-run-id` headers (or `metadata.conversation_id`, `metadata.agent_id`, `metadata.agent_run_id` in the body). Requests without the id are not counted. Combine with `user` (`"per": ["user", "conversation"]`) so callers reusing an id do not share a counter, and use `{"kind": "lifetime"}` for a cap on the whole conversation or run.
 - **Prices.** `GET /budget-pricing` shows where each price comes from: `policy` (a tenant-wide rate set here), `provider` (the provider's model costs), `catalog` (QuilrAI catalog), `mixed` or `unpriced`. A tenant-wide rate wins over the provider's cost, which wins over the catalog.
+
+## Forecasts and grant views {#forecasts-and-grant-views}
+
+For budgets that reset every day, week or month:
+
+- `GET /budgets/{budget_id}/burn-rate` gives each subject's recent rate (`lookback`, default `24h`), projected total at the reset, and `exhausts_at` when they will reach their effective limit before it. With one matching subject (for example `subject.user=`) it adds hourly usage. Rolling and lifetime budgets return `422 burn_rate_not_supported`.
+- `GET /budget-forecast` lists every subject already at their limit or projected to reach it within `within` (default `7d`), soonest first, across budgets. Budgets that cannot be forecast are named in `not_forecast`.
+- `GET /budget-grants` adds `sort=expires_at` (soonest first, no end date last), `ends_within=7d` (active grants ending in that time) and `include_usage=true` (each grant's `usage` with `usage_as_of`). Every grant shows `budget_label`, `base_limit` (the budget's own limit; when the grant ends, a Smart group grant covering the person may apply instead) and `no_end_date`.
+
+Usage, burn rate and forecasts use the same effective limit as enforcement, grants and Smart group grants included. `stale: true` means the latest refresh failed and an older snapshot is shown.
 
 ## Endpoints
 

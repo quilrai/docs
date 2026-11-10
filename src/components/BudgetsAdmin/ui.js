@@ -8,6 +8,20 @@ export const format = (value) =>
       ? JSON.stringify(value)
       : String(value);
 export const pretty = (value) => JSON.stringify(value, null, 2);
+export function Percent({ value }) {
+  return (
+    <>
+      {format(value)}%
+      <div className={styles.progress}>
+        <span
+          style={{
+            width: `${Math.max(0, Math.min(100, Number(value) || 0))}%`,
+          }}
+        />
+      </div>
+    </>
+  );
+}
 export function Panel({ title, children, actions }) {
   return (
     <section className={styles.panel}>
