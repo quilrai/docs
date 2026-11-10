@@ -186,6 +186,11 @@ POLICY ENGINE (LLM)
   Exemptions | Model prices. Search limits; there is no separate Rate, Token & Timeout Limits area.
   Per-group budgets: "When someone is in several of these groups" > Their strongest group's budget applies (by rank)
   (default for new) | Every group's budget applies (strictest wins). Sets created via the API show "Managed by API".
+  Who also offers Each conversation | Each agent | Each agent run (one-time allowance by default; ids from
+  x-conversation-id / x-quilr-agent-id / x-quilr-agent-run-id). More options > Allow grants: Highest allowed limit,
+  Longest grant, No end date allowed, Raise the limit automatically (+% each time, up to N per period, At the limit |
+  At a share used, optional Smart groups). Grants tab: Newest first | Ending soonest | Ending in 7 days; New grant >
+  For: A person | Members of a smart group. Usage: Runs out, Running out soon.
 - Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression,
   Minify JSON tool outputs, Clean up tool output, Remove encoded content, Response cache.
 - Error Messages: ordered matching messages/help links; status/error codes unchanged.

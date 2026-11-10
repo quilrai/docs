@@ -281,6 +281,7 @@ The **Response cache** on the [Token Savings](./token-saving) card is different:
 | [Data detected](#data-detected) | Data types in the latest message | Data scan | Checked on every message, then kept |
 | [Text contains](#text-contains) | Words or phrases | No | Keep destination |
 | [Client](#client) | The coding tool named in request headers | No | Keep destination |
+| [Budget used](#budget-used) | How much of a budget the requester has used | No | Checked on every message (API routes); set it in a policy |
 
 All of them apply on the Chat Completions, Anthropic Messages, Responses, Vertex AI and Bedrock Runtime surfaces. OpenAI Realtime supports routing groups only. Embeddings are not routed.
 
@@ -402,6 +403,12 @@ Every content route has an **Observe only** switch. The route is checked on ever
 #### Order {#order}
 
 Under **Order**, place a route **1st**, **after** another route, or **Last**. Higher in the list wins. New routes go last; data routes go first. **Earlier** and **Later** on the card move a route.
+
+### Budget used {#budget-used}
+
+Route by how much of a budget the requester has used, for example to a smaller model past 80% of their monthly spend. Write it in a policy with `budget_used_pct("<budget id>")`, compared with `>=`, `>`, `<=` or `<` against a number, or add `conditions.budget` to a route through the [Routing and failover API](../api-reference/routing-and-failover-api). The value includes the requester's grants. In a policy, add `routing.route_decision = per_message` so it is checked on every message rather than kept for the conversation; API routes do this for you.
+
+If the usage cannot be read, the rule does not match and normal routing applies. Route below 100%: a budget that is used up and enforced still refuses the request. Example: [Move to a cheaper model as a budget runs low](./budget-recipes#route-by-budget-used).
 
 ### When a routing check fails {#when-a-routing-check-fails}
 

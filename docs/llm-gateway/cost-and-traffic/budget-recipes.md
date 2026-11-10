@@ -3,7 +3,7 @@ sidebar_position: 2.5
 sidebar_label: "Budget recipes"
 sidebar_custom_props:
   icon: ListChecks
-description: "Common enterprise budget setups: per person, per group, per app, per group inside an app, grants, permanent exceptions and monthly top-ups."
+description: "Common enterprise budget setups: per person, per group, per app, grants for a person or a whole group, automatic raises, conversation and agent caps, forecasts and budget-aware routing."
 ---
 
 # Budget recipes
@@ -20,8 +20,13 @@ Set these up in **Govern > Policy Engine > LLM Gateway > Controls > Budgets & Us
 | A cap on one app, and per person inside it | [**A specific app** + **Each person in an app**](#per-app) |
 | Per group, per app | [**Each group in an app** and related shapes](#per-group-per-app) |
 | A temporary raise or cut for one person | [A grant](#grant) |
+| A raise for everyone in a group, including people who join later | [A Smart group grant](#group-grant) |
 | A permanent different limit for one person | [An own limit](#own-limit) |
-| The same raise every month | [A scheduled grant](#monthly-top-up) |
+| The same raise every month | [A group grant or a scheduled grant](#monthly-top-up) |
+| Give heavy users a little more, automatically | [Automatic raises](#automatic-raises) |
+| Stop a runaway chat or agent | [A conversation or agent cap](#conversation-agent-caps) |
+| Know who will run out before they do | [Forecasts and grants ending soon](#running-out) |
+| Move to a cheaper model as a budget runs low | [Route by budget used](#route-by-budget-used) |
 | No limit for a service account | [An exemption](#exemption) |
 
 ```mermaid
@@ -110,21 +115,40 @@ Both apply to every Support Copilot request: the pool stops everyone once it is 
 
 A grant sets a different limit on **one** budget for **one** person (or app) it counts, until a date you choose. It can raise or lower the limit. Grants work on budgets counted **per person** or **per app**. A shared pool, including each group's pool, cannot take grants: change its limit instead.
 
-1. Once per budget: edit it, open **More options**, turn on **Allow grants for this budget**, and enter the **Highest allowed limit** and the **Longest grant** (for example `60d`). The **Allow temporary budget grants** recipe starts a per-person budget with this already on. Publish.
+1. Once per budget: edit it, open **More options**, turn on **Allow grants for this budget**, and enter the **Highest allowed limit** and the **Longest grant** (for example `60d`). Tick **No end date allowed** if grants may run until you revoke them. The **Allow temporary budget grants** recipe starts a per-person budget with this already on. Publish.
 
    ![Allow grants for this budget with highest allowed limit, longest grant and grace band](/img/llm-gateway/ui/budget-allow-grants.png)
 
-2. Open the **Grants** tab, choose the budget and select **New grant**. Under **For**, choose the person, then enter the **Limit**, when it **Ends** (1 day, 7 days, 30 days or a date) and a **Reason**, and select **Grant limit**.
+2. Open the **Grants** tab, choose the budget and select **New grant**. Under **For**, choose **A person** (or **Members of a smart group**, [below](#group-grant)), then enter the **Limit**, when it **Ends** (a preset, a date, or no end date where the budget allows it) and a **Reason**, and select **Grant limit**.
 
    ![New grant form](/img/llm-gateway/ui/budget-new-grant.png)
 
-The grant shows on the **Grants** tab with **Raised** or **Lowered**, the new and the base limit, and **Change** and **Revoke**.
+The grant shows on the **Grants** tab with **Raised** or **Lowered**, the new and the base limit, what the person has used so far, and **Change** and **Revoke**. **Ending soonest** and **Ending in 7 days** sort and filter the list, so grants that are about to lapse are easy to extend.
 
 ![Active grant on the Grants tab](/img/llm-gateway/ui/budget-grant-list.png)
 
-A grant takes effect right away, without publishing. Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, the limit returns to $100. A new grant for the same person on the same budget replaces the current one. A grant above the highest allowed limit or longer than the longest grant is refused.
+A grant takes effect right away, without publishing. Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, a Smart group grant that covers Dana takes over if there is one; otherwise the limit returns to $100. A new grant for the same person on the same budget replaces the current one. A grant above the highest allowed limit or longer than the longest grant is refused.
 
 A grant belongs to one budget. In a per-group budget set, if the person's strongest group changes, a grant on the old group's budget no longer applies to them.
+
+## A raise for a whole group {#group-grant}
+
+**Everyone in Data Science gets $500 instead of $200 this quarter, including people who join during it.**
+
+On a budget counted **per person** with grants allowed, choose **New grant**, then **Members of a smart group**, pick the group, and enter the limit, end and reason.
+
+![New grant for the members of a Smart group](/img/llm-gateway/ui/budget-group-grant-form.png)
+
+- The grant follows the group: people who join get it on their next request, people who leave lose it. There is nothing to re-run.
+- It can raise or lower the limit, within the highest allowed limit and the longest grant.
+- **Which grant applies:** a person's own grant wins over a group grant. A person in several groups with grants gets the grant of their best-ranked group (the **Rank** in **Groups**, the same order group budget sets use). Otherwise the budget limit applies.
+- Revoking a person's own grant leaves them on the group grant, if one covers them. Revoking a group grant leaves people's own grants in place.
+
+**Who is counted** shows where each person's limit comes from (`Grant ... via <group>`), with **Give their own grant** and **Change the group grant** on each row.
+
+![Members with limits from a group grant and one person's own grant](/img/llm-gateway/ui/budget-group-grant-members.png)
+
+Group grants work only on budgets counted per person.
 
 ## A permanent different limit for one person {#own-limit}
 
@@ -138,9 +162,10 @@ Use an exception rather than a grant. Edit the budget, open **More options**, se
 
 **Data Science should get $500 instead of $200 every month.**
 
-Grants always end, and do not repeat. Either:
+Grants do not repeat. Either:
 
 - **Make it permanent.** Give the team its own budget, or give each person an own limit. Nothing to renew.
+- **Grant the group with no end date.** Allow **No end date** on the budget, then give the Smart group a [group grant](#group-grant) without an end. It covers people who join later, and stays until you revoke it.
 - **Grant it on a schedule.** The budget must be counted per person, with grants allowed, a highest allowed limit of at least $500 and a longest grant of at least `31d`. On the first of each month, a job grants every member of the Smart group the new limit until the end of the month:
 
 ```bash
@@ -161,7 +186,82 @@ curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants/_bu
 - A grant sets the limit; it does not add to it. Send the full amount.
 - One call grants up to 1,000 people; a larger Smart group is refused as a whole. For more people, send batches of up to 1,000 under `grants`, each item just `{"subject": {"user": "..."}}`: the top-level `limit`, dates and `reason` apply to every item.
 - Each person succeeds or fails on their own; check `errors` in the response.
-- People who join the group later need the next run or a grant of their own.
+- People who join the group later need the next run or a grant of their own. A [group grant](#group-grant) covers them right away.
+- You can run the job before the month starts: the current grant keeps applying until its own end or the new grant's `starts_at`, whichever comes first.
+
+## Raise limits automatically {#automatic-raises}
+
+**When someone hits their $100 monthly limit, give them 25% more, at most twice a month, never above $200.**
+
+Edit the budget, open **More options**, turn on **Allow grants for this budget**, set the **Highest allowed limit**, then tick **Raise the limit automatically**:
+
+![Automatic raises: 25 percent of the limit each time, up to twice a month](/img/llm-gateway/ui/budget-auto-raise.png)
+
+- **+ % of the limit each time**: each raise adds this share of the budget limit, never above the highest allowed limit.
+- **Up to N times per period**: the most raises one person gets in a reset period.
+- **When**: **At the limit** tries a raise when a request would be refused; the request goes through if the raise succeeds and every other matching budget has room. **At a share used** checks recorded usage after requests and raises once someone is at or past the share you enter.
+- **Only for these smart groups**: leave empty for everyone the budget counts.
+
+Raises are off until you turn them on. Each raise is a grant marked **Automatic** on the **Grants** tab and ends when the budget resets, or sooner if the **Longest grant** is shorter. Turning raises off stops new ones; raises already made stay until they end or you revoke them. Revoking an automatic raise also stops further raises for that person until the next reset. A person whose limit an admin lowered is never raised. Automatic raises work on budgets that reset every day, week or month; a one-time allowance or a rolling window has no reset for them to end at.
+
+Without automatic raises, an enforced budget refuses the request once it is used up (`429 quota_exceeded`).
+
+## Cap a conversation or an agent {#conversation-agent-caps}
+
+**A $20 allowance for each conversation, and $50 a day for each agent.**
+
+Use the **Cap each conversation**, **Daily cap per agent** or **Cap each agent run** recipe, or pick **Each conversation**, **Each agent** or **Each agent run** under **Who**.
+
+![Recipes for conversation and agent caps](/img/llm-gateway/ui/budget-conversation-recipes.png)
+
+Conversations and agent runs end, so these start as a **One-time allowance (never resets)**; change **Resets** if you want a period instead.
+
+![A $20 one-time allowance for each conversation](/img/llm-gateway/ui/budget-conversation-cap.png)
+
+The caller declares the ids:
+
+| Who | Request header | Or in the body |
+|---|---|---|
+| Each conversation | `x-conversation-id` | `metadata.conversation_id` |
+| Each agent | `x-quilr-agent-id` | `metadata.agent_id` |
+| Each agent run | `x-quilr-agent-run-id` | `metadata.agent_run_id` |
+
+- A request without the id is not counted by that budget. Ids are 1 to 256 characters.
+- Spend is counted when a request completes, so requests already in flight can take a conversation past its allowance before the next one is refused.
+- A conversation cap is counted per person too, so two people reusing an id do not share a counter.
+- Ids come from the caller, so a cap is a guard against runaway loops, not a security boundary: keep a per-person or per-app budget alongside it.
+- The `x-quilr-*` headers are removed before the request reaches the model provider.
+
+## See who will run out {#running-out}
+
+For budgets that reset every day, week or month, the gateway projects each person's spend to the reset from their recent rate.
+
+- **Usage** shows **Runs out** with a time next to anyone on pace to hit their limit before the reset, and **Running out soon** lists everyone at the limit or due to reach it within 7 days.
+- The **Grants** tab's **Ending in 7 days** lists grants about to end.
+- From scripts: `GET /budget-forecast` lists everyone at or near their limit across budgets, `GET /budgets/{id}/burn-rate` gives one budget's rates and projections, and `GET /budget-grants?ends_within=7d` lists grants ending soon. See the [Budgets API](../api-reference/budgets-api#forecasts-and-grant-views).
+
+## Move to a cheaper model as a budget runs low {#route-by-budget-used}
+
+**Once someone has used 80% of their monthly budget, send their chat requests to a smaller model.**
+
+A routing rule can read how much of a budget the requester has used, with grants included. In a policy, replacing `monthly_ai_spend` with your budget's ID and the target with one of your models:
+
+```text
+policy cheaper_after_80 priority 700 {
+  request where budget_used_pct("monthly_ai_spend") >= 80
+  then {
+    routing.targets = [{ model: "gpt-4.1-mini", provider_label: "openai_primary" }];
+    routing.route_decision = per_message;
+  }
+}
+```
+
+Or add a budget condition to a route with the [Routing and failover API](../api-reference/routing-and-failover-api).
+
+- Route below 100%: an enforced budget that is used up still refuses the request if it applies to the chosen model, unless an automatic raise succeeds.
+- Use a budget counted per person, app or group. A budget counted per model or provider has no value before the model is chosen, so the rule never matches.
+- If the usage cannot be read in time, or the requester is not counted by that budget, the rule does not match and normal routing applies.
+- The value is the requester's usage of that budget even when the budget's own scope does not cover this request; add an app condition to the rule if needed.
 
 ## No limit for a service account {#exemption}
 

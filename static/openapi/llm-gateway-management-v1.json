@@ -1699,6 +1699,7 @@
         "properties": {
           "auto_approve": {
             "additionalProperties": false,
+            "description": "Reserved for request-a-change approvals; inactive. Use auto_raise for automatic raises.",
             "properties": {
               "max_count": {
                 "maximum": 100,
@@ -1727,6 +1728,48 @@
             },
             "type": "object"
           },
+          "auto_raise": {
+            "additionalProperties": false,
+            "description": "Automatic raises (calendar budgets only): a grant with source auto that ends at the reset (or after max_duration, if sooner), never above ceiling. Turning it off stops new raises; raises already made stay until they end or are revoked. Automatic raises supersede only earlier automatic ones, so an admin's grant applies again at the reset; a subject whose limit an admin lowered is never raised.",
+            "properties": {
+              "add_pct": {
+                "description": "Each raise adds this percent of the base limit",
+                "maximum": 1000,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "at_pct": {
+                "description": "Raise once usage reaches this percent of the limit; omitted: when the limit is reached (the refused request is admitted after the raise)",
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "enabled": {
+                "description": "Nothing happens unless true",
+                "type": "boolean"
+              },
+              "max_count": {
+                "default": 1,
+                "description": "Raises per subject per window",
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "smart_groups": {
+                "description": "Only requests from people in these Smart groups trigger a raise (omitted or empty: anyone the budget counts). On a shared bucket (an app or group pool) the raise applies to the whole bucket.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "type": "array"
+              }
+            },
+            "required": [
+              "enabled",
+              "add_pct"
+            ],
+            "type": "object"
+          },
           "ceiling": {
             "description": "Highest grant limit (USD for spend); >= limit",
             "oneOf": [
@@ -1741,8 +1784,8 @@
             ]
           },
           "max_duration": {
-            "description": "1h..366d (default 366d)",
-            "pattern": "^\\d+[hd]$",
+            "description": "1h..366d (default 366d), or \"unlimited\" to allow grants with no end date",
+            "pattern": "^(\\d+[hd]|unlimited)$",
             "type": "string"
           },
           "overflow": {
@@ -1761,6 +1804,7 @@
           },
           "requestable": {
             "default": false,
+            "description": "Reserved: no request-a-change flow exists yet; saving it changes nothing",
             "type": "boolean"
           }
         },
@@ -2461,6 +2505,211 @@
         ],
         "type": "object"
       },
+      "BudgetBurnRateItem": {
+        "properties": {
+          "bucket": {
+            "type": "string"
+          },
+          "effective_limit": {
+            "description": "Spend as a decimal USD string (\"12.50\"); requests/tokens as integers",
+            "oneOf": [
+              {
+                "description": "spend: decimal USD",
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/BudgetForecast"
+          },
+          "grant": {
+            "oneOf": [
+              {
+                "properties": {
+                  "expires_at": {
+                    "description": "null: no end date",
+                    "format": "date-time",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "limit": {
+                    "description": "Spend as a decimal USD string (\"12.50\"); requests/tokens as integers",
+                    "oneOf": [
+                      {
+                        "description": "spend: decimal USD",
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "members_of": {
+                    "description": "Set when the limit comes from a Smart group grant to this group",
+                    "type": "string"
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pct": {
+            "type": "number"
+          },
+          "state": {
+            "enum": [
+              "ok",
+              "alerting",
+              "granted",
+              "overflow",
+              "blocked"
+            ]
+          },
+          "subject": {
+            "type": "object"
+          },
+          "used": {
+            "description": "Spend as a decimal USD string (\"12.50\"); requests/tokens as integers",
+            "oneOf": [
+              {
+                "description": "spend: decimal USD",
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "bucket",
+          "used",
+          "effective_limit",
+          "forecast"
+        ],
+        "type": "object"
+      },
+      "BudgetBurnRatePage": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "budget": {
+            "type": "object"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetBurnRateItem"
+            },
+            "type": "array"
+          },
+          "lookback": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period": {
+            "type": "string"
+          },
+          "period_not_supported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "revision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "series": {
+            "description": "Hourly usage over the lookback, when exactly one subject matches; the first hour is partial when the lookback starts inside it",
+            "items": {
+              "properties": {
+                "hour": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "used": {
+                  "description": "Spend as a decimal USD string (\"12.50\"); requests/tokens as integers",
+                  "oneOf": [
+                    {
+                      "description": "spend: decimal USD",
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "series_truncated": {
+            "type": "boolean"
+          },
+          "snapshot": {
+            "description": "Usage snapshot the page was cut from (= as_of; informational). Cursors are keyset (last row's sort key) and stay valid across snapshots; rows whose values changed between pages may move.",
+            "type": "string"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "window": {
+            "properties": {
+              "reset_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "start": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "snapshot"
+        ],
+        "type": "object"
+      },
       "BudgetCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2899,6 +3148,162 @@
         ],
         "type": "object"
       },
+      "BudgetForecast": {
+        "properties": {
+          "exhausted": {
+            "description": "Already at or over the effective limit",
+            "type": "boolean"
+          },
+          "exhausts_at": {
+            "description": "When the limit is reached at this rate; null if not before the reset",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lookback_hours": {
+            "description": "Hours the rate was measured over",
+            "type": "number"
+          },
+          "projected_pct": {
+            "description": "projected_total as a percent of the effective limit",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "projected_total": {
+            "description": "used + rate_per_hour x hours until reset_at",
+            "oneOf": [
+              {
+                "description": "spend: decimal USD",
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "rate_per_hour": {
+            "description": "Spend as decimal USD; requests/tokens as a number (may be fractional)",
+            "oneOf": [
+              {
+                "description": "spend: decimal USD",
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "rate_per_hour",
+          "projected_total",
+          "exhausted",
+          "exhausts_at"
+        ],
+        "type": "object"
+      },
+      "BudgetForecastPage": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/BudgetBurnRateItem"
+                },
+                {
+                  "properties": {
+                    "budget": {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "metric": {
+                          "type": "string"
+                        },
+                        "mode": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "lookback": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "not_forecast": {
+            "description": "Budgets with rolling or lifetime windows, which are not forecast",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "period": {
+            "type": "string"
+          },
+          "period_not_supported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "revision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "snapshot": {
+            "description": "Usage snapshot the page was cut from (= as_of; informational). Cursors are keyset (last row's sort key) and stay valid across snapshots; rows whose values changed between pages may move.",
+            "type": "string"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "within": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "snapshot"
+        ],
+        "type": "object"
+      },
       "BudgetGet": {
         "properties": {
           "budget": {
@@ -2917,8 +3322,12 @@
         "additionalProperties": false,
         "properties": {
           "expires_at": {
+            "description": "null or omitted: no end date (only when adjustments.max_duration is \"unlimited\")",
             "format": "date-time",
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "limit": {
             "oneOf": [
@@ -2945,14 +3354,13 @@
             "type": "string"
           },
           "subject": {
-            "description": "One bucket of the budget: {\"user\": email}, {\"app\": name}, {\"smart_group\": g}, {\"model\": m}, raw {\"<group_by field>\": value}, or {\"bucket\": \"<canonical>\"}; every group_by field must be supplied (422 subject_unresolved / subject_not_in_budget).",
+            "description": "One bucket of the budget: {\"user\": email}, {\"app\": name}, {\"smart_group\": g}, {\"model\": m}, raw {\"<group_by field>\": value}, or {\"bucket\": \"<canonical>\"}; every group_by field must be supplied (422 subject_unresolved / subject_not_in_budget). {\"members_of\": \"<Smart group>\"} is a Smart group grant: every current member of the group gets it (members joining or leaving follow automatically; a member's own grant wins, and a member of several granted groups gets the best-ranked group's). Only on budgets counted per person by email (per: [\"user.email\"]), else 422 group_grant_not_supported.",
             "type": "object"
           }
         },
         "required": [
           "subject",
-          "limit",
-          "expires_at"
+          "limit"
         ],
         "type": "object"
       },
@@ -2960,8 +3368,12 @@
         "additionalProperties": false,
         "properties": {
           "expires_at": {
+            "description": "null or omitted: no end date (only when adjustments.max_duration is \"unlimited\")",
             "format": "date-time",
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "grants": {
             "items": {
@@ -3072,6 +3484,13 @@
               "string",
               "null"
             ]
+          },
+          "usage_as_of": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "usage_stale": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -3083,8 +3502,12 @@
         "additionalProperties": false,
         "properties": {
           "expires_at": {
+            "description": "Omitted: unchanged. null: no end date (only when adjustments.max_duration is \"unlimited\")",
             "format": "date-time",
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "limit": {
             "oneOf": [
@@ -3144,11 +3567,36 @@
           "actor": {
             "type": "string"
           },
+          "base_limit": {
+            "oneOf": [
+              {
+                "description": "The budget's own limit (null when the budget was deleted). When the grant ends, another grant may apply instead: a Smart group grant covering the person, or an admin grant under an automatic raise.",
+                "oneOf": [
+                  {
+                    "description": "spend: decimal USD",
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "bucket": {
             "type": "string"
           },
           "budget_id": {
             "type": "string"
+          },
+          "budget_label": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "created_at": {
             "format": "date-time",
@@ -3159,8 +3607,12 @@
             "type": "string"
           },
           "expires_at": {
+            "description": "null: no end date",
             "format": "date-time",
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "id": {
             "type": "string"
@@ -3182,6 +3634,9 @@
               "string",
               "null"
             ]
+          },
+          "no_end_date": {
+            "type": "boolean"
           },
           "reason": {
             "type": "string"
@@ -3207,6 +3662,36 @@
           "updated_at": {
             "format": "date-time",
             "type": "string"
+          },
+          "usage": {
+            "oneOf": [
+              {
+                "properties": {
+                  "pct": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "used": {
+                    "description": "Spend as a decimal USD string (\"12.50\"); requests/tokens as integers",
+                    "oneOf": [
+                      {
+                        "description": "spend: decimal USD",
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "version": {
             "description": "updated_at in epoch microseconds",
@@ -4532,8 +5017,12 @@
                     {
                       "properties": {
                         "expires_at": {
+                          "description": "null: no end date",
                           "format": "date-time",
-                          "type": "string"
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
                         "id": {
                           "type": "string"
@@ -4549,6 +5038,10 @@
                               "type": "integer"
                             }
                           ]
+                        },
+                        "members_of": {
+                          "description": "Set when the limit comes from a Smart group grant to this group",
+                          "type": "string"
                         },
                         "source": {
                           "type": "string"
@@ -4725,8 +5218,12 @@
               {
                 "properties": {
                   "expires_at": {
+                    "description": "null: no end date",
                     "format": "date-time",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "id": {
                     "type": "string"
@@ -4742,6 +5239,10 @@
                         "type": "integer"
                       }
                     ]
+                  },
+                  "members_of": {
+                    "description": "Set when the limit comes from a Smart group grant to this group",
+                    "type": "string"
                   },
                   "source": {
                     "type": "string"
@@ -15666,13 +16167,51 @@
                 ],
                 "type": "object"
               },
+              "auto_raise": {
+                "additionalProperties": false,
+                "properties": {
+                  "add_pct": {
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "at_pct": {
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "max_count": {
+                    "default": 1,
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "smart_groups": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 32,
+                    "type": "array",
+                    "uniqueItems": true
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "add_pct"
+                ],
+                "type": "object"
+              },
               "ceiling": {
                 "minimum": 0,
                 "type": "number"
               },
               "max_duration": {
                 "default": "366d",
-                "pattern": "^[1-9][0-9]{0,4}(h|d)$",
+                "pattern": "^([1-9][0-9]{0,4}(h|d)|unlimited)$",
                 "type": "string"
               },
               "overflow": {
@@ -15739,7 +16278,7 @@
             "default": [],
             "description": "One counter per distinct combination; [] = one shared counter.",
             "items": {
-              "description": "A QuilrQL field name, or an alias (app = application.group_key, app_key = application.key_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
+              "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
               "enum": [
                 "tenant.id",
                 "user.id",
@@ -15752,8 +16291,14 @@
                 "gateway.actual_provider.name",
                 "gateway.actual_provider.label",
                 "gateway.actual_model",
+                "request.metadata.conversation_id",
+                "request.metadata.agent_id",
+                "request.metadata.agent_run_id",
+                "agent",
+                "agent_run",
                 "app",
                 "app_key",
+                "conversation",
                 "method",
                 "method_type",
                 "model",
@@ -15769,8 +16314,11 @@
             "type": "array",
             "uniqueItems": true,
             "x-aliases": {
+              "agent": "request.metadata.agent_id",
+              "agent_run": "request.metadata.agent_run_id",
               "app": "application.group_key",
               "app_key": "application.key_id",
+              "conversation": "request.metadata.conversation_id",
               "method": "application.method_key",
               "method_type": "application.method_type",
               "model": "gateway.actual_model",
@@ -16073,6 +16621,82 @@
                       }
                     ]
                   },
+                  "auto_raise": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "add_pct": {
+                            "anyOf": [
+                              {
+                                "maximum": 1000,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "at_pct": {
+                            "anyOf": [
+                              {
+                                "maximum": 100,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "enabled": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "max_count": {
+                            "anyOf": [
+                              {
+                                "default": 1,
+                                "maximum": 100,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "smart_groups": {
+                            "anyOf": [
+                              {
+                                "items": {
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "maxItems": 32,
+                                "type": "array",
+                                "uniqueItems": true
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "ceiling": {
                     "anyOf": [
                       {
@@ -16088,7 +16712,7 @@
                     "anyOf": [
                       {
                         "default": "366d",
-                        "pattern": "^[1-9][0-9]{0,4}(h|d)$",
+                        "pattern": "^([1-9][0-9]{0,4}(h|d)|unlimited)$",
                         "type": "string"
                       },
                       {
@@ -16210,7 +16834,7 @@
                 "default": [],
                 "description": "One counter per distinct combination; [] = one shared counter.",
                 "items": {
-                  "description": "A QuilrQL field name, or an alias (app = application.group_key, app_key = application.key_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
+                  "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
                   "enum": [
                     "tenant.id",
                     "user.id",
@@ -16223,8 +16847,14 @@
                     "gateway.actual_provider.name",
                     "gateway.actual_provider.label",
                     "gateway.actual_model",
+                    "request.metadata.conversation_id",
+                    "request.metadata.agent_id",
+                    "request.metadata.agent_run_id",
+                    "agent",
+                    "agent_run",
                     "app",
                     "app_key",
+                    "conversation",
                     "method",
                     "method_type",
                     "model",
@@ -16240,8 +16870,11 @@
                 "type": "array",
                 "uniqueItems": true,
                 "x-aliases": {
+                  "agent": "request.metadata.agent_id",
+                  "agent_run": "request.metadata.agent_run_id",
                   "app": "application.group_key",
                   "app_key": "application.key_id",
+                  "conversation": "request.metadata.conversation_id",
                   "method": "application.method_key",
                   "method_type": "application.method_type",
                   "model": "gateway.actual_model",
@@ -16490,13 +17123,51 @@
                 ],
                 "type": "object"
               },
+              "auto_raise": {
+                "additionalProperties": false,
+                "properties": {
+                  "add_pct": {
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "at_pct": {
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "max_count": {
+                    "default": 1,
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "smart_groups": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 32,
+                    "type": "array",
+                    "uniqueItems": true
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "add_pct"
+                ],
+                "type": "object"
+              },
               "ceiling": {
                 "minimum": 0,
                 "type": "number"
               },
               "max_duration": {
                 "default": "366d",
-                "pattern": "^[1-9][0-9]{0,4}(h|d)$",
+                "pattern": "^([1-9][0-9]{0,4}(h|d)|unlimited)$",
                 "type": "string"
               },
               "overflow": {
@@ -16569,7 +17240,7 @@
             "default": [],
             "description": "One counter per distinct combination; [] = one shared counter.",
             "items": {
-              "description": "A QuilrQL field name, or an alias (app = application.group_key, app_key = application.key_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
+              "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
               "enum": [
                 "tenant.id",
                 "user.id",
@@ -16582,8 +17253,14 @@
                 "gateway.actual_provider.name",
                 "gateway.actual_provider.label",
                 "gateway.actual_model",
+                "request.metadata.conversation_id",
+                "request.metadata.agent_id",
+                "request.metadata.agent_run_id",
+                "agent",
+                "agent_run",
                 "app",
                 "app_key",
+                "conversation",
                 "method",
                 "method_type",
                 "model",
@@ -16599,8 +17276,11 @@
             "type": "array",
             "uniqueItems": true,
             "x-aliases": {
+              "agent": "request.metadata.agent_id",
+              "agent_run": "request.metadata.agent_run_id",
               "app": "application.group_key",
               "app_key": "application.key_id",
+              "conversation": "request.metadata.conversation_id",
               "method": "application.method_key",
               "method_type": "application.method_type",
               "model": "gateway.actual_model",
@@ -17826,6 +18506,26 @@
             "additionalProperties": false,
             "description": "Content conditions, ANDed with scope, match and surface_family. A conditioned route still only selects a destination (and its failover); every condition fails open: when a check cannot run, the route does not match and the request routes normally.",
             "properties": {
+              "budget": {
+                "additionalProperties": false,
+                "description": "Matches once the requester has used at least this percent of the budget (its effective limit, grants included), e.g. move people to a cheaper route at 80%. Read before routing on every request; unknown (no such budget, a budget counted per model or provider, no subject): no match.",
+                "properties": {
+                  "budget_id": {
+                    "maxLength": 128,
+                    "type": "string"
+                  },
+                  "used_pct_at_least": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "budget_id",
+                  "used_pct_at_least"
+                ],
+                "type": "object"
+              },
               "complexity": {
                 "description": "Complexity level: from complexity-levels levels (latest user message), else word-count thresholds over all user-message text of the request. The route decision defaults to escalate.",
                 "items": {
@@ -18274,6 +18974,43 @@
                 "additionalProperties": false,
                 "description": "Content conditions, ANDed with scope, match and surface_family. A conditioned route still only selects a destination (and its failover); every condition fails open: when a check cannot run, the route does not match and the request routes normally.",
                 "properties": {
+                  "budget": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "description": "Matches once the requester has used at least this percent of the budget (its effective limit, grants included), e.g. move people to a cheaper route at 80%. Read before routing on every request; unknown (no such budget, a budget counted per model or provider, no subject): no match.",
+                        "properties": {
+                          "budget_id": {
+                            "anyOf": [
+                              {
+                                "maxLength": 128,
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "used_pct_at_least": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000,
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "complexity": {
                     "anyOf": [
                       {
@@ -18602,6 +19339,26 @@
             "additionalProperties": false,
             "description": "Content conditions, ANDed with scope, match and surface_family. A conditioned route still only selects a destination (and its failover); every condition fails open: when a check cannot run, the route does not match and the request routes normally.",
             "properties": {
+              "budget": {
+                "additionalProperties": false,
+                "description": "Matches once the requester has used at least this percent of the budget (its effective limit, grants included), e.g. move people to a cheaper route at 80%. Read before routing on every request; unknown (no such budget, a budget counted per model or provider, no subject): no match.",
+                "properties": {
+                  "budget_id": {
+                    "maxLength": 128,
+                    "type": "string"
+                  },
+                  "used_pct_at_least": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "budget_id",
+                  "used_pct_at_least"
+                ],
+                "type": "object"
+              },
               "complexity": {
                 "description": "Complexity level: from complexity-levels levels (latest user message), else word-count thresholds over all user-message text of the request. The route decision defaults to escalate.",
                 "items": {
@@ -29804,7 +30561,11 @@
             "type": "string"
           },
           "expires_at": {
-            "type": "string"
+            "description": "null: no end date",
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "id": {
             "type": "string"
@@ -29839,6 +30600,9 @@
                 "type": "string"
               },
               "key_id": {
+                "type": "string"
+              },
+              "members_of": {
                 "type": "string"
               },
               "method": {
@@ -29899,8 +30663,12 @@
         ],
         "properties": {
           "expires_at": {
+            "description": "Required unless the rate limit's adjustments.max_duration is \"unlimited\"; null or omitted then means no end date.",
             "format": "date-time",
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "extra": {
             "description": "Added to the base limit.",
@@ -29931,6 +30699,9 @@
                 "type": "string"
               },
               "key_id": {
+                "type": "string"
+              },
+              "members_of": {
                 "type": "string"
               },
               "method": {
@@ -29965,8 +30736,7 @@
           }
         },
         "required": [
-          "subject",
-          "expires_at"
+          "subject"
         ],
         "type": "object"
       },
@@ -29982,7 +30752,11 @@
                   "type": "string"
                 },
                 "expires_at": {
-                  "type": "string"
+                  "description": "null: no end date",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "id": {
                   "type": "string"
@@ -30017,6 +30791,9 @@
                       "type": "string"
                     },
                     "key_id": {
+                      "type": "string"
+                    },
+                    "members_of": {
                       "type": "string"
                     },
                     "method": {
@@ -30080,7 +30857,11 @@
                 "type": "string"
               },
               "expires_at": {
-                "type": "string"
+                "description": "null: no end date",
+                "type": [
+                  "string",
+                  "null"
+                ]
               },
               "id": {
                 "type": "string"
@@ -30115,6 +30896,9 @@
                     "type": "string"
                   },
                   "key_id": {
+                    "type": "string"
+                  },
+                  "members_of": {
                     "type": "string"
                   },
                   "method": {
@@ -30161,7 +30945,11 @@
                     "type": "string"
                   },
                   "expires_at": {
-                    "type": "string"
+                    "description": "null: no end date",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "id": {
                     "type": "string"
@@ -30196,6 +30984,9 @@
                         "type": "string"
                       },
                       "key_id": {
+                        "type": "string"
+                      },
+                      "members_of": {
                         "type": "string"
                       },
                       "method": {
@@ -41827,9 +42618,168 @@
         ]
       }
     },
+    "/llmgateway/management/v1/budget-forecast": {
+      "get": {
+        "description": "Subjects of every calendar budget that are already at their limit or, at their rate over the lookback, will reach it within `within` (default 7d) and before their window resets. Soonest first. Rolling and lifetime budgets are listed in `not_forecast`.",
+        "operationId": "Read_budget_forecast",
+        "parameters": [
+          {
+            "description": "Page size.",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor from the previous page's next_cursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Whole hours or days such as 7d (default), up to 31d: subjects projected to reach their limit within it.",
+            "in": "query",
+            "name": "within",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Duration the rate is measured over, such as 24h (default) or 7d; at most 31d.",
+            "in": "query",
+            "name": "lookback",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Budget id.",
+            "in": "query",
+            "name": "budget_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "false leaves out subjects already at their limit.",
+            "in": "query",
+            "name": "include_exhausted",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "as_of": "2026-10-15T10:00:00Z",
+                  "items": [
+                    {
+                      "bucket": "user.email=alice@example.com",
+                      "budget": {
+                        "id": "support_spend",
+                        "label": "Support spend",
+                        "metric": "spend_usd",
+                        "mode": "enforce"
+                      },
+                      "effective_limit": "12.50",
+                      "forecast": {
+                        "exhausted": false,
+                        "exhausts_at": "2026-10-15T19:10:00Z",
+                        "lookback_hours": 24.0,
+                        "projected_pct": 277.44,
+                        "projected_total": "34.68",
+                        "rate_per_hour": "0.12"
+                      },
+                      "grant": null,
+                      "pct": 81.6,
+                      "state": "alerting",
+                      "subject": {
+                        "user": "alice@example.com"
+                      },
+                      "used": "10.20"
+                    }
+                  ],
+                  "lookback": "24h",
+                  "method": "linear: rate over the lookback, held until the window resets",
+                  "next_cursor": null,
+                  "period": "current",
+                  "request_id": "req_example",
+                  "revision": 12,
+                  "snapshot": "2026-10-15T10:00:00Z",
+                  "stale": false,
+                  "total": 1,
+                  "within": "7d"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetForecastPage"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read budget forecast",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:read"
+        ]
+      }
+    },
     "/llmgateway/management/v1/budget-grants": {
       "get": {
-        "description": "Grants across budgets. Filter by budget_id, bucket, status, expires_before and subject.",
+        "description": "Grants across budgets. Filter by budget_id, bucket, status, expires_before, expires_after and subject; sort by created_at (newest first, default) or expires_at (soonest first; grants with no end date last). `ends_within=7d` lists the active grants ending in the next 7 days, soonest first. `include_usage=true` adds each grant's current used amount and percent of its limit; `base_limit` is the limit that applies again when a grant ends.",
         "operationId": "List_budget_grants",
         "parameters": [
           {
@@ -41869,9 +42819,17 @@
             }
           },
           {
-            "description": "active, revoked, superseded or expired.",
+            "description": "all (default), active, revoked, superseded or expired.",
             "in": "query",
             "name": "status",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "admin (written through this API or the console) or auto (automatic raises).",
+            "in": "query",
+            "name": "source",
             "schema": {
               "type": "string"
             }
@@ -41880,6 +42838,38 @@
             "description": "ISO timestamp.",
             "in": "query",
             "name": "expires_before",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "ISO timestamp.",
+            "in": "query",
+            "name": "expires_after",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Whole hours or days such as 12h or 7d: active grants ending within it, soonest first.",
+            "in": "query",
+            "name": "ends_within",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort order, for example pct, used or remaining; grants: created_at (default) or expires_at.",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "true adds each grant's current used amount and percent of its limit.",
+            "in": "query",
+            "name": "include_usage",
             "schema": {
               "type": "string"
             }
@@ -41915,6 +42905,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "Smart group name: that group's Smart group grant.",
+            "in": "query",
+            "name": "subject.members_of",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -41925,14 +42923,17 @@
                   "items": [
                     {
                       "actor": "management_key:2d7e9f40-1b6a-4c8e-a3f2-5e6d7c8b9a01",
+                      "base_limit": "12.50",
                       "bucket": "user.email=alice@example.com",
                       "budget_id": "support_spend",
+                      "budget_label": "Support spend",
                       "created_at": "2026-10-01T09:00:00Z",
                       "etag": "\"1790845200000000\"",
                       "expires_at": "2026-10-31T23:59:59Z",
                       "id": "grt_4f9a2c1b7e3d",
                       "limit": "25.00",
                       "metric": "spend_usd",
+                      "no_end_date": false,
                       "reason": "Quarter-end ticket surge",
                       "source": "admin",
                       "starts_at": "2026-10-01T00:00:00Z",
@@ -41941,11 +42942,17 @@
                         "user": "alice@example.com"
                       },
                       "updated_at": "2026-10-01T09:00:00Z",
+                      "usage": {
+                        "pct": 73.6,
+                        "used": "18.40"
+                      },
                       "version": 1790845200000000
                     }
                   ],
                   "next_cursor": null,
-                  "request_id": "req_example"
+                  "request_id": "req_example",
+                  "usage_as_of": "2026-10-28T10:00:00Z",
+                  "usage_stale": false
                 },
                 "schema": {
                   "$ref": "#/components/schemas/BudgetGrantList"
@@ -42055,14 +43062,17 @@
                   "etag": "\"1790850000000000\"",
                   "grant": {
                     "actor": "management_key:2d7e9f40-1b6a-4c8e-a3f2-5e6d7c8b9a01",
+                    "base_limit": "12.50",
                     "bucket": "user.email=alice@example.com",
                     "budget_id": "support_spend",
+                    "budget_label": "Support spend",
                     "created_at": "2026-10-01T09:00:00Z",
                     "etag": "\"1790845200000000\"",
                     "expires_at": "2026-10-31T23:59:59Z",
                     "id": "grt_4f9a2c1b7e3d",
                     "limit": "25.00",
                     "metric": "spend_usd",
+                    "no_end_date": false,
                     "reason": "Quarter-end ticket surge",
                     "source": "admin",
                     "starts_at": "2026-10-01T00:00:00Z",
@@ -42165,14 +43175,17 @@
                   "etag": "\"1790845200000000\"",
                   "grant": {
                     "actor": "management_key:2d7e9f40-1b6a-4c8e-a3f2-5e6d7c8b9a01",
+                    "base_limit": "12.50",
                     "bucket": "user.email=alice@example.com",
                     "budget_id": "support_spend",
+                    "budget_label": "Support spend",
                     "created_at": "2026-10-01T09:00:00Z",
                     "etag": "\"1790845200000000\"",
                     "expires_at": "2026-10-31T23:59:59Z",
                     "id": "grt_4f9a2c1b7e3d",
                     "limit": "25.00",
                     "metric": "spend_usd",
+                    "no_end_date": false,
                     "reason": "Quarter-end ticket surge",
                     "source": "admin",
                     "starts_at": "2026-10-01T00:00:00Z",
@@ -42287,14 +43300,17 @@
                   "etag": "\"1790850000000000\"",
                   "grant": {
                     "actor": "management_key:2d7e9f40-1b6a-4c8e-a3f2-5e6d7c8b9a01",
+                    "base_limit": "12.50",
                     "bucket": "user.email=alice@example.com",
                     "budget_id": "support_spend",
+                    "budget_label": "Support spend",
                     "created_at": "2026-10-01T09:00:00Z",
                     "etag": "\"1790845200000000\"",
                     "expires_at": "2026-10-31T23:59:59Z",
                     "id": "grt_4f9a2c1b7e3d",
                     "limit": "30.00",
                     "metric": "spend_usd",
+                    "no_end_date": false,
                     "reason": "Quarter-end ticket surge",
                     "source": "admin",
                     "starts_at": "2026-10-01T00:00:00Z",
@@ -43937,7 +44953,7 @@
             }
           },
           {
-            "description": "Sort order, for example pct, used or remaining.",
+            "description": "Sort order, for example pct, used or remaining; grants: created_at (default) or expires_at.",
             "in": "query",
             "name": "sort",
             "schema": {
@@ -45237,9 +46253,216 @@
         ]
       }
     },
+    "/llmgateway/management/v1/budgets/{budget_id}/burn-rate": {
+      "get": {
+        "description": "Per subject of a calendar budget: usage, effective limit, the rate over the lookback (default 24h, or the window so far when it started more recently) and a projection that holds that rate until the window resets: projected_total, projected_pct and exhausts_at (when the limit is reached, or null if not before the reset). Sorted by soonest to run out. When one subject matches, `series` has its hourly usage over the lookback. Rolling and lifetime budgets return 422 burn_rate_not_supported.",
+        "operationId": "Read_budget_burn_rate",
+        "parameters": [
+          {
+            "example": "support_spend",
+            "in": "path",
+            "name": "budget_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size.",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor from the previous page's next_cursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Duration the rate is measured over, such as 24h (default) or 7d; at most 31d.",
+            "in": "query",
+            "name": "lookback",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only subjects projected to reach at least this percent of their limit by the reset.",
+            "in": "query",
+            "name": "min_projected_pct",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Canonical subject bucket.",
+            "in": "query",
+            "name": "bucket",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "false omits the hourly series when one subject matches.",
+            "in": "query",
+            "name": "include_series",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "User email.",
+            "in": "query",
+            "name": "subject.user",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "App name.",
+            "in": "query",
+            "name": "subject.app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Smart group name.",
+            "in": "query",
+            "name": "subject.smart_group",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Model id.",
+            "in": "query",
+            "name": "subject.model",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "as_of": "2026-10-15T10:00:00Z",
+                  "budget": {
+                    "id": "support_spend",
+                    "metric": "spend_usd"
+                  },
+                  "items": [
+                    {
+                      "bucket": "user.email=alice@example.com",
+                      "effective_limit": "12.50",
+                      "forecast": {
+                        "exhausted": false,
+                        "exhausts_at": "2026-10-15T19:10:00Z",
+                        "lookback_hours": 24.0,
+                        "projected_pct": 277.44,
+                        "projected_total": "34.68",
+                        "rate_per_hour": "0.12"
+                      },
+                      "grant": null,
+                      "pct": 81.6,
+                      "state": "alerting",
+                      "subject": {
+                        "user": "alice@example.com"
+                      },
+                      "used": "10.20"
+                    }
+                  ],
+                  "lookback": "24h",
+                  "method": "linear: rate over the lookback, held until the window resets",
+                  "next_cursor": null,
+                  "period": "current",
+                  "request_id": "req_example",
+                  "revision": 12,
+                  "series": [
+                    {
+                      "hour": "2026-10-14T10:00:00Z",
+                      "used": "0.11"
+                    }
+                  ],
+                  "snapshot": "2026-10-15T10:00:00Z",
+                  "stale": false,
+                  "total": 1,
+                  "window": {
+                    "reset_at": "2026-11-01T00:00:00Z",
+                    "start": "2026-10-01T00:00:00Z"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetBurnRatePage"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read budget burn rate",
+        "tags": [
+          "Budgets"
+        ],
+        "x-scopes": [
+          "budgets:read"
+        ]
+      }
+    },
     "/llmgateway/management/v1/budgets/{budget_id}/grants": {
       "post": {
-        "description": "Gives one subject of an adjustable budget a time-boxed limit (higher or lower than the base, at most the budget's ceiling). A new grant supersedes the subject's active one. Grants do not change policy.",
+        "description": "Gives one subject of an adjustable budget its own limit (higher or lower than the base, at most the budget's ceiling) until `expires_at`. When the budget's adjustments.max_duration is \"unlimited\", `expires_at` may be null or omitted for a grant with no end date. A new grant supersedes the subject's active one. Grants do not change policy. `{\"subject\": {\"members_of\": \"Data Science\"}}` grants a Smart group: every current member gets the limit, people who join or leave the group follow automatically, a member's own grant wins and a member of several granted groups gets the best-ranked group's. Per-person budgets (by email) only.",
         "operationId": "Issue_a_budget_grant",
         "parameters": [
           {
@@ -45290,14 +46513,17 @@
                   "etag": "\"1790845200000000\"",
                   "grant": {
                     "actor": "management_key:2d7e9f40-1b6a-4c8e-a3f2-5e6d7c8b9a01",
+                    "base_limit": "12.50",
                     "bucket": "user.email=alice@example.com",
                     "budget_id": "support_spend",
+                    "budget_label": "Support spend",
                     "created_at": "2026-10-01T09:00:00Z",
                     "etag": "\"1790845200000000\"",
                     "expires_at": "2026-10-31T23:59:59Z",
                     "id": "grt_4f9a2c1b7e3d",
                     "limit": "25.00",
                     "metric": "spend_usd",
+                    "no_end_date": false,
                     "reason": "Quarter-end ticket surge",
                     "source": "admin",
                     "starts_at": "2026-10-01T00:00:00Z",
@@ -45450,14 +46676,17 @@
                     {
                       "grant": {
                         "actor": "management_key:2d7e9f40-1b6a-4c8e-a3f2-5e6d7c8b9a01",
+                        "base_limit": "12.50",
                         "bucket": "user.email=alice@example.com",
                         "budget_id": "support_spend",
+                        "budget_label": "Support spend",
                         "created_at": "2026-10-01T09:00:00Z",
                         "etag": "\"1790845200000000\"",
                         "expires_at": "2026-10-31T23:59:59Z",
                         "id": "grt_4f9a2c1b7e3d",
                         "limit": "25.00",
                         "metric": "spend_usd",
+                        "no_end_date": false,
                         "reason": "Quarter-end ticket surge",
                         "source": "admin",
                         "starts_at": "2026-10-01T00:00:00Z",
@@ -45596,7 +46825,7 @@
             }
           },
           {
-            "description": "Sort order, for example pct, used or remaining.",
+            "description": "Sort order, for example pct, used or remaining; grants: created_at (default) or expires_at.",
             "in": "query",
             "name": "sort",
             "schema": {

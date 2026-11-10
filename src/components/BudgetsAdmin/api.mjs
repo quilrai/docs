@@ -175,6 +175,11 @@ export function createBudgetsClient({
     getUsage: (id, query) =>
       request(`/budgets/${pathSegment(id)}/usage`, { query }),
     getSummary: (query) => request('/budget-usage-summary', { query }),
+    // Calendar budgets only; rolling and lifetime budgets answer 422
+    // burn_rate_not_supported here and are listed in the forecast's not_forecast.
+    getBurnRate: (id, query) =>
+      request(`/budgets/${pathSegment(id)}/burn-rate`, { query }),
+    getForecast: (query) => request('/budget-forecast', { query }),
     listSubjects: (query) => request('/budget-subjects', { query }),
     getSubject: (kind, value, query) =>
       request(`/budget-subjects/${pathSegment(kind)}/${pathSegment(value)}`, {

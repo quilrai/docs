@@ -6,6 +6,7 @@ import Settings from './Settings';
 import BudgetEditor from './BudgetEditor';
 import Grants from './Grants';
 import BudgetSets from './BudgetSets';
+import Forecast from './Forecast';
 import {
   Panel,
   Field,
@@ -18,6 +19,7 @@ import {
   LoadState,
   Pager,
   StateSelect,
+  Percent,
   format,
 } from './ui';
 import styles from './styles.module.css';
@@ -28,24 +30,11 @@ const tabs = [
   ['sets', 'Group budget sets'],
   ['subjects', 'Who uses what'],
   ['grants', 'Grants'],
+  ['forecast', 'Forecast'],
   ['models', 'Models & costs'],
   ['exemptions', 'Exemptions'],
   ['alerts', 'Alerts & changes'],
 ];
-function Percent({ value }) {
-  return (
-    <>
-      {format(value)}%
-      <div className={styles.progress}>
-        <span
-          style={{
-            width: `${Math.max(0, Math.min(100, Number(value) || 0))}%`,
-          }}
-        />
-      </div>
-    </>
-  );
-}
 function SnapshotTable({ rows }) {
   return (
     <Table
@@ -101,7 +90,15 @@ function SnapshotTable({ rows }) {
             r.grant ? (
               <>
                 <strong>{format(r.grant.limit)}</strong>
-                <small>Expires {r.grant.expires_at}</small>
+                <small>
+                  {r.grant.expires_at
+                    ? `Expires ${r.grant.expires_at}`
+                    : 'No end date'}
+                </small>
+                {r.grant.members_of && (
+                  <small>Smart group grant: members of {r.grant.members_of}</small>
+                )}
+                {r.grant.source === 'auto' && <Badge>automatic raise</Badge>}
               </>
             ) : (
               'None'
@@ -410,6 +407,9 @@ export default function BudgetsAdmin({ connection: shared, onResponse, embedded 
           {canRead && tab === 'grants' && (
             <Grants key={connection.id} {...props} />
           )}
+          {canRead && tab === 'forecast' && (
+            <Forecast key={connection.id} budgets={inventory} {...props} />
+          )}
           {canRead && ['models', 'exemptions', 'alerts'].includes(tab) && (
             <Settings key={`${connection.id}-${tab}`} tab={tab} {...props} />
           )}
@@ -576,6 +576,12 @@ function Budgets({ api, run, version, period, budgets, canEditPolicy }) {
                       Max {r.adjustments.max_duration || '366d'} · overflow{' '}
                       {r.adjustments.overflow?.add_pct || 0}%
                     </small>
+                    {r.adjustments.auto_raise?.enabled && (
+                      <small>
+                        Auto raise +{r.adjustments.auto_raise.add_pct}% up to{' '}
+                        {r.adjustments.auto_raise.max_count ?? 1}x per window
+                      </small>
+                    )}
                     <details>
                       <summary>All rules</summary>
                       <Json value={r.adjustments} />

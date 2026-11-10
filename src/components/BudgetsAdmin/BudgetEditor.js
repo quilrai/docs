@@ -24,6 +24,11 @@ const initial = {
   overflow: '10',
   requestable: false,
   autoApprove: 'null',
+  autoRaise: false,
+  autoAddPct: '',
+  autoMaxCount: '1',
+  autoAtPct: '',
+  autoGroups: '',
   id: '',
   metric: 'spend_usd',
   window: '{"kind":"calendar","unit":"month"}',
@@ -36,6 +41,24 @@ export const split = (value) =>
     .split(',')
     .map((v) => v.trim())
     .filter(Boolean);
+const PER_ALIASES = [
+  ['conversation', 'request.metadata.conversation_id', 'x-conversation-id'],
+  ['agent', 'request.metadata.agent_id', 'x-quilr-agent-id'],
+  ['agent_run', 'request.metadata.agent_run_id', 'x-quilr-agent-run-id'],
+];
+function wholeNumber(value, name, min, max) {
+  const n = Number(value);
+  if (!/^\d+$/.test(String(value).trim()) || n < min || n > max)
+    throw new Error(`${name} must be a whole number from ${min} to ${max}.`);
+  return n;
+}
+function windowKind(text) {
+  try {
+    return JSON.parse(text)?.kind;
+  } catch {
+    return undefined;
+  }
+}
 export function amount(value, metric) {
   if (metric === 'spend_usd') {
     if (!/^\d+(\.\d{1,6})?$/.test(value))
@@ -86,6 +109,13 @@ export default function BudgetEditor({
       overflow: String(budget.adjustments?.overflow?.add_pct || ''),
       requestable: budget.adjustments?.requestable || false,
       autoApprove: pretty(budget.adjustments?.auto_approve || null),
+      autoRaise: budget.adjustments?.auto_raise?.enabled === true,
+      autoAddPct: String(budget.adjustments?.auto_raise?.add_pct ?? ''),
+      autoMaxCount: String(budget.adjustments?.auto_raise?.max_count ?? 1),
+      autoAtPct: String(budget.adjustments?.auto_raise?.at_pct ?? ''),
+      autoGroups: (budget.adjustments?.auto_raise?.smart_groups || []).join(
+        ', ',
+      ),
       metric: budget.metric,
     });
     setPreview(null);
@@ -128,6 +158,31 @@ export default function BudgetEditor({
       }
       const auto = JSON.parse(draft.autoApprove);
       if (auto) adjustment.auto_approve = auto;
+      delete adjustment.auto_raise;
+      // Keep a disabled configuration (enabled false) so it can be re-enabled.
+      if (draft.autoRaise || draft.autoAddPct.trim()) {
+        if (!draft.autoAddPct.trim())
+          throw new Error('Automatic raises need a raise percentage.');
+        const groups = split(draft.autoGroups);
+        if (groups.length > 32)
+          throw new Error('Automatic raises accept up to 32 Smart groups.');
+        adjustment.auto_raise = {
+          enabled: draft.autoRaise,
+          add_pct: wholeNumber(draft.autoAddPct, 'Raise percentage', 1, 1000),
+          max_count: wholeNumber(
+            draft.autoMaxCount || '1',
+            'Raises per window',
+            1,
+            100,
+          ),
+          ...(draft.autoAtPct.trim()
+            ? {
+                at_pct: wholeNumber(draft.autoAtPct, 'Raise at percent', 1, 100),
+              }
+            : {}),
+          ...(groups.length ? { smart_groups: groups } : {}),
+        };
+      }
     }
     const output = {
       label: draft.label || null,
@@ -190,6 +245,12 @@ export default function BudgetEditor({
     }
   }
   const canEdit = canEditPolicy && (!id || !!budget);
+  const kind = id ? budget?.window?.kind : windowKind(draft.window);
+  const unlimited = draft.maxDuration === 'unlimited';
+  const addPer = (alias) => {
+    const current = split(draft.per);
+    if (!current.includes(alias)) change('per', [...current, alias].join(', '));
+  };
   return (
     <Panel
       title={
@@ -313,6 +374,34 @@ export default function BudgetEditor({
                     />
                   </Field>
                 </div>
+                <div className={styles.toolbar}>
+                  <span className={styles.muted}>Count per:</span>
+                  {PER_ALIASES.map(([alias]) => (
+                    <button
+                      type="button"
+                      key={alias}
+                      disabled={split(draft.per).includes(alias)}
+                      onClick={() => addPer(alias)}
+                    >
+                      + {alias}
+                    </button>
+                  ))}
+                </div>
+                <small className={styles.muted}>
+                  Per-conversation and per-agent caps count only requests that
+                  declare the id:{' '}
+                  {PER_ALIASES.map(([alias, field, header], i) => (
+                    <React.Fragment key={alias}>
+                      {i ? '; ' : ''}
+                      {alias} = {field} (header {header})
+                    </React.Fragment>
+                  ))}
+                  . Body metadata.conversation_id, metadata.agent_id and
+                  metadata.agent_run_id also work. Requests without the id are
+                  not counted. Lifetime windows ({'{"kind":"lifetime"}'}) suit
+                  conversations and agent runs; keep user.email beside the id
+                  so two callers that reuse an id do not share a counter.
+                </small>
                 <JsonEditor
                   label="Window (JSON)"
                   rows={3}
@@ -361,11 +450,12 @@ export default function BudgetEditor({
                   </Field>
                   <Field
                     label="Maximum grant duration"
-                    hint="1h through 366d; for example 90d."
+                    hint="1h through 366d, for example 90d, or unlimited."
                   >
                     <input
                       required
-                      pattern="[0-9]+[hd]"
+                      pattern="[0-9]+[hd]|unlimited"
+                      disabled={unlimited}
                       value={draft.maxDuration}
                       onChange={(e) => change('maxDuration', e.target.value)}
                     />
@@ -386,11 +476,90 @@ export default function BudgetEditor({
                 <label className={styles.check}>
                   <input
                     type="checkbox"
+                    checked={unlimited}
+                    onChange={(e) =>
+                      change('maxDuration', e.target.checked ? 'unlimited' : '366d')
+                    }
+                  />
+                  Allow grants with no end date (maximum duration unlimited)
+                </label>
+                <label className={styles.check}>
+                  <input
+                    type="checkbox"
                     checked={draft.requestable}
                     onChange={(e) => change('requestable', e.target.checked)}
                   />
                   Requestable (reserved for future self-service)
                 </label>
+                <fieldset className={styles.fieldset}>
+                  <legend>Automatic raises</legend>
+                  <label className={styles.check}>
+                    <input
+                      type="checkbox"
+                      checked={draft.autoRaise}
+                      onChange={(e) => change('autoRaise', e.target.checked)}
+                    />
+                    Raise the limit automatically
+                  </label>
+                  {kind && kind !== 'calendar' && (
+                    <p className={styles.notice}>
+                      Automatic raises apply only to calendar windows. This
+                      budget's window is {kind}.
+                    </p>
+                  )}
+                  <div className={styles.grid}>
+                    <Field
+                      label="Raise by (% of base)"
+                      hint="Each raise adds this percent of the base limit, never above the ceiling."
+                    >
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={draft.autoAddPct}
+                        onChange={(e) => change('autoAddPct', e.target.value)}
+                      />
+                    </Field>
+                    <Field label="Raises per window" hint="Per subject; 1 to 100.">
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={draft.autoMaxCount}
+                        onChange={(e) => change('autoMaxCount', e.target.value)}
+                      />
+                    </Field>
+                    <Field
+                      label="Raise at (% used, optional)"
+                      hint="Empty: raise when the limit is reached; the refused request is then admitted."
+                    >
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={draft.autoAtPct}
+                        onChange={(e) => change('autoAtPct', e.target.value)}
+                      />
+                    </Field>
+                    <Field
+                      label="Only these Smart groups (optional)"
+                      hint="Comma-separated, up to 32. Empty: everyone."
+                    >
+                      <input
+                        value={draft.autoGroups}
+                        onChange={(e) => change('autoGroups', e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <small className={styles.muted}>
+                    Calendar windows only. Each raise is a grant with source
+                    auto that ends at the window reset. Automatic raises
+                    supersede only earlier automatic ones, so an admin grant
+                    applies again at the reset, and a subject whose limit an
+                    admin lowered is never raised. Clear the percentage and
+                    untick to remove the rule.
+                  </small>
+                </fieldset>
                 <JsonEditor
                   label="Auto-approve rules (JSON or null)"
                   rows={4}
