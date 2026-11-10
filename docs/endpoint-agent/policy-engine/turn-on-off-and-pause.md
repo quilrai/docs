@@ -45,7 +45,7 @@ Every action needs the **Update policies** permission and is recorded in [Audit 
 
 - Converts your previous Endpoint settings, as they are now, into policies. See [What your previous Endpoint settings become](#what-your-previous-endpoint-settings-become).
 - Adds QuilrAI's four [starter policies](./policies-and-rules#starter-policies), switched off. They change nothing until you switch one on and publish.
-- Makes devices follow the policies and send requests from every supported app for a decision, even apps whose **Guardrails** were off. To stop monitoring an app, turn it off under **Application Monitoring** in **Settings > Endpoint Agent**.
+- Makes devices follow the policies and send requests from every supported app for a decision, even apps whose **Guardrails** were off. To stop monitoring an app, turn it off under **Application Monitoring** in **Settings > Endpoint Agent**. Older agents keep some checks; see [Application Monitoring is off for the app](./how-policies-are-evaluated#application-monitoring-is-off-for-the-app).
 - Does not change **Skills**, **Apps**, **Accounts** or **Packages**, which apply whether the Policy Engine is on or off. See [Files, Skills, Packages, Apps and Accounts](./files-skills-packages-apps-accounts).
 
 ### Before you turn on

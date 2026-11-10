@@ -66,7 +66,7 @@ Only Sensitive data and Files rules are policies, so only they have **Test**, **
 
 Coding-tool rules check Claude Code, Cursor, Codex CLI, Copilot CLI, Copilot in the IDE, Qoder, QoderWork, Antigravity and ZCode. **All coding tools** also covers others the agent checks. Prompts typed into Copilot are checked only by a GitHub Copilot AI-app rule. In Antigravity, only file and tool actions are checked.
 
-Codex in the browser and desktop app counts as ChatGPT in rules. For the Codex agent, choose **Codex CLI**. **Application Monitoring** has no Codex switch: turning ChatGPT off also stops checking Codex, including Codex CLI.
+Codex in the browser and desktop app counts as ChatGPT in rules. For the Codex agent, choose **Codex CLI**. **Application Monitoring** has no Codex switch: turning ChatGPT off also covers Codex, including Codex CLI, with the same exceptions as any app that is off. See [Application Monitoring is off for the app](./how-policies-are-evaluated#application-monitoring-is-off-for-the-app).
 
 ### Files
 
@@ -128,7 +128,7 @@ Devices apply controls other than Sensitive data and Files rules at their next c
 - **Large app policies** split into parts, such as **ChatGPT (part 2)**, each counted as a policy.
 - **Redact** and other responses the editor doesn't offer become code-only rules. In AI apps, Redact blocks. To let people continue, set `justification_optional` (**Ask for a reason**) in [the code](./policies-and-rules#edit-a-policy-as-code-quilrql).
 - **App policies also cover their coding tool**, even with **Coding tools** off: ChatGPT covers Codex CLI, Claude covers Claude Code, GitHub Copilot covers Copilot CLI and Copilot in the IDE, and Cursor covers the Cursor agent. Select **Apply to AI apps only** to stop this.
-- **Apps with Guardrails off** get no policy, but any policy covering them now checks their traffic. To stop it, turn the app off under **Application Monitoring**.
+- **Apps with Guardrails off** get no policy, but any policy covering them now checks their traffic. To stop it, turn the app off under **Application Monitoring**, with the exceptions in [Application Monitoring is off for the app](./how-policies-are-evaluated#application-monitoring-is-off-for-the-app).
 
 ### Differences from Endpoint settings
 
