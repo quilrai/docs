@@ -105,6 +105,18 @@ function SnapshotTable({ rows }) {
             ),
         },
         {
+          label: 'Limit from',
+          render: (r) =>
+            ({
+              base: 'Budget limit',
+              own_grant: 'Own grant',
+              group_grant: 'Group grant',
+              other_group_grant: `Another group's grant${r.grant?.members_of ? ` (${r.grant.members_of})` : ''}`,
+            })[r.limit_source] ||
+            r.limit_source ||
+            '',
+        },
+        {
           label: 'Overflow',
           render: (r) =>
             r.overflow ? (
@@ -652,9 +664,11 @@ function BudgetUsage({ id, api, version, period }) {
     sort: 'pct',
     'subject.user': '',
     include_idle: false,
+    members_of: '',
   });
   const [cursor, setCursor] = useState('');
   const query = { ...filter, period, cursor, limit: 50 };
+  if (!query.members_of) delete query.members_of;
   const state = useLoad(
     () => api.getUsage(id, query),
     [api, id, version, JSON.stringify(query)],
@@ -702,6 +716,15 @@ function BudgetUsage({ id, api, version, period }) {
           />
           Include idle users
         </label>
+        <Field
+          label="Members of (Smart group)"
+          hint="Every member, idle ones too, with where their limit comes from."
+        >
+          <input
+            value={filter.members_of}
+            onChange={(e) => change('members_of', e.target.value)}
+          />
+        </Field>
       </div>
       <LoadState state={state} />
       <Freshness data={state.data} />

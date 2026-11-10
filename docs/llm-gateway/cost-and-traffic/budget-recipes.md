@@ -150,6 +150,8 @@ On a budget counted **per person** with grants allowed, choose **New grant**, th
 
 On the **Grants** tab, each group grant shows how many members it covers, how many have their own grant or another group's, and how many are at the limit. **View N members** lists every member, including those who have not used the budget yet. In the API: `GET /budgets/{id}/usage?members_of=<group>` (each row has `limit_source`), and `members` on group grants.
 
+![A Smart group grant with its member summary and View 1 member](/img/llm-gateway/ui/budget-group-grant-members-summary.png)
+
 Group grants work only on budgets counted per person.
 
 ## A permanent different limit for one person {#own-limit}
@@ -253,6 +255,8 @@ flowchart LR
 - A conversation cap is counted per person too, so two people reusing an id do not share a counter.
 - Ids come from the caller, so a cap is a guard against runaway loops, not a security boundary: keep a per-person or per-app budget alongside it.
 - The `x-quilr-*` headers are removed before the request reaches the model provider.
+
+![Refuse requests that have no conversation id, under Who](/img/llm-gateway/ui/budget-refuse-missing-id.png)
 
 ## See who will run out {#running-out}
 

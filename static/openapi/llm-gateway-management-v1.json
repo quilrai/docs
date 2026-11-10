@@ -2812,6 +2812,18 @@
           "metric": {
             "type": "string"
           },
+          "missing_id": {
+            "description": "Only for budgets counted per conversation, agent or agent_run. skip (default): a request without that id is not counted. refuse: it is answered 400 quota_id_required, listing the accepted id sources. Explicit ids (x-conversation-id, x-quilr-agent-id, x-quilr-agent-run-id, body metadata) win; otherwise the ids well-known clients send count (Claude Code session and subagent, Codex, OpenCode, Copilot Studio, Responses conversation, ...). A coding tool session can last many hours.",
+            "enum": [
+              "skip",
+              "refuse",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "mode": {
             "enum": [
               "enforce",
@@ -3479,6 +3491,14 @@
             },
             "type": "array"
           },
+          "members_as_of": {
+            "description": "When the members summaries' usage was read",
+            "format": "date-time",
+            "type": "string"
+          },
+          "members_stale": {
+            "type": "boolean"
+          },
           "next_cursor": {
             "type": [
               "string",
@@ -3627,6 +3647,71 @@
               {
                 "type": "integer"
               }
+            ]
+          },
+          "members": {
+            "oneOf": [
+              {
+                "description": "Smart group grants only: the group's current members by where their limit comes from. List them with GET /budgets/{budget_id}/usage?members_of=<group>. null when it cannot be worked out (see members_reason).",
+                "properties": {
+                  "at_limit": {
+                    "description": "Members at or over their current limit",
+                    "type": "integer"
+                  },
+                  "count": {
+                    "description": "Current members of the group",
+                    "type": "integer"
+                  },
+                  "on_this_grant": {
+                    "description": "Members whose limit is this grant now",
+                    "type": "integer"
+                  },
+                  "other_group": {
+                    "description": "Members covered by a better-ranked group's grant",
+                    "type": "integer"
+                  },
+                  "own_grant": {
+                    "description": "Members with a grant of their own, which wins",
+                    "type": "integer"
+                  },
+                  "used": {
+                    "description": "The members' combined usage this window",
+                    "oneOf": [
+                      {
+                        "description": "spend: decimal USD",
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "count",
+                  "on_this_grant",
+                  "own_grant",
+                  "other_group",
+                  "at_limit",
+                  "used"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "members_reason": {
+            "description": "Set when members is null. grant_not_in_effect: a scheduled or ended grant covers no one now.",
+            "enum": [
+              "grant_not_in_effect",
+              "group_not_found",
+              "membership_unavailable",
+              "budget_not_found",
+              "budget_not_per_person",
+              "usage_incomplete",
+              "usage_unavailable"
             ]
           },
           "metric": {
@@ -3867,6 +3952,18 @@
           "message": {
             "maxLength": 500,
             "type": "string"
+          },
+          "missing_id": {
+            "description": "Only for budgets counted per conversation, agent or agent_run. skip (default): a request without that id is not counted. refuse: it is answered 400 quota_id_required, listing the accepted id sources. Explicit ids (x-conversation-id, x-quilr-agent-id, x-quilr-agent-run-id, body metadata) win; otherwise the ids well-known clients send count (Claude Code session and subagent, Codex, OpenCode, Copilot Studio, Responses conversation, ...). A coding tool session can last many hours.",
+            "enum": [
+              "skip",
+              "refuse",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "mode": {
             "enum": [
@@ -4576,6 +4673,13 @@
           "metric": {
             "type": "string"
           },
+          "missing_id": {
+            "description": "Present only on budgets counted per conversation, agent or agent_run.",
+            "enum": [
+              "skip",
+              "refuse"
+            ]
+          },
           "mode": {
             "type": "string"
           },
@@ -4721,6 +4825,14 @@
             "type": "string"
           },
           "metric": {
+            "type": "string"
+          },
+          "missing_id": {
+            "description": "As on a budget: only with a conversation, agent or agent_run per.",
+            "enum": [
+              "skip",
+              "refuse"
+            ],
             "type": "string"
           },
           "mode": {
@@ -5255,6 +5367,15 @@
               }
             ]
           },
+          "limit_source": {
+            "description": "Where effective_limit comes from: the budget (base), the subject's own grant, or a Smart group grant (grant.members_of names the group). With members_of, a grant of another group is other_group_grant.",
+            "enum": [
+              "base",
+              "own_grant",
+              "group_grant",
+              "other_group_grant"
+            ]
+          },
           "overflow": {
             "oneOf": [
               {
@@ -5357,6 +5478,18 @@
               "$ref": "#/components/schemas/BudgetUsageItem"
             },
             "type": "array"
+          },
+          "members_of": {
+            "description": "Set with the members_of filter: the group and its member count",
+            "properties": {
+              "group": {
+                "type": "string"
+              },
+              "members": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
           },
           "next_cursor": {
             "type": [
@@ -16353,6 +16486,14 @@
             ],
             "x-force-new": true
           },
+          "missing_id": {
+            "default": "skip",
+            "description": "With a conversation, agent or agent_run group_by: skip (default) does not count a request without that id; refuse answers 400 quota_id_required.",
+            "enum": [
+              "skip",
+              "refuse"
+            ]
+          },
           "mode": {
             "default": "enforce",
             "enum": [
@@ -16942,6 +17083,21 @@
               }
             ]
           },
+          "missing_id": {
+            "anyOf": [
+              {
+                "default": "skip",
+                "description": "With a conversation, agent or agent_run group_by: skip (default) does not count a request without that id; refuse answers 400 quota_id_required.",
+                "enum": [
+                  "skip",
+                  "refuse"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "mode": {
             "anyOf": [
               {
@@ -17317,6 +17473,14 @@
               "total_tokens"
             ],
             "x-force-new": true
+          },
+          "missing_id": {
+            "default": "skip",
+            "description": "With a conversation, agent or agent_run group_by: skip (default) does not count a request without that id; refuse answers 400 quota_id_required.",
+            "enum": [
+              "skip",
+              "refuse"
+            ]
           },
           "mode": {
             "default": "enforce",
@@ -24615,6 +24779,13 @@
             "type": "array"
           },
           "grants": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "id_required": {
+            "description": "Quotas with missing_id refuse that need a conversation / agent id this preview does not have: {quota_id, field}.",
             "items": {
               "type": "object"
             },
@@ -46836,6 +47007,14 @@
             "description": "Also list smart-group members and key owners with no usage (true or false).",
             "in": "query",
             "name": "include_idle",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Smart group name: list every current member of the group (members with no usage at 0) with limit_source, for example to see who a Smart group grant covers. Per-person budgets only.",
+            "in": "query",
+            "name": "members_of",
             "schema": {
               "type": "string"
             }

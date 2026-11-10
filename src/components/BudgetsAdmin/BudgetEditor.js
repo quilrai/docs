@@ -17,6 +17,7 @@ const initial = {
   label: '',
   limit: '25.00',
   mode: 'enforce',
+  missingId: 'skip',
   alerts: '80, 100',
   adjustable: true,
   ceiling: '100.00',
@@ -46,6 +47,9 @@ const PER_ALIASES = [
   ['agent', 'request.metadata.agent_id', 'x-quilr-agent-id'],
   ['agent_run', 'request.metadata.agent_run_id', 'x-quilr-agent-run-id'],
 ];
+// Whether a per list counts by a conversation / agent / agent run id.
+export const countsById = (per) =>
+  (per || []).some((v) => PER_ALIASES.some(([alias, field]) => v === alias || v === field));
 function wholeNumber(value, name, min, max) {
   const n = Number(value);
   if (!/^\d+$/.test(String(value).trim()) || n < min || n > max)
@@ -102,6 +106,7 @@ export default function BudgetEditor({
       label: budget.label || '',
       limit: String(budget.base_limit),
       mode: budget.mode || 'enforce',
+      missingId: budget.missing_id || 'skip',
       alerts: (budget.alerts || []).map((a) => a.at_pct).join(', '),
       adjustable: !!budget.adjustments,
       ceiling: String(budget.adjustments?.ceiling ?? budget.base_limit),
@@ -191,6 +196,9 @@ export default function BudgetEditor({
       alerts: thresholds.map((at_pct) => ({ at_pct })),
       adjustments: adjustment,
     };
+    if (countsById(id ? budget?.per : split(draft.per))) {
+      output.missing_id = draft.missingId;
+    }
     if (!id) {
       Object.assign(output, {
         ...(draft.id ? { id: draft.id } : {}),
@@ -327,6 +335,21 @@ export default function BudgetEditor({
                   ))}
                 </select>
               </Field>
+              {countsById(id ? budget?.per : split(draft.per)) && (
+                <Field
+                  label="Requests without an id"
+                  hint="skip: not counted. refuse: 400 quota_id_required, listing the accepted ids."
+                >
+                  <select
+                    value={draft.missingId}
+                    onChange={(e) => change('missingId', e.target.value)}
+                  >
+                    {['skip', 'refuse'].map((v) => (
+                      <option key={v}>{v}</option>
+                    ))}
+                  </select>
+                </Field>
+              )}
               <Field
                 label="Alert thresholds (%)"
                 hint="Comma-separated, up to five thresholds."
@@ -388,8 +411,8 @@ export default function BudgetEditor({
                   ))}
                 </div>
                 <small className={styles.muted}>
-                  Per-conversation and per-agent caps count only requests that
-                  declare the id:{' '}
+                  Per-conversation and per-agent caps count the id the caller
+                  sends:{' '}
                   {PER_ALIASES.map(([alias, field, header], i) => (
                     <React.Fragment key={alias}>
                       {i ? '; ' : ''}
@@ -397,8 +420,10 @@ export default function BudgetEditor({
                     </React.Fragment>
                   ))}
                   . Body metadata.conversation_id, metadata.agent_id and
-                  metadata.agent_run_id also work. Requests without the id are
-                  not counted. Lifetime windows ({'{"kind":"lifetime"}'}) suit
+                  metadata.agent_run_id also work. Without one, the session and
+                  agent ids that Claude Code, Codex, OpenCode, Copilot Studio
+                  and other clients send count. Requests with no id are not
+                  counted, or refused when missing_id is refuse. Lifetime windows ({'{"kind":"lifetime"}'}) suit
                   conversations and agent runs; keep user.email beside the id
                   so two callers that reuse an id do not share a counter.
                 </small>
