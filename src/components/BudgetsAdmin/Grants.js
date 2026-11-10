@@ -594,6 +594,18 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                         <>
                           <strong>Members of {row.subject.members_of}</strong>
                           <small>Smart group grant</small>
+                          {row.members ? (
+                            <small>
+                              {row.members.on_this_grant} of {row.members.count}{' '}
+                              members on this grant · {row.members.own_grant}{' '}
+                              own grant · {row.members.other_group} another
+                              group's · {row.members.at_limit} at the limit
+                            </small>
+                          ) : (
+                            row.members_reason && (
+                              <small>Members: {row.members_reason}</small>
+                            )
+                          )}
                         </>
                       ) : (
                         format(row.subject)
