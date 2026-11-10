@@ -2529,12 +2529,28 @@
             "oneOf": [
               {
                 "properties": {
+                  "auto_raise": {
+                    "description": "Set on automatic raises: {step, of, window}",
+                    "type": "object"
+                  },
                   "expires_at": {
                     "description": "null: no end date",
                     "format": "date-time",
                     "type": [
                       "string",
                       "null"
+                    ]
+                  },
+                  "extra": {
+                    "description": "Set on an extra grant: limit = base + extra",
+                    "oneOf": [
+                      {
+                        "description": "spend: decimal USD",
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
                     ]
                   },
                   "id": {
@@ -2836,7 +2852,12 @@
               "null"
             ]
           },
+          "one_time": {
+            "description": "Required true on a new lifetime budget (window {\"kind\": \"lifetime\"}): confirms an allowance that never resets (else 422 lifetime_requires_one_time). Valid only with a lifetime window (422 invalid_quota_one_time). Returned only when true.",
+            "type": "boolean"
+          },
           "per": {
+            "description": "group_by fields, or aliases (user, app = application.name = application.group_key, smart_group, model, conversation, agent, agent_run, ...); responses return field names.",
             "items": {
               "type": "string"
             },
@@ -2918,6 +2939,13 @@
               "object",
               "null"
             ]
+          },
+          "grants_revoked": {
+            "description": "Grant ids revoked by this write: the live grants of a deleted budget, or old grants left on a budget id created again. Omitted when none.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "ids": {
             "items": {
@@ -3332,6 +3360,18 @@
       },
       "BudgetGrant": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "required": [
+              "limit"
+            ]
+          },
+          {
+            "required": [
+              "extra"
+            ]
+          }
+        ],
         "properties": {
           "expires_at": {
             "description": "null or omitted: no end date (only when adjustments.max_duration is \"unlimited\")",
@@ -3341,7 +3381,21 @@
               "null"
             ]
           },
+          "extra": {
+            "description": "Added to the budget's base limit; the grant's limit follows the base (base + extra, also after a later base change), capped by adjustments.ceiling. Give exactly one of limit or extra.",
+            "oneOf": [
+              {
+                "pattern": "^\\d+(\\.\\d{1,6})?$",
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "number"
+              }
+            ]
+          },
           "limit": {
+            "description": "Absolute limit. Give exactly one of limit or extra.",
             "oneOf": [
               {
                 "pattern": "^\\d+(\\.\\d{1,6})?$",
@@ -3362,6 +3416,7 @@
             "type": "string"
           },
           "starts_at": {
+            "description": "Default now. A later start lists the grant as scheduled until then.",
             "format": "date-time",
             "type": "string"
           },
@@ -3371,8 +3426,7 @@
           }
         },
         "required": [
-          "subject",
-          "limit"
+          "subject"
         ],
         "type": "object"
       },
@@ -3387,6 +3441,19 @@
               "null"
             ]
           },
+          "extra": {
+            "description": "Default amount added to the base for every item (follows the base, like a grant's extra).",
+            "oneOf": [
+              {
+                "pattern": "^\\d+(\\.\\d{1,6})?$",
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "number"
+              }
+            ]
+          },
           "grants": {
             "items": {
               "type": "object"
@@ -3395,6 +3462,7 @@
             "type": "array"
           },
           "limit": {
+            "description": "Default absolute limit for every item (an item's own limit or extra replaces it).",
             "oneOf": [
               {
                 "pattern": "^\\d+(\\.\\d{1,6})?$",
@@ -3529,7 +3597,21 @@
               "null"
             ]
           },
+          "extra": {
+            "description": "New amount on top of the base (the grant then follows the base). Not with limit.",
+            "oneOf": [
+              {
+                "pattern": "^\\d+(\\.\\d{1,6})?$",
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "number"
+              }
+            ]
+          },
           "limit": {
+            "description": "New absolute limit (an extra grant becomes absolute).",
             "oneOf": [
               {
                 "pattern": "^\\d+(\\.\\d{1,6})?$",
@@ -3587,6 +3669,10 @@
           "actor": {
             "type": "string"
           },
+          "auto_raise": {
+            "description": "Set only on automatic raises (source auto): {step, of, window}. subject still names the person or app.",
+            "type": "object"
+          },
           "base_limit": {
             "oneOf": [
               {
@@ -3634,11 +3720,23 @@
               "null"
             ]
           },
+          "extra": {
+            "description": "Set only on an extra grant: the amount added to the base",
+            "oneOf": [
+              {
+                "description": "spend: decimal USD",
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
           "id": {
             "type": "string"
           },
           "limit": {
-            "description": "Spend as a decimal USD string (\"12.50\"); requests/tokens as integers",
+            "description": "The grant's limit: absolute, or base + extra for an extra grant (follows the budget's current base; the ceiling caps it when applied)",
             "oneOf": [
               {
                 "description": "spend: decimal USD",
@@ -3734,8 +3832,10 @@
             "type": "string"
           },
           "status": {
+            "description": "active: in effect now; scheduled: starts_at is later (not in effect yet); expired: ended; revoked / superseded: ended by a change.",
             "enum": [
               "active",
+              "scheduled",
               "revoked",
               "superseded",
               "expired"
@@ -3976,6 +4076,10 @@
               "string",
               "null"
             ]
+          },
+          "one_time": {
+            "description": "Required true on a new lifetime budget (window {\"kind\": \"lifetime\"}): confirms an allowance that never resets (else 422 lifetime_requires_one_time). Valid only with a lifetime window (422 invalid_quota_one_time). Returned only when true.",
+            "type": "boolean"
           }
         },
         "type": "object"
@@ -4683,6 +4787,10 @@
           "mode": {
             "type": "string"
           },
+          "one_time": {
+            "description": "Present (true) only on a lifetime budget confirmed as a one-time allowance.",
+            "type": "boolean"
+          },
           "per": {
             "items": {
               "type": "string"
@@ -4842,6 +4950,10 @@
               "paused"
             ],
             "type": "string"
+          },
+          "one_time": {
+            "description": "As on a budget: required true with a lifetime window.",
+            "type": "boolean"
           },
           "per": {
             "items": {
@@ -5128,12 +5240,28 @@
                   "oneOf": [
                     {
                       "properties": {
+                        "auto_raise": {
+                          "description": "Set on automatic raises: {step, of, window}",
+                          "type": "object"
+                        },
                         "expires_at": {
                           "description": "null: no end date",
                           "format": "date-time",
                           "type": [
                             "string",
                             "null"
+                          ]
+                        },
+                        "extra": {
+                          "description": "Set on an extra grant: limit = base + extra",
+                          "oneOf": [
+                            {
+                              "description": "spend: decimal USD",
+                              "type": "string"
+                            },
+                            {
+                              "type": "integer"
+                            }
                           ]
                         },
                         "id": {
@@ -5329,12 +5457,28 @@
             "oneOf": [
               {
                 "properties": {
+                  "auto_raise": {
+                    "description": "Set on automatic raises: {step, of, window}",
+                    "type": "object"
+                  },
                   "expires_at": {
                     "description": "null: no end date",
                     "format": "date-time",
                     "type": [
                       "string",
                       "null"
+                    ]
+                  },
+                  "extra": {
+                    "description": "Set on an extra grant: limit = base + extra",
+                    "oneOf": [
+                      {
+                        "description": "spend: decimal USD",
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
                     ]
                   },
                   "id": {
@@ -16411,7 +16555,7 @@
             "default": [],
             "description": "One counter per distinct combination; [] = one shared counter.",
             "items": {
-              "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
+              "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, application.name = application.group_key, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
               "enum": [
                 "tenant.id",
                 "user.id",
@@ -16431,6 +16575,7 @@
                 "agent_run",
                 "app",
                 "app_key",
+                "application.name",
                 "conversation",
                 "method",
                 "method_type",
@@ -16451,6 +16596,7 @@
               "agent_run": "request.metadata.agent_run_id",
               "app": "application.group_key",
               "app_key": "application.key_id",
+              "application.name": "application.group_key",
               "conversation": "request.metadata.conversation_id",
               "method": "application.method_key",
               "method_type": "application.method_type",
@@ -16975,7 +17121,7 @@
                 "default": [],
                 "description": "One counter per distinct combination; [] = one shared counter.",
                 "items": {
-                  "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
+                  "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, application.name = application.group_key, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
                   "enum": [
                     "tenant.id",
                     "user.id",
@@ -16995,6 +17141,7 @@
                     "agent_run",
                     "app",
                     "app_key",
+                    "application.name",
                     "conversation",
                     "method",
                     "method_type",
@@ -17015,6 +17162,7 @@
                   "agent_run": "request.metadata.agent_run_id",
                   "app": "application.group_key",
                   "app_key": "application.key_id",
+                  "application.name": "application.group_key",
                   "conversation": "request.metadata.conversation_id",
                   "method": "application.method_key",
                   "method_type": "application.method_type",
@@ -17396,7 +17544,7 @@
             "default": [],
             "description": "One counter per distinct combination; [] = one shared counter.",
             "items": {
-              "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
+              "description": "A QuilrQL field name, or an alias (agent = request.metadata.agent_id, agent_run = request.metadata.agent_run_id, app = application.group_key, app_key = application.key_id, application.name = application.group_key, conversation = request.metadata.conversation_id, method = application.method_key, method_type = application.method_type, model = gateway.actual_model, provider = gateway.actual_provider.name, provider_label = gateway.actual_provider.label, smart_group = user.active_smart_group, tenant = tenant.id, user = user.email, user_id = user.id). Aliases are translated; responses return field names.",
               "enum": [
                 "tenant.id",
                 "user.id",
@@ -17416,6 +17564,7 @@
                 "agent_run",
                 "app",
                 "app_key",
+                "application.name",
                 "conversation",
                 "method",
                 "method_type",
@@ -17436,6 +17585,7 @@
               "agent_run": "request.metadata.agent_run_id",
               "app": "application.group_key",
               "app_key": "application.key_id",
+              "application.name": "application.group_key",
               "conversation": "request.metadata.conversation_id",
               "method": "application.method_key",
               "method_type": "application.method_type",
@@ -30738,10 +30888,15 @@
               "null"
             ]
           },
+          "extra": {
+            "description": "Set only on an extra grant",
+            "type": "integer"
+          },
           "id": {
             "type": "string"
           },
           "limit": {
+            "description": "Absolute, or base + extra for an extra grant (follows the base)",
             "type": "integer"
           },
           "quota_id": {
@@ -30757,6 +30912,7 @@
             ]
           },
           "status": {
+            "description": "active (in effect now), scheduled (starts later), expired, revoked or superseded",
             "type": "string"
           },
           "subject": {
@@ -30842,7 +30998,7 @@
             ]
           },
           "extra": {
-            "description": "Added to the base limit.",
+            "description": "Added to the base limit; the grant follows the base (a later base change moves it).",
             "minimum": 0,
             "type": "integer"
           },
@@ -30929,10 +31085,15 @@
                     "null"
                   ]
                 },
+                "extra": {
+                  "description": "Set only on an extra grant",
+                  "type": "integer"
+                },
                 "id": {
                   "type": "string"
                 },
                 "limit": {
+                  "description": "Absolute, or base + extra for an extra grant (follows the base)",
                   "type": "integer"
                 },
                 "quota_id": {
@@ -30948,6 +31109,7 @@
                   ]
                 },
                 "status": {
+                  "description": "active (in effect now), scheduled (starts later), expired, revoked or superseded",
                   "type": "string"
                 },
                 "subject": {
@@ -31034,10 +31196,15 @@
                   "null"
                 ]
               },
+              "extra": {
+                "description": "Set only on an extra grant",
+                "type": "integer"
+              },
               "id": {
                 "type": "string"
               },
               "limit": {
+                "description": "Absolute, or base + extra for an extra grant (follows the base)",
                 "type": "integer"
               },
               "quota_id": {
@@ -31053,6 +31220,7 @@
                 ]
               },
               "status": {
+                "description": "active (in effect now), scheduled (starts later), expired, revoked or superseded",
                 "type": "string"
               },
               "subject": {
@@ -31122,10 +31290,15 @@
                       "null"
                     ]
                   },
+                  "extra": {
+                    "description": "Set only on an extra grant",
+                    "type": "integer"
+                  },
                   "id": {
                     "type": "string"
                   },
                   "limit": {
+                    "description": "Absolute, or base + extra for an extra grant (follows the base)",
                     "type": "integer"
                   },
                   "quota_id": {
@@ -31141,6 +31314,7 @@
                     ]
                   },
                   "status": {
+                    "description": "active (in effect now), scheduled (starts later), expired, revoked or superseded",
                     "type": "string"
                   },
                   "subject": {
@@ -42950,7 +43124,7 @@
     },
     "/llmgateway/management/v1/budget-grants": {
       "get": {
-        "description": "Grants across budgets. Filter by budget_id, bucket, status, expires_before, expires_after and subject; sort by created_at (newest first, default) or expires_at (soonest first; grants with no end date last). `ends_within=7d` lists the active grants ending in the next 7 days, soonest first. `include_usage=true` adds each grant's current used amount and percent of its limit; `base_limit` is the limit that applies again when a grant ends.",
+        "description": "Grants across budgets. Filter by budget_id, bucket, status, expires_before, expires_after and subject; sort by created_at (newest first, default) or expires_at (soonest first; grants with no end date last). `status`: active (in effect now), scheduled (starts later), expired, revoked, superseded or all (default). `ends_within=7d` lists the active grants ending in the next 7 days, soonest first. `include_usage=true` adds each grant's current used amount and percent of its limit; `base_limit` is the limit that applies again when a grant ends.",
         "operationId": "List_budget_grants",
         "parameters": [
           {
@@ -42990,7 +43164,7 @@
             }
           },
           {
-            "description": "all (default), active, revoked, superseded or expired.",
+            "description": "all (default), active (in effect now), scheduled (starts later), revoked, superseded or expired.",
             "in": "query",
             "name": "status",
             "schema": {
@@ -43426,7 +43600,7 @@
         ]
       },
       "patch": {
-        "description": "Changes the limit, expiry or reason of an active grant. Requires the grant etag in If-Match.",
+        "description": "Changes the limit (or extra), expiry or reason of an active or scheduled grant. `limit` makes the grant absolute, `extra` makes it follow the base. Requires the grant etag in If-Match.",
         "operationId": "Update_a_budget_grant",
         "parameters": [
           {
@@ -45645,6 +45819,24 @@
           "content": {
             "application/json": {
               "examples": {
+                "conversation_cap": {
+                  "summary": "Lifetime spend cap per conversation",
+                  "value": {
+                    "id": "conversation_cap",
+                    "label": "No conversation over 20 USD",
+                    "limit": "20",
+                    "metric": "spend_usd",
+                    "missing_id": "refuse",
+                    "one_time": true,
+                    "per": [
+                      "user",
+                      "conversation"
+                    ],
+                    "window": {
+                      "kind": "lifetime"
+                    }
+                  }
+                },
                 "hourly_requests": {
                   "summary": "Hourly request rate per app",
                   "value": {
@@ -45990,7 +46182,7 @@
     },
     "/llmgateway/management/v1/budgets/{budget_id}": {
       "delete": {
-        "description": "Removes an API-managed budget and publishes a new revision. Budgets written by hand in policy return 409 budget_not_api_managed. Requires the budget etag in If-Match.",
+        "description": "Removes an API-managed budget and publishes a new revision. Budgets written by hand in policy return 409 budget_not_api_managed. The budget's active and scheduled grants are revoked (`grants_revoked`); a budget created later with the same id starts without them. Requires the budget etag in If-Match.",
         "operationId": "Delete_a_budget",
         "parameters": [
           {
@@ -46633,7 +46825,7 @@
     },
     "/llmgateway/management/v1/budgets/{budget_id}/grants": {
       "post": {
-        "description": "Gives one subject of an adjustable budget its own limit (higher or lower than the base, at most the budget's ceiling) until `expires_at`. When the budget's adjustments.max_duration is \"unlimited\", `expires_at` may be null or omitted for a grant with no end date. A new grant supersedes the subject's active one. Grants do not change policy. `{\"subject\": {\"members_of\": \"Data Science\"}}` grants a Smart group: every current member gets the limit, people who join or leave the group follow automatically, a member's own grant wins and a member of several granted groups gets the best-ranked group's. Per-person budgets (by email) only.",
+        "description": "Gives one subject of an adjustable budget its own limit (higher or lower than the base, at most the budget's ceiling) until `expires_at`. When the budget's adjustments.max_duration is \"unlimited\", `expires_at` may be null or omitted for a grant with no end date. A new grant supersedes the subject's active one. Grants do not change policy. `{\"subject\": {\"members_of\": \"Data Science\"}}` grants a Smart group: every current member gets the limit, people who join or leave the group follow automatically, a member's own grant wins and a member of several granted groups gets the best-ranked group's. Per-person budgets (by email) only. Give exactly one of `limit` (absolute) or `extra` (added to the base limit: the grant follows the base, so a later base change moves it; still capped by the ceiling). A `starts_at` in the future lists the grant as `scheduled` until it starts.",
         "operationId": "Issue_a_budget_grant",
         "parameters": [
           {
@@ -46661,12 +46853,28 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "example": {
-                "expires_at": "2026-10-31T23:59:59Z",
-                "limit": "25",
-                "reason": "Quarter-end ticket surge",
-                "subject": {
-                  "user": "alice@example.com"
+              "examples": {
+                "extra": {
+                  "summary": "Base plus extra",
+                  "value": {
+                    "expires_at": "2026-10-31T23:59:59Z",
+                    "extra": "10",
+                    "reason": "Launch week",
+                    "subject": {
+                      "user": "alice@example.com"
+                    }
+                  }
+                },
+                "limit": {
+                  "summary": "Absolute limit",
+                  "value": {
+                    "expires_at": "2026-10-31T23:59:59Z",
+                    "limit": "25",
+                    "reason": "Quarter-end ticket surge",
+                    "subject": {
+                      "user": "alice@example.com"
+                    }
+                  }
                 }
               },
               "schema": {

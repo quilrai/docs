@@ -18,6 +18,7 @@ const initial = {
   limit: '25.00',
   mode: 'enforce',
   missingId: 'skip',
+  oneTime: true,
   alerts: '80, 100',
   adjustable: true,
   ceiling: '100.00',
@@ -107,6 +108,7 @@ export default function BudgetEditor({
       limit: String(budget.base_limit),
       mode: budget.mode || 'enforce',
       missingId: budget.missing_id || 'skip',
+      oneTime: budget.one_time === true,
       alerts: (budget.alerts || []).map((a) => a.at_pct).join(', '),
       adjustable: !!budget.adjustments,
       ceiling: String(budget.adjustments?.ceiling ?? budget.base_limit),
@@ -199,6 +201,11 @@ export default function BudgetEditor({
     if (countsById(id ? budget?.per : split(draft.per))) {
       output.missing_id = draft.missingId;
     }
+    // A lifetime window never resets: a new one needs one_time: true
+    // (422 lifetime_requires_one_time otherwise). Other windows refuse it.
+    const lifetime =
+      (id ? budget?.window?.kind : windowKind(draft.window)) === 'lifetime';
+    if (lifetime && (draft.oneTime || id)) output.one_time = draft.oneTime;
     if (!id) {
       Object.assign(output, {
         ...(draft.id ? { id: draft.id } : {}),
@@ -349,6 +356,17 @@ export default function BudgetEditor({
                     ))}
                   </select>
                 </Field>
+              )}
+              {kind === 'lifetime' && (
+                <label className={styles.check}>
+                  <input
+                    type="checkbox"
+                    checked={draft.oneTime}
+                    onChange={(e) => change('oneTime', e.target.checked)}
+                  />
+                  One-time allowance (one_time: never resets; required on a new
+                  lifetime budget)
+                </label>
               )}
               <Field
                 label="Alert thresholds (%)"

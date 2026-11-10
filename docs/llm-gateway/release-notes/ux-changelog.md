@@ -17,6 +17,16 @@ Recent interface improvements and quality-of-life changes.
 - **Smart group grant members**: each group grant on the **Grants** tab shows how many members it covers, who has their own grant, and who is at the limit; **View N members** opens the members' usage
 - Details: [Cap a conversation or an agent](../cost-and-traffic/budget-recipes#conversation-agent-caps)
 
+## Budgets API: monthly allowances, extra grants and lifetime caps (2026-11-10)
+
+- **Lifetime budgets** can be created through the API: send `"one_time": true` with `window: {"kind": "lifetime"}` (a per-conversation cap is `per: ["user", "conversation"]` with `missing_id: "refuse"`)
+- **`extra` grants** add an amount on top of the budget's limit and follow later changes to it, capped by the highest allowed limit; `limit` stays absolute. Rate-limit `extra` grants now follow the rate limit the same way
+- **Scheduled grants**: a grant that starts later shows as `scheduled`; `status=active` now means in effect now
+- **Deleting a budget, budget set or rate limit revokes its grants** (`grants_revoked`); an ID created again starts clean
+- **Automatic raises** name the person they raised in `subject`, with the step in `auto_raise`
+- `per` accepts `application.name` as another name for `app`
+- Details: [A monthly allowance for a person or team](../cost-and-traffic/budget-recipes#monthly-allowance), [Raise by an amount](../cost-and-traffic/budget-recipes#raise-by-amount) and [Budgets API](../api-reference/budgets-api#usage-grants-and-prices)
+
 ## Budgets: group grants, automatic raises, caps and forecasts (2026-11-10)
 
 - **Smart group grants**: give every member of a Smart group a different limit, including people who join later; a person's own grant wins

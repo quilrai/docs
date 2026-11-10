@@ -22,6 +22,20 @@ function inputError(message) {
   return error;
 }
 
+function AmountKind({ form, setForm }) {
+  return (
+    <Field label="Amount">
+      <select
+        value={form.kind}
+        onChange={(e) => setForm((v) => ({ ...v, kind: e.target.value }))}
+      >
+        <option value="limit">Absolute limit</option>
+        <option value="extra">Extra on top of the base</option>
+      </select>
+    </Field>
+  );
+}
+
 function utcInput(value) {
   if (!value) return '';
   const date = new Date(value);
@@ -265,6 +279,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
     pretty({ 'user.email': '', 'gateway.actual_model': '' }),
   );
   const [create, setCreate] = useState(() => ({
+    kind: 'limit',
     limit: '',
     expires: utcInput(Date.now() + 24 * 60 * 60 * 1000),
     starts: '',
@@ -282,6 +297,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
   const [detailLoading, setDetailLoading] = useState(false);
   const [writing, setWriting] = useState(false);
   const [edit, setEdit] = useState({
+    kind: 'limit',
     limit: '',
     expires: '',
     reason: '',
@@ -334,8 +350,10 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
         grant: response.grant,
         etag: response.etag || response.grant?.etag || response._meta?.etag,
       });
+      const extra = response.grant.extra != null;
       setEdit({
-        limit: String(response.grant.limit),
+        kind: extra ? 'extra' : 'limit',
+        limit: String(extra ? response.grant.extra : response.grant.limit),
         expires: utcInput(response.grant.expires_at),
         reason: response.grant.reason || '',
         noEnd: response.grant.expires_at == null,
@@ -351,7 +369,9 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
   function defaults() {
     if (!budget?.adjustments) throw inputError('Choose an adjustable budget.');
     return {
-      limit: amount(create.limit, budget.metric),
+      // limit is absolute; extra is added to the budget's base limit and
+      // follows later base changes (capped by the ceiling). Exactly one.
+      [create.kind]: amount(create.limit, budget.metric),
       ...timeFields(create),
       ...(create.reason ? { reason: create.reason } : {}),
     };
@@ -410,7 +430,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
         return api.patchGrant(
           pinned.grant.id,
           {
-            limit: amount(edit.limit, editMetric),
+            [edit.kind]: amount(edit.limit, editMetric),
             // An explicit null asks for no end date (max_duration unlimited only).
             expires_at: edit.noEnd ? null : utcDate(edit.expires, 'Expiry'),
             reason: edit.reason,
@@ -514,7 +534,7 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
               disabled={view.kind === 'ends_within'}
               onChange={(e) => changeFilter('status', e.target.value)}
             >
-              {['all', 'active', 'expired', 'revoked', 'superseded'].map(
+              {['all', 'active', 'scheduled', 'expired', 'revoked', 'superseded'].map(
                 (status) => (
                   <option key={status} value={status}>
                     {status}
@@ -624,6 +644,9 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                       {row.metric === 'spend_usd' ? '$' : ''}
                       {format(row.limit)}
                       <small>{row.metric}</small>
+                      {row.extra != null && (
+                        <small>Base + {format(row.extra)} extra</small>
+                      )}
                       <small>
                         Base {format(row.base_limit)} applies again when it
                         ends
@@ -657,6 +680,11 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                     <>
                       <Badge>{row.status}</Badge>
                       {row.source === 'auto' && <Badge>auto</Badge>}
+                      {row.auto_raise && (
+                        <small>
+                          Raise {row.auto_raise.step} of {row.auto_raise.of}
+                        </small>
+                      )}
                     </>
                   ),
                 },
@@ -767,8 +795,9 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                     submitLabel="Save grant / extend expiry"
                     disabled={!selected.etag || writing}
                   >
+                    <AmountKind form={edit} setForm={setEdit} />
                     <Field
-                      label={`Absolute limit (${editMetric === 'spend_usd' ? 'USD' : editMetric || 'display units'})`}
+                      label={`${edit.kind === 'extra' ? 'Extra on top of the base' : 'Absolute limit'} (${editMetric === 'spend_usd' ? 'USD' : editMetric || 'display units'})`}
                     >
                       <input
                         required
@@ -848,7 +877,9 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
           </p>
         )}
         <p className={styles.muted}>
-          Grants set an absolute effective limit for one budget bucket. Creating
+          Grants set an absolute limit, or an extra amount on top of the base,
+          for one budget bucket. A grant with a later start is scheduled
+          until then. Creating
           another grant for the same bucket supersedes the existing active
           grant. Grant writes take effect immediately.
         </p>
@@ -884,9 +915,14 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
             </div>
           )}
           <div className={styles.grid}>
+            <AmountKind form={create} setForm={setCreate} />
             <Field
-              label={`Absolute limit (${metric === 'spend_usd' ? 'USD' : metric || 'display units'})`}
-              hint="This replaces the base limit; it is not an added amount."
+              label={`${create.kind === 'extra' ? 'Extra on top of the base' : 'Absolute limit'} (${metric === 'spend_usd' ? 'USD' : metric || 'display units'})`}
+              hint={
+                create.kind === 'extra'
+                  ? 'Added to the base limit; follows later base changes, capped by the ceiling.'
+                  : 'This replaces the base limit.'
+              }
             >
               <input
                 required
@@ -1011,8 +1047,9 @@ export default function Grants({ api, run, version, period, canGrant = false }) 
                 </Field>
               )}
               <p className={styles.muted}>
-                The limit, expiry, start and reason above are defaults. Each
-                JSON entry may override them. Spend limits use USD strings;
+                The limit (or extra), expiry, start and reason above are
+                defaults. Each JSON entry may override them; an entry's own
+                limit or extra replaces the default amount. Spend limits use USD strings;
                 request and token limits use integers. The API creates valid
                 items and reports each failed item separately.
               </p>
