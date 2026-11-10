@@ -17,6 +17,16 @@ Recent interface improvements and quality-of-life changes.
 - **Smart group grant members**: each group grant on the **Grants** tab shows how many members it covers, who has their own grant, and who is at the limit; **View N members** opens the members' usage
 - Details: [Cap a conversation or an agent](../cost-and-traffic/budget-recipes#conversation-agent-caps)
 
+## Budget grants: overlap, cleanup on publish and console updates (2026-11-10)
+
+- **A new grant replaces only grants whose dates overlap it.** A grant for another period stays, so a person can have one grant in effect plus scheduled ones; if several are in effect, the newest created applies
+- **Any publish that removes a budget or rate limit revokes its grants**: console edits and restoring an older revision included, not only API deletes. A restore that brings the budget back does not bring the grants back; moving or pausing a budget keeps them
+- Grant writes return `409 budget_changed` when the budget changed or was removed while the grant was being created; read it again and retry
+- The **New grant** form offers **Set a limit** or **Add on top of the budget limit**; extra grants read like **+$25.00 over the budget limit (now $75.00)**
+- Grants that start later show **Not started**, with usage so far under the current limit
+- Conversation cap cards read **each conversation · one-time allowance · never resets**, and **Requests without a conversation id are refused** when set
+- Details: [A temporary raise or cut for one person](../cost-and-traffic/budget-recipes#grant), [Raise by an amount](../cost-and-traffic/budget-recipes#raise-by-amount) and [Budgets API](../api-reference/budgets-api#usage-grants-and-prices)
+
 ## Budgets API: monthly allowances, extra grants and lifetime caps (2026-11-10)
 
 - **Lifetime budgets** can be created through the API: send `"one_time": true` with `window: {"kind": "lifetime"}` (a per-conversation cap is `per: ["user", "conversation"]` with `missing_id: "refuse"`)
