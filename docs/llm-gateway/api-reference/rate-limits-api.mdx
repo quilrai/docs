@@ -88,7 +88,7 @@ They cannot change in place (`422 identity_field_immutable`), because usage is c
 
 ### Temporary raises (grants)
 
-A grant raises one subject's limit until `expires_at`: `extra` adds to the limit, `limit` sets it (exactly one). Name the subject by the rate limit's grouping, for example `{"user": "alex@example.com"}`.
+A grant raises one subject's limit until `expires_at`: `extra` adds to the limit, `limit` sets it (exactly one). An `extra` grant follows the rate limit: if its limit changes later, the grant becomes the new limit plus `extra`. Name the subject by the rate limit's grouping, for example `{"user": "alex@example.com"}`.
 
 ```bash
 export API="$MANAGEMENT_URL/llmgateway/management/v1"
@@ -101,6 +101,8 @@ curl -X POST "$API/controls/rate-limits/support-rpm/grants" "${auth[@]}" -H "Ide
 - The rate limit needs `adjustments` (`409 rate_limit_not_adjustable`). A grant above `ceiling` is `422 grant_above_ceiling`; longer than `max_duration` is `422 grant_too_long`.
 - A new grant for the same subject supersedes the active one (returned as `superseded`).
 - Revoke with `DELETE /controls/rate-limits/{id}/grants/{grant_id}?reason=...` and the grant ETag in `If-Match`.
+- A grant with a later `starts_at` shows as `scheduled` until it starts; `status=active` lists grants in effect now.
+- Deleting the rate limit revokes its active and scheduled grants (listed in `grants_revoked`). A rate limit created again with the same id starts without them.
 - Grants never publish a policy revision.
 
 ### Usage

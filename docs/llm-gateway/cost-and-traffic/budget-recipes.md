@@ -3,7 +3,7 @@ sidebar_position: 2.5
 sidebar_label: "Budget recipes"
 sidebar_custom_props:
   icon: ListChecks
-description: "Common enterprise budget setups: per person, per group, per app, grants for a person or a whole group, automatic raises, conversation and agent caps, forecasts and budget-aware routing."
+description: "Common enterprise budget setups: per person, per group, per app, grants for a person or a whole group, monthly allowances, raises by an amount, automatic raises, conversation and agent caps, forecasts and budget-aware routing."
 ---
 
 # Budget recipes
@@ -21,8 +21,9 @@ Set these up in **Govern > Policy Engine > LLM Gateway > Controls > Budgets & Us
 | Per group, per app | [**Each group in an app** and related shapes](#per-group-per-app) |
 | A temporary raise or cut for one person | [A grant](#grant) |
 | A raise for everyone in a group, including people who join later | [A Smart group grant](#group-grant) |
-| A permanent different limit for one person | [An own limit](#own-limit) |
-| The same raise every month | [A group grant or a scheduled grant](#monthly-top-up) |
+| A different monthly allowance for a person or team, every month | [A grant with no end date](#monthly-allowance) |
+| A permanent different limit for one person, in the policy | [An own limit](#own-limit) |
+| A set amount more than the budget, even if the budget changes | [An extra grant](#raise-by-amount) |
 | Give heavy users a little more, automatically | [Automatic raises](#automatic-raises) |
 | Stop a runaway chat or agent | [A conversation or agent cap](#conversation-agent-caps) |
 | Know who will run out before they do | [Forecasts and grants ending soon](#running-out) |
@@ -127,9 +128,9 @@ The grant shows on the **Grants** tab with **Raised** or **Lowered**, the new an
 
 ![Active grant on the Grants tab](/img/llm-gateway/ui/budget-grant-list.png)
 
-A grant takes effect right away, without publishing. Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, a Smart group grant that covers Dana takes over if there is one; otherwise the limit returns to $100. A new grant for the same person on the same budget replaces the current one. A grant above the highest allowed limit or longer than the longest grant is refused.
+A grant takes effect right away, without publishing, unless it has a later start: then it shows as **scheduled** until that time (`status: scheduled` in the API, where `status=active` lists only grants in effect now). Usage is not reset: Dana's spend so far still counts toward the $250. When the grant ends, a Smart group grant that covers Dana takes over if there is one; otherwise the limit returns to $100. A new grant for the same person on the same budget replaces the current one. A grant above the highest allowed limit or longer than the longest grant is refused.
 
-A grant belongs to one budget. In a per-group budget set, if the person's strongest group changes, a grant on the old group's budget no longer applies to them.
+A grant belongs to one budget. In a per-group budget set, if the person's strongest group changes, a grant on the old group's budget no longer applies to them. Deleting a budget (or a rate limit) revokes its active and scheduled grants, so a budget created later with the same ID starts without them.
 
 ## A raise for a whole group {#group-grant}
 
@@ -162,15 +163,41 @@ Use an exception rather than a grant. Edit the budget, open **More options**, se
 
 ![Exception with an own limit for one person](/img/llm-gateway/ui/budget-own-limit.png)
 
-## The same raise every month {#monthly-top-up}
+## A monthly allowance for a person or team {#monthly-allowance}
 
-**Data Science should get $500 instead of $200 every month.**
+**Priya should always get $300 a month instead of $100, and everyone in Data Science $500.**
 
-Grants do not repeat. Either:
+A grant with no end date on a monthly budget is a permanent limit for that person. The budget still resets every month, and the grant's limit applies to each new month until you revoke it. There is no separate "recurring grant": this is it.
 
-- **Make it permanent.** Give the team its own budget, or give each person an own limit. Nothing to renew.
-- **Grant the group with no end date.** Allow **No end date** on the budget, then give the Smart group a [group grant](#group-grant) without an end. It covers people who join later, and stays until you revoke it.
-- **Grant it on a schedule.** The budget must be counted per person, with grants allowed, a highest allowed limit of at least $500 and a longest grant of at least `31d`. On the first of each month, a job grants every member of the Smart group the new limit until the end of the month:
+```mermaid
+flowchart LR
+    G["Grant for Priya<br/>$300, no end date"] --> N["November<br/>limit $300"]
+    G --> D["December<br/>limit $300"]
+    G --> J["January<br/>limit $300"]
+    N -. "usage resets" .-> D
+    D -. "usage resets" .-> J
+```
+
+1. Once per budget: under **Allow grants for this budget**, tick **No end date allowed** (`adjustments.max_duration: "unlimited"` in the API) and set a **Highest allowed limit** at least as high as the largest allowance. Publish.
+2. On the **Grants** tab, select **New grant**:
+   - **For one person:** choose **A person**, enter the limit and choose no end date.
+   - **For a team:** choose **Members of a smart group** and pick the group. The grant follows membership: people who join get it, people who leave lose it. A person's own grant still wins over the group's.
+
+With the API, leave out `expires_at`:
+
+```bash
+curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants" \
+  -H "Authorization: Bearer $QUILR_MANAGEMENT_KEY" \
+  -H "Idempotency-Key: ds-monthly-allowance" \
+  -H "Content-Type: application/json" \
+  -d '{"subject": {"members_of": "Data Science"}, "limit": "500", "reason": "Data Science monthly allowance"}'
+```
+
+The grant reads back with `no_end_date: true`. To change the allowance, change the grant; to end it, revoke it.
+
+### A different amount for one month only {#monthly-top-up}
+
+To give a group more for a single month, grant it with a start and an end. The budget must allow grants with a **Longest grant** of at least `31d`. You can create it before the month starts: it shows as **scheduled** until `starts_at`, and the grant in effect keeps applying until its own end or the new grant's start, whichever comes first.
 
 ```bash
 curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants/_bulk" \
@@ -179,19 +206,40 @@ curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants/_bu
   -H "Content-Type: application/json" \
   -d '{
         "subjects_from": {"smart_group": "Data Science"},
-        "limit": "500",
+        "extra": "300",
         "starts_at": "2026-12-01T00:00:00Z",
         "expires_at": "2026-12-31T23:59:59Z",
-        "reason": "Monthly data science allowance"
+        "reason": "December launch"
       }'
 ```
 
-- The key needs the `budgets:grant` scope. Use a new `Idempotency-Key` each month (and each batch), and reuse it only to retry the same call.
-- A grant sets the limit; it does not add to it. Send the full amount.
-- One call grants up to 1,000 people; a larger Smart group is refused as a whole. For more people, send batches of up to 1,000 under `grants`, each item just `{"subject": {"user": "..."}}`: the top-level `limit`, dates and `reason` apply to every item.
+- The key needs the `budgets:grant` scope. Use a new `Idempotency-Key` for each call, and reuse it only to retry the same call.
+- `subjects_from` gives each current member their own grant (up to 1,000 people; a larger group is refused as a whole). For more people, send batches of up to 1,000 under `grants`, each item just `{"subject": {"user": "..."}}`: the top-level amount, dates and `reason` apply to every item. People who join later are not covered; a `members_of` grant covers them.
 - Each person succeeds or fails on their own; check `errors` in the response.
-- People who join the group later need the next run or a grant of their own. A [group grant](#group-grant) covers them right away.
-- You can run the job before the month starts: the current grant keeps applying until its own end or the new grant's `starts_at`, whichever comes first.
+
+## Raise by an amount {#raise-by-amount}
+
+**Dana should get $50 more than the per-person budget this month.**
+
+A grant takes exactly one of two amounts (in the API):
+
+| Field | Meaning | Budget limit later changes from $100 to $120 |
+|---|---|---|
+| `limit` | The person's limit, absolute. | Dana stays at the granted limit. |
+| `extra` | Added on top of the budget's limit. | Dana's limit follows: $150, then $170. |
+
+```bash
+curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets/$BUDGET_ID/grants" \
+  -H "Authorization: Bearer $QUILR_MANAGEMENT_KEY" \
+  -H "Idempotency-Key: dana-extra-2026-11" \
+  -H "Content-Type: application/json" \
+  -d '{"subject": {"user": "dana@example.com"}, "extra": "50", "expires_at": "2026-11-30T23:59:59Z", "reason": "Launch week"}'
+```
+
+- The budget's **Highest allowed limit** still caps the result. A grant whose budget limit plus `extra` is above it is refused (`422 grant_above_ceiling`); if the budget limit rises later, the limit stops at the highest allowed limit.
+- Reads show the resulting `limit` and the `extra` amount.
+- Changing a grant with `limit` makes it absolute; changing it with `extra` makes it follow the budget again.
+- Bulk grants take a top-level `limit` or `extra`, and each item may override it with its own.
 
 ## Raise limits automatically {#automatic-raises}
 
@@ -221,6 +269,25 @@ Use the **Cap each conversation**, **Daily cap per agent** or **Cap each agent r
 Conversations and agent runs end, so these start as a **One-time allowance (never resets)**; change **Resets** if you want a period instead.
 
 ![A $20 one-time allowance for each conversation](/img/llm-gateway/ui/budget-conversation-cap.png)
+
+With the API, a per-conversation cap is a `lifetime` window. A lifetime budget never resets, so a new one must also send `"one_time": true` to confirm it (`422 lifetime_requires_one_time` otherwise). `"missing_id": "refuse"` refuses requests that carry no conversation id:
+
+```bash
+curl -X POST "$QUILR_BASE/llmgateway/management/v1/budgets" \
+  -H "Authorization: Bearer $QUILR_MANAGEMENT_KEY" \
+  -H "Idempotency-Key: conversation-cap-v1" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "id": "conversation_cap",
+        "label": "No conversation over 20 USD",
+        "metric": "spend_usd",
+        "limit": "20",
+        "per": ["user", "conversation"],
+        "window": {"kind": "lifetime"},
+        "one_time": true,
+        "missing_id": "refuse"
+      }'
+```
 
 An id you send always wins:
 
