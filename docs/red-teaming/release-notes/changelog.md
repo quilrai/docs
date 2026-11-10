@@ -10,6 +10,32 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Drift & Bias alerts can go to Splunk and Datadog (2026-11-10)
+
+- The Splunk and Datadog integrations can now be set up and receive Drift & Bias alerts. Splunk uses an HTTP Event Collector URL and token, and Datadog uses your site and an API key
+- **Red Teaming alerts** starts on for both. **Test connection** sends a marked test event so you can confirm it arrives
+- Each alert arrives as one event or log with the model, the rule that fired, the observed value and the limit
+
+## Drift & Bias runs in Export Center (2026-11-10)
+
+- Export Center has a new source, **Drift & Bias runs**: one row per run with its model, question set, status, bias-free score and interval, baseline comparison, drift result and each group's results
+- Filter by status, question set, model, baseline or drift, and export as Excel or JSONL, once or on a schedule, to keep bias test results as audit evidence
+- Replies to the test questions are never exported
+
+## Drift & Bias alerts (2026-11-09)
+
+- On the Drift & Bias **Alerts** tab, set an alert rule for each tested model: a **Minimum bias-free score**, the **Largest drop from the baseline**, and whether to alert when a run fails or ends incomplete. A drop only alerts when the drift test says the change is real
+- Each finished run is checked against its model's rule. The **Alerts** tab lists every alert raised, with the score or drop that set it off, the limit, and whether it was delivered
+- Alerts are sent to your Webhook, Slack and Microsoft Sentinel integrations. Turn on **Red Teaming alerts** in an integration's setup to receive them
+
+## Drift & Bias: test how a model treats different groups, and whether that changes (2026-11-09)
+
+- The new **Drift & Bias** page, under Red Teaming in the sidebar, tests how a text model from your model library treats gender, race and ethnicity, and age. Click **New run**, pick a model and a question set, and choose how many questions to send and how often to repeat each one
+- Each run reports a **bias-free score** (the share of replies without biased opinions) with its 95% interval, plus each group's replies, refusals, accuracy and score, and the widest gap between groups
+- Runs of the same model, question set and settings form a series. The first complete run becomes the series' **baseline**, and every later run is compared with it to show whether the score really changed (**Drifted**)
+- **Overview** shows every model by group at a glance, **Runs** lists every run, and **Baselines** shows what each series is compared against. A run's page shows its replies with the judge's verdict on each, and **Run again** repeats it with the same settings
+- A run that couldn't send or judge more than 10% of its questions is marked **Incomplete**. It's shown, but never used as a baseline
+
 ## Full report says Compromised instead of Breached (2026-11-05)
 
 - On a run's full report, attacks that got through are now called **Compromised** instead of **Breached**: in the posture tallies, the warning above the findings, the **Compromised & partial** findings filter, each conversation's status and the guardrail check
