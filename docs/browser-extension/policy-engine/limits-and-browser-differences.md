@@ -91,7 +91,7 @@ If a scan does not answer in time, the action fails open: it continues as if it 
 
 | Activity | Time limit |
 |---|---|
-| Prompt, Gmail send or chatbot post | 3 seconds, while the send is held, or up to 12 seconds while the extension is still starting. A later result is not applied. |
+| Prompt, Gmail send or chatbot post | 3 seconds, while the send is held, or up to about 15 seconds while the extension is still starting. A later result is not applied. |
 | Copy or paste content scan | 10 seconds |
 | File upload content scan | 4 minutes per file, about 5.5 minutes per upload |
 

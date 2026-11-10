@@ -74,7 +74,7 @@ A **Monitor** or **Enforce** control on **AI application blocked by organisation
 3. Review the confirmation. Records already in that state, or that do not support the action, are unselected. To skip a row, clear its checkbox; this skips every record in that row.
 4. Select the action button, for example **Block**.
 
-One submit queues up to 100 apps, which update in the background in about 3 minutes. While they run, the Inventory header shows **N app updates in progress**; **All app updates are complete** appears when they finish.
+One submit queues up to 100 apps, which update in the background in about 3 minutes. The Inventory header shows **N app updates in progress**, and then **All app updates are complete**, only when you open Inventory while updates are still pending. They usually do not appear on the page where you submitted.
 
 ## Turn off a detection for one app
 

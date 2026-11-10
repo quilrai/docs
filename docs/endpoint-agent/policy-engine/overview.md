@@ -46,7 +46,7 @@ To open it, go to **Govern > Policy Engine**, select **Endpoint Agent** in the w
 Only Sensitive data and Files use policies. Skills, Apps and Accounts have their own editors, and Packages is set in **Settings > Endpoint Agent**. See [Files, Skills, Packages, Apps and Accounts](./files-skills-packages-apps-accounts).
 
 :::note
-Policies and controls apply only to the AI apps and browsers chosen under **Application Monitoring** in **Settings > Endpoint Agent**. See [Application Monitoring is off for the app](./how-policies-are-evaluated#application-monitoring-is-off-for-the-app).
+Policies and controls apply only to the AI apps and browsers chosen under **Application Monitoring** in **Settings > Endpoint Agent**. Older agents keep some checks for an app that is off. See [Application Monitoring is off for the app](./how-policies-are-evaluated#application-monitoring-is-off-for-the-app).
 :::
 
 ## How the page is laid out

@@ -98,7 +98,7 @@ To see only Endpoint Agent records, set the **Sensor** filter to **Endpoint Agen
 
 <ConsolePath console="QuilrAI Console" path={['Observe', 'Findings & Interactions']} />
 
-In AI apps, every inspected request is recorded. In coding tools, an allowed check with no sensitive data is not recorded.
+In AI apps, the Endpoint Agent reports every request it inspects. A report that fails to send three times, or is still waiting to send when the agent stops or restarts, is dropped, so that request does not appear. In coding tools, an allowed check with no sensitive data is not recorded.
 
 ### What makes a finding
 
@@ -193,7 +193,7 @@ Days are UTC calendar days. A coverage line under the tiles, such as **Based on 
 - **Test with new content each time.** The same content sent to an AI app again within about 2 minutes can get no new popup or finding. See [Behavior that can change a result without a message](./limits-and-behavior#behavior-that-can-change-a-result-without-a-message).
 - **The Browser Extension can check the same prompt.** In a browser that both products monitor, each applies its own policies, so one prompt can show two popups and record two findings.
 - **Reasons stay on the finding.** They are not sent to [Action requests](../../console/govern/action-requests), which handles Browser Extension requests only.
-- **Apps with Application Monitoring off** record no new activity. Existing findings stay.
+- **Apps with Application Monitoring off** stop recording new activity, with the exceptions in [Application Monitoring is off for the app](./how-policies-are-evaluated#application-monitoring-is-off-for-the-app). Existing findings stay.
 
 ## Related pages
 
