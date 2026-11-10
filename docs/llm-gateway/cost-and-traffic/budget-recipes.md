@@ -148,6 +148,8 @@ On a budget counted **per person** with grants allowed, choose **New grant**, th
 
 ![Members with limits from a group grant and one person's own grant](/img/llm-gateway/ui/budget-group-grant-members.png)
 
+On the **Grants** tab, each group grant shows how many members it covers, how many have their own grant or another group's, and how many are at the limit. **View N members** lists every member, including those who have not used the budget yet. In the API: `GET /budgets/{id}/usage?members_of=<group>` (each row has `limit_source`), and `members` on group grants.
+
 Group grants work only on budgets counted per person.
 
 ## A permanent different limit for one person {#own-limit}
@@ -218,7 +220,7 @@ Conversations and agent runs end, so these start as a **One-time allowance (neve
 
 ![A $20 one-time allowance for each conversation](/img/llm-gateway/ui/budget-conversation-cap.png)
 
-The caller declares the ids:
+An id you send always wins:
 
 | Who | Request header | Or in the body |
 |---|---|---|
@@ -226,7 +228,27 @@ The caller declares the ids:
 | Each agent | `x-quilr-agent-id` | `metadata.agent_id` |
 | Each agent run | `x-quilr-agent-run-id` | `metadata.agent_run_id` |
 
-- A request without the id is not counted by that budget. Ids are 1 to 256 characters.
+Without one, the gateway uses the id the client already sends, so most coding tools and agent platforms need no change:
+
+| Who | Ids the gateway recognises, first match wins |
+|---|---|
+| Each conversation | Responses API `conversation`, Claude Code session, Microsoft Copilot Studio conversation, Codex and OpenCode sessions, body `metadata.session_id`, OpenClaw sessions, `x-session-id`, `session-id`, `thread-id`, `x-agent-thread-id`, Helicone, Cloudflare AI Gateway and TrueFoundry session ids |
+| Each agent | `x-agent-id`, Claude Code subagent, Copilot Studio agent, OpenClaw scheduled job |
+| Each agent run | `x-agent-run-id`, Codex parent thread, `x-agent-task-id`, `x-task-id`, `agent-session-id` |
+
+```mermaid
+flowchart LR
+    R["Request"] --> E{"x-conversation-id or<br/>metadata.conversation_id?"}
+    E -->|yes| C["Counted for that conversation"]
+    E -->|no| K{"A client id the<br/>gateway recognises?"}
+    K -->|yes| C
+    K -->|no| M{"Refuse requests<br/>without an id?"}
+    M -->|no| S["Not counted by this budget"]
+    M -->|yes| X["400 quota_id_required"]
+```
+
+- A coding tool's session can last many hours, so for those tools a conversation cap works as a cap per tool session.
+- A request without any id is not counted by that budget. To refuse it instead, tick **Refuse requests that have no conversation id** (or agent id, agent run id) under **Who**, or **Missing id** when editing: the gateway answers `400 quota_id_required` and lists the ids it accepts. Ids are 1 to 256 characters.
 - Spend is counted when a request completes, so requests already in flight can take a conversation past its allowance before the next one is refused.
 - A conversation cap is counted per person too, so two people reusing an id do not share a counter.
 - Ids come from the caller, so a cap is a guard against runaway loops, not a security boundary: keep a per-person or per-app budget alongside it.

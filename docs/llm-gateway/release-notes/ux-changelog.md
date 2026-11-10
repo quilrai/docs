@@ -10,6 +10,13 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Budgets: client conversation ids and group grant members (2026-11-11)
+
+- **Conversation and agent caps work with coding tools as they are**: besides `x-conversation-id` and `x-quilr-agent-id`, the gateway counts the session and agent ids that Claude Code, Codex, OpenCode, Copilot Studio, OpenClaw and others already send
+- **Refuse requests that have no conversation id** (or agent id): such a request gets `400 quota_id_required` instead of going uncounted
+- **Smart group grant members**: each group grant on the **Grants** tab shows how many members it covers, who has their own grant, and who is at the limit; **View N members** opens the members' usage
+- Details: [Cap a conversation or an agent](../cost-and-traffic/budget-recipes#conversation-agent-caps)
+
 ## Budgets: group grants, automatic raises, caps and forecasts (2026-11-10)
 
 - **Smart group grants**: give every member of a Smart group a different limit, including people who join later; a person's own grant wins
