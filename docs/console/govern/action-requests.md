@@ -101,12 +101,12 @@ If some requests can't be decided, the dialog shows how many failed and why. The
 The action is blocked again for that person. Their earlier requests for the same application and action move to the **Rejected** tab, with your name and reason.
 
 :::tip
-If you keep approving the same kind of request, the control may be too strict. Review it in [Browser controls](../../browser-extension/configure/browser-controls) instead of approving case by case.
+If you keep approving the same kind of request, the control may be too strict. Review it in [Browser controls](../../browser-extension/policy-engine/browser-controls) instead of approving case by case.
 :::
 
 ## Related
 
-- [Browser controls](../../browser-extension/configure/browser-controls) - set a control to ask for a justification
+- [Browser controls](../../browser-extension/policy-engine/browser-controls) - set a control to ask for a justification
 - [User Interaction Hub](../settings-sensors/user-interaction-hub) - word the justification popup people see
 - [Policy Engine](./policy-engine) - Browser Extension controls
 - [Audit logs](../settings-organization/audit-logs) - every decision is recorded as **Decide Action Approval**

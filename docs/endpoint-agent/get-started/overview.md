@@ -13,12 +13,12 @@ The QuilrAI Endpoint Agent discovers and governs AI use that happens outside the
 
 | Area | What the agent does |
 | --- | --- |
-| Desktop AI apps | Finds installed and running AI apps (for example ChatGPT, Claude, Copilot, Gemini) and applies per-app policies. |
+| Desktop AI apps | Finds installed and running AI apps (for example ChatGPT, Claude, Copilot, Gemini) and applies your [Endpoint Agent policies](../policy-engine/overview). |
 | Coding agents | Discovers tools such as Cursor and Claude Code, plus their hooks, plugins, and configuration files. |
 | Local models | Detects local model runtimes such as Ollama and LM Studio, and downloaded models. |
 | MCP servers and skills | Inventories MCP server configurations and agent skills on the device. |
 | Network monitoring | Inspects AI traffic with TLS inspection, runs DLP on requests and responses, and can block or ask for justification. See [Network monitoring](../how-it-works/network-monitoring). |
-| Process mapping | Maps running processes to known applications and enforces allow, block, quarantine, or justify policies. See [Process mapping](../how-it-works/process-mapping). |
+| Process mapping | Maps running processes to known applications and enforces app rules that allow or block an application. See [Process mapping](../how-it-works/process-mapping). |
 
 ## Where the data shows up
 
@@ -34,7 +34,7 @@ The QuilrAI Endpoint Agent discovers and governs AI use that happens outside the
 
 1. Check the [requirements](./requirements) for your endpoints.
 2. Get the agent packages from your QuilrAI representative and [roll them out](../deploy-and-operate/deployment-and-status), following the step-by-step [installation SOP](../deploy-and-operate/installation-sop).
-3. Review [agent settings](../configure/agent-settings) and set [app policies](../configure/app-policies).
+3. Review [agent settings](../configure/agent-settings) and set up the [Endpoint Agent Policy Engine](../policy-engine/overview).
 4. Keep the [kill switch](../deploy-and-operate/agent-kill-switch) procedure handy for incidents.
 
 :::note

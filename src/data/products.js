@@ -125,7 +125,7 @@ export const products = [
     tasks: [
       {title: 'Deploy with Intune', desc: 'Or Jamf Pro and Group Policy', to: '/browser-extension/deploy/microsoft-intune'},
       {title: 'Choose what to monitor', desc: 'All domains or work domains only', to: '/browser-extension/configure/extension-settings'},
-      {title: 'Write a browser control', desc: 'Monitor or act when a use case happens', to: '/browser-extension/configure/browser-controls'},
+      {title: 'Write a browser control', desc: 'Monitor or act when a use case happens', to: '/browser-extension/policy-engine/browser-controls'},
       {title: 'Handle action requests', desc: 'Approve or reject user justifications', to: '/console/govern/action-requests'},
     ],
   },
@@ -145,7 +145,7 @@ export const products = [
     tasks: [
       {title: 'Check requirements', desc: 'Operating systems, network and permissions', to: '/endpoint-agent/get-started/requirements'},
       {title: 'Roll out the agent', desc: 'Deploy and watch coverage', to: '/endpoint-agent/deploy-and-operate/deployment-and-status'},
-      {title: 'Set app policies', desc: 'Per-app monitoring and guardrails', to: '/endpoint-agent/configure/app-policies'},
+      {title: 'Set app policies', desc: 'Per-app monitoring and guardrails', to: '/endpoint-agent/policy-engine/overview'},
       {title: 'Turn the agent off fast', desc: 'Per device or tenant-wide', to: '/endpoint-agent/deploy-and-operate/agent-kill-switch'},
     ],
   },

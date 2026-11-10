@@ -25,7 +25,7 @@ The table lists every entry with its **Domain or pattern** and **Description**, 
 ## Good practice
 
 - Keep the list short. Each entry is a site the extension stops watching, so prompts and uploads there are not inspected.
-- Do not allowlist public AI applications to silence noisy findings. Tune the [browser control](./browser-controls) or the [detection model](../../console/govern/detection-models) instead.
+- Do not allowlist public AI applications to silence noisy findings. Tune the [browser control](../policy-engine/browser-controls) or the [detection model](../../console/govern/detection-models) instead.
 - Record the reason in **Description** so reviewers can tell later whether the entry is still needed.
 - Review the list on a regular schedule and remove entries that are no longer required.
 

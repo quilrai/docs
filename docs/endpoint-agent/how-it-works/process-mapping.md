@@ -51,7 +51,7 @@ Discovered items appear in [Inventory](../../console/observe/inventory), [Agents
 | **Quarantine** | The executable is renamed in place (it can be restored) and the event is logged. |
 | **Justify** | The user is asked for a justification before continuing. |
 
-Policies come from the console (approval status, execution policy, and criticality per application). See [App policies](../configure/app-policies). Every decision and enforcement action is recorded for audit.
+App rules are set under **Apps** in the Endpoint Agent Policy Engine, for everyone, a Smart Group or one person. See [Apps](../policy-engine/files-skills-packages-apps-accounts#apps). Every decision and enforcement action is recorded for audit.
 
 ## How it works
 

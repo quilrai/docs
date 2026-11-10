@@ -10,7 +10,7 @@ aliases: [policy engine, policy studio, quilrql, llm gateway policies, mcp gatew
 
 # Policy Engine overview
 
-Updated on 3 November 2026.
+Updated on 10 November 2026.
 
 Use the Policy Engine to decide who can use your gateways, what requests are checked, and what may return. Open **Govern > Policy Engine**, then choose **LLM Gateway** or **MCP Gateway**.
 
@@ -20,7 +20,7 @@ Use the Policy Engine to decide who can use your gateways, what requests are che
 
 ## Policy workspaces {#the-four-surfaces}
 
-The workspace selector shows **LLM Gateway**, **MCP Gateway**, **Endpoint Agent**, and **Cloud & SaaS**. This guide covers the two gateways. For other enforcement surfaces, see [Endpoint app policies](../../endpoint-agent/configure/app-policies) and [Browser controls](../../browser-extension/configure/browser-controls).
+The workspace selector shows **LLM Gateway**, **MCP Gateway**, **Endpoint Agent**, and **Cloud & SaaS**. This guide covers the two gateways. The **Endpoint Agent** workspace has its own guides, linked under [Endpoint Agent workspace](#endpoint-agent).
 
 ### Gateway workspaces {#llm-gateway-and-mcp-gateway}
 
@@ -40,13 +40,16 @@ Open a control to see its default, how rules combine, and the rules already conf
 
 Edits saved to the draft do not change live traffic. Use **Review & publish** to publish the pending changes together. See [Author, simulate and publish](./author-simulate-and-publish).
 
+### Endpoint Agent workspace {#endpoint-agent}
+
+The **Endpoint Agent** workspace has a **Desktop** | **Browser** switch under the page title. The two sides are separate: turning on, pausing or publishing on **Desktop** does not change Browser controls.
+
+- **Desktop** is the Endpoint Agent Policy Engine. It governs what people send to AI apps, what coding tools do, and which apps and accounts people can use on employee devices. It has its own on, off and paused states. Sensitive data and Files policies go live through a draft and **Review & publish**, as in the gateway workspaces. Skills, Apps and Accounts save at once. See [Endpoint Agent Policy Engine](../../endpoint-agent/policy-engine/overview).
+- **Browser** holds the Browser Extension's controls. See [Browser controls](#browser-extension).
+
 ### Browser controls {#browser-extension}
 
-See [Browser controls](../../browser-extension/configure/browser-controls) for browser-specific conditions, actions, and modes.
-
-### Endpoint Agent
-
-See [App policies](../../endpoint-agent/configure/app-policies) for application monitoring and device policy configuration.
+Browser controls are the rules the QuilrAI Browser Extension applies inside each user's browser. They save at once and have no draft, test, publish step or version history. Browsers pick up a change within about 2 minutes. See [Browser Extension policy engine](../../browser-extension/policy-engine/overview).
 
 ## Test a situation {#describe-a-request}
 
