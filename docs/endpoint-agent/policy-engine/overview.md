@@ -5,7 +5,7 @@ sidebar_custom_props:
   icon: ListChecks
 description: "What the Endpoint Agent Policy Engine controls on employee devices, where to find it, its on, off and paused states, how changes go live and reach devices, and who can make them."
 console_path: /policy/engine/endpoint-agent
-aliases: [endpoint agent policy engine, endpoint agent policies, endpoint policies, desktop policies, device policies, desktop controls, endpoint controls, policy engine endpoint agent]
+aliases: [endpoint agent policy engine, endpoint agent policies, endpoint policies, desktop policies, device policies, desktop controls, endpoint controls, policy engine endpoint agent, app policies, detection configurations, application configuration, application rules]
 ---
 
 # Endpoint Agent Policy Engine
