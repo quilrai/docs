@@ -43,7 +43,7 @@ Prove the extension, native agent, browser policy, network path, console registr
 
 5. Open **Users › Browser deployment**. Confirm the user is reporting and compare the browser and extension version with the endpoint.
 
-6. Run an approved positive synthetic test and a negative test. Confirm the visible action matches Monitor or Action mode and that the finding contains the expected user, AI asset, control, source, and outcome.
+6. Run an approved positive synthetic test and a negative test. Confirm the visible action matches Monitor or Enforce mode and that the finding contains the expected user, AI asset, control, source, and outcome.
 
 7. For Endpoint Agent coverage, repeat the console health and telemetry checks in **Users › Endpoint deployment**. See [Endpoint Agent deployment and status](../../endpoint-agent/deploy-and-operate/deployment-and-status).
 

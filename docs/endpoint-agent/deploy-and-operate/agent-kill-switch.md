@@ -23,13 +23,17 @@ QuilrAI has three separately installed components on a device. Each switch stops
 
 | Switch | Where | Stops | Scope | Time to effect |
 | --- | --- | --- | --- | --- |
-| **Tenant Enable or Disable** | **Settings › Endpoint Agent** | Endpoint Agent | Every device in the tenant | Next check-in, about 2 minutes |
+| **Endpoint Agent** switch | **Settings › Endpoint Agent** | Endpoint Agent | Every device in the tenant | Next check-in, about 2 minutes |
 | **Workstation Disable** | **Users › Endpoint deployment** | Endpoint Agent | Selected workstations | Next check-in, about 2 minutes |
 | **Local stop** | On the device (commands below) | Endpoint Agent service | One device | Immediate |
 | **Browser Extension on or off** | **Settings › Browser Extension** | Browser Extension | Every managed browser | See [Extension settings](../../browser-extension/configure/extension-settings) |
 | **Browser Agent kill switch** | Browser Extension | The extension's native Browser Agent | One device | See [Browser Agent kill switch](../../browser-extension/capabilities/agent-kill-switch) |
 
 The Endpoint Agent ignores the Browser Extension's flags, and the Browser Extension switches do not stop the Endpoint Agent. To stop everything on a device, use the Endpoint Agent and the Browser Extension switches together.
+
+:::note Stop blocking without stopping the agent
+The kill switch stops all monitoring, detection and enforcement by the Endpoint Agent. To stop Endpoint Agent Policy Engine rules from blocking while the agent keeps monitoring and recording findings, use **Pause enforcement** instead. Turning the Policy Engine off or pausing it never starts or stops the agent. See [Turn on, turn off and pause](../policy-engine/turn-on-off-and-pause#pause-and-resume-enforcement).
+:::
 
 **Precedence.** The agent runs only when both the tenant flag and its workstation flag are on. If the tenant flag is off, every device stays disabled whatever its workstation flag says. The two flags are stored separately: turning the tenant back on does not change any workstation flag.
 
@@ -45,7 +49,7 @@ To restore, select the workstation and choose **Enable**.
 
 ## Disable the whole tenant
 
-1. Open **Settings › Endpoint Agent** and turn **Enable or Disable** off. See [Agent settings](../configure/agent-settings).
+1. Open **Settings › Endpoint Agent** and turn the **Endpoint Agent** switch off. See [Agent settings](../configure/agent-settings).
 2. Every agent picks up the change at its next check-in, about every 2 minutes.
 
 To restore, use the [canary sequence](#restore-with-a-canary) below rather than turning the tenant flag straight back on.

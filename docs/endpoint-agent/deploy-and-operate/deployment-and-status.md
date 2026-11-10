@@ -102,7 +102,7 @@ A running agent checks in with QuilrAI about every 2 minutes.
 
 Select one or more workstations and use the bulk **Enable** or **Disable** action. The action applies to every session on the workstation; a workstation whose sessions differ shows as **Mixed sessions**.
 
-To turn the agent off for the whole tenant instead, use **Enable or Disable** in [Agent settings](../configure/agent-settings). For incident handling, timing and recovery, see [Agent kill switch](./agent-kill-switch).
+To turn the agent off for the whole tenant instead, use the **Endpoint Agent** switch in [Agent settings](../configure/agent-settings). For incident handling, timing and recovery, see [Agent kill switch](./agent-kill-switch).
 
 ## Confirm a healthy rollout
 

@@ -225,5 +225,7 @@
   "/console-v1/deployment": "/browser-extension/get-started/prerequisites",
   "/console/settings-ai-gateway/workflow-agents": "/workflow-agents/get-started/overview",
   "/console/settings-sensors/end-user-popups": "/console/settings-sensors/user-interaction-hub",
-  "/llm-gateway/apps-and-providers/mistral-and-xai": "/llm-gateway/apps-and-providers/provider-support#xai-and-mistral"
+  "/llm-gateway/apps-and-providers/mistral-and-xai": "/llm-gateway/apps-and-providers/provider-support#xai-and-mistral",
+  "/endpoint-agent/configure/app-policies": "/endpoint-agent/policy-engine/overview",
+  "/browser-extension/configure/browser-controls": "/browser-extension/policy-engine/browser-controls"
 }

@@ -37,7 +37,7 @@ Policy changes you make in the console reach the agent on the next delta sync an
 
 1. Discovered apps appear in [Inventory](../../console/observe/inventory) within the first discovery cycle.
 2. The device appears in **Users › Endpoint deployment** with a recent **Last registered** time (the last time the agent checked in). See [Deployment and status](../deploy-and-operate/deployment-and-status).
-3. After you change an [app policy](../configure/app-policies), the agent applies it within about a minute.
+3. After you save an [app access rule](../policy-engine/files-skills-packages-apps-accounts#apps), the agent applies it within about a minute.
 
 ## Offline behavior
 

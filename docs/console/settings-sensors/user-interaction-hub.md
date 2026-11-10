@@ -157,6 +157,6 @@ Clear messages get better justifications and fewer support tickets.
 ## Related
 
 - [Action requests](../govern/action-requests) - review the reasons people give when they justify an action
-- [Browser controls](../../browser-extension/configure/browser-controls) - the controls that show popups
+- [Browser controls](../../browser-extension/policy-engine/browser-controls) - the controls that show popups
 - [Organizational policies](../settings-organization/organizational-policies)
 - [Roles and permissions](../settings-organization/roles-and-permissions)

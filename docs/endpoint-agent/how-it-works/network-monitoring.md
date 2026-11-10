@@ -52,7 +52,7 @@ Transparent redirection is turned on from the QuilrAI dashboard; configuration r
 | **Content extraction** | Domain-specific rules (JSONPath, regex selectors) that pull the prompt text out of each app's traffic. |
 | **File upload limits** | Small uploads (up to 1 MB) are buffered in memory, medium (up to 10 MB) spill to disk, large (over 10 MB) are scanned partially. |
 
-Policy changes reach agents in real time; no restart is needed. App-level policies are set in [App policies](../configure/app-policies).
+Policy changes apply without a restart. Policies are set in the [Endpoint Agent Policy Engine](../policy-engine/overview). For how long each kind of change takes, see [How changes reach devices](../policy-engine/overview#how-changes-reach-devices).
 
 ## How a request is processed
 

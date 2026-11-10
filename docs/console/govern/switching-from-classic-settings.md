@@ -20,7 +20,7 @@ The configuration guides have a **Classic settings | Policy Engine** switcher. C
 
 The LLM Gateway and the MCP Gateway are each governed **either** by their classic per-application settings **or** by the Policy Engine, never by both. Each has its own switch, so turning on the LLM Gateway engine changes nothing for the MCP Gateway. When a gateway is on the engine, its Policy Engine tab shows **POLICY ENGINE ON**.
 
-For Endpoint Agent configuration, see [App policies](../../endpoint-agent/configure/app-policies).
+The Endpoint Agent has its own Policy Engine switch. Turning it on converts your previous Endpoint settings into policies. See [Turn on, turn off and pause](../../endpoint-agent/policy-engine/turn-on-off-and-pause).
 
 ## The conversion review
 

@@ -1,0 +1,10 @@
+{
+  "label": "Policy engine",
+  "position": 3.5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Scale"
+  }
+}

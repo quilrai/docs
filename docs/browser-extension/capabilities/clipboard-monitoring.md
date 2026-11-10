@@ -38,7 +38,7 @@ Clipboard settings are managed with your QuilrAI representative and pushed to th
 
 ## Policy actions
 
-The extension evaluates its DLP rules against the clipboard content (by content category, size, or custom regex). Clipboard rules are browser controls: open **Govern › Policy Engine › Browser Extension** and add or edit a control whose use case is **A user is copying to clipboard** (see [Browser controls](../configure/browser-controls)). The same rule set applies to text, files, and images.
+The extension evaluates its DLP rules against the clipboard content (by content category, size, or custom regex). Clipboard rules are browser controls: open **Govern › Policy Engine**, choose **Endpoint Agent**, then **Browser**, and add or edit a control whose use case is **A user is copying to clipboard** (see [Browser controls](../policy-engine/browser-controls)). The same rule set applies to text, files, and images.
 
 | Action | What happens |
 | --- | --- |
