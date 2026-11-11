@@ -139,7 +139,7 @@ Once the connector shows **Connected** in the console:
 
 1. Open **Provider configuration** in LLM Gateway and add or configure the provider for your model endpoint. For an OpenAI-compatible model server, use **Custom endpoint** with **Chat completions**. See [Providers and Models](./providers-and-models).
 2. Enter the model endpoint's private **Base URL**, credentials, and model IDs.
-3. Under **Connection route**, select **Via Remote Connector** and choose your connector.
+3. Under **Network route**, choose your connector under **Remote connectors**.
 4. Save the provider and link it to an app.
 
 The base URL must be reachable from the connector. For example:
@@ -156,4 +156,5 @@ Your application continues to call the LLM Gateway with its Quilr key. Send a te
 
 - [Providers and Models](./providers-and-models) - configure providers and link them to apps.
 - [Provider Support](./provider-support) - choose the provider type and credentials for your endpoint.
+- [GPU connectors](./gpu-connectors) - run the LLM Gateway on your own GPU servers and run providers there.
 - [MCP Gateway remote connectors](../../mcp-gateway/servers-and-connections/remote-connectors) - the equivalent setup for private MCP servers and APIs.
