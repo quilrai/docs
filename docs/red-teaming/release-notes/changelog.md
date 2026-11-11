@@ -10,6 +10,13 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Live bias checks on real traffic (2026-11-10)
+
+- Turn on **Live bias check** in an app's **Security** settings to have the gateway judge a sample of the model's replies for biased or stereotyped content after they've been returned. Choose the share of replies to judge and the score at which a reply counts as biased. Nothing is blocked or delayed
+- Each model's card has a new **Live bias checks, last 7 days** section: how many replies were judged, how many were flagged, and the flagged share, beside the model's Drift & Bias test results
+- **Drift & Bias → Overview** shows a **Live bias, 7 days** figure for all your apps and, under each model, its live rate next to its test-run score
+- Model cards now have **Download Markdown** and **Save as PDF** buttons. Each download is still recorded in the audit log
+
 ## Model cards for your models (2026-11-10)
 
 - Every model in your model library now has a **model card**. For your own providers, open a model and select the **Model card** tab. For models in the QuilrAI catalog, click **Model card** on the model's row
