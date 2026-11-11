@@ -81,12 +81,13 @@ export const products = [
     sub: 'Governed agent-to-agent calls',
     tagline:
       'Put your Agent2Agent (A2A) agents behind one governed endpoint. Callers get keys and grants, every message is scanned for sensitive data, and agent cards stay pinned to the version you approved.',
-    shotCaption: 'A2A Gateway',
-    primary: {label: 'How it works', to: '/a2a-gateway/get-started/a2a-gateway'},
+    shot: '/img/a2a-gateway/agent-page.jpg',
+    shotCaption: 'Console › Settings › AI Gateway › A2A Gateway › agent page',
+    primary: {label: 'Quick start', to: '/a2a-gateway/get-started/quick-start'},
     tasks: [
-      {title: 'Register an agent', desc: 'Card URL, uploaded card or a wrapped platform agent', to: '/a2a-gateway/get-started/a2a-gateway#register-an-agent'},
-      {title: 'Create callers and keys', desc: 'Keys are shown once; grants decide what each caller reaches', to: '/a2a-gateway/get-started/a2a-gateway#callers-keys-and-grants'},
-      {title: 'Call an agent', desc: 'JSON-RPC, HTTP+JSON, agent cards and the catalog', to: '/a2a-gateway/get-started/a2a-gateway#endpoints-a-caller-uses'},
+      {title: 'Register an agent', desc: 'Card URL, uploaded card or a wrapped platform agent', to: '/a2a-gateway/configure/agents'},
+      {title: 'Create callers and keys', desc: 'Keys are shown once; grants decide what each caller reaches', to: '/a2a-gateway/configure/callers'},
+      {title: 'Monitor traffic', desc: 'Logs, tasks, data protection and delegation chains', to: '/a2a-gateway/monitor/logs-tasks-insights'},
       {title: 'Handle errors', desc: 'Gateway error codes and what they mean', to: '/a2a-gateway/get-started/a2a-gateway#error-codes'},
     ],
   },
