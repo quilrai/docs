@@ -73,7 +73,7 @@ Click **Add your own models**. Nothing is saved until the last step. Use **+ Add
 4. Fill in the credentials. See [Provider Support](./provider-support#credentials-by-provider) for each provider's fields.
 5. Click **Check key and list models**.
 
-For a model endpoint inside a private network, use a [Remote Connector](./remote-connectors) and select it under **Connection route**.
+For a model endpoint inside a private network, select a [remote connector](./remote-connectors) or one of your [GPU servers](./gpu-connectors) under **Network route**.
 
 | Tile | API options (gateway provider type) |
 |------|-------------------------------------|

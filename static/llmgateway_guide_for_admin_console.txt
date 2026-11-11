@@ -1,5 +1,5 @@
 QUILR ADMIN CONSOLE (v2) - LLM GATEWAY NAVIGATION GUIDE FOR BROWSING AGENTS
-Updated on 3 November 2026.
+Updated on 11 November 2026.
 Attachment controls and image-risk labels checked against the current console: 2026-11-02.
 Labels below are the exact on-screen text. ">" means "then click".
 
@@ -11,7 +11,8 @@ WHERE
 
 PAGE LAYOUT (Applications tab, top to bottom)
 - Header buttons: Overall analytics | Provider health | Self-service usage | Audit log |
-  Provider configuration | Remote Connectors | Create App (primary) | "..." (More LLM Gateway actions) > Copy all-apps log key
+  Provider configuration | Remote connectors | GPU connectors (needs Integrations read) | Create App (primary) |
+  "..." (More LLM Gateway actions) > Copy all-apps log key
 - Metric strip: REQUESTS (People calling, Models in use, Success; click = analytics) |
   APPLICATIONS (click Active/Inactive/Expired = filter) |
   NEEDS ATTENTION (Not routable / No guardrails / Expiring in 30d = filter) |
@@ -77,10 +78,19 @@ TASK -> WHERE
   Cohere / Jina / Voyage (rerank only), Oracle OCI, Custom endpoint. OpenAI asks "Which API does the
   gateway talk to?" (Chat completions | Responses | Assistants | Realtime). Same flow: Models > Add your own models
 - Change an app's providers/models/fallbacks -> app card > Configure > Providers (LLM Providers section)
-- Connect a private model endpoint -> LLM Gateway > Remote Connectors > create a connector and copy its
+- Connect a private model endpoint -> LLM Gateway > Remote connectors > create a connector and copy its
   qrc_... token (shown once). Run the shared quilr-connector binary or container in the private network.
-  In Provider configuration, set the provider's private Base URL and Connection route > Via Remote Connector,
-  then choose the connected connector. Binary, Docker and Kubernetes examples are in the remote connector docs.
+  In Provider configuration, set the provider's private Base URL, then Network route > Remote connectors >
+  the connected connector. Binary, Docker and Kubernetes examples are in the remote connector docs.
+- Run providers on the organization's own GPU servers (on-premises gateway) -> LLM Gateway > GPU connectors
+  (drawer "GPU connectors"; "GPU connectors aren't available for your organization" = QuilrAI has not turned
+  them on) > New GPU connector: ID* (1-63 lowercase letters, digits or hyphens; permanent, never reused),
+  Name*, IP address, Description, Make this the default server > Add GPU connector (card shows Offline).
+  Card > Generate token > copy Deployment ID and Connector token (qpc_..., shown once) > Done. The server is
+  installed with PRIVATE_DEPLOYMENT_ID = that ID and the token (Kubernetes steps in the GPU connectors docs);
+  the card then shows Online (N instances). Link a provider: its credentials > Network route > GPU servers >
+  the server. Card actions: Edit | Set as default | Disable / Enable | trash icon > Delete connector |
+  Tokens (N active) > Revoke > Revoke token. Status: Online | Degraded | Offline | Status unknown.
 - Set guardrails (PII, secrets, prompt injection, hallucination, source IPs) -> Configure > Guardrails
   (Action mix, Default action, DATA RISKS / adversarial categories; "Copy from another app")
 - Check uploaded files -> workspace Settings > Attachments > Scan attachments (off by default).

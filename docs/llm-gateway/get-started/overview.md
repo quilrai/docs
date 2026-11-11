@@ -65,6 +65,7 @@ Go to **Settings > AI Gateway > LLM Gateway**. The page has two tabs: **Applicat
 | **Audit log** | The gateway workspace on its Audit tab |
 | **Provider configuration** | Your platform providers and their models, with **Add your own models**. The same list as **Settings > AI Gateway > Models > Your models**. See [Providers and Models](../apps-and-providers/providers-and-models). |
 | **Remote connectors** | Connectors for reaching private model endpoints. See [Remote Connectors](../apps-and-providers/remote-connectors). |
+| **GPU connectors** | Your own GPU servers running the LLM Gateway, and their tokens. Shown when you have the Integrations read permission. See [GPU connectors](../apps-and-providers/gpu-connectors). |
 | **Create App** | The Create App wizard. See [Quick Start](./quick-start). |
 | **...** | **Copy all-apps log key**, a read-only key for the [Log Export API](../api-reference/log-export-api) across every app |
 
