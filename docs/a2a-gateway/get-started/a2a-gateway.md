@@ -10,7 +10,7 @@ aliases: [a2a, agent2agent, agent to agent, a2a gateway, agent card, agent catal
 
 # A2A Gateway
 
-Updated on 10 November 2026.
+Updated on 11 November 2026.
 
 The A2A Gateway sits between agents that call each other over the [Agent2Agent (A2A) protocol](https://a2a-protocol.org). Callers (your agents, apps and partners) call the gateway instead of the target agent. Every call is authenticated, checked against the caller's grants and limits, scanned for sensitive data in both directions, and logged with its full payload and delegation chain.
 
@@ -48,7 +48,7 @@ The gateway converts between A2A versions and bindings. A caller on A2A 0.3 JSON
 
 ## Register an agent
 
-An admin registers each target agent once. There are three ways:
+An admin registers each target agent once (step by step: [Quick start](./quick-start) and [Agents](../configure/agents)). There are three ways:
 
 | Kind | What you provide | Notes |
 |---|---|---|
@@ -115,7 +115,7 @@ A caller can also pass the identity of the person it acts for, as a signed JWT i
 
 The gateway checks the signature, issuer, audience and expiry. A missing (when required) or invalid token returns `-31401` with the reason in `error.data.user_token_error`. Tasks created with a user token belong to that user as well as the caller, and the user's email appears in the logs. The token itself is never logged and reaches the agent only through the two user-token outbound modes above.
 
-Per-skill grants (a list of skills instead of "all current and future skills") are available only on skill-routed agents. On those agents, a request must name its skill in `message.metadata.skill_id`. A request with no skill, or a skill outside the grant, is refused, and follow-up messages on a task must keep the task's skill.
+Per-skill grants (a list of skills instead of "all current and future skills") are available only on skill-routed agents. On those agents, a request names its skill in `message.metadata.skill_id`. If the caller can use exactly one skill on the agent, it can leave the skill out: the gateway fills it in and the log marks it as inferred. Otherwise a request with no skill, or with a skill outside the grant, is refused with `-31403`, and follow-up messages on a task must keep the task's skill. `error.data.reason` says why: `skill_required`, `skill_not_granted`, `skill_unknown` (not on the approved card) or `skill_disabled`.
 
 ```json
 {
@@ -172,7 +172,7 @@ The gateway issues its own task and context IDs. The agent's own IDs never reach
 
 `SendStreamingMessage` and `SubscribeToTask` return Server-Sent Events in the caller's version. Every status message and artifact chunk is scanned before it is forwarded.
 
-To catch sensitive data split across chunks, the gateway holds back the last 256 characters of streamed artifact text until the next chunk arrives, the artifact or task ends, or 2 seconds pass. The rest of the stream is forwarded as it arrives. If a chunk is blocked, the stream ends with an error event (`-31451`), the task is marked as blocked, and the gateway asks the agent to cancel it.
+To catch sensitive data split across chunks, the gateway holds back the last 256 characters of streamed artifact text until more text arrives or the artifact or task ends. Text before that tail is scanned and forwarded at least once a second, so small chunks keep flowing while the agent works. If a chunk is blocked, the stream ends with an error event (`-31451`), the task is marked as blocked, and the gateway asks the agent to cancel it.
 
 The gateway sends keepalive comments every 15 seconds on quiet streams.
 
