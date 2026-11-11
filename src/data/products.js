@@ -1,4 +1,4 @@
-// The eight products the docs are organised around. One sidebar per product
+// The products the docs are organised around. One sidebar per product
 // (sidebars.js), one tab per product in the navbar, one landing page per
 // product (docs/<slug>/overview.mdx renders <ProductLanding product="<id>" />).
 //
@@ -70,6 +70,24 @@ export const products = [
       {title: 'Add an MCP server', desc: 'From the library, a URL, or your own API', to: '/mcp-gateway/servers-and-connections/adding-mcp-servers'},
       {title: 'Set up OneMCP', desc: 'One endpoint with dynamic tool calling', to: '/mcp-gateway/get-started/onemcp'},
       {title: 'Lock down tools', desc: 'Who can call what, and what needs approval', to: '/mcp-gateway/protect/server-access'},
+    ],
+  },
+  {
+    id: 'a2a',
+    slug: 'a2a-gateway',
+    name: 'A2A Gateway',
+    navLabel: 'A2A',
+    icon: 'Handshake',
+    sub: 'Governed agent-to-agent calls',
+    tagline:
+      'Put your Agent2Agent (A2A) agents behind one governed endpoint. Callers get keys and grants, every message is scanned for sensitive data, and agent cards stay pinned to the version you approved.',
+    shotCaption: 'A2A Gateway',
+    primary: {label: 'How it works', to: '/a2a-gateway/get-started/a2a-gateway'},
+    tasks: [
+      {title: 'Register an agent', desc: 'Card URL, uploaded card or a wrapped platform agent', to: '/a2a-gateway/get-started/a2a-gateway#register-an-agent'},
+      {title: 'Create callers and keys', desc: 'Keys are shown once; grants decide what each caller reaches', to: '/a2a-gateway/get-started/a2a-gateway#callers-keys-and-grants'},
+      {title: 'Call an agent', desc: 'JSON-RPC, HTTP+JSON, agent cards and the catalog', to: '/a2a-gateway/get-started/a2a-gateway#endpoints-a-caller-uses'},
+      {title: 'Handle errors', desc: 'Gateway error codes and what they mean', to: '/a2a-gateway/get-started/a2a-gateway#error-codes'},
     ],
   },
   {
