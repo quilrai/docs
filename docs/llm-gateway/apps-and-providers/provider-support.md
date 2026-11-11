@@ -162,6 +162,26 @@ Sarvam serves only its chat models here. Its speech and text models use the [Sar
 
 `/anthropic_messages/v1/messages` takes the native Anthropic request shape. Use it with the Anthropic SDKs and Claude Code. Served natively by `anthropic_messages`, `anthropic_messages_bedrock`, `anthropic_messages_azure`, `anthropic` and Claude models on `bedrock`; DeepSeek through its Anthropic-compatible endpoint. Every other conversational provider (for example GPT on Azure OpenAI) is reached through [any-to-any formats](../api-reference/any-to-any-formats).
 
+### Claude Fable 5.2 and Mythos 5.2 {#claude-fable-5-2}
+
+Claude Fable 5.2 and Claude Mythos 5.2 work on the Anthropic, AWS Bedrock and Azure provider types below. Select the model on the provider and send its name as usual. Mythos 5.2 needs an Anthropic organization that Anthropic has verified for it.
+
+| Provider type | Model name |
+|---------------|------------|
+| `anthropic_messages`, `anthropic` | `claude-fable-5-2`, `claude-mythos-5-2` |
+| `bedrock`, `anthropic_messages_bedrock` | An inference profile ID: `global.anthropic.claude-fable-5-2` or `us.anthropic.claude-fable-5-2` (for Mythos, `global.anthropic.claude-mythos-5-2` or `us.anthropic.claude-mythos-5-2`). AWS does not serve these models in a single Region, so the bare `anthropic.` ID is not accepted. Pick a profile your provider's AWS Region supports. |
+| `anthropic_messages_azure` | Your deployment name. A fast-mode deployment (`claude-fable-5-2-fast`) is a separate deployment. |
+
+| Topic | Behavior |
+|-------|----------|
+| Cost | Logged at Anthropic's list price: $8 input and $40 output per million tokens, cache writes $10 (5 minutes) and $16 (1 hour), cache reads $0.20. Fast mode is twice these rates. |
+| Thinking | Always on. Control depth with `output_config.effort` on Messages requests. A thinking budget or `thinking: {"type": "disabled"}` returns Anthropic's 400. |
+| Sampling | Anthropic rejects `temperature`, `top_p` and `top_k` on these models. On translated requests the gateway leaves them out. |
+| Tool choice | Anthropic rejects a forced tool choice with a 400. That covers `tool_choice` `any` or a named tool on Messages, and `"required"` or a named function on Chat Completions. Use `auto` and name the tool in the prompt. |
+| Conversation history | Send each assistant turn back exactly as it was returned, including its `thinking` blocks. Anthropic returns a 400 (`The block is bound to a different conversation`) when a request replays thinking blocks after the system prompt, the tools or an earlier message changed. |
+| AWS Bedrock | Served through the Bedrock Runtime endpoint (InvokeModel and Converse). |
+| Data retention | Set this up on the provider account before sending requests; the gateway cannot do it for you. On the Anthropic API, both models need 30-day data retention on the organization or workspace, and a zero-data-retention organization gets Anthropic's 400. On AWS Bedrock, your AWS account must set its data retention mode to `aws_review` (for Mythos 5.2, `aws_review` or `provider_data_share`) with the Bedrock Data Retention API, which opts the account in to AWS review of these requests. See [Amazon Bedrock abuse detection](https://docs.aws.amazon.com/bedrock/latest/userguide/abuse-detection.html). |
+
 ## AWS Bedrock Runtime (boto3)
 
 Point a boto3 `bedrock-runtime` client at `https://guardrails-usa-2.quilr.ai/bedrock-runtime` (or your [region](../get-started/integration-guide#region)) and sign with the Quilr key as both access key ID and secret. Paths: `/model/{model_id}/converse`, `/converse-stream` and `/invoke` (also under `/bedrock-runtime/`).

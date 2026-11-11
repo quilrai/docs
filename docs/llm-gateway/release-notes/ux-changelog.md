@@ -47,6 +47,13 @@ Recent interface improvements and quality-of-life changes.
 - **Budget-aware routing**: `budget_used_pct()` in policies and `conditions.budget` on API routes move requests to another model as a budget runs low
 - Details: [Budget recipes](../cost-and-traffic/budget-recipes) and [Budgets API](../api-reference/budgets-api#forecasts-and-grant-views)
 
+## Claude Fable 5.2 and Mythos 5.2 (2026-11-11)
+
+- `claude-fable-5-2` and `claude-mythos-5-2` are priced in the model catalog, so their requests show a cost: $8 input and $40 output per million tokens, with fast mode at twice that
+- On AWS Bedrock both models are sent to the Bedrock Runtime endpoint (InvokeModel and Converse)
+- Claude Fable 5.2 can be picked as a red teaming target
+- Details: [Claude Fable 5.2 and Mythos 5.2](../apps-and-providers/provider-support#claude-fable-5-2)
+
 ## Azure AI Foundry follow-ups (2026-11-05)
 
 - Adding an Azure (`azureopenai`) provider no longer shows a note about the resource's Claude deployments; add Claude under **Azure** › **Anthropic messages** by deployment name
