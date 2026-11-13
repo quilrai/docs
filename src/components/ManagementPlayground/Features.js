@@ -33,11 +33,12 @@ const COLLECTIONS = {
   },
   'response-cache': {
     title: 'Response cache',
-    subtitle: 'Exact-match cache for non-streaming chat, Messages and embeddings requests, per scope.',
+    subtitle: 'Response cache for non-streaming requests, per scope: exact, normalized or semantic match for chat and Messages (semantic only after request guardrails pass), exact only for embeddings.',
     path: '/controls/response-cache',
     columns: [
       { label: 'Scope', render: (r) => scopeText(r.scope) },
       { label: 'Enabled', render: (r) => on(r.settings?.enabled) },
+      { label: 'Match', render: (r) => r.settings?.match || '-' },
       { label: 'Rank', render: (r) => fmt(r.rank) },
     ],
   },

@@ -59,7 +59,7 @@ Turn on each strategy that matches the traffic the app sends. Apps with any stra
 | **Minify JSON tool outputs** | Remove whitespace from JSON tool outputs. |
 | **Clean up tool output** | Remove color codes, progress bars and repeated lines. |
 | **Remove encoded content** | Replace long base64 content in tool outputs with a size note; the model no longer receives that content. |
-| **Response cache** | Answer eligible repeat requests from a stored response rather than sending every request to the provider. |
+| **Response cache** | Answer eligible repeat requests from a stored response rather than sending every request to the provider. Choose Exact, Normalized or Semantic matching. |
 
 Each switch resolves separately: highest priority wins, and **On** wins equal-priority ties. **Off** only exempts a scope when it outranks the matching On rule. Without a matching rule, request bodies are unchanged and requests go to the provider.
 
@@ -67,7 +67,7 @@ Use narrower scopes to enable only the transformations a pipeline needs. For exa
 
 ### Response cache
 
-Response caching is separate from compression and from a provider's prompt cache. It returns an earlier answer for an eligible exact repeat of a non-streaming request, without a new provider call or guardrail run. Use it only where reusing that answer is appropriate. [Keep prompt cache warm](./routing-and-fallbacks#keep-prompt-cache-warm) instead maintains the provider's prompt cache; the model still answers the request.
+Response caching is separate from compression and from a provider's prompt cache. It returns an earlier answer for an eligible repeat of a non-streaming request, without a new provider call. A repeat can be exact, differ only in case, punctuation or filler words (Normalized), or be the same question in other words (Semantic). Exact and normalized repeats skip every guardrail; a semantic match is served only after request guardrails pass the new prompt. Use it only where reusing that answer is appropriate. See [Response cache](./response-cache) for match modes, safety checks and production results. [Keep prompt cache warm](./routing-and-fallbacks#keep-prompt-cache-warm) instead maintains the provider's prompt cache; the model still answers the request.
 
 </TabItem>
 </Tabs>
@@ -111,5 +111,6 @@ For the [Management API](../api-reference/management-api), the app's switches ar
 
 - [Standalone SDK token savings](../apps-and-providers/sdk-token-savings)
 - [MCP Gateway token saving](../../mcp-gateway/protect/token-saving)
+- [Response cache](./response-cache)
 - [Prompt store](./prompt-store)
 - [Costs and savings](../../console/observe/costs-and-savings)

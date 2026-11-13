@@ -160,7 +160,7 @@ When updating `alerting`, send its complete configuration, including the HTTPS U
 | `limits` | Timeout, concurrency, request rates, token limits and per-model limits. |
 | `access` | Source IPs, email/domain restrictions, identity/conversation requirements, identity headers and JWT settings. |
 | `self_service` | `enable_self_service` plus the stored `self_service` object containing `access_control`. |
-| `transformations` | `token_saving`. |
+| `transformations` | `token_saving`, `response_cache` (including `match` and `similarity`; see [Response cache](../cost-and-traffic/response-cache#configure)). |
 | `prompts` | `require_system_from_store`. Prompt content uses separate endpoints. |
 | Top-level fields | `enabled`, `provider_labels`, `tags`, `alerting`, `smart_group_policies`. |
 
