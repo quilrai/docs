@@ -37,11 +37,11 @@ Responses that were blocked, or where a guardrail could not finish its check, ar
 
 | Mode | A new request matches when | Works on |
 |---|---|---|
-| **Exact** (default) | It is the same request. Only trailing spaces and line endings may differ. | Chat, Messages, embeddings |
-| **Normalized** | It is the same after ignoring case, punctuation around words, extra spaces and filler words such as *a*, *the*, *please*, *hi* and *thanks*. | Chat, Messages |
+| **Exact** (default) | It is the same request. In prompt text, only line endings, trailing spaces on each line, leading and trailing whitespace, and Unicode forms are cleaned up first. | Chat, Messages, embeddings |
+| **Normalized** | It is the same after also ignoring case, punctuation at the edges of words, repeated spaces and a fixed list of words (below). Applies to all prompt text, including the system prompt and earlier messages. | Chat, Messages |
 | **Semantic** | Its latest user message asks the same thing in different words. Everything else must match exactly. | Chat, Messages |
 
-Normalized keeps every word that can change the meaning. *and* / *or*, *was* / *were* and *can* / *should* are all kept, so "can I reset my password" and "should I reset my password" never share an answer.
+Normalized ignores exactly these words: *a, an, the, is, are, am, be, do, does, i, me, my, please, kindly, pls, plz, hi, hello, hey, dear, thanks, thank, regards, just*. So "Can I access my records?" and "Can I access the records?" are treated as the same request.
 
 Each mode builds on the one before it: Semantic first tries a normalized match, and Normalized covers every exact repeat.
 
@@ -50,22 +50,24 @@ Each mode builds on the one before it: Semantic first tries a normalized match, 
 <DecisionLadder
   label="How a request is answered when the response cache is on"
   steps={[
-    { id: 'stored', question: 'Is the same request already stored?', hint: 'Exact, or Normalized when that mode is on', yes: { label: 'Cache hit', detail: 'Stored response returned. No guardrails, no model call', tone: 'success' } },
-    { id: 'guardrails', question: 'Do request guardrails block the new prompt?', hint: 'Data risks, Guardian Agent and other request checks run as usual', yes: { label: 'Blocked', detail: 'Same result as without the cache', tone: 'danger' } },
-    { id: 'semantic', question: 'Semantic mode: was a close enough question already answered?', hint: 'Same conversation so far, prompt unchanged by guardrails, safety checks pass', yes: { label: 'Semantic hit', detail: 'Stored response returned. Model call and response checks skipped', tone: 'info' } },
+    { id: 'stored', question: 'Is the same request already stored?', hint: 'Exact, or Normalized in Normalized and Semantic mode', yes: { label: 'Cache hit', detail: 'Stored response returned. Skips every guardrail and the model call', tone: 'success' } },
+    { id: 'guardrails', question: 'Do request guardrails block the new prompt?', hint: 'Data risks, Guardian Agent and other request checks run on the new prompt', yes: { label: 'Blocked', detail: 'Same result as without the cache', tone: 'danger' } },
+    { id: 'semantic', question: 'Semantic mode: was a close enough question already answered?', hint: 'Everything but the latest user message matches, prompt not redacted or flagged, checks pass', yes: { label: 'Semantic hit', detail: 'Stored response returned. Skips the model call and response guardrails', tone: 'info' } },
   ]}
   fallback={{ label: 'Sent to the model', detail: 'The response is stored for next time', tone: 'neutral' }}
 />
 
-In Exact and Normalized mode only step 1 applies: a miss goes straight through the normal pipeline to the model.
+Exact and normalized repeats are answered straight from the cache and skip every guardrail, in Semantic mode too, because that check comes first. In Exact and Normalized mode a miss goes through the normal pipeline to the model.
 
 ## How semantic matching stays safe {#semantic-safety}
 
-- **Only the latest user message can differ.** The system prompt, earlier conversation, tools, model, settings and policy must all match exactly.
-- **Request guardrails run first.** A semantic hit is served only after the new prompt passes your request checks. A prompt that guardrails blocked, redacted or flagged is never matched semantically.
-- **Details must be identical.** Numbers, URLs, email addresses and code must be the same in both questions.
-- **Negations must match.** Words such as *not*, *never*, *no* and *can't* must appear in both, so "can I share this file" never returns the answer to "can I not share this file".
-- **Similar length.** Very short and very long versions of a question do not match.
+- **Only the latest user message can differ.** Everything else (system prompt, earlier conversation, tools, model, settings and policy) must match exactly.
+- **Request guardrails run first.** A reworded match is served only after request guardrails (data risks, Guardian Agent) pass the new prompt. It skips the model call and the response guardrails. A prompt that request guardrails blocked, redacted or flagged is never matched semantically.
+- **Simple checks on the two latest user messages**, compared in lowercase after normalization:
+  - numbers, links and email addresses must be the same;
+  - text in `backtick` code spans must be the same;
+  - negation words (*not*, *never*, *can't* and similar) must match;
+  - the two messages must be of similar length.
 - **Fails open.** If the similarity check is unavailable or slow, the request goes to the model.
 
 ### Similarity {#similarity}
@@ -80,18 +82,20 @@ Similarity sets how close a reworded question must be. It applies only in Semant
 
 ## Results from production traffic {#results}
 
-From a sample of about 41,000 production requests across 66 applications over one week:
+An offline estimate: a replay of about 41,000 production requests (non-streaming chat and Messages) across 66 applications over one week.
 
-| Mode | Share of requests answered from the cache |
+| Mode | Requests that matched a stored response |
 |---|---|
-| **Exact** | 38% |
-| **Normalized** | +0.5% more. Every sampled match was correct. |
-| **Semantic, Narrow** | +1.8% more |
-| **Semantic, Balanced** | +3.8% more |
-| **Semantic, Wider** | +6.8% more |
+| **Exact** | 37.9% |
+| **Normalized** | +0.4 points |
+| **Semantic, Narrow** | +1.5 points over exact and normalized |
+| **Semantic, Balanced** | +2.4 points over exact and normalized |
+| **Semantic, Wider** | +3.9 points over exact and normalized |
+
+These are matches, not verified correct answers. The normalized matches we sampled were correct.
 
 :::warning Semantic mode can return another entity's answer
-In that sample, most semantic matches on automated or templated prompts were wrong. Prompts that differed only in a business name, job title, username or file name scored as near-identical, so the cache would have returned the answer generated for someone or something else. The safety checks catch numbers, links, emails, code and negations, not names.
+When we reviewed samples, most semantic matches on automated or templated prompts were wrong. They differed only in a business name, job title, username, file name or domain, so the cache would have returned the answer generated for someone or something else. The checks above do not catch names.
 :::
 
 ## Which mode to choose {#choose-a-mode}
@@ -147,13 +151,14 @@ Set the app's `response_cache` setting through the [Management API](../api-refer
 The same rule in policy text:
 
 ```text
+language 1;
 policy helpdesk_cache priority 600 {
   request where application.group_key == "helpdesk"
   then { response_cache.enabled = true; response_cache.match = semantic; response_cache.similarity = narrow; }
 }
 ```
 
-`response_cache.match` takes `exact`, `normalized` or `semantic`; `response_cache.similarity` takes `narrow`, `balanced` or `wider`. Without a matching rule they are `exact` and `narrow`. Rule conditions for these effects cannot use data types, Guardian Agent or hallucination results, or the detected language, because a cache hit skips those checks.
+`response_cache.match` takes `exact`, `normalized` or `semantic`; `response_cache.similarity` takes `narrow`, `balanced` or `wider`. Without a matching rule they are `exact` and `narrow`. Conditions on `response_cache.enabled`, `.match` and `.similarity` cannot use data types, `about(...)`, Guardian Agent, hallucination or language results, or the final routed model fields, because the cache decides before those are known.
 
 To set the cache from your own tooling, use `/controls/response-cache` in the [Access and gateway features API](../api-reference/gateway-features-api) with the settings `enabled`, `match` and `similarity`.
 
@@ -162,12 +167,12 @@ To set the cache from your own tooling, use `/controls/response-cache` in the [A
 
 ## Check that it works {#check}
 
-Every non-streaming request to an app with the cache on returns an `X-Quilr-Cache` header:
+Supported responses that reach the cache step carry an `X-Quilr-Cache` header:
 
 | Header | Meaning |
 |---|---|
 | `X-Quilr-Cache: HIT` | Served from the cache, including semantic hits. `Age` gives the entry's age in seconds. |
-| `X-Quilr-Cache: MISS` | Sent to the model. The response may be stored for next time. |
+| `X-Quilr-Cache: MISS` | No cached response was served; normal processing continues (the request can still be blocked later). The response may be stored for next time. |
 | `X-Quilr-Cache: BYPASS` | Not looked up, for example a request with `Cache-Control: no-store` or `no-cache`. |
 
 A hit is logged with zero tokens and zero cost, and records the tokens and cost it saved. Hit rate and savings per app are in the [Monitoring API](../api-reference/monitoring-api) feature summary.

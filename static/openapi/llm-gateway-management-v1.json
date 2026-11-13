@@ -32881,7 +32881,7 @@
           },
           "match": {
             "default": "exact",
-            "description": "exact: same prompt after whitespace cleanup. normalized: also ignores case, repeated spaces, punctuation around words and a fixed set of filler words. semantic: also matches a reworded last user message (chat and Anthropic Messages; request guardrails run first). Semantic can answer for a different name, title, username or filename in templated prompts: use it for human-typed FAQ or helpdesk apps, not programmatic pipelines.",
+            "description": "exact: same prompt after whitespace cleanup. normalized: also ignores case, repeated spaces, punctuation around words and a fixed set of filler words. semantic: also matches a reworded last user message (chat and Anthropic Messages). Exact and normalized repeats skip every guardrail; a reworded match is served only after request guardrails pass the new prompt and skips the model call and response guardrails. Semantic can answer for a different name, title, username or filename in templated prompts: use it for human-typed FAQ or helpdesk apps, not programmatic pipelines.",
             "enum": [
               "exact",
               "normalized",

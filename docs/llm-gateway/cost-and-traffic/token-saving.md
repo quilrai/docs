@@ -67,7 +67,7 @@ Use narrower scopes to enable only the transformations a pipeline needs. For exa
 
 ### Response cache
 
-Response caching is separate from compression and from a provider's prompt cache. It returns an earlier answer for an eligible repeat of a non-streaming request, without a new provider call. A repeat can be exact, differ only in case, punctuation or filler words (Normalized), or be the same question in other words (Semantic). Use it only where reusing that answer is appropriate. See [Response cache](./response-cache) for match modes, safety checks and production results. [Keep prompt cache warm](./routing-and-fallbacks#keep-prompt-cache-warm) instead maintains the provider's prompt cache; the model still answers the request.
+Response caching is separate from compression and from a provider's prompt cache. It returns an earlier answer for an eligible repeat of a non-streaming request, without a new provider call. A repeat can be exact, differ only in case, punctuation or filler words (Normalized), or be the same question in other words (Semantic). Exact and normalized repeats skip every guardrail; a semantic match is served only after request guardrails pass the new prompt. Use it only where reusing that answer is appropriate. See [Response cache](./response-cache) for match modes, safety checks and production results. [Keep prompt cache warm](./routing-and-fallbacks#keep-prompt-cache-warm) instead maintains the provider's prompt cache; the model still answers the request.
 
 </TabItem>
 </Tabs>

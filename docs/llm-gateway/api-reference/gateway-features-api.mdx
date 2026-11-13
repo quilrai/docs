@@ -19,7 +19,7 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 | --- | --- | --- | --- | --- |
 | Access controls | `/controls/access` | `block`, `require_identity`, `require_conversation_id` (each only `true`) and `allowed_source_ips`. | `read` | `config:write` |
 | Token saving | `/controls/token-saving` | Which [token saving](../cost-and-traffic/token-saving) methods run on request bodies. | `read` | `config:write` |
-| Response cache | `/controls/response-cache` | `enabled`, `match` (`exact`, `normalized`, `semantic`) and `similarity` (`narrow`, `balanced`, `wider`) of the [response cache](../cost-and-traffic/response-cache) for non-streaming chat, Messages and embeddings requests. | `read` | `config:write` |
+| Response cache | `/controls/response-cache` | `enabled`, `match` (`exact`, `normalized`, `semantic`) and `similarity` (`narrow`, `balanced`, `wider`) of the [response cache](../cost-and-traffic/response-cache) for non-streaming chat and Messages requests. Embeddings are always exact. | `read` | `config:write` |
 | Cache warm | `/controls/cache-warm` | `extend_cache_lifetime`, `refresh_requests`, `min_prompt_tokens`, `stop_after_idle_minutes`. | `read` | `config:write` |
 | Model visibility | `/controls/model-visibility` | What [model lists](../protect/model-visibility) show: `show_only`, `hide`, `hide_all`, `hide_aliases`, `reveal_hidden`. Never what can be called. | `read` | `config:write` |
 | Error messages | `/controls/error-messages` | [Friendly messages](../protect/error-messages) and help links for matching gateway or provider errors. Status, type and code never change. | `read` | `config:write` |

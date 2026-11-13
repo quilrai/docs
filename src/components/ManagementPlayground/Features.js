@@ -33,7 +33,7 @@ const COLLECTIONS = {
   },
   'response-cache': {
     title: 'Response cache',
-    subtitle: 'Response cache for non-streaming chat, Messages and embeddings requests (exact, normalized or semantic match), per scope.',
+    subtitle: 'Response cache for non-streaming requests, per scope: exact, normalized or semantic match for chat and Messages (semantic only after request guardrails pass), exact only for embeddings.',
     path: '/controls/response-cache',
     columns: [
       { label: 'Scope', render: (r) => scopeText(r.scope) },
