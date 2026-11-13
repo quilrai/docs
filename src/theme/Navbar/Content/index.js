@@ -1,4 +1,5 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
+import {ChevronDown} from 'lucide-react';
 import clsx from 'clsx';
 import {useThemeConfig, ErrorCauseBoundary} from '@docusaurus/theme-common';
 import {useNavbarMobileSidebar} from '@docusaurus/theme-common/internal';
@@ -8,7 +9,7 @@ import NavbarItem from '@theme/NavbarItem';
 import SearchBar from '@theme/SearchBar';
 import NavbarMobileSidebarToggle from '@theme/Navbar/MobileSidebar/Toggle';
 import NavbarLogo from '@theme/Navbar/Logo';
-import {products, productForPath} from '@site/src/data/products';
+import {products, productForPath, suiteById} from '@site/src/data/products';
 import {ProductIcon} from '@site/src/utils/productIcons';
 import {featuredLinks} from '@site/src/data/featured';
 
@@ -34,9 +35,21 @@ export function ProductTabs({className, onNavigate}) {
     nav.scrollLeft = Math.max(0, Math.min(target, nav.scrollWidth - nav.clientWidth));
   }, [active?.id]);
 
+  // Products in a suite share one tab (at the first member's place) with a menu.
+  const entries = [];
+  for (const p of products) {
+    if (!p.suite) entries.push({product: p});
+    else if (!entries.some((e) => e.suite?.id === p.suite)) {
+      entries.push({suite: suiteById[p.suite], members: products.filter((m) => m.suite === p.suite)});
+    }
+  }
+
   return (
     <nav ref={navRef} className={clsx('qd-tabs', className)} aria-label="Products">
-      {products.map((p) => (
+      {entries.map(({product: p, suite, members}) =>
+        suite ? (
+          <SuiteTab key={suite.id} suite={suite} members={members} active={active} onNavigate={onNavigate} />
+        ) : (
         <Link
           key={p.id}
           to={`/${p.slug}`}
@@ -50,8 +63,88 @@ export function ProductTabs({className, onNavigate}) {
           <ProductIcon product={p} size={15} />
           {p.navLabel || p.name}
         </Link>
-      ))}
+        ),
+      )}
     </nav>
+  );
+}
+
+// One navbar tab for a suite. Hover, focus or click opens a menu of its
+// products. The menu is position: fixed so the scrolling tab strip does not
+// clip it.
+function SuiteTab({suite, members, active, onNavigate}) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
+  const ref = useRef(null);
+  const closeTimer = useRef(null);
+  const current = members.find((m) => m.id === active?.id);
+
+  const show = () => {
+    clearTimeout(closeTimer.current);
+    const r = ref.current?.getBoundingClientRect();
+    if (r) setPos({top: r.bottom, left: r.left});
+    setOpen(true);
+  };
+  const hide = () => {
+    clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 120);
+  };
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    const onScroll = () => setOpen(false);
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('scroll', onScroll, {passive: true});
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [open]);
+
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
+
+  return (
+    <div className="qd-suite" onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
+      <button
+        ref={ref}
+        type="button"
+        className={clsx('qd-tab', 'qd-suite__btn', current && 'navbar__link--active')}
+        style={{'--tc': `var(--c-${current ? current.id : suite.accent})`}}
+        aria-current={current ? 'true' : undefined}
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => (open ? setOpen(false) : show())}>
+        <ProductIcon product={suite} size={15} />
+        {suite.name}
+        <ChevronDown size={13} aria-hidden="true" className="qd-suite__chev" />
+      </button>
+      {open && pos && (
+        <div className="qd-suite__menu" role="menu" style={{top: pos.top, left: pos.left}}>
+          {members.map((m) => (
+            <Link
+              key={m.id}
+              to={`/${m.slug}`}
+              role="menuitem"
+              className="qd-suite__item"
+              style={{'--tc': `var(--c-${m.id})`, '--ts': `var(--s-${m.id})`}}
+              aria-current={active?.id === m.id ? 'true' : undefined}
+              onClick={() => {
+                setOpen(false);
+                onNavigate?.();
+              }}>
+              <span className="qd-suite__ico">
+                <ProductIcon product={m} size={16} />
+              </span>
+              <span>
+                <b>{m.name}</b>
+                <small>{m.sub}</small>
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

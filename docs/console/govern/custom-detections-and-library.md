@@ -55,4 +55,4 @@ Custom models appear in the **Custom** group of the data type picker on the **Da
 
 ## From red team findings
 
-Red Teaming reports can suggest custom detections that would stop the attacks they found, with patterns and a suggested action. Add them here, then use them in a policy. See [Turn findings into detections](../../assessments/red-teaming/results-and-reports/full-report).
+Red Teaming reports can suggest custom detections that would stop the attacks they found, with patterns and a suggested action. Add them here, then use them in a policy. See [Turn findings into detections](../../red-teaming/results-and-reports/full-report).

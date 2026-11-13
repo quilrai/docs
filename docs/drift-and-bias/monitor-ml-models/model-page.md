@@ -21,6 +21,10 @@ Select a model on the [ML models tab](./ml-models-tab.md) to open its page. From
 
 ## Status and actions
 
+![Model page header with status badges, Check now, Model card, Settings and the lineage cards](/img/drift-and-bias/4-model-page-lineage.jpg)
+
+*Figure 1. The top of a model page: status, actions and lineage.*
+
 Under the model name you see its key, task, version and when it was last checked, then a line of badges from the latest check: the source, **Data** and **Prediction** drift, **Performance** and **Fairness**.
 
 | Button | What it does |
@@ -36,6 +40,10 @@ The latest version, the run that trained it and the dataset versions it learned 
 Lineage appears when your pipeline sends training runs and dataset versions, or when the model comes from MLflow.
 
 ## Check history
+
+![Check history trends and table, and the open findings table](/img/drift-and-bias/9-check-history-findings.jpg)
+
+*Figure 2. Check history and open findings.*
 
 Every check of the model, newest first, and how its primary metric and worst drift moved.
 

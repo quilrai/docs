@@ -11,6 +11,10 @@ aliases: [explanations, feature importance, attributions, training runs, explain
 
 ## Explanations
 
+![Top features with rank changes, and the training runs table with a failed run](/img/drift-and-bias/8-explanations-training.jpg)
+
+*Figure 1. Explanations and training runs.*
+
 Global feature importance as reported for the latest version, and how each feature moved since the version before.
 
 **Top features** lists the features by weight. The header names the version, the version its ranks are compared against and the method, as your pipeline or MLflow reported it (for example `method: gain`). Each feature shows:
@@ -28,6 +32,10 @@ Every training run for the model, newest first: **Run**, **Version**, **Dataset 
 A failed retraining run stays in the list with its error next to the **failed** status, for example `failed OutOfMemoryError`. A failed run can also raise an alert (see [Alerts](../alerts-baselines-and-export/alerts.md)).
 
 ## Explain a prediction
+
+![Explain a prediction looking up one row, with its prediction, features and attributions](/img/drift-and-bias/10-explain-prediction.jpg)
+
+*Figure 2. Explain a prediction.*
 
 Look up one scored row to see its features, its prediction and the attributions behind it.
 

@@ -110,26 +110,43 @@ export const products = [
       {title: 'Share and schedule', desc: 'Groups, approvals, recurring runs, versions', to: '/workflow-agents/run-and-share/share-and-manage'},
     ],
   },
-  // Assessments mirrors the console's Assessments menu. Each module is a
-  // folder under docs/assessments/ (red-teaming, drift-and-bias, ...).
-  // The id stays 'red' so existing accents and references keep working.
   {
     id: 'red',
-    slug: 'assessments',
-    name: 'Assessments',
+    slug: 'red-teaming',
+    name: 'Red Teaming',
+    suite: 'assessments',
     icon: 'Target',
-    sub: 'Test and monitor your AI',
+    sub: 'Attack your own AI before others do',
     tagline:
-      'Red Teaming attacks your AI apps, agents, workflows and models before others do. Drift & Bias watches your LLMs and ML models for drift, performance loss and unfair outcomes.',
+      'Test AI apps, agents, AI workflows and models against real attack techniques, then fix what breaks.',
     shot: '/img/products/red-teaming.jpg',
     shotCaption: 'Console › Assessments › Red Teaming',
-    primary: {label: 'Get started with Red Teaming', to: '/assessments/red-teaming/get-started/overview'},
-    consolePath: 'Assessments',
+    primary: {label: 'Get started', to: '/red-teaming/get-started/overview'},
+    consolePath: 'Assessments > Red Teaming',
     tasks: [
-      {title: 'Red team an AI app or agent', desc: 'Attack any HTTP, WebSocket, or voice endpoint', to: '/assessments/red-teaming/configure-and-run/agent'},
-      {title: 'Red team an AI workflow', desc: 'Hide attacks in documents, images or data records', to: '/assessments/red-teaming/configure-and-run/ai-workflow'},
-      {title: 'Monitor an ML model', desc: 'Drift, performance and fairness from your pipeline', to: '/assessments/drift-and-bias/connect-models/pipeline-push'},
-      {title: 'Connect an MLflow registry', desc: 'Pick which registered models to monitor', to: '/assessments/drift-and-bias/connect-models/mlflow'},
+      {title: 'Red team an AI workflow', desc: 'Hide attacks in documents, images or data records', to: '/red-teaming/configure-and-run/ai-workflow'},
+      {title: 'Red team an AI app or agent', desc: 'Attack any HTTP, WebSocket, or voice endpoint', to: '/red-teaming/configure-and-run/agent'},
+      {title: 'Compare models', desc: 'Run the same attacks on 2 to 8 models', to: '/red-teaming/configure-and-run/model'},
+    ],
+  },
+  {
+    id: 'drift',
+    slug: 'drift-and-bias',
+    name: 'Drift & Bias',
+    suite: 'assessments',
+    icon: 'Scale',
+    sub: 'Keep models accurate and fair after launch',
+    tagline:
+      'Watch your classic ML models for drift, performance loss and unfair outcomes, next to the bias checks for your LLMs.',
+    shot: '/img/drift-and-bias/2-ml-models-tab.jpg',
+    shotCaption: 'Console › Assessments › Drift & Bias › ML models',
+    primary: {label: 'Get started', to: '/drift-and-bias/get-started/overview'},
+    consolePath: 'Assessments > Drift & Bias',
+    tasks: [
+      {title: 'Connect a model from your pipeline', desc: 'Register it, then send scored rows', to: '/drift-and-bias/connect-models/pipeline-push'},
+      {title: 'Connect an MLflow registry', desc: 'Pick which registered models to monitor', to: '/drift-and-bias/connect-models/mlflow'},
+      {title: 'Read a model page', desc: 'Drift, performance, fairness and lineage', to: '/drift-and-bias/monitor-ml-models/model-page'},
+      {title: 'Set up alerts', desc: 'Five triggers per model', to: '/drift-and-bias/alerts-baselines-and-export/alerts'},
     ],
   },
   {
@@ -193,6 +210,16 @@ export const products = [
   },
 ];
 
+// Suites group several products under one navbar tab with a menu, in the
+// order the products are listed above. A product joins a suite with
+// `suite: '<id>'`; it keeps its own URL, sidebar and landing page. Add a
+// future Assessments module as a new product with `suite: 'assessments'`.
+export const suites = [
+  {id: 'assessments', name: 'Assessment Suite', icon: 'Target', accent: 'red'},
+];
+
+export const suiteById = Object.fromEntries(suites.map((s) => [s.id, s]));
+
 export const productById = Object.fromEntries(products.map((p) => [p.id, p]));
 export const productBySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
 
@@ -229,8 +256,8 @@ export const crossLinks = [
 
 export const syntheticCategories = [
   {root: 'console', after: 'console/govern', label: 'Assessments', icon: 'Target', links: [
-    {label: 'Red Teaming', href: '/assessments/red-teaming/get-started/overview', product: 'red'},
-    {label: 'Drift & Bias', href: '/assessments/drift-and-bias/get-started/overview', product: 'red'},
+    {label: 'Red Teaming', href: '/red-teaming', product: 'red'},
+    {label: 'Drift & Bias', href: '/drift-and-bias', product: 'drift'},
   ]},
   {root: 'integrations', after: null, label: 'Sign-in', icon: 'KeyRound', links: [
     {label: 'SAML and Okta', href: '/console/settings-organization/single-sign-on', product: 'console'},

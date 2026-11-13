@@ -5,7 +5,7 @@ import {useLocation} from '@docusaurus/router';
 import Link from '@docusaurus/Link';
 import NavbarItem from '@theme/NavbarItem';
 import SidebarThemeToggle from '@site/src/components/SidebarThemeToggle';
-import {products, productForPath} from '@site/src/data/products';
+import {products, productForPath, suiteById} from '@site/src/data/products';
 import {ProductIcon} from '@site/src/utils/productIcons';
 import {featuredLinks} from '@site/src/data/featured';
 
@@ -24,8 +24,12 @@ export default function NavbarMobilePrimaryMenu() {
     <div className="navbar-sidebar-menu-stack">
       <ul className="menu__list qd-mprod">
         <li className="qd-mprod__label">Products</li>
-        {products.map((p) => (
-          <li key={p.id}>
+        {products.map((p, i) => (
+          <React.Fragment key={p.id}>
+          {p.suite && products[i - 1]?.suite !== p.suite && (
+            <li className="qd-mprod__label qd-mprod__label--suite">{suiteById[p.suite]?.name}</li>
+          )}
+          <li className={p.suite ? 'qd-mprod__suite-item' : undefined}>
             <Link
               to={`/${p.slug}`}
               className="qd-mprod__item"
@@ -41,6 +45,7 @@ export default function NavbarMobilePrimaryMenu() {
               </span>
             </Link>
           </li>
+          </React.Fragment>
         ))}
         <li className="qd-mprod__sep" aria-hidden="true" />
         {featuredLinks.map(({id, to, label, sub, Icon}) => (

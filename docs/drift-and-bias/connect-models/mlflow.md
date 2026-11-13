@@ -21,6 +21,10 @@ The connected server shows its address, authentication, the number of registered
 
 ## Choose the models to monitor
 
+![MLflow integration panel with the connection and the registered models to monitor](/img/drift-and-bias/15-mlflow.jpg)
+
+*Figure 1. The MLflow integration: connection and registered models.*
+
 Under **Registered models**, the **MLflow registered models and monitoring** table lists every registered model with its key, **Latest version**, **Versions** and **Last seen**.
 
 Select **Monitor** for each model you want Drift & Bias to check. Versions and training runs are read only for monitored models.

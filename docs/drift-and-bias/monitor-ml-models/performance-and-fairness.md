@@ -33,6 +33,10 @@ Fairness looks at each protected attribute you registered, group by group, on th
 
 ### Classifiers
 
+![Performance cards and fairness tables by group for a classifier](/img/drift-and-bias/6-performance-fairness.jpg)
+
+*Figure 1. A classifier: performance against the reference, and fairness for each protected attribute.*
+
 For each attribute (for example `gender` or `age_band`), a table lists every group with its **Rows**, **Selection rate**, **True positive rate** and **False positive rate**. Next to it:
 
 | Measure | Meaning |
@@ -48,6 +52,10 @@ Two flags can appear on an attribute:
 - **Equalized odds:** the difference rose above **Maximum equalized odds difference** (default 0.1).
 
 ### Regressions
+
+![Performance cards and fairness by group for a regression model](/img/drift-and-bias/7-regression.jpg)
+
+*Figure 2. A regression: MAE, RMSE and R², with mean prediction and error gaps by group.*
 
 For each attribute, a table lists every group with its **Rows**, **Mean prediction** and **MAE**, next to the **Mean prediction gap** and **Error gap** between groups. The **Error** flag appears when groups differ too much. The **Maximum equalized odds difference** setting is also the regression tolerance between groups.
 

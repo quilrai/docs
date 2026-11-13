@@ -17,6 +17,10 @@ A baseline is the first complete run of a series: the same model, question set, 
 
 ## 02 Classic models: ML baselines
 
+![Baselines tab with LLM baselines and ML baselines](/img/drift-and-bias/13-baselines.jpg)
+
+*Figure 1. The Baselines tab.*
+
 Each model version is compared with its reference window:
 
 - The rows your pipeline sent as `reference` (shown as **Sent as reference**), or

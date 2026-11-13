@@ -14,7 +14,7 @@ Drift & Bias tells you whether your models still behave the way they did when yo
 - **Text models (LLMs):** how text models from your model library treat gender, race and ethnicity, and age, and whether that changes from run to run. Each run reports a **bias-free score**, the share of replies without biased opinions.
 - **Classic ML models:** classifiers and regressions you run in your own pipelines, checked on their own scored rows for drift, performance and fairness.
 
-In the console, open **Assessments** > **Drift & Bias**. It sits next to [Red Teaming](../../red-teaming/get-started/overview.md).
+In the console, open **Assessments** > **Drift & Bias**. It sits next to [Red Teaming](/red-teaming).
 
 ## The tabs
 

@@ -11,6 +11,10 @@ aliases: [ML models, model list, check all, add model, drifting, degraded, fairn
 
 Open **Assessments** > **Drift & Bias** > **ML models** to see every classic model on one list.
 
+![ML models tab with headline counts and the model table](/img/drift-and-bias/2-ml-models-tab.jpg)
+
+*Figure 1. The ML models tab: actions, headline counts and one row per model.*
+
 ## Actions
 
 | Button | What it does |

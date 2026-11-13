@@ -88,4 +88,4 @@ Copilot Studio is different from LLM proxy routes: Copilot calls QuilrAI before 
 
 ## Observability
 
-Every request is logged with cost, latency, token counts, and guardrail actions. Use the app card's **Logs** button (the **Activity** tab) to review request history, the [LLM Gateway Log Export API](../api-reference/log-export-api) to export logs programmatically, and a red teaming assessment in **Assessments > Red Teaming** to [validate your guardrail configuration](../../assessments/red-teaming/configure-and-run/agent) against adversarial prompts.
+Every request is logged with cost, latency, token counts, and guardrail actions. Use the app card's **Logs** button (the **Activity** tab) to review request history, the [LLM Gateway Log Export API](../api-reference/log-export-api) to export logs programmatically, and a red teaming assessment in **Assessments > Red Teaming** to [validate your guardrail configuration](../../red-teaming/configure-and-run/agent) against adversarial prompts.

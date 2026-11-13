@@ -13,7 +13,7 @@ Open **Assessments** > **Drift & Bias** > **Alerts** to set alert rules for each
 
 ## Where alerts go
 
-Alerts go to the webhook, Slack, Microsoft Sentinel, Splunk and Datadog integrations that have **Red Teaming alerts** turned on in **Integrations**. Drift & Bias uses the same channels as Red Teaming. See [Splunk, Datadog and Slack](../../../integrations/send-logs-and-alerts/splunk-datadog-and-slack.md), [Microsoft Sentinel](../../../integrations/send-logs-and-alerts/microsoft-sentinel.md) and [Webhook](../../../integrations/send-logs-and-alerts/webhook.md).
+Alerts go to the webhook, Slack, Microsoft Sentinel, Splunk and Datadog integrations that have **Red Teaming alerts** turned on in **Integrations**. Drift & Bias uses the same channels as Red Teaming. See [Splunk, Datadog and Slack](../../integrations/send-logs-and-alerts/splunk-datadog-and-slack.md), [Microsoft Sentinel](../../integrations/send-logs-and-alerts/microsoft-sentinel.md) and [Webhook](../../integrations/send-logs-and-alerts/webhook.md).
 
 Each alert arrives as one event or log with the model, the rule that fired, the observed value and the limit.
 
@@ -27,6 +27,10 @@ The **Alert rules** table lists every model with **Alert when** (its triggers, o
 
 ### Set alerts for an ML model
 
+![Alerts for one ML model, with the five triggers and the Alert from setting](/img/drift-and-bias/12-alerts.jpg)
+
+*Figure 1. Alert rules for one ML model.*
+
 1. Select the model's row in the **Alert rules** table.
 2. Choose the triggers:
    - **Data drift**
@@ -37,4 +41,4 @@ The **Alert rules** table lists every model with **Alert when** (its triggers, o
 3. Under **Alert from**, choose **Moderate and up** or **Severe only**. A finding is moderate at the limit and severe well past it.
 4. Select **Save**.
 
-Each change is recorded in the [audit log](../../../console/settings-organization/audit-logs.md).
+Each change is recorded in the [audit log](../../console/settings-organization/audit-logs.md).

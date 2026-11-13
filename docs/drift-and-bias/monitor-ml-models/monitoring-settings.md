@@ -11,6 +11,10 @@ aliases: [monitoring settings, thresholds, limits, PSI limit, performance tolera
 
 Each model has its own limits. Open the model's page and select **Settings**.
 
+![Monitoring settings panel with the current window, drift limits, performance tolerance and fairness limits](/img/drift-and-bias/11-monitoring-settings.jpg)
+
+*Figure 1. Monitoring settings for one model.*
+
 The next check uses these values. Thresholds apply to the model's features, prediction, primary metric and protected attributes. Until you save, the panel says **Using the defaults; not saved yet**.
 
 | Setting | Default | What it does |

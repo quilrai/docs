@@ -15,6 +15,10 @@ Drift compares each feature's **current window** with its **reference**. The ref
 
 One row per feature:
 
+![Data drift and prediction drift tables on a model page](/img/drift-and-bias/5-drift.jpg)
+
+*Figure 1. Data drift on every feature, and prediction drift on the model output.*
+
 | Column | Meaning |
 |---|---|
 | **Feature** | The feature name from the model's schema. |

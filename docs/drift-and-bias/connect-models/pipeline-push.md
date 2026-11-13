@@ -19,6 +19,10 @@ Your pipeline registers the model once, then sends the rows it scores. Only scor
 
 To see these steps in the console, open **Assessments** > **Drift & Bias** > **ML models** and select **Add model**.
 
+![Add an ML model panel showing the pipeline steps, an example request and the MLflow option](/img/drift-and-bias/3-add-model.jpg)
+
+*Figure 1. The Add an ML model panel.*
+
 ## Step 1: Register the model
 
 `POST /v1/ml/models/{model_key}/register` with the model version, task, feature schema and protected attributes.

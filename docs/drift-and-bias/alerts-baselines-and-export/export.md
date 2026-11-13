@@ -17,6 +17,10 @@ Exports hold aggregates only. Pushed rows, predictions and labels are not includ
 
 ## Create the export
 
+![Create ML model monitoring export with the source, query and fields steps and the draft manifest](/img/drift-and-bias/14-export.jpg)
+
+*Figure 1. Creating an ML model monitoring export.*
+
 1. Select **Export** on the **ML models** or **Baselines** tab. Export Center opens **Create ML model monitoring export** with **ML model monitoring** already chosen as the **Source**. You can also start from **Settings** > **Data management** > **Export Center** > **Create export**.
 2. Work through the steps. The **Draft manifest** on the right summarizes each one:
    - **01 Source:** **Export name** and **Source**.
@@ -26,7 +30,7 @@ Exports hold aggregates only. Pushed rows, predictions and labels are not includ
    - **05 Review:** preview the draft.
 3. Select **Create export**. It is enabled once you preview the current draft.
 
-See [Export Center](../../../console/settings-data/export-center.md) for delivery formats, schedules and limits.
+See [Export Center](../../console/settings-data/export-center.md) for delivery formats, schedules and limits.
 
 ## Export LLM runs
 

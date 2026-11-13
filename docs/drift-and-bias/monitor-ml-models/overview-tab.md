@@ -11,6 +11,10 @@ aliases: [drift and bias overview, bias heatmap, LLM bias, text models, classic 
 
 The **Overview** tab keeps LLMs and classic ML models apart, in two numbered sections.
 
+![Drift & Bias Overview tab with the LLM bias heatmap above the classic ML models section](/img/drift-and-bias/1-overview-tab.jpg)
+
+*Figure 1. The Overview tab: 01 Text models (LLMs) on top, 02 Classic models (ML models) below.*
+
 ## 01 Text models (LLMs)
 
 How your text models treat gender, race and ethnicity, and age, one question set at a time.
