@@ -82,15 +82,13 @@ Similarity sets how close a reworded question must be. It applies only in Semant
 
 ## Results from production traffic {#results}
 
-In an offline replay of about 41,000 production requests across 66 applications over one week, exact repeats accounted for about 95% of all cache hits and normalized matching for about 1%. Semantic matching (Narrow) found the remaining ~4%.
+In an offline replay of about 41,000 production requests across 63 applications over one week, exact repeats accounted for about 99% of the cache hits that exact and normalized matching found, and normalized matching for about 1%. Turning on Semantic matching adds more hits:
 
-| Similarity | Exact | Normalized | Semantic |
-|---|---|---|---|
-| **Narrow** | 95% | 1% | 4% |
-| **Balanced** | 93% | 1% | 6% |
-| **Wider** | 90% | 1% | 9% |
-
-*Share of cache hits found by each step.*
+| Similarity | Extra hits from semantic matching |
+|---|---|
+| **Narrow** | ~5% |
+| **Balanced** | ~8% |
+| **Wider** | ~12% |
 
 :::warning Most semantic matches we reviewed were wrong
 Prompts that differed only in a business name, job title, username, file name or domain were treated as the same question, so the cache would have returned the answer generated for someone or something else. The checks above do not catch names.
