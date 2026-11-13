@@ -20,7 +20,7 @@ import {
   useCollection,
   usePlayground,
 } from './ui';
-import { useLoad, when } from './shared';
+import { ScopeFilters, useLoad, when } from './shared';
 import { BarChart, Stats, daysAgo, num, usd } from './Usage';
 import styles from './styles.module.css';
 
@@ -172,14 +172,9 @@ function Guardrails() {
         <details style={{ flexBasis: '100%' }}>
           <summary>Filters</summary>
           <div className={styles.filters} style={{ marginTop: 10 }}>
-            <Field label="App">
-              <input value={form.app} onChange={(e) => set({ app: e.target.value })} placeholder="Support Bot" />
-            </Field>
+            <ScopeFilters value={form} onChange={set} fields={[{ kind: 'app' }, { kind: 'model' }]} />
             <Field label="User email">
               <input value={form.user} onChange={(e) => set({ user: e.target.value })} />
-            </Field>
-            <Field label="Served model">
-              <input value={form.model} onChange={(e) => set({ model: e.target.value })} />
             </Field>
             <Field label="Category" hint="Id or display name, or unattributed.">
               <input value={form.category} onChange={(e) => set({ category: e.target.value })} />
@@ -357,15 +352,12 @@ function ProviderHealth() {
         <Field label="To" hint="Exclusive; a date includes that whole UTC day. Empty: now.">
           <input type="date" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} />
         </Field>
-        <Field label="Provider label">
-          <input value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })} />
-        </Field>
-        <Field label="Model">
-          <input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} />
-        </Field>
-        <Field label="App">
-          <input value={form.app} onChange={(e) => setForm({ ...form, app: e.target.value })} />
-        </Field>
+        <ScopeFilters
+          value={form}
+          onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+          providerBy="label"
+          fields={[{ kind: 'provider' }, { kind: 'app', placeholder: '' }, { kind: 'model', label: 'Model' }]}
+        />
         <Btn type="submit" variant="primary">
           Apply
         </Btn>
@@ -466,15 +458,7 @@ function ReportForm({ form, set, dims, onSubmit, submit, children }) {
       <details style={{ flexBasis: '100%' }}>
         <summary>Filters</summary>
         <div className={styles.filters} style={{ marginTop: 10 }}>
-          <Field label="App">
-            <input value={form.app} onChange={(e) => set({ app: e.target.value })} placeholder="Support Bot" />
-          </Field>
-          <Field label="Served model">
-            <input value={form.model} onChange={(e) => set({ model: e.target.value })} />
-          </Field>
-          <Field label="Provider">
-            <input value={form.provider} onChange={(e) => set({ provider: e.target.value })} />
-          </Field>
+          <ScopeFilters value={form} onChange={set} />
           <Field label="Surface" hint="For example chat.">
             <input value={form.surface} onChange={(e) => set({ surface: e.target.value })} />
           </Field>
@@ -717,9 +701,7 @@ function Requests() {
           setApplied(form);
         }}
       >
-        <Field label="App">
-          <input value={form.app} onChange={(e) => set({ app: e.target.value })} placeholder="Support Bot" />
-        </Field>
+        <ScopeFilters value={form} onChange={set} />
         <Field label="User email">
           <input value={form.user} onChange={(e) => set({ user: e.target.value })} />
         </Field>
@@ -740,12 +722,6 @@ function Requests() {
         <details style={{ flexBasis: '100%' }}>
           <summary>More filters</summary>
           <div className={styles.filters} style={{ marginTop: 10 }}>
-            <Field label="Served model">
-              <input value={form.model} onChange={(e) => set({ model: e.target.value })} />
-            </Field>
-            <Field label="Provider">
-              <input value={form.provider} onChange={(e) => set({ provider: e.target.value })} />
-            </Field>
             <Field label="Category" hint="Id or display name, or unattributed.">
               <input value={form.category} onChange={(e) => set({ category: e.target.value })} />
             </Field>

@@ -19,7 +19,7 @@ import {
   useCollection,
   usePlayground,
 } from './ui';
-import { useLoad } from './shared';
+import { ScopeFilters, useDetailReveal, useLoad } from './shared';
 import styles from './styles.module.css';
 
 // Fields a read returns that a write does not take (or recomputes). They are
@@ -98,6 +98,7 @@ export function ControlCollection({ config, extra }) {
   const [draft, setDraft] = useState({});
   const [filters, setFilters] = useState({});
   const [selected, setSelected] = useState(null);
+  const detailRef = useDetailReveal(selected?.id);
   const action = useAction();
   const list = useCollection(
     (cursor) =>
@@ -146,11 +147,23 @@ export function ControlCollection({ config, extra }) {
           setFilters(Object.fromEntries(Object.entries(draft).filter(([, v]) => String(v || '').trim())));
         }}
       >
-        {FILTERS.map(([name, label, hint]) => (
-          <Field key={name} label={label} hint={hint}>
-            <input value={draft[name] || ''} onChange={(e) => setDraft((d) => ({ ...d, [name]: e.target.value }))} spellCheck="false" />
-          </Field>
-        ))}
+        {FILTERS.map(([name, label, hint]) =>
+          name === 'requested_model' ? null : name === 'app' ? (
+            <ScopeFilters
+              key={name}
+              value={draft}
+              onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))}
+              fields={[
+                { kind: 'app', hint },
+                { kind: 'model', key: 'requested_model', label: 'Requested model', hint: FILTERS.find(([n]) => n === 'requested_model')[2] },
+              ]}
+            />
+          ) : (
+            <Field key={name} label={label} hint={hint}>
+              <input value={draft[name] || ''} onChange={(e) => setDraft((d) => ({ ...d, [name]: e.target.value }))} spellCheck="false" />
+            </Field>
+          ),
+        )}
         <div className={styles.inline}>
           <Btn type="submit">Apply filters</Btn>
           <Btn
@@ -175,7 +188,7 @@ export function ControlCollection({ config, extra }) {
           ) : null}
         </p>
       )}
-      <div className={styles.split}>
+      <div className={`${styles.split} ${styles.masterDetail}`}>
         <div>
           <Table
             rows={list.data?.items || []}
@@ -191,7 +204,7 @@ export function ControlCollection({ config, extra }) {
           />
           <Pager list={list} />
         </div>
-        <div>
+        <div ref={detailRef}>
           <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
           {selected ? (
             <>
