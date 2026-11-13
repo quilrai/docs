@@ -18118,7 +18118,7 @@
       },
       "ControlsResponseCache": {
         "additionalProperties": false,
-        "description": "Turns the exact-match response cache on or off for the scoped apps. Gateway-feature controls take precedence over console policy rules wherever they match, except console policies above priority 999 and console policies at 950 to 999 that predate the controls and are unchanged (both listed in overridden_by); console rules still apply elsewhere.",
+        "description": "Turns the response cache on or off for the scoped apps and sets how requests match (exact, normalized or semantic, with a semantic similarity preset). Gateway-feature controls take precedence over console policy rules wherever they match, except console policies above priority 999 and console policies at 950 to 999 that predate the controls and are unchanged (both listed in overridden_by); console rules still apply elsewhere.",
         "example": {
           "scope": {
             "apps": [
