@@ -3,9 +3,9 @@ sidebar_position: 2.6
 sidebar_label: "GPU connectors"
 sidebar_custom_props:
   icon: Server
-description: "Run the LLM Gateway on several of your own GPU servers: create a GPU connector for each server in the console, then set its deployment ID and connector token on the Kubernetes deployment."
+description: "Run the LLM Gateway on several of your own GPU servers: create a GPU connector for each server in the console, set its deployment ID and connector token on the Kubernetes deployment, then link providers to it."
 console_path: []
-aliases: [gpu connectors, gpu servers, private gpu servers, on-premises deployment, on-prem, kubernetes deployment, private deployment, deployment id, connector token, multiple servers, network route]
+aliases: [gpu connectors, gpu servers, private gpu servers, on-premises deployment, on-prem, kubernetes deployment, private deployment, deployment id, connector token, multiple servers, network route, link provider to gpu server, providers on this server]
 ---
 
 # GPU connectors
@@ -30,7 +30,7 @@ flowchart LR
 - **One installation per server.** You deploy the LLM Gateway on each server with the QuilrAI installer, as usual. A server becomes a GPU connector when you give it a deployment ID and a connector token.
 - **Outbound only.** The server opens an encrypted WebSocket (`wss://`) connection to QuilrAI on port 443. QuilrAI never connects in to your network.
 - **Your traffic stays local.** Your apps call the gateway on a server, and that server calls your models. These requests don't pass through QuilrAI.
-- **You decide where each provider runs.** You link a provider to a server under **Network route**. When QuilrAI calls that provider, for example to list its models, run a test or run red teaming, the work runs on that server.
+- **You decide where each provider runs.** You link a provider to a server under **Network route** ([step 5](#5-link-providers-to-a-server)). When QuilrAI calls that provider, for example to list its models, run a test or run red teaming, the work runs on that server.
 
 ## Before you start
 
@@ -145,15 +145,58 @@ A working connection logs `PRIVATE_CONNECTOR | connected | tenant_id=<your-tenan
 
 ## 5. Link providers to a server
 
-1. Open the provider from **Provider configuration** on the LLM Gateway page, or from **Settings > AI Gateway > Models > Your models**. To add a new one, click **Add your own models**.
-2. Set the provider's **Base URL** to an address that the server can reach, for example a model Service in the server's cluster: `http://llama-70b.inference.svc.cluster.local:8000/v1`.
-3. Under **Network route**, select the server under **GPU servers**.
-4. Click **Get available models**. The list comes from the linked server, which confirms the link works.
-5. Save the provider.
+Link each provider whose models run on a GPU server to that server. You can link a provider when you add it, or later.
 
-Good to know:
+### Link a new provider
 
-- **A linked provider always runs on its server.** If the server is offline, the provider's calls fail with `GPU connector "<name>" is offline or unreachable`. There is no fallback to another server.
+1. Go to **Settings > AI Gateway > Models** and click **Add provider**. You can also click **Add provider** in **Provider configuration** on the **LLM Gateway** page.
+2. Under **Where are the models hosted?**, select the provider and its API. For an OpenAI-compatible model server such as vLLM, select **Custom endpoint**, then **Chat completions**.
+3. Under **Name and credentials**, enter a **Label** and the **API key** that your model server accepts.
+4. Set **Base URL** to an address that the server can reach, for example a model Service in the server's cluster: `http://llama-70b.inference.svc.cluster.local:8000/v1`.
+5. Open **Network route** and select the server under **GPU servers**. Each server shows its IP address and status.
+
+   ![Name and credentials with Network route open, listing Public internet (direct) and three GPU servers, each with its IP address and status](/img/llm-gateway/ui/gpu-connector-network-route-picker.png)
+
+6. Click **Test & continue**. The server you selected lists the models it can reach, and the **Connected** tag confirms that the link works.
+
+   ![Models step with the Connected tag and two models listed by the GPU server, both Reachable and selected](/img/llm-gateway/ui/gpu-connector-models-from-server.png)
+
+7. Select the models, click **Review**, then click **Save provider**.
+
+:::tip The console can pick the server for you
+When the **Base URL** you enter uses the IP address or hostname recorded for a server, the console selects that server and says so under **Network route**. Pick another route if the provider is reached a different way.
+
+![Network route set to US East GPU 1, with the note that it was chosen because the Base URL uses that server's IP address](/img/llm-gateway/ui/gpu-connector-network-route-by-ip.png)
+:::
+
+### Link an existing provider
+
+Use the same steps to move a provider to another server, or to remove the link by selecting **Public internet (direct)**.
+
+1. Go to **Settings > AI Gateway > Models** and open the provider from the **Providers** tab.
+2. Select the **Connection** tab, then click **Rotate credentials…** in the **Credentials** card.
+3. Under **Network route**, select the server under **GPU servers**. Leave **API key** blank to keep the stored key.
+4. Click **Test**. The test runs on the server you selected.
+5. When the test shows **Passed**, click **Save new credentials**. Until you save, the provider keeps running where it ran before.
+
+![Rotate credentials with Network route set to Frankfurt GPU 1, a passed test and the Save new credentials button](/img/llm-gateway/ui/gpu-connector-rotate-tested.png)
+
+### Check which server a provider uses
+
+- **On the provider:** the **Connection** tab shows **GPU server** with the server's name, IP address and status.
+
+  ![Credentials card showing the Base URL and GPU server US East GPU 1, 10.20.0.15, Online](/img/llm-gateway/ui/gpu-connector-provider-credentials.png)
+
+- **On the server:** in the **GPU connectors** drawer, each card lists its providers under **Providers on this server**.
+
+  ![Two GPU connector cards, US East GPU 1 and Frankfurt GPU 1, each listing one provider under Providers on this server](/img/llm-gateway/ui/gpu-connector-cards-linked-providers.png)
+
+### Good to know
+
+- **A linked provider always runs on its server.** If the server is offline, the provider's requests and tests fail with `GPU connector "<name>" is offline or unreachable`. There is no fallback to another server.
+- **A provider has one network route.** Selecting a GPU server removes a remote connector link, and the other way around.
+- **Disabled servers aren't listed**, except on a provider that is already linked to one.
+- **Apps with app-only credentials** have the same **Network route** field in the app's **LLM Providers** section.
 - **Leave public providers on Public internet (direct)**, for example OpenAI or Amazon Bedrock.
 - **Some provider types can't use a GPU server:** OpenAI Realtime, Azure OpenAI Realtime, Quilr SDK and Copilot Studio.
 
@@ -199,8 +242,10 @@ A server can have up to five active tokens, so you can switch before you revoke 
 | The **GPU connectors** button or its actions are missing | You don't have the Integrations permissions. | Ask an administrator for the [permissions](#before-you-start). |
 | A server stays **Offline** | `PRIVATE_DEPLOYMENT_ID` doesn't match the console ID, the token is wrong or revoked, the server is disabled, or outbound port 443 or WebSockets are blocked. | Read the [connector log](#4-check-that-each-server-is-online), fix the value, and apply it again as in step 3. |
 | The connector log shows `invalid configuration` | A required value is missing or wrong, for example the gateway was installed for more than one tenant ID. The log line names the problem. | Fix the value and apply it again as in step 3. |
-| A provider fails with `GPU connector "<name>" is offline or unreachable` | The linked server is offline. | Bring the server back online, or link the provider to another server. |
-| You can't delete a server | Providers are still linked to it. | Link them to another route, then delete the server. |
+| **Network route** has no **GPU servers** group | You don't have **Read integrations**, no server is enabled, or the provider type can't use a GPU server. | Ask an administrator for the [permission](#before-you-start), enable a server, or check the provider types in [Good to know](#good-to-know). |
+| **Test & continue** shows **The private LLM gateway is offline. Check the customer connector.** | The server you selected under **Network route** is offline. | Bring the server online (see [step 4](#4-check-that-each-server-is-online)), or select a server that shows **Online**. |
+| A provider fails with `GPU connector "<name>" is offline or unreachable` | The linked server is offline. | Bring the server back online, or [link the provider to another server](#link-an-existing-provider). |
+| You can't delete a server | Providers are still linked to it. | [Link them to another route](#link-an-existing-provider), then delete the server. |
 | You can't generate a token | The server already has five active tokens. | Revoke a token you no longer use. |
 | You can't add a server with an ID | The ID is in use, or was used by a deleted server. | Choose a new ID. |
 

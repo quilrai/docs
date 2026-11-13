@@ -88,8 +88,14 @@ TASK -> WHERE
   Name*, IP address, Description, Make this the default server > Add GPU connector (card shows Offline).
   Card > Generate token > copy Deployment ID and Connector token (qpc_..., shown once) > Done. The server is
   installed with PRIVATE_DEPLOYMENT_ID = that ID and the token (Kubernetes steps in the GPU connectors docs);
-  the card then shows Online (N instances). Link a provider: its credentials > Network route > GPU servers >
-  the server. Card actions: Edit | Set as default | Disable / Enable | trash icon > Delete connector |
+  the card then shows Online (N instances). Link a new provider: Settings > AI Gateway > Models > Add provider >
+  Name and credentials > Network route > GPU servers > the server (each listed as name · IP · status) >
+  Test & continue (the models are listed by that server; "Connected" tag) > Review > Save provider. Link or
+  move a saved provider: Models > Providers tab > the provider > Connection > Credentials > Rotate credentials… >
+  Network route > GPU servers > the server (API key blank keeps the stored key) > Test > Save new credentials;
+  Public internet (direct) removes the link. A Base URL that uses a server's recorded IP address selects that
+  server automatically. Check: the provider's Connection tab shows "GPU server", and the card lists it under
+  "Providers on this server". Card actions: Edit | Set as default | Disable / Enable | trash icon > Delete connector |
   Tokens (N active) > Revoke > Revoke token. Status: Online | Degraded | Offline | Status unknown.
 - Set guardrails (PII, secrets, prompt injection, hallucination, source IPs) -> Configure > Guardrails
   (Action mix, Default action, DATA RISKS / adversarial categories; "Copy from another app")
