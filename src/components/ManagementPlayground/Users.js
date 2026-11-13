@@ -18,7 +18,7 @@ import {
   useCollection,
   usePlayground,
 } from './ui';
-import { useLoad, when } from './shared';
+import { ScopeFilters, useLoad, when } from './shared';
 import { Stats, num, usd } from './Usage';
 import styles from './styles.module.css';
 
@@ -62,9 +62,11 @@ export default function Users() {
           <Field label="Search" hint="Part of an email or department.">
             <input type="search" value={form.q} onChange={(e) => setForm({ ...form, q: e.target.value })} placeholder="alice or engineering" />
           </Field>
-          <Field label="App" hint="Granted this app specifically, or used it.">
-            <input value={form.app} onChange={(e) => setForm({ ...form, app: e.target.value })} placeholder="Support Bot" />
-          </Field>
+          <ScopeFilters
+            value={form}
+            onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+            fields={[{ kind: 'app', hint: 'Granted this app specifically, or used it.' }]}
+          />
           <Field label="Active since" hint="Inclusive, from UTC midnight.">
             <input type="date" value={form.active_since} onChange={(e) => setForm({ ...form, active_since: e.target.value })} />
           </Field>

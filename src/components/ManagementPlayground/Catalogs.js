@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MANAGEMENT_PREFIX, seg } from './client.mjs';
 import { ApiChips, ConnectFirst, ErrorBox, JsonView, Notice, Pager, Panel, Table, fmt, useAction, useCollection, usePlayground } from './ui';
-import { idOf } from './shared';
+import { idOf, useDetailReveal } from './shared';
 import styles from './styles.module.css';
 
 // Smart groups have their own workspace (SmartGroups.js).
@@ -38,6 +38,7 @@ export default function Catalogs() {
 function Catalog({ config }) {
   const { client } = usePlayground();
   const [detail, setDetail] = useState(null);
+  const detailRef = useDetailReveal(detail?.id);
   const action = useAction();
   const list = useCollection(
     (cursor) => client.call({ path: MANAGEMENT_PREFIX + config.path, query: { limit: 50, cursor }, source: config.title }),
@@ -53,7 +54,7 @@ function Catalog({ config }) {
   return (
     <Panel title={config.title} subtitle={config.subtitle} actions={<ApiChips calls={[['GET', config.path], ['GET', config.item]]} />}>
       <ErrorBox error={list.error} />
-      <div className={styles.split}>
+      <div className={`${styles.split} ${styles.masterDetail}`}>
         <div>
           <Table
             rows={list.data?.items || []}
@@ -65,7 +66,7 @@ function Catalog({ config }) {
           />
           <Pager list={list} />
         </div>
-        <div>
+        <div ref={detailRef}>
           <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
           {detail ? <JsonView value={detail.data} maxHeight={560} /> : <p className={styles.muted}>Select a row to read it.</p>}
         </div>

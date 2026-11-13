@@ -108,7 +108,8 @@
 .connectBar {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  /* Label-aligned like .filters; .connectActions drops one label to sit level with the inputs. */
+  align-items: flex-start;
   gap: 12px;
   padding: 16px;
   background: var(--mp-surface);
@@ -125,6 +126,7 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  margin-top: 23px;
 }
 
 .connectStatus {
@@ -196,6 +198,8 @@
 .field > span {
   font-size: 12px;
   font-weight: 600;
+  /* Fixed so buttons in a filter row can offset by exactly one label (see .filters). */
+  line-height: 18px;
 }
 
 .field small {
@@ -501,22 +505,54 @@
   align-items: flex-start;
 }
 
+/*
+ * Form rows and grids line fields up by their label and box, so a hint hangs below its own
+ * field without moving its neighbours. Buttons, button groups and checkboxes placed beside
+ * fields drop by one label (18px line + 5px gap) to sit level with the input boxes.
+ */
 .formGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
-  align-items: end;
+  align-items: start;
 }
 
 .filters {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 .filters .field {
   flex: 1 1 160px;
+}
+
+.filters > .btn,
+.filters > .checkLabel,
+.formGrid > .btn,
+.formGrid > .checkLabel,
+.formGrid > .inline:not(:has(> .field)),
+.pickerRow > .btn,
+.inline:has(> .field) > .btn,
+.inline:has(> .field) > .checkLabel {
+  margin-top: 23px;
+}
+
+/* After a full-width section the button starts its own row: no label to line up with. */
+.filters > details + .btn {
+  margin-top: 0;
+}
+
+/* A dropdown that switched to a text box keeps the field's width. */
+.field > .inline {
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+.field > .inline > input {
+  flex: 1;
+  min-width: 0;
 }
 
 .inline {
@@ -531,6 +567,11 @@
   flex: 1 1 200px;
 }
 
+/* A row of fields (not just buttons or pills) lines up by label, like .filters. */
+.inline:has(> .field) {
+  align-items: flex-start;
+}
+
 .actionsRow {
   display: flex;
   flex-wrap: wrap;
@@ -541,7 +582,7 @@
 .pickerRow {
   display: flex;
   gap: 10px;
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: wrap;
 }
 
@@ -561,6 +602,26 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* List + detail: ids stay on one line (the table scrolls sideways) and the detail
+   follows the scroll, so a row picked far down the list shows its detail in view. */
+.masterDetail {
+  align-items: start;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+}
+
+.masterDetail .table code {
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.masterDetail > div:last-child {
+  position: sticky;
+  top: calc(var(--ifm-navbar-height, 60px) + 12px);
+  max-height: calc(100vh - var(--ifm-navbar-height, 60px) - 24px);
+  overflow-y: auto;
+  scroll-margin-top: calc(var(--ifm-navbar-height, 60px) + 12px);
 }
 
 .checkGrid {
@@ -1609,6 +1670,12 @@
 
   .split {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .masterDetail > div:last-child {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
