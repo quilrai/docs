@@ -35,6 +35,10 @@ In the V1 console the mode is the **Credential Mode** tab of the app's Self-Serv
 Once an app uses **Named User API Keys**, the bare parent key is no longer accepted for it. Move existing integrations to named keys before you switch.
 :::
 
+:::note JWT clients keep working
+Named User API Keys change only the app's Quilr API keys. If the app also uses [JWT authentication](../protect/identity-and-network-trust#authentication-modes), clients that send a verified JWT keep working after you switch, identified by the token's email. They need no named key and no self-service access. [Allowed user domains](../protect/identity-and-network-trust#allowed-user-domains) still apply.
+:::
+
 ## Grant capabilities
 
 | Capability | Grants |
