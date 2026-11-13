@@ -27,7 +27,7 @@ import {
   useCollection,
   usePlayground,
 } from './ui';
-import { useLoad, when } from './shared';
+import { ScopeFilters, useLoad, when } from './shared';
 import { num } from './Usage';
 import styles from './styles.module.css';
 
@@ -168,23 +168,20 @@ export default function Providers() {
             setApplied(filters);
           }}
         >
-          <Field label="Provider type">
-            <select value={filters.provider_name} onChange={(e) => setFilters({ ...filters, provider_name: e.target.value })}>
-              <option value="">All</option>
-              {types.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
-          </Field>
+          <ScopeFilters
+            value={filters}
+            onChange={(patch) => setFilters((f) => ({ ...f, ...patch }))}
+            fields={[
+              { kind: 'provider', key: 'provider_name', label: 'Provider type' },
+              { kind: 'model', label: 'Model', hint: 'Exact selected model id; type a comma list for several.' },
+            ]}
+          />
           <Field label="Status">
             <select value={filters.enabled} onChange={(e) => setFilters({ ...filters, enabled: e.target.value })}>
               <option value="">All</option>
               <option value="true">Enabled</option>
               <option value="false">Disabled</option>
             </select>
-          </Field>
-          <Field label="Model" hint="Exact selected model id; comma for several.">
-            <input value={filters.model} onChange={(e) => setFilters({ ...filters, model: e.target.value })} />
           </Field>
           <Field label="Tag" hint="key or key:value; comma for several.">
             <input value={filters.tag} onChange={(e) => setFilters({ ...filters, tag: e.target.value })} placeholder="region:us-east-1" />
@@ -787,9 +784,7 @@ function ModelReviews() {
             <option value="">all</option>
           </select>
         </Field>
-        <Field label="Provider label">
-          <input value={provider} onChange={(e) => setProvider(e.target.value)} />
-        </Field>
+        <ScopeFilters value={{ provider }} onChange={(patch) => setProvider(patch.provider)} providerBy="label" fields={[{ kind: 'provider' }]} />
         <Btn type="submit">Apply</Btn>
       </form>
       <ErrorBox error={list.error} />

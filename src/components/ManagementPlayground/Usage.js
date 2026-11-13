@@ -17,6 +17,7 @@ import {
   useCollection,
   usePlayground,
 } from './ui';
+import { ScopeFilters } from './shared';
 import styles from './styles.module.css';
 
 const P = MANAGEMENT_PREFIX;
@@ -73,10 +74,14 @@ export function BarChart({ points, format = num, label }) {
 // ── Usage workspace ────────────────────────────────────────────────────────
 
 const DIMENSIONS = ['app', 'model', 'provider', 'user', 'key', 'source', 'outcome'];
+// Provider, app and model are linked dropdowns (ScopeFilters); "Type a value..." takes a comma list.
+const MULTI_HINT = 'Type a value for a comma list, up to 50.';
+const SCOPE_FIELDS = [
+  { kind: 'provider', label: 'Provider labels', hint: MULTI_HINT, placeholder: 'Production OpenAI' },
+  { kind: 'app', label: 'Apps', hint: MULTI_HINT },
+  { kind: 'model', label: 'Models', hint: MULTI_HINT, placeholder: 'gpt-4.1' },
+];
 const FILTERS = [
-  ['app', 'Apps', 'Support Bot'],
-  ['model', 'Models', 'gpt-4.1'],
-  ['provider', 'Provider labels', 'Production OpenAI'],
   ['user', 'User emails', 'alice@example.com'],
   ['key', 'Key ids', ''],
   ['source', 'Sources', 'gateway, sdk, copilot_studio'],
@@ -103,7 +108,7 @@ function usageQuery(f, cursor) {
     limit: f.limit,
     cursor,
   };
-  for (const [name] of FILTERS) query[name] = csv(f[name]).join(',');
+  for (const name of [...SCOPE_FIELDS.map((s) => s.kind), ...FILTERS.map(([n]) => n)]) query[name] = csv(f[name]).join(',');
   return query;
 }
 
@@ -216,6 +221,7 @@ export default function Usage() {
           <details style={{ flexBasis: '100%' }}>
             <summary>Filters</summary>
             <div className={styles.filters} style={{ marginTop: 10 }}>
+              <ScopeFilters value={form} onChange={set} providerBy="label" fields={SCOPE_FIELDS} />
               {FILTERS.map(([name, label, placeholder]) => (
                 <Field key={name} label={label} hint="Comma-separated, up to 50.">
                   <input value={form[name]} onChange={(e) => set({ [name]: e.target.value })} placeholder={placeholder} />

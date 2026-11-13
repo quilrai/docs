@@ -80,20 +80,26 @@ Similarity sets how close a reworded question must be. It applies only in Semant
 | **Balanced** | Light rewording. |
 | **Wider** | Looser rewording. More hits and more risk of a wrong answer. |
 
-## Results from production traffic {#results}
+## Results from simulated real-world traffic {#results}
 
-In an offline replay of about 41,000 production requests across 66 applications over one week, exact repeats accounted for about 95% of all cache hits and normalized matching for about 1%. Semantic matching (Narrow) found the remaining ~4%.
+In an offline replay of about 41,000 requests of simulated real-world traffic across 63 applications over one week, exact repeats accounted for about 99% of the cache hits that exact and normalized matching found, and normalized matching for about 1%. Turning on Semantic matching adds more hits:
 
-| Similarity | Exact | Normalized | Semantic |
-|---|---|---|---|
-| **Narrow** | 95% | 1% | 4% |
-| **Balanced** | 93% | 1% | 6% |
-| **Wider** | 90% | 1% | 9% |
+| Similarity | Extra hits from semantic matching |
+|---|---|
+| **Narrow** | ~5% |
+| **Balanced** | ~8% |
+| **Wider** | ~12% |
 
-*Share of cache hits found by each step.*
+:::warning Semantic matches can match unexpected prompts
+Prompts that differ only in a small detail can be treated as the same question, so the cache returns an answer generated for something else. For example:
 
-:::warning Most semantic matches we reviewed were wrong
-Prompts that differed only in a business name, job title, username, file name or domain were treated as the same question, so the cache would have returned the answer generated for someone or something else. The checks above do not catch names.
+| Prompt cached first | Later prompt that matched it |
+|---|---|
+| Write a welcome email for new hires at Acme Corp | Write a welcome email for new hires at Globex Inc |
+| Summarize the duties of a Senior Data Engineer | Summarize the duties of a Junior Data Engineer |
+| Check the DNS records for example.com | Check the DNS records for example.org |
+
+The checks above do not catch names.
 :::
 
 ## Which mode to choose {#choose-a-mode}
@@ -138,8 +144,14 @@ Set the app's `response_cache` setting through the [Management API](../api-refer
 <TabItem value="policy" label="Policy Engine">
 
 1. Open **Govern > Policy Engine > LLM Gateway > Controls > Token Savings**.
-2. Add a **Response cache** rule, choose **Applies to**, and turn it on.
-3. Choose the match mode (**Exact**, **Normalized** or **Semantic**) and, for Semantic, the similarity (**Narrow**, **Balanced** or **Wider**).
+2. Start from a recipe: **Turn on response cache** (Exact), **Cache near-identical repeats** (Normalized) or **Cache reworded questions** (Semantic). Or add a **Response cache** rule and turn it on.
+
+   ![Token Savings recipes: Turn on response cache, Cache near-identical repeats and Cache reworded questions](/img/llm-gateway/ui/response-cache-recipes.png)
+
+3. Choose **Applies to**. Under **Cache matching** pick **Exact**, **Normalized** or **Semantic**. For Semantic, add **Semantic similarity** and pick **Narrow**, **Balanced** or **Wider**. Choosing Semantic shows the wrong-answer warning.
+
+   ![Rule settings with Response cache on, Cache matching set to Semantic with its warning, and Semantic similarity set to Narrow](/img/llm-gateway/ui/response-cache-match-mode-rule.png)
+
 4. **Save to draft**, use **Test**, then **Review & publish**.
 
 The same rule in policy text:

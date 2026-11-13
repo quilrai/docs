@@ -19,7 +19,7 @@ import {
   useCollection,
   usePlayground,
 } from './ui';
-import { useLoad, when } from './shared';
+import { useDetailReveal, useLoad, when } from './shared';
 import styles from './styles.module.css';
 
 const target = (t) => (t ? `${t.provider_label} / ${t.model}` : '-');
@@ -208,6 +208,7 @@ function Revisions() {
   const { client } = usePlayground();
   const open = useOpen();
   const [selected, setSelected] = useState(null);
+  const detailRef = useDetailReveal(selected?.revision);
   const action = useAction();
   const list = useCollection(
     (cursor) => client.call({ path: `${MANAGEMENT_PREFIX}/controls/revisions`, query: { limit: 50, cursor }, source: 'Revisions' }),
@@ -246,7 +247,7 @@ function Revisions() {
           Active revision <strong>{active}</strong> · collection ETag <code>"r{active}"</code>
         </p>
       )}
-      <div className={styles.split}>
+      <div className={`${styles.split} ${styles.masterDetail}`}>
         <div>
           <Table
             rows={list.data?.items || []}
@@ -264,7 +265,7 @@ function Revisions() {
           />
           <Pager list={list} />
         </div>
-        <div>
+        <div ref={detailRef}>
           <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
           {selected ? (
             <>
