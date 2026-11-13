@@ -54,7 +54,7 @@ The credential mode decides which kind of key allowed users receive. It does **n
 | Mode | Shown in reports as | What the user gets | Runtime behavior |
 |------|---------------------|--------------------|------------------|
 | **Shared Parent Key** (default) | Main app key | The existing app key (`sk-quilr-…`) | The shared key works as-is. |
-| **Named User API Keys** | Personal keys | A personal key each user creates | Only a valid named key is accepted. A bare parent key, a JWT, or an `X-User-Email` header alone are rejected. |
+| **Named User API Keys** | Personal keys | A personal key each user creates | A valid named key is accepted, and so is a verified JWT on apps that use [JWT authentication](../protect/identity-and-network-trust#authentication-modes). A bare parent key or an `X-User-Email` header alone is rejected. |
 
 A named key is the app key with a self-service payload appended. Use the whole string anywhere you would use an `sk-quilr-…` key:
 

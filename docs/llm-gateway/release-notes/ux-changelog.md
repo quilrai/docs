@@ -10,6 +10,13 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Self-service: JWT clients keep working with named user keys (2026-11-13)
+
+- **Apps in Named User API Keys mode accept verified JWTs** from their [JWT authentication](../protect/identity-and-network-trust#authentication-modes) setup. Before, switching an app to named keys rejected every JWT with `401 self_service_identity_required`
+- A JWT request is identified by the token's email, as on an app without self-service, and needs no named key
+- A request that sends a JWT in `Authorization` and a named key in `x-api-key` authenticates with the JWT
+- Details: [Credential modes](../self-service/overview#credential-modes) and [Choose a credential mode](../self-service/admin-guide#choose-a-credential-mode)
+
 ## Budgets: client conversation ids and group grant members (2026-11-11)
 
 - **Conversation and agent caps work with coding tools as they are**: besides `x-conversation-id` and `x-quilr-agent-id`, the gateway counts the session and agent ids that Claude Code, Codex, OpenCode, Copilot Studio, OpenClaw and others already send

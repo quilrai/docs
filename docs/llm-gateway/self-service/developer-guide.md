@@ -102,7 +102,11 @@ You can hold several keys for the same app - one per machine or environment is a
 Every request made with your key is attributed to you, so your logs, usage, and findings are your own. That attribution is the same per-user identity described in [Identity Aware](../protect/identity-and-network-trust).
 
 :::warning A bare parent key will not work
-In Named User API Keys mode the gateway only accepts a valid named self-service key. The parent `sk-quilr-…` key on its own, a JWT, or an `X-User-Email` header alone are rejected.
+In Named User API Keys mode, call the gateway with your named self-service key. The parent `sk-quilr-…` key on its own or an `X-User-Email` header alone is rejected.
+:::
+
+:::tip Signing in with a JWT still works
+If the app uses [JWT authentication](../protect/identity-and-network-trust#authentication-modes), a verified JWT from your sign-in provider keeps working in this mode. The token identifies you, so those calls do not need a named key.
 :::
 
 ### Using the Key
