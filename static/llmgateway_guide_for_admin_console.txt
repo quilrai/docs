@@ -203,6 +203,8 @@ POLICY ENGINE (LLM)
   For: A person | Members of a smart group. Usage: Runs out, Running out soon.
 - Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression,
   Minify JSON tool outputs, Clean up tool output, Remove encoded content, Response cache.
+  Response cache: match Exact (default) | Normalized | Semantic; Similarity (Semantic only) Narrow (default) |
+  Balanced | Wider. Semantic suits apps where people type questions, not automated pipelines.
 - Error Messages: ordered matching messages/help links; status/error codes unchanged.
   Errors before app identification and limit refusals using a Limit response are excluded.
 - Applies to supports Exclude something and More targeting options. A short app shortcut list is not the

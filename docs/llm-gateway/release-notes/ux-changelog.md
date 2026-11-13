@@ -10,6 +10,15 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Response cache: normalized and semantic matching (2026-11-13)
+
+- **Choose how closely a repeat must match**: **Exact** (default, unchanged), **Normalized** (ignores case, punctuation, extra spaces and filler words such as *please* or *thanks*; meaning words such as *and* / *or* are kept) or **Semantic** (also matches a reworded question)
+- **Similarity** for Semantic: **Narrow** (default, safest), **Balanced** or **Wider**
+- Semantic matches only chat and Anthropic Messages requests, compares only the latest user message, and is served only after request guardrails pass the new prompt. Numbers, links, emails, code and negations must match; embeddings stay exact
+- In a one-week production sample, Normalized added 0.5% hits with no wrong matches; Semantic added 1.8% to 6.8% but matched templated prompts that named different people or files. Use Semantic only for apps where people type questions
+- Set it on the **Response cache** rule under **Token Savings**, with the `response_cache.match` and `response_cache.similarity` policy effects, or with `match` and `similarity` on `/controls/response-cache`
+- Details: [Response cache](../cost-and-traffic/response-cache)
+
 ## Self-service: JWT clients keep working with named user keys (2026-11-13)
 
 - **Apps in Named User API Keys mode accept verified JWTs** from their [JWT authentication](../protect/identity-and-network-trust#authentication-modes) setup. Before, switching an app to named keys rejected every JWT with `401 self_service_identity_required`

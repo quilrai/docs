@@ -267,7 +267,7 @@ routing.keep_cache_warm = { stop_after_idle_minutes: 30, min_prompt_tokens: 4000
 ```
 
 :::note
-The **Response cache** on the [Token Savings](./token-saving) card is different: it answers an exact repeat of a non-streaming request from an earlier response, without calling the model or running guardrails. Keep prompt cache warm only keeps the provider's prompt cache alive.
+The [Response cache](./response-cache) on the Token Savings card is different: it answers a repeat of a non-streaming request from an earlier response, without calling the model. Keep prompt cache warm only keeps the provider's prompt cache alive.
 :::
 
 ## Routing types {#routing-types}
@@ -565,6 +565,7 @@ The panel's **Activity** tab shows per route and app over 24 h, 7 d or 30 d: con
 - [Incidents API](../api-reference/incidents-api) - outage mark-downs, cooldown resets and pin drops
 - [Any-to-any formats](../api-reference/any-to-any-formats) - how a chosen provider is reached
 - [Gateway access and allowed models](../protect/gateway-access-and-allowed-models)
-- [Token saving](./token-saving) - response cache and prompt compression
+- [Token saving](./token-saving) - prompt compression
+- [Response cache](./response-cache) - answer repeat requests without calling the model
 - [Author, simulate and publish](../../console/govern/author-simulate-and-publish)
 - [Policy Engine overview](../../console/govern/policy-engine)

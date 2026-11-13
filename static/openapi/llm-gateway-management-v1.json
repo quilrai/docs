@@ -18196,6 +18196,20 @@
             "properties": {
               "enabled": {
                 "type": "boolean"
+              },
+              "match": {
+                "enum": [
+                  "exact",
+                  "normalized",
+                  "semantic"
+                ]
+              },
+              "similarity": {
+                "enum": [
+                  "narrow",
+                  "balanced",
+                  "wider"
+                ]
               }
             },
             "type": "object"
@@ -18385,6 +18399,34 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "match": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "exact",
+                          "normalized",
+                          "semantic"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "similarity": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "narrow",
+                          "balanced",
+                          "wider"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "type": "object"
@@ -18544,6 +18586,20 @@
             "properties": {
               "enabled": {
                 "type": "boolean"
+              },
+              "match": {
+                "enum": [
+                  "exact",
+                  "normalized",
+                  "semantic"
+                ]
+              },
+              "similarity": {
+                "enum": [
+                  "narrow",
+                  "balanced",
+                  "wider"
+                ]
               }
             },
             "type": "object"
@@ -30967,7 +31023,7 @@
       },
       "RateLimitGrantCreate": {
         "additionalProperties": false,
-        "description": "A temporary raise for one bucket, capped by the rate limit's adjustments. A new grant supersedes the bucket's previous one. POST takes an Idempotency-Key; a retry returns the original grant.",
+        "description": "A temporary raise for one bucket, capped by the rate limit's adjustments. A new grant supersedes only the bucket's grants whose time range overlaps its own; others stay. POST takes an Idempotency-Key; a retry returns the original grant.",
         "example": {
           "expires_at": "2026-11-03T00:00:00Z",
           "extra": 300,
@@ -32812,7 +32868,7 @@
       },
       "ResponseCache": {
         "additionalProperties": false,
-        "description": "Exact-match response cache for non-streaming requests. Partial updates merge. Under QuilrQL the policy decides enabled.",
+        "description": "Response cache for non-streaming requests. Partial updates merge. Under QuilrQL the policy decides enabled, match and similarity.",
         "properties": {
           "enabled": {
             "default": false,
@@ -32822,6 +32878,15 @@
             "description": "true discards every cached response of the app.",
             "type": "boolean",
             "writeOnly": true
+          },
+          "match": {
+            "default": "exact",
+            "description": "exact: same prompt after whitespace cleanup. normalized: also ignores case, repeated spaces, punctuation around words and a fixed set of filler words. semantic: also matches a reworded last user message (chat and Anthropic Messages; request guardrails run first). Semantic can answer for a different name, title, username or filename in templated prompts: use it for human-typed FAQ or helpdesk apps, not programmatic pipelines.",
+            "enum": [
+              "exact",
+              "normalized",
+              "semantic"
+            ]
           },
           "max_size_mb": {
             "default": 32,
@@ -32834,6 +32899,15 @@
             "enum": [
               "app",
               "user"
+            ]
+          },
+          "similarity": {
+            "default": "narrow",
+            "description": "How close a semantic match must be. Used only when match is semantic.",
+            "enum": [
+              "narrow",
+              "balanced",
+              "wider"
             ]
           },
           "ttl_seconds": {
@@ -46825,7 +46899,7 @@
     },
     "/llmgateway/management/v1/budgets/{budget_id}/grants": {
       "post": {
-        "description": "Gives one subject of an adjustable budget its own limit (higher or lower than the base, at most the budget's ceiling) until `expires_at`. When the budget's adjustments.max_duration is \"unlimited\", `expires_at` may be null or omitted for a grant with no end date. A new grant supersedes the subject's active one. Grants do not change policy. `{\"subject\": {\"members_of\": \"Data Science\"}}` grants a Smart group: every current member gets the limit, people who join or leave the group follow automatically, a member's own grant wins and a member of several granted groups gets the best-ranked group's. Per-person budgets (by email) only. Give exactly one of `limit` (absolute) or `extra` (added to the base limit: the grant follows the base, so a later base change moves it; still capped by the ceiling). A `starts_at` in the future lists the grant as `scheduled` until it starts.",
+        "description": "Gives one subject of an adjustable budget its own limit (higher or lower than the base, at most the budget's ceiling) until `expires_at`. When the budget's adjustments.max_duration is \"unlimited\", `expires_at` may be null or omitted for a grant with no end date. A new grant supersedes only the subject's grants whose time range overlaps its own (scheduled ones included; one in effect is cut to end at a later `starts_at` instead); grants that do not overlap stay, and the one in effect now applies. `superseded` is the newest grant it replaced. Grants do not change policy. `{\"subject\": {\"members_of\": \"Data Science\"}}` grants a Smart group: every current member gets the limit, people who join or leave the group follow automatically, a member's own grant wins and a member of several granted groups gets the best-ranked group's. Per-person budgets (by email) only. Give exactly one of `limit` (absolute) or `extra` (added to the base limit: the grant follows the base, so a later base change moves it; still capped by the ceiling). A `starts_at` in the future lists the grant as `scheduled` until it starts.",
         "operationId": "Issue_a_budget_grant",
         "parameters": [
           {
