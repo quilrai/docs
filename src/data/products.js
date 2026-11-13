@@ -215,7 +215,16 @@ export const products = [
 // `suite: '<id>'`; it keeps its own URL, sidebar and landing page. Add a
 // future Assessments module as a new product with `suite: 'assessments'`.
 export const suites = [
-  {id: 'assessments', name: 'Assessment Suite', icon: 'Target', accent: 'red'},
+  {
+    id: 'assessments',
+    name: 'Assessment Suite',
+    icon: 'Target',
+    accent: 'red',
+    // Suite-wide pages listed in the menu after the products.
+    links: [
+      {label: 'Release notes', sub: 'What changed across the suite', to: '/red-teaming/release-notes/changelog', icon: 'History'},
+    ],
+  },
 ];
 
 export const suiteById = Object.fromEntries(suites.map((s) => [s.id, s]));
@@ -258,6 +267,9 @@ export const syntheticCategories = [
   {root: 'console', after: 'console/govern', label: 'Assessments', icon: 'Target', links: [
     {label: 'Red Teaming', href: '/red-teaming', product: 'red'},
     {label: 'Drift & Bias', href: '/drift-and-bias', product: 'drift'},
+  ]},
+  {root: 'drift-and-bias', after: null, label: 'Release notes', icon: 'History', links: [
+    {label: 'Changelog', href: '/red-teaming/release-notes/changelog', product: 'red'},
   ]},
   {root: 'integrations', after: null, label: 'Sign-in', icon: 'KeyRound', links: [
     {label: 'SAML and Okta', href: '/console/settings-organization/single-sign-on', product: 'console'},

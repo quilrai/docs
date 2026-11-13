@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ChevronDown} from 'lucide-react';
+import {ChevronDown, History} from 'lucide-react';
 import clsx from 'clsx';
 import {useThemeConfig, ErrorCauseBoundary} from '@docusaurus/theme-common';
 import {useNavbarMobileSidebar} from '@docusaurus/theme-common/internal';
@@ -72,7 +72,10 @@ export function ProductTabs({className, onNavigate}) {
 // One navbar tab for a suite. Hover, focus or click opens a menu of its
 // products. The menu is position: fixed so the scrolling tab strip does not
 // clip it.
+const suiteLinkIcons = {History};
+
 function SuiteTab({suite, members, active, onNavigate}) {
+  const {pathname} = useLocation();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null);
   const ref = useRef(null);
@@ -142,6 +145,31 @@ function SuiteTab({suite, members, active, onNavigate}) {
               </span>
             </Link>
           ))}
+          {suite.links?.length > 0 && <div className="qd-suite__sep" aria-hidden="true" />}
+          {suite.links?.map((l) => {
+            const Icon = suiteLinkIcons[l.icon] || History;
+            return (
+              <Link
+                key={l.to}
+                to={l.to}
+                role="menuitem"
+                className="qd-suite__item"
+                style={{'--tc': `var(--c-${suite.accent})`, '--ts': `var(--s-${suite.accent})`}}
+                aria-current={pathname === l.to ? 'true' : undefined}
+                onClick={() => {
+                  setOpen(false);
+                  onNavigate?.();
+                }}>
+                <span className="qd-suite__ico">
+                  <Icon size={16} aria-hidden="true" />
+                </span>
+                <span>
+                  <b>{l.label}</b>
+                  <small>{l.sub}</small>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

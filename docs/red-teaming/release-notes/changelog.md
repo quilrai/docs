@@ -3,12 +3,12 @@ sidebar_position: 1
 sidebar_label: "Changelog"
 sidebar_custom_props:
   icon: ClipboardList
-description: "What changed in Red Teaming, newest first."
+description: "What changed across the Assessment Suite (Red Teaming and Drift & Bias), newest first."
 ---
 
-# Red Teaming Changelog
+# Assessment Suite Changelog
 
-What changed in Red Teaming, newest first.
+What changed in Red Teaming and Drift & Bias, newest first.
 
 ## ML model alerts, baselines and exports (2026-11-13)
 

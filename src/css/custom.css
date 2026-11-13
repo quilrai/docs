@@ -3019,6 +3019,12 @@ body {
   color: var(--qd-muted);
 }
 
+.qd-suite__sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--qd-line);
+}
+
 .qd-mprod__label--suite {
   padding-top: 10px;
 }

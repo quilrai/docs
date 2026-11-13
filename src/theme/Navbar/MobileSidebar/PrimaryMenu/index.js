@@ -4,6 +4,7 @@ import {useNavbarMobileSidebar} from '@docusaurus/theme-common/internal';
 import {useLocation} from '@docusaurus/router';
 import Link from '@docusaurus/Link';
 import NavbarItem from '@theme/NavbarItem';
+import {History} from 'lucide-react';
 import SidebarThemeToggle from '@site/src/components/SidebarThemeToggle';
 import {products, productForPath, suiteById} from '@site/src/data/products';
 import {ProductIcon} from '@site/src/utils/productIcons';
@@ -45,6 +46,24 @@ export default function NavbarMobilePrimaryMenu() {
               </span>
             </Link>
           </li>
+          {p.suite && products[i + 1]?.suite !== p.suite &&
+            (suiteById[p.suite]?.links || []).map((l) => (
+              <li key={l.to} className="qd-mprod__suite-item">
+                <Link
+                  to={l.to}
+                  className="qd-mprod__item"
+                  style={{'--tc': `var(--c-${suiteById[p.suite].accent})`, '--ts': `var(--s-${suiteById[p.suite].accent})`}}
+                  onClick={() => mobileSidebar.toggle()}>
+                  <span className="qd-mprod__ico">
+                    <History size={16} aria-hidden="true" />
+                  </span>
+                  <span>
+                    <b>{l.label}</b>
+                    <small>{l.sub}</small>
+                  </span>
+                </Link>
+              </li>
+            ))}
           </React.Fragment>
         ))}
         <li className="qd-mprod__sep" aria-hidden="true" />
