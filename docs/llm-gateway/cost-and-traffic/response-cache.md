@@ -136,8 +136,14 @@ Set the app's `response_cache` setting through the [Management API](../api-refer
 <TabItem value="policy" label="Policy Engine">
 
 1. Open **Govern > Policy Engine > LLM Gateway > Controls > Token Savings**.
-2. Add a **Response cache** rule, choose **Applies to**, and turn it on.
-3. Choose the match mode (**Exact**, **Normalized** or **Semantic**) and, for Semantic, the similarity (**Narrow**, **Balanced** or **Wider**).
+2. Start from a recipe: **Turn on response cache** (Exact), **Cache near-identical repeats** (Normalized) or **Cache reworded questions** (Semantic). Or add a **Response cache** rule and turn it on.
+
+   ![Token Savings recipes: Turn on response cache, Cache near-identical repeats and Cache reworded questions](/img/llm-gateway/ui/response-cache-recipes.png)
+
+3. Choose **Applies to**. Under **Cache matching** pick **Exact**, **Normalized** or **Semantic**. For Semantic, add **Semantic similarity** and pick **Narrow**, **Balanced** or **Wider**. Choosing Semantic shows the wrong-answer warning.
+
+   ![Rule settings with Response cache on, Cache matching set to Semantic with its warning, and Semantic similarity set to Narrow](/img/llm-gateway/ui/response-cache-match-mode-rule.png)
+
 4. **Save to draft**, use **Test**, then **Review & publish**.
 
 The same rule in policy text:
