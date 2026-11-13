@@ -80,9 +80,9 @@ Similarity sets how close a reworded question must be. It applies only in Semant
 | **Balanced** | Light rewording. |
 | **Wider** | Looser rewording. More hits and more risk of a wrong answer. |
 
-## Results from production traffic {#results}
+## Results from simulated real-world traffic {#results}
 
-In an offline replay of about 41,000 production requests across 63 applications over one week, exact repeats accounted for about 99% of the cache hits that exact and normalized matching found, and normalized matching for about 1%. Turning on Semantic matching adds more hits:
+In an offline replay of about 41,000 requests of simulated real-world traffic across 63 applications over one week, exact repeats accounted for about 99% of the cache hits that exact and normalized matching found, and normalized matching for about 1%. Turning on Semantic matching adds more hits:
 
 | Similarity | Extra hits from semantic matching |
 |---|---|
@@ -90,8 +90,16 @@ In an offline replay of about 41,000 production requests across 63 applications 
 | **Balanced** | ~8% |
 | **Wider** | ~12% |
 
-:::warning Most semantic matches we reviewed were wrong
-Prompts that differed only in a business name, job title, username, file name or domain were treated as the same question, so the cache would have returned the answer generated for someone or something else. The checks above do not catch names.
+:::warning Semantic matches can match unexpected prompts
+Prompts that differ only in a small detail can be treated as the same question, so the cache returns an answer generated for something else. For example:
+
+| Prompt cached first | Later prompt that matched it |
+|---|---|
+| Write a welcome email for new hires at Acme Corp | Write a welcome email for new hires at Globex Inc |
+| Summarize the duties of a Senior Data Engineer | Summarize the duties of a Junior Data Engineer |
+| Check the DNS records for example.com | Check the DNS records for example.org |
+
+The checks above do not catch names.
 :::
 
 ## Which mode to choose {#choose-a-mode}
