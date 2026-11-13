@@ -129,6 +129,24 @@ export const products = [
     ],
   },
   {
+    id: 'drift',
+    slug: 'drift-and-bias',
+    name: 'Drift & Bias',
+    icon: 'Scale',
+    sub: 'Keep models accurate and fair after launch',
+    tagline:
+      'Watch your classic ML models for drift, performance loss and unfair outcomes, next to the bias checks for your LLMs.',
+    shotCaption: 'Console › Assessments › Drift & Bias',
+    primary: {label: 'Get started', to: '/drift-and-bias/get-started/overview'},
+    consolePath: 'Assessments > Drift & Bias',
+    tasks: [
+      {title: 'Connect a model from your pipeline', desc: 'Register it, then send scored rows', to: '/drift-and-bias/connect-models/pipeline-push'},
+      {title: 'Connect an MLflow registry', desc: 'Pick which registered models to monitor', to: '/drift-and-bias/connect-models/mlflow'},
+      {title: 'Read a model page', desc: 'Drift, performance, fairness and lineage', to: '/drift-and-bias/monitor-ml-models/model-page'},
+      {title: 'Set up alerts', desc: 'Five triggers per model', to: '/drift-and-bias/alerts-baselines-and-export/alerts'},
+    ],
+  },
+  {
     id: 'browser',
     slug: 'browser-extension',
     name: 'Browser Extension',
@@ -226,6 +244,7 @@ export const crossLinks = [
 export const syntheticCategories = [
   {root: 'console', after: 'console/govern', label: 'Assessments', icon: 'Target', links: [
     {label: 'Red Teaming', href: '/red-teaming', product: 'red'},
+    {label: 'Drift & Bias', href: '/drift-and-bias', product: 'drift'},
   ]},
   {root: 'integrations', after: null, label: 'Sign-in', icon: 'KeyRound', links: [
     {label: 'SAML and Okta', href: '/console/settings-organization/single-sign-on', product: 'console'},

@@ -36,6 +36,7 @@
   --c-llm: #4338ca;      --s-llm: #eaeafd;
   --c-mcp: #0e7490;      --s-mcp: #e1f3f7;
   --c-red: #be123c;      --s-red: #fde8ec;
+  --c-drift: #4d7c0f;    --s-drift: #eef6de;
   --c-browser: #a16207;  --s-browser: #fbf1dc;
   --c-endpoint: #1d4ed8; --s-endpoint: #e6edfd;
   --c-integ: #7e22ce;    --s-integ: #f3e8fd;
@@ -615,6 +616,7 @@
   --c-llm: #a5b4fc; --s-llm: #1d2142;
   --c-mcp: #67e8f9; --s-mcp: #0f2a31;
   --c-red: #fda4af; --s-red: #36161e;
+  --c-drift: #bef264; --s-drift: #1f2b10;
   --c-browser: #fcd34d; --s-browser: #2f2612;
   --c-endpoint: #93c5fd; --s-endpoint: #142240;
   --c-integ: #d8b4fe; --s-integ: #2a1a3d;
@@ -2820,6 +2822,7 @@ html[data-product="console"]  { --product-accent: var(--c-console);  --product-a
 html[data-product="llm"]      { --product-accent: var(--c-llm);      --product-accent-soft: var(--s-llm); }
 html[data-product="mcp"]      { --product-accent: var(--c-mcp);      --product-accent-soft: var(--s-mcp); }
 html[data-product="red"]      { --product-accent: var(--c-red);      --product-accent-soft: var(--s-red); }
+html[data-product="drift"]    { --product-accent: var(--c-drift);    --product-accent-soft: var(--s-drift); }
 html[data-product="browser"]  { --product-accent: var(--c-browser);  --product-accent-soft: var(--s-browser); }
 html[data-product="endpoint"] { --product-accent: var(--c-endpoint); --product-accent-soft: var(--s-endpoint); }
 html[data-product="integ"]    { --product-accent: var(--c-integ);    --product-accent-soft: var(--s-integ); }
