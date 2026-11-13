@@ -10,6 +10,23 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## ElevenLabs provider (2026-11-13)
+
+- New provider type `elevenlabs` on the **ElevenLabs** tile ("Text to speech & speech to text"), with an API key; checking the key and listing models generates no audio
+- Text to speech (Eleven v4, v3, Multilingual and Flash) on `/openai_compatible/v1/audio/speech` and on ElevenLabs' own `/elevenlabs/v1/text-to-speech/{voice_id}`, including `/stream`
+- Speech to text (Scribe) on `/openai_compatible/v1/audio/transcriptions` and `/elevenlabs/v1/speech-to-text`, with word timings
+- The ElevenLabs SDK works by pointing its base URL at the gateway; its `xi-api-key` header carries the Quilr key
+- Guardrails scan the text to speak and the transcript; usage is priced per character and per audio second
+- Details: [ElevenLabs](../apps-and-providers/provider-support#elevenlabs)
+
+## Speech: cost for every provider, request ids and an upload limit (2026-11-13)
+
+- Speech is now priced on every speech provider: characters for `tts-1`, `tts-1-hd`, Orpheus, ElevenLabs and Sarvam Bulbul; audio seconds for Whisper, `gpt-transcribe`, Groq, Mistral, Cohere and Sarvam Saaras; estimated tokens for binary `gpt-4o-mini-tts`
+- Speech responses carry `x-quilr-request-id`
+- Audio uploads above 200 MB are refused with `413 attachment_too_large`
+- Streamed transcription with response guardrails on now scans the whole transcript and returns it redacted; redacted `verbose_json` transcripts drop their word timings
+- Details: [TTS & STT](../apps-and-providers/provider-support#tts--stt)
+
 ## Response cache: normalized and semantic matching (2026-11-13)
 
 - **Choose how closely a repeat must match**: **Exact** (default, unchanged), **Normalized** (also ignores case, punctuation at word edges, repeated spaces and a fixed list of words such as *the*, *my*, *please* and *thanks*) or **Semantic** (also matches a reworded latest user message)

@@ -1,7 +1,7 @@
 import React, {useId, useState} from 'react';
 import Link from '@docusaurus/Link';
 import useBrokenLinks from '@docusaurus/useBrokenLinks';
-import {ArrowLeftRight, Bot, Boxes, Cloud, Download, FileJson, FlaskConical, Globe, Languages, ListOrdered, MessagesSquare, Play, Plug, Radio, Route, Scale, Search, ShieldCheck, Sparkles, Terminal, Wind, Zap} from 'lucide-react';
+import {ArrowLeftRight, AudioLines, Bot, Boxes, Cloud, Download, FileJson, FlaskConical, Globe, Languages, ListOrdered, MessagesSquare, Play, Plug, Radio, Route, Scale, Search, ShieldCheck, Sparkles, Terminal, Wind, Zap} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-inference-v1.json';
 import familyData from '@site/src/data/inferenceApiFamilies';
 import styles from './styles.module.css';
@@ -19,7 +19,7 @@ const download = '/openapi/llm-gateway-inference-v1.json';
 const familyDownload = key => `/openapi/llm-gateway-inference-v1-${key}.json`;
 const liveSpecPath = '/llmgateway_inference_apis/v1/openapi.json';
 const playground = '/llm-gateway-playground';
-const icons = {openai_compatible: MessagesSquare, openai_responses: Sparkles, azure_openai: Cloud, openai_realtime: Radio, openai_assistants: Bot, anthropic_messages: ArrowLeftRight, bedrock_runtime: Boxes, google_gemini: Globe, rerank: ListOrdered, mistral: Wind, xai: Zap, sarvam: Languages, typesafe: Scale, perplexity: Search, cohere: Boxes, specification: FileJson, other: Route};
+const icons = {openai_compatible: MessagesSquare, openai_responses: Sparkles, azure_openai: Cloud, openai_realtime: Radio, openai_assistants: Bot, anthropic_messages: ArrowLeftRight, bedrock_runtime: Boxes, google_gemini: Globe, rerank: ListOrdered, mistral: Wind, xai: Zap, sarvam: Languages, typesafe: Scale, perplexity: Search, cohere: Boxes, elevenlabs: AudioLines, specification: FileJson, other: Route};
 
 // Examples use the server's default region (https://{region}.quilr.ai).
 const host = serverUrl(spec);

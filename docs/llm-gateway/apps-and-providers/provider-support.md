@@ -51,6 +51,7 @@ One row per provider type. The type is what you select in the console and what y
 | `oracle` | Oracle OCI Generative AI | ✓ | Soon | Soon | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | Soon | Soon | ✓ | - | - | - | - | - | Manual |
 | `sarvam` | Sarvam | ✓ | Soon | Soon | - | - | - | - | ✓ | ✓ |
+| `elevenlabs` | ElevenLabs (speech only) | - | - | - | - | - | - | - | ✓ | ✓ |
 | `cohere_rerank` | Cohere | - | - | - | - | - | - | ✓ | - | ✓ |
 | `jina_rerank` | Jina | - | - | - | - | - | - | ✓ | - | ✓ |
 | `voyage_rerank` | Voyage | - | - | - | - | - | - | ✓ | - | ✓ |
@@ -61,7 +62,7 @@ One row per provider type. The type is what you select in the console and what y
 
 - **Gemini generateContent and Bedrock Converse / InvokeModel** clients reach the same conversational providers. The [format explorer](../api-reference/any-to-any-formats#format-explorer) shows how each client format reaches each provider, model by model.
 - **Chat** on `vertex_ai` and the `anthropic_messages*` types uses the built-in adapters described in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters).
-- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), Groq in [Groq](#groq), Perplexity in [Perplexity](#perplexity), and Cohere in [Cohere](#cohere). **Speech** on `cohere` is transcription only.
+- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), Groq in [Groq](#groq), Perplexity in [Perplexity](#perplexity), Cohere in [Cohere](#cohere), and ElevenLabs in [ElevenLabs](#elevenlabs). **Speech** on `cohere` is transcription only.
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
@@ -109,6 +110,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `groq` | API key | API key | - (the endpoint is fixed: `https://api.groq.com/openai/v1`) | Console, API |
 | `perplexity` | API key | API key | - (the endpoint is fixed: `https://api.perplexity.ai`) | Console, API |
 | `cohere` | API key | API key | - (the endpoint is fixed: `https://api.cohere.com`) | Console, API |
+| `elevenlabs` | API key | API key | Base URL (`base_url`): an ElevenLabs regional or data-residency host only (default `https://api.elevenlabs.io`) | Console (API key), API |
 | `typesafe` | API key | API key | - (the endpoint is fixed: `https://api.typesafe.ai/v1`) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
@@ -189,7 +191,7 @@ All three rerank paths take a Cohere-compatible body (`model`, `query`, `documen
 
 ## TTS & STT
 
-`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai`, `sarvam` and `groq` (Whisper and Orpheus models; see [Groq](#groq)). `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`), and so does `cohere` (`cohere-transcribe-03-2026`; `language` is required). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
+`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai`, `sarvam` and `groq` (Whisper and Orpheus models; see [Groq](#groq)). `elevenlabs` serves `/audio/speech` and `/audio/transcriptions` (see [ElevenLabs](#elevenlabs)). `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`), and so does `cohere` (`cohere-transcribe-03-2026`; `language` is required). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
 
 On a Sarvam provider these routes adapt to Sarvam's APIs:
 
@@ -201,6 +203,17 @@ On a Sarvam provider these routes adapt to Sarvam's APIs:
 | `response_format` | `output_audio_codec` (default MP3; `pcm` is raw linear16) |
 
 Transcriptions accept `response_format` of `json`, `verbose_json` or `text`, and `timestamp_granularities[]=segment`. `model` is required.
+
+These rules apply to every speech provider:
+
+| Topic | Behavior |
+|-------|----------|
+| Billing | Text to speech is billed per character sent for character-priced models (`tts-1`, `tts-1-hd`, Orpheus, ElevenLabs, Bulbul). `gpt-4o-mini-tts` is billed from OpenAI's token usage when you request `stream_format: "sse"`; for binary audio OpenAI reports no usage, so the gateway estimates the tokens from the text and the audio's length and marks them estimated. Transcription is billed per second of audio: the duration the provider reports, or the uploaded file's measured length when it reports none (Groq, Sarvam, translations). `gpt-4o-*-transcribe` models are billed from their token usage. |
+| Budgets | Speech requests count toward request limits. Token and spend budgets do not charge them. |
+| Request id | Every speech response carries `x-quilr-request-id`, the id of its request log entry. |
+| Upload size | Audio uploads above 200 MB are refused with `413` and `attachment_too_large` before reaching the provider. Providers apply their own lower limits (25 MB for OpenAI-style APIs). |
+| Errors | A provider failure on the ElevenLabs and Sarvam routes carries `X-Quilr-Error-Source: upstream`, `X-Quilr-Error-Code` and `"source": "upstream"` in the error body, like every other route; the provider's own message is never echoed. A refusal by the gateway itself (for example `webhook=true` under guardrails) carries no upstream marker. |
+| Guardrails | The text to speak and the returned transcript are scanned. When response guardrails apply, `stream=true` transcription is returned after the scan as one `transcript.text.delta` and the final `transcript.text.done` event. A redacted `verbose_json` transcript is returned without word timings, which would repeat the original text. |
 
 ## Sarvam Speech and Text
 
@@ -482,7 +495,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/speech \
 | Speech | Orpheus returns WAV only; the gateway asks for WAV when you send no `response_format`. Each Orpheus model's terms must be accepted once in the Groq console for the key's organization, or Groq answers `model_terms_required` (also shown by **Check key and list models**). `/audio/translations` works on `whisper-large-v3` only. |
 | Streaming | Chat and Responses. Streams always carry usage, so billing has it. |
 | Capacity | Groq's `498` `capacity_exceeded` (flex tier full) is treated as a rate limit, so [routing failover](../cost-and-traffic/routing-and-fallbacks) can retry or move the request. |
-| Billing | Chat by tokens, Whisper by audio seconds, Orpheus by characters. Groq's browser search tool (`{"type": "browser_search"}` on gpt-oss models) adds $5 per 1,000 searches and $1 per 1,000 page visits, on Chat and Responses. |
+| Billing | Chat by tokens, Whisper by audio seconds, Orpheus by characters. Groq bills a transcription shorter than 10 seconds as 10 seconds; the gateway records the actual length, so very short clips are logged slightly below Groq's invoice. Groq's browser search tool (`{"type": "browser_search"}` on gpt-oss models) adds $5 per 1,000 searches and $1 per 1,000 page visits, on Chat and Responses. |
 
 ## Perplexity
 
@@ -627,6 +640,65 @@ Cohere's own APIs, in Cohere's request and response format, for Cohere providers
 | `/cohere/v1/datasets`, `/usage`, `/{id}` | Upload (multipart), list, get, delete datasets and read usage | - | When the deployment enables files |
 
 Batch, embed-job and dataset ids belong to the Cohere account that created them, so later calls must use the same app. Cohere's raw model list and API key check are not exposed; the gateway's model list applies the app's model visibility.
+
+## ElevenLabs
+
+`elevenlabs` calls `https://api.elevenlabs.io` for text to speech and speech to text. It takes one API key; the console always uses that endpoint. Through the Management API you can instead set `base_url` to one of ElevenLabs' own hosts (`https://api.us.elevenlabs.io` or the data-residency hosts `https://api.eu.residency.elevenlabs.io`, `https://api.in.residency.elevenlabs.io`, `https://api.sg.residency.elevenlabs.io`); any other value is refused. ElevenLabs serves speech only, so it has no chat or embeddings.
+
+| Provider type | Console tile and API | What one key serves |
+|---------------|----------------------|---------------------|
+| `elevenlabs` | **ElevenLabs** › Speech | Text to speech with the Eleven v4, v3, Multilingual and Flash models, and speech to text with the Scribe models. |
+
+### Add the provider
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Select the **ElevenLabs** tile ("Text to speech & speech to text"), then **Speech**.
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+The gateway lists the text-to-speech models your key can use from ElevenLabs' `/v1/models`, plus the Scribe models (`scribe_v3`, `scribe_v2`, `scribe_v2_medical`, `scribe_v1`), which ElevenLabs does not list. Validation reads that list, so checking a key generates no audio and costs nothing.
+
+| API | Path | ElevenLabs | Example model |
+|-----|------|:----------:|---------------|
+| Text to speech (OpenAI shape) | `/openai_compatible/v1/audio/speech` | ✓ | `eleven_flash_v2_5` |
+| Speech to text (OpenAI shape) | `/openai_compatible/v1/audio/transcriptions` | ✓ | `scribe_v2` |
+| Text to speech (ElevenLabs shape) | `/elevenlabs/v1/text-to-speech/{voice_id}`, `.../stream` | ✓ | `eleven_v3` |
+| Speech to text (ElevenLabs shape) | `/elevenlabs/v1/speech-to-text` | ✓ | `scribe_v2` |
+| Speech translation, chat, embeddings | - | - (ElevenLabs has none) | - |
+| Realtime transcription, voice agents, voice cloning, dubbing, sound effects, music | - | - (not routed) | - |
+
+### ElevenLabs examples
+
+```bash
+# Text to speech with the OpenAI SDK shape (voice is an ElevenLabs voice id)
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/speech \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "eleven_flash_v2_5", "input": "Hello from the gateway.", "voice": "JBFqnCBsd6RMkjVDRZzb", "response_format": "mp3"}' \
+  --output hello.mp3
+
+# ElevenLabs' own streaming route: audio arrives as ElevenLabs produces it
+curl "https://guardrails-usa-2.quilr.ai/elevenlabs/v1/text-to-speech/JBFqnCBsd6RMkjVDRZzb/stream?output_format=mp3_44100_128" \
+  -H "xi-api-key: <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"text": "Hello from the gateway.", "model_id": "eleven_v3"}' --output hello.mp3
+
+# Speech to text with word timings
+curl https://guardrails-usa-2.quilr.ai/elevenlabs/v1/speech-to-text \
+  -H "xi-api-key: <Quilr key>" -F model_id=scribe_v2 -F file=@meeting.mp3
+```
+
+With the ElevenLabs SDK, set the base URL to `https://guardrails-usa-2.quilr.ai/elevenlabs` and the API key to your Quilr key; the SDK's `xi-api-key` header carries it. `xi-api-key` is accepted on the `/elevenlabs/` routes only; the OpenAI-shaped routes take `Authorization: Bearer`, `api-key` or `x-api-key`.
+
+### ElevenLabs behavior
+
+| Topic | ElevenLabs |
+|-------|------------|
+| Voices | `voice` (OpenAI shape) or the path's `voice_id` must be an ElevenLabs voice id from your ElevenLabs account. OpenAI voice names such as `alloy` are not mapped. |
+| Audio formats | `response_format` `mp3` (default), `opus`, `pcm` (24 kHz) and `wav` (24 kHz) map to ElevenLabs formats; you can also pass an ElevenLabs `output_format` value such as `mp3_44100_192`. `aac` and `flac` are refused with `400`. Some formats need a higher ElevenLabs plan. |
+| Unsupported OpenAI options | `instructions`, `stream_format: "sse"` on speech, and `prompt`, `stream=true`, `srt` and `vtt` on transcription are refused with `400` rather than ignored. `webhook` and `use_multi_channel` work on `/elevenlabs/v1/speech-to-text` only. |
+| Streaming | `/elevenlabs/v1/text-to-speech/{voice_id}/stream` relays audio as it arrives. The OpenAI-shaped speech route returns the whole file. |
+| Transcripts | `verbose_json` returns the text, language, duration and word timings. |
+| Guardrails | Every text ElevenLabs receives is scanned: the text to speak with `previous_text` and `next_text`, and transcription `keyterms` and `transcript_edit`. The returned transcript is scanned too; a redacted transcript is returned without word timings, entities or extra export formats, since those repeat the text. `webhook=true` and `transcript_edit` are refused with `400` on `/elevenlabs/v1/speech-to-text` while the app's guardrails or a QuilrQL policy apply: ElevenLabs would deliver a webhook transcript without the gateway seeing it, and `transcript_edit` returns a second, edited transcript that is not scanned. Query parameters such as `enable_logging=false` (zero retention) are passed to ElevenLabs unchanged. Uploaded audio is forwarded unchanged and never logged. |
+| Billing | Text to speech per character sent ($0.08 per 1,000 for v4, v3 and Multilingual v2; $0.04 for v4 Turbo, v3 Conversational, Flash and Turbo); speech to text per second of audio from ElevenLabs' reported duration ($0.20 per hour, `scribe_v2_medical` included). Options ElevenLabs charges extra for are billed too: `keyterms` (+$0.05 per hour, and at least 20 seconds with more than 100 keyterms), `transcript_edit` (+$0.07 per hour, at least 10 seconds), `detect_speaker_roles` (+10%), and `use_multi_channel` (every channel at the full duration). The request log shows how the billed audio was reached. Speech requests count toward request limits; token and spend budgets do not charge them. |
+| Errors | ElevenLabs' status code is kept and its error status (for example `invalid_api_key`) becomes `error.code`; ElevenLabs' message is not passed through because it can quote your text. |
 
 ## Endpoint families
 

@@ -88,6 +88,7 @@ For a model endpoint inside a private network, select a [remote connector](./rem
 | Groq | Chat completions and Responses (`groq`) |
 | Perplexity | Agent API, decision and embedding models (`perplexity`) |
 | Cohere | Chat, embeddings, rerank and speech to text (`cohere`), Rerank only (`cohere_rerank`) |
+| ElevenLabs | Text to speech and speech to text (`elevenlabs`) |
 | TypeSafe | System One decision models (`typesafe`) |
 | xAI | Chat completions (`xai`), Responses (`xai_responses`) |
 | Sarvam | Speech, text & chat (`sarvam`) |

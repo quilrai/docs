@@ -5663,6 +5663,154 @@
         ],
         "type": "object"
       },
+      "ElevenLabsSpeechToTextRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "diarize": {
+            "type": "boolean"
+          },
+          "file": {
+            "description": "Audio or video file.",
+            "format": "binary",
+            "type": "string"
+          },
+          "language_code": {
+            "type": "string"
+          },
+          "model_id": {
+            "description": "Transcription model, for example `scribe_v2`.",
+            "type": "string"
+          },
+          "num_speakers": {
+            "type": "integer"
+          },
+          "source_url": {
+            "description": "HTTPS URL of the audio, instead of `file`.",
+            "type": "string"
+          },
+          "tag_audio_events": {
+            "type": "boolean"
+          },
+          "timestamps_granularity": {
+            "enum": [
+              "none",
+              "word",
+              "character"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_id"
+        ],
+        "type": "object"
+      },
+      "ElevenLabsSpeechToTextResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "audio_duration_secs": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "language_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language_probability": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "text": {
+            "description": "Transcript, scanned by guardrails.",
+            "type": "string"
+          },
+          "transcription_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transcripts": {
+            "description": "Per-channel transcripts (`use_multi_channel`).",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "words": {
+            "description": "Word timings. Omitted when guardrails redact the transcript.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ElevenLabsTextToSpeechRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "apply_text_normalization": {
+            "enum": [
+              "auto",
+              "on",
+              "off"
+            ],
+            "type": "string"
+          },
+          "language_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model_id": {
+            "description": "Speech model, for example `eleven_multilingual_v2` (default), `eleven_v3`, `eleven_flash_v2_5`.",
+            "type": "string"
+          },
+          "next_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "previous_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seed": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "text": {
+            "description": "Text to speak. Scanned by guardrails.",
+            "type": "string"
+          },
+          "voice_settings": {
+            "additionalProperties": true,
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
       "GeminiBatchEmbedContentsRequest": {
         "additionalProperties": true,
         "properties": {
@@ -9978,6 +10126,12 @@
         "description": "`Authorization: Bearer` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT. When present, this header decides: a malformed value is rejected and no other header is tried.",
         "scheme": "bearer",
         "type": "http"
+      },
+      "QuilrElevenLabsKey": {
+        "description": "ElevenLabs SDK style `xi-api-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "xi-api-key",
+        "type": "apiKey"
       },
       "QuilrGoogApiKey": {
         "description": "Gemini SDK style `x-goog-api-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
@@ -14925,6 +15079,624 @@
         ]
       }
     },
+    "/elevenlabs/v1/speech-to-text": {
+      "post": {
+        "description": "Transcribes an uploaded audio file (`multipart/form-data`). Every form field is forwarded to ElevenLabs; the transcript is scanned by guardrails before it is returned.\n\n**Gateway features on this route:** request guardrails, response guardrails (non-streaming), model access rules, limits, quotas and budgets.",
+        "operationId": "ElevenLabs_speech_to_text",
+        "parameters": [
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ElevenLabsSpeechToTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElevenLabsSpeechToTextResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrElevenLabsKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Transcribe speech",
+        "tags": [
+          "ElevenLabs"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "response_dlp",
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/elevenlabs/v1/text-to-speech/{voice_id}": {
+      "post": {
+        "description": "Converts `text` to speech with the given voice and returns the audio. The text is scanned by guardrails before forwarding.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
+        "operationId": "ElevenLabs_text_to_speech",
+        "parameters": [
+          {
+            "description": "ElevenLabs voice id, for example `JBFqnCBsd6RMkjVDRZzb`.",
+            "in": "path",
+            "name": "voice_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Audio format as `codec_samplerate[_bitrate]`, for example `mp3_44100_128` (default), `pcm_24000`, `wav_24000`, `opus_48000_128`, `ulaw_8000`. Some formats need a higher ElevenLabs plan.",
+            "in": "query",
+            "name": "output_format",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElevenLabsTextToSpeechRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "audio/basic": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/mpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/opus": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/pcm": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/pcma": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/wav": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Generated audio.",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrElevenLabsKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Synthesize speech",
+        "tags": [
+          "ElevenLabs"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "limits"
+        ]
+      }
+    },
+    "/elevenlabs/v1/text-to-speech/{voice_id}/stream": {
+      "post": {
+        "description": "Like text to speech, but the audio is relayed to the client as ElevenLabs produces it.\n\n**Gateway features on this route:** request guardrails, model access rules, limits, quotas and budgets.",
+        "operationId": "ElevenLabs_text_to_speech_stream",
+        "parameters": [
+          {
+            "description": "ElevenLabs voice id, for example `JBFqnCBsd6RMkjVDRZzb`.",
+            "in": "path",
+            "name": "voice_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Audio format as `codec_samplerate[_bitrate]`, for example `mp3_44100_128` (default), `pcm_24000`, `wav_24000`, `opus_48000_128`, `ulaw_8000`. Some formats need a higher ElevenLabs plan.",
+            "in": "query",
+            "name": "output_format",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Email of the end user behind the request, for identity-aware policy, limits and logs. Required when the app enforces identity (401 `identity_required`); the app may restrict its domain. A verified JWT or a named self-service key carries its own identity, which this header never replaces.",
+            "in": "header",
+            "name": "X-User-Email",
+            "required": false,
+            "schema": {
+              "format": "email",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Groups related requests into one conversation for logs, routing and session pinning (also read from `conversation-id` / `conversation_id`). Required when the app enforces conversation ids (400 `conversation_id_required`).",
+            "in": "header",
+            "name": "X-Conversation-Id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to one specific provider configured on the app (its label), instead of the app's routing. Also accepted as `provider_label` in the body (or the query string on job-style routes); the selector is removed before the upstream call. An explicitly selected provider is never moved by failover.",
+            "in": "header",
+            "name": "X-Provider-Label",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sends the request to the app's provider of this type (for example `openai` or `bedrock`) instead of the app's routing. Also accepted as `provider` in the body. `X-Provider-Label` is more specific and wins when both are sent.",
+            "in": "header",
+            "name": "X-Provider-Name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElevenLabsTextToSpeechRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "audio/basic": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/mpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/opus": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/pcm": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/pcma": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "audio/wav": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Generated audio.",
+            "headers": {
+              "Age": {
+                "$ref": "#/components/headers/Age"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimit-Policy"
+              },
+              "X-Quilr-Attempts": {
+                "$ref": "#/components/headers/X-Quilr-Attempts"
+              },
+              "X-Quilr-Budget-Overflow": {
+                "$ref": "#/components/headers/X-Quilr-Budget-Overflow"
+              },
+              "X-Quilr-Cache": {
+                "$ref": "#/components/headers/X-Quilr-Cache"
+              },
+              "X-Quilr-Failover": {
+                "$ref": "#/components/headers/X-Quilr-Failover"
+              },
+              "X-Quilr-Quota-Remaining": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Remaining"
+              },
+              "X-Quilr-Quota-Reset": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Reset"
+              },
+              "X-Quilr-Quota-Scope": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Scope"
+              },
+              "X-Quilr-Quota-Warning": {
+                "$ref": "#/components/headers/X-Quilr-Quota-Warning"
+              },
+              "X-Quilr-Request-ID": {
+                "$ref": "#/components/headers/X-Quilr-Request-ID"
+              },
+              "X-Quilr-Route": {
+                "$ref": "#/components/headers/X-Quilr-Route"
+              },
+              "X-Quilr-Served-Model": {
+                "$ref": "#/components/headers/X-Quilr-Served-Model"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/OpenAIError400"
+          },
+          "401": {
+            "$ref": "#/components/responses/OpenAIError401"
+          },
+          "403": {
+            "$ref": "#/components/responses/OpenAIError403"
+          },
+          "404": {
+            "$ref": "#/components/responses/OpenAIError404"
+          },
+          "422": {
+            "$ref": "#/components/responses/OpenAIError422"
+          },
+          "429": {
+            "$ref": "#/components/responses/OpenAIError429"
+          },
+          "500": {
+            "$ref": "#/components/responses/OpenAIError500"
+          },
+          "502": {
+            "$ref": "#/components/responses/OpenAIError502"
+          },
+          "503": {
+            "$ref": "#/components/responses/OpenAIError503"
+          },
+          "504": {
+            "$ref": "#/components/responses/OpenAIError504"
+          }
+        },
+        "security": [
+          {
+            "QuilrBearer": []
+          },
+          {
+            "QuilrApiKeyHeader": []
+          },
+          {
+            "QuilrXApiKey": []
+          },
+          {
+            "QuilrElevenLabsKey": []
+          },
+          {
+            "KongApiKey": []
+          },
+          {
+            "ApimSubscriptionKey": []
+          },
+          {
+            "ApigeeApiKey": []
+          }
+        ],
+        "summary": "Stream speech",
+        "tags": [
+          "ElevenLabs"
+        ],
+        "x-quilr-gateway-features": [
+          "request_dlp",
+          "model_access",
+          "limits"
+        ]
+      }
+    },
     "/llmgateway_inference_apis/v1/openapi.json": {
       "get": {
         "description": "Returns the inference OpenAPI document. Pass `family` for one API family only.",
@@ -14949,6 +15721,7 @@
                 "mistral",
                 "xai",
                 "sarvam",
+                "elevenlabs",
                 "typesafe",
                 "perplexity",
                 "cohere"
@@ -57057,6 +57830,10 @@
     {
       "description": "Sarvam's own speech-to-text, text-to-speech, translation, transliteration and language identification APIs, in Sarvam's request and response format, served for the app's Sarvam provider. Point the Sarvam SDK at `<gateway>/sarvam`; its `api-subscription-key` header carries the Quilr API key. Text and transcripts are scanned by guardrails; a blocked request answers 400.",
       "name": "Sarvam"
+    },
+    {
+      "description": "ElevenLabs' own text-to-speech and speech-to-text APIs, in ElevenLabs' request and response format, served for the app's ElevenLabs provider. Point the ElevenLabs SDK at `<gateway>/elevenlabs`; its `xi-api-key` header carries the Quilr API key. The text to speak and the returned transcript are scanned by guardrails; a blocked request answers 400. Uploaded audio is forwarded unchanged.",
+      "name": "ElevenLabs"
     },
     {
       "description": "TypeSafe System One decision models: typed questions about an input answered with probabilities. Point the TypeSafe SDK at `<gateway>/typesafe`.",
