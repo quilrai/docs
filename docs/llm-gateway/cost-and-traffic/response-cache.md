@@ -82,30 +82,24 @@ Similarity sets how close a reworded question must be. It applies only in Semant
 
 ## Results from production traffic {#results}
 
-An offline estimate: a replay of about 41,000 production requests (non-streaming chat and Messages) across 66 applications over one week.
+In an offline replay of about 41,000 production requests across 66 applications over one week, exact repeats accounted for about 95% of all cache hits and normalized matching for about 1%. Semantic matching (Narrow) found the remaining ~4%.
 
-| Mode | Requests that matched a stored response |
-|---|---|
-| **Exact** | 37.9% |
-| **Normalized** | +0.4 points |
-| **Semantic, Narrow** | +1.5 points over exact and normalized |
-| **Semantic, Balanced** | +2.4 points over exact and normalized |
-| **Semantic, Wider** | +3.9 points over exact and normalized |
+| Similarity | Exact | Normalized | Semantic |
+|---|---|---|---|
+| **Narrow** | 95% | 1% | 4% |
+| **Balanced** | 93% | 1% | 6% |
+| **Wider** | 90% | 1% | 9% |
 
-These are matches, not verified correct answers. The normalized matches we sampled were correct.
+*Share of cache hits found by each step.*
 
-:::warning Semantic mode can return another entity's answer
-When we reviewed samples, most semantic matches on automated or templated prompts were wrong. They differed only in a business name, job title, username, file name or domain, so the cache would have returned the answer generated for someone or something else. The checks above do not catch names.
+:::warning Most semantic matches we reviewed were wrong
+Prompts that differed only in a business name, job title, username, file name or domain were treated as the same question, so the cache would have returned the answer generated for someone or something else. The checks above do not catch names.
 :::
 
 ## Which mode to choose {#choose-a-mode}
 
-| Your traffic | Use |
-|---|---|
-| Automated pipelines, agents and templated prompts | **Exact** or **Normalized** |
-| People typing questions, such as FAQ or helpdesk apps | **Semantic**, starting with **Narrow** |
-
-After you turn on Semantic, review the cache hits in the request logs for a few days before widening similarity.
+- **Exact** or **Normalized** covers almost all of the benefit. Use them for automated pipelines and agents.
+- Use **Semantic** only if you want the last few percent, and only for apps where people type questions, such as FAQ or helpdesk. Start with **Narrow** and review the cache hits in the request logs.
 
 ## Configure the response cache {#configure}
 
