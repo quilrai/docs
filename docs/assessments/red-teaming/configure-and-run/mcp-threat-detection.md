@@ -5,6 +5,7 @@ sidebar_label: "MCP Threat Detection"
 sidebar_custom_props:
   icon: Network
 console_path: /red-teaming/mcp-scan
+description: "Scan an MCP server's code, dependencies and exposed tools, and build a threat model before you trust it."
 aliases: [MCP scan, scan an MCP server, MCP assessment, MCP red teaming, MCP threat detection, MCP security, tool poisoning, MCP repository scan, live MCP server, authorized scope]
 ---
 
@@ -36,5 +37,5 @@ You can give a repository, a live server, or both.
 Completed and in-progress scans are listed under **Recent scans**, with their findings and coverage. Open a scan to review its findings.
 
 :::tip
-Use MCP Threat Detection before you add a server to the [MCP Gateway](../../mcp-gateway/servers-and-connections/adding-mcp-servers) or approve it for your users. For an agent that already uses MCP tools, follow up with [Agentic Red Teaming](./agent.md) to test how the agent behaves under attack.
+Use MCP Threat Detection before you add a server to the [MCP Gateway](../../../mcp-gateway/servers-and-connections/adding-mcp-servers) or approve it for your users. For an agent that already uses MCP tools, follow up with [Agentic Red Teaming](./agent.md) to test how the agent behaves under attack.
 :::

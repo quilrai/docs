@@ -56,8 +56,9 @@ The sidebar has four groups: Observe, Govern, Assessments and Settings.
 
 ### Assessments
 
-[Red Teaming](../../red-teaming) actively tests LLM applications, MCP servers,
-agents and models for weaknesses.
+[Red Teaming](../../assessments/red-teaming/get-started/overview) actively tests LLM applications, MCP servers,
+agents and models for weaknesses. [Drift & Bias](../../assessments/drift-and-bias/get-started/overview) watches your
+LLMs and classic ML models for drift, performance loss and unfair outcomes. See [Assessments](../../assessments).
 
 ### Settings
 

@@ -26,7 +26,7 @@ Exports hold aggregates only. Pushed rows, predictions and labels are not includ
    - **05 Review:** preview the draft.
 3. Select **Create export**. It is enabled once you preview the current draft.
 
-See [Export Center](../../console/settings-data/export-center.md) for delivery formats, schedules and limits.
+See [Export Center](../../../console/settings-data/export-center.md) for delivery formats, schedules and limits.
 
 ## Export LLM runs
 

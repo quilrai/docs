@@ -110,40 +110,26 @@ export const products = [
       {title: 'Share and schedule', desc: 'Groups, approvals, recurring runs, versions', to: '/workflow-agents/run-and-share/share-and-manage'},
     ],
   },
+  // Assessments mirrors the console's Assessments menu. Each module is a
+  // folder under docs/assessments/ (red-teaming, drift-and-bias, ...).
+  // The id stays 'red' so existing accents and references keep working.
   {
     id: 'red',
-    slug: 'red-teaming',
-    name: 'Red Teaming',
+    slug: 'assessments',
+    name: 'Assessments',
     icon: 'Target',
-    sub: 'Attack your own AI before others do',
+    sub: 'Test and monitor your AI',
     tagline:
-      'Test AI apps, agents, AI workflows and models against real attack techniques, then fix what breaks.',
+      'Red Teaming attacks your AI apps, agents, workflows and models before others do. Drift & Bias watches your LLMs and ML models for drift, performance loss and unfair outcomes.',
     shot: '/img/products/red-teaming.jpg',
     shotCaption: 'Console › Assessments › Red Teaming',
-    primary: {label: 'Get started', to: '/red-teaming/get-started/overview'},
-    consolePath: 'Assessments > Red Teaming',
+    primary: {label: 'Get started with Red Teaming', to: '/assessments/red-teaming/get-started/overview'},
+    consolePath: 'Assessments',
     tasks: [
-      {title: 'Red team an AI workflow', desc: 'Hide attacks in documents, images or data records', to: '/red-teaming/configure-and-run/ai-workflow'},
-      {title: 'Red team an AI app or agent', desc: 'Attack any HTTP, WebSocket, or voice endpoint', to: '/red-teaming/configure-and-run/agent'},
-      {title: 'Compare models', desc: 'Run the same attacks on 2 to 8 models', to: '/red-teaming/configure-and-run/model'},
-    ],
-  },
-  {
-    id: 'drift',
-    slug: 'drift-and-bias',
-    name: 'Drift & Bias',
-    icon: 'Scale',
-    sub: 'Keep models accurate and fair after launch',
-    tagline:
-      'Watch your classic ML models for drift, performance loss and unfair outcomes, next to the bias checks for your LLMs.',
-    shotCaption: 'Console › Assessments › Drift & Bias',
-    primary: {label: 'Get started', to: '/drift-and-bias/get-started/overview'},
-    consolePath: 'Assessments > Drift & Bias',
-    tasks: [
-      {title: 'Connect a model from your pipeline', desc: 'Register it, then send scored rows', to: '/drift-and-bias/connect-models/pipeline-push'},
-      {title: 'Connect an MLflow registry', desc: 'Pick which registered models to monitor', to: '/drift-and-bias/connect-models/mlflow'},
-      {title: 'Read a model page', desc: 'Drift, performance, fairness and lineage', to: '/drift-and-bias/monitor-ml-models/model-page'},
-      {title: 'Set up alerts', desc: 'Five triggers per model', to: '/drift-and-bias/alerts-baselines-and-export/alerts'},
+      {title: 'Red team an AI app or agent', desc: 'Attack any HTTP, WebSocket, or voice endpoint', to: '/assessments/red-teaming/configure-and-run/agent'},
+      {title: 'Red team an AI workflow', desc: 'Hide attacks in documents, images or data records', to: '/assessments/red-teaming/configure-and-run/ai-workflow'},
+      {title: 'Monitor an ML model', desc: 'Drift, performance and fairness from your pipeline', to: '/assessments/drift-and-bias/connect-models/pipeline-push'},
+      {title: 'Connect an MLflow registry', desc: 'Pick which registered models to monitor', to: '/assessments/drift-and-bias/connect-models/mlflow'},
     ],
   },
   {
@@ -243,8 +229,8 @@ export const crossLinks = [
 
 export const syntheticCategories = [
   {root: 'console', after: 'console/govern', label: 'Assessments', icon: 'Target', links: [
-    {label: 'Red Teaming', href: '/red-teaming', product: 'red'},
-    {label: 'Drift & Bias', href: '/drift-and-bias', product: 'drift'},
+    {label: 'Red Teaming', href: '/assessments/red-teaming/get-started/overview', product: 'red'},
+    {label: 'Drift & Bias', href: '/assessments/drift-and-bias/get-started/overview', product: 'red'},
   ]},
   {root: 'integrations', after: null, label: 'Sign-in', icon: 'KeyRound', links: [
     {label: 'SAML and Okta', href: '/console/settings-organization/single-sign-on', product: 'console'},

@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const page = path.resolve(__dirname, '../docs/red-teaming/release-notes/changelog.md');
+const page = path.resolve(__dirname, '../docs/assessments/red-teaming/release-notes/changelog.md');
 const MAX_NOTE = 4000;
 
 function fail(message) {
