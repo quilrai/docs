@@ -1,0 +1,185 @@
+---
+title: "Custom Tools API"
+sidebar_position: 3.6
+sidebar_label: "Custom Tools API"
+sidebar_custom_props:
+  icon: Code
+description: "MCP Gateway Management API v1: add your own tools to an MCP as short Python scripts over the MCP's tools; save, validate, list callable functions, test-run with mocks, restore earlier versions, disable and delete custom tools."
+aliases: [custom tools, custom tool, scripted tools, tool scripts]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi/mcp';
+
+# Custom Tools API
+
+A custom tool is your own tool on an MCP: a short Python script that calls the MCP's tools with default parameters and simple logic, such as listing recent emails and keeping only the unread ones with sender and subject. There is no model in the loop: the script chains calls, filters and trims results, and returns one answer.
+
+Users and agents see a custom tool as one more tool of that MCP, on the MCP's own endpoint and in [OneMCP](../get-started/onemcp). It works for remote, MCP Library and [REST API](./rest-api-mcps-api) MCPs. Every tool the script calls runs as the user who called the custom tool, with the usual policies, approvals, DLP and logging, so a custom tool can never do more than that user could do tool by tool.
+
+The custom tool itself is governed like any other tool: per-tool settings (confirmation, enabled), policies, quotas and DLP apply to its own name, its arguments and its result, and again to every tool it calls.
+
+Reading custom tools needs `read`. Creating, changing, deleting and test-running them needs `tools:write` (see [scopes](./management-api#scopes)). Try every call in the [MCP Management API playground](/mcp-gateway-management-playground?tab=custom-tools).
+
+## Write the script {#script}
+
+A custom tool is a definition plus a script:
+
+| Field | Meaning |
+| --- | --- |
+| `description` | What the tool does and when to use it. Models read it to pick the tool. Required. |
+| `input_schema` | JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default `false`). At most 50 properties. Write it out in full: `$ref`, `$id` and anchors are refused with `400`. |
+| `defaults` | Default argument values. Clients see each one as `default` in the tool's schema and do not have to send it. |
+| `fixed_args` | Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends, for example a fixed project id. Names must not be `input_schema` properties. Not for secrets: reads return them, so keep credentials in the MCP's [upstream credentials](./settings-and-credentials-api#upstream-credentials). |
+| `output_schema` | Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's `outputSchema` and the result as structured content; a result that does not match is returned as an error. Like `input_schema`, it must be written out in full, with no `$ref`, `$id` or anchors. |
+| `code` | The Python script. Required. |
+| `enabled` | `false` hides the tool from clients. Default `true`. |
+| `annotations` | Hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. |
+| `limits` | `timeout_s` (1 to 60) and `max_tool_calls` (1 to 50) per run, to lower the defaults for one tool. |
+
+The name goes in the path: a letter, then letters, digits, `_` or `-`, at most 64 characters.
+
+The script:
+
+- **Reads its arguments from `args`**: the `defaults` with what the caller sent on top, plus the `fixed_args`, which a caller cannot change.
+- **Calls the MCP's tools.** Each tool of the MCP is an async function (`await list_messages(folder="inbox")`), and `await call_tool("list_messages", {...})` calls any of them by its exact name. [List the functions](#functions) to see their Python signatures.
+- **Gets each tool's result** as its structured content, or its text parsed as JSON, or the text. On a REST API MCP each call returns `{"status", "headers", "body"}`, with a JSON body already parsed.
+- **Returns the value of its last expression.** Text is returned as is; anything else as JSON. With an `output_schema`, the result must match it. A result over 80,000 characters is returned as an error, so filter or trim what the script returns.
+- **Handles failures** with `ToolError`: a failing tool call raises it, and the script can catch it. An uncaught error makes the custom tool return an error with the script's message.
+- **Runs in a sandbox** with no files, network or environment, and no imports beyond the sandbox's standard modules. It cannot call other custom tools or OneMCP's own tools, only the tools of its MCP.
+
+| Limit | Value |
+| --- | --- |
+| Run time | 60 seconds |
+| Tool calls per run | 50 |
+| Script size | 64 KiB |
+| Result size | 80,000 characters |
+| Custom tools per MCP | 50 |
+
+`print()` output is shown only in [test runs](#test).
+
+## Example: unread email summary {#example}
+
+This tool lists recent messages in a folder and returns only the unread ones, with sender and subject. `folder` and `limit` have defaults, so a client can call it with no arguments.
+
+```python
+msgs = await list_messages(folder=args["folder"], top=args["limit"])
+unread = [m for m in msgs["value"] if not m["isRead"]]
+{"unread": len(unread), "items": [{"from": m["from"], "subject": m["subject"]} for m in unread]}
+```
+
+```bash
+BASE=https://mcpgateway.quilr.ai/mcpgateway/management/v1
+MCP=a1b2c3d4
+
+# The functions a script can call, with Python signatures.
+curl -s "$BASE/mcps/$MCP/custom-tools:functions" -H "Authorization: Bearer $KEY"
+
+# Writes need the MCP's current version as If-Match.
+VERSION=$(curl -s "$BASE/mcps/$MCP/custom-tools" -H "Authorization: Bearer $KEY" | jq -r .version)
+
+curl -s -X PUT "$BASE/mcps/$MCP/custom-tools/recent_unread_summary" \
+  -H "Authorization: Bearer $KEY" -H "If-Match: \"$VERSION\"" -H 'Content-Type: application/json' \
+  -d '{
+    "description": "Unread emails in a folder: sender and subject only.",
+    "input_schema": {"type": "object", "properties": {
+      "folder": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 50}}},
+    "defaults": {"folder": "inbox", "limit": 25},
+    "annotations": {"readOnlyHint": true},
+    "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}"
+  }'
+
+# Try it as yourself (real calls), or try unsaved changes with "draft".
+curl -s -X POST "$BASE/mcps/$MCP/custom-tools:test" -H "Authorization: Bearer $KEY" \
+  -H 'Content-Type: application/json' -d '{"name": "recent_unread_summary", "arguments": {"limit": 10}}'
+```
+
+## Save, change and delete {#save}
+
+`GET /mcps/{mcp_id}/custom-tools` lists every custom tool of the MCP, enabled or not, with its script, `uses_tools` (the tools of the MCP it calls), `status` and `listed_as` (the tool definition clients receive). The response `version` is the If-Match value for the writes below (see [versions and If-Match](./management-api#versions-and-if-match)); a custom tool change changes the MCP's tool list, so it uses the MCP's version.
+
+- `PUT /mcps/{mcp_id}/custom-tools/{name}` saves the whole tool (`201` when new). Omitted optional fields take their defaults.
+- `PATCH /mcps/{mcp_id}/custom-tools/{name}` changes the sent fields and keeps the rest. Send `{"enabled": false}` to hide the tool from clients, and `{"enabled": true}` to show it again.
+- `DELETE /mcps/{mcp_id}/custom-tools/{name}` removes it.
+
+Every save checks the definition: the script for syntax errors (`400` with the `line`), the schema and defaults, and the name, which must not be one of the MCP's own tools (`409 tool_name_taken`) or a gateway tool name. Names the script calls that are not tools of the MCP come back as `warnings`; they do not block the save, because a tool hidden from you may be visible to your users. Warnings are checked against the MCP's current tools on every read, so a tool the MCP has since dropped shows up there. `tool_version` grows by one on every save. Clients see a change within a few seconds, in their next tool list.
+
+## Version history {#versions}
+
+Every save is kept, up to the last 20.
+
+- `GET /mcps/{mcp_id}/custom-tools/{name}/versions` lists them, newest first, each with `tool_version`, `saved_at`, `saved_by`, `code_sha256` and the full `definition`. It needs `read`.
+- `POST /mcps/{mcp_id}/custom-tools/{name}/restore` with `{"version": 2}` saves that definition again, as a new version. It needs `tools:write` and `If-Match`, and the response carries `restored_from`. An unknown version answers `404 custom_tool_version_not_found`.
+
+## Validate {#validate}
+
+`POST /mcps/{mcp_id}/custom-tools:validate` with `name` and the definition runs every check a save runs and returns the normalized tool, including `uses_tools`, `warnings` and `listed_as`, without saving or running it. It needs only `read`.
+
+## List the functions a script can call {#functions}
+
+`GET /mcps/{mcp_id}/custom-tools:functions` returns one async function per tool of the MCP, with a Python signature built from the tool's input schema (for example `async def list_messages(folder: str = None, top: int = None)`) and its summary. It also lists the globals every script has (`args`, `call_tool`, `ToolError`) and the run limits. Use it as the reference while you write the script.
+
+## Test-run {#test}
+
+`POST /mcps/{mcp_id}/custom-tools:test` runs a custom tool and shows what happened:
+
+```json
+{
+  "name": "recent_unread_summary",
+  "arguments": {"limit": 10},
+  "mocks": {"list_messages": {"value": [{"from": "ana@example.com", "subject": "Hi", "isRead": false}]}}
+}
+```
+
+- `arguments` are sent as a client would send them.
+- `draft` tries unsaved changes: its fields are merged over the saved tool, or form a whole new tool when nothing is saved under `name`. A disabled tool can be tested.
+- `mocks` maps tool names to results (at most 50): those tools are not called, and the script gets the given value instead. Use it to try a script that changes data without changing it. The response lists them in `mocked_tools`.
+
+The run is real. It runs as the key owner, with their own connection to the MCP, through the same path a client call takes, so the tools it calls (except mocked ones) have real effects and are checked by policies and approvals and logged. Test with arguments that are safe to run, or mock the tools that change data.
+
+| Response field | Meaning |
+| --- | --- |
+| `outcome` | `ok`, `error` (the script or a tool failed), `approval_required` (a call is waiting for approval) or `refused` (the tool did not run: hidden from the key owner, blocked by a policy, no connection, or invalid arguments). |
+| `client_result` | The MCP result a client would get. |
+| `mocked_tools` | The tools answered from `mocks` instead of being called. |
+| `error` | The error message, when there is one. |
+| `run.calls` | Each tool call the script made, in order, with `ok` and the time it took. |
+| `run.result` | The script's result. |
+| `run.logs` | `print()` output. |
+| `run.error_kind` | `script_error`, `timeout`, `memory`, `max_tool_calls`, `invalid_arguments` or `approval_required`. |
+
+Test runs are not available for MCPs where each user signs in with their own token (`409 test_run_unavailable`); test those from a client.
+
+## Approvals {#approvals}
+
+When a tool the script calls needs a user's [approval](../protect/human-approval), the run stops at that call and the caller gets the approval request. The answer lists the steps that already ran in `completed_steps`. After the user approves, the caller calls the custom tool again, which runs the script **from the start**: the completed steps run again. Put steps that need approval before steps that change data. In a test run this shows as `outcome: approval_required` with the waiting step in `run.approval_required`.
+
+If the script returns while tool calls it started are still running, the answer carries the result with a `warning` and the `unfinished_steps`, so the caller can check their outcome before repeating them.
+
+## What users see {#users}
+
+- A custom tool is listed with the MCP's other tools: on the MCP's own endpoint by its name, and in OneMCP with the MCP's prefix like its other tools. Discovery in OneMCP finds it too.
+- Each default appears as `default` in the tool's input schema, and arguments with a default are not required. `fixed_args` are not shown.
+- With an `output_schema`, clients get it as `outputSchema` and the result as structured content.
+- The MCP's per-tool settings (confirmation, enabled), [tool visibility](../protect/tool-visibility), policies, quotas and DLP apply to a custom tool by its name, its arguments and its result, like any tool. Use them to turn a custom tool off for some users or groups; use `enabled: false` to turn it off for everyone.
+- Each tool the script calls is checked and logged as its own call, so usage analytics show both the custom tool and the calls it made. Saves and deletes appear in the audit trail.
+- If the MCP later gains a tool with the same name, that tool wins: clients see the MCP's tool, and the custom tool shows `status: shadowed` until you rename or delete it.
+
+## Errors {#errors}
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| 400 | `invalid_request` | The definition is invalid, for example a schema that uses `$ref`, `$id` or anchors. `error.fields` names the field; a syntax error in the script also carries `line`. |
+| 404 | `custom_tool_not_found` | No custom tool with this name on the MCP. |
+| 404 | `custom_tool_version_not_found` | No saved version with this `tool_version` in the tool's history. |
+| 409 | `tool_name_taken` | One of the MCP's own tools already uses this name. |
+| 409 | `custom_tool_limit` | The MCP already has 50 custom tools. |
+| 409 | `test_run_unavailable` | Each user signs in to this MCP with their own token, so a test run cannot use the key owner's connection. |
+| 412 | `version_conflict` | `If-Match` is stale: the MCP changed since you read it. Read the list again and retry. |
+| 428 | `precondition_required` | `If-Match` missing on a write. |
+| 502 | `test_run_failed` | The test run could not be completed. |
+
+See [errors](./management-api#errors) for the shared error shape and retry rules.
+
+## Endpoint reference
+
+<ApiReference tags={['Custom tools']} />
