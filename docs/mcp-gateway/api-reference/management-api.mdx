@@ -1,0 +1,409 @@
+---
+title: "Management API"
+sidebar_position: 2
+sidebar_label: "Management API"
+sidebar_custom_props:
+  icon: Wrench
+description: "MCP Gateway Management API v1: overview, management keys from the console, quick start, scopes, conventions, errors and the OpenAPI document."
+aliases: [mcp management api, management key, mcp gateway api]
+---
+
+import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference} from '@site/src/components/ManagementApi/mcp';
+
+# MCP Gateway Management API
+<ManagementHero />
+
+
+Use a management key to manage your organization's MCPs from scripts, CI pipelines, infrastructure-as-code and internal tools. Each key belongs to **one tenant**, carries explicit scopes, and works only while management is enabled for the organization.
+
+With the Management API you can list and inspect MCPs, add, install and remove them, change their settings and upstream credentials, review new tools, connect OAuth MCPs, and read usage analytics and the audit trail. Explore complete input specifications and examples on the pages below, or download the [OpenAPI 3.1 reference](/openapi/mcp-gateway-management-v1.json).
+
+## Enable in the console
+
+You issue management keys from the Quilr console:
+
+1. Go to **Settings > AI Gateway > MCP Gateway** and open the **Management API** tab. You can also reach it from **Settings > Organization > API keys**.
+2. Turn on management keys for the organization. Turning it off later suspends every management key until you turn it back on.
+3. Issue a management key: enter a key name, an optional expiry, and the scopes it needs.
+4. Store the key value. It is shown only once.
+
+From the same tab you can edit a key's name, scopes and expiry, and revoke a key. A key acts for the whole organization within its scopes, and its writes are made as the administrator who issued it. See [Authentication and management keys](#authentication) for details.
+
+## Choose a resource
+
+<ResourceCards />
+
+## The management model
+
+<StepFlow steps={[
+  {label: 'Enable', items: ['Organization opt-in', 'Console Management API tab']},
+  {label: 'Authorize', items: ['One tenant per key', 'Explicit scopes']},
+  {label: 'Change', items: ['Versioned writes', 'Validated settings']},
+  {label: 'Apply', items: ['Direct MCP endpoints', 'OneMCP']},
+]} />
+
+| Resource | What you can do | What stays separate |
+| --- | --- | --- |
+| MCPs | List, read, add by URL, add a REST API as an MCP, rename, enable, disable and remove. Check a URL before adding it. List each MCP's tools, resources and prompts. See the [MCPs API](./mcps-api). | MCPs provided by Quilr can be disabled, not removed. |
+| MCP Library | Browse the catalog with your install state and install prebuilt MCPs. See the [MCP Library](./mcps-api#catalog). | Each catalog MCP installs once per organization. |
+| Settings | Tools, DLP, token saving, access control, web search policy, tool sync, tool exposure, OneMCP and more, plus per-user and per-smart-group overrides. See the [Settings and credentials API](./settings-and-credentials-api). | Under QuilrQL policies, settings are saved but not enforced. |
+| Upstream credentials | Set, rotate and remove the static credential and extra headers or query parameters the gateway sends upstream. | Secrets are write-only and never returned. OAuth MCPs connect through [connect links](./connections-and-oauth-api#connect-links). |
+| Tool reviews | Approve or reject new upstream tools held for review. | |
+| Connections | Read connection state, fetch tools now, and issue single-use OAuth connect links. See the [Connections and OAuth API](./connections-and-oauth-api). | OAuth passthrough MCPs need no link: each client brings its own token. |
+| Analytics | Tool calls, outcomes, latency, DLP activity, tool-call metadata and per-user activity. See the [Analytics and audit API](./analytics-and-audit-api). | Metadata only: never tool arguments, responses or tokens. Bulk logs come from the [Log Export API](./log-export-api). |
+| Audit | Configuration changes made in the console and through this API, newest first. | Never before or after values. |
+
+## Defaults
+
+- Management keys have **no expiry by default**. You can set one when you issue the key.
+- A key's writes act as the administrator who issued it. If that administrator leaves the organization, the key's writes fail with `409 key_owner_unavailable`; issue a new key.
+- Credentials set through the API are shared by all users of the organization.
+- Setting changes apply immediately to the MCP's own endpoint and to OneMCP.
+- A create that carries `settings` or `"enabled": false` adds the MCP disabled, applies the settings, and sets the requested state last, so an interrupted create never leaves the MCP usable without its settings.
+
+## Find an endpoint
+
+Search by resource, path, action or HTTP method. Open an endpoint to see its scopes, parameters, complete body schema and examples.
+
+<EndpointDirectory />
+
+## Quick start {#quick-start}
+
+This workflow checks access, lists MCPs, adds one, changes a setting, connects an OAuth MCP and reads a usage report.
+
+### 1. Prepare access
+
+Send management requests to your MCP Gateway host, the same host your MCP endpoint URLs use, for example `https://mcpgateway.quilr.ai`. If your organization uses a regional or self-hosted MCP Gateway, use that host. Reports cover tool calls made through the gateway you call.
+
+| Path | Credential |
+| --- | --- |
+| `/mcpgateway/management/v1/...` | Management key |
+| `/mcpgateway/management-admin/v1/...` | Tenant administrator token (see [Administration endpoints](#administration-endpoints)) |
+
+Issue a key in the console (see [Enable in the console](#enable-in-the-console)). For this workflow, the key needs `read`, `mcps:write`, `settings:write` and `credentials:write`.
+
+```bash
+export GW='https://mcpgateway.quilr.ai'   # your MCP Gateway host
+export KEY='<management-key>'             # starts with qmcpmgmt_
+```
+
+Keep secrets in your automation secret store. These example values are placeholders, not live credentials.
+
+Check the URL and key with a read-only call:
+
+```bash
+curl --fail-with-body "$GW/mcpgateway/management/v1/capabilities" \
+  --header "Authorization: Bearer $KEY"
+```
+
+A `200` response lists every scope, your key's own scopes in `caller.scopes`, limits, settings sections, authentication types, connection states, create options and analytics dimensions. If it fails:
+
+| Response | Meaning |
+| --- | --- |
+| `401 invalid_management_key` | The key is missing, wrong, expired or revoked. |
+| `403 insufficient_scope` | The key lacks `read`. |
+| `403 management_disabled_for_tenant` | Management keys are turned off for the organization. |
+| `404 not_found` | The URL or path is wrong, or management is turned off for this deployment. |
+
+### 2. List MCPs
+
+```bash
+curl "$GW/mcpgateway/management/v1/mcps?limit=50" \
+  --header "Authorization: Bearer $KEY"
+```
+
+```json
+{
+  "items": [
+    {
+      "id": "a1b2c3d4", "slug": "files", "name": "Files", "enabled": true,
+      "transport_type": "streamable_http", "execution_type": "remote",
+      "endpoint_urls": {"mcp": "https://mcpgateway.example.com/files/mcp"},
+      "upstream_host": "https://files.example.com", "auth_type": "api_key",
+      "oauth_mode": null, "source": "custom", "tool_count": 12,
+      "connection_state": "ready", "created_at": "2026-11-02T09:15:00Z", "version": "r4"
+    }
+  ],
+  "next_cursor": null,
+  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+}
+```
+
+Responses never include upstream credentials, URL query strings or extra header values.
+
+### 3. Add an MCP
+
+```bash
+curl --request POST "$GW/mcpgateway/management/v1/mcps" \
+  --header "Authorization: Bearer $KEY" \
+  --header 'Idempotency-Key: add-files-mcp-1' \
+  --header 'Content-Type: application/json' \
+  --data '{"name": "Files", "transport": "https://files.example.com/mcp",
+           "auth": {"type": "static", "token": "<api key>", "header_name": "X-Api-Key"},
+           "settings": {"dlp": {"data_risk_action": "redact"}}}'
+```
+
+This body carries a credential and settings, so the key needs `credentials:write` and `settings:write` in addition to `mcps:write` (see [conditional scopes](#conditional-scopes)). The `201` response is `{"mcp": {...}, "warnings": [...], "operation_id": "...", "connection": {...}}`.
+
+To check what a URL needs before adding it, call `POST /mcps:probe`. See the [MCPs API](./mcps-api) for every way to add an MCP.
+
+### 4. Change settings with If-Match
+
+Read the settings to get the current version (the `ETag` header), then send it back in `If-Match`:
+
+```bash
+curl --include "$GW/mcpgateway/management/v1/mcps/a1b2c3d4/settings" \
+  --header "Authorization: Bearer $KEY"
+# ETag: "r4"
+
+curl --request PATCH "$GW/mcpgateway/management/v1/mcps/a1b2c3d4/settings" \
+  --header "Authorization: Bearer $KEY" \
+  --header 'If-Match: "r4"' \
+  --header 'Content-Type: application/json' \
+  --data '{"tools": {"delete_file": {"enabled": false}, "write_file": {"enforce_confirmation": true}}}'
+```
+
+If someone changed the MCP since your read, in the console or through the API, the PATCH answers `412 version_conflict`. Read again and retry.
+
+### 5. Connect an OAuth MCP
+
+Creating an OAuth MCP (`auth.type` `oauth_dcr` or `oauth_login`) returns `connection.state: "pending_connection"` and a `connect` link:
+
+```json
+"connect": {"url": "https://mcpgateway.example.com/mcpgateway/management-connect#t=<token>",
+            "expires_at": "2026-11-14T10:15:00Z"}
+```
+
+The link is single-use and valid for 15 minutes. Whoever opens it is sent to the provider's sign-in, and the connection is saved for the administrator who issued the management key. No Quilr sign-in is needed.
+
+:::warning Treat a connect link like a password
+Anyone who opens the link can complete the connection. Share it only with the person who should connect, over a private channel.
+:::
+
+See [Connect links](./connections-and-oauth-api#connect-links) for the full flow.
+
+### 6. Read a usage report
+
+```bash
+curl "$GW/mcpgateway/management/v1/usage?from=2026-11-01&to=2026-11-08&granularity=day&group_by=mcp" \
+  --header "Authorization: Bearer $KEY"
+```
+
+```json
+{
+  "from": "2026-11-01T00:00:00Z", "to": "2026-11-09T00:00:00Z", "timezone": "UTC",
+  "granularity": "day", "group_by": ["mcp"],
+  "totals": {"requests": 1840, "success": 1801, "errors": 31, "blocked": 8, "unique_users": 37},
+  "rows": [{"period_start": "2026-11-01T00:00:00Z", "mcp": "a1b2c3d4", "mcp_name": "Files", "requests": 260}],
+  "row_count": 8, "next_cursor": null,
+  "generated_at": "2026-11-14T09:00:02Z", "data_through": "2026-11-09T00:00:00Z",
+  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+}
+```
+
+Abbreviated: report rows carry more fields. See the [Analytics and audit API](./analytics-and-audit-api).
+
+### Next steps
+
+| Task | Reference |
+| --- | --- |
+| Install an MCP from the MCP Library | [Install a catalog MCP](./mcps-api#Install_catalog_mcp) |
+| Expose a REST API as MCP tools | [Add a REST API as an MCP](./mcps-api#Create_an_api_mcp) |
+| Override settings for one user or smart group | [Per-user and per-group overrides](./settings-and-credentials-api#overrides) |
+| Rotate an upstream API key | [Upstream credentials](./settings-and-credentials-api#upstream-credentials) |
+| Approve new tools | [Tool reviews](./settings-and-credentials-api#tool-reviews) |
+| Reconnect an OAuth MCP | [Connect links](./connections-and-oauth-api#connect-links) |
+| Build a usage or latency dashboard | [Analytics](./analytics-and-audit-api) |
+| See who changed what | [Audit](./analytics-and-audit-api#audit) |
+
+## Authentication and management keys {#authentication}
+
+Two gates control access: management must be enabled for the organization, and each request must carry a valid management key. Every management key belongs to exactly one tenant; one tenant can have several keys for independent automation clients.
+
+### Request authentication
+
+```http
+Authorization: Bearer <management-key>
+```
+
+Management keys start with `qmcpmgmt_`. The key establishes the tenant: MCPs of other tenants answer `404`. Management keys, MCP client credentials and [log export keys](./log-export-api) are not interchangeable.
+
+| Credential | Purpose | Secret retrieval |
+| --- | --- | --- |
+| Management key | Read and change the organization's MCPs within the key's scopes. | Shown once when issued; cannot be revealed later. |
+| Tenant administrator token | Enable management and issue, change or revoke management keys through the [Administration endpoints](#administration-endpoints). | Follows your Quilr console sign-in. |
+
+### Key lifecycle
+
+1. An administrator turns on management keys for the organization in the console.
+2. The administrator issues a named key with explicit scopes and, optionally, an expiry.
+3. Store the returned secret. Issue a replacement key before revoking a key that an integration still uses.
+
+Turning management off **suspends** every key: each answers `403 management_disabled_for_tenant` until management is turned on again. Keys that are still unexpired and unrevoked then work again.
+
+Writes made with a key act as the administrator who issued it. Audit events record that administrator, the key id and `via: management_api`. If the administrator leaves the organization, the key's writes fail with `409 key_owner_unavailable`; issue a new key.
+
+Keys have no expiry unless you set one. Revoking a key is immediate and permanent. Revoked and expired keys cannot be changed (`409 terminal_key_state`); issue a new key instead.
+
+### Scopes
+
+All scopes listed for an operation are required. No scope implies another.
+
+| Scope | Allows |
+| --- | --- |
+| `read` | Read MCPs, tools, settings, credential metadata, tool reviews, connection state, the catalog, operations, the audit trail, analytics and the OpenAPI document. |
+| `mcps:write` | Create, rename, enable, disable and remove MCPs; install catalog MCPs; check MCP URLs; preview REST API specs; refresh tools; issue OAuth connect links. |
+| `settings:write` | Change MCP settings and per-user or per-smart-group overrides; send `settings` with a create. |
+| `credentials:write` | Set or remove upstream credentials and extra headers or query parameters; any create, check or preview that carries credentials. |
+| `tool_reviews:write` | Approve or reject tools held for review. |
+
+`GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
+
+### Conditional scopes {#conditional-scopes}
+
+Some operations need extra scopes depending on what the body carries. The OpenAPI document lists them in `x-conditional-scopes`.
+
+| Operation | Adds `credentials:write` when | Adds `settings:write` when |
+| --- | --- | --- |
+| `POST /mcps` | `auth` has `token`, `client_id`, `client_secret`, `extra_headers` or `extra_query_params`, or `transport` has userinfo or a query string | `settings` is present |
+| `POST /mcps:probe` | `extra_headers` or `extra_query_params`, or `transport` has userinfo or a query string | |
+| `POST /catalog/{catalog_id}/install` | `auth_token`, `oauth_client_id`, `oauth_client_secret`, `upstream_auth_extra_headers`, `upstream_auth_extra_query_params` or `transport_values` | |
+| `POST /mcps/api` | `auth_token` or any `upstream_auth_*` field, nonempty `openapi.overrides.*.fixed_params`, or `base_url` or `openapi.source_url` with userinfo or a query string | `settings` is present |
+| `POST /mcps/api:preview` | `fetch_headers`, or `source_url` with userinfo or a query string | |
+
+A request missing a scope is refused with `403 insufficient_scope` and `error.required_scopes` before anything is written. Scopes are checked again just before a write, so a key that is revoked or narrowed while its request waits is refused.
+
+### Administration endpoints
+
+Most organizations manage keys in the console. The same actions are available over HTTP under `/mcpgateway/management-admin/v1`, authenticated with `Authorization: Bearer <tenant administrator token>`, the signed Quilr console token of an administrator of that tenant. The `tenant_id` in the path must be the administrator's tenant (`403 tenant_access_required` otherwise). A management key cannot call these endpoints (`401 invalid_admin_token`), and an administrator token cannot call the resource endpoints (`401 invalid_management_key`).
+
+Tenant settings control `{"enabled": true}`. Key lists return metadata only, never secrets. Key issuance requires an `Idempotency-Key`: retrying the same request with the same key within 24 hours returns the same key and secret instead of issuing a second one. Changing or revoking a key, and changing tenant settings, require `If-Match` with the current `version`.
+
+<ApiReference tags={['Administration']} />
+
+## API conventions and errors {#conventions}
+
+### Responses
+
+- Every JSON response carries `request_id`, also in the `X-Request-ID` header. Quote it when contacting support.
+- Every response has `Cache-Control: no-store`.
+- Timestamps are UTC RFC 3339 with a `Z` suffix.
+- Responses may gain fields over time; ignore fields you do not know.
+- All bodies are JSON (`Content-Type: application/json`).
+
+### Versions and If-Match
+
+Resources that can be changed carry `version`, also returned as the `ETag` header. Changes to an existing resource require `If-Match` with that quoted value:
+
+- Missing: `428 precondition_required`.
+- Stale: `412 version_conflict`. Read again, reapply your change and retry.
+
+An MCP has one configuration version (`r<N>`) shared by its name, enabled state, settings, overrides and upstream credentials, so a change to any of them changes the ETag for all of them. Live values (tool counts, connection state, usage) never change the version.
+
+These operations take `If-Match`: `PATCH` and `DELETE /mcps/{mcp_id}`, `PATCH /mcps/{mcp_id}/settings`, `PUT` and `DELETE /mcps/{mcp_id}/scoped-settings/{scope_type}/{scope_value}`, `PUT` and `DELETE /mcps/{mcp_id}/upstream-auth`, and the administration `PATCH .../settings` and `PATCH` / `DELETE .../keys/{key_id}`.
+
+### Idempotency and recovery {#idempotency}
+
+Creates require an `Idempotency-Key` header, 1 to 200 characters of your choosing: `POST /mcps`, `POST /mcps/api`, `POST /catalog/{catalog_id}/install` and administration key issuance.
+
+| Situation | Result |
+| --- | --- |
+| Same key and same request within 24 hours | The original response is returned: the same MCP, the same key secret, the same connect link. |
+| Same key with a different method, path or body | `409 idempotency_conflict` |
+| Same key after 24 hours | `409 idempotency_replay_expired`; use a new key. |
+| Missing header | `400 idempotency_key_required` |
+
+If a create is interrupted, the response may be `503 operation_pending` with `operation_id`. Retry the same request with the same `Idempotency-Key`: the gateway finishes or cleanly redoes it and never creates a duplicate. `GET /operations/{op_id}` shows its state; only the key that started the operation can read it. Concurrent creates of the same name answer `409 operation_in_progress`; an existing slug answers `409 slug_conflict`.
+
+### Pagination
+
+List endpoints take `limit` (1 to 200, default 50) and `cursor`. Pass the `next_cursor` of the previous page; it is `null` on the last page. If the list changes between pages you get `409 collection_changed`; start again without a cursor. Analytics reports use their own limits (see [Analytics](./analytics-and-audit-api#report-parameters)).
+
+### Query parameters and limits
+
+- Each endpoint accepts only its documented query parameters, each at most once. Anything else is `400 invalid_request`.
+- Unknown body fields, at any depth, are refused with `400` and their paths in `error.fields`.
+- Bodies are at most 1 MiB (`413 body_too_large`) and must arrive within 10 seconds (`408 body_timeout`).
+- At most 32 management requests are in flight per gateway. Beyond that you get `429 management_busy` with `Retry-After`.
+
+### Errors
+
+Every error has the same shape:
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Unknown or unsupported fields: body.foo",
+    "fields": ["body.foo"]
+  },
+  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+}
+```
+
+`message` is fixed text. `fields` names the offending request paths (`body.x`, `query.y`, `path.z`) and never echoes submitted values. Some errors add details such as `required_scopes`, `operation_id`, `current_version` or `missing_fields`.
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| 400 | `invalid_request` | Invalid body, path or query parameter (`fields`). |
+| 400 | `idempotency_key_required` | Create without `Idempotency-Key`. |
+| 400 | `invalid_configuration` | The configuration was refused or conflicts with an existing MCP. |
+| 400 | `upstream_auth_failed` | The upstream MCP server rejected the credentials or could not list tools. |
+| 400 | `oauth_registration_failed` | Dynamic client registration failed; supply OAuth client credentials. |
+| 401 | `invalid_management_key` | Missing, unknown, expired or revoked key. |
+| 401 | `invalid_admin_token` | Administration endpoint without a valid administrator token. |
+| 403 | `insufficient_scope` | The key lacks a scope (`required_scopes`). |
+| 403 | `management_disabled_for_tenant` | Management is turned off for the organization. |
+| 403 | `tenant_access_required`, `admin_required`, `admin_identity_required` | Administrator token for another tenant, not an administrator, or without an identity. |
+| 403 | `system_mcp` | MCPs provided by Quilr cannot be removed. |
+| 403 | `forbidden` | Operation not permitted. |
+| 404 | `not_found` | Unknown resource or path, including MCPs of other tenants. |
+| 404 | `connect_link_not_found` | Unknown connect link. |
+| 408 | `body_timeout` | Body not received within 10 seconds. |
+| 409 | `conflict` | Conflicts with the current state. |
+| 409 | `slug_conflict`, `already_installed` | Name already taken; catalog MCP already installed. |
+| 409 | `operation_in_progress` | Another create of the same name is running. |
+| 409 | `idempotency_conflict`, `idempotency_replay_expired` | See [Idempotency and recovery](#idempotency). |
+| 409 | `collection_changed` | The list changed during pagination; restart. |
+| 409 | `key_owner_unavailable` | The key's administrator left the organization; issue a new key. |
+| 409 | `terminal_key_state` | Revoked or expired keys cannot change. |
+| 409 | `policy_dependency` | The active QuilrQL policy depends on it. |
+| 409 | `tools_not_awaiting_review` | A named tool is not held for review. |
+| 409 | `oauth_connection_required` | Refresh of an OAuth MCP the key's administrator has not connected. |
+| 409 | `upstream_credential_required` | The MCP needs a credential before tools can be fetched. |
+| 409 | `pending_first_client` | OAuth passthrough MCPs cannot be refreshed by the gateway. |
+| 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
+| 409 | `connect_link_used` | Connect link already used. |
+| 410 | `connect_link_expired` | Connect link expired. |
+| 412 | `version_conflict` | `If-Match` is stale (`current_version` when known). |
+| 413 | `body_too_large` | Body over 1 MiB. |
+| 422 | `install_input_required` | Catalog install needs more values (`missing_fields`). |
+| 422 | `result_too_large` | Report would exceed 100,000 rows. |
+| 428 | `precondition_required` | `If-Match` missing. |
+| 429 | `management_busy`, `report_busy`, `rate_limited` | Too many requests; honor `Retry-After`. |
+| 502 | `upstream_unavailable`, `oauth_initiation_failed` | The upstream MCP server or OAuth provider is unreachable or refused. |
+| 503 | `operation_pending` | Create incomplete; retry with the same `Idempotency-Key`. |
+| 503 | `storage_unavailable`, `service_unavailable`, `mcp_busy` | Temporary; retry after `Retry-After`. |
+| 503 | `query_timeout`, `data_unavailable` | Analytics temporarily unavailable. |
+
+**Retry guidance:** `429` and `503` are safe to retry after `Retry-After`. Retry creates only with the same `Idempotency-Key`. On `412`, read the resource again before retrying.
+
+## OpenAPI document {#openapi}
+
+The gateway serves its OpenAPI 3.1 document at `GET /mcpgateway/management/v1/openapi.json` (management key with `read`). The body is the bare document, without `request_id`.
+
+```bash
+curl "$GW/mcpgateway/management/v1/openapi.json" \
+  --header "Authorization: Bearer $KEY" > mcp-management-v1.json
+```
+
+The document is generated from the deployed routes, so it always matches the API your gateway runs, and it lists exactly one server: your gateway. You can also [download a copy from this site](/openapi/mcp-gateway-management-v1.json). Each operation carries:
+
+- `x-scopes`: the scopes it always requires (empty on Administration endpoints, which take a tenant administrator token).
+- `x-conditional-scopes`: scopes added by body content, with the condition.
+- `If-Match` and `Idempotency-Key` header parameters where required.
+- Request and response schemas with examples, and the standard error responses.
+
+When you import the document into an API gateway, turn off upstream retries for non-GET methods: creates are safe to retry only with the same `Idempotency-Key`. Pass `Authorization`, `If-Match` and `Idempotency-Key` through unchanged, and keep the `ETag`, `Retry-After` and `X-Request-ID` response headers.
+
+<ApiReference tags={['Reference']} />

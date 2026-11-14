@@ -1,0 +1,82 @@
+---
+title: "Analytics and audit API"
+sidebar_position: 6
+sidebar_label: "Analytics and audit API"
+sidebar_custom_props:
+  icon: BarChart2
+description: "MCP Gateway Management API v1: tool-call usage, latency, DLP activity, tool-call metadata, per-user activity and the configuration audit trail."
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi/mcp';
+
+# Analytics and audit API
+
+Read tool-call analytics for your organization's MCPs and the audit trail of configuration changes. Every operation on this page needs the `read` scope.
+
+## Reports {#reports}
+
+Reports cover tool calls made through the gateway you call, for your organization.
+
+| Report | Default range | Max range | Group by (up to 2) | Filters |
+| --- | --- | --- | --- | --- |
+| `GET /usage` | 7 days | 92 days | `mcp`, `tool`, `user`, `agent`, `called_via`, `auth_mode`, `transport`, `outcome` | Same as group by |
+| `GET /mcps/{mcp_id}/usage` | 7 days | 92 days | As `/usage`, restricted to one MCP | As `/usage` |
+| `GET /latency` | 7 days | 92 days | `mcp`, `tool`, `transport`, `outcome` | As `/usage` |
+| `GET /dlp/summary` | 7 days | 92 days | `mcp`, `tool`, `user`, `category`, `direction` | Same as group by |
+| `GET /requests` | 24 hours | 31 days | None | `mcp`, `tool`, `user`, `outcome`, `blocked`, `request_id` |
+| `GET /users` | 30 days | 92 days | None | `mcp`, `tool`, `user`, `agent`, `called_via`, `auth_mode`, `transport`, `outcome` |
+
+- `/usage` returns tool calls, outcomes, unique users and tools, durations and payload sizes per period and dimension, with totals of the whole selection.
+- `/latency` returns duration percentiles (p50, p90, p95, p99), average, maximum and a fixed-edge histogram.
+- `/dlp/summary` returns per-request DLP totals by direction (scanned, flagged, blocked). Per-category detection counts are reported separately and never inflate request totals.
+- `/requests` returns tool-call metadata, newest first: MCP, tool, user, agent, outcome, duration and DLP outcome. It never returns tool arguments, responses, error text, headers or tokens.
+- `/users` returns calls, successes, errors, blocked calls, MCPs and tools used, and first and last seen, per user. Calls without a recorded user are one row with `user` `null`.
+
+For full tool-call logs in your own data platform, use the [Log Export API](./log-export-api).
+
+### Report parameters {#report-parameters}
+
+| Parameter | Rule |
+| --- | --- |
+| `from`, `to` | `from` is inclusive and `to` exclusive. RFC 3339 times with a timezone, or dates: `from` is UTC midnight and `to` runs through the end of that UTC day. |
+| `granularity` | `total` (default), `month`, `week`, `day` or `hour`. `hour` covers at most 14 days. Periods start on UTC boundaries. |
+| `group_by` | Up to two dimensions from the table above. |
+| Filters | Comma-separated values, at most 50. |
+| `outcome` | `blocked` (DLP or policy block), else `error`, else `success`. |
+| `sort`, `limit`, `cursor` | Aggregate reports return up to 5,000 rows per page (default 500); `/requests` and `/users` up to 1,000 (default 100). |
+
+### Report errors
+
+| Response | What to do |
+| --- | --- |
+| `429 report_busy` | Retry after `Retry-After`. |
+| `503 query_timeout` | Narrow the range or filters and retry. |
+| `422 result_too_large` | The report would exceed 100,000 rows. Narrow it. |
+| `503 data_unavailable` | Analytics data cannot be read right now. Retry later. |
+| `409 collection_changed` | A cursor's result changed. Restart without a cursor. A fixed `to` in the past keeps results stable. |
+
+## Audit {#audit}
+
+`GET /audit` lists your organization's configuration changes, newest first, whether made in the Quilr console (`via: "ui"`) or through this API (`via: "management_api"`, with `management_key_id`).
+
+Each event has `event_id`, `created_at`, `actor_email`, `actor_role`, `action`, `resource_type`, `resource_id`, `resource_name`, `changed_fields` (when recorded), `result`, `request_id` and `operation_id`. Before and after values are never returned. `action` and `resource_type` are the same identifiers the console audit page shows.
+
+| Filter | Rule |
+| --- | --- |
+| `actor` | Email, case-insensitive. |
+| `action`, `resource_type`, `resource_id` | Exact values. |
+| `via` | `ui` or `management_api`. |
+| `since`, `until` | `since` inclusive, `until` exclusive; RFC 3339 with a timezone. |
+
+Paging uses `limit` (1 to 200, default 50) and `cursor`. New events never invalidate a cursor.
+
+```bash
+curl "$GW/mcpgateway/management/v1/audit?via=management_api&since=2026-11-01T00:00:00Z" \
+  --header "Authorization: Bearer $KEY"
+```
+
+## Endpoint reference
+
+<ApiReference tags={['Analytics']} />
+
+<ApiReference tags={['Audit']} />

@@ -1,0 +1,85 @@
+---
+title: "MCPs API"
+sidebar_position: 3
+sidebar_label: "MCPs API"
+sidebar_custom_props:
+  icon: Server
+description: "MCP Gateway Management API v1: list, inspect, add, install, rename, enable, disable and remove MCPs, with typed inputs and examples."
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi/mcp';
+
+# MCPs API
+
+An MCP is an MCP server the gateway serves to your organization. Clients connect to its `endpoint_urls.mcp` (`https://<gateway>/<slug>/mcp`) or through [OneMCP](../get-started/onemcp). Address an MCP by its `id` within the key's tenant; MCPs of other tenants answer `404`.
+
+Each MCP has a `source`:
+
+| Source | What it is | Removal |
+| --- | --- | --- |
+| `custom` | Added by URL. | `DELETE` removes it. |
+| `catalog` | Installed from the [MCP Library](../servers-and-connections/mcp-library). | `DELETE` uninstalls it. |
+| `api` | A REST API exposed as MCP tools. See [API to MCP](../servers-and-connections/api-to-mcp). | `DELETE` removes it. |
+| `system` | Provided by Quilr. | Cannot be removed (`403 system_mcp`); disable it instead. |
+
+## List and inspect MCPs {#inventory}
+
+`GET /mcps` returns enabled and disabled MCPs, sorted by name. Filter with `name` (case-insensitive substring), `slug`, `enabled`, `auth_type`, `transport_type` and `source`. `tool_count` and `connection_state` are live values; they never invalidate a cursor.
+
+`GET /mcps/{mcp_id}` returns one MCP with its last tool-fetch errors (fixed codes, never upstream text) and its `version`, the ETag of the MCP configuration. `GET /mcps/{mcp_id}/tools` lists cached tools, resources and prompts. Each tool carries its enabled and confirmation settings, its review state (held or rejected tools are listed too) and its all-time call count.
+
+Responses never include upstream credentials, URL query strings or extra header values.
+
+## Add an MCP {#create}
+
+There are three ways to add an MCP. All three are creates: send an `Idempotency-Key` header (see [idempotency and recovery](./management-api#idempotency)).
+
+| Operation | Use it to |
+| --- | --- |
+| `POST /mcps` | Add a remote MCP server by URL (Streamable HTTP or SSE). |
+| `POST /catalog/{catalog_id}/install` | Install a prebuilt MCP from the MCP Library. See [MCP Library](#catalog). |
+| `POST /mcps/api` | Expose a REST API as MCP tools. Preview its OpenAPI document first with `POST /mcps/api:preview` and pass the returned `preview_token`. |
+
+Before adding a remote MCP, `POST /mcps:probe` with `{"transport": "<url>"}` reports the transport, OAuth discovery results and whether a credential is required, without saving anything. Use it to choose `auth.type`.
+
+To reach a server on a private network, pass `remote_connector_id` with the [Remote Connector](../servers-and-connections/remote-connectors) to use. `slug` sets the endpoint path and defaults to one derived from the name.
+
+### Upstream authentication
+
+`auth.type` selects how the gateway authenticates to the upstream server:
+
+| `auth.type` | Behavior |
+| --- | --- |
+| `none` | No upstream credential. |
+| `static` | An API key or token: sent as a bearer token by default, in `header_name`, or in `query_param`. |
+| `oauth_dcr` | OAuth with dynamic client registration. With your own `client_id` and `client_secret` it skips registration and is saved like `oauth_login` with that client (the MCP then reports `oauth_mode: "login"`). |
+| `oauth_login` | OAuth with your registered client (`client_id` and `client_secret`) or a provider-issued client. |
+| `oauth_passthrough` | Each MCP client brings its own OAuth token. |
+
+Credentials set through the API are always shared by all users of the organization. A body that carries credentials also needs `credentials:write`, and one that carries `settings` also needs `settings:write` (see [conditional scopes](./management-api#conditional-scopes)).
+
+OAuth MCPs (`oauth_dcr` and `oauth_login`) are created with `connection.state` `pending_connection` and a single-use `connect` link. See [Connect links](./connections-and-oauth-api#connect-links). `oauth_passthrough` MCPs need no link: their tools appear when the first client connects with its own token.
+
+### Settings and state on create
+
+`settings` and `enabled` apply before the MCP is returned. A create that carries `settings` or `"enabled": false` adds the MCP disabled, applies the settings, and sets the requested state last. An interrupted create therefore never leaves the MCP usable without its settings: it stays disabled until a retry with the same `Idempotency-Key` completes.
+
+## Change and remove an MCP {#update}
+
+`PATCH /mcps/{mcp_id}` changes `name`, `description` and `enabled`. Disabling stops serving the MCP to every client until it is enabled again.
+
+`DELETE /mcps/{mcp_id}` removes a custom or REST API MCP, or uninstalls a catalog MCP, together with its stored credentials and settings. MCPs provided by Quilr answer `403 system_mcp`; disable them with `PATCH` `{"enabled": false}` instead. An MCP the active QuilrQL policy references answers `409 policy_dependency`.
+
+Both need `If-Match` with the MCP's current `version` (see [versions and If-Match](./management-api#versions-and-if-match)).
+
+## MCP Library {#catalog}
+
+`GET /catalog` lists catalog MCPs with your organization's install state. Filter with `query` (search), `install_status` and `auth_type`. `install_requirements` lists the values an install needs.
+
+`POST /catalog/{catalog_id}/install` installs a catalog MCP once per organization (`409 already_installed` after that). Supply the values listed in `install_requirements`; missing ones answer `422 install_input_required` with `missing_fields`. OAuth catalog MCPs return a `connect` link, like OAuth creates.
+
+## Endpoint reference
+
+<ApiReference tags={['MCPs']} />
+
+<ApiReference tags={['Catalog']} />

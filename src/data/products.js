@@ -70,6 +70,7 @@ export const products = [
       {title: 'Add an MCP server', desc: 'From the library, a URL, or your own API', to: '/mcp-gateway/servers-and-connections/adding-mcp-servers'},
       {title: 'Set up OneMCP', desc: 'One endpoint with dynamic tool calling', to: '/mcp-gateway/get-started/onemcp'},
       {title: 'Lock down tools', desc: 'Who can call what, and what needs approval', to: '/mcp-gateway/protect/server-access'},
+      {title: 'Automate MCPs', desc: 'Add, configure and connect MCPs with the Management API', to: '/mcp-gateway/api-reference/management-api'},
     ],
   },
   {
