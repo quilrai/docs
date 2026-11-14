@@ -30,8 +30,9 @@ import { McpPicker, WriteError, useMcpName } from './common';
 // Custom tools: an admin-written Python script over one MCP's own tools,
 // listed and called like any other tool of that MCP. List, read, edit, validate,
 // save (If-Match with the MCP version), enable or disable, delete, list the
-// functions a script can call, and test-run a saved tool or the unsaved draft.
-// Test runs are real calls made as the key owner.
+// functions a script can call, test-run a saved tool or the unsaved draft
+// (optionally with mocked tools), and restore an earlier version. Test runs are
+// real calls made as the key owner, except for mocked tools.
 
 const NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
 const STATUS_TONES = { active: 'ok', disabled: undefined, shadowed: 'warn' };
@@ -77,6 +78,8 @@ function blankForm(tool) {
     description: t.description || '',
     input_schema: pretty(t.input_schema || { type: 'object', properties: {}, additionalProperties: false }),
     defaults: pretty(t.defaults || {}),
+    fixed_args: pretty(t.fixed_args || {}),
+    output_schema: t.output_schema ? pretty(t.output_schema) : '',
     annotations: pretty(t.annotations || {}),
     code: t.code || '',
     enabled: t.enabled !== false,
@@ -88,11 +91,13 @@ function blankForm(tool) {
 /** The definition (PUT body) the form describes, or an error message. */
 function definitionOf(form) {
   const body = { description: form.description, code: form.code, enabled: form.enabled };
-  for (const key of ['input_schema', 'defaults', 'annotations']) {
+  for (const key of ['input_schema', 'defaults', 'fixed_args', 'output_schema', 'annotations']) {
     const parsed = parseJson(form[key]);
     if (parsed.error) return { body: null, error: `${key}: ${parsed.error}` };
     if (parsed.value !== undefined) body[key] = parsed.value;
   }
+  // PUT replaces the whole tool: an empty output schema removes it.
+  if (body.output_schema === undefined) body.output_schema = null;
   const limits = {};
   for (const [key, max] of [['timeout_s', 60], ['max_tool_calls', 50]]) {
     const text = form[key].trim();
@@ -322,6 +327,20 @@ function Editor({ id, tool, isNew, version, taken, onSaved, onDeleted, onReload,
           onChange={(v) => set({ defaults: v })}
           hint="Clients see each default as default and do not have to send it; values a call sends replace it."
         />
+        <JsonField
+          label="Fixed arguments"
+          rows={3}
+          value={form.fixed_args}
+          onChange={(v) => set({ fixed_args: v })}
+          hint="Always in args, hidden from clients and never replaced by a caller (for example a project id). Names must not be input schema properties. Not for secrets: reads return them."
+        />
+        <JsonField
+          label="Output schema (optional)"
+          rows={4}
+          value={form.output_schema}
+          onChange={(v) => set({ output_schema: v })}
+          hint="type: object. Clients get it as outputSchema and the result as structured content; a result that does not match is an error. Empty: none."
+        />
         <Field
           label="Script (Python)"
           hint='args holds the arguments. Call a tool as await tool_name(...) or await call_tool("name", {...}). The last expression is the result. 60 s, 50 tool calls, 64 KiB; no files, network or environment.'
@@ -400,6 +419,7 @@ function Editor({ id, tool, isNew, version, taken, onSaved, onDeleted, onReload,
         )}
       </Panel>
       <TestRun id={id} name={form.name} draft={body} draftReady={ready} saved={!isNew || nameTaken} />
+      {!isNew && tool && <Versions id={id} tool={tool} version={version} onRestored={onSaved} />}
     </>
   );
 }
@@ -455,6 +475,8 @@ function Functions({ id, open, onOpen }) {
 function TestRun({ id, name, draft, draftReady, saved }) {
   const { client, confirm } = usePlayground();
   const [args, setArgs] = useState('{}');
+  const [mocks, setMocks] = useState('{}');
+  const parsedMocks = parseJson(mocks);
   const [useDraft, setUseDraft] = useState(!saved);
   const [result, setResult] = useState(null);
   const action = useAction();
@@ -462,12 +484,12 @@ function TestRun({ id, name, draft, draftReady, saved }) {
   useEffect(() => {
     if (!saved) setUseDraft(true);
   }, [saved]);
-  const canRun = NAME_PATTERN.test(name) && !parsed.error && (!useDraft || draftReady) && (useDraft || saved);
+  const canRun = NAME_PATTERN.test(name) && !parsed.error && !parsedMocks.error && (!useDraft || draftReady) && (useDraft || saved);
 
   async function run() {
     const ok = await confirm({
       title: `Run ${name} now?`,
-      body: 'The test run is real: it runs as you (the key owner) with your connection to the MCP, and every tool the script calls has its real effects, checked by policies and approvals and logged.',
+      body: 'The test run is real: it runs as you (the key owner) with your connection to the MCP, and every tool the script calls that is not mocked has its real effects, checked by policies and approvals and logged.',
       confirmLabel: 'Run',
       call: `POST ${mcpPath(id, '/custom-tools:test')}`,
     });
@@ -475,6 +497,8 @@ function TestRun({ id, name, draft, draftReady, saved }) {
     await action.run(async () => {
       const body = { name, arguments: parsed.value || {} };
       if (useDraft && draft) body.draft = draft;
+      const mocked = parsedMocks.value;
+      if (mocked && typeof mocked === 'object' && Object.keys(mocked).length) body.mocks = mocked;
       const res = await client.call({ method: 'POST', path: mcpPath(id, '/custom-tools:test'), body, source: useDraft ? 'Test run (draft)' : 'Test run' });
       setResult(res);
       return res;
@@ -488,8 +512,15 @@ function TestRun({ id, name, draft, draftReady, saved }) {
       subtitle="Runs the saved tool, or the unsaved draft above, as the key owner through the same path a client call takes. Needs tools:write. Not available for MCPs where each user signs in with their own token (409 test_run_unavailable)."
       actions={<ApiChips calls={[['POST', '/mcps/{mcp_id}/custom-tools:test']]} />}
     >
-      <Notice tone="warn">Test runs make real tool calls with real effects. Use arguments that are safe to run.</Notice>
+      <Notice tone="warn">Test runs make real tool calls with real effects. Use arguments that are safe to run, or mock the tools that change data.</Notice>
       <JsonField label="Arguments" rows={4} value={args} onChange={setArgs} hint="As a client would send them. Omitted arguments take the defaults." />
+      <JsonField
+        label="Mocks"
+        rows={4}
+        value={mocks}
+        onChange={setMocks}
+        hint='Tool name to result, for example {"send_mail": {"id": "test"}}: those tools are not called and the script gets the value instead. At most 50. Empty: every call is real.'
+      />
       <Checkbox label="Test the unsaved draft (sends the form above as draft)" checked={useDraft} disabled={!saved} onChange={setUseDraft} />
       {useDraft && !draftReady && <p className={styles.muted}>Complete the definition above (name, description, script, valid JSON) to test it.</p>}
       <div className={styles.actionsRow}>
@@ -504,6 +535,7 @@ function TestRun({ id, name, draft, draftReady, saved }) {
             items={[
               ['Outcome', <Pill key="o" tone={OUTCOME_TONES[r.outcome]}>{fmt(r.outcome)}</Pill>],
               ['Draft', fmt(r.draft)],
+              ['Mocked tools', (r.mocked_tools || []).join(', ') || '-'],
               r.error ? ['Error', <span key="e" className={styles.errorText}>{r.error}</span>] : null,
               r.run?.error_kind ? ['Error kind', <code key="k">{r.run.error_kind}</code>] : null,
               r.run?.ms != null ? ['Run time', `${r.run.ms} ms`] : null,
@@ -560,6 +592,88 @@ function TestRun({ id, name, draft, draftReady, saved }) {
             </details>
           )}
         </div>
+      )}
+    </Panel>
+  );
+}
+
+function Versions({ id, tool, version, onRestored }) {
+  const { client, confirm } = usePlayground();
+  const history = useLoad(
+    () => client.call({ path: `${toolPath(id, tool.name)}/versions`, source: 'Custom tool versions' }),
+    [client, id, tool.name, tool.tool_version],
+  );
+  const action = useAction();
+  const rows = history.data?.versions || [];
+
+  async function restore(row) {
+    const ok = await confirm({
+      title: `Restore version ${row.tool_version} of ${tool.name}?`,
+      body: 'Saves that definition again as a new version. Clients see the change within a few seconds.',
+      confirmLabel: 'Restore',
+      call: `POST ${toolPath(id, tool.name)}/restore`,
+    });
+    if (!ok) return;
+    const res = await action.run(async () =>
+      client.call({
+        method: 'POST',
+        path: `${toolPath(id, tool.name)}/restore`,
+        body: { version: row.tool_version },
+        headers: { 'If-Match': ifMatch(version) },
+        source: 'Restore custom tool version',
+      }),
+    );
+    if (res) onRestored(tool.name, `Restored version ${res.restored_from ?? row.tool_version} of ${tool.name} as tool version ${res.custom_tool?.tool_version} (MCP ${res.version}).`);
+  }
+
+  return (
+    <Panel
+      title="Version history"
+      subtitle="The last 20 saves of this tool, newest first. Restoring saves an earlier definition again as a new version (If-Match)."
+      actions={
+        <>
+          <ApiChips calls={[['GET', '/mcps/{mcp_id}/custom-tools/{name}/versions'], ['POST', '/mcps/{mcp_id}/custom-tools/{name}/restore']]} />
+          <Btn onClick={history.reload}>
+            <RefreshCw size={13} aria-hidden /> Reload
+          </Btn>
+        </>
+      }
+    >
+      <ErrorBox error={history.error} />
+      <WriteError error={action.error} onDismiss={() => action.setError(null)} onReload={() => { action.setError(null); history.reload(); }} />
+      {history.data && (
+        <Table
+          rows={rows}
+          rowKey={(r) => r.tool_version}
+          empty="No saved versions."
+          columns={[
+            { label: 'Version', render: (r) => <span>{r.tool_version}{r.tool_version === tool.tool_version ? <> <Pill tone="ok">current</Pill></> : null}</span> },
+            { label: 'Saved', render: (r) => `${when(r.saved_at)}${r.saved_by ? ` by ${r.saved_by}` : ''}` },
+            { label: 'Script hash', render: (r) => <code title={r.code_sha256}>{r.code_sha256 ? r.code_sha256.slice(0, 12) : '-'}</code> },
+            {
+              label: 'Definition',
+              render: (r) => (
+                <details>
+                  <summary>Show</summary>
+                  <JsonView value={r.definition || {}} maxHeight={280} />
+                </details>
+              ),
+            },
+            {
+              label: '',
+              render: (r) => (
+                <ActionButton
+                  method="POST"
+                  path="/mcps/{mcp_id}/custom-tools/{name}/restore"
+                  disabled={!version || r.tool_version === tool.tool_version}
+                  onClick={() => restore(r)}
+                >
+                  Restore
+                </ActionButton>
+              ),
+            },
+          ]}
+        />
       )}
     </Panel>
   );
