@@ -38,7 +38,7 @@ There are three ways to add an MCP. All three are creates: send an `Idempotency-
 | --- | --- |
 | `POST /mcps` | Add a remote MCP server by URL (Streamable HTTP or SSE). |
 | `POST /catalog/{catalog_id}/install` | Install a prebuilt MCP from the MCP Library. See [MCP Library](#catalog). |
-| `POST /mcps/api` | Expose a REST API as MCP tools. Preview its OpenAPI document first with `POST /mcps/api:preview` and pass the returned `preview_token`. |
+| `POST /mcps/api` | Expose a REST API as MCP tools. Preview its OpenAPI document first with `POST /mcps/api:preview` and pass the returned `preview_token`. Change it later with the [REST API MCPs API](./rest-api-mcps-api). |
 
 Before adding a remote MCP, `POST /mcps:probe` with `{"transport": "<url>"}` reports the transport, OAuth discovery results and whether a credential is required, without saving anything. Use it to choose `auth.type`.
 
@@ -56,7 +56,7 @@ To reach a server on a private network, pass `remote_connector_id` with the [Rem
 | `oauth_login` | OAuth with your registered client (`client_id` and `client_secret`) or a provider-issued client. |
 | `oauth_passthrough` | Each MCP client brings its own OAuth token. |
 
-Credentials set through the API are always shared by all users of the organization. A body that carries credentials also needs `credentials:write`, and one that carries `settings` also needs `settings:write` (see [conditional scopes](./management-api#conditional-scopes)).
+Credentials set when adding an MCP are shared by all users of the organization; to have each person bring their own key, switch the MCP's [upstream credential mode](./settings-and-credentials-api#upstream-credentials) afterwards. A body that carries credentials also needs `credentials:write`, and one that carries `settings` also needs `settings:write` (see [conditional scopes](./management-api#conditional-scopes)).
 
 OAuth MCPs (`oauth_dcr` and `oauth_login`) are created with `connection.state` `pending_connection` and a single-use `connect` link. See [Connect links](./connections-and-oauth-api#connect-links). `oauth_passthrough` MCPs need no link: their tools appear when the first client connects with its own token.
 

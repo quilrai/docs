@@ -432,6 +432,83 @@
         ],
         "type": "object"
       },
+      "ApiAccessDecision": {
+        "additionalProperties": true,
+        "properties": {
+          "api_revision": {
+            "type": "integer"
+          },
+          "decision": {
+            "additionalProperties": true,
+            "properties": {
+              "allowed": {
+                "type": "boolean"
+              },
+              "index": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "list": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "operation": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "allowed"
+            ],
+            "type": "object"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ApiAccessPresets": {
+        "additionalProperties": true,
+        "properties": {
+          "presets": {
+            "additionalProperties": {
+              "type": "object"
+            },
+            "description": "Access rules keyed by preset name.",
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "presets",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "ApiAccessRules": {
         "additionalProperties": false,
         "description": "Deny wins; a nonempty allow list must match; no rules allows everything.",
@@ -507,6 +584,338 @@
             },
             "maxItems": 64,
             "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ApiAccessTest": {
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "description": "HTTP method.",
+            "maxLength": 16,
+            "minLength": 1,
+            "type": "string"
+          },
+          "path": {
+            "description": "Request path, for example /invoices/42.",
+            "maxLength": 4096,
+            "minLength": 1,
+            "pattern": "^/",
+            "type": "string"
+          },
+          "tags": {
+            "description": "OpenAPI tags to test with; by default the matching operation's tags.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "type": "array"
+          }
+        },
+        "required": [
+          "method",
+          "path"
+        ],
+        "type": "object"
+      },
+      "ApiConfig": {
+        "additionalProperties": true,
+        "properties": {
+          "api_config": {
+            "additionalProperties": true,
+            "properties": {
+              "access": {
+                "type": "object"
+              },
+              "api_revision": {
+                "type": "integer"
+              },
+              "base_url": {
+                "description": "Origin and path; query string and user info removed.",
+                "type": "string"
+              },
+              "base_url_has_credentials": {
+                "type": "boolean"
+              },
+              "docs_text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "extra_header_names": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "extra_query_param_names": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "max_response_bytes": {
+                "type": "integer"
+              },
+              "mcp_id": {
+                "type": "string"
+              },
+              "mode": {
+                "enum": [
+                  "openapi",
+                  "generic"
+                ],
+                "type": "string"
+              },
+              "openapi": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "properties": {
+                      "enable_generic_fallback": {
+                        "type": "boolean"
+                      },
+                      "info": {
+                        "type": [
+                          "object",
+                          "null"
+                        ]
+                      },
+                      "operations": {
+                        "description": "With include_operations=true.",
+                        "items": {
+                          "additionalProperties": true,
+                          "properties": {
+                            "key": {
+                              "type": "string"
+                            },
+                            "method": {
+                              "type": "string"
+                            },
+                            "operation_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "path": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "selection_reason": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "summary": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "supported": {
+                              "type": "boolean"
+                            },
+                            "tags": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "tool_name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "warnings": {
+                              "items": {},
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "key",
+                            "method",
+                            "path"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "overrides": {
+                        "additionalProperties": {
+                          "additionalProperties": true,
+                          "properties": {
+                            "description": {
+                              "type": "string"
+                            },
+                            "enabled": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            "fixed_param_names": {
+                              "description": "Names only; values are never returned.",
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "object"
+                      },
+                      "source_url": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "source_url_has_credentials": {
+                        "type": "boolean"
+                      },
+                      "totals": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "operations": {
+                            "type": "integer"
+                          },
+                          "selected": {
+                            "type": "integer"
+                          },
+                          "supported": {
+                            "type": "integer"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "remote_connector": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "timeout_s": {
+                "type": "number"
+              },
+              "tools": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "mcp_id",
+              "mode"
+            ],
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "tool_diff": {
+            "description": "Tools `added`, `removed` and `changed` by the write.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "api_config",
+          "version",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ApiConfigPatch": {
+        "additionalProperties": false,
+        "description": "Fields to change; everything else keeps its saved value, including values this API never returns (fixed parameter values, URL query strings). `openapi: null` switches to one generic request tool.",
+        "minProperties": 1,
+        "properties": {
+          "access": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApiAccessRules"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "base_url": {
+            "description": "Base URL requests are sent to. A query string or user info needs credentials:write.",
+            "format": "uri",
+            "maxLength": 2048,
+            "type": "string"
+          },
+          "docs_text": {
+            "maxLength": 1048576,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "max_response_bytes": {
+            "exclusiveMinimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "openapi": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApiOpenApiPatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "remote_connector_id": {
+            "maxLength": 128,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timeout_s": {
+            "exclusiveMinimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -645,6 +1054,50 @@
           "name",
           "base_url"
         ],
+        "type": "object"
+      },
+      "ApiOpenApiPatch": {
+        "additionalProperties": false,
+        "description": "Send at most one new document source; without one the saved document is kept.",
+        "properties": {
+          "enable_generic_fallback": {
+            "type": "boolean"
+          },
+          "overrides": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ApiOperationOverride"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "Keyed by operation (`GET /pets`). An object merges into the saved override (a sent `fixed_params` replaces the saved map); null removes the override.",
+            "maxProperties": 5000,
+            "type": "object"
+          },
+          "preview_token": {
+            "description": "A new document from POST /mcps/api:preview.",
+            "maxLength": 128,
+            "type": "string"
+          },
+          "source_url": {
+            "description": "A new document URL, fetched now.",
+            "format": "uri",
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "spec_base64": {
+            "description": "A new document, base64 encoded.",
+            "type": "string"
+          },
+          "spec_text": {
+            "description": "A new document as JSON or YAML text.",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "ApiOpenApiSelection": {
@@ -798,6 +1251,310 @@
         },
         "required": [
           "preview",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ApiResync": {
+        "additionalProperties": false,
+        "properties": {
+          "fetch_headers": {
+            "additionalProperties": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "description": "Headers for downloading a protected document; used once, never stored. Needs credentials:write.",
+            "maxProperties": 64,
+            "type": "object",
+            "writeOnly": true
+          }
+        },
+        "type": "object"
+      },
+      "ApiResyncResult": {
+        "additionalProperties": true,
+        "properties": {
+          "api_revision": {
+            "type": "integer"
+          },
+          "applied": {
+            "type": "boolean"
+          },
+          "error": {
+            "description": "Dry run only: why applying would fail.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "new_operations": {
+            "description": "Added upstream; saved turned off.",
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "method": {
+                  "type": "string"
+                },
+                "operation_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "path": {
+                  "type": "string"
+                },
+                "selected": {
+                  "type": "boolean"
+                },
+                "selection_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "summary": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "supported": {
+                  "type": "boolean"
+                },
+                "tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "tool_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "warnings": {
+                  "items": {},
+                  "type": "array"
+                }
+              },
+              "required": [
+                "key",
+                "method",
+                "path"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "removed_operations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "tool_diff": {
+            "description": "Tools `added`, `removed` and `changed` by the write.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "totals": {
+            "additionalProperties": true,
+            "properties": {
+              "operations": {
+                "type": "integer"
+              },
+              "selected": {
+                "type": "integer"
+              },
+              "supported": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {},
+            "type": "array"
+          }
+        },
+        "required": [
+          "applied",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ApiRuleTest": {
+        "additionalProperties": false,
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/ApiAccessRules"
+          },
+          "method": {
+            "description": "HTTP method.",
+            "maxLength": 16,
+            "minLength": 1,
+            "type": "string"
+          },
+          "path": {
+            "description": "Request path, for example /invoices/42.",
+            "maxLength": 4096,
+            "minLength": 1,
+            "pattern": "^/",
+            "type": "string"
+          },
+          "tags": {
+            "description": "OpenAPI tags to test with; by default the matching operation's tags.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "type": "array"
+          }
+        },
+        "required": [
+          "method",
+          "path"
+        ],
+        "type": "object"
+      },
+      "ApiSelectionPreview": {
+        "additionalProperties": false,
+        "description": "Candidate rules and override changes, applied like the PATCH would. Omitted fields use the saved values.",
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/ApiAccessRules"
+          },
+          "overrides": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ApiOperationOverride"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "Keyed by operation (`GET /pets`). An object merges into the saved override (a sent `fixed_params` replaces the saved map); null removes the override.",
+            "maxProperties": 5000,
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "ApiSelectionPreviewResult": {
+        "additionalProperties": true,
+        "properties": {
+          "api_revision": {
+            "type": "integer"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "operations": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "method": {
+                  "type": "string"
+                },
+                "operation_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "path": {
+                  "type": "string"
+                },
+                "selected": {
+                  "type": "boolean"
+                },
+                "selection_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "summary": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "supported": {
+                  "type": "boolean"
+                },
+                "tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "tool_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "warnings": {
+                  "items": {},
+                  "type": "array"
+                }
+              },
+              "required": [
+                "key",
+                "method",
+                "path"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "totals": {
+            "additionalProperties": true,
+            "properties": {
+              "operations": {
+                "type": "integer"
+              },
+              "selected": {
+                "type": "integer"
+              },
+              "supported": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "operations",
+          "totals",
           "request_id"
         ],
         "type": "object"
@@ -1374,6 +2131,9 @@
           "request_id": {
             "description": "Request correlation id (also in X-Request-ID).",
             "type": "string"
+          },
+          "sign_in_link": {
+            "$ref": "#/components/schemas/SignInLinkInfo"
           },
           "slug": {
             "type": [
@@ -3444,6 +4204,109 @@
         ],
         "type": "object"
       },
+      "OAuthClient": {
+        "additionalProperties": true,
+        "properties": {
+          "mcp_id": {
+            "type": "string"
+          },
+          "oauth_client": {
+            "additionalProperties": true,
+            "properties": {
+              "client_id_hint": {
+                "description": "Last characters of the client id.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "configured": {
+                "type": "boolean"
+              },
+              "custom": {
+                "description": "Supplied by an administrator (rotatable).",
+                "type": "boolean"
+              },
+              "oauth": {
+                "type": "boolean"
+              },
+              "registered_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "rotatable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "oauth",
+              "rotatable"
+            ],
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "rotation": {
+            "additionalProperties": true,
+            "properties": {
+              "client_id_changed": {
+                "type": "boolean"
+              },
+              "connections_dropped": {
+                "type": "integer"
+              },
+              "reconnect_users": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "oauth_client",
+          "version",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "OAuthClientRotate": {
+        "additionalProperties": false,
+        "properties": {
+          "client_id": {
+            "description": "A new client id; omit to keep the current one.",
+            "maxLength": 8192,
+            "minLength": 1,
+            "type": "string"
+          },
+          "client_secret": {
+            "description": "The client secret. Required on every rotation.",
+            "maxLength": 8192,
+            "minLength": 1,
+            "type": "string",
+            "writeOnly": true
+          },
+          "reconnect_users": {
+            "description": "Required when client_id changes. true deletes every user's connection (each user signs in again); false keeps them working with the previous client until it stops working at the provider.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "client_secret"
+        ],
+        "type": "object"
+      },
       "OAuthScopeOptions": {
         "additionalProperties": true,
         "properties": {
@@ -4360,6 +5223,74 @@
             ]
           }
         },
+        "type": "object"
+      },
+      "SignInLink": {
+        "additionalProperties": true,
+        "properties": {
+          "connection": {
+            "description": "What the user does after signing in: oauth (sign in to the provider), user_key (save their own key) or null (nothing).",
+            "enum": [
+              "oauth",
+              "user_key",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "requires_user_action": {
+            "type": "boolean"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "url",
+          "connection",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "SignInLinkInfo": {
+        "additionalProperties": true,
+        "description": "Hand this to users; it carries no credential.",
+        "properties": {
+          "connection": {
+            "description": "What the user does after signing in: oauth (sign in to the provider), user_key (save their own key) or null (nothing).",
+            "enum": [
+              "oauth",
+              "user_key",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requires_user_action": {
+            "type": "boolean"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "connection"
+        ],
         "type": "object"
       },
       "TenantConfig": {
@@ -5388,6 +6319,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "user_credentials_saved": {
+                "description": "Users who saved their own key (used in mode user_required; kept, unused, in admin_shared).",
+                "type": "integer"
               }
             },
             "required": [
@@ -5410,7 +6345,7 @@
       },
       "UpstreamAuthPut": {
         "additionalProperties": false,
-        "description": "Static credential and extras. Credentials set here are shared by all users of the tenant. Not available for OAuth MCPs.",
+        "description": "Static credential and extras: one shared key, or the shape of a key each user brings (`mode`). Not available for OAuth MCPs.",
         "minProperties": 1,
         "properties": {
           "extra_headers": {
@@ -5438,6 +6373,14 @@
             "maxLength": 8192,
             "type": "string"
           },
+          "mode": {
+            "description": "admin_shared: one key for every user (`token` required). user_required: each user saves their own key from the user dashboard; send the shape only, never `token`. Switching to user_required deletes the shared key; switching back needs a new `token` and keeps users' saved keys unused. Omit to keep the current mode.",
+            "enum": [
+              "admin_shared",
+              "user_required"
+            ],
+            "type": "string"
+          },
           "query_param": {
             "description": "Parameter for type query.",
             "maxLength": 8192,
@@ -5449,7 +6392,7 @@
             "type": "string"
           },
           "token": {
-            "description": "Static API key or token. Rotates the stored one.",
+            "description": "Static API key or token. Rotates the stored one (admin_shared only).",
             "maxLength": 8192,
             "minLength": 1,
             "type": "string",
@@ -7146,6 +8089,194 @@
         "summary": "Read an agent",
         "tags": [
           "Client access"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/api-access/presets": {
+      "get": {
+        "description": "Named starting points for access rules, such as read only.",
+        "operationId": "List_access_presets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "presets": {
+                    "everything": {
+                      "allow": [],
+                      "deny": []
+                    },
+                    "no_deletes": {
+                      "allow": [],
+                      "deny": [
+                        {
+                          "methods": [
+                            "DELETE"
+                          ]
+                        }
+                      ]
+                    },
+                    "read_only": {
+                      "allow": [
+                        {
+                          "methods": [
+                            "GET",
+                            "HEAD"
+                          ]
+                        }
+                      ],
+                      "deny": []
+                    }
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiAccessPresets"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List access rule presets",
+        "tags": [
+          "REST API MCPs"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/api-access/test": {
+      "post": {
+        "description": "Evaluates rules you have not saved against one request.",
+        "operationId": "Test_access_rules",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "access": {
+                  "deny": [
+                    {
+                      "methods": [
+                        "DELETE"
+                      ]
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "path": "/pets/1"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ApiRuleTest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "decision": {
+                    "allowed": false,
+                    "index": 0,
+                    "list": "deny",
+                    "reason": "blocked by connector rule deny[0]: DELETE"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiAccessDecision"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Test candidate access rules",
+        "tags": [
+          "REST API MCPs"
         ],
         "x-scopes": [
           "read"
@@ -9753,6 +10884,692 @@
         ]
       }
     },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/api-config": {
+      "get": {
+        "description": "Base URL, limits, access rules and OpenAPI selection of an MCP created with POST /mcps/api. URLs keep origin and path; fixed parameter values are listed by name only. Other MCPs answer 409 `not_api_mcp`. MCPs of other tenants answer 404.",
+        "operationId": "Read_REST_API_config",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "true adds every OpenAPI operation with whether it is selected.",
+            "in": "query",
+            "name": "include_operations",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "api_config": {
+                    "access": {
+                      "deny": [
+                        {
+                          "methods": [
+                            "DELETE"
+                          ]
+                        }
+                      ]
+                    },
+                    "api_revision": 3,
+                    "base_url": "https://pets.example.com/v1",
+                    "base_url_has_credentials": false,
+                    "docs_text": null,
+                    "extra_header_names": [],
+                    "extra_query_param_names": [],
+                    "max_response_bytes": 1048576,
+                    "mcp_id": "a1b2c3d4",
+                    "mode": "openapi",
+                    "openapi": {
+                      "enable_generic_fallback": false,
+                      "info": {
+                        "title": "Pets",
+                        "version": "1"
+                      },
+                      "overrides": {
+                        "GET /pets": {
+                          "fixed_param_names": [
+                            "limit"
+                          ],
+                          "name": "list_all_pets"
+                        }
+                      },
+                      "source_url": "https://pets.example.com/openapi.json",
+                      "source_url_has_credentials": false
+                    },
+                    "remote_connector": null,
+                    "timeout_s": 30.0,
+                    "tools": [
+                      "list_all_pets",
+                      "get_pet"
+                    ],
+                    "updated_at": "2026-11-14T09:00:00Z"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r9"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiConfig"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a REST API MCP's configuration",
+        "tags": [
+          "REST API MCPs"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "patch": {
+        "description": "Merges the sent fields into the saved configuration and republishes the tools (`tool_diff`). Nonempty `fixed_params` and URLs with a query string or user info need credentials:write. 400 `no_operations_selected` when nothing would be exposed, `invalid_operation_override` for unknown operations, `spec_missing` when switching to OpenAPI without a document. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Update_REST_API_config",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "openapi": {
+                  "overrides": {
+                    "GET /pets": {
+                      "name": "list_all_pets"
+                    }
+                  }
+                },
+                "timeout_s": 20
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ApiConfigPatch"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "api_config": {
+                    "access": {
+                      "deny": [
+                        {
+                          "methods": [
+                            "DELETE"
+                          ]
+                        }
+                      ]
+                    },
+                    "api_revision": 3,
+                    "base_url": "https://pets.example.com/v1",
+                    "base_url_has_credentials": false,
+                    "docs_text": null,
+                    "extra_header_names": [],
+                    "extra_query_param_names": [],
+                    "max_response_bytes": 1048576,
+                    "mcp_id": "a1b2c3d4",
+                    "mode": "openapi",
+                    "openapi": {
+                      "enable_generic_fallback": false,
+                      "info": {
+                        "title": "Pets",
+                        "version": "1"
+                      },
+                      "overrides": {
+                        "GET /pets": {
+                          "fixed_param_names": [
+                            "limit"
+                          ],
+                          "name": "list_all_pets"
+                        }
+                      },
+                      "source_url": "https://pets.example.com/openapi.json",
+                      "source_url_has_credentials": false
+                    },
+                    "remote_connector": null,
+                    "timeout_s": 30.0,
+                    "tools": [
+                      "list_all_pets",
+                      "get_pet"
+                    ],
+                    "updated_at": "2026-11-14T09:00:00Z"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "tool_diff": {
+                    "added": [
+                      "list_all_pets"
+                    ],
+                    "changed": [],
+                    "removed": [
+                      "list_pets"
+                    ]
+                  },
+                  "version": "r10"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiConfig"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Change a REST API MCP's configuration",
+        "tags": [
+          "REST API MCPs"
+        ],
+        "x-conditional-scopes": [
+          {
+            "scope": "credentials:write",
+            "when": "Any `openapi.overrides.*.fixed_params` is nonempty, or `base_url` or `openapi.source_url` has a query string or user info."
+          }
+        ],
+        "x-scopes": [
+          "mcps:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/api-config/access-test": {
+      "post": {
+        "description": "Whether the saved rules allow one request, which rule decided and, for OpenAPI MCPs, the operation the path maps to.",
+        "operationId": "Test_REST_API_access",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "method": "GET",
+                "path": "/pets/42"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ApiAccessTest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "api_revision": 3,
+                  "decision": {
+                    "allowed": true,
+                    "index": null,
+                    "list": null,
+                    "operation": {
+                      "key": "GET /pets/{id}",
+                      "selected": true,
+                      "selection_reason": "no_rules",
+                      "supported": true,
+                      "tags": [
+                        "read"
+                      ],
+                      "tool_name": "get_pet"
+                    },
+                    "reason": "no_rules"
+                  },
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiAccessDecision"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Test the saved access rules",
+        "tags": [
+          "REST API MCPs"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/api-config/resync": {
+      "post": {
+        "description": "Downloads the document again from its source URL and reports added and removed operations. `apply=true` saves it: overrides of operations that still exist are kept and new operations are saved turned off. 409 `spec_uploaded` for an uploaded document, `not_openapi` for generic MCPs. `apply=true` needs If-Match.",
+        "operationId": "Resync_REST_API",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "true saves the fetched document (needs If-Match); false or omitted only reports what would change.",
+            "in": "query",
+            "name": "apply",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiResync"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "api_revision": 4,
+                  "applied": true,
+                  "mcp_id": "a1b2c3d4",
+                  "new_operations": [
+                    {
+                      "key": "GET /owners",
+                      "method": "GET",
+                      "path": "/owners",
+                      "summary": "List owners",
+                      "supported": true,
+                      "tags": [],
+                      "tool_name": "list_owners"
+                    }
+                  ],
+                  "removed_operations": [],
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "tool_diff": {
+                    "added": [],
+                    "changed": [],
+                    "removed": []
+                  },
+                  "totals": {
+                    "operations": 4,
+                    "selected": 2,
+                    "supported": 4
+                  },
+                  "version": "r11",
+                  "warnings": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResyncResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Resync the OpenAPI document",
+        "tags": [
+          "REST API MCPs"
+        ],
+        "x-conditional-scopes": [
+          {
+            "scope": "credentials:write",
+            "when": "The body carries `fetch_headers`."
+          }
+        ],
+        "x-scopes": [
+          "mcps:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/api-config/selection-preview": {
+      "post": {
+        "description": "Applies candidate access rules and override changes to the saved document without saving.",
+        "operationId": "Preview_REST_API_selection",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "access": {
+                  "allow": [
+                    {
+                      "tags": [
+                        "read"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ApiSelectionPreview"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "api_revision": 3,
+                  "mcp_id": "a1b2c3d4",
+                  "operations": [
+                    {
+                      "key": "GET /pets",
+                      "method": "GET",
+                      "operation_id": "listPets",
+                      "path": "/pets",
+                      "selected": true,
+                      "selection_reason": "no_rules",
+                      "summary": "List pets",
+                      "supported": true,
+                      "tags": [
+                        "read"
+                      ],
+                      "tool_name": "list_pets",
+                      "warnings": []
+                    }
+                  ],
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "totals": {
+                    "operations": 3,
+                    "selected": 2,
+                    "supported": 3
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSelectionPreviewResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Preview which operations would become tools",
+        "tags": [
+          "REST API MCPs"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/mcpgateway/management/v1/mcps/{mcp_id}/capabilities:refresh": {
       "post": {
         "description": "Fetches tools, resources and prompts from the upstream server now, as the administrator who owns the key, and replaces the cached lists (new tools may be held for review). OAuth MCPs need that administrator's connection (409 `oauth_connection_required`); passthrough MCPs answer 409 `pending_first_client`.",
@@ -9964,6 +11781,11 @@
                     "url": "https://mcp.example.com/quilrone/tenant-123/mcp"
                   },
                   "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "sign_in_link": {
+                    "connection": null,
+                    "requires_user_action": false,
+                    "url": "https://mcp.example.com/user/dashboard?connect=a1b2c3d4"
+                  },
                   "slug": "files"
                 },
                 "schema": {
@@ -10193,6 +12015,217 @@
         ],
         "x-scopes": [
           "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/oauth-client": {
+      "get": {
+        "description": "Which OAuth client the MCP signs users in with (never the secret) and whether it can be rotated: only clients an administrator supplied can be; clients the gateway registered are managed by the gateway.",
+        "operationId": "Read_OAuth_client",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "mcp_id": "a1b2c3d4",
+                  "oauth_client": {
+                    "client_id_hint": "...9f2c",
+                    "configured": true,
+                    "custom": true,
+                    "oauth": true,
+                    "registered_at": "2026-11-14T09:00:00Z",
+                    "rotatable": true
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r5"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClient"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read an MCP's OAuth client",
+        "tags": [
+          "User sign-in"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "put": {
+        "description": "Replaces the client secret, and optionally the client id. A new secret alone keeps every user connected. A new client id needs `reconnect_users`: true deletes every user's connection so each signs in again with the new client; false keeps existing connections on the previous client until it stops working at the provider, while new sign-ins use the new one. 409 `oauth_client_not_custom` or `not_oauth_mcp` when there is nothing to rotate. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Rotate_OAuth_client",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "client_id": "<new client id>",
+                "client_secret": "<new secret>",
+                "reconnect_users": true
+              },
+              "schema": {
+                "$ref": "#/components/schemas/OAuthClientRotate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "mcp_id": "a1b2c3d4",
+                  "oauth_client": {
+                    "client_id_hint": "...71ab",
+                    "configured": true,
+                    "custom": true,
+                    "oauth": true,
+                    "registered_at": "2026-11-14T09:00:00Z",
+                    "rotatable": true
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "rotation": {
+                    "client_id_changed": true,
+                    "connections_dropped": 12,
+                    "reconnect_users": true
+                  },
+                  "version": "r6"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClient"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Rotate an MCP's OAuth client",
+        "tags": [
+          "User sign-in"
+        ],
+        "x-scopes": [
+          "credentials:write"
         ]
       }
     },
@@ -10892,6 +12925,84 @@
         ],
         "x-scopes": [
           "settings:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/sign-in-link": {
+      "get": {
+        "description": "A link to hand to users, for example on an internal page. It opens the Quilr user dashboard: the user signs in to Quilr as themselves, then the dashboard starts this MCP's connect step (`connection`: oauth signs in to the provider, user_key asks for their own key). The link carries no credential and connects no one by itself; users without access to the MCP see a message instead. MCPs of other tenants answer 404.",
+        "operationId": "Read_sign_in_link",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "connection": "oauth",
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "requires_user_action": true,
+                  "url": "https://mcp.example.com/user/dashboard?connect=a1b2c3d4"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SignInLink"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Get the user sign-in link",
+        "tags": [
+          "User sign-in"
+        ],
+        "x-scopes": [
+          "read"
         ]
       }
     },
@@ -12127,7 +14238,8 @@
                     "scheme": null,
                     "secret_configured": false,
                     "type": null,
-                    "updated_at": "2026-11-12T08:30:00Z"
+                    "updated_at": "2026-11-12T08:30:00Z",
+                    "user_credentials_saved": 0
                   },
                   "version": "r6"
                 },
@@ -12232,7 +14344,8 @@
                     "scheme": null,
                     "secret_configured": true,
                     "type": "header",
-                    "updated_at": "2026-11-12T08:30:00Z"
+                    "updated_at": "2026-11-12T08:30:00Z",
+                    "user_credentials_saved": 0
                   },
                   "version": "r4"
                 },
@@ -12287,7 +14400,7 @@
         ]
       },
       "put": {
-        "description": "Creates, rotates or changes the static credential and/or the extra headers and query parameters. Omitted extras keep the stored ones; {} clears them. Not available for OAuth MCPs. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Creates, rotates or changes the static credential and/or the extra headers and query parameters. `mode: user_required` makes every user bring their own key (they save it from the sign-in link, `GET /mcps/{mcp_id}/sign-in-link`); the shared key is deleted. Omitted extras keep the stored ones; {} clears them. Not available for OAuth MCPs. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Put_upstream_auth",
         "parameters": [
           {
@@ -12347,7 +14460,8 @@
                     "scheme": null,
                     "secret_configured": true,
                     "type": "header",
-                    "updated_at": "2026-11-12T08:30:00Z"
+                    "updated_at": "2026-11-12T08:30:00Z",
+                    "user_credentials_saved": 0
                   },
                   "version": "r5"
                 },
@@ -15126,6 +17240,14 @@
     {
       "description": "Tenant-wide switches (Dynamic Tool Calling, Memories, new-tool review), tool-argument aliases and users' requests for MCP Library entries.",
       "name": "Tenant"
+    },
+    {
+      "description": "Change a REST API MCP after it was created: base URL, limits, access rules and which OpenAPI operations become tools; preview a selection, test access rules and resync the OpenAPI document from its source.",
+      "name": "REST API MCPs"
+    },
+    {
+      "description": "Rotate an MCP's OAuth client and get the link users open to sign in and connect an MCP themselves.",
+      "name": "User sign-in"
     },
     {
       "description": "Tenant-administrator endpoints that enable management for a tenant and issue management keys. Authenticated with a tenant administrator token, not a management key.",

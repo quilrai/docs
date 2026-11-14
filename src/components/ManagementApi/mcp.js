@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {Activity, ArrowUpRight, BarChart3, Building2, Download, FlaskConical, GitCompare, History, KeyRound, Layers, Library, Link2, Play, Plug, ShieldCheck, SlidersHorizontal, Terminal, Users, Workflow} from 'lucide-react';
+import {Activity, ArrowUpRight, BarChart3, Building2, Download, FlaskConical, GitCompare, History, KeyRound, Layers, Library, Link2, Play, Plug, ShieldCheck, SlidersHorizontal, Terminal, Users, Webhook, Workflow, LogIn} from 'lucide-react';
 import spec from '@site/static/openapi/mcp-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -19,6 +19,7 @@ const pageFor = {
   Reference: 'management-api',
   Administration: 'management-api',
   MCPs: 'mcps-api',
+  'REST API MCPs': 'rest-api-mcps-api',
   Catalog: 'mcps-api',
   Settings: 'settings-and-credentials-api',
   'Upstream credentials': 'settings-and-credentials-api',
@@ -26,6 +27,7 @@ const pageFor = {
   Connections: 'connections-and-oauth-api',
   'Client access': 'client-access-api',
   'User connections': 'client-access-api',
+  'User sign-in': 'client-access-api',
   'Tool changes': 'tenant-and-tool-changes-api',
   Tenant: 'tenant-and-tool-changes-api',
   Analytics: 'analytics-and-audit-api',
@@ -56,7 +58,7 @@ const api = createApiReference({
     eyebrow: 'MCP GATEWAY / MANAGEMENT V1',
     title: 'Manage your MCPs.',
     subtitle: 'From scripts, pipelines and code.',
-    text: 'List, add, install and remove MCPs, change their settings and upstream credentials, review new tools and upstream tool changes, connect OAuth MCPs, hand MCPs out to clients, see and revoke user connections, change organization switches, and read usage, latency, DLP activity and the audit trail, from one tenant-scoped API.',
+    text: 'List, add, install and remove MCPs, change their settings and upstream credentials, review new tools and upstream tool changes, connect OAuth MCPs, change REST API MCPs, hand MCPs out to clients and people, rotate OAuth clients, see and revoke user connections, change organization switches, and read usage, latency, DLP activity and the audit trail, from one tenant-scoped API.',
     actions: [
       {label: 'Start with an example', to: './management-api#quick-start', primary: true},
       {label: 'Open the playground', to: playground, Icon: Play},
@@ -68,12 +70,14 @@ const api = createApiReference({
   cards: [
     ['MCPs', 'List, inspect, add, rename, enable, disable and remove MCPs, and list their tools.', 'mcps-api', Layers],
     ['MCP Library', 'Browse the catalog and install prebuilt MCPs.', 'mcps-api#catalog', Library],
+    ['REST API MCPs', 'Change base URL, limits, access rules and which OpenAPI operations become tools; resync the document.', 'rest-api-mcps-api', Webhook],
     ['Settings and overrides', 'Tools, DLP, token saving, access control, tool exposure and OneMCP settings, per MCP, user or smart group.', 'settings-and-credentials-api', SlidersHorizontal],
     ['Upstream credentials', 'Set, rotate and remove the credentials the gateway sends upstream.', 'settings-and-credentials-api#upstream-credentials', KeyRound],
     ['Tool reviews', 'Approve or reject new tools held for review.', 'settings-and-credentials-api#tool-reviews', ShieldCheck],
     ['Connections and OAuth', 'Connection state, tool refresh and single-use OAuth connect links.', 'connections-and-oauth-api', Link2],
     ['Client access', 'Endpoint URLs and client configuration, MCP API tokens and which agents may use each MCP.', 'client-access-api', Plug],
     ['User connections', 'Who is connected to each MCP, and making one user connect again.', 'client-access-api#user-connections', Users],
+    ['Sign-in links and OAuth clients', 'A link people open to connect an MCP themselves; rotate OAuth client secrets.', 'client-access-api#sign-in-link', LogIn],
     ['Tool changes', 'Adopt or dismiss upstream tool-list changes; OAuth permission options.', 'tenant-and-tool-changes-api#tool-changes', GitCompare],
     ['Organization settings', 'Dynamic Tool Calling, Memories, new-tool review, tool-argument aliases and MCP requests.', 'tenant-and-tool-changes-api#tenant-settings', Building2],
     ['Analytics', 'Usage, latency, DLP activity, tool-call metadata and per-user activity.', 'analytics-and-audit-api', BarChart3],

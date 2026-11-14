@@ -4,7 +4,7 @@ sidebar_position: 6
 sidebar_label: "Client access API"
 sidebar_custom_props:
   icon: Plug
-description: "MCP Gateway Management API v1: hand an MCP out to clients with endpoint URLs and configuration, issue MCP API tokens, choose which agents may use each MCP, and see or revoke users' connections."
+description: "MCP Gateway Management API v1: hand an MCP out to clients with endpoint URLs and configuration, issue MCP API tokens, choose which agents may use each MCP, give people a sign-in link, rotate OAuth clients, and see or revoke users' connections."
 ---
 
 import {ApiReference} from '@site/src/components/ManagementApi/mcp';
@@ -21,6 +21,29 @@ After an MCP is added and configured, these operations hand it out: what a clien
 - `onemcp.url`: your organization's OneMCP endpoint, and `onemcp.included` (false when the MCP is hidden from OneMCP in its settings).
 - `direct.auth_methods`: how clients authenticate. `sign_in`: the client signs the user in through the gateway (MCP clients that support MCP authorization prompt for it). `api_token`: an MCP API token plus the user's email in the `mcpuser` header (MCPs that do not use OAuth). `upstream_oauth`: OAuth passthrough MCPs, where the client brings the provider's token.
 - `templates` and `token_templates`: ready-to-paste configuration for MCP clients (`mcpServers` JSON, VS Code `servers`, a Claude Code command line), with `<MCP_API_TOKEN>` and `<USER_EMAIL>` placeholders.
+- `sign_in_link`: the [sign-in link](#sign-in-link) to hand to users.
+
+## Sign-in link {#sign-in-link}
+
+`GET /mcps/{mcp_id}/sign-in-link` returns a link to hand to the people who use the MCP, for example on an internal page or in an onboarding message:
+
+```json
+{"mcp_id": "a1b2c3d4", "url": "https://mcp.example.com/user/dashboard?connect=a1b2c3d4",
+ "connection": "oauth", "requires_user_action": true}
+```
+
+The link opens the Quilr user dashboard. Each person signs in to Quilr as themselves; the dashboard then starts this MCP's connect step. `connection` says what that is: `oauth` (sign in to the provider, for OAuth MCPs), `user_key` (save their own API key, for MCPs in [per-user key mode](./settings-and-credentials-api#upstream-credentials)) or `null` (nothing to do; the dashboard just shows the MCP). The link carries no credential and connects no one by itself, the same link works for everyone, and people without access to the MCP see a message instead. `GET /mcps/{mcp_id}/users` then shows who has connected.
+
+## OAuth client rotation {#oauth-client}
+
+`GET /mcps/{mcp_id}/oauth-client` shows which OAuth client an OAuth MCP signs people in with: the last characters of the client id (`client_id_hint`), never the secret, and whether it can be rotated. Only clients your organization supplied (`custom: true`) can be; clients the gateway registered itself are managed by the gateway.
+
+`PUT /mcps/{mcp_id}/oauth-client` replaces the client secret, and optionally the client id. It needs `credentials:write` and `If-Match`.
+
+- A new `client_secret` alone keeps everyone connected: existing sign-ins renew with the new secret.
+- A new `client_id` also needs `reconnect_users`. `true` deletes every person's connection to the MCP, so each signs in again with the new client (send them the sign-in link). `false` keeps existing connections on the previous client until it stops working at the provider; new sign-ins use the new client.
+
+The response reports `rotation.connections_dropped`. MCPs without a gateway OAuth client answer `409 not_oauth_mcp`; gateway-registered clients `409 oauth_client_not_custom`.
 
 ## MCP API tokens {#tokens}
 
@@ -58,3 +81,5 @@ States are computed from stored state and may be a few minutes old (`generated_a
 <ApiReference tags={['Client access']} />
 
 <ApiReference tags={['User connections']} />
+
+<ApiReference tags={['User sign-in']} />

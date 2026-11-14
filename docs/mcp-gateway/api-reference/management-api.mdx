@@ -224,6 +224,10 @@ Abbreviated: report rows carry more fields. See the [Analytics and audit API](./
 | --- | --- |
 | Install an MCP from the MCP Library | [Install a catalog MCP](./mcps-api#Install_catalog_mcp) |
 | Expose a REST API as MCP tools | [Add a REST API as an MCP](./mcps-api#Create_an_api_mcp) |
+| Change which REST API operations become tools | [REST API MCPs](./rest-api-mcps-api) |
+| Give people a link to connect an MCP themselves | [Sign-in link](./client-access-api#sign-in-link) |
+| Have each person bring their own API key | [Upstream credentials](./settings-and-credentials-api#upstream-credentials) |
+| Rotate an OAuth client secret | [OAuth client rotation](./client-access-api#oauth-client) |
 | Override settings for one user or smart group | [Per-user and per-group overrides](./settings-and-credentials-api#overrides) |
 | Rotate an upstream API key | [Upstream credentials](./settings-and-credentials-api#upstream-credentials) |
 | Approve new tools | [Tool reviews](./settings-and-credentials-api#tool-reviews) |
@@ -296,6 +300,8 @@ Some operations need extra scopes depending on what the body carries. The OpenAP
 | `POST /catalog/{catalog_id}/install` | `auth_token`, `oauth_client_id`, `oauth_client_secret`, `upstream_auth_extra_headers`, `upstream_auth_extra_query_params` or `transport_values` | |
 | `POST /mcps/api` | `auth_token` or any `upstream_auth_*` field, nonempty `openapi.overrides.*.fixed_params`, or `base_url` or `openapi.source_url` with userinfo or a query string | `settings` is present |
 | `POST /mcps/api:preview` | `fetch_headers`, or `source_url` with userinfo or a query string | |
+| `PATCH /mcps/{mcp_id}/api-config` | nonempty `openapi.overrides.*.fixed_params`, or `base_url` or `openapi.source_url` with userinfo or a query string | |
+| `POST /mcps/{mcp_id}/api-config/resync` | `fetch_headers` | |
 
 A request missing a scope is refused with `403 insufficient_scope` and `error.required_scopes` before anything is written. Scopes are checked again just before a write, so a key that is revoked or narrowed while its request waits is refused.
 
@@ -376,6 +382,8 @@ Every error has the same shape:
 | 400 | `invalid_configuration` | The configuration was refused or conflicts with an existing MCP. |
 | 400 | `upstream_auth_failed` | The upstream MCP server rejected the credentials or could not list tools. |
 | 400 | `oauth_registration_failed` | Dynamic client registration failed; supply OAuth client credentials. |
+| 400 | `no_operations_selected`, `invalid_operation_override` | A REST API change would expose no operation, or names operations not in the document (`unknown_operations`). |
+| 400 | `spec_missing`, `spec_invalid`, `spec_too_large`, `blocked_destination` | OpenAPI document missing, unreadable, too large, or at a destination the gateway does not call. |
 | 401 | `invalid_management_key` | Missing, unknown, expired or revoked key. |
 | 401 | `invalid_admin_token` | Administration endpoint without a valid administrator token. |
 | 403 | `insufficient_scope` | The key lacks a scope (`required_scopes`). |
@@ -404,9 +412,12 @@ Every error has the same shape:
 | 409 | `upstream_credential_required` | The MCP needs a credential before tools can be fetched. |
 | 409 | `pending_first_client` | OAuth passthrough MCPs cannot be refreshed by the gateway. |
 | 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
+| 409 | `not_api_mcp`, `not_openapi`, `spec_uploaded` | Not a REST API MCP; not built from an OpenAPI document; the document was uploaded, so send a new one instead of resyncing. |
+| 409 | `not_oauth_mcp`, `oauth_client_not_custom` | No gateway OAuth client; the gateway registered the client itself, so it cannot be rotated. |
 | 409 | `connect_link_used` | Connect link already used. |
 | 410 | `connect_link_expired` | Connect link expired. |
 | 410 | `connect_link_revoked` | The management key that issued the connect link was revoked or expired. |
+| 410 | `preview_expired` | The OpenAPI preview expired; preview the document again. |
 | 412 | `version_conflict` | `If-Match` is stale (`current_version` when known). |
 | 413 | `body_too_large` | Body over 1 MiB. |
 | 422 | `install_input_required` | Catalog install needs more values (`missing_fields`). |
@@ -414,6 +425,7 @@ Every error has the same shape:
 | 428 | `precondition_required` | `If-Match` missing. |
 | 429 | `management_busy`, `report_busy`, `rate_limited` | Too many requests; honor `Retry-After`. |
 | 502 | `upstream_unavailable`, `oauth_initiation_failed` | The upstream MCP server or OAuth provider is unreachable or refused. |
+| 502 | `fetch_failed` | The OpenAPI document could not be downloaded. |
 | 503 | `operation_pending` | Create incomplete; retry with the same `Idempotency-Key`. |
 | 503 | `storage_unavailable`, `service_unavailable`, `mcp_busy` | Temporary; retry after `Retry-After`. |
 | 503 | `query_timeout`, `data_unavailable` | Analytics temporarily unavailable. |

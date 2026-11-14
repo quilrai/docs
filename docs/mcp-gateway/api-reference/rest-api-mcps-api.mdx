@@ -1,0 +1,53 @@
+---
+title: "REST API MCPs API"
+sidebar_position: 3.5
+sidebar_label: "REST API MCPs API"
+sidebar_custom_props:
+  icon: Webhook
+description: "MCP Gateway Management API v1: change a REST API MCP after it is created: base URL, limits, access rules and which OpenAPI operations become tools; preview a selection, test access rules and resync the OpenAPI document."
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi/mcp';
+
+# REST API MCPs API
+
+A REST API MCP exposes a REST API as MCP tools (see [API to MCP](../servers-and-connections/api-to-mcp)). You add one with [`POST /mcps/api`](./mcps-api#create); these operations change it afterwards. They answer `409 not_api_mcp` for other MCPs. Try them in the [MCP Management API playground](/mcp-gateway-management-playground?tab=rest-api).
+
+## Read the configuration {#read}
+
+`GET /mcps/{mcp_id}/api-config` returns the base URL, timeout, response size limit, access rules, the OpenAPI selection (per-operation overrides and whether the generic request tool is also exposed) and the tools it produces. Add `include_operations=true` to list every operation in the OpenAPI document with whether it is selected and why.
+
+Values that can hold secrets are never returned. URLs keep their origin and path, with `base_url_has_credentials` / `source_url_has_credentials` set when the stored URL carries a query string or user info. Overrides list `fixed_param_names`, never the fixed values. The response `version` is the If-Match value for the changes below.
+
+## Change the configuration {#update}
+
+`PATCH /mcps/{mcp_id}/api-config` changes only the fields you send; everything else keeps its saved value, including the secret values the read never returns. It needs `mcps:write` and `If-Match` (see [versions and If-Match](./management-api#versions-and-if-match)).
+
+| Field | Effect |
+| --- | --- |
+| `base_url`, `timeout_s`, `max_response_bytes`, `docs_text` | Replace the saved value. |
+| `access` | Replaces the access rules: `allow` and `deny` lists of rules matching `methods`, `path` globs, `keywords` or OpenAPI `tags`. Deny wins; a nonempty allow list must match. |
+| `openapi.overrides` | Per operation (`"GET /pets"`): an object merges into the saved override (`name`, `description`, `enabled`, `fixed_params`; a sent `fixed_params` replaces the saved map), `null` removes the override. |
+| `openapi.enable_generic_fallback` | Also expose one generic request tool. |
+| `openapi.preview_token`, `source_url`, `spec_text`, `spec_base64` | A new OpenAPI document (at most one). Without one the saved document is kept. |
+| `openapi: null` | Switch to generic mode: one request tool guided by `docs_text`. |
+| `remote_connector_id` | Reach the API through a [Remote Connector](../servers-and-connections/remote-connectors); `null` stops using one. |
+
+The response includes `tool_diff` with the tools added, removed and changed. A change that would expose no operation is refused with `400 no_operations_selected`; overrides naming operations that are not in the document with `400 invalid_operation_override` (`unknown_operations`). Nonempty `fixed_params` and URLs with a query string or user info also need `credentials:write` (see [conditional scopes](./management-api#conditional-scopes)). Upstream credentials and extra headers are changed with [upstream credentials](./settings-and-credentials-api#upstream-credentials), not here.
+
+## Preview and test {#preview}
+
+These calls write nothing and need only `read`.
+
+- `POST /mcps/{mcp_id}/api-config/selection-preview` with candidate `access` and `overrides` (applied like the PATCH would) lists every operation with whether it would be selected.
+- `POST /mcps/{mcp_id}/api-config/access-test` with `{"method", "path"}` reports whether the saved rules allow that request, which rule decided, and the operation the path maps to.
+- `POST /api-access/test` evaluates rules you have not saved (`access` in the body) against one request.
+- `GET /api-access/presets` returns named starting points such as `read_only` and `no_deletes`.
+
+## Resync the OpenAPI document {#resync}
+
+`POST /mcps/{mcp_id}/api-config/resync` downloads the document again from its source URL and reports operations added and removed upstream. With `apply=true` (and `If-Match`) it saves the new document: overrides of operations that still exist are kept, and new operations are saved turned off until you enable them with a PATCH. Send `fetch_headers` (with `credentials:write`) when the document needs authentication; they are used once and never stored. An uploaded document answers `409 spec_uploaded`: send a new one with PATCH instead.
+
+## Endpoint reference
+
+<ApiReference tags={['REST API MCPs']} />
