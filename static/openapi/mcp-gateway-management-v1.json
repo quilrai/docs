@@ -2468,7 +2468,7 @@
             "type": "object"
           },
           "input_schema": {
-            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
             "type": "object"
           },
           "limits": {
@@ -2745,7 +2745,7 @@
             "type": "object"
           },
           "input_schema": {
-            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
             "type": "object"
           },
           "limits": {
@@ -2816,7 +2816,7 @@
                 "type": "object"
               },
               "input_schema": {
-                "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+                "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
                 "type": "object"
               },
               "limits": {
@@ -3005,7 +3005,7 @@
             "type": "object"
           },
           "input_schema": {
-            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
             "type": "object"
           },
           "limits": {

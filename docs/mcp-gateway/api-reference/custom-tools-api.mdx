@@ -27,10 +27,10 @@ A custom tool is a definition plus a script:
 | Field | Meaning |
 | --- | --- |
 | `description` | What the tool does and when to use it. Models read it to pick the tool. Required. |
-| `input_schema` | JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default `false`). At most 50 properties. |
+| `input_schema` | JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default `false`). At most 50 properties. Write it out in full: `$ref`, `$id` and anchors are refused with `400`. |
 | `defaults` | Default argument values. Clients see each one as `default` in the tool's schema and do not have to send it. |
 | `fixed_args` | Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends, for example a fixed project id. Names must not be `input_schema` properties. Not for secrets: reads return them, so keep credentials in the MCP's [upstream credentials](./settings-and-credentials-api#upstream-credentials). |
-| `output_schema` | Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's `outputSchema` and the result as structured content; a result that does not match is returned as an error. |
+| `output_schema` | Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's `outputSchema` and the result as structured content; a result that does not match is returned as an error. Like `input_schema`, it must be written out in full, with no `$ref`, `$id` or anchors. |
 | `code` | The Python script. Required. |
 | `enabled` | `false` hides the tool from clients. Default `true`. |
 | `annotations` | Hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. |
@@ -43,7 +43,7 @@ The script:
 - **Reads its arguments from `args`**: the `defaults` with what the caller sent on top, plus the `fixed_args`, which a caller cannot change.
 - **Calls the MCP's tools.** Each tool of the MCP is an async function (`await list_messages(folder="inbox")`), and `await call_tool("list_messages", {...})` calls any of them by its exact name. [List the functions](#functions) to see their Python signatures.
 - **Gets each tool's result** as its structured content, or its text parsed as JSON, or the text. On a REST API MCP each call returns `{"status", "headers", "body"}`, with a JSON body already parsed.
-- **Returns the value of its last expression.** Text is returned as is; anything else as JSON. With an `output_schema`, the result must match it.
+- **Returns the value of its last expression.** Text is returned as is; anything else as JSON. With an `output_schema`, the result must match it. A result over 80,000 characters is returned as an error, so filter or trim what the script returns.
 - **Handles failures** with `ToolError`: a failing tool call raises it, and the script can catch it. An uncaught error makes the custom tool return an error with the script's message.
 - **Runs in a sandbox** with no files, network or environment, and no imports beyond the sandbox's standard modules. It cannot call other custom tools or OneMCP's own tools, only the tools of its MCP.
 
@@ -52,6 +52,7 @@ The script:
 | Run time | 60 seconds |
 | Tool calls per run | 50 |
 | Script size | 64 KiB |
+| Result size | 80,000 characters |
 | Custom tools per MCP | 50 |
 
 `print()` output is shown only in [test runs](#test).
@@ -167,7 +168,7 @@ If the script returns while tool calls it started are still running, the answer 
 
 | Status | Code | Meaning |
 | --- | --- | --- |
-| 400 | `invalid_request` | The definition is invalid. `error.fields` names the field; a syntax error in the script also carries `line`. |
+| 400 | `invalid_request` | The definition is invalid, for example a schema that uses `$ref`, `$id` or anchors. `error.fields` names the field; a syntax error in the script also carries `line`. |
 | 404 | `custom_tool_not_found` | No custom tool with this name on the MCP. |
 | 404 | `custom_tool_version_not_found` | No saved version with this `tool_version` in the tool's history. |
 | 409 | `tool_name_taken` | One of the MCP's own tools already uses this name. |
