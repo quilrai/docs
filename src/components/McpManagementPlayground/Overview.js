@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Braces, Building2, Cable, GitCompare, KeyRound, Layers, PackagePlus, ScrollText, ShieldCheck, SlidersHorizontal, Users } from 'lucide-react';
+import { BarChart3, Braces, Building2, Cable, GitCompare, KeyRound, Layers, PackagePlus, ScrollText, ShieldCheck, SlidersHorizontal, Users, Webhook } from 'lucide-react';
 import { ApiChips, Btn, ErrorBox, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from '../ManagementPlayground/ui';
 import { Stats, num } from '../ManagementPlayground/charts';
 import styles from '../ManagementPlayground/styles.module.css';
@@ -22,10 +22,11 @@ const CARDS = [
   ['mcps', Layers, 'MCPs', 'Search the inventory, read identity, connection state and tools, rename, enable, disable or remove an MCP.'],
   ['settings', SlidersHorizontal, 'Settings', 'Tools, DLP, token saving, access control and OneMCP settings per MCP, plus per-user and per-smart-group overrides.'],
   ['create', PackagePlus, 'Create and catalog', 'Check a URL and add a remote MCP, install from the MCP Library, or turn a REST API into an MCP.'],
-  ['connections', Cable, 'Connections and credentials', 'Connection state, tool refresh, upstream credentials and single-use OAuth connect links.'],
+  ['connections', Cable, 'Connections and credentials', 'Connection state, tool refresh, upstream credentials (one shared key or each user\'s own) and single-use OAuth connect links.'],
+  ['rest-api', Webhook, 'REST API MCPs', 'Change a REST API MCP: base URL, limits, access rules and operations; preview a selection, test rules and resync its OpenAPI document.'],
   ['tool-reviews', ShieldCheck, 'Tool reviews', 'Approve or reject new upstream tools held for review.'],
   ['tool-changes', GitCompare, 'Tool changes', 'See upstream tool-list changes, check now, adopt the new list or dismiss it, and read OAuth permission options.'],
-  ['client-access', KeyRound, 'Client access', 'Endpoint URLs and client configuration, MCP API tokens, and which agents may use each MCP.'],
+  ['client-access', KeyRound, 'Client access', 'Endpoint URLs and client configuration, the user sign-in link, MCP API tokens, which agents may use each MCP, and OAuth client rotation.'],
   ['users', Users, 'Users', "Each user's connection state per MCP, and revoking one user's stored credentials."],
   ['tenant', Building2, 'Organization', "Dynamic Tool Calling, Memories and new-tool review switches, tool-argument aliases and users' MCP requests."],
   ['analytics', BarChart3, 'Analytics', 'Tool calls, outcomes, latency, DLP activity, tool-call metadata and per-user activity.'],

@@ -9,6 +9,7 @@ import {
   Gauge,
   History as HistoryIcon,
   Layers,
+  Webhook,
   PackagePlus,
   ScrollText,
   ShieldCheck,
@@ -28,6 +29,7 @@ import Connections from './Connections';
 import ToolReviews from './ToolReviews';
 import ToolChanges from './ToolChanges';
 import ClientAccess from './ClientAccess';
+import RestApi from './RestApi';
 import Users from './Users';
 import Tenant from './Tenant';
 import Analytics from './Analytics';
@@ -43,6 +45,7 @@ export const WORKSPACES = [
   { id: 'settings', label: 'Settings', Icon: SlidersHorizontal, Component: Settings },
   { id: 'create', label: 'Create and catalog', Icon: PackagePlus, Component: Create },
   { id: 'connections', label: 'Connections and credentials', Icon: Cable, Component: Connections },
+  { id: 'rest-api', label: 'REST API MCPs', Icon: Webhook, Component: RestApi },
   { id: 'tool-reviews', label: 'Tool reviews', Icon: ShieldCheck, Component: ToolReviews },
   { id: 'tool-changes', label: 'Tool changes', Icon: GitCompare, Component: ToolChanges },
   { id: 'client-access', label: 'Client access', Icon: KeyRound, Component: ClientAccess },
@@ -99,7 +102,7 @@ export const MCP_PRODUCT = {
   envNames: { management: 'QUILR_MCP_MANAGEMENT_KEY', admin: 'QUILR_TENANT_ADMIN_JWT' },
   indexOptions: {
     adminPrefix: MCP_ADMIN_PREFIX,
-    tagOrder: ['Reference', 'MCPs', 'Catalog', 'Settings', 'Upstream credentials', 'Connections', 'Tool reviews', 'Tool changes', 'Client access', 'User connections', 'Tenant', 'Analytics', 'Audit', 'Administration'],
+    tagOrder: ['Reference', 'MCPs', 'Catalog', 'Settings', 'Upstream credentials', 'Connections', 'Tool reviews', 'Tool changes', 'REST API MCPs', 'Client access', 'User sign-in', 'User connections', 'Tenant', 'Analytics', 'Audit', 'Administration'],
     isAliasPath: () => false,
     subgroupOf: () => null,
   },
@@ -112,7 +115,7 @@ export const MCP_PRODUCT = {
   hero: {
     eyebrow: 'MCP GATEWAY / MANAGEMENT API V1',
     title: 'MCP Management API playground',
-    text: 'List, add, install and remove MCPs, change their settings and upstream credentials, review new tools and upstream tool changes, connect OAuth MCPs, hand MCPs out with client setup, MCP API tokens and allowed agents, see and revoke users\' connections, change organization switches, read usage, latency, DLP activity and the audit trail, and see the exact API call behind every action.',
+    text: 'List, add, install and remove MCPs, change their settings and upstream credentials, review new tools and upstream tool changes, connect OAuth MCPs, change REST API MCPs, hand MCPs out with client setup, sign-in links, MCP API tokens and allowed agents, rotate OAuth clients, see and revoke users\' connections, change organization switches, read usage, latency, DLP activity and the audit trail, and see the exact API call behind every action.',
   },
   links: [
     { to: '/llm-gateway-management-playground', label: 'LLM Management playground' },

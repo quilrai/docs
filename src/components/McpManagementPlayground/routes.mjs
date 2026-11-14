@@ -47,6 +47,8 @@ export const MCP_SECRET_FIELDS = [
   'client_id',
   'oauth_client_id',
   'preview_token',
+  // REST API operation overrides: values sent upstream on every call.
+  'fixed_params',
 ];
 
 /** Up to two group_by dimensions as the comma-separated string the API takes. */

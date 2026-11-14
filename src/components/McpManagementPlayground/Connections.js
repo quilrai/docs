@@ -126,7 +126,7 @@ function ConnectionPanel({ name, id, conn }) {
   );
 }
 
-const BLANK_AUTH = { type: 'bearer', token: '', header_name: '', query_param: '', scheme: '', extra_headers: '', extra_query_params: '' };
+const BLANK_AUTH = { mode: 'admin_shared', type: 'bearer', token: '', header_name: '', query_param: '', scheme: '', extra_headers: '', extra_query_params: '' };
 
 function UpstreamAuth({ id, onChanged }) {
   const { client, confirm } = usePlayground();
@@ -141,8 +141,11 @@ function UpstreamAuth({ id, onChanged }) {
   let body = null;
   let jsonError = null;
   if (form) {
+    const perUser = form.mode === 'user_required';
     body = { type: form.type };
-    if (form.token) body.token = form.token;
+    if (form.mode !== (a?.mode || 'admin_shared')) body.mode = form.mode;
+    // Per-user keys: the shape only; each user saves their own key.
+    if (form.token && !perUser) body.token = form.token;
     if (form.type === 'header' && form.header_name.trim()) body.header_name = form.header_name.trim();
     if (form.type === 'query' && form.query_param.trim()) body.query_param = form.query_param.trim();
     if (form.type === 'bearer' && form.scheme.trim()) body.scheme = form.scheme.trim();
@@ -186,7 +189,7 @@ function UpstreamAuth({ id, onChanged }) {
   return (
     <Panel
       title="Upstream credentials"
-      subtitle="The static credential and extra headers or query parameters the gateway sends upstream. Secrets are write-only: reads return metadata only. Credentials set here are shared by every user of the organization."
+      subtitle="The static credential and extra headers or query parameters the gateway sends upstream. Secrets are write-only: reads return metadata only. Mode admin_shared uses one key for every user; user_required makes each user save their own key from the sign-in link (Client access)."
       actions={
         <>
           <ApiChips calls={[['GET', '/mcps/{mcp_id}/upstream-auth'], ['PUT', '/mcps/{mcp_id}/upstream-auth'], ['DELETE', '/mcps/{mcp_id}/upstream-auth']]} />
@@ -204,7 +207,8 @@ function UpstreamAuth({ id, onChanged }) {
               ['Configured', a.configured ? <Pill key="c" tone="ok">yes</Pill> : <Pill key="c">no</Pill>],
               ['Secret stored', fmt(a.secret_configured)],
               ['Type', fmt(a.type)],
-              ['Mode', fmt(a.mode)],
+              ['Mode', a.mode === 'user_required' ? 'each user brings their own key (user_required)' : fmt(a.mode)],
+              ['Users with their own key', fmt(a.user_credentials_saved ?? 0)],
               a.header_name ? ['Header', <code key="h">{a.header_name}</code>] : null,
               a.query_param ? ['Query parameter', <code key="q">{a.query_param}</code>] : null,
               a.scheme ? ['Scheme', a.scheme] : null,
@@ -219,7 +223,7 @@ function UpstreamAuth({ id, onChanged }) {
             <Notice>This MCP's credential is not editable through the API (OAuth MCPs connect with connect links).</Notice>
           ) : (
             <div className={styles.actionsRow}>
-              <Btn variant="primary" onClick={() => setForm(form ? null : { ...BLANK_AUTH, type: a.type && ['bearer', 'header', 'query'].includes(a.type) ? a.type : 'bearer', header_name: a.header_name || '', query_param: a.query_param || '', scheme: a.scheme || '' })} aria-expanded={!!form}>
+              <Btn variant="primary" onClick={() => setForm(form ? null : { ...BLANK_AUTH, mode: a.mode || 'admin_shared', type: a.type && ['bearer', 'header', 'query'].includes(a.type) ? a.type : 'bearer', header_name: a.header_name || '', query_param: a.query_param || '', scheme: a.scheme || '' })} aria-expanded={!!form}>
                 {a.configured ? 'Rotate or change' : 'Set credential'}
               </Btn>
               {a.configured && (
@@ -237,6 +241,9 @@ function UpstreamAuth({ id, onChanged }) {
       {form && (
         <div className={styles.subPanel}>
           <h3>Set upstream credential</h3>
+          {form.mode === 'user_required' && (
+            <Notice>Only how the key is sent is saved (type, header or query parameter, scheme). No token is sent in this mode.</Notice>
+          )}
           <div className={styles.formGrid}>
             <Field label="Type">
               <select value={form.type} onChange={(e) => set({ type: e.target.value })}>
@@ -245,9 +252,17 @@ function UpstreamAuth({ id, onChanged }) {
                 <option value="query">query (query parameter)</option>
               </select>
             </Field>
-            <Field label="Token" hint="Empty keeps the stored secret (for example to change only the extras).">
-              <input type="password" autoComplete="off" value={form.token} onChange={(e) => set({ token: e.target.value })} />
+            <Field label="Mode" hint={form.mode === 'user_required' ? 'Switching deletes the shared key. Users save their own key after opening the sign-in link.' : a?.mode === 'user_required' ? 'Switching back needs a token. Users\' saved keys are kept but unused.' : 'One key for every user of the organization.'}>
+              <select value={form.mode} onChange={(e) => set({ mode: e.target.value, token: e.target.value === 'user_required' ? '' : form.token })}>
+                <option value="admin_shared">admin_shared (one shared key)</option>
+                <option value="user_required">user_required (each user brings their own key)</option>
+              </select>
             </Field>
+            {form.mode !== 'user_required' && (
+              <Field label="Token" hint={a?.mode === 'user_required' ? 'Required to switch to admin_shared.' : 'Empty keeps the stored secret (for example to change only the extras).'}>
+                <input type="password" autoComplete="off" value={form.token} onChange={(e) => set({ token: e.target.value })} />
+              </Field>
+            )}
             {form.type === 'header' && (
               <Field label="Header name">
                 <input value={form.header_name} onChange={(e) => set({ header_name: e.target.value })} placeholder="X-Api-Key" />

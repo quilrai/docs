@@ -25,7 +25,7 @@ import {
 import { fetchAllPages, useLoad, when } from '../ManagementPlayground/shared';
 import styles from '../ManagementPlayground/styles.module.css';
 import { MCP_PREFIX, ifMatch, mcpPath } from './routes.mjs';
-import { McpPicker, useMcpName } from './common';
+import { McpPicker, WriteError, useMcpName } from './common';
 
 const FAILED = 'No data: the request failed (see the error above).';
 
@@ -48,13 +48,15 @@ export default function ClientAccess() {
     <div className={styles.stack}>
       <Panel
         title="Client access"
-        subtitle="How clients reach an MCP: its own endpoint and OneMCP, how they authenticate, MCP API tokens for clients that cannot sign users in, and which agents may use it."
+        subtitle="How clients reach an MCP: its own endpoint and OneMCP, how they authenticate, the link users open to sign in, MCP API tokens for clients that cannot sign users in, which agents may use it and its OAuth client."
       >
         <McpPicker />
       </Panel>
       {id ? (
         <>
           <Setup key={`setup-${id}`} id={id} />
+          <SignInLink key={`link-${id}`} id={id} />
+          <OAuthClient key={`oauth-${id}`} id={id} />
           <Tokens key={`tokens-${id}`} id={id} generation={generation} />
           <McpAgents key={`agents-${id}-${generation}`} id={id} />
         </>
@@ -444,6 +446,157 @@ function TenantAgents({ onChanged }) {
             ]}
           />
         </div>
+      )}
+    </Panel>
+  );
+}
+
+const CONNECTION_TEXT = {
+  oauth: 'After signing in to Quilr, the user is sent to the provider to sign in (OAuth).',
+  user_key: 'After signing in to Quilr, the user is asked for their own API key for this MCP.',
+};
+
+function SignInLink({ id }) {
+  const { client } = usePlayground();
+  const link = useLoad(() => client.call({ path: mcpPath(id, '/sign-in-link'), source: 'Sign-in link' }), [client, id]);
+  const d = link.data;
+  return (
+    <Panel
+      title="User sign-in link"
+      subtitle="Hand this link to users, for example on an internal page. Each user signs in to Quilr as themselves, then the dashboard starts this MCP's connect step. The link holds no credential and connects no one by itself."
+      actions={
+        <>
+          <ApiChips calls={[['GET', '/mcps/{mcp_id}/sign-in-link']]} />
+          <Btn onClick={link.reload}>
+            <RefreshCw size={13} aria-hidden /> Reload
+          </Btn>
+        </>
+      }
+    >
+      <ErrorBox error={link.error} />
+      {d && (
+        <KeyValue
+          items={[
+            ['Link', <span key="u"><code>{d.url}</code> <CopyButton text={d.url} /></span>],
+            ['Connect step', <Pill key="c" tone={d.requires_user_action ? 'warn' : 'ok'}>{d.connection || 'none'}</Pill>],
+            ['What the user does', CONNECTION_TEXT[d.connection] || 'Nothing more: this MCP needs no per-user connection; the link opens the dashboard on it.'],
+          ]}
+        />
+      )}
+    </Panel>
+  );
+}
+
+const BLANK_ROTATION = { client_secret: '', client_id: '', reconnect: '' };
+
+function OAuthClient({ id }) {
+  const { client, confirm } = usePlayground();
+  const data = useLoad(() => client.call({ path: mcpPath(id, '/oauth-client'), source: 'OAuth client' }), [client, id]);
+  const [form, setForm] = useState(null);
+  const [rotation, setRotation] = useState(null);
+  const action = useAction();
+  const c = data.data?.oauth_client;
+  const version = data.data?.version;
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const idChange = !!form?.client_id.trim();
+  const ready = form && form.client_secret.trim() && (!idChange || form.reconnect !== '');
+
+  async function rotate() {
+    const body = { client_secret: form.client_secret };
+    if (idChange) body.client_id = form.client_id.trim();
+    if (form.reconnect !== '') body.reconnect_users = form.reconnect === 'true';
+    if (body.reconnect_users) {
+      const ok = await confirm({
+        title: 'Sign every user out of this MCP?',
+        body: 'Every user connection of this MCP is deleted; each user signs in again.',
+        confirmLabel: 'Rotate and sign users out',
+        tone: 'danger',
+        call: `PUT ${mcpPath(id, '/oauth-client')}`,
+      });
+      if (!ok) return;
+    }
+    // The secret leaves the form before the request, success or not.
+    setForm(BLANK_ROTATION);
+    await action.run(async () => {
+      const res = await client.call({ method: 'PUT', path: mcpPath(id, '/oauth-client'), body, headers: { 'If-Match': ifMatch(version) }, source: 'Rotate OAuth client' });
+      data.setData(res);
+      setRotation(res.rotation || null);
+      setForm(null);
+      return res;
+    }, 'OAuth client rotated. The secret is not shown again.');
+  }
+
+  return (
+    <Panel
+      title="OAuth client"
+      subtitle="The OAuth client this MCP signs users in with. Only clients an administrator supplied can be rotated; a new secret alone keeps every user connected."
+      actions={
+        <>
+          <ApiChips calls={[['GET', '/mcps/{mcp_id}/oauth-client'], ['PUT', '/mcps/{mcp_id}/oauth-client']]} />
+          <Btn onClick={data.reload}>
+            <RefreshCw size={13} aria-hidden /> Reload
+          </Btn>
+        </>
+      }
+    >
+      <ErrorBox error={data.error} />
+      {c && !c.oauth && <p className={styles.muted}>This MCP does not use a gateway OAuth client.</p>}
+      {c && c.oauth && (
+        <>
+          <KeyValue
+            items={[
+              ['Client', c.configured ? <code key="h">{c.client_id_hint || 'set'}</code> : 'not registered yet'],
+              ['Supplied by', c.custom ? 'an administrator' : 'the gateway (registered automatically or built in)'],
+              ['Registered', when(c.registered_at)],
+              ['Rotatable', fmt(c.rotatable)],
+              ['Version', <code key="v">{version}</code>],
+            ]}
+          />
+          {c.rotatable && (
+            <div className={styles.actionsRow}>
+              <Btn variant="primary" onClick={() => setForm(form ? null : BLANK_ROTATION)} aria-expanded={!!form}>
+                Rotate the client
+              </Btn>
+            </div>
+          )}
+        </>
+      )}
+      {form && (
+        <div className={styles.subPanel}>
+          <h3>Rotate the OAuth client</h3>
+          <div className={styles.formGrid}>
+            <Field label="Client secret" hint="Required on every rotation. Write-only.">
+              <input type="password" autoComplete="off" value={form.client_secret} onChange={(e) => set({ client_secret: e.target.value })} />
+            </Field>
+            <Field label="New client id (optional)" hint="Empty keeps the current client id and every user connected.">
+              <input autoComplete="off" value={form.client_id} onChange={(e) => set({ client_id: e.target.value })} spellCheck="false" />
+            </Field>
+          </div>
+          <Field label="Existing user connections" hint={idChange ? 'Required when the client id changes.' : 'Optional: signing everyone out also works with the same client id.'}>
+            <select value={form.reconnect} onChange={(e) => set({ reconnect: e.target.value })}>
+              <option value="">{idChange ? 'Choose what happens to existing connections' : 'Keep everyone connected (default, not sent)'}</option>
+              <option value="false">Keep existing connections; with a new id they stay on the previous client (reconnect_users: false)</option>
+              <option value="true">Sign every user out; they sign in again (reconnect_users: true)</option>
+            </select>
+          </Field>
+          <div className={styles.actionsRow}>
+            <ActionButton method="PUT" path="/mcps/{mcp_id}/oauth-client" variant="primary" disabled={!ready || !version} onClick={rotate}>
+              Rotate
+            </ActionButton>
+            <Btn onClick={() => setForm(null)}>Cancel</Btn>
+          </div>
+        </div>
+      )}
+      <WriteError error={action.error} onDismiss={() => action.setError(null)} onReload={() => { action.setError(null); data.reload(); }} />
+      <Notice tone="ok" onDismiss={() => action.setNotice('')}>{action.notice}</Notice>
+      {rotation && (
+        <KeyValue
+          items={[
+            ['Client id changed', fmt(rotation.client_id_changed)],
+            ['Users signed out', rotation.reconnect_users ? 'yes' : 'no'],
+            ['Connections removed', fmt(rotation.connections_dropped)],
+          ]}
+        />
       )}
     </Panel>
   );
