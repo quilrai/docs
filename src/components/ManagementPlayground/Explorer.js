@@ -141,6 +141,7 @@ export default function Explorer() {
   const { index, spec, opParam, preset, client, adminClient, can, navigate } = pg;
   const [search, setSearch] = useState('');
   const [showAliases, setShowAliases] = useState(false);
+  const hasAliases = useMemo(() => index.operations.some((o) => o.aliasOf), [index]);
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
     return index.operations.filter(
@@ -164,7 +165,7 @@ export default function Explorer() {
           <span>
             {visible.length} of {index.operations.length}
           </span>
-          <Checkbox label="Show alias routes" checked={showAliases} onChange={setShowAliases} />
+          {hasAliases && <Checkbox label="Show alias routes" checked={showAliases} onChange={setShowAliases} />}
         </div>
         {pg.liveSpecAvailable && (
           <div className={styles.specSource}>
@@ -230,6 +231,12 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
   }, [preset, op.id]);
 
   const activeClient = op.isAdmin ? adminClient : client;
+  const envNames = pg.product?.envNames || { management: 'QUILR_MANAGEMENT_KEY', admin: 'QUILR_TENANT_ADMIN_JWT' };
+  // Products without an Administration workspace show tenant-admin operations as reference only.
+  const adminSupported = pg.product?.adminSupported !== false;
+  const adminHint = adminSupported
+    ? 'Enter a tenant-admin token in the Administration workspace first.'
+    : 'Tenant-admin operations take a Quilr console administrator token, which this playground does not accept. Use the console or the snippets below.';
   const origin = activeClient?.origin || pg.adminBase || 'https://<your-gateway>';
   const allowed = can(op.scopes);
 
@@ -267,6 +274,7 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
     headers: form.headers,
     bodyText: hasBody ? form.bodyText : undefined,
     tokenKind: op.isAdmin ? 'admin' : 'management',
+    envNames: pg.product?.envNames,
   });
 
   async function fetchEtag() {
@@ -324,7 +332,7 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
       return;
     }
     if (!activeClient) {
-      setFormError(op.isAdmin ? 'Enter a tenant-admin token in the Administration workspace first.' : 'Connect with a management key first.');
+      setFormError(op.isAdmin ? adminHint : 'Connect with a management key first.');
       return;
     }
     if (queryValues.repin === 'drop' && queryValues.repin_scope === 'tenant' && queryValues.dry_run !== 'true') {
@@ -517,7 +525,11 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
           </code>
           {!activeClient && (
             <span className={styles.muted}>
-              {op.isAdmin ? 'Add a tenant-admin token in Administration to send.' : 'Connect with a management key to send.'}
+              {op.isAdmin
+                ? adminSupported
+                  ? 'Add a tenant-admin token in Administration to send.'
+                  : 'Reference only here: send it from the console session or your own tooling.'
+                : 'Connect with a management key to send.'}
             </span>
           )}
           {activeClient && allowed === false && !op.isAdmin && (
@@ -546,7 +558,7 @@ function OperationView({ op, spec, preset, client, adminClient, can }) {
         </div>
         <pre className={styles.snippet}>{snippets[snippetTab]}</pre>
         <small className={styles.muted}>
-          The credential is read from {op.isAdmin ? 'QUILR_TENANT_ADMIN_JWT' : 'QUILR_MANAGEMENT_KEY'}; snippets never contain your key.
+          The credential is read from {op.isAdmin ? envNames.admin : envNames.management}; snippets never contain your key.
         </small>
       </section>
 

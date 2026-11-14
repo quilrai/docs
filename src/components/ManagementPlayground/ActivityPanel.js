@@ -4,7 +4,7 @@ import { curlForActivity, matchOperation } from './spec.mjs';
 import { CopyButton, JsonView, MethodBadge, shortPath, usePlayground } from './ui';
 import styles from './styles.module.css';
 
-function statusTone(status) {
+export function statusTone(status) {
   if (!status) return styles.status_err;
   if (status < 300) return styles.status_ok;
   if (status < 500) return styles.status_warn;
@@ -20,30 +20,36 @@ function queryObject(search) {
   return out;
 }
 
+/** The explorer preset that replays one activity entry, or null for an unlisted route. */
+export function activityPreset(index, entry) {
+  const [pathname, search = ''] = entry.path.split('?');
+  const match = matchOperation(index, entry.method, pathname);
+  if (!match) return null;
+  const headers = {};
+  for (const [k, v] of Object.entries(entry.requestHeaders || {})) {
+    if (/^if-match$/i.test(k)) headers['If-Match'] = v;
+  }
+  return {
+    opId: match.op.id,
+    pathParams: match.pathParams,
+    query: queryObject(search),
+    headers,
+    body:
+      entry.requestBody === null || entry.requestBody === undefined
+        ? undefined
+        : typeof entry.requestBody === 'string'
+          ? entry.requestBody
+          : JSON.stringify(entry.requestBody, null, 2),
+  };
+}
+
 export default function ActivityPanel({ entries, onClear, onClose }) {
-  const { index, openExplorer } = usePlayground();
+  const { index, openExplorer, product } = usePlayground();
   const [openId, setOpenId] = useState(null);
 
   function openInExplorer(entry) {
-    const [pathname, search = ''] = entry.path.split('?');
-    const match = matchOperation(index, entry.method, pathname);
-    if (!match) return;
-    const headers = {};
-    for (const [k, v] of Object.entries(entry.requestHeaders || {})) {
-      if (/^if-match$/i.test(k)) headers['If-Match'] = v;
-    }
-    openExplorer({
-      opId: match.op.id,
-      pathParams: match.pathParams,
-      query: queryObject(search),
-      headers,
-      body:
-        entry.requestBody === null || entry.requestBody === undefined
-          ? undefined
-          : typeof entry.requestBody === 'string'
-            ? entry.requestBody
-            : JSON.stringify(entry.requestBody, null, 2),
-    });
+    const preset = activityPreset(index, entry);
+    if (preset) openExplorer(preset);
   }
 
   return (
@@ -82,7 +88,7 @@ export default function ActivityPanel({ entries, onClear, onClose }) {
               >
                 <MethodBadge method={entry.method} small />
                 <span className={styles.activityPath} title={entry.path}>
-                  {shortPath(entry.path)}
+                  {shortPath(entry.path, product)}
                 </span>
                 <span className={`${styles.statusCode} ${statusTone(entry.status)}`}>{entry.status || 'ERR'}</span>
                 <span className={styles.latency}>{entry.latencyMs} ms</span>
@@ -100,7 +106,7 @@ export default function ActivityPanel({ entries, onClear, onClose }) {
                         <Braces size={12} aria-hidden /> Open in explorer
                       </button>
                     )}
-                    <CopyButton text={() => curlForActivity(entry)} label="Copy as cURL" />
+                    <CopyButton text={() => curlForActivity(entry, product?.envNames)} label="Copy as cURL" />
                   </div>
                   {entry.error && <p className={styles.errorText}>{entry.error}</p>}
                   {entry.requestBody !== null && entry.requestBody !== undefined && (

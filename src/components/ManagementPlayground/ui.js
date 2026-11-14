@@ -17,9 +17,12 @@ export const fmt = (value) =>
       ? JSON.stringify(value)
       : String(value);
 
-export function shortPath(path) {
-  if (path.startsWith(ADMIN_PREFIX)) return `admin${path.slice(ADMIN_PREFIX.length)}`;
-  if (path.startsWith(MANAGEMENT_PREFIX)) return path.slice(MANAGEMENT_PREFIX.length) || '/';
+/** Management paths without their prefix; product defaults to the LLM Gateway prefixes. */
+export function shortPath(path, product) {
+  const admin = product?.adminPrefix || ADMIN_PREFIX;
+  const management = product?.managementPrefix || MANAGEMENT_PREFIX;
+  if (path.startsWith(admin)) return `admin${path.slice(admin.length)}`;
+  if (path.startsWith(management)) return path.slice(management.length) || '/';
   return path;
 }
 
@@ -90,8 +93,8 @@ export const Btn = React.forwardRef(function Btn(
 
 /** Required scopes for a management route, from the spec when available. */
 export function useScopes(method, path, fallback = []) {
-  const { index } = usePlayground();
-  const op = findOperation(index, method, MANAGEMENT_PREFIX + path);
+  const { index, product } = usePlayground();
+  const op = findOperation(index, method, (product?.managementPrefix || MANAGEMENT_PREFIX) + path);
   return op && op.scopes.length ? op.scopes : fallback;
 }
 
@@ -137,13 +140,13 @@ export function ActionButton({ method, path, scopes: fallback, children, onClick
 
 /** Shows the API call behind a UI element and opens it in the explorer. */
 export function ApiChip({ method, path, label }) {
-  const { index, openExplorer } = usePlayground();
-  const full = path.startsWith('/llmgateway') ? path : MANAGEMENT_PREFIX + path;
+  const { index, openExplorer, product } = usePlayground();
+  const full = path.startsWith(product?.apiRoot || '/llmgateway') ? path : (product?.managementPrefix || MANAGEMENT_PREFIX) + path;
   const op = findOperation(index, method, full);
   const content = (
     <>
       <MethodBadge method={method} small />
-      <code>{label || shortPath(full)}</code>
+      <code>{label || shortPath(full, product)}</code>
     </>
   );
   if (!op) return <span className={styles.apiChip}>{content}</span>;
@@ -426,9 +429,10 @@ export function EmptyState({ icon: Icon, title, children, action }) {
 }
 
 export function ConnectFirst({ what }) {
+  const { product } = usePlayground() || {};
   return (
     <EmptyState icon={Lock} title="Connect to a gateway">
-      Choose a region and enter a management key above to {what}. Use the API Explorer to read the reference without
+      {product?.connectFirst || 'Choose a region and enter a management key above'} to {what}. Use the API Explorer to read the reference without
       connecting.
     </EmptyState>
   );

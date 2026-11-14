@@ -1,4 +1,6 @@
-// HTTP client for the LLM Gateway Management API playground.
+// HTTP client for the Management API playgrounds (LLM Gateway and MCP Gateway).
+// The MANAGEMENT_PREFIX / ADMIN_PREFIX / LIVE_SPEC_PATH constants are the LLM
+// Gateway's; the shared shell passes each product's prefixes explicitly.
 // Credentials live only in memory here. The Authorization header is never
 // recorded in activity entries, snippets or errors.
 
@@ -18,7 +20,7 @@ export class ApiError extends Error {
 }
 
 /** Validates a gateway origin and strips a pasted management prefix. */
-export function normalizeBaseUrl(raw) {
+export function normalizeBaseUrl(raw, prefixes = [MANAGEMENT_PREFIX, ADMIN_PREFIX]) {
   let parsed;
   try {
     parsed = new URL(String(raw || '').trim());
@@ -31,7 +33,7 @@ export function normalizeBaseUrl(raw) {
   parsed.search = '';
   parsed.hash = '';
   let base = parsed.href.replace(/\/+$/, '');
-  for (const prefix of [MANAGEMENT_PREFIX, ADMIN_PREFIX]) {
+  for (const prefix of prefixes) {
     if (base.endsWith(prefix)) base = base.slice(0, -prefix.length);
   }
   return base.replace(/\/+$/, '');
@@ -69,7 +71,8 @@ export function versionOf(payload) {
     payload.provider?.version ||
     payload.pool?.version ||
     payload.key?.version ||
-    payload.smart_group?.version;
+    payload.smart_group?.version ||
+    payload.mcp?.version;
   return version ? `"${version}"` : null;
 }
 
@@ -138,6 +141,20 @@ const SECRET_WORD_PAIRS = [['service', 'account'], ['external', 'id'], ['role', 
 const SECRET_URL_FIELDS = new Set(['target', 'url', 'webhook', 'callback_url', 'hook_url']);
 
 let specSecretFields = new Set();
+// Per-product additions (setRedactionOptions): extra secret field names, and
+// whether every query value and fragment of a URL is treated as a credential.
+let extraSecretFields = new Set();
+let redactUrlQueryValues = false;
+
+/**
+ * Product-specific redaction rules. The MCP Gateway treats any query string of
+ * an upstream URL as a credential and its write-only maps (extra headers, query
+ * parameters) as secrets; the LLM Gateway uses the defaults.
+ */
+export function setRedactionOptions({ extraSecretFields: extra = [], redactUrlQueryValues: urlQuery = false } = {}) {
+  extraSecretFields = new Set(extra.map((n) => String(n).toLowerCase()));
+  redactUrlQueryValues = !!urlQuery;
+}
 
 /** Collects string properties the spec marks writeOnly or format: password. */
 export function secretFieldsFromSpec(spec) {
@@ -176,7 +193,7 @@ function words(name) {
 /** True when a field with this name carries secret material. */
 export function isSecretField(name) {
   const lower = String(name).toLowerCase();
-  if (SECRET_FIELD_NAMES.has(lower) || specSecretFields.has(lower)) return true;
+  if (SECRET_FIELD_NAMES.has(lower) || specSecretFields.has(lower) || extraSecretFields.has(lower)) return true;
   const parts = words(name);
   if (!parts.length) return false;
   for (const [a, b] of SECRET_WORD_PAIRS) {
@@ -218,10 +235,14 @@ function redactString(text, depth) {
         changed = true;
       }
       for (const key of [...url.searchParams.keys()]) {
-        if (isSecretField(key) || /^(sig|sv|se|code|access_token|auth)$/i.test(key)) {
+        if (redactUrlQueryValues || isSecretField(key) || /^(sig|sv|se|code|access_token|auth)$/i.test(key)) {
           url.searchParams.set(key, 'redacted');
           changed = true;
         }
+      }
+      if (redactUrlQueryValues && url.hash) {
+        url.hash = 'redacted';
+        changed = true;
       }
       if (changed) return url.href;
     } catch {
@@ -286,8 +307,8 @@ let activitySeq = 0;
  * createClient({ baseUrl, token, tokenKind, onActivity })
  * tokenKind is 'management' or 'admin'; it only labels activity entries.
  */
-export function createClient({ baseUrl, token, tokenKind = 'management', onActivity, fetchImpl } = {}) {
-  const origin = normalizeBaseUrl(baseUrl);
+export function createClient({ baseUrl, token, tokenKind = 'management', onActivity, fetchImpl, prefixes } = {}) {
+  const origin = normalizeBaseUrl(baseUrl, prefixes);
   const doFetch = fetchImpl || ((...args) => globalThis.fetch(...args));
 
   function buildUrl(path, query = {}) {
