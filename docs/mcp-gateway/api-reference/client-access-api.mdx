@@ -1,0 +1,60 @@
+---
+title: "Client access API"
+sidebar_position: 6
+sidebar_label: "Client access API"
+sidebar_custom_props:
+  icon: Plug
+description: "MCP Gateway Management API v1: hand an MCP out to clients with endpoint URLs and configuration, issue MCP API tokens, choose which agents may use each MCP, and see or revoke users' connections."
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi/mcp';
+
+# Client access API
+
+After an MCP is added and configured, these operations hand it out: what a client needs to connect, MCP API tokens for clients that cannot sign users in, which agents may use it, and who is connected. Try them with your own key in the [MCP Management API playground](/mcp-gateway-management-playground?tab=client-access).
+
+## Client setup {#client-setup}
+
+`GET /mcps/{mcp_id}/client-setup` returns, without secrets:
+
+- `direct.url`: the MCP's own endpoint, `https://<gateway>/<slug>/mcp`.
+- `onemcp.url`: your organization's OneMCP endpoint, and `onemcp.included` (false when the MCP is hidden from OneMCP in its settings).
+- `direct.auth_methods`: how clients authenticate. `sign_in`: the client signs the user in through the gateway (MCP clients that support MCP authorization prompt for it). `api_token`: an MCP API token plus the user's email in the `mcpuser` header (MCPs that do not use OAuth). `upstream_oauth`: OAuth passthrough MCPs, where the client brings the provider's token.
+- `templates` and `token_templates`: ready-to-paste configuration for MCP clients (`mcpServers` JSON, VS Code `servers`, a Claude Code command line), with `<MCP_API_TOKEN>` and `<USER_EMAIL>` placeholders.
+
+## MCP API tokens {#tokens}
+
+An MCP API token lets a client that cannot sign users in (a CI job, a server-side agent) call one MCP. It is bound to one MCP and one agent: requests must come from a client whose User-Agent matches that agent, and name the end user in the `mcpuser` header so access rules, DLP and audit apply to that user. MCPs that use OAuth answer `409 oauth_mcp_uses_sign_in`.
+
+`POST /mcps/{mcp_id}/tokens` with `{"name", "agent"}` issues a token. It is a create: send an `Idempotency-Key` (see [idempotency and recovery](./management-api#idempotency)). The secret is in `token.secret` in that response only; a retry with the same key returns the same token. `GET /mcps/{mcp_id}/tokens` lists tokens without secrets and `DELETE /mcps/{mcp_id}/tokens/{token_id}` revokes one. These are the same tokens the console shows for the MCP.
+
+## Agents {#agents}
+
+An agent is a kind of MCP client, recognized by its User-Agent. `GET /agents` lists the built-in agents and your custom ones. `POST /agents` with `{"keyword", "display_name"}` adds a custom agent for an in-house client; it is allowed on every MCP. `DELETE /agents/{keyword}` removes a custom agent from every MCP. Built-in agents cannot be deleted (`409 built_in_agent`).
+
+`GET /mcps/{mcp_id}/agents` shows which agents may use an MCP, and `PUT /mcps/{mcp_id}/agents/{agent}` with `{"enabled": true|false}` allows or blocks one. This is MCP configuration: it needs `settings:write` and `If-Match` with the `version` from the read (see [versions and If-Match](./management-api#versions-and-if-match)). The same list is `access_control.allowed_agents` in the MCP's [settings](./settings-and-credentials-api).
+
+## User connections {#user-connections}
+
+`GET /user-connections` lists the users of your organization with how many MCPs are in each state; `GET /user-connections/{email}` shows one user's MCPs, and `GET /mcps/{mcp_id}/users` one MCP's users. States:
+
+| State | Meaning |
+| --- | --- |
+| `signed_in` | The user's sign-in for this MCP is valid (or renews automatically). |
+| `available` | The MCP needs no sign-in; the user can use it. |
+| `needs_sign_in` | The sign-in expired or was cleared; the user must sign in again. |
+| `sign_in_not_finished` | The user started signing in and did not finish. |
+| `not_signed_in_yet` | The user has not signed in to this MCP. |
+| `turned_off_by_user` | The user turned the MCP off for themselves. |
+| `blocked_by_access_rules` | The MCP's access rules exclude the user. |
+| `mcp_turned_off` | The MCP is disabled. |
+
+States are computed from stored state and may be a few minutes old (`generated_at`).
+
+`DELETE /mcps/{mcp_id}/users/{email}/connection` deletes the user's stored credentials for the MCP (their provider sign-in, gateway session token and personal upstream credential); the user must connect again. It needs `connections:write`. It does not change access rules: to keep a user out, add them to `access_control.denied_users` in the MCP's settings.
+
+## Endpoint reference
+
+<ApiReference tags={['Client access']} />
+
+<ApiReference tags={['User connections']} />

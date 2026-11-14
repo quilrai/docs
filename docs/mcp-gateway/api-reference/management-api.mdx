@@ -32,7 +32,11 @@ With the Management API you can list and inspect MCPs, add, install and remove t
 | **Manage MCPs** | `mcps:write` | Add, install, rename, enable/disable and delete MCPs. |
 | **Change settings** | `settings:write` | Change MCP settings and scoped overrides. |
 | **Set credentials** | `credentials:write` | Set upstream credentials and OAuth client secrets. |
-| **Review tools** | `tool_reviews:write` | Approve or reject new tools. |
+| **Review tools** | `tool_reviews:write` | Approve or reject new tools and upstream tool changes. |
+| **Issue MCP tokens** | `tokens:write` | Issue and revoke MCP API tokens for clients. |
+| **Revoke connections** | `connections:write` | Revoke a user's stored credentials for an MCP. |
+| **Manage agents** | `agents:write` | Create and delete custom agents. |
+| **Tenant settings** | `tenant_settings:write` | Change tenant switches, tool-argument aliases and MCP requests. |
 
 The **Management keys** table lists each key's **Name**, **Scopes**, **Status**, **Fingerprint**, **Created**, **Expires**, **Last used** and **Actions**. Use the edit action to change a key's **Key name**, scopes or **Expiry** (or select **Never expires**), then click **Save changes**. Use the revoke action and confirm with **Revoke key**: automation using the key stops working, and revocation cannot be undone.
 
@@ -223,6 +227,10 @@ Abbreviated: report rows carry more fields. See the [Analytics and audit API](./
 | Override settings for one user or smart group | [Per-user and per-group overrides](./settings-and-credentials-api#overrides) |
 | Rotate an upstream API key | [Upstream credentials](./settings-and-credentials-api#upstream-credentials) |
 | Approve new tools | [Tool reviews](./settings-and-credentials-api#tool-reviews) |
+| Give a client the endpoint and a token | [Client access](./client-access-api) |
+| See who is connected, or make one user reconnect | [User connections](./client-access-api#user-connections) |
+| Adopt or dismiss an upstream tool change | [Tool changes](./tenant-and-tool-changes-api#tool-changes) |
+| Turn Memories or Dynamic Tool Calling on or off | [Tenant settings](./tenant-and-tool-changes-api#tenant-settings) |
 | Reconnect an OAuth MCP | [Connect links](./connections-and-oauth-api#connect-links) |
 | Build a usage or latency dashboard | [Analytics](./analytics-and-audit-api) |
 | See who changed what | [Audit](./analytics-and-audit-api#audit) |
@@ -267,7 +275,13 @@ All scopes listed for an operation are required. No scope implies another.
 | `mcps:write` | Create, rename, enable, disable and remove MCPs; install catalog MCPs; check MCP URLs; preview REST API specs; refresh tools; issue OAuth connect links. |
 | `settings:write` | Change MCP settings and per-user or per-smart-group overrides; send `settings` with a create. |
 | `credentials:write` | Set or remove upstream credentials and extra headers or query parameters; any create, check or preview that carries credentials. |
-| `tool_reviews:write` | Approve or reject tools held for review. |
+| `tool_reviews:write` | Approve or reject tools held for review; check, adopt or dismiss upstream tool changes. |
+| `tokens:write` | Issue and revoke MCP API tokens. |
+| `connections:write` | Revoke a user's stored credentials for an MCP. |
+| `agents:write` | Create and delete custom agents. |
+| `tenant_settings:write` | Change tenant switches (Dynamic Tool Calling, Memories, new-tool review), manage tool-argument aliases and dismiss users' MCP requests. |
+
+Allowing or blocking an agent on an MCP (`PUT /mcps/{mcp_id}/agents/{agent}`) changes MCP configuration and needs `settings:write`.
 
 `GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
 
@@ -381,6 +395,11 @@ Every error has the same shape:
 | 409 | `terminal_key_state` | Revoked or expired keys cannot change. |
 | 409 | `policy_dependency` | The active QuilrQL policy depends on it. |
 | 409 | `tools_not_awaiting_review` | A named tool is not held for review. |
+| 409 | `no_pending_tool_changes` | No upstream tool change is awaiting review. |
+| 409 | `oauth_mcp_uses_sign_in` | OAuth MCPs do not take MCP API tokens. |
+| 409 | `token_revoked` | The token was revoked before its interrupted issue completed; issue a new one. |
+| 409 | `agent_exists`, `built_in_agent` | Agent keyword taken; built-in agents cannot be deleted. |
+| 409 | `alias_id_in_use`, `request_not_pending` | Alias id belongs to another organization; request already resolved. |
 | 409 | `oauth_connection_required` | Refresh of an OAuth MCP the key's administrator has not connected. |
 | 409 | `upstream_credential_required` | The MCP needs a credential before tools can be fetched. |
 | 409 | `pending_first_client` | OAuth passthrough MCPs cannot be refreshed by the gateway. |

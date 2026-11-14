@@ -282,6 +282,156 @@
         },
         "type": "object"
       },
+      "Agent": {
+        "additionalProperties": true,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "custom": {
+            "type": "boolean"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "keyword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "keyword",
+          "display_name",
+          "custom"
+        ],
+        "type": "object"
+      },
+      "AgentCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "keyword": {
+            "description": "Matched against the client User-Agent (case-insensitive); stored lowercase.",
+            "maxLength": 50,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "keyword",
+          "display_name"
+        ],
+        "type": "object"
+      },
+      "AgentDeleted": {
+        "additionalProperties": true,
+        "properties": {
+          "agent": {
+            "additionalProperties": true,
+            "properties": {
+              "deleted": {
+                "type": "boolean"
+              },
+              "keyword": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "AgentList": {
+        "additionalProperties": true,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Agent"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "AgentResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "agent": {
+            "additionalProperties": true,
+            "properties": {
+              "custom": {
+                "type": "boolean"
+              },
+              "display_name": {
+                "type": "string"
+              },
+              "keyword": {
+                "type": "string"
+              },
+              "mcps": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "mcp_id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "ApiAccessRules": {
         "additionalProperties": false,
         "description": "Deny wins; a nonempty allow list must match; no rules allows everything.",
@@ -1072,6 +1222,174 @@
         ],
         "type": "object"
       },
+      "ClientSetup": {
+        "additionalProperties": true,
+        "properties": {
+          "allowed_agents": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "api_token": {
+            "description": "How to send an MCP API token, when the MCP accepts them.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "auth_type": {
+            "type": "string"
+          },
+          "direct": {
+            "additionalProperties": true,
+            "properties": {
+              "auth_methods": {
+                "items": {
+                  "enum": [
+                    "sign_in",
+                    "api_token",
+                    "upstream_oauth"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "templates": {
+                "additionalProperties": true,
+                "description": "Client configuration with placeholders, never secrets.",
+                "properties": {
+                  "claude_code": {
+                    "description": "Claude Code command line.",
+                    "type": "string"
+                  },
+                  "mcp_json": {
+                    "description": "`mcpServers` block used by many MCP clients.",
+                    "type": "object"
+                  },
+                  "vscode": {
+                    "description": "`servers` block for VS Code.",
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "token_templates": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "description": "Client configuration with placeholders, never secrets.",
+                    "properties": {
+                      "claude_code": {
+                        "description": "Claude Code command line.",
+                        "type": "string"
+                      },
+                      "mcp_json": {
+                        "description": "`mcpServers` block used by many MCP clients.",
+                        "type": "object"
+                      },
+                      "vscode": {
+                        "description": "`servers` block for VS Code.",
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "url": {
+                "format": "uri",
+                "type": "string"
+              }
+            },
+            "required": [
+              "url",
+              "auth_methods"
+            ],
+            "type": "object"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "oauth_mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "onemcp": {
+            "additionalProperties": true,
+            "properties": {
+              "auth_methods": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "included": {
+                "type": "boolean"
+              },
+              "templates": {
+                "additionalProperties": true,
+                "description": "Client configuration with placeholders, never secrets.",
+                "properties": {
+                  "claude_code": {
+                    "description": "Claude Code command line.",
+                    "type": "string"
+                  },
+                  "mcp_json": {
+                    "description": "`mcpServers` block used by many MCP clients.",
+                    "type": "object"
+                  },
+                  "vscode": {
+                    "description": "`servers` block for VS Code.",
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "url": {
+                "format": "uri",
+                "type": "string"
+              }
+            },
+            "required": [
+              "url",
+              "included"
+            ],
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "mcp_id",
+          "direct",
+          "onemcp",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "ConnectLink": {
         "additionalProperties": true,
         "properties": {
@@ -1178,6 +1496,47 @@
           "mcp_id",
           "connection_state",
           "tool_count",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ConnectionRevoked": {
+        "additionalProperties": true,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "removed": {
+            "additionalProperties": true,
+            "properties": {
+              "gateway_token": {
+                "type": "boolean"
+              },
+              "oauth_token": {
+                "type": "boolean"
+              },
+              "upstream_credential": {
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "revoked": {
+            "description": "false when nothing was stored.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "email",
+          "revoked",
           "request_id"
         ],
         "type": "object"
@@ -1690,10 +2049,14 @@
           "scopes": {
             "items": {
               "enum": [
+                "agents:write",
+                "connections:write",
                 "credentials:write",
                 "mcps:write",
                 "read",
                 "settings:write",
+                "tenant_settings:write",
+                "tokens:write",
                 "tool_reviews:write"
               ],
               "type": "string"
@@ -1742,10 +2105,14 @@
           "scopes": {
             "items": {
               "enum": [
+                "agents:write",
+                "connections:write",
                 "credentials:write",
                 "mcps:write",
                 "read",
                 "settings:write",
+                "tenant_settings:write",
+                "tokens:write",
                 "tool_reviews:write"
               ],
               "type": "string"
@@ -1844,10 +2211,14 @@
           "scopes": {
             "items": {
               "enum": [
+                "agents:write",
+                "connections:write",
                 "credentials:write",
                 "mcps:write",
                 "read",
                 "settings:write",
+                "tenant_settings:write",
+                "tokens:write",
                 "tool_reviews:write"
               ],
               "type": "string"
@@ -2058,6 +2429,72 @@
           "auth_type",
           "source",
           "version"
+        ],
+        "type": "object"
+      },
+      "McpAgentAccess": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "description": "true allows the agent.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "type": "object"
+      },
+      "McpAgents": {
+        "additionalProperties": true,
+        "properties": {
+          "agents": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "custom": {
+                  "type": "boolean"
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "keyword": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "allowed_agents": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "agents",
+          "version",
+          "request_id"
         ],
         "type": "object"
       },
@@ -2383,6 +2820,107 @@
         ],
         "type": "object"
       },
+      "McpRequest": {
+        "additionalProperties": true,
+        "properties": {
+          "catalog_id": {
+            "type": "string"
+          },
+          "catalog_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "install_requirements": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "requires_configuration": {
+            "type": "boolean"
+          },
+          "resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "dismissed",
+              "installed"
+            ],
+            "type": "string"
+          },
+          "user_email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "catalog_id",
+          "user_email",
+          "status"
+        ],
+        "type": "object"
+      },
+      "McpRequestList": {
+        "additionalProperties": true,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/McpRequest"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "McpRequestResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/McpRequest"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "McpResponse": {
         "additionalProperties": true,
         "properties": {
@@ -2526,6 +3064,165 @@
         },
         "type": "object"
       },
+      "McpToken": {
+        "additionalProperties": true,
+        "description": "MCP API token metadata. The secret is only returned by the create call.",
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_used_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "token_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token_id",
+          "mcp_id",
+          "name",
+          "agent"
+        ],
+        "type": "object"
+      },
+      "McpTokenCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "agent": {
+            "description": "Agent keyword from GET /agents. The token only works for clients whose User-Agent matches this agent.",
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name.",
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "agent"
+        ],
+        "type": "object"
+      },
+      "McpTokenCreated": {
+        "additionalProperties": true,
+        "properties": {
+          "operation_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "token": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/McpToken"
+              },
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "secret": {
+                    "description": "Shown once. Starts with sk-quilr-mcp-.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "secret"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "token",
+          "operation_id",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "McpTokenList": {
+        "additionalProperties": true,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/McpToken"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "McpTokenRevoked": {
+        "additionalProperties": true,
+        "properties": {
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "token": {
+            "additionalProperties": true,
+            "properties": {
+              "revoked": {
+                "type": "boolean"
+              },
+              "token_id": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "token",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "McpTools": {
         "additionalProperties": true,
         "properties": {
@@ -2646,6 +3343,153 @@
           "tools",
           "resources",
           "prompts",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "McpUsers": {
+        "additionalProperties": true,
+        "properties": {
+          "generated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "access_allowed": {
+                  "type": "boolean"
+                },
+                "can_renew": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "email": {
+                  "type": "string"
+                },
+                "preference_enabled": {
+                  "type": "boolean"
+                },
+                "set_up_at": {
+                  "format": "date-time",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "signed_in_until": {
+                  "format": "date-time",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "state": {
+                  "enum": [
+                    "signed_in",
+                    "available",
+                    "needs_sign_in",
+                    "sign_in_not_finished",
+                    "not_signed_in_yet",
+                    "turned_off_by_user",
+                    "blocked_by_access_rules",
+                    "mcp_turned_off"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email",
+                "state"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "renews_automatically": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "sign_in_required": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "mcp_id",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "OAuthScopeOptions": {
+        "additionalProperties": true,
+        "properties": {
+          "always_available_tools": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "cross_area_tools": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "selected": {
+            "description": "The stored selection (settings oauth_scopes).",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "mcp_id",
+          "available",
+          "options",
           "request_id"
         ],
         "type": "object"
@@ -3518,6 +4362,219 @@
         },
         "type": "object"
       },
+      "TenantConfig": {
+        "additionalProperties": true,
+        "properties": {
+          "data_retention": {
+            "additionalProperties": true,
+            "description": "Read only: managed in the Quilr console.",
+            "properties": {
+              "managed_by": {
+                "type": "string"
+              },
+              "stored_revision": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "memories": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "updated_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "updated_by": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "policy_authority": {
+            "additionalProperties": true,
+            "properties": {
+              "mode": {
+                "enum": [
+                  "legacy",
+                  "quilrql"
+                ],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "smart_mode": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "mode": {
+                    "enum": [
+                      "user_preference",
+                      "force_enabled",
+                      "force_disabled"
+                    ],
+                    "type": "string"
+                  },
+                  "updated_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "updated_by": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "tool_review": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "hold_new_tools": {
+                    "type": "boolean"
+                  },
+                  "updated_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "updated_by": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when new-tool review is not available."
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "version",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "TenantConfigPatch": {
+        "additionalProperties": false,
+        "description": "Send at least one section.",
+        "properties": {
+          "memories": {
+            "additionalProperties": false,
+            "description": "Memories for users and OneMCP.",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "type": "object"
+          },
+          "smart_mode": {
+            "additionalProperties": false,
+            "description": "Dynamic Tool Calling for OneMCP: follow each user's preference, or force it on or off.",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "user_preference",
+                  "force_enabled",
+                  "force_disabled"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode"
+            ],
+            "type": "object"
+          },
+          "tool_review": {
+            "additionalProperties": false,
+            "description": "Hold new upstream tools for review on every MCP that inherits the tenant default.",
+            "properties": {
+              "hold_new_tools": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "hold_new_tools"
+            ],
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
       "TenantSettings": {
         "additionalProperties": true,
         "properties": {
@@ -3583,6 +4640,313 @@
             "type": "boolean"
           }
         },
+        "type": "object"
+      },
+      "ToolArgAlias": {
+        "additionalProperties": true,
+        "properties": {
+          "active": {
+            "description": "Enabled and valid against the tool's current schema.",
+            "type": "boolean"
+          },
+          "alias_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "schema_verified": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spec": {
+            "type": "object"
+          },
+          "tool_name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "alias_id",
+          "mcp_id",
+          "tool_name",
+          "kind",
+          "enabled"
+        ],
+        "type": "object"
+      },
+      "ToolArgAliasCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "mcp_id": {
+            "description": "MCP whose tool the alias applies to.",
+            "type": "string"
+          },
+          "note": {
+            "maxLength": 2000,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spec": {
+            "description": "Alias specification: a parameter alias (`kind: param_alias`, `from`, `to`) or a value normalization (`kind: value_normalization`, `param`, `from_values`, `to_value`), for `tool_name`. Checked against the tool's input schema.",
+            "type": "object"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "spec"
+        ],
+        "type": "object"
+      },
+      "ToolArgAliasDeleted": {
+        "additionalProperties": true,
+        "properties": {
+          "alias": {
+            "additionalProperties": true,
+            "properties": {
+              "alias_id": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean"
+              },
+              "mcp_id": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ToolArgAliasList": {
+        "additionalProperties": true,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ToolArgAlias"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ToolArgAliasPatch": {
+        "additionalProperties": false,
+        "description": "Send at least one field.",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "note": {
+            "maxLength": 2000,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ToolArgAliasResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "alias": {
+            "$ref": "#/components/schemas/ToolArgAlias"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ToolChange": {
+        "additionalProperties": true,
+        "properties": {
+          "added": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "change_count": {
+            "type": "integer"
+          },
+          "checked_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "detected_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "mode": {
+            "description": "The MCP's tool_sync mode: notify, auto or off.",
+            "type": "string"
+          },
+          "modified": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason_code": {
+            "description": "Why the last check failed or was skipped, as a fixed code (auth_failed, timeout, unreachable, ...).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "removed": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "resolved_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "resolved_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "off, unchecked, clean, pending, applied, dismissed, skipped or error.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "status",
+          "change_count"
+        ],
+        "type": "object"
+      },
+      "ToolChangeList": {
+        "additionalProperties": true,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ToolChange"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ToolChangeResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "tool_changes": {
+            "$ref": "#/components/schemas/ToolChange"
+          }
+        },
+        "required": [
+          "tool_changes",
+          "request_id"
+        ],
         "type": "object"
       },
       "ToolExposureSettings": {
@@ -4056,6 +5420,164 @@
           "totals",
           "rows",
           "next_cursor",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "UserConnections": {
+        "additionalProperties": true,
+        "properties": {
+          "generated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "mcp_states": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "description": "Number of MCPs in each state.",
+                  "type": "object"
+                },
+                "registered_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "user_types": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "email",
+                "mcp_states"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "UserMcpConnections": {
+        "additionalProperties": true,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "access_allowed": {
+                  "type": "boolean"
+                },
+                "can_renew": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "mcp_id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "preference_enabled": {
+                  "type": "boolean"
+                },
+                "set_up_at": {
+                  "format": "date-time",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "signed_in_until": {
+                  "format": "date-time",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "slug": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "state": {
+                  "enum": [
+                    "signed_in",
+                    "available",
+                    "needs_sign_in",
+                    "sign_in_not_finished",
+                    "not_signed_in_yet",
+                    "turned_off_by_user",
+                    "blocked_by_access_rules",
+                    "mcp_turned_off"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "mcp_id",
+                "state"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "email",
           "request_id"
         ],
         "type": "object"
@@ -5050,6 +6572,390 @@
         "x-scopes": []
       }
     },
+    "/mcpgateway/management/v1/agents": {
+      "get": {
+        "description": "Built-in and custom agents. Each is matched against the client User-Agent.",
+        "operationId": "List_agents",
+        "parameters": [
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "created_at": null,
+                      "custom": false,
+                      "display_name": "Cursor",
+                      "keyword": "cursor"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AgentList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List agents",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "post": {
+        "description": "Adds an agent for an in-house client. It is allowed on every MCP of the tenant. 409 `agent_exists` when the keyword is taken by a built-in or custom agent.",
+        "operationId": "Create_a_custom_agent",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "display_name": "Acme Bot",
+                "keyword": "acme-bot"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/AgentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "agent": {
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "custom": true,
+                    "display_name": "Acme Bot",
+                    "keyword": "acme-bot"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "agent": {
+                      "$ref": "#/components/schemas/Agent"
+                    },
+                    "request_id": {
+                      "description": "Request correlation id (also in X-Request-ID).",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "agent",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Create a custom agent",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "agents:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/agents/{keyword}": {
+      "delete": {
+        "description": "Deletes the custom agent and removes it from every MCP. Built-in agents answer 409 `built_in_agent`.",
+        "operationId": "Delete_a_custom_agent",
+        "parameters": [
+          {
+            "description": "Agent keyword from `GET /agents`.",
+            "example": "acme-bot",
+            "in": "path",
+            "name": "keyword",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "agent": {
+                    "deleted": true,
+                    "keyword": "acme-bot"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AgentDeleted"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Delete a custom agent",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "agents:write"
+        ]
+      },
+      "get": {
+        "description": "The agent and, for every MCP, whether it may use it.",
+        "operationId": "Read_an_agent",
+        "parameters": [
+          {
+            "description": "Agent keyword from `GET /agents`.",
+            "example": "acme-bot",
+            "in": "path",
+            "name": "keyword",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "agent": {
+                    "created_at": null,
+                    "custom": false,
+                    "display_name": "Cursor",
+                    "keyword": "cursor",
+                    "mcps": [
+                      {
+                        "enabled": true,
+                        "mcp_id": "a1b2c3d4",
+                        "name": "Files"
+                      }
+                    ]
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AgentResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read an agent",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/mcpgateway/management/v1/audit": {
       "get": {
         "description": "Configuration changes of your tenant, newest first, made in the Quilr console (`via` ui) or through this API (`via` management_api, with the key id). Events carry who, what and when, and the names of changed fields when recorded; never the before or after values. `action` and `resource_type` are the same identifiers the Quilr console audit page shows. Filters: `actor`, `action`, `resource_type`, `resource_id`, `via`, `since` and `until`. New events never invalidate a cursor.",
@@ -5262,10 +7168,14 @@
                   },
                   "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
                   "scopes": [
+                    "agents:write",
+                    "connections:write",
                     "credentials:write",
                     "mcps:write",
                     "read",
                     "settings:write",
+                    "tenant_settings:write",
+                    "tokens:write",
                     "tool_reviews:write"
                   ],
                   "tenant_id": "tenant-123"
@@ -6266,6 +8176,211 @@
         ]
       }
     },
+    "/mcpgateway/management/v1/mcp-requests": {
+      "get": {
+        "description": "Pending requests from users for MCP Library entries, newest first, with what installing each entry needs. Installing the entry (POST /catalog/{catalog_id}/install) resolves every pending request for it.",
+        "operationId": "List_MCP_requests",
+        "parameters": [
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "catalog_id": "github",
+                      "catalog_name": "GitHub",
+                      "created_at": "2026-11-13T16:00:00Z",
+                      "install_requirements": [],
+                      "request_id": "9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d",
+                      "requires_configuration": false,
+                      "resolved_at": null,
+                      "status": "pending",
+                      "user_email": "dana@example.com"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpRequestList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List users' MCP requests",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcp-requests/{request_id}/dismiss": {
+      "post": {
+        "description": "Dismisses one pending request. Dismissing twice is a no-op; a request already resolved by an install answers 409 `request_not_pending`.",
+        "operationId": "Dismiss_an_MCP_request",
+        "parameters": [
+          {
+            "description": "Request id (`request_id` from `GET /mcp-requests`).",
+            "example": "9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d",
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request": {
+                    "catalog_id": "github",
+                    "catalog_name": "GitHub",
+                    "created_at": "2026-11-13T16:00:00Z",
+                    "request_id": "9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d",
+                    "resolved_at": "2026-11-14T09:00:00Z",
+                    "status": "dismissed",
+                    "user_email": "dana@example.com"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpRequestResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Dismiss an MCP request",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "tenant_settings:write"
+        ]
+      }
+    },
     "/mcpgateway/management/v1/mcps": {
       "get": {
         "description": "Enabled and disabled MCPs of the tenant, sorted by name. Filters: `name` (case-insensitive substring), `slug`, `enabled`, `auth_type`, `transport_type` and `source`. `tool_count` and `connection_state` are live values; they never invalidate a cursor.",
@@ -7222,6 +9337,226 @@
         ]
       }
     },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/agents": {
+      "get": {
+        "description": "Every agent of the tenant with whether it may use this MCP. `version` is the MCP configuration version used by the If-Match of the write.",
+        "operationId": "Read_MCP_agents",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "agents": [
+                    {
+                      "custom": false,
+                      "display_name": "Claude",
+                      "enabled": true,
+                      "keyword": "claude"
+                    }
+                  ],
+                  "allowed_agents": [
+                    "claude",
+                    "cursor"
+                  ],
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r7"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpAgents"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read which agents may use an MCP",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/agents/{agent}": {
+      "put": {
+        "description": "Adds the agent to, or removes it from, the MCP's allowed agents (settings `access_control.allowed_agents`). A request that changes nothing keeps the version. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Allow_or_block_an_agent",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Agent keyword from `GET /agents`.",
+            "example": "cursor",
+            "in": "path",
+            "name": "agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "enabled": false
+              },
+              "schema": {
+                "$ref": "#/components/schemas/McpAgentAccess"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "agents": [
+                    {
+                      "custom": false,
+                      "display_name": "Cursor",
+                      "enabled": false,
+                      "keyword": "cursor"
+                    }
+                  ],
+                  "allowed_agents": [
+                    "claude"
+                  ],
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r8"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpAgents"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Allow or block an agent on an MCP",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "settings:write"
+        ]
+      }
+    },
     "/mcpgateway/management/v1/mcps/{mcp_id}/capabilities:refresh": {
       "post": {
         "description": "Fetches tools, resources and prompts from the upstream server now, as the administrator who owns the key, and replaces the cached lists (new tools may be held for review). OAuth MCPs need that administrator's connection (409 `oauth_connection_required`); passthrough MCPs answer 409 `pending_first_client`.",
@@ -7342,6 +9677,147 @@
         ],
         "x-scopes": [
           "mcps:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/client-setup": {
+      "get": {
+        "description": "The MCP's own endpoint and the tenant OneMCP endpoint, how clients authenticate (`sign_in`: the client signs the user in through the gateway; `api_token`: an MCP API token plus the user's email in the `mcpuser` header; `upstream_oauth`: the client brings the provider token), whether the MCP is included in OneMCP and ready-to-paste client configuration with placeholders. MCPs of other tenants answer 404.",
+        "operationId": "Read_client_setup",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "allowed_agents": [
+                    "claude",
+                    "cursor"
+                  ],
+                  "api_token": {
+                    "agent_bound": true,
+                    "header": "Authorization",
+                    "scheme": "Bearer",
+                    "user_header": "mcpuser"
+                  },
+                  "auth_type": "no_auth",
+                  "direct": {
+                    "auth_methods": [
+                      "sign_in",
+                      "api_token"
+                    ],
+                    "templates": {
+                      "claude_code": "claude mcp add --transport http files https://mcp.example.com/files/mcp",
+                      "mcp_json": {
+                        "mcpServers": {
+                          "files": {
+                            "url": "https://mcp.example.com/files/mcp"
+                          }
+                        }
+                      },
+                      "vscode": {
+                        "servers": {
+                          "files": {
+                            "type": "http",
+                            "url": "https://mcp.example.com/files/mcp"
+                          }
+                        }
+                      }
+                    },
+                    "token_templates": null,
+                    "url": "https://mcp.example.com/files/mcp"
+                  },
+                  "enabled": true,
+                  "mcp_id": "a1b2c3d4",
+                  "name": "Files",
+                  "oauth_mode": null,
+                  "onemcp": {
+                    "auth_methods": [
+                      "sign_in"
+                    ],
+                    "included": true,
+                    "templates": {
+                      "claude_code": "claude mcp add --transport http files https://mcp.example.com/files/mcp",
+                      "mcp_json": {
+                        "mcpServers": {
+                          "files": {
+                            "url": "https://mcp.example.com/files/mcp"
+                          }
+                        }
+                      },
+                      "vscode": {
+                        "servers": {
+                          "files": {
+                            "type": "http",
+                            "url": "https://mcp.example.com/files/mcp"
+                          }
+                        }
+                      }
+                    },
+                    "url": "https://mcp.example.com/quilrone/tenant-123/mcp"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "slug": "files"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ClientSetup"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read client setup",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "read"
         ]
       }
     },
@@ -7518,6 +9994,86 @@
         "summary": "Read connection state",
         "tags": [
           "Connections"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/oauth-scope-options": {
+      "get": {
+        "description": "Permission bundles the provider offers for this OAuth MCP and the stored selection. Select bundles with settings `oauth_scopes` (PATCH /mcps/{mcp_id}/settings).",
+        "operationId": "Read_OAuth_scope_options",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "always_available_tools": [],
+                  "available": false,
+                  "cross_area_tools": [],
+                  "mcp_id": "a1b2c3d4",
+                  "options": [],
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "selected": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthScopeOptions"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read OAuth permission options",
+        "tags": [
+          "Tool changes"
         ],
         "x-scopes": [
           "read"
@@ -8140,6 +10696,777 @@
         ],
         "x-scopes": [
           "settings:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/tokens": {
+      "get": {
+        "description": "Tokens issued for this MCP, newest first, without secrets. The Quilr console lists the same tokens.",
+        "operationId": "List_MCP_API_tokens",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "agent": "cursor",
+                      "created_at": "2026-11-14T09:00:00Z",
+                      "created_by": "admin@example.com",
+                      "last_used_at": null,
+                      "mcp_id": "a1b2c3d4",
+                      "name": "CI runner",
+                      "token_id": "3c1f9a2b-5d6e-4f70-8a9b-0c1d2e3f4a5b"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpTokenList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List MCP API tokens",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "post": {
+        "description": "Issues a token for a client that cannot sign users in. Clients send it as `Authorization: Bearer` and name the end user in the `mcpuser` header; it only works for the chosen agent. OAuth MCPs answer 409 `oauth_mcp_uses_sign_in`. The secret is returned once in `token.secret`. Requires an Idempotency-Key; retrying with the same key and body within 24 hours returns the original response, a different body under the same key is 409 `idempotency_conflict`.",
+        "operationId": "Issue_an_MCP_API_token",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Client-chosen token (1 to 200 characters) that makes retries safe: the same token and body within 24 hours returns the original response.",
+            "example": "create-files-mcp-2026-11-14",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "agent": "cursor",
+                "name": "CI runner"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/McpTokenCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "operation_id": "8e4a5b6c-7d8e-9f0a-1b2c-3d4e5f607182",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "token": {
+                    "agent": "cursor",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "created_by": "admin@example.com",
+                    "last_used_at": null,
+                    "mcp_id": "a1b2c3d4",
+                    "name": "CI runner",
+                    "secret": "sk-quilr-mcp-<secret>",
+                    "token_id": "3c1f9a2b-5d6e-4f70-8a9b-0c1d2e3f4a5b"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpTokenCreated"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Issue an MCP API token",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "tokens:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/tokens/{token_id}": {
+      "delete": {
+        "description": "Deletes the token; clients using it are refused from the next request.",
+        "operationId": "Revoke_an_MCP_API_token",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "MCP API token id (`token_id` from the list or create response).",
+            "example": "3c1f9a2b-5d6e-4f70-8a9b-0c1d2e3f4a5b",
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "token": {
+                    "agent": "cursor",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "created_by": "admin@example.com",
+                    "last_used_at": null,
+                    "mcp_id": "a1b2c3d4",
+                    "name": "CI runner",
+                    "revoked": true,
+                    "token_id": "3c1f9a2b-5d6e-4f70-8a9b-0c1d2e3f4a5b"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpTokenRevoked"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Revoke an MCP API token",
+        "tags": [
+          "Client access"
+        ],
+        "x-scopes": [
+          "tokens:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes": {
+      "get": {
+        "description": "Status, the tools added, removed or modified upstream, and when it was last checked.",
+        "operationId": "Read_tool_changes",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "tool_changes": {
+                    "added": [
+                      {
+                        "name": "zip_files"
+                      }
+                    ],
+                    "change_count": 1,
+                    "checked_at": "2026-11-14T09:00:00Z",
+                    "detected_at": "2026-11-14T09:00:00Z",
+                    "mcp_id": "a1b2c3d4",
+                    "mode": "notify",
+                    "modified": [],
+                    "name": "Files",
+                    "reason_code": null,
+                    "removed": [],
+                    "resolved_at": null,
+                    "resolved_by": null,
+                    "status": "pending"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolChangeResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read tool-change state",
+        "tags": [
+          "Tool changes"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes/apply": {
+      "post": {
+        "description": "Replaces the cached tool list with the upstream one and closes the change. New tools may still be held for review. 409 `no_pending_tool_changes` when nothing is awaiting review.",
+        "operationId": "Apply_tool_changes",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "tool_changes": {
+                    "added": [
+                      {
+                        "name": "zip_files"
+                      }
+                    ],
+                    "change_count": 1,
+                    "checked_at": "2026-11-14T09:00:00Z",
+                    "detected_at": "2026-11-14T09:00:00Z",
+                    "mcp_id": "a1b2c3d4",
+                    "mode": "notify",
+                    "modified": [],
+                    "name": "Files",
+                    "reason_code": null,
+                    "removed": [],
+                    "resolved_at": "2026-11-14T09:05:00Z",
+                    "resolved_by": "admin@example.com",
+                    "status": "applied"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolChangeResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamUnavailable"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Adopt the upstream tool list",
+        "tags": [
+          "Tool changes"
+        ],
+        "x-scopes": [
+          "tool_reviews:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes/check": {
+      "post": {
+        "description": "Compares the upstream tool list with the cached one now.",
+        "operationId": "Check_tool_changes",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "tool_changes": {
+                    "added": [
+                      {
+                        "name": "zip_files"
+                      }
+                    ],
+                    "change_count": 1,
+                    "checked_at": "2026-11-14T09:00:00Z",
+                    "detected_at": "2026-11-14T09:00:00Z",
+                    "mcp_id": "a1b2c3d4",
+                    "mode": "notify",
+                    "modified": [],
+                    "name": "Files",
+                    "reason_code": null,
+                    "removed": [],
+                    "resolved_at": null,
+                    "resolved_by": null,
+                    "status": "pending"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolChangeResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamUnavailable"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Check for tool changes now",
+        "tags": [
+          "Tool changes"
+        ],
+        "x-scopes": [
+          "tool_reviews:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes/dismiss": {
+      "post": {
+        "description": "Keeps the cached tool list and stops flagging this upstream list; a different upstream list opens a new change. 409 `no_pending_tool_changes` when nothing is awaiting review.",
+        "operationId": "Dismiss_tool_changes",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "tool_changes": {
+                    "added": [
+                      {
+                        "name": "zip_files"
+                      }
+                    ],
+                    "change_count": 1,
+                    "checked_at": "2026-11-14T09:00:00Z",
+                    "detected_at": "2026-11-14T09:00:00Z",
+                    "mcp_id": "a1b2c3d4",
+                    "mode": "notify",
+                    "modified": [],
+                    "name": "Files",
+                    "reason_code": null,
+                    "removed": [],
+                    "resolved_at": null,
+                    "resolved_by": null,
+                    "status": "dismissed"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolChangeResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Dismiss a tool change",
+        "tags": [
+          "Tool changes"
+        ],
+        "x-scopes": [
+          "tool_reviews:write"
         ]
       }
     },
@@ -9159,6 +12486,229 @@
         ]
       }
     },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/users": {
+      "get": {
+        "description": "Connection state of every user who set this MCP up or is affected by its rules. States: signed_in, available, needs_sign_in, sign_in_not_finished, not_signed_in_yet, turned_off_by_user, blocked_by_access_rules, mcp_turned_off. Computed from stored state; may be a few minutes old (`generated_at`).",
+        "operationId": "List_MCP_user_connections",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "generated_at": "2026-11-14T09:00:00Z",
+                  "items": [
+                    {
+                      "access_allowed": true,
+                      "can_renew": true,
+                      "email": "dana@example.com",
+                      "preference_enabled": true,
+                      "set_up_at": "2026-11-01T10:00:00Z",
+                      "signed_in_until": "2026-11-14T11:00:00Z",
+                      "state": "signed_in"
+                    }
+                  ],
+                  "mcp_id": "a1b2c3d4",
+                  "next_cursor": null,
+                  "renews_automatically": true,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "sign_in_required": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/McpUsers"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List users of an MCP",
+        "tags": [
+          "User connections"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/users/{email}/connection": {
+      "delete": {
+        "description": "Deletes the user's stored credentials for this MCP (provider sign-in, gateway session token and personal upstream credential); the user must connect again. Access rules are unchanged: to block the user, add them to settings `access_control.denied_users`.",
+        "operationId": "Revoke_a_user_connection",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "User email (case-insensitive).",
+            "example": "dana@example.com",
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "email": "dana@example.com",
+                  "mcp_id": "a1b2c3d4",
+                  "removed": {
+                    "gateway_token": true,
+                    "oauth_token": true,
+                    "upstream_credential": false
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "revoked": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionRevoked"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Revoke a user's connection",
+        "tags": [
+          "User connections"
+        ],
+        "x-scopes": [
+          "connections:write"
+        ]
+      }
+    },
     "/mcpgateway/management/v1/mcps:probe": {
       "post": {
         "description": "Connects to a URL without saving anything and reports the transport, OAuth discovery results and whether a credential is required, to choose `auth.type` before creating.",
@@ -9607,6 +13157,881 @@
         ]
       }
     },
+    "/mcpgateway/management/v1/tenant/settings": {
+      "get": {
+        "description": "Tenant switches and the data-retention status (managed in the Quilr console). When QuilrQL policies govern the tenant, the switches are stored but the policies decide.",
+        "operationId": "Read_tenant_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data_retention": {
+                    "managed_by": "console",
+                    "stored_revision": null,
+                    "updated_at": null
+                  },
+                  "memories": {
+                    "enabled": true,
+                    "updated_at": null,
+                    "updated_by": null
+                  },
+                  "policy_authority": {
+                    "mode": "legacy"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "smart_mode": {
+                    "mode": "user_preference",
+                    "updated_at": null,
+                    "updated_by": null
+                  },
+                  "tenant_id": "tenant-123",
+                  "tool_review": {
+                    "hold_new_tools": false,
+                    "updated_at": null,
+                    "updated_by": null
+                  },
+                  "version": "t1a2b3c4d5e6f7081"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TenantConfig"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read tenant settings",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "patch": {
+        "description": "Changes any of smart_mode, memories and tool_review. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Update_tenant_settings",
+        "parameters": [
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "memories": {
+                  "enabled": false
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/TenantConfigPatch"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data_retention": {
+                    "managed_by": "console",
+                    "stored_revision": null,
+                    "updated_at": null
+                  },
+                  "memories": {
+                    "enabled": false,
+                    "updated_at": "2026-11-14T09:00:00Z",
+                    "updated_by": "admin@example.com"
+                  },
+                  "policy_authority": {
+                    "mode": "legacy"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "smart_mode": {
+                    "mode": "user_preference",
+                    "updated_at": null,
+                    "updated_by": null
+                  },
+                  "tenant_id": "tenant-123",
+                  "tool_review": {
+                    "hold_new_tools": false,
+                    "updated_at": null,
+                    "updated_by": null
+                  },
+                  "version": "t9f8e7d6c5b4a3921",
+                  "warnings": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TenantConfig"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Update tenant settings",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "tenant_settings:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/tool-arg-aliases": {
+      "get": {
+        "description": "Aliases that rewrite the arguments clients send (parameter renames and value normalizations) before a call reaches the MCP.",
+        "operationId": "List_tool_argument_aliases",
+        "parameters": [
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only aliases of this MCP.",
+            "in": "query",
+            "name": "mcp_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only aliases of this tool.",
+            "in": "query",
+            "name": "tool_name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "active": true,
+                      "alias_id": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+                      "created_at": "2026-11-14T09:00:00Z",
+                      "enabled": true,
+                      "kind": "param_alias",
+                      "mcp_id": "a1b2c3d4",
+                      "note": null,
+                      "source": "manual",
+                      "spec": {
+                        "action": null,
+                        "from": "id",
+                        "kind": "param_alias",
+                        "path": [],
+                        "to": "work_item_id",
+                        "tool_name": "get_work_item",
+                        "version": 1
+                      },
+                      "tool_name": "get_work_item",
+                      "updated_at": "2026-11-14T09:00:00Z"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolArgAliasList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List tool-argument aliases",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "post": {
+        "description": "Adds an alias after checking it against the tool's input schema (400 when it does not fit).",
+        "operationId": "Create_a_tool_argument_alias",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "mcp_id": "a1b2c3d4",
+                "spec": {
+                  "action": null,
+                  "from": "id",
+                  "kind": "param_alias",
+                  "path": [],
+                  "to": "work_item_id",
+                  "tool_name": "get_work_item",
+                  "version": 1
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ToolArgAliasCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "alias": {
+                    "active": true,
+                    "alias_id": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "enabled": true,
+                    "kind": "param_alias",
+                    "mcp_id": "a1b2c3d4",
+                    "note": null,
+                    "schema_verified": true,
+                    "source": "manual",
+                    "spec": {
+                      "action": null,
+                      "from": "id",
+                      "kind": "param_alias",
+                      "path": [],
+                      "to": "work_item_id",
+                      "tool_name": "get_work_item",
+                      "version": 1
+                    },
+                    "tool_name": "get_work_item",
+                    "updated_at": "2026-11-14T09:00:00Z"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolArgAliasResponse"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Create a tool-argument alias",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "tenant_settings:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/tool-arg-aliases/{alias_id}": {
+      "delete": {
+        "description": "Deletes the alias.",
+        "operationId": "Delete_a_tool_argument_alias",
+        "parameters": [
+          {
+            "description": "Alias id (`alias_id`).",
+            "example": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+            "in": "path",
+            "name": "alias_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "alias": {
+                    "alias_id": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+                    "deleted": true,
+                    "mcp_id": "a1b2c3d4"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolArgAliasDeleted"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Delete a tool-argument alias",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "tenant_settings:write"
+        ]
+      },
+      "get": {
+        "description": "One alias.",
+        "operationId": "Read_a_tool_argument_alias",
+        "parameters": [
+          {
+            "description": "Alias id (`alias_id`).",
+            "example": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+            "in": "path",
+            "name": "alias_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "alias": {
+                    "active": true,
+                    "alias_id": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "enabled": true,
+                    "kind": "param_alias",
+                    "mcp_id": "a1b2c3d4",
+                    "note": null,
+                    "source": "manual",
+                    "spec": {
+                      "action": null,
+                      "from": "id",
+                      "kind": "param_alias",
+                      "path": [],
+                      "to": "work_item_id",
+                      "tool_name": "get_work_item",
+                      "version": 1
+                    },
+                    "tool_name": "get_work_item",
+                    "updated_at": "2026-11-14T09:00:00Z"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolArgAliasResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a tool-argument alias",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "patch": {
+        "description": "Changes `enabled` and/or `note`.",
+        "operationId": "Update_a_tool_argument_alias",
+        "parameters": [
+          {
+            "description": "Alias id (`alias_id`).",
+            "example": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+            "in": "path",
+            "name": "alias_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "enabled": false
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ToolArgAliasPatch"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "alias": {
+                    "active": false,
+                    "alias_id": "7d2e4f60-1a2b-4c3d-9e8f-0a1b2c3d4e5f",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "enabled": false,
+                    "kind": "param_alias",
+                    "mcp_id": "a1b2c3d4",
+                    "note": null,
+                    "source": "manual",
+                    "spec": {
+                      "action": null,
+                      "from": "id",
+                      "kind": "param_alias",
+                      "path": [],
+                      "to": "work_item_id",
+                      "tool_name": "get_work_item",
+                      "version": 1
+                    },
+                    "tool_name": "get_work_item",
+                    "updated_at": "2026-11-14T09:00:00Z"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolArgAliasResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Enable, disable or annotate an alias",
+        "tags": [
+          "Tenant"
+        ],
+        "x-scopes": [
+          "tenant_settings:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/tool-changes": {
+      "get": {
+        "description": "One row per MCP: whether the upstream tool list differs from the cached one.",
+        "operationId": "List_tool_changes",
+        "parameters": [
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "true lists only MCPs with a change awaiting review.",
+            "in": "query",
+            "name": "pending_only",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "added": [
+                        {
+                          "name": "zip_files"
+                        }
+                      ],
+                      "change_count": 1,
+                      "checked_at": "2026-11-14T09:00:00Z",
+                      "detected_at": "2026-11-14T09:00:00Z",
+                      "mcp_id": "a1b2c3d4",
+                      "mode": "notify",
+                      "modified": [],
+                      "name": "Files",
+                      "reason_code": null,
+                      "removed": [],
+                      "resolved_at": null,
+                      "resolved_by": null,
+                      "status": "pending"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ToolChangeList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List tool-change state",
+        "tags": [
+          "Tool changes"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
     "/mcpgateway/management/v1/usage": {
       "get": {
         "description": "Tool calls, outcomes, unique users and tools, durations and payload sizes per period and up to two dimensions, with totals of the whole selection. Outcome: blocked (DLP or policy), error, or success.",
@@ -9869,6 +14294,224 @@
         "summary": "Usage report",
         "tags": [
           "Analytics"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/user-connections": {
+      "get": {
+        "description": "Every known user of the tenant with how many MCPs are in each connection state.",
+        "operationId": "List_user_connections",
+        "parameters": [
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "generated_at": "2026-11-14T09:00:00Z",
+                  "items": [
+                    {
+                      "email": "dana@example.com",
+                      "mcp_states": {
+                        "signed_in": 2
+                      },
+                      "registered_at": "2026-10-01T08:00:00Z",
+                      "user_types": [
+                        "user"
+                      ]
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/UserConnections"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List users",
+        "tags": [
+          "User connections"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/user-connections/{email}": {
+      "get": {
+        "description": "Connection state of each MCP for one user. 404 when the user is unknown.",
+        "operationId": "Read_a_user_connections",
+        "parameters": [
+          {
+            "description": "User email (case-insensitive).",
+            "example": "dana@example.com",
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "email": "dana@example.com",
+                  "generated_at": "2026-11-14T09:00:00Z",
+                  "items": [
+                    {
+                      "access_allowed": true,
+                      "can_renew": true,
+                      "mcp_id": "a1b2c3d4",
+                      "name": "Files",
+                      "preference_enabled": true,
+                      "set_up_at": "2026-11-01T10:00:00Z",
+                      "signed_in_until": "2026-11-14T11:00:00Z",
+                      "slug": "files",
+                      "state": "signed_in"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/UserMcpConnections"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a user's MCP connections",
+        "tags": [
+          "User connections"
         ],
         "x-scopes": [
           "read"
@@ -10148,15 +14791,35 @@
       "name": "Analytics"
     },
     {
+      "description": "Hand an MCP out: endpoint URLs and client configuration, MCP API tokens for clients without sign-in, and which agents may use each MCP.",
+      "name": "Client access"
+    },
+    {
+      "description": "Per user and MCP connection state, and revoking one user's stored credentials for an MCP.",
+      "name": "User connections"
+    },
+    {
+      "description": "Upstream tool-list changes detected by the tool watch: check now, adopt the new list or dismiss the change.",
+      "name": "Tool changes"
+    },
+    {
+      "description": "Tenant-wide switches (Dynamic Tool Calling, Memories, new-tool review), tool-argument aliases and users' requests for MCP Library entries.",
+      "name": "Tenant"
+    },
+    {
       "description": "Tenant-administrator endpoints that enable management for a tenant and issue management keys. Authenticated with a tenant administrator token, not a management key.",
       "name": "Administration"
     }
   ],
   "x-scope-descriptions": {
+    "agents:write": "Create and delete custom agents.",
+    "connections:write": "Revoke a user's stored credentials for an MCP.",
     "credentials:write": "Set or remove upstream credentials and extra headers or query parameters (also needed for any create, check or preview that carries credentials).",
     "mcps:write": "Create, rename, enable, disable and remove MCPs, install catalog MCPs, check MCP URLs, preview REST API specs, refresh tools and issue OAuth connect links.",
     "read": "Read MCPs, tools, settings, credential metadata, tool reviews, connection state, the catalog, operations, analytics and this document.",
     "settings:write": "Change MCP settings and per-user or per-smart-group overrides (also needed to send settings with a create).",
-    "tool_reviews:write": "Approve or reject tools held for review."
+    "tenant_settings:write": "Change tenant switches, manage tool-argument aliases and dismiss users' MCP requests.",
+    "tokens:write": "Issue and revoke MCP API tokens.",
+    "tool_reviews:write": "Approve or reject tools held for review, and check, adopt or dismiss upstream tool changes."
   }
 }
