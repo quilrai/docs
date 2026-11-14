@@ -874,7 +874,7 @@
             ]
           },
           "base_url": {
-            "description": "Base URL requests are sent to. A query string or user info needs credentials:write.",
+            "description": "Base URL requests are sent to. Needs credentials:write: the saved credentials are sent there.",
             "format": "uri",
             "maxLength": 2048,
             "type": "string"
@@ -11015,7 +11015,7 @@
         ]
       },
       "patch": {
-        "description": "Merges the sent fields into the saved configuration and republishes the tools (`tool_diff`). Nonempty `fixed_params` and URLs with a query string or user info need credentials:write. 400 `no_operations_selected` when nothing would be exposed, `invalid_operation_override` for unknown operations, `spec_missing` when switching to OpenAPI without a document. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Merges the sent fields into the saved configuration and republishes the tools (`tool_diff`). Changing `base_url` or `remote_connector_id`, and nonempty `fixed_params`, need credentials:write. 400 `no_operations_selected` when nothing would be exposed, `invalid_operation_override` for unknown operations, `spec_missing` when switching to OpenAPI without a document. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Update_REST_API_config",
         "parameters": [
           {
@@ -11184,7 +11184,7 @@
         "x-conditional-scopes": [
           {
             "scope": "credentials:write",
-            "when": "Any `openapi.overrides.*.fixed_params` is nonempty, or `base_url` or `openapi.source_url` has a query string or user info."
+            "when": "The body changes `base_url` or `remote_connector_id` (saved credentials then go to the new destination), any `openapi.overrides.*.fixed_params` is nonempty, or `openapi.source_url` has a query string or user info."
           }
         ],
         "x-scopes": [

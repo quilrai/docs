@@ -33,7 +33,7 @@ Values that can hold secrets are never returned. URLs keep their origin and path
 | `openapi: null` | Switch to generic mode: one request tool guided by `docs_text`. |
 | `remote_connector_id` | Reach the API through a [Remote Connector](../servers-and-connections/remote-connectors); `null` stops using one. |
 
-The response includes `tool_diff` with the tools added, removed and changed. A change that would expose no operation is refused with `400 no_operations_selected`; overrides naming operations that are not in the document with `400 invalid_operation_override` (`unknown_operations`). Nonempty `fixed_params` and URLs with a query string or user info also need `credentials:write` (see [conditional scopes](./management-api#conditional-scopes)). Upstream credentials and extra headers are changed with [upstream credentials](./settings-and-credentials-api#upstream-credentials), not here.
+The response includes `tool_diff` with the tools added, removed and changed. A change that would expose no operation is refused with `400 no_operations_selected`; overrides naming operations that are not in the document with `400 invalid_operation_override` (`unknown_operations`). Changing `base_url` or `remote_connector_id` also needs `credentials:write`, because the saved credentials, extra headers and fixed values are then sent to the new destination; so do nonempty `fixed_params` (see [conditional scopes](./management-api#conditional-scopes)). Operation keys are case-insensitive in the method (`get /pets` is `GET /pets`). Upstream credentials and extra headers are changed with [upstream credentials](./settings-and-credentials-api#upstream-credentials), not here.
 
 ## Preview and test {#preview}
 

@@ -300,7 +300,7 @@ Some operations need extra scopes depending on what the body carries. The OpenAP
 | `POST /catalog/{catalog_id}/install` | `auth_token`, `oauth_client_id`, `oauth_client_secret`, `upstream_auth_extra_headers`, `upstream_auth_extra_query_params` or `transport_values` | |
 | `POST /mcps/api` | `auth_token` or any `upstream_auth_*` field, nonempty `openapi.overrides.*.fixed_params`, or `base_url` or `openapi.source_url` with userinfo or a query string | `settings` is present |
 | `POST /mcps/api:preview` | `fetch_headers`, or `source_url` with userinfo or a query string | |
-| `PATCH /mcps/{mcp_id}/api-config` | nonempty `openapi.overrides.*.fixed_params`, or `base_url` or `openapi.source_url` with userinfo or a query string | |
+| `PATCH /mcps/{mcp_id}/api-config` | `base_url` or `remote_connector_id` changes (saved credentials go to the new destination), nonempty `openapi.overrides.*.fixed_params`, or `openapi.source_url` with userinfo or a query string | |
 | `POST /mcps/{mcp_id}/api-config/resync` | `fetch_headers` | |
 
 A request missing a scope is refused with `403 insufficient_scope` and `error.required_scopes` before anything is written. Scopes are checked again just before a write, so a key that is revoked or narrowed while its request waits is refused.

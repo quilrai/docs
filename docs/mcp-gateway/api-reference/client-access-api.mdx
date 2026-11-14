@@ -41,7 +41,7 @@ The link opens the Quilr user dashboard. Each person signs in to Quilr as themse
 `PUT /mcps/{mcp_id}/oauth-client` replaces the client secret, and optionally the client id. It needs `credentials:write` and `If-Match`.
 
 - A new `client_secret` alone keeps everyone connected: existing sign-ins renew with the new secret.
-- A new `client_id` also needs `reconnect_users`. `true` deletes every person's connection to the MCP, so each signs in again with the new client (send them the sign-in link). `false` keeps existing connections on the previous client until it stops working at the provider; new sign-ins use the new client.
+- A new `client_id` also needs `reconnect_users`. `true` deletes every person's connection to the MCP, so each signs in again with the new client (send them the sign-in link). `false` keeps existing connections on the previous client until it stops working at the provider; new sign-ins use the new client. `reconnect_users: true` also works without a new client id: it signs everyone out again, for example to finish a request that was interrupted.
 
 The response reports `rotation.connections_dropped`. MCPs without a gateway OAuth client answer `409 not_oauth_mcp`; gateway-registered clients `409 oauth_client_not_custom`.
 
