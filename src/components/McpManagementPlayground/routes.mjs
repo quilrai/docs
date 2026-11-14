@@ -11,6 +11,9 @@ export const MCP_KEY_PREFIX = 'qmcpmgmt_';
 /** Full path of an MCP resource: mcpPath('a1b2', '/settings'). */
 export const mcpPath = (id, sub = '') => `${MCP_PREFIX}/mcps/${seg(id)}${sub}`;
 
+/** Path of one custom tool of an MCP: customToolPath('a1b2', 'recent_unread_summary'). */
+export const customToolPath = (id, name) => mcpPath(id, `/custom-tools/${seg(name)}`);
+
 /** The If-Match header value for a resource `version` ("r4" -> "\"r4\""). */
 export function ifMatch(version) {
   if (!version) return undefined;

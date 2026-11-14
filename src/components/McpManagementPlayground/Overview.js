@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Braces, Building2, Cable, GitCompare, KeyRound, Layers, PackagePlus, ScrollText, ShieldCheck, SlidersHorizontal, Users, Webhook } from 'lucide-react';
+import { BarChart3, Braces, Building2, Cable, GitCompare, KeyRound, Layers, PackagePlus, ScrollText, ShieldCheck, SlidersHorizontal, Users, Webhook, Code } from 'lucide-react';
 import { ApiChips, Btn, ErrorBox, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from '../ManagementPlayground/ui';
 import { Stats, num } from '../ManagementPlayground/charts';
 import styles from '../ManagementPlayground/styles.module.css';
@@ -16,6 +16,7 @@ const CONSOLE_LABELS = {
   'connections:write': 'Revoke connections',
   'agents:write': 'Manage agents',
   'tenant_settings:write': 'Tenant settings',
+  'tools:write': 'Custom tools',
 };
 
 const CARDS = [
@@ -24,6 +25,7 @@ const CARDS = [
   ['create', PackagePlus, 'Create and catalog', 'Check a URL and add a remote MCP, install from the MCP Library, or turn a REST API into an MCP.'],
   ['connections', Cable, 'Connections and credentials', 'Connection state, tool refresh, upstream credentials (one shared key or each user\'s own) and single-use OAuth connect links.'],
   ['rest-api', Webhook, 'REST API MCPs', 'Change a REST API MCP: base URL, limits, access rules and operations; preview a selection, test rules and resync its OpenAPI document.'],
+  ['custom-tools', Code, 'Custom tools', 'Write your own tools as short Python scripts over one MCP\'s tools; see the functions a script can call, validate, save, enable or disable, and test-run them.'],
   ['tool-reviews', ShieldCheck, 'Tool reviews', 'Approve or reject new upstream tools held for review.'],
   ['tool-changes', GitCompare, 'Tool changes', 'See upstream tool-list changes, check now, adopt the new list or dismiss it, and read OAuth permission options.'],
   ['client-access', KeyRound, 'Client access', 'Endpoint URLs and client configuration, the user sign-in link, MCP API tokens, which agents may use each MCP, and OAuth client rotation.'],
