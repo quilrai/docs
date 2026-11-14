@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Braces, Cable, Layers, PackagePlus, ScrollText, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { BarChart3, Braces, Building2, Cable, GitCompare, KeyRound, Layers, PackagePlus, ScrollText, ShieldCheck, SlidersHorizontal, Users } from 'lucide-react';
 import { ApiChips, Btn, ErrorBox, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from '../ManagementPlayground/ui';
 import { Stats, num } from '../ManagementPlayground/charts';
 import styles from '../ManagementPlayground/styles.module.css';
@@ -12,6 +12,10 @@ const CONSOLE_LABELS = {
   'settings:write': 'Change settings',
   'credentials:write': 'Set credentials',
   'tool_reviews:write': 'Review tools',
+  'tokens:write': 'Issue MCP tokens',
+  'connections:write': 'Revoke connections',
+  'agents:write': 'Manage agents',
+  'tenant_settings:write': 'Tenant settings',
 };
 
 const CARDS = [
@@ -20,6 +24,10 @@ const CARDS = [
   ['create', PackagePlus, 'Create and catalog', 'Check a URL and add a remote MCP, install from the MCP Library, or turn a REST API into an MCP.'],
   ['connections', Cable, 'Connections and credentials', 'Connection state, tool refresh, upstream credentials and single-use OAuth connect links.'],
   ['tool-reviews', ShieldCheck, 'Tool reviews', 'Approve or reject new upstream tools held for review.'],
+  ['tool-changes', GitCompare, 'Tool changes', 'See upstream tool-list changes, check now, adopt the new list or dismiss it, and read OAuth permission options.'],
+  ['client-access', KeyRound, 'Client access', 'Endpoint URLs and client configuration, MCP API tokens, and which agents may use each MCP.'],
+  ['users', Users, 'Users', "Each user's connection state per MCP, and revoking one user's stored credentials."],
+  ['tenant', Building2, 'Organization', "Dynamic Tool Calling, Memories and new-tool review switches, tool-argument aliases and users' MCP requests."],
   ['analytics', BarChart3, 'Analytics', 'Tool calls, outcomes, latency, DLP activity, tool-call metadata and per-user activity.'],
   ['audit', ScrollText, 'Audit', 'Configuration changes made in the console and through the API, newest first.'],
   ['explorer', Braces, 'API Explorer', 'Every operation with its schema; send it and copy cURL, Python or JavaScript.'],
