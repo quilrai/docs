@@ -2301,6 +2301,772 @@
         ],
         "type": "object"
       },
+      "CustomTool": {
+        "additionalProperties": true,
+        "properties": {
+          "custom_tool": {
+            "additionalProperties": true,
+            "properties": {
+              "annotations": {
+                "type": "object"
+              },
+              "code": {
+                "type": "string"
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "created_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "defaults": {
+                "type": "object"
+              },
+              "description": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "input_schema": {
+                "type": "object"
+              },
+              "limits": {
+                "additionalProperties": true,
+                "properties": {
+                  "max_tool_calls": {
+                    "type": "integer"
+                  },
+                  "timeout_s": {
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "listed_as": {
+                "description": "The tool definition clients receive.",
+                "type": "object"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "description": "shadowed: the MCP itself now has a tool with this name, which wins.",
+                "enum": [
+                  "active",
+                  "disabled",
+                  "shadowed"
+                ],
+                "type": "string"
+              },
+              "tool_version": {
+                "description": "Grows by one on every save.",
+                "type": "integer"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "updated_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "uses_tools": {
+                "description": "Tools of the MCP the script calls.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "warnings": {
+                "description": "Names the script calls that are not tools of the MCP.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "description",
+              "input_schema",
+              "code",
+              "enabled",
+              "status"
+            ],
+            "type": "object"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "custom_tool",
+          "version",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "CustomToolDefinition": {
+        "additionalProperties": false,
+        "description": "The whole tool. Omitted optional fields take their defaults.",
+        "properties": {
+          "annotations": {
+            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+            "type": "object"
+          },
+          "code": {
+            "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "maxLength": 65536,
+            "minLength": 1,
+            "type": "string"
+          },
+          "defaults": {
+            "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+            "type": "object"
+          },
+          "description": {
+            "description": "What the tool does and when to use it; models read this to pick the tool.",
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "enabled": {
+            "description": "false hides the tool from clients (default true).",
+            "type": "boolean"
+          },
+          "input_schema": {
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+            "type": "object"
+          },
+          "limits": {
+            "description": "`timeout_s` (1 to 60, default 60) and `max_tool_calls` (1 to 50, default 50) per run.",
+            "type": "object"
+          }
+        },
+        "required": [
+          "description",
+          "code"
+        ],
+        "type": "object"
+      },
+      "CustomToolDeleted": {
+        "additionalProperties": true,
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "name",
+          "deleted",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "CustomToolFunctions": {
+        "additionalProperties": true,
+        "properties": {
+          "functions": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "function": {
+                  "type": "string"
+                },
+                "input_schema": {
+                  "type": "object"
+                },
+                "signature": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                },
+                "tool": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "tool",
+                "function",
+                "signature"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "globals": {
+            "type": "object"
+          },
+          "limits": {
+            "type": "object"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "functions",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "CustomToolList": {
+        "additionalProperties": true,
+        "properties": {
+          "custom_tools": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "annotations": {
+                  "type": "object"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "created_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "created_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "defaults": {
+                  "type": "object"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "input_schema": {
+                  "type": "object"
+                },
+                "limits": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "max_tool_calls": {
+                      "type": "integer"
+                    },
+                    "timeout_s": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "listed_as": {
+                  "description": "The tool definition clients receive.",
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "status": {
+                  "description": "shadowed: the MCP itself now has a tool with this name, which wins.",
+                  "enum": [
+                    "active",
+                    "disabled",
+                    "shadowed"
+                  ],
+                  "type": "string"
+                },
+                "tool_version": {
+                  "description": "Grows by one on every save.",
+                  "type": "integer"
+                },
+                "updated_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "updated_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "uses_tools": {
+                  "description": "Tools of the MCP the script calls.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "warnings": {
+                  "description": "Names the script calls that are not tools of the MCP.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name",
+                "description",
+                "input_schema",
+                "code",
+                "enabled",
+                "status"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "limit": {
+            "description": "Most custom tools an MCP can have.",
+            "type": "integer"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mcp_id",
+          "custom_tools",
+          "version",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "CustomToolPatch": {
+        "additionalProperties": false,
+        "description": "Fields to change; the rest keep their saved values.",
+        "minProperties": 1,
+        "properties": {
+          "annotations": {
+            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+            "type": "object"
+          },
+          "code": {
+            "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "maxLength": 65536,
+            "minLength": 1,
+            "type": "string"
+          },
+          "defaults": {
+            "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+            "type": "object"
+          },
+          "description": {
+            "description": "What the tool does and when to use it; models read this to pick the tool.",
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "enabled": {
+            "description": "false hides the tool from clients (default true).",
+            "type": "boolean"
+          },
+          "input_schema": {
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+            "type": "object"
+          },
+          "limits": {
+            "description": "`timeout_s` (1 to 60, default 60) and `max_tool_calls` (1 to 50, default 50) per run.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "CustomToolTest": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "description": "Arguments, as a client would send them.",
+            "type": "object"
+          },
+          "draft": {
+            "additionalProperties": false,
+            "description": "Unsaved changes to try: merged over the saved tool, or a whole new tool when none is saved under `name`.",
+            "properties": {
+              "annotations": {
+                "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+                "type": "object"
+              },
+              "code": {
+                "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+                "maxLength": 65536,
+                "minLength": 1,
+                "type": "string"
+              },
+              "defaults": {
+                "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+                "type": "object"
+              },
+              "description": {
+                "description": "What the tool does and when to use it; models read this to pick the tool.",
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "enabled": {
+                "description": "false hides the tool from clients (default true).",
+                "type": "boolean"
+              },
+              "input_schema": {
+                "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+                "type": "object"
+              },
+              "limits": {
+                "description": "`timeout_s` (1 to 60, default 60) and `max_tool_calls` (1 to 50, default 50) per run.",
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "name": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "CustomToolTestResult": {
+        "additionalProperties": true,
+        "properties": {
+          "client_result": {
+            "description": "The MCP result a client would get.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "draft": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "outcome": {
+            "description": "refused: the tool did not run (hidden from the key owner, a policy, no connection, invalid arguments).",
+            "enum": [
+              "ok",
+              "error",
+              "approval_required",
+              "refused"
+            ],
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "run": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "approval_required": {
+                    "description": "The step that stopped the run for the user's approval.",
+                    "type": [
+                      "object",
+                      "null"
+                    ]
+                  },
+                  "calls": {
+                    "description": "Each tool call the script made, in order.",
+                    "items": {
+                      "additionalProperties": true,
+                      "properties": {
+                        "ms": {
+                          "type": "integer"
+                        },
+                        "ok": {
+                          "type": "boolean"
+                        },
+                        "tool": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "error_kind": {
+                    "description": "script_error, timeout, memory, max_tool_calls, invalid_arguments or approval_required.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "logs": {
+                    "description": "print() output.",
+                    "type": "string"
+                  },
+                  "ms": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "result": {
+                    "description": "The script's result."
+                  },
+                  "run_id": {
+                    "type": "string"
+                  },
+                  "unfinished_calls": {
+                    "items": {
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "outcome",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "CustomToolValidate": {
+        "additionalProperties": false,
+        "description": "A definition to check without saving.",
+        "properties": {
+          "annotations": {
+            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+            "type": "object"
+          },
+          "code": {
+            "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "maxLength": 65536,
+            "minLength": 1,
+            "type": "string"
+          },
+          "defaults": {
+            "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+            "type": "object"
+          },
+          "description": {
+            "description": "What the tool does and when to use it; models read this to pick the tool.",
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "enabled": {
+            "description": "false hides the tool from clients (default true).",
+            "type": "boolean"
+          },
+          "input_schema": {
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
+            "type": "object"
+          },
+          "limits": {
+            "description": "`timeout_s` (1 to 60, default 60) and `max_tool_calls` (1 to 50, default 50) per run.",
+            "type": "object"
+          },
+          "name": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "code"
+        ],
+        "type": "object"
+      },
+      "CustomToolValidation": {
+        "additionalProperties": true,
+        "properties": {
+          "custom_tool": {
+            "additionalProperties": true,
+            "properties": {
+              "annotations": {
+                "type": "object"
+              },
+              "code": {
+                "type": "string"
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "created_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "defaults": {
+                "type": "object"
+              },
+              "description": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "input_schema": {
+                "type": "object"
+              },
+              "limits": {
+                "additionalProperties": true,
+                "properties": {
+                  "max_tool_calls": {
+                    "type": "integer"
+                  },
+                  "timeout_s": {
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "listed_as": {
+                "description": "The tool definition clients receive.",
+                "type": "object"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "description": "shadowed: the MCP itself now has a tool with this name, which wins.",
+                "enum": [
+                  "active",
+                  "disabled",
+                  "shadowed"
+                ],
+                "type": "string"
+              },
+              "tool_version": {
+                "description": "Grows by one on every save.",
+                "type": "integer"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "updated_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "uses_tools": {
+                "description": "Tools of the MCP the script calls.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "warnings": {
+                "description": "Names the script calls that are not tools of the MCP.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "description",
+              "input_schema",
+              "code",
+              "enabled",
+              "status"
+            ],
+            "type": "object"
+          },
+          "mcp_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "custom_tool",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "DlpReport": {
         "additionalProperties": true,
         "properties": {
@@ -2817,7 +3583,8 @@
                 "settings:write",
                 "tenant_settings:write",
                 "tokens:write",
-                "tool_reviews:write"
+                "tool_reviews:write",
+                "tools:write"
               ],
               "type": "string"
             },
@@ -2873,7 +3640,8 @@
                 "settings:write",
                 "tenant_settings:write",
                 "tokens:write",
-                "tool_reviews:write"
+                "tool_reviews:write",
+                "tools:write"
               ],
               "type": "string"
             },
@@ -2979,7 +3747,8 @@
                 "settings:write",
                 "tenant_settings:write",
                 "tokens:write",
-                "tool_reviews:write"
+                "tool_reviews:write",
+                "tools:write"
               ],
               "type": "string"
             },
@@ -8503,7 +9272,8 @@
                     "settings:write",
                     "tenant_settings:write",
                     "tokens:write",
-                    "tool_reviews:write"
+                    "tool_reviews:write",
+                    "tools:write"
                   ],
                   "tenant_id": "tenant-123"
                 },
@@ -12012,6 +12782,1100 @@
         "summary": "Read connection state",
         "tags": [
           "Connections"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools": {
+      "get": {
+        "description": "Every custom tool of the MCP, enabled or not, with its script, the tools it calls and how clients see it. `version` is the If-Match value for changes. MCPs of other tenants answer 404.",
+        "operationId": "List_custom_tools",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "custom_tools": [
+                    {
+                      "annotations": {
+                        "readOnlyHint": true
+                      },
+                      "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                      "created_at": "2026-11-14T09:00:00Z",
+                      "created_by": "admin@example.com",
+                      "defaults": {
+                        "folder": "inbox",
+                        "limit": 25
+                      },
+                      "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                      "enabled": true,
+                      "input_schema": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "folder": {
+                            "type": "string"
+                          },
+                          "limit": {
+                            "maximum": 50,
+                            "minimum": 1,
+                            "type": "integer"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "limits": {
+                        "max_tool_calls": 50,
+                        "timeout_s": 60
+                      },
+                      "name": "recent_unread_summary",
+                      "status": "active",
+                      "tool_version": 3,
+                      "updated_at": "2026-11-14T10:00:00Z",
+                      "updated_by": "admin@example.com",
+                      "uses_tools": [
+                        "list_messages"
+                      ],
+                      "warnings": []
+                    }
+                  ],
+                  "limit": 50,
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r12"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomToolList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List an MCP's custom tools",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools/{name}": {
+      "delete": {
+        "description": "Removes the tool; clients stop seeing it within seconds. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Delete_custom_tool",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Custom tool name: a letter, then letters, digits, `_` or `-` (at most 64).",
+            "example": "recent_unread_summary",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "deleted": true,
+                  "mcp_id": "a1b2c3d4",
+                  "name": "recent_unread_summary",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r15"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomToolDeleted"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Delete a custom tool",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "tools:write"
+        ]
+      },
+      "get": {
+        "description": "One custom tool. 404 `custom_tool_not_found`. MCPs of other tenants answer 404.",
+        "operationId": "Read_custom_tool",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Custom tool name: a letter, then letters, digits, `_` or `-` (at most 64).",
+            "example": "recent_unread_summary",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "custom_tool": {
+                    "annotations": {
+                      "readOnlyHint": true
+                    },
+                    "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "created_by": "admin@example.com",
+                    "defaults": {
+                      "folder": "inbox",
+                      "limit": 25
+                    },
+                    "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                    "enabled": true,
+                    "input_schema": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "folder": {
+                          "type": "string"
+                        },
+                        "limit": {
+                          "maximum": 50,
+                          "minimum": 1,
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "limits": {
+                      "max_tool_calls": 50,
+                      "timeout_s": 60
+                    },
+                    "name": "recent_unread_summary",
+                    "status": "active",
+                    "tool_version": 3,
+                    "updated_at": "2026-11-14T10:00:00Z",
+                    "updated_by": "admin@example.com",
+                    "uses_tools": [
+                      "list_messages"
+                    ],
+                    "warnings": []
+                  },
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r12"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomTool"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a custom tool",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "patch": {
+        "description": "Changes the sent fields and keeps the rest, for example `{\"enabled\": false}` to hide the tool. 404 `custom_tool_not_found`. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Update_custom_tool",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Custom tool name: a letter, then letters, digits, `_` or `-` (at most 64).",
+            "example": "recent_unread_summary",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "enabled": false
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CustomToolPatch"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "custom_tool": {
+                    "annotations": {
+                      "readOnlyHint": true
+                    },
+                    "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "created_by": "admin@example.com",
+                    "defaults": {
+                      "folder": "inbox",
+                      "limit": 25
+                    },
+                    "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                    "enabled": false,
+                    "input_schema": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "folder": {
+                          "type": "string"
+                        },
+                        "limit": {
+                          "maximum": 50,
+                          "minimum": 1,
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "limits": {
+                      "max_tool_calls": 50,
+                      "timeout_s": 60
+                    },
+                    "name": "recent_unread_summary",
+                    "status": "disabled",
+                    "tool_version": 4,
+                    "updated_at": "2026-11-14T10:00:00Z",
+                    "updated_by": "admin@example.com",
+                    "uses_tools": [
+                      "list_messages"
+                    ],
+                    "warnings": []
+                  },
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r14"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomTool"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Change a custom tool",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "tools:write"
+        ]
+      },
+      "put": {
+        "description": "Saves the whole tool under `name` (201 when new). The name must not be one the MCP's own tools use (409 `tool_name_taken`) or a gateway tool name. The script is checked for syntax errors (400 with the `line`); names it calls that are not tools of the MCP come back as `warnings`. An MCP can have up to 50 custom tools (409 `custom_tool_limit`). Clients see the change within seconds. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Save_custom_tool",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Custom tool name: a letter, then letters, digits, `_` or `-` (at most 64).",
+            "example": "recent_unread_summary",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                "defaults": {
+                  "folder": "inbox",
+                  "limit": 25
+                },
+                "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                "input_schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "folder": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "maximum": 50,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CustomToolDefinition"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "custom_tool": {
+                    "annotations": {
+                      "readOnlyHint": true
+                    },
+                    "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "created_by": "admin@example.com",
+                    "defaults": {
+                      "folder": "inbox",
+                      "limit": 25
+                    },
+                    "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                    "enabled": true,
+                    "input_schema": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "folder": {
+                          "type": "string"
+                        },
+                        "limit": {
+                          "maximum": 50,
+                          "minimum": 1,
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "limits": {
+                      "max_tool_calls": 50,
+                      "timeout_s": 60
+                    },
+                    "name": "recent_unread_summary",
+                    "status": "active",
+                    "tool_version": 3,
+                    "updated_at": "2026-11-14T10:00:00Z",
+                    "updated_by": "admin@example.com",
+                    "uses_tools": [
+                      "list_messages"
+                    ],
+                    "warnings": []
+                  },
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "r13"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomTool"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Create or replace a custom tool",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "tools:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:functions": {
+      "get": {
+        "description": "One async function per tool of the MCP, with a Python signature built from the tool's input schema, plus the globals every script has (`args`, `call_tool`, `ToolError`) and the run limits.",
+        "operationId": "List_custom_tool_functions",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "functions": [
+                    {
+                      "function": "list_messages",
+                      "input_schema": {
+                        "type": "object"
+                      },
+                      "signature": "async def list_messages(folder: str = None, top: int = None)",
+                      "summary": "List messages in a mail folder",
+                      "tool": "list_messages"
+                    }
+                  ],
+                  "globals": {
+                    "args": "dict: the tool's defaults overlaid by the call's arguments"
+                  },
+                  "limits": {
+                    "max_code_bytes": 65536,
+                    "max_tool_calls": 50,
+                    "timeout_s": 60
+                  },
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomToolFunctions"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List the functions a script can call",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:test": {
+      "post": {
+        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects, checked by policies and approvals and logged. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).",
+        "operationId": "Test_custom_tool",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "arguments": {
+                  "limit": 10
+                },
+                "name": "recent_unread_summary"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CustomToolTest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "client_result": {
+                    "content": [
+                      {
+                        "text": "{\"unread\": 1, \"items\": [...]}",
+                        "type": "text"
+                      }
+                    ],
+                    "isError": false
+                  },
+                  "draft": false,
+                  "error": null,
+                  "mcp_id": "a1b2c3d4",
+                  "name": "recent_unread_summary",
+                  "ok": true,
+                  "outcome": "ok",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "run": {
+                    "approval_required": null,
+                    "calls": [
+                      {
+                        "ms": 790,
+                        "ok": true,
+                        "tool": "list_messages"
+                      }
+                    ],
+                    "error_kind": null,
+                    "logs": "",
+                    "ms": 840,
+                    "result": {
+                      "items": [],
+                      "unread": 1
+                    },
+                    "run_id": "6a2f0c1d9e8b4a7f",
+                    "unfinished_calls": []
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomToolTestResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Test-run a custom tool",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "tools:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:validate": {
+      "post": {
+        "description": "Runs every check a save runs and returns the normalized tool, without saving or running it.",
+        "operationId": "Validate_custom_tool",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                "defaults": {
+                  "folder": "inbox",
+                  "limit": 25
+                },
+                "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                "input_schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "folder": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "maximum": 50,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "name": "recent_unread_summary"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CustomToolValidate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "custom_tool": {
+                    "annotations": {
+                      "readOnlyHint": true
+                    },
+                    "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                    "defaults": {
+                      "folder": "inbox",
+                      "limit": 25
+                    },
+                    "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                    "enabled": true,
+                    "input_schema": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "folder": {
+                          "type": "string"
+                        },
+                        "limit": {
+                          "maximum": 50,
+                          "minimum": 1,
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "limits": {
+                      "max_tool_calls": 50,
+                      "timeout_s": 60
+                    },
+                    "name": "recent_unread_summary",
+                    "status": "active",
+                    "uses_tools": [
+                      "list_messages"
+                    ],
+                    "warnings": []
+                  },
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "valid": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomToolValidation"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Check a custom tool definition",
+        "tags": [
+          "Custom tools"
         ],
         "x-scopes": [
           "read"
@@ -17250,6 +19114,10 @@
       "name": "User sign-in"
     },
     {
+      "description": "Add your own tools to an MCP: a short Python script that calls the MCP's tools with default parameters and simple logic (chain, filter, trim). Users and agents see a custom tool like any other tool of the MCP; every tool the script calls runs as the caller with the usual policies, approvals, DLP and logging.",
+      "name": "Custom tools"
+    },
+    {
       "description": "Tenant-administrator endpoints that enable management for a tenant and issue management keys. Authenticated with a tenant administrator token, not a management key.",
       "name": "Administration"
     }
@@ -17263,6 +19131,7 @@
     "settings:write": "Change MCP settings and per-user or per-smart-group overrides (also needed to send settings with a create).",
     "tenant_settings:write": "Change tenant switches, manage tool-argument aliases and dismiss users' MCP requests.",
     "tokens:write": "Issue and revoke MCP API tokens.",
-    "tool_reviews:write": "Approve or reject tools held for review, and check, adopt or dismiss upstream tool changes."
+    "tool_reviews:write": "Approve or reject tools held for review, and check, adopt or dismiss upstream tool changes.",
+    "tools:write": "Create, change, delete and test-run custom tools. Test runs call the MCP as the key owner."
   }
 }

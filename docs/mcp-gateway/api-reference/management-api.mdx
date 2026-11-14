@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference} from '@s
 
 Use a management key to manage your organization's MCPs from scripts, CI pipelines, infrastructure-as-code and internal tools. Each key belongs to **one tenant**, carries explicit scopes, and works only while management is enabled for the organization.
 
-With the Management API you can list and inspect MCPs, add, install and remove them, change their settings and upstream credentials, review new tools, connect OAuth MCPs, and read usage analytics and the audit trail. Explore complete input specifications and examples on the pages below, download the [OpenAPI 3.1 reference](/openapi/mcp-gateway-management-v1.json), or send live calls from the [MCP Management API playground](/mcp-gateway-management-playground). Every endpoint below has a **Try it in the playground** link.
+With the Management API you can list and inspect MCPs, add, install and remove them, change their settings and upstream credentials, review new tools, connect OAuth MCPs, add custom tools, and read usage analytics and the audit trail. Explore complete input specifications and examples on the pages below, download the [OpenAPI 3.1 reference](/openapi/mcp-gateway-management-v1.json), or send live calls from the [MCP Management API playground](/mcp-gateway-management-playground). Every endpoint below has a **Try it in the playground** link.
 
 ## Enable in the console
 
@@ -37,6 +37,7 @@ With the Management API you can list and inspect MCPs, add, install and remove t
 | **Revoke connections** | `connections:write` | Revoke a user's stored credentials for an MCP. |
 | **Manage agents** | `agents:write` | Create and delete custom agents. |
 | **Tenant settings** | `tenant_settings:write` | Change tenant switches, tool-argument aliases and MCP requests. |
+| **Custom tools** | `tools:write` | Create, change, delete and test-run custom tools. Test runs call the MCP as the key owner. |
 
 The **Management keys** table lists each key's **Name**, **Scopes**, **Status**, **Fingerprint**, **Created**, **Expires**, **Last used** and **Actions**. Use the edit action to change a key's **Key name**, scopes or **Expiry** (or select **Never expires**), then click **Save changes**. Use the revoke action and confirm with **Revoke key**: automation using the key stops working, and revocation cannot be undone.
 
@@ -225,6 +226,7 @@ Abbreviated: report rows carry more fields. See the [Analytics and audit API](./
 | Install an MCP from the MCP Library | [Install a catalog MCP](./mcps-api#Install_catalog_mcp) |
 | Expose a REST API as MCP tools | [Add a REST API as an MCP](./mcps-api#Create_an_api_mcp) |
 | Change which REST API operations become tools | [REST API MCPs](./rest-api-mcps-api) |
+| Add your own tool that chains an MCP's tools | [Custom tools](./custom-tools-api) |
 | Give people a link to connect an MCP themselves | [Sign-in link](./client-access-api#sign-in-link) |
 | Have each person bring their own API key | [Upstream credentials](./settings-and-credentials-api#upstream-credentials) |
 | Rotate an OAuth client secret | [OAuth client rotation](./client-access-api#oauth-client) |
@@ -284,6 +286,7 @@ All scopes listed for an operation are required. No scope implies another.
 | `connections:write` | Revoke a user's stored credentials for an MCP. |
 | `agents:write` | Create and delete custom agents. |
 | `tenant_settings:write` | Change tenant switches (Dynamic Tool Calling, Memories, new-tool review), manage tool-argument aliases and dismiss users' MCP requests. |
+| `tools:write` | Create, change, delete and test-run [custom tools](./custom-tools-api). Test runs call the MCP as the key owner, with real effects. |
 
 Allowing or blocking an agent on an MCP (`PUT /mcps/{mcp_id}/agents/{agent}`) changes MCP configuration and needs `settings:write`.
 
@@ -393,6 +396,7 @@ Every error has the same shape:
 | 403 | `forbidden` | Operation not permitted. |
 | 404 | `not_found` | Unknown resource or path, including MCPs of other tenants. |
 | 404 | `connect_link_not_found` | Unknown connect link. |
+| 404 | `custom_tool_not_found` | No custom tool with that name on the MCP. |
 | 408 | `body_timeout` | Body not received within 10 seconds. |
 | 409 | `conflict` | Conflicts with the current state. |
 | 409 | `slug_conflict`, `already_installed` | Name already taken; catalog MCP already installed. |
@@ -413,6 +417,7 @@ Every error has the same shape:
 | 409 | `pending_first_client` | OAuth passthrough MCPs cannot be refreshed by the gateway. |
 | 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
 | 409 | `not_api_mcp`, `not_openapi`, `spec_uploaded` | Not a REST API MCP; not built from an OpenAPI document; the document was uploaded, so send a new one instead of resyncing. |
+| 409 | `tool_name_taken`, `custom_tool_limit`, `test_run_unavailable` | A custom tool name one of the MCP's own tools uses; 50 custom tools already; no test runs for MCPs where each user signs in with their own token. See [custom tool errors](./custom-tools-api#errors). |
 | 409 | `not_oauth_mcp`, `oauth_client_not_custom` | No gateway OAuth client; the gateway registered the client itself, so it cannot be rotated. |
 | 409 | `connect_link_used` | Connect link already used. |
 | 410 | `connect_link_expired` | Connect link expired. |
@@ -426,6 +431,7 @@ Every error has the same shape:
 | 429 | `management_busy`, `report_busy`, `rate_limited` | Too many requests; honor `Retry-After`. |
 | 502 | `upstream_unavailable`, `oauth_initiation_failed` | The upstream MCP server or OAuth provider is unreachable or refused. |
 | 502 | `fetch_failed` | The OpenAPI document could not be downloaded. |
+| 502 | `test_run_failed` | A custom tool test run could not be completed. |
 | 503 | `operation_pending` | Create incomplete; retry with the same `Idempotency-Key`. |
 | 503 | `storage_unavailable`, `service_unavailable`, `mcp_busy` | Temporary; retry after `Retry-After`. |
 | 503 | `query_timeout`, `data_unavailable` | Analytics temporarily unavailable. |

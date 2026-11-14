@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {Activity, ArrowUpRight, BarChart3, Building2, Download, FlaskConical, GitCompare, History, KeyRound, Layers, Library, Link2, Play, Plug, ShieldCheck, SlidersHorizontal, Terminal, Users, Webhook, Workflow, LogIn} from 'lucide-react';
+import {Activity, ArrowUpRight, BarChart3, Building2, Download, FlaskConical, GitCompare, History, KeyRound, Layers, Library, Link2, Play, Plug, ShieldCheck, SlidersHorizontal, Terminal, Users, Webhook, Workflow, LogIn, Code} from 'lucide-react';
 import spec from '@site/static/openapi/mcp-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -20,6 +20,7 @@ const pageFor = {
   Administration: 'management-api',
   MCPs: 'mcps-api',
   'REST API MCPs': 'rest-api-mcps-api',
+  'Custom tools': 'custom-tools-api',
   Catalog: 'mcps-api',
   Settings: 'settings-and-credentials-api',
   'Upstream credentials': 'settings-and-credentials-api',
@@ -58,7 +59,7 @@ const api = createApiReference({
     eyebrow: 'MCP GATEWAY / MANAGEMENT V1',
     title: 'Manage your MCPs.',
     subtitle: 'From scripts, pipelines and code.',
-    text: 'List, add, install and remove MCPs, change their settings and upstream credentials, review new tools and upstream tool changes, connect OAuth MCPs, change REST API MCPs, hand MCPs out to clients and people, rotate OAuth clients, see and revoke user connections, change organization switches, and read usage, latency, DLP activity and the audit trail, from one tenant-scoped API.',
+    text: 'List, add, install and remove MCPs, change their settings and upstream credentials, review new tools and upstream tool changes, connect OAuth MCPs, change REST API MCPs, add custom tools, hand MCPs out to clients and people, rotate OAuth clients, see and revoke user connections, change organization switches, and read usage, latency, DLP activity and the audit trail, from one tenant-scoped API.',
     actions: [
       {label: 'Start with an example', to: './management-api#quick-start', primary: true},
       {label: 'Open the playground', to: playground, Icon: Play},
@@ -71,6 +72,7 @@ const api = createApiReference({
     ['MCPs', 'List, inspect, add, rename, enable, disable and remove MCPs, and list their tools.', 'mcps-api', Layers],
     ['MCP Library', 'Browse the catalog and install prebuilt MCPs.', 'mcps-api#catalog', Library],
     ['REST API MCPs', 'Change base URL, limits, access rules and which OpenAPI operations become tools; resync the document.', 'rest-api-mcps-api', Webhook],
+    ['Custom tools', 'Add your own tools to an MCP: short Python scripts that chain its tools; validate and test-run them.', 'custom-tools-api', Code],
     ['Settings and overrides', 'Tools, DLP, token saving, access control, tool exposure and OneMCP settings, per MCP, user or smart group.', 'settings-and-credentials-api', SlidersHorizontal],
     ['Upstream credentials', 'Set, rotate and remove the credentials the gateway sends upstream.', 'settings-and-credentials-api#upstream-credentials', KeyRound],
     ['Tool reviews', 'Approve or reject new tools held for review.', 'settings-and-credentials-api#tool-reviews', ShieldCheck],
