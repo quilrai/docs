@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference} from '@s
 
 Use a management key to manage your organization's MCPs from scripts, CI pipelines, infrastructure-as-code and internal tools. Each key belongs to **one tenant**, carries explicit scopes, and works only while management is enabled for the organization.
 
-With the Management API you can list and inspect MCPs, add, install and remove them, change their settings and upstream credentials, review new tools, connect OAuth MCPs, and read usage analytics and the audit trail. Explore complete input specifications and examples on the pages below, or download the [OpenAPI 3.1 reference](/openapi/mcp-gateway-management-v1.json).
+With the Management API you can list and inspect MCPs, add, install and remove them, change their settings and upstream credentials, review new tools, connect OAuth MCPs, and read usage analytics and the audit trail. Explore complete input specifications and examples on the pages below, download the [OpenAPI 3.1 reference](/openapi/mcp-gateway-management-v1.json), or send live calls from the [MCP Management API playground](/mcp-gateway-management-playground). Every endpoint below has a **Try it in the playground** link.
 
 ## Enable in the console
 
@@ -80,7 +80,7 @@ Search by resource, path, action or HTTP method. Open an endpoint to see its sco
 
 ## Quick start {#quick-start}
 
-This workflow checks access, lists MCPs, adds one, changes a setting, connects an OAuth MCP and reads a usage report.
+This workflow checks access, lists MCPs, adds one, changes a setting, connects an OAuth MCP and reads a usage report. To try the same steps without a terminal, paste your key into the [MCP Management API playground](/mcp-gateway-management-playground).
 
 ### 1. Prepare access
 
@@ -226,6 +226,7 @@ Abbreviated: report rows carry more fields. See the [Analytics and audit API](./
 | Reconnect an OAuth MCP | [Connect links](./connections-and-oauth-api#connect-links) |
 | Build a usage or latency dashboard | [Analytics](./analytics-and-audit-api) |
 | See who changed what | [Audit](./analytics-and-audit-api#audit) |
+| Try any call from the browser | [MCP Management API playground](/mcp-gateway-management-playground) |
 
 ## Authentication and management keys {#authentication}
 

@@ -64,6 +64,7 @@ TASK -> WHERE
   "Management key created" shows the key once (Copy key > Done). Table "Management keys": Name, Scopes, Status,
   Fingerprint, Created, Expires, Last used, Actions (edit: Key name, Expiry, Never expires > Save changes;
   revoke: "Revoke <name>?" > Revoke key). API docs: https://docs.quilrai.dev/mcp-gateway/api-reference/management-api
+  Try the key from the browser: https://docs.quilrai.dev/mcp-gateway-management-playground
 - Add remote MCP -> Add MCP server (dialog "Add MCP") > "Remote server" > Name, Slug (optional), Transport URL,
   "Connection route": Public internet / Via Remote Connector: <name>, Description > "How the gateway signs in":
   Auto-detect (recommended) / OAuth passthrough / Upstream API key > optional "Custom headers & query parameters"

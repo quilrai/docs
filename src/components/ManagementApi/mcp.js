@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {Activity, ArrowUpRight, BarChart3, Download, History, KeyRound, Layers, Library, Link2, ShieldCheck, SlidersHorizontal, Terminal, Workflow} from 'lucide-react';
+import {Activity, ArrowUpRight, BarChart3, Download, FlaskConical, History, KeyRound, Layers, Library, Link2, Play, ShieldCheck, SlidersHorizontal, Terminal, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/mcp-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -13,6 +13,8 @@ import {serverUrl} from './servers';
 const base = '/mcpgateway/management/v1';
 const adminBase = '/mcpgateway/management-admin/v1';
 const download = '/openapi/mcp-gateway-management-v1.json';
+const playground = '/mcp-gateway-management-playground';
+const tryIt = operationId => `${playground}?tab=explorer&op=${encodeURIComponent(operationId)}`;
 const pageFor = {
   Reference: 'management-api',
   Administration: 'management-api',
@@ -53,6 +55,7 @@ const api = createApiReference({
     text: 'List, add, install and remove MCPs, change their settings and upstream credentials, review new tools, connect OAuth MCPs, and read usage, latency, DLP activity and the audit trail, from one tenant-scoped API.',
     actions: [
       {label: 'Start with an example', to: './management-api#quick-start', primary: true},
+      {label: 'Open the playground', to: playground, Icon: Play},
       {label: 'OpenAPI reference', href: download, Icon: Download, download: true},
     ],
     facts: [{label: 'Tenant-bound keys', Icon: ShieldCheck}, {label: 'Explicit scopes', Icon: SlidersHorizontal}, {label: 'Same rules as the console', Icon: Workflow}],
@@ -76,7 +79,7 @@ const api = createApiReference({
     : op['x-scopes'].map(scope => <code key={scope} title={scopeDescriptions[scope]}>{scope}</code>)}
     {conditional(op).map(c => <code key={c.scope} title={c.when}>{'+ ' + c.scope + ' (conditional)'}</code>)}</div>,
   curl: curlFor,
-  footer: () => <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./management-api#conventions">Authentication, errors &amp; retry rules</Link><span aria-hidden="true">·</span><ArrowUpRight size={13}/> <Link to="./management-api#scopes">Scopes</Link></p>,
+  footer: op => <p className={styles.operationFoot}><Terminal size={13}/> <Link to="./management-api#conventions">Authentication, errors &amp; retry rules</Link><span aria-hidden="true">·</span><ArrowUpRight size={13}/> <Link to="./management-api#scopes">Scopes</Link>{!isAdmin(op) && <><span aria-hidden="true">·</span><FlaskConical size={13}/> <Link to={tryIt(op.operationId)}>Try it in the playground</Link></>}</p>,
 });
 
 export const {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaReference, Method} = api;
