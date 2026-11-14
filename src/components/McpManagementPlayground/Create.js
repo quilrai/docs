@@ -402,7 +402,7 @@ function Catalog() {
             rowKey={(r) => r.id}
             selected={selected}
             onRowClick={(r) => setSelected(r.id)}
-            empty={list.loading ? 'Loading...' : 'No catalog MCPs match.'}
+            empty={list.loading ? 'Loading...' : list.error ? 'No data: the request failed (see the error above).' : 'No catalog MCPs match.'}
             columns={[
               { label: 'Name', render: (r) => <strong>{r.name}</strong> },
               { label: 'Category', render: (r) => fmt(r.category) },

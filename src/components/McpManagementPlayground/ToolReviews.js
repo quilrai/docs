@@ -120,7 +120,7 @@ function Reviews({ id }) {
             rowKey={(r) => r.name}
             selected={open?.name}
             onRowClick={(r) => setOpen(open?.name === r.name ? null : r)}
-            empty={reviews.loading ? 'Loading...' : heldOnly ? 'No tools are held for review.' : 'No reviewed tools.'}
+            empty={reviews.loading ? 'Loading...' : reviews.error ? 'No data: the request failed (see the error above).' : heldOnly ? 'No tools are held for review.' : 'No reviewed tools.'}
             columns={[
               {
                 label: 'Select',

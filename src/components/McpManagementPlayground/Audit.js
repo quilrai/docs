@@ -125,7 +125,7 @@ export default function Audit() {
               rowKey={(r) => r.event_id}
               selected={open?.event_id}
               onRowClick={(r) => setOpen(r)}
-              empty={list.loading ? 'Loading...' : 'No audit events match.'}
+              empty={list.loading ? 'Loading...' : list.error ? 'No data: the request failed (see the error above).' : 'No audit events match.'}
               columns={[
                 { label: 'When', render: (r) => <span className={styles.nowrap}>{when(r.created_at)}</span> },
                 { label: 'Action', render: (r) => <code>{r.action}</code> },

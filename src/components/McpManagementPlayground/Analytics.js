@@ -384,7 +384,7 @@ function Report({ report, initialMcp }) {
         <Table
           rows={rows}
           rowKey={(row) => JSON.stringify(row)}
-          empty={list.loading ? 'Loading...' : 'No tool calls match this report.'}
+          empty={list.loading ? 'Loading...' : list.error ? 'No data: the request failed (see the error above).' : 'No tool calls match this report.'}
           columns={columnsFor(report, { periodic, groups, metrics, mcpName })}
         />
         <Pager list={list} />

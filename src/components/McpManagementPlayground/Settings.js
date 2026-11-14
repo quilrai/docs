@@ -277,7 +277,7 @@ function ScopedSettings({ id, generation, onWritten }) {
         rows={rows}
         rowKey={(r) => `${r.scope_type}:${r.scope_value}`}
         onRowClick={(r) => setForm({ scope_type: r.scope_type, scope_value: r.scope_value, enabled: r.enabled == null ? '' : String(r.enabled), settings: pretty(r.settings || {}) })}
-        empty={list.loading ? 'Loading...' : 'No overrides. Every user gets the MCP settings.'}
+        empty={list.loading ? 'Loading...' : list.error ? 'No data: the request failed (see the error above).' : 'No overrides. Every user gets the MCP settings.'}
         columns={[
           { label: 'Scope', render: (r) => <Pill>{r.scope_type === 'smart_group' ? 'smart group' : 'user'}</Pill> },
           { label: 'Applies to', render: (r) => <code>{r.scope_value}</code> },

@@ -126,7 +126,7 @@ export default function Mcps() {
               rowKey={(r) => r.id}
               selected={selected}
               onRowClick={(r) => setParam('mcp', r.id)}
-              empty={list.loading ? 'Loading...' : 'No MCPs match.'}
+              empty={list.loading ? 'Loading...' : list.error ? 'No data: the request failed (see the error above).' : 'No MCPs match.'}
               columns={[
                 {
                   label: 'Name',
