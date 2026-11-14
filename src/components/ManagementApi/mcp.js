@@ -72,7 +72,7 @@ const api = createApiReference({
     ['MCPs', 'List, inspect, add, rename, enable, disable and remove MCPs, and list their tools.', 'mcps-api', Layers],
     ['MCP Library', 'Browse the catalog and install prebuilt MCPs.', 'mcps-api#catalog', Library],
     ['REST API MCPs', 'Change base URL, limits, access rules and which OpenAPI operations become tools; resync the document.', 'rest-api-mcps-api', Webhook],
-    ['Custom tools', 'Add your own tools to an MCP: short Python scripts that chain its tools; validate and test-run them.', 'custom-tools-api', Code],
+    ['Custom tools', 'Add your own tools to an MCP: short Python scripts that chain its tools; validate, test-run and restore earlier versions.', 'custom-tools-api', Code],
     ['Settings and overrides', 'Tools, DLP, token saving, access control, tool exposure and OneMCP settings, per MCP, user or smart group.', 'settings-and-credentials-api', SlidersHorizontal],
     ['Upstream credentials', 'Set, rotate and remove the credentials the gateway sends upstream.', 'settings-and-credentials-api#upstream-credentials', KeyRound],
     ['Tool reviews', 'Approve or reject new tools held for review.', 'settings-and-credentials-api#tool-reviews', ShieldCheck],

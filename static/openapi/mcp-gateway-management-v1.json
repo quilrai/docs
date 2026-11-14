@@ -2334,6 +2334,9 @@
               "enabled": {
                 "type": "boolean"
               },
+              "fixed_args": {
+                "type": "object"
+              },
               "input_schema": {
                 "type": "object"
               },
@@ -2355,6 +2358,12 @@
               },
               "name": {
                 "type": "string"
+              },
+              "output_schema": {
+                "type": [
+                  "object",
+                  "null"
+                ]
               },
               "status": {
                 "description": "shadowed: the MCP itself now has a tool with this name, which wins.",
@@ -2389,7 +2398,7 @@
                 "type": "array"
               },
               "warnings": {
-                "description": "Names the script calls that are not tools of the MCP.",
+                "description": "Names the script calls that are not tools of the MCP, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here).",
                 "items": {
                   "type": "string"
                 },
@@ -2454,6 +2463,10 @@
             "description": "false hides the tool from clients (default true).",
             "type": "boolean"
           },
+          "fixed_args": {
+            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+            "type": "object"
+          },
           "input_schema": {
             "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
             "type": "object"
@@ -2461,6 +2474,13 @@
           "limits": {
             "description": "`timeout_s` (1 to 60, default 60) and `max_tool_calls` (1 to 50, default 50) per run.",
             "type": "object"
+          },
+          "output_schema": {
+            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+            "type": [
+              "object",
+              "null"
+            ]
           }
         },
         "required": [
@@ -2584,6 +2604,9 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "fixed_args": {
+                  "type": "object"
+                },
                 "input_schema": {
                   "type": "object"
                 },
@@ -2605,6 +2628,12 @@
                 },
                 "name": {
                   "type": "string"
+                },
+                "output_schema": {
+                  "type": [
+                    "object",
+                    "null"
+                  ]
                 },
                 "status": {
                   "description": "shadowed: the MCP itself now has a tool with this name, which wins.",
@@ -2639,7 +2668,7 @@
                   "type": "array"
                 },
                 "warnings": {
-                  "description": "Names the script calls that are not tools of the MCP.",
+                  "description": "Names the script calls that are not tools of the MCP, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here).",
                   "items": {
                     "type": "string"
                   },
@@ -2711,6 +2740,10 @@
             "description": "false hides the tool from clients (default true).",
             "type": "boolean"
           },
+          "fixed_args": {
+            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+            "type": "object"
+          },
           "input_schema": {
             "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
             "type": "object"
@@ -2718,8 +2751,29 @@
           "limits": {
             "description": "`timeout_s` (1 to 60, default 60) and `max_tool_calls` (1 to 50, default 50) per run.",
             "type": "object"
+          },
+          "output_schema": {
+            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+            "type": [
+              "object",
+              "null"
+            ]
           }
         },
+        "type": "object"
+      },
+      "CustomToolRestore": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "description": "A `tool_version` from the history.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
         "type": "object"
       },
       "CustomToolTest": {
@@ -2757,6 +2811,10 @@
                 "description": "false hides the tool from clients (default true).",
                 "type": "boolean"
               },
+              "fixed_args": {
+                "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+                "type": "object"
+              },
               "input_schema": {
                 "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
                 "type": "object"
@@ -2764,8 +2822,20 @@
               "limits": {
                 "description": "`timeout_s` (1 to 60, default 60) and `max_tool_calls` (1 to 50, default 50) per run.",
                 "type": "object"
+              },
+              "output_schema": {
+                "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+                "type": [
+                  "object",
+                  "null"
+                ]
               }
             },
+            "type": "object"
+          },
+          "mocks": {
+            "description": "Tool name to result: these tools are not called, the script gets the given value instead. Use it to try a script that changes data without changing it.",
+            "maxProperties": 50,
             "type": "object"
           },
           "name": {
@@ -2799,6 +2869,12 @@
           },
           "mcp_id": {
             "type": "string"
+          },
+          "mocked_tools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "name": {
             "type": "string"
@@ -2924,6 +3000,10 @@
             "description": "false hides the tool from clients (default true).",
             "type": "boolean"
           },
+          "fixed_args": {
+            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+            "type": "object"
+          },
           "input_schema": {
             "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties.",
             "type": "object"
@@ -2935,6 +3015,13 @@
           "name": {
             "maxLength": 64,
             "type": "string"
+          },
+          "output_schema": {
+            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+            "type": [
+              "object",
+              "null"
+            ]
           }
         },
         "required": [
@@ -2977,6 +3064,9 @@
               "enabled": {
                 "type": "boolean"
               },
+              "fixed_args": {
+                "type": "object"
+              },
               "input_schema": {
                 "type": "object"
               },
@@ -2998,6 +3088,12 @@
               },
               "name": {
                 "type": "string"
+              },
+              "output_schema": {
+                "type": [
+                  "object",
+                  "null"
+                ]
               },
               "status": {
                 "description": "shadowed: the MCP itself now has a tool with this name, which wins.",
@@ -3032,7 +3128,7 @@
                 "type": "array"
               },
               "warnings": {
-                "description": "Names the script calls that are not tools of the MCP.",
+                "description": "Names the script calls that are not tools of the MCP, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here).",
                 "items": {
                   "type": "string"
                 },
@@ -3063,6 +3159,53 @@
         "required": [
           "valid",
           "custom_tool",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "CustomToolVersions": {
+        "additionalProperties": true,
+        "properties": {
+          "mcp_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "versions": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "code_sha256": {
+                  "type": "string"
+                },
+                "definition": {
+                  "type": "object"
+                },
+                "saved_at": {
+                  "type": "string"
+                },
+                "saved_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "tool_version": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "versions",
           "request_id"
         ],
         "type": "object"
@@ -12823,6 +12966,7 @@
                       },
                       "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
                       "enabled": true,
+                      "fixed_args": {},
                       "input_schema": {
                         "additionalProperties": false,
                         "properties": {
@@ -12842,6 +12986,7 @@
                         "timeout_s": 60
                       },
                       "name": "recent_unread_summary",
+                      "output_schema": null,
                       "status": "active",
                       "tool_version": 3,
                       "updated_at": "2026-11-14T10:00:00Z",
@@ -13070,6 +13215,7 @@
                     },
                     "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
                     "enabled": true,
+                    "fixed_args": {},
                     "input_schema": {
                       "additionalProperties": false,
                       "properties": {
@@ -13089,6 +13235,7 @@
                       "timeout_s": 60
                     },
                     "name": "recent_unread_summary",
+                    "output_schema": null,
                     "status": "active",
                     "tool_version": 3,
                     "updated_at": "2026-11-14T10:00:00Z",
@@ -13218,6 +13365,7 @@
                     },
                     "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
                     "enabled": false,
+                    "fixed_args": {},
                     "input_schema": {
                       "additionalProperties": false,
                       "properties": {
@@ -13237,6 +13385,7 @@
                       "timeout_s": 60
                     },
                     "name": "recent_unread_summary",
+                    "output_schema": null,
                     "status": "disabled",
                     "tool_version": 4,
                     "updated_at": "2026-11-14T10:00:00Z",
@@ -13400,6 +13549,7 @@
                     },
                     "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
                     "enabled": true,
+                    "fixed_args": {},
                     "input_schema": {
                       "additionalProperties": false,
                       "properties": {
@@ -13419,6 +13569,7 @@
                       "timeout_s": 60
                     },
                     "name": "recent_unread_summary",
+                    "output_schema": null,
                     "status": "active",
                     "tool_version": 3,
                     "updated_at": "2026-11-14T10:00:00Z",
@@ -13495,6 +13646,290 @@
         ],
         "x-scopes": [
           "tools:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools/{name}/restore": {
+      "post": {
+        "description": "Saves an earlier definition from the history again, as a new version. 404 `custom_tool_version_not_found`. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Restore_custom_tool",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Custom tool name: a letter, then letters, digits, `_` or `-` (at most 64).",
+            "example": "recent_unread_summary",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"r4\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "version": 2
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CustomToolRestore"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "custom_tool": {
+                    "annotations": {
+                      "readOnlyHint": true
+                    },
+                    "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                    "created_at": "2026-11-14T09:00:00Z",
+                    "created_by": "admin@example.com",
+                    "defaults": {
+                      "folder": "inbox",
+                      "limit": 25
+                    },
+                    "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                    "enabled": true,
+                    "fixed_args": {},
+                    "input_schema": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "folder": {
+                          "type": "string"
+                        },
+                        "limit": {
+                          "maximum": 50,
+                          "minimum": 1,
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "limits": {
+                      "max_tool_calls": 50,
+                      "timeout_s": 60
+                    },
+                    "name": "recent_unread_summary",
+                    "output_schema": null,
+                    "status": "active",
+                    "tool_version": 3,
+                    "updated_at": "2026-11-14T10:00:00Z",
+                    "updated_by": "admin@example.com",
+                    "uses_tools": [
+                      "list_messages"
+                    ],
+                    "warnings": []
+                  },
+                  "mcp_id": "a1b2c3d4",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "restored_from": 2,
+                  "version": "r16"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomTool"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Restore an earlier version",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "tools:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools/{name}/versions": {
+      "get": {
+        "description": "The last 20 saved definitions of the tool, newest first, with who saved each and when.",
+        "operationId": "List_custom_tool_versions",
+        "parameters": [
+          {
+            "description": "MCP id (the `id` of an MCP, not its slug).",
+            "example": "a1b2c3d4",
+            "in": "path",
+            "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Custom tool name: a letter, then letters, digits, `_` or `-` (at most 64).",
+            "example": "recent_unread_summary",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "mcp_id": "a1b2c3d4",
+                  "name": "recent_unread_summary",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "versions": [
+                    {
+                      "code_sha256": "9f2c000000000000000000000000000000000000000000000000000000000000",
+                      "definition": {
+                        "annotations": {
+                          "readOnlyHint": true
+                        },
+                        "code": "msgs = await list_messages(folder=args[\"folder\"], top=args[\"limit\"])\nunread = [m for m in msgs[\"value\"] if not m[\"isRead\"]]\n{\"unread\": len(unread), \"items\": [{\"from\": m[\"from\"], \"subject\": m[\"subject\"]} for m in unread]}",
+                        "defaults": {
+                          "folder": "inbox",
+                          "limit": 25
+                        },
+                        "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
+                        "input_schema": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "folder": {
+                              "type": "string"
+                            },
+                            "limit": {
+                              "maximum": 50,
+                              "minimum": 1,
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        }
+                      },
+                      "saved_at": "2026-11-14T10:00:00Z",
+                      "saved_by": "admin@example.com",
+                      "tool_version": 3
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CustomToolVersions"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List a custom tool's saved versions",
+        "tags": [
+          "Custom tools"
+        ],
+        "x-scopes": [
+          "read"
         ]
       }
     },
@@ -13793,6 +14228,7 @@
                     },
                     "description": "Unread emails in a folder: sender and subject only. Use to brief the user on new mail.",
                     "enabled": true,
+                    "fixed_args": {},
                     "input_schema": {
                       "additionalProperties": false,
                       "properties": {
@@ -13812,6 +14248,7 @@
                       "timeout_s": 60
                     },
                     "name": "recent_unread_summary",
+                    "output_schema": null,
                     "status": "active",
                     "uses_tools": [
                       "list_messages"
