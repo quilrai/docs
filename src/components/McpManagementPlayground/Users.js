@@ -81,7 +81,7 @@ function ByUser() {
   const [open, setOpen] = useState(null);
   const [tick, setTick] = useState(0);
   const detail = useLoad(
-    () => client.call({ path: `${MCP_PREFIX}/user-connections/${seg(open)}`, query: { limit: 200 }, source: 'User MCP connections' }),
+    () => fetchAllPages((cursor) => client.call({ path: `${MCP_PREFIX}/user-connections/${seg(open)}`, query: { limit: 200, cursor }, source: 'User MCP connections' })),
     [client, open, tick],
     !!open,
   );
@@ -162,7 +162,10 @@ function ByMcp() {
 
 function McpUsers({ id, client }) {
   const name = useMcpName(id);
-  const users = useLoad(() => client.call({ path: mcpPath(id, '/users'), query: { limit: 200 }, source: 'MCP users' }), [client, id]);
+  const users = useLoad(
+    () => fetchAllPages((cursor) => client.call({ path: mcpPath(id, '/users'), query: { limit: 200, cursor }, source: 'MCP users' })),
+    [client, id],
+  );
   const { action, revoke } = useRevoke(() => users.reload());
   const d = users.data;
   return (

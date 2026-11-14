@@ -23,7 +23,7 @@ The tool watch compares each MCP's upstream tool list with the cached one. `GET 
 | `POST /mcps/{mcp_id}/tool-changes/apply` | Replace the cached tool list with the upstream one. New tools may still be held for [review](./settings-and-credentials-api#tool-reviews). |
 | `POST /mcps/{mcp_id}/tool-changes/dismiss` | Keep the cached list and stop flagging this upstream list. A different upstream list opens a new change. |
 
-Apply and dismiss answer `409 no_pending_tool_changes` when nothing is awaiting review. These need `tool_reviews:write`. A failed check reports a fixed `reason_code` (for example `auth_failed` or `unreachable`), never upstream text.
+Apply and dismiss answer `409 no_pending_tool_changes` when nothing is awaiting review (check first). These need `tool_reviews:write`. A failed check reports a fixed `reason_code` (for example `auth_failed` or `unreachable`), never upstream text.
 
 `GET /mcps/{mcp_id}/oauth-scope-options` lists the permission bundles the provider offers for an OAuth MCP and the stored selection. Select bundles with `oauth_scopes` in the MCP's [settings](./settings-and-credentials-api).
 
@@ -41,7 +41,19 @@ Apply and dismiss answer `409 no_pending_tool_changes` when nothing is awaiting 
 
 ## Tool-argument aliases {#aliases}
 
-An alias rewrites the arguments clients send before a call reaches the MCP: a parameter rename (`kind: param_alias`, `from`, `to`) or a value normalization (`kind: value_normalization`, `param`, `from_values`, `to_value`), for one tool. `POST /tool-arg-aliases` with `{"mcp_id", "spec"}` adds one after checking it against the tool's input schema (`400` when it does not fit). `GET /tool-arg-aliases` lists them (filter with `mcp_id` and `tool_name`); `active` is false when an alias is disabled or no longer fits the tool's current schema. `PATCH` changes `enabled` and `note`; `DELETE` removes one. Writes need `tenant_settings:write`.
+An alias rewrites the arguments clients send before a call reaches the MCP. Every spec has `version: 1`, `kind`, `tool_name`, and optionally `action` (for tools that dispatch on an action argument) and `path` (nested objects; `[]` is the top level):
+
+| `kind` | Required fields |
+| --- | --- |
+| `param_alias` | `from` (name clients send), `to` (name the tool expects) |
+| `value_normalization` | `param`, `match` (`exact` or `normalized`, which ignores case, spaces and punctuation), `from_values`, `to_value` |
+| `envelope_wrap`, `envelope_unwrap` | none (top level only) |
+
+```json
+{"version": 1, "kind": "param_alias", "tool_name": "get_work_item", "action": null, "path": [], "from": "id", "to": "work_item_id"}
+```
+
+`POST /tool-arg-aliases` with `{"mcp_id", "spec"}` adds one after checking it against the tool's input schema (`400` when it does not fit). `PUT /tool-arg-aliases/{alias_id}` creates or replaces an alias under an id you choose, spec included. `GET /tool-arg-aliases` lists them (filter with `mcp_id` and `tool_name`); `active` is false when an alias is disabled or no longer fits the tool's current schema. `PATCH` changes `enabled` and `note`; `DELETE` removes one. Writes need `tenant_settings:write`.
 
 ## MCP requests {#mcp-requests}
 

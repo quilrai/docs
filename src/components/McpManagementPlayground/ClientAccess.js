@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { newIdempotencyKey, seg } from '../ManagementPlayground/client.mjs';
 import {
@@ -142,18 +142,34 @@ function Tokens({ id, generation }) {
   const agents = useAgents(generation);
   const [form, setForm] = useState({ name: '', agent: '' });
   const [secret, setSecret] = useState(null);
+  // One Idempotency-Key per intended token: kept across a failed or
+  // unanswered attempt so Issue again recovers that token instead of
+  // minting a second one; replaced once the server answers or the form changes.
+  const pending = useRef(null);
   const action = useAction();
   const agentList = agents.data || [];
 
   async function issue() {
+    const body = { name: form.name.trim(), agent: form.agent };
+    const same = pending.current && JSON.stringify(pending.current.body) === JSON.stringify(body);
+    if (!same) pending.current = { key: newIdempotencyKey('token'), body };
     await action.run(async () => {
-      const res = await client.call({
-        method: 'POST',
-        path: mcpPath(id, '/tokens'),
-        body: { name: form.name.trim(), agent: form.agent },
-        headers: { 'Idempotency-Key': newIdempotencyKey('token') },
-        source: 'Issue MCP API token',
-      });
+      let res;
+      try {
+        res = await client.call({
+          method: 'POST',
+          path: mcpPath(id, '/tokens'),
+          body,
+          headers: { 'Idempotency-Key': pending.current.key },
+          source: 'Issue MCP API token',
+        });
+      } catch (err) {
+        // A 4xx is a definite refusal: the next attempt starts a new key.
+        // Network errors and 5xx keep it, so a retry recovers the token.
+        if (err?.status && err.status >= 400 && err.status < 500) pending.current = null;
+        throw err;
+      }
+      pending.current = null;
       setSecret(res.token?.secret || null);
       setForm({ name: '', agent: form.agent });
       tokens.reload();
