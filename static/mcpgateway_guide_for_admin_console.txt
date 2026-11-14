@@ -1,9 +1,10 @@
 QUILR ADMIN CONSOLE (v2): MCP GATEWAY GUIDE FOR BROWSING AGENTS
-Updated on 3 November 2026.
+Updated on 14 November 2026.
 Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
 - Page: sidebar Settings > AI Gateway > MCP Gateway  (URL /settings/mcp-gateway)
+- Page tabs: Servers (default) | Management API   /settings/mcp-gateway/management-api
 - Command palette: type "MCP Gateway", "Add MCP", "MCP library", "MCP Gateway health"
 - Siblings in AI Gateway group: Workflow Agents, LLM Gateway, MCP Gateway, Models, Skills Library
 
@@ -57,6 +58,12 @@ WORKSPACE DRAWER ("MCP Gateway workspace")
   footer Discard changes | Save settings; Smart Assist panel at the bottom
 
 TASK -> WHERE
+- Management API keys -> Management API tab > "Allow management keys for this organization" switch
+  (off = every key suspended), then "Issue a management key": Key name*, Expiry (leave blank for no expiry),
+  Scopes (Read, Manage MCPs, Change settings, Set credentials, Review tools) > Issue key. Dialog
+  "Management key created" shows the key once (Copy key > Done). Table "Management keys": Name, Scopes, Status,
+  Fingerprint, Created, Expires, Last used, Actions (edit: Key name, Expiry, Never expires > Save changes;
+  revoke: "Revoke <name>?" > Revoke key). API docs: https://docs.quilrai.dev/mcp-gateway/api-reference/management-api
 - Add remote MCP -> Add MCP server (dialog "Add MCP") > "Remote server" > Name, Slug (optional), Transport URL,
   "Connection route": Public internet / Via Remote Connector: <name>, Description > "How the gateway signs in":
   Auto-detect (recommended) / OAuth passthrough / Upstream API key > optional "Custom headers & query parameters"
@@ -165,6 +172,8 @@ RELATED PAGES
 - Skills Library / Workflow Agents: Settings > AI Gateway (skills list MCP dependencies; agents pick MCP tools)
 - Self Service (/self-service): end users link local MCP tools ("Connect your AI app")
 - Audit: Settings > Organization > Audit Logs
+- Settings > Organization > API keys: card "MCP Gateway management keys" (Management API On/Off, Active keys,
+  Revoked or expired) > Manage management keys opens the Management API tab
 
 DEEP LINKS (append to /settings/mcp-gateway)
 - ?manage=add-mcp | remote-connectors | mcp-library | agents | onemcp | zia

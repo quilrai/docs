@@ -1080,7 +1080,7 @@
             "type": "string"
           },
           "url": {
-            "description": "Single-use link, valid for 15 minutes. Whoever opens it is sent to the provider sign-in, and the connection is saved for the administrator who issued the management key; no Quilr sign-in is needed. Treat it like a password and share it only with the person who should connect. The token is in the URL fragment.",
+            "description": "Single-use, self-authorizing link (15 minutes): whoever opens it signs in with the provider and the connection is saved for the key's administrator. Share it only with the person who should connect. The token is in the URL fragment.",
             "format": "uri",
             "type": "string"
           }
@@ -2202,7 +2202,7 @@
                 "type": "null"
               }
             ],
-            "description": "OAuth MCPs only: a single-use connect link that completes the OAuth connection (see ConnectLink)."
+            "description": "OAuth MCPs only: a connect link for a tenant administrator."
           },
           "connection": {
             "additionalProperties": true,
@@ -4247,7 +4247,7 @@
     }
   },
   "info": {
-    "description": "Manage the MCPs of a Quilr MCP Gateway tenant programmatically: inventory, creation and removal, settings, upstream credentials, tool reviews, OAuth connections and analytics.\n\n**Authentication.** A tenant administrator enables management for the tenant and issues management keys in the Quilr console (Settings > AI Gateway > MCP Gateway, Management API tab) or with the Administration endpoints (tenant administrator token). Every other endpoint takes a management key as `Authorization: Bearer qmcpmgmt_...`. Each operation lists the scopes it always requires in `x-scopes`; `x-conditional-scopes` lists scopes that are added when the request body carries credentials or settings. An empty `x-scopes` on an Administration operation means a tenant administrator token.\n\n**Writes.** Changes to an existing MCP configuration require `If-Match` with the quoted `version` (ETag) from the latest read (`428` when missing, `412` when stale). Creates take an `Idempotency-Key`; retrying with the same key within 24 hours returns the original result instead of creating twice.\n\n**Responses.** Every JSON response carries `request_id` (also in `X-Request-ID`) and `Cache-Control: no-store`. Errors use `{\"error\": {\"code\", \"message\", ...}, \"request_id\"}`; `error.fields` names the offending request paths and never echoes submitted values. Lists are paginated with `limit` and an opaque `cursor` (`next_cursor` is null on the last page). Timestamps are UTC RFC 3339 (`...Z`).\n\n**Policy.** When QuilrQL policies govern the tenant, stored MCP settings are saved but not enforced until the policy engine is turned off; responses flag this with an `inactive_under_quilrql` warning.",
+    "description": "Manage the MCPs of a Quilr MCP Gateway tenant programmatically: inventory, creation and removal, settings, upstream credentials, tool reviews, OAuth connections and analytics.\n\n**Authentication.** A tenant administrator enables management for the tenant and issues management keys with the Administration endpoints (tenant administrator token). Every other endpoint takes a management key as `Authorization: Bearer qmcpmgmt_...`. Each operation lists the scopes it always requires in `x-scopes`; `x-conditional-scopes` lists scopes that are added when the request body carries credentials or settings. An empty `x-scopes` on an Administration operation means a tenant administrator token.\n\n**Writes.** Changes to an existing MCP configuration require `If-Match` with the quoted `version` (ETag) from the latest read (`428` when missing, `412` when stale). Creates take an `Idempotency-Key`; retrying with the same key within 24 hours returns the original result instead of creating twice.\n\n**Responses.** Every JSON response carries `request_id` (also in `X-Request-ID`) and `Cache-Control: no-store`. Errors use `{\"error\": {\"code\", \"message\", ...}, \"request_id\"}`; `error.fields` names the offending request paths and never echoes submitted values. Lists are paginated with `limit` and an opaque `cursor` (`next_cursor` is null on the last page). Timestamps are UTC RFC 3339 (`...Z`).\n\n**Policy.** When QuilrQL policies govern the tenant, stored MCP settings are saved but not enforced until the policy engine is turned off; responses flag this with an `inactive_under_quilrql` warning.",
     "title": "MCP Gateway Management API",
     "version": "1.0.0"
   },
@@ -6446,7 +6446,7 @@
         ]
       },
       "post": {
-        "description": "Registers a remote MCP server by URL and fetches its tools. `auth.type` selects upstream authentication; credentials are shared by all users of the tenant. OAuth MCPs are created with `connection_state` pending_connection and a single-use `connect` link: whoever opens it finishes the provider sign-in, and the connection is saved for the administrator who issued the key (oauth_passthrough MCPs need no link: each client brings its own token). `settings` (settings:write) and `enabled` apply before the MCP is returned. Requires an Idempotency-Key; retrying with the same key and body within 24 hours returns the original response, a different body under the same key is 409 `idempotency_conflict`.",
+        "description": "Registers a remote MCP server by URL and fetches its tools. `auth.type` selects upstream authentication; credentials are shared by all users of the tenant. OAuth MCPs are created with `connection_state` pending_connection and a single-use `connect` link a tenant administrator opens to finish the sign-in (oauth_passthrough MCPs need no link: each client brings its own token). `settings` (settings:write) and `enabled` apply before the MCP is returned. Requires an Idempotency-Key; retrying with the same key and body within 24 hours returns the original response, a different body under the same key is 409 `idempotency_conflict`.",
         "operationId": "Create_an_mcp",
         "parameters": [
           {
@@ -7347,7 +7347,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/connect-links": {
       "post": {
-        "description": "A new single-use link (15 minutes) for an OAuth MCP whose sign-in the gateway manages. Whoever opens it is sent to the provider sign-in; no Quilr sign-in is needed. After consent the gateway saves the connection for the administrator who issued the management key and fetches the tools. Treat the link like a password and share it only with the person who should connect. 409 `oauth_not_applicable` for other MCPs.",
+        "description": "A new single-use link (15 minutes) for an OAuth MCP whose sign-in the gateway manages. The link itself authorizes the connection: whoever opens it within 15 minutes, once, is sent to the provider's sign-in, and the connection they make is saved for the administrator who owns this management key (no console sign-in). Treat the URL as a short-lived credential and share it only with the person who should connect the account. The token is in the URL fragment; the landing page posts it to `POST /mcpgateway/management-connect/start` (`{\"token\": \"...\"}`, no authentication; answers `{mcp_id, mcp_name, authorization_url}`, or 404 `connect_link_not_found`, 409 `connect_link_used`, 410 `connect_link_expired` / `connect_link_revoked`, 409 `key_owner_unavailable`, 403 `management_disabled_for_tenant`, 429 `rate_limited`, 502 `oauth_initiation_failed`). 409 `oauth_not_applicable` for MCPs that do not use gateway-managed OAuth.",
         "operationId": "Create_connect_link",
         "parameters": [
           {
@@ -7445,7 +7445,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/connection": {
       "get": {
-        "description": "`ready`: tools are cached. `pending_connection`: an OAuth MCP waiting for its OAuth connection (issue a connect link). `fetch_failed`: the last tool fetch failed (see `last_fetch_errors`). `pending_first_client`: an OAuth passthrough MCP whose tools appear when the first client connects.",
+        "description": "`ready`: tools are cached. `pending_connection`: an OAuth MCP waiting for a tenant administrator to connect (issue a connect link). `fetch_failed`: the last tool fetch failed (see `last_fetch_errors`). `pending_first_client`: an OAuth passthrough MCP whose tools appear when the first client connects.",
         "operationId": "Read_connection",
         "parameters": [
           {
@@ -10132,7 +10132,7 @@
       "name": "Tool reviews"
     },
     {
-      "description": "Connection state of an MCP, tool refresh, and single-use OAuth connect links.",
+      "description": "Connection state of an MCP, tool refresh, and single-use OAuth connect links: whoever opens one in a browser signs in with the provider, and the connection is saved for the administrator who owns the issuing key.",
       "name": "Connections"
     },
     {

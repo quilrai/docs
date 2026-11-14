@@ -48,8 +48,8 @@ An OAuth MCP (`auth.type` `oauth_dcr` or `oauth_login`, or an OAuth catalog MCP)
 ]} />
 
 1. Create the OAuth MCP (`POST /mcps` with `auth.type` `oauth_dcr` or `oauth_login`, or install an OAuth catalog MCP). The response contains a `connect` object with a single-use `url` that is valid for 15 minutes and its `expires_at`. `POST /mcps/{mcp_id}/connect-links` issues a new link at any time.
-2. Open the link in a browser, or send it to the person who should complete the provider sign-in. No Quilr sign-in is needed: whoever opens the link is sent to the provider's sign-in. The link's token is in the URL fragment, so it is not part of the page request or server access logs; the page posts it to the gateway to start the provider sign-in.
-3. After consent, the gateway saves the connection for the administrator who issued the management key, fetches the tools and shows a success page.
+2. Open the link in a browser, or send it to the person who should complete the provider sign-in. No Quilr sign-in is needed: whoever opens the link is sent to the provider's sign-in. The link's token is in the URL fragment, so the browser never sends it in the page request or to server logs, and the page removes it from the address bar at once.
+3. The page starts the provider's sign-in. After consent, the gateway saves the connection for the administrator who issued the management key, fetches the tools and shows a success page.
 4. `GET /mcps/{mcp_id}/connection` then reports `ready` and lists that administrator in `connected_admins`.
 
 ```bash
@@ -69,18 +69,29 @@ curl --request POST "$GW/mcpgateway/management/v1/mcps/e5f6a7b8/connect-links" \
 ```
 
 :::warning Treat a connect link like a password
-Anyone who opens the link before it is used or expires can complete the connection, and the connection is saved for the administrator who issued the management key. Share the link only with the person who should connect, over a private channel, and do not post it in tickets, chats or logs that others can read. If a link may have leaked, let it expire and issue a new one.
+A connect link is a bearer credential for 15 minutes and can be used once. Whoever opens it first connects *their* provider account, and that connection is saved for the administrator who issued the management key. Share the link only with the person who should connect, over a private channel, and issue a new link if it may have leaked. An unused link stops working when it expires, when it is used, or when the issuing management key is revoked or expires.
 :::
 
 End users connect with their own accounts later, as with MCPs added in the console. See [OAuth connect](../servers-and-connections/oauth-connect). OAuth passthrough MCPs need no link.
 
-| Response | Meaning |
-| --- | --- |
-| `404 connect_link_not_found` | Unknown link. |
-| `409 connect_link_used` | The link was already used. Issue a new one. |
-| `410 connect_link_expired` | The link is older than 15 minutes. Issue a new one. |
-| `409 oauth_not_applicable` | `POST .../connect-links` on an MCP that does not use gateway-managed OAuth. |
-| `502 oauth_initiation_failed` | The OAuth provider is unreachable or refused the sign-in request. |
+### How the connect page works {#connect-page}
+
+The connect page sends the token to `POST /mcpgateway/management-connect/start` with the body `{"token": "<t>"}`. This endpoint takes no authentication and is rate limited per client address. It answers `mcp_id`, `mcp_name`, `authorization_url` and `request_id`, and the page then opens `authorization_url`. You do not need to call it yourself; errors use the normal [error shape](./management-api#errors).
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| 400 | `invalid_request` | Missing or malformed `token`, or extra fields. |
+| 403 | `management_disabled_for_tenant` | Management is turned off for the organization. |
+| 404 | `connect_link_not_found` | Unknown link, or its MCP was removed. |
+| 409 | `connect_link_used` | The link was already used. Issue a new one. |
+| 409 | `key_owner_unavailable` | The key's administrator left the organization. Issue a new key and link. |
+| 409 | `oauth_not_applicable` | The MCP no longer uses gateway-managed OAuth. |
+| 410 | `connect_link_expired` | The link is older than 15 minutes. Issue a new one. |
+| 410 | `connect_link_revoked` | The management key that issued the link was revoked or expired. |
+| 429 | `rate_limited` | Too many attempts from this address. Retry after `Retry-After`. |
+| 502 | `oauth_initiation_failed` | The provider sign-in could not be started; the link was not used. |
+
+`POST /mcps/{mcp_id}/connect-links` answers `409 oauth_not_applicable` for an MCP that does not use gateway-managed OAuth.
 
 Retrying an OAuth create with the same `Idempotency-Key` within 24 hours returns the same connect link.
 

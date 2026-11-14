@@ -5,7 +5,8 @@ sidebar_label: "Management API"
 sidebar_custom_props:
   icon: Wrench
 description: "MCP Gateway Management API v1: overview, management keys from the console, quick start, scopes, conventions, errors and the OpenAPI document."
-aliases: [mcp management api, management key, mcp gateway api]
+console_path: /settings/mcp-gateway/management-api
+aliases: [mcp management api, mcp gateway management keys, management key]
 ---
 
 import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference} from '@site/src/components/ManagementApi/mcp';
@@ -20,14 +21,24 @@ With the Management API you can list and inspect MCPs, add, install and remove t
 
 ## Enable in the console
 
-You issue management keys from the Quilr console:
+1. Go to **Settings > AI Gateway > MCP Gateway** and open the **Management API** tab (next to **Servers**).
+2. Turn on **Allow management keys for this organization**. Turning it off later suspends every management key immediately; keys are kept and work again when you turn it back on.
+3. Under **Issue a management key**, enter a **Key name**, an optional **Expiry (leave blank for no expiry)**, and the scopes the key needs.
+4. Click **Issue key**. The **Management key created** dialog shows the key once: click **Copy key**, store it in your secret manager, then click **Done**. It cannot be retrieved later; issue a new key if it is lost.
 
-1. Go to **Settings > AI Gateway > MCP Gateway** and open the **Management API** tab. You can also reach it from **Settings > Organization > API keys**.
-2. Turn on management keys for the organization. Turning it off later suspends every management key until you turn it back on.
-3. Issue a management key: enter a key name, an optional expiry, and the scopes it needs.
-4. Store the key value. It is shown only once.
+| Console scope | API scope | Grants |
+| --- | --- | --- |
+| **Read** | `read` | Read MCPs, settings, analytics and audit. |
+| **Manage MCPs** | `mcps:write` | Add, install, rename, enable/disable and delete MCPs. |
+| **Change settings** | `settings:write` | Change MCP settings and scoped overrides. |
+| **Set credentials** | `credentials:write` | Set upstream credentials and OAuth client secrets. |
+| **Review tools** | `tool_reviews:write` | Approve or reject new tools. |
 
-From the same tab you can edit a key's name, scopes and expiry, and revoke a key. A key acts for the whole organization within its scopes, and its writes are made as the administrator who issued it. See [Authentication and management keys](#authentication) for details.
+The **Management keys** table lists each key's **Name**, **Scopes**, **Status**, **Fingerprint**, **Created**, **Expires**, **Last used** and **Actions**. Use the edit action to change a key's **Key name**, scopes or **Expiry** (or select **Never expires**), then click **Save changes**. Use the revoke action and confirm with **Revoke key**: automation using the key stops working, and revocation cannot be undone.
+
+**Settings > Organization > API keys** shows an **MCP Gateway management keys** card with whether the Management API is on, the number of **Active keys** and **Revoked or expired** keys, and a **Manage management keys** link to this tab.
+
+A key acts for the whole organization within its scopes, and its writes are made as the administrator who issued it. See [Authentication and management keys](#authentication) and [Scopes](#scopes) for details.
 
 ## Choose a resource
 
@@ -102,7 +113,7 @@ A `200` response lists every scope, your key's own scopes in `caller.scopes`, li
 | --- | --- |
 | `401 invalid_management_key` | The key is missing, wrong, expired or revoked. |
 | `403 insufficient_scope` | The key lacks `read`. |
-| `403 management_disabled_for_tenant` | Management keys are turned off for the organization. |
+| `403 management_disabled_for_tenant` | **Allow management keys for this organization** is off. |
 | `404 not_found` | The URL or path is wrong, or management is turned off for this deployment. |
 
 ### 2. List MCPs
@@ -235,7 +246,7 @@ Management keys start with `qmcpmgmt_`. The key establishes the tenant: MCPs of 
 
 ### Key lifecycle
 
-1. An administrator turns on management keys for the organization in the console.
+1. An administrator turns on **Allow management keys for this organization** on the **Management API** tab.
 2. The administrator issues a named key with explicit scopes and, optionally, an expiry.
 3. Store the returned secret. Issue a replacement key before revoking a key that an integration still uses.
 
@@ -375,6 +386,7 @@ Every error has the same shape:
 | 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
 | 409 | `connect_link_used` | Connect link already used. |
 | 410 | `connect_link_expired` | Connect link expired. |
+| 410 | `connect_link_revoked` | The management key that issued the connect link was revoked or expired. |
 | 412 | `version_conflict` | `If-Match` is stale (`current_version` when known). |
 | 413 | `body_too_large` | Body over 1 MiB. |
 | 422 | `install_input_required` | Catalog install needs more values (`missing_fields`). |
