@@ -595,8 +595,8 @@ function TestRun({ id, name, draft, draftReady, saved }) {
       )}
       {action.error?.code === 'test_run_in_progress' && (
         <Notice tone="warn">
-          A run with this Idempotency-Key is still running. Retry with the same key in a moment to get its answer. If the gateway stopped during
-          the run, the key answers 502 test_run_failed with may_have_run true after 3 minutes.
+          A run with this Idempotency-Key is still running. Retry with the same key in a moment to get its answer. A live run is never given
+          up; if its gateway process stopped (no sign of life for 30 seconds), the key answers 502 test_run_failed with may_have_run true.
         </Notice>
       )}
       {r && (

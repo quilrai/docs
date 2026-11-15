@@ -193,13 +193,13 @@ After an ambiguous failure, check the MCP's logs before you run it again: every 
 | Situation | Result |
 | --- | --- |
 | Same key and same body within 24 hours, after the script started | The stored answer is returned and the tool does not run again: the result (including a script error) or the ambiguous `502` above. A stored answer is returned even if the MCP was removed since. |
-| Same key after a run that certainly did not run the tool | Nothing was stored, so the retry runs the tool. This covers custom tools being busy, arguments that do not match the schema, a refusal before the script, an unknown tool or MCP (`404`) and a failure before dispatch (`502` with `"may_have_run": false`). |
+| Same key after a run that certainly did not run the tool | Nothing was stored, so the retry runs the tool. This covers custom tools being busy, no script worker being available, arguments that do not match the schema, a refusal before the script, an unknown tool or MCP (`404`) and a failure before dispatch (`502` with `"may_have_run": false`). |
 | Same key while the first run is still going | The request waits for the run on the same gateway process and gets its answer. A request that reaches another process gets `409 test_run_in_progress` with `operation_id`; retry after `Retry-After` (1 second). |
 | Same key with a different body | `409 idempotency_conflict`. |
 | A new key | The tool runs again. Against an MCP that was removed, `404 not_found`. |
 | Same key after 24 hours | `409 idempotency_replay_expired`; use a new key. |
 
-A run interrupted by a gateway restart never records an answer. After 3 minutes its key answers `502 test_run_failed` with `"may_have_run": true`, stored like any answer: the outcome is unknown and the tool is never run again under that key. Check the logs, then use a new key if you still want to run it.
+A run is never given up while it is still running, however long it takes: the request running it renews its claim on the key every 10 seconds. A run whose gateway process stopped (no sign of life for 30 seconds) is given up, and its key answers `502 test_run_failed` with `"may_have_run": true`, stored like any answer; the original request, if it still answers, returns the same. The outcome is unknown and the tool is never run again under that key. Check the logs, then use a new key if you still want to run it.
 
 ## Approvals {#approvals}
 

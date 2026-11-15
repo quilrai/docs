@@ -23,7 +23,7 @@ The tool watch compares each MCP's upstream tool list with the cached one. `GET 
 | `POST /mcps/{mcp_id}/tool-changes/apply` | Replace the cached tool list with the upstream one, if upstream still serves the change you reviewed. New tools may still be held for [review](./settings-and-credentials-api#tool-reviews). |
 | `POST /mcps/{mcp_id}/tool-changes/dismiss` | Keep the cached list and stop flagging this upstream list. A different upstream list opens a new change. |
 
-These need `tool_reviews:write`. A failed check reports a fixed `reason_code` (for example `auth_failed` or `unreachable`), never upstream text.
+These need `tool_reviews:write`. A failed check reports a fixed `reason_code` (for example `auth_failed` or `unreachable`), never upstream text. A failed check, or one where upstream lists no tools while the cache has some, never discards a pending change: its `status` and `version` stay, and only the check time and reason change.
 
 ### Apply or dismiss the change you reviewed {#tool-change-version}
 
@@ -38,8 +38,8 @@ curl --request POST "$GW/mcpgateway/management/v1/mcps/a1b2c3d4/tool-changes/app
 | Response | Meaning |
 | --- | --- |
 | `428 precondition_required` | `If-Match` is missing. |
-| `412 version_conflict` | The pending change is no longer the one you reviewed: upstream moved again and a check recorded a new difference, or the change was applied or dismissed since your read, also while your apply was running. Nothing is adopted. `error.tool_changes` holds the current state; its `version` is `null` when nothing is pending any more. |
-| `412 tool_changes_changed` | Apply only: the gateway fetched the upstream list again and it no longer matches the reviewed change. Nothing was adopted; the new difference is recorded and returned in `error.tool_changes` (a `clean` state when upstream went back to the cached list). Review it and apply again with its `version`. |
+| `412 version_conflict` | The pending change is no longer the one you reviewed: upstream moved again and a check recorded a new difference, or the change was applied or dismissed since your read, also while your apply was running (for example by another gateway process). Nothing is adopted. `error.tool_changes` holds the current state; its `version` is `null` when nothing is pending any more. |
+| `412 tool_changes_changed` | Apply only: the gateway fetched the upstream list again and it no longer matches the reviewed change, or the cached tool list changed during the apply (for example a tool refresh). Nothing was adopted; the new difference is recorded and returned in `error.tool_changes` (a `clean` state when upstream went back to the cached list). Review it and apply again with its `version`. |
 | `409 tool_changes_unavailable` | Apply only: the gateway cannot read the upstream tool list now, for example because upstream lists no tools while the cache has some. Nothing is adopted; retry later. |
 | `502 upstream_unavailable` | Apply only: the upstream MCP server could not be reached or rejected the request. |
 
