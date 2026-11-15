@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import {
   ActionButton,
@@ -6,6 +6,7 @@ import {
   Btn,
   Checkbox,
   ConnectFirst,
+  CopyButton,
   ErrorBox,
   Field,
   JsonField,
@@ -22,7 +23,7 @@ import {
   usePlayground,
 } from '../ManagementPlayground/ui';
 import { useLoad, when } from '../ManagementPlayground/shared';
-import { redactSecrets } from '../ManagementPlayground/client.mjs';
+import { newIdempotencyKey, redactSecrets } from '../ManagementPlayground/client.mjs';
 import styles from '../ManagementPlayground/styles.module.css';
 import { customToolPath as toolPath, ifMatch, mcpPath } from './routes.mjs';
 import { McpPicker, WriteError, useMcpName } from './common';
@@ -480,28 +481,63 @@ function TestRun({ id, name, draft, draftReady, saved }) {
   const [useDraft, setUseDraft] = useState(!saved);
   const [result, setResult] = useState(null);
   const action = useAction();
+  // Idempotency-Key of the last run whose outcome is unknown ({key, sig}): a retry of the
+  // same request reuses it and gets the stored answer instead of running the tool again.
+  const retry = useRef(null);
+  const [usedKey, setUsedKey] = useState('');
+  const [retryable, setRetryable] = useState(false);
   const parsed = parseJson(args);
   useEffect(() => {
     if (!saved) setUseDraft(true);
   }, [saved]);
   const canRun = NAME_PATTERN.test(name) && !parsed.error && !parsedMocks.error && (!useDraft || draftReady) && (useDraft || saved);
 
-  async function run() {
+  function requestBody() {
+    const body = { name, arguments: parsed.value || {} };
+    if (useDraft && draft) body.draft = draft;
+    const mocked = parsedMocks.value;
+    if (mocked && typeof mocked === 'object' && Object.keys(mocked).length) body.mocks = mocked;
+    return body;
+  }
+
+  // fresh: run again with a new key even when the last outcome is unknown.
+  async function run({ fresh = false } = {}) {
+    const body = requestBody();
+    const sig = JSON.stringify(body);
+    const reuse = !fresh && retry.current && retry.current.sig === sig;
     const ok = await confirm({
-      title: `Run ${name} now?`,
-      body: 'The test run is real: it runs as you (the key owner) with your connection to the MCP, and every tool the script calls that is not mocked has its real effects, checked by policies and approvals and logged.',
-      confirmLabel: 'Run',
+      title: reuse ? `Retry ${name} with the same Idempotency-Key?` : `Run ${name} now?`,
+      body: reuse
+        ? 'The last run with this request ended without a known outcome. Retrying with the same Idempotency-Key returns its stored answer instead of running the tool again; if that run is still going, the gateway may answer 409 test_run_in_progress.'
+        : 'The test run is real: it runs as you (the key owner) with your connection to the MCP, and every tool the script calls that is not mocked has its real effects, checked by policies and approvals and logged.',
+      confirmLabel: reuse ? 'Retry' : 'Run',
       call: `POST ${mcpPath(id, '/custom-tools:test')}`,
     });
     if (!ok) return;
+    const key = reuse ? retry.current.key : newIdempotencyKey('test-run');
+    retry.current = { key, sig };
+    setUsedKey(key);
+    setRetryable(false);
     await action.run(async () => {
-      const body = { name, arguments: parsed.value || {} };
-      if (useDraft && draft) body.draft = draft;
-      const mocked = parsedMocks.value;
-      if (mocked && typeof mocked === 'object' && Object.keys(mocked).length) body.mocks = mocked;
-      const res = await client.call({ method: 'POST', path: mcpPath(id, '/custom-tools:test'), body, source: useDraft ? 'Test run (draft)' : 'Test run' });
-      setResult(res);
-      return res;
+      try {
+        const res = await client.call({
+          method: 'POST',
+          path: mcpPath(id, '/custom-tools:test'),
+          body,
+          headers: { 'Idempotency-Key': key },
+          source: useDraft ? 'Test run (draft)' : 'Test run',
+        });
+        retry.current = null;
+        setResult(res);
+        return res;
+      } catch (e) {
+        // Keep the key only when the outcome is unknown: the run may have happened
+        // (502 test_run_failed, no response) or is still going (409 test_run_in_progress).
+        const unknown = !e?.status || e.code === 'test_run_failed' || e.code === 'test_run_in_progress' || e.status === 503;
+        if (!unknown) retry.current = null;
+        setRetryable(unknown);
+        throw e;
+      }
     });
   }
 
@@ -524,11 +560,33 @@ function TestRun({ id, name, draft, draftReady, saved }) {
       <Checkbox label="Test the unsaved draft (sends the form above as draft)" checked={useDraft} disabled={!saved} onChange={setUseDraft} />
       {useDraft && !draftReady && <p className={styles.muted}>Complete the definition above (name, description, script, valid JSON) to test it.</p>}
       <div className={styles.actionsRow}>
-        <ActionButton method="POST" path="/mcps/{mcp_id}/custom-tools:test" variant="primary" disabled={!canRun} onClick={run}>
-          Run test
+        <ActionButton method="POST" path="/mcps/{mcp_id}/custom-tools:test" variant="primary" disabled={!canRun} onClick={() => run()}>
+          {retryable ? 'Retry with the same key' : 'Run test'}
         </ActionButton>
+        {retryable && (
+          <Btn disabled={!canRun} onClick={() => run({ fresh: true })}>
+            Run again with a new key
+          </Btn>
+        )}
+        {usedKey && (
+          <span className={styles.muted}>
+            Idempotency-Key <code>{usedKey}</code> <CopyButton text={usedKey} />
+          </span>
+        )}
       </div>
       <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
+      {action.error?.payload?.error?.may_have_run && (
+        <Notice tone="warn">
+          may_have_run: the test run failed before a result came back, so the tool may have run and its calls may have changed data. Check the
+          MCP&apos;s logs before running it again. Retry with the same Idempotency-Key to get this stored answer; a new key runs the tool again.
+        </Notice>
+      )}
+      {action.error?.code === 'test_run_in_progress' && (
+        <Notice tone="warn">
+          A run with this Idempotency-Key has not recorded an answer yet. Retry with the same key shortly. If the gateway restarted during the
+          run, its outcome is unknown: check the logs and run again with a new key.
+        </Notice>
+      )}
       {r && (
         <div className={styles.subPanel}>
           <KeyValue

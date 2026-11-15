@@ -56,13 +56,38 @@ To reach a server on a private network, pass `remote_connector_id` with the [Rem
 | `oauth_login` | OAuth with your registered client (`client_id` and `client_secret`) or a provider-issued client. |
 | `oauth_passthrough` | Each MCP client brings its own OAuth token. |
 
+For a public OAuth client, one registered without a secret, send `"client_secret": "-"`. The same `"-"` works for `oauth_client_secret` on a [catalog install](#catalog) and for `client_secret` when you [rotate the client](./client-access-api#oauth-client):
+
+```bash
+curl --request POST "$GW/mcpgateway/management/v1/mcps" \
+  --header "Authorization: Bearer $KEY" \
+  --header 'Idempotency-Key: add-tracker-mcp-1' \
+  --header 'Content-Type: application/json' \
+  --data '{"name": "Tracker", "transport": "https://tracker.example.com/mcp",
+           "auth": {"type": "oauth_login", "client_id": "<public client id>", "client_secret": "-"}}'
+```
+
 Credentials set when adding an MCP are shared by all users of the organization; to have each person bring their own key, switch the MCP's [upstream credential mode](./settings-and-credentials-api#upstream-credentials) afterwards. A body that carries credentials also needs `credentials:write`, and one that carries `settings` also needs `settings:write` (see [conditional scopes](./management-api#conditional-scopes)).
 
-OAuth MCPs (`oauth_dcr` and `oauth_login`) are created with `connection.state` `pending_connection` and a single-use `connect` link. See [Connect links](./connections-and-oauth-api#connect-links). `oauth_passthrough` MCPs need no link: their tools appear when the first client connects with its own token.
+OAuth MCPs (`oauth_dcr` and `oauth_login`) are created with `connection.state` `pending_connection` and a single-use `connect` link. See [Connect links](./connections-and-oauth-api#connect-links). If dynamic client registration with the provider fails (`oauth_dcr` without your own client), the create answers `400 oauth_registration_failed`: register a client with the provider and send its `client_id` and `client_secret`. `oauth_passthrough` MCPs need no link: their tools appear when the first client connects with its own token.
 
 ### Settings and state on create
 
 `POST /mcps` and `POST /mcps/api` accept `settings` and `enabled`; a catalog install takes neither, so change them after it. They apply before the MCP is returned. A create that carries `settings` or `"enabled": false` adds the MCP disabled, applies the settings, and sets the requested state last. An interrupted create therefore never leaves the MCP usable without its settings: it stays disabled until a retry with the same `Idempotency-Key` completes.
+
+### REST API MCP document errors {#api-errors}
+
+`POST /mcps/api` and `POST /mcps/api:preview` read an OpenAPI document from `preview_token`, `source_url`, `spec_text` or `spec_base64`. Request bodies are limited to 1 MiB, and an inline document grows when it is JSON-escaped or base64-encoded, so give a document over about 750 KB as `source_url`. Document problems answer with the same codes here and on [`PATCH .../api-config` and resync](./rest-api-mcps-api):
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| 400 | `spec_missing` | No document, or more than one source. |
+| 400 | `spec_invalid` | The document could not be read as OpenAPI. |
+| 400 | `blocked_destination` | `source_url` points to a destination the gateway does not call, such as a private or reserved network address. |
+| 410 | `preview_expired` | The `preview_token` expired; preview the document again. |
+| 413 | `spec_too_large` | The document is over 10 MiB. |
+| 422 | `tools_too_large` | The selected operations produce more tool definitions than allowed. |
+| 502 | `fetch_failed` | The document could not be downloaded from `source_url`. Nothing was created; fix the URL or headers and retry. |
 
 ## Change and remove an MCP {#update}
 

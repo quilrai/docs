@@ -49,10 +49,11 @@ For full tool-call logs in your own data platform, use the [Log Export API](./lo
 
 | Response | What to do |
 | --- | --- |
+| `400 invalid_request` | A parameter is invalid. `error.fields` is an object keyed by query parameter with the reason, for example `{"to": "must be after from"}`. |
 | `429 report_busy` | Retry after `Retry-After`. |
 | `503 query_timeout` | Narrow the range or filters and retry. |
 | `422 result_too_large` | The report would exceed 100,000 rows. Narrow it. |
-| `503 data_unavailable` | Analytics data cannot be read right now. Retry later. |
+| `503 data_unavailable` | Analytics data cannot be read right now. Retry later. On a deployment without an analytics store it is permanent, and the message says analytics is not available on this deployment: do not retry. |
 | `409 collection_changed` | A cursor's result changed. Restart without a cursor. A fixed `to` in the past keeps results stable. |
 
 ## Audit {#audit}

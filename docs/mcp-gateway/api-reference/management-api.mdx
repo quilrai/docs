@@ -96,7 +96,9 @@ Send management requests to your MCP Gateway host, the same host your MCP endpoi
 | `/mcpgateway/management/v1/...` | Management key |
 | `/mcpgateway/management-admin/v1/...` | Tenant administrator token (see [Administration endpoints](#administration-endpoints)) |
 
-Issue a key in the console (see [Enable in the console](#enable-in-the-console)). For this workflow, the key needs `read`, `mcps:write`, `settings:write` and `credentials:write`.
+An administrator of your organization issues the key on the **Management API** tab under **Settings > AI Gateway > MCP Gateway** (see [Enable in the console](#enable-in-the-console)). For this workflow, the key needs `read`, `mcps:write`, `settings:write` and `credentials:write`.
+
+You do not need your tenant ID for these calls: the key belongs to one tenant, and every call acts on that tenant. Only the [administration endpoints](#administration-endpoints) take a tenant ID in the path; if you use them and do not have it, ask QuilrAI support.
 
 ```bash
 export GW='https://mcpgateway.quilr.ai'   # your MCP Gateway host
@@ -345,10 +347,11 @@ These operations take `If-Match`:
 - `PUT /mcps/{mcp_id}/oauth-client`
 - `PATCH /mcps/{mcp_id}/api-config`, and `POST /mcps/{mcp_id}/api-config/resync?apply=true` (optional without `apply=true`)
 - `PUT`, `PATCH` and `DELETE /mcps/{mcp_id}/custom-tools/{name}`, and `POST /mcps/{mcp_id}/custom-tools/{name}/restore`
+- `POST /mcps/{mcp_id}/tool-changes/apply` and `POST /mcps/{mcp_id}/tool-changes/dismiss` (the pending change's `version`, see [Tool changes](./tenant-and-tool-changes-api#tool-changes))
 - `PATCH /tenant/settings` (the tenant settings `version`)
 - the administration `PATCH .../settings` and `PATCH` / `DELETE .../keys/{key_id}`
 
-These do not take `If-Match`: tool review approve and reject, MCP API token revoke, agent delete, alias `PUT`, `PATCH` and `DELETE`, MCP request dismiss, user connection revoke, and tool change apply and dismiss.
+These do not take `If-Match`: tool review approve and reject, MCP API token revoke, agent delete, alias `PUT`, `PATCH` and `DELETE`, MCP request dismiss, user connection revoke, and tool change check.
 
 ### Idempotency and recovery {#idempotency}
 
@@ -356,10 +359,12 @@ Creates require an `Idempotency-Key` header, 1 to 200 characters of your choosin
 
 | Situation | Result |
 | --- | --- |
-| Same key and same request within 24 hours | The original response is returned: the same MCP, the same key secret, the same connect link. |
+| Same key and same request within 24 hours | The original response is returned: the same MCP, the same key secret. A connect link lives only 15 minutes and works once, so when the stored link has expired, was used, or has less than 60 seconds left, the replay carries a new link for the same MCP (only `connect.url` and `connect.expires_at` differ). Later retries return that new link while it is valid. |
 | Same key with a different method, path or body | `409 idempotency_conflict` |
 | Same key after 24 hours | `409 idempotency_replay_expired`; use a new key. |
-| Missing header, or a key over 200 characters or with control characters | `400 idempotency_key_required` |
+| Missing header on a create, or a key over 200 characters or with control characters | `400 idempotency_key_required` |
+
+[Custom tool test runs](./custom-tools-api#retry-safely) (`POST /mcps/{mcp_id}/custom-tools:test`) take an optional `Idempotency-Key` with the same rules: the same key and body within 24 hours return the stored answer instead of running the tool again.
 
 If a create is interrupted, the response may be `503 operation_pending` with `operation_id`. Retry the same request with the same `Idempotency-Key`: the gateway finishes or cleanly redoes it and never creates a duplicate. `GET /operations/{op_id}` shows its state; only the key that started the operation can read it. Concurrent creates of the same name answer `409 operation_in_progress`; an existing slug answers `409 slug_conflict`.
 
@@ -371,7 +376,7 @@ List endpoints take `limit` (1 to 200, default 50) and `cursor`. Pass the `next_
 
 - Each endpoint accepts only its documented query parameters, each at most once. Anything else is `400 invalid_request`.
 - Unknown body fields, at any depth, are refused with `400` and their paths in `error.fields`.
-- Bodies are at most 1 MiB (`413 body_too_large`) and must arrive within 10 seconds (`408 body_timeout`).
+- Bodies are at most 1 MiB (`413 body_too_large`) and must arrive within 10 seconds (`408 body_timeout`). An inline OpenAPI document grows when it is JSON-escaped (`spec_text`) or base64-encoded (`spec_base64`), so a document over about 750 KB does not fit: give it as `source_url` instead.
 - At most 32 management requests are in flight per gateway, and one organization may use at most half of them. Beyond either limit you get `429 management_busy` with `Retry-After`; other organizations' calls are still admitted.
 
 ### Errors
@@ -389,17 +394,17 @@ Every error has the same shape:
 }
 ```
 
-`message` is fixed text. `fields` names the offending request paths (`body.x`, `query.y`, `path.z`) and never echoes submitted values. Some errors add details such as `required_scopes`, `operation_id`, `current_version` or `missing_fields`.
+`message` is fixed text. `fields` names the offending request paths (`body.x`, `query.y`, `path.z`) and never echoes submitted values. Analytics reports return `fields` as an object keyed by query parameter with the reason instead, for example `{"from": "from and to may be at most 92 days apart"}`. Some errors add details such as `required_scopes`, `operation_id`, `current_version`, `missing_fields`, `may_have_run` or `tool_changes`.
 
 | Status | Code | Meaning |
 | --- | --- | --- |
 | 400 | `invalid_request` | Invalid body, path or query parameter (`fields`). |
-| 400 | `idempotency_key_required` | Create without a valid `Idempotency-Key`. |
+| 400 | `idempotency_key_required` | Create without a valid `Idempotency-Key`, or a malformed key on any request that takes one. |
 | 400 | `invalid_configuration` | The configuration was refused or conflicts with an existing MCP. |
 | 400 | `upstream_auth_failed` | The upstream MCP server rejected the credentials or could not list tools. |
-| 400 | `oauth_registration_failed` | Dynamic client registration failed; supply OAuth client credentials. |
+| 400 | `oauth_registration_failed` | Dynamic client registration with the provider failed (`oauth_dcr` without your own client); supply OAuth client credentials. Used only for that failure. |
 | 400 | `no_operations_selected`, `invalid_operation_override` | A REST API change would expose no operation, or names operations not in the document (`unknown_operations`). |
-| 400 | `spec_missing`, `spec_invalid`, `blocked_destination` | OpenAPI document missing, unreadable, or at a destination the gateway does not call. |
+| 400 | `spec_missing`, `spec_invalid`, `blocked_destination` | OpenAPI document missing, unreadable, or at a destination the gateway does not call. OpenAPI document errors use the same codes on create, preview, `PATCH .../api-config` and resync. |
 | 400 | `unsupported_encoding`, `invalid_api_backend` | The OpenAPI document's encoding is not supported; the REST API configuration is invalid. |
 | 401 | `invalid_management_key` | Missing, unknown, expired or revoked key. |
 | 401 | `invalid_admin_token` | Administration endpoint without a valid administrator token. |
@@ -436,6 +441,7 @@ Every error has the same shape:
 | 409 | `pending_first_client` | OAuth passthrough MCPs cannot be refreshed by the gateway. |
 | 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
 | 409 | `not_api_mcp`, `not_openapi`, `spec_uploaded` | Not a REST API MCP; not built from an OpenAPI document; the document was uploaded, so send a new one instead of resyncing. |
+| 409 | `test_run_in_progress` | A custom tool test run with this `Idempotency-Key` has not recorded an answer yet; retry after `Retry-After`. See [retry safely](./custom-tools-api#retry-safely). |
 | 409 | `tool_name_taken`, `custom_tool_limit`, `test_run_unavailable` | One of the MCP's own tools already uses the name; the MCP already has 50 custom tools; test runs are not available on OAuth passthrough MCPs. See [custom tool errors](./custom-tools-api#errors). |
 | 409 | `not_oauth_mcp`, `oauth_client_not_custom` | No gateway OAuth client; the gateway registered the client itself, so it cannot be rotated. |
 | 409 | `connect_link_used` | Connect link already used. |
@@ -443,9 +449,10 @@ Every error has the same shape:
 | 410 | `connect_link_expired` | Connect link expired. |
 | 410 | `connect_link_revoked` | The management key that issued the connect link was revoked or expired. |
 | 410 | `preview_expired` | The OpenAPI preview expired; preview the document again. |
-| 412 | `version_conflict` | `If-Match` is stale (`current_version` when known). |
+| 412 | `version_conflict` | `If-Match` is stale (`current_version` when known; on tool-change apply and dismiss, `tool_changes` holds the current change). |
+| 412 | `tool_changes_changed` | Tool-change apply: upstream no longer serves the reviewed change, so nothing was adopted (`tool_changes` holds the new change). |
 | 413 | `body_too_large` | Body over 1 MiB. |
-| 413 | `spec_too_large` | The OpenAPI document is too large. |
+| 413 | `spec_too_large` | The OpenAPI document is over 10 MiB. An inline document is also bound by the 1 MiB body limit (`body_too_large`); send `source_url` instead. |
 | 422 | `install_input_required` | Catalog install needs more values (`missing_fields`). |
 | 422 | `result_too_large` | Report would exceed 100,000 rows. |
 | 422 | `tools_too_large` | The selected REST API operations produce more tool definitions than allowed. |
@@ -453,13 +460,13 @@ Every error has the same shape:
 | 429 | `management_busy`, `report_busy`, `rate_limited` | Too many requests; honor `Retry-After`. `management_busy` can also mean your organization is over its share of concurrent management calls. |
 | 502 | `upstream_unavailable`, `oauth_initiation_failed` | The upstream MCP server or OAuth provider is unreachable or refused. |
 | 502 | `fetch_failed` | The OpenAPI document could not be downloaded. |
-| 502 | `test_run_failed` | A custom tool test run could not be completed. |
+| 502 | `test_run_failed` | A custom tool test run failed before a result came back; the tool may have run (`"may_have_run": true`). See [retry safely](./custom-tools-api#retry-safely). |
 | 503 | `operation_pending` | Create incomplete; retry with the same `Idempotency-Key`. |
 | 503 | `storage_unavailable`, `service_unavailable`, `mcp_busy` | Temporary; retry after `Retry-After`. |
-| 503 | `query_timeout`, `data_unavailable` | Analytics temporarily unavailable. |
+| 503 | `query_timeout`, `data_unavailable` | Analytics temporarily unavailable. On a deployment without an analytics store, `data_unavailable` is permanent. |
 | 504 | `upstream_timeout` | The upstream MCP server did not respond in time. |
 
-**Retry guidance:** `429` and `503` are safe to retry after `Retry-After`. Retry creates only with the same `Idempotency-Key`. On `412`, read the resource again before retrying.
+**Retry guidance:** `429` and `503` are safe to retry after `Retry-After`, except `data_unavailable` on a deployment without an analytics store. Retry creates only with the same `Idempotency-Key`. On `412`, read the resource again before retrying. A `502 test_run_failed` may have run the tool: check the MCP's logs, and retry only with the same `Idempotency-Key`.
 
 ## OpenAPI document {#openapi}
 

@@ -11,12 +11,14 @@ import {
   JsonField,
   JsonView,
   Notice,
+  Pager,
   Panel,
   Pill,
   Table,
   parseJson,
   pretty,
   useAction,
+  useCollection,
   usePlayground,
 } from '../ManagementPlayground/ui';
 import { jsonContent, sampleFromSchema } from '../ManagementPlayground/spec.mjs';
@@ -211,10 +213,23 @@ function SectionEditor({ id, section, value, version, schema, draft, setDraft, o
 }
 
 const BLANK_OVERRIDE = { scope_type: 'user', scope_value: '', enabled: '', settings: '{\n  "dlp": {"data_risk_action": "block"}\n}' };
+const BLANK_LOOKUP = { scope_type: 'user', scope_value: '' };
 
 function ScopedSettings({ id, generation, onWritten }) {
   const { client, confirm, spec } = usePlayground();
-  const list = useLoad(() => client.call({ path: mcpPath(id, '/scoped-settings'), source: 'Scoped settings' }), [client, id, generation]);
+  // Lookup: scope_type and scope_value go together (one alone is 400); null lists every override.
+  const [lookup, setLookup] = useState(BLANK_LOOKUP);
+  const [applied, setApplied] = useState(null);
+  const [limit, setLimit] = useState('50');
+  const list = useCollection(
+    (cursor) =>
+      client.call({
+        path: mcpPath(id, '/scoped-settings'),
+        query: { limit, cursor, ...(applied || {}) },
+        source: applied ? 'Scoped settings lookup' : 'Scoped settings',
+      }),
+    [client, id, generation, limit, JSON.stringify(applied)],
+  );
   const [form, setForm] = useState(null);
   const action = useAction();
   const putSchema = useBodySchema('Put_scoped_settings');
@@ -267,17 +282,67 @@ function ScopedSettings({ id, generation, onWritten }) {
         </>
       }
     >
+      <form
+        className={styles.filters}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setApplied({ scope_type: lookup.scope_type, scope_value: lookup.scope_value });
+        }}
+      >
+        <Field label="Scope type">
+          <select value={lookup.scope_type} onChange={(e) => setLookup({ ...lookup, scope_type: e.target.value })}>
+            <option value="user">user</option>
+            <option value="smart_group">smart_group</option>
+          </select>
+        </Field>
+        <Field label={lookup.scope_type === 'user' ? 'User email' : 'Smart group name'} hint="Trimmed, then matched exactly with case kept.">
+          <input value={lookup.scope_value} onChange={(e) => setLookup({ ...lookup, scope_value: e.target.value })} placeholder={lookup.scope_type === 'user' ? 'dana@example.com' : 'Engineering'} spellCheck="false" />
+        </Field>
+        <Field label="Page size">
+          <select value={limit} onChange={(e) => setLimit(e.target.value)}>
+            {['25', '50', '100', '200'].map((n) => (
+              <option key={n}>{n}</option>
+            ))}
+          </select>
+        </Field>
+        <Btn type="submit" variant="primary">
+          Look up one override
+        </Btn>
+        <Btn
+          onClick={() => {
+            setLookup(BLANK_LOOKUP);
+            setApplied(null);
+          }}
+          disabled={!applied}
+        >
+          Show all
+        </Btn>
+      </form>
       <ErrorBox error={list.error} />
       {data && (
         <p className={styles.muted}>
           Version <code>{data.version}</code>
+          {applied ? (
+            <>
+              {' '}
+              - showing the override for <code>{applied.scope_type}</code> <code>{applied.scope_value}</code>
+            </>
+          ) : null}
         </p>
       )}
       <Table
         rows={rows}
         rowKey={(r) => `${r.scope_type}:${r.scope_value}`}
         onRowClick={(r) => setForm({ scope_type: r.scope_type, scope_value: r.scope_value, enabled: r.enabled == null ? '' : String(r.enabled), settings: pretty(r.settings || {}) })}
-        empty={list.loading ? 'Loading...' : list.error ? 'No data: the request failed (see the error above).' : 'No overrides. Every user gets the MCP settings.'}
+        empty={
+          list.loading
+            ? 'Loading...'
+            : list.error
+              ? 'No data: the request failed (see the error above).'
+              : applied
+                ? 'No override for this scope.'
+                : 'No overrides. Every user gets the MCP settings.'
+        }
         columns={[
           { label: 'Scope', render: (r) => <Pill>{r.scope_type === 'smart_group' ? 'smart group' : 'user'}</Pill> },
           { label: 'Applies to', render: (r) => <code>{r.scope_value}</code> },
@@ -296,6 +361,7 @@ function ScopedSettings({ id, generation, onWritten }) {
           },
         ]}
       />
+      {!applied && <Pager list={list} />}
       {form && (
         <div className={styles.subPanel}>
           <h3>{rows.some((r) => r.scope_type === form.scope_type && r.scope_value === form.scope_value) ? 'Change override' : 'New override'}</h3>

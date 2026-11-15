@@ -3,7 +3,7 @@ import { CircleCheck, EyeOff, RefreshCw, Search } from 'lucide-react';
 import { ActionButton, ApiChips, Btn, Checkbox, ConnectFirst, ErrorBox, JsonView, KeyValue, Notice, Panel, Pill, Table, fmt, useAction, usePlayground } from '../ManagementPlayground/ui';
 import { fetchAllPages, useLoad, when } from '../ManagementPlayground/shared';
 import styles from '../ManagementPlayground/styles.module.css';
-import { MCP_PREFIX, mcpPath } from './routes.mjs';
+import { MCP_PREFIX, ifMatch, mcpPath } from './routes.mjs';
 import { McpPicker, useMcpName } from './common';
 
 const FAILED = 'No data: the request failed (see the error above).';
@@ -74,6 +74,7 @@ function Change({ id }) {
   const name = useMcpName(id);
   const change = useLoad(() => client.call({ path: mcpPath(id, '/tool-changes'), source: 'Tool change' }), [client, id]);
   const action = useAction();
+  const [stale, setStale] = useState('');
   const c = change.data?.tool_changes;
 
   async function act(kind) {
@@ -83,7 +84,7 @@ function Change({ id }) {
         title: kind === 'apply' ? `Adopt the upstream tool list of ${name}?` : `Dismiss this change on ${name}?`,
         body:
           kind === 'apply'
-            ? 'The cached tool list is replaced by the upstream one. New tools may still be held for review.'
+            ? 'The cached tool list is replaced by the upstream one, if upstream still serves the change shown. New tools may still be held for review.'
             : 'The cached tool list stays as it is. A different upstream list opens a new change.',
         confirmLabel: kind === 'apply' ? 'Adopt' : 'Dismiss',
         tone: kind === 'apply' ? undefined : 'danger',
@@ -91,10 +92,27 @@ function Change({ id }) {
       });
       if (!ok) return;
     }
+    setStale('');
     await action.run(async () => {
-      const res = await client.call({ method: 'POST', path: mcpPath(id, `/tool-changes/${kind}`), source: labels[kind] });
-      change.setData(res);
-      return res;
+      try {
+        // Apply and dismiss act only on the change that was reviewed: If-Match with its version.
+        const headers = kind === 'check' ? {} : { 'If-Match': ifMatch(c?.version) };
+        const res = await client.call({ method: 'POST', path: mcpPath(id, `/tool-changes/${kind}`), headers, source: labels[kind] });
+        change.setData(res);
+        return res;
+      } catch (e) {
+        // 412: the change moved since it was read; the error carries the current one.
+        const current = e?.status === 412 ? e.payload?.error?.tool_changes : null;
+        if (current) {
+          change.setData({ tool_changes: current });
+          setStale(
+            e.code === 'tool_changes_changed'
+              ? 'Upstream no longer serves the change you reviewed, so nothing was adopted. The new change is shown below: review it and adopt again.'
+              : 'The change was replaced since you read it. The current change is shown below: review it and try again.',
+          );
+        }
+        throw e;
+      }
     }, (res) => `${labels[kind]}: status ${res.tool_changes?.status}.`);
   }
 
@@ -137,20 +155,25 @@ function Change({ id }) {
               ['Detected', when(c.detected_at)],
               ['Resolved', c.resolved_at ? `${when(c.resolved_at)}${c.resolved_by ? ` by ${c.resolved_by}` : ''}` : '-'],
               c.reason_code && ['Reason', <code key="r">{c.reason_code}</code>],
+              ['Version', c.version ? <code key="v">{c.version}</code> : '-'],
             ]}
           />
           <div className={styles.actionsRow}>
             <ActionButton method="POST" path="/mcps/{mcp_id}/tool-changes/check" onClick={() => act('check')}>
               <Search size={13} aria-hidden /> Check now
             </ActionButton>
-            <ActionButton method="POST" path="/mcps/{mcp_id}/tool-changes/apply" variant="primary" disabled={c.status !== 'pending'} onClick={() => act('apply')}>
+            <ActionButton method="POST" path="/mcps/{mcp_id}/tool-changes/apply" variant="primary" disabled={c.status !== 'pending' || !c.version} onClick={() => act('apply')}>
               <CircleCheck size={13} aria-hidden /> Adopt upstream list
             </ActionButton>
-            <ActionButton method="POST" path="/mcps/{mcp_id}/tool-changes/dismiss" variant="danger" disabled={c.status !== 'pending'} onClick={() => act('dismiss')}>
+            <ActionButton method="POST" path="/mcps/{mcp_id}/tool-changes/dismiss" variant="danger" disabled={c.status !== 'pending' || !c.version} onClick={() => act('dismiss')}>
               <EyeOff size={13} aria-hidden /> Dismiss
             </ActionButton>
           </div>
+          <p className={styles.muted}>Adopt and dismiss send this change's version in If-Match, so they act only on the change shown here.</p>
           <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
+          <Notice tone="warn" onDismiss={() => setStale('')}>
+            {stale}
+          </Notice>
           <Notice tone="ok" onDismiss={() => action.setNotice('')}>
             {action.notice}
           </Notice>

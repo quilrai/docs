@@ -93,7 +93,7 @@ The connect page sends the token to `POST /mcpgateway/management-connect/start` 
 
 `POST /mcps/{mcp_id}/connect-links` answers `409 oauth_not_applicable` for an MCP that does not use gateway-managed OAuth.
 
-Retrying an OAuth create with the same `Idempotency-Key` within 24 hours returns the same connect link.
+Retrying an OAuth create or install with the same `Idempotency-Key` within 24 hours returns the original response (see [idempotency and recovery](./management-api#idempotency)). Its connect link is the stored one while it can still be used. When the stored link has expired, was used, or has less than 60 seconds left, the replay carries a new link for the same MCP instead: only `connect.url` and `connect.expires_at` change, and later retries return the new link while it is valid.
 
 ## Endpoint reference
 

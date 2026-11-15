@@ -35,7 +35,7 @@
             }
           }
         },
-        "description": "Invalid request: `error.fields` names the offending paths (invalid_request, idempotency_key_required, invalid_configuration, ...).",
+        "description": "Invalid request: `error.fields` names the offending paths, or for analytics reports maps each offending query parameter to the reason (invalid_request, idempotency_key_required, invalid_configuration, ...).",
         "headers": {
           "X-Request-ID": {
             "$ref": "#/components/headers/X-Request-ID"
@@ -65,7 +65,7 @@
             }
           }
         },
-        "description": "Request body exceeds 1 MiB.",
+        "description": "Request body exceeds 1 MiB (body_too_large), or an OpenAPI document exceeds its limit (spec_too_large).",
         "headers": {
           "X-Request-ID": {
             "$ref": "#/components/headers/X-Request-ID"
@@ -128,7 +128,7 @@
             }
           }
         },
-        "description": "The connect link expired.",
+        "description": "The connect link expired, or an OpenAPI preview token expired (preview_expired).",
         "headers": {
           "X-Request-ID": {
             "$ref": "#/components/headers/X-Request-ID"
@@ -188,7 +188,7 @@
             }
           }
         },
-        "description": "Storage or analytics temporarily unavailable, a query timed out, or an operation is pending (retry the same Idempotency-Key).",
+        "description": "Storage or analytics temporarily unavailable, a query timed out, or an operation is pending (retry the same Idempotency-Key). On deployments without an analytics store, analytics reports always answer data_unavailable: do not retry those.",
         "headers": {
           "Retry-After": {
             "$ref": "#/components/headers/Retry-After"
@@ -206,7 +206,7 @@
             }
           }
         },
-        "description": "More install input is required, or a report would produce too many rows.",
+        "description": "More install input is required, a report would produce too many rows, or the selected OpenAPI operations produce too many tool definitions (tools_too_large).",
         "headers": {
           "X-Request-ID": {
             "$ref": "#/components/headers/X-Request-ID"
@@ -247,7 +247,7 @@
     "schemas": {
       "AccessControlSettings": {
         "additionalProperties": false,
-        "description": "Which agents, smart groups and users may use this MCP. Deny lists win.",
+        "description": "Which agents, smart groups and users may use this MCP. Users are checked in this order, first match wins: denied_users (blocked), allowed_users (allowed, even when a group of theirs is denied), denied_smart_groups (blocked), then allowed_smart_groups (when not empty, users in none of them are blocked). Otherwise allowed.",
         "properties": {
           "allowed_agents": {
             "items": {
@@ -1883,7 +1883,7 @@
             "writeOnly": true
           },
           "oauth_client_secret": {
-            "description": "Your OAuth client secret.",
+            "description": "Your OAuth client secret; \"-\" for a public client (no secret).",
             "maxLength": 8192,
             "minLength": 1,
             "type": "string",
@@ -3449,7 +3449,11 @@
                     "type": "object"
                   }
                 ],
-                "description": "Offending request paths (body.x, query.y, path.z)."
+                "description": "Offending request paths (body.x, query.y, path.z) as a list; analytics reports instead return an object keyed by query parameter name with the reason, for example {\"from\": \"must be before to\"}."
+              },
+              "may_have_run": {
+                "description": "test_run_failed only: true when the tool may have run before the failure.",
+                "type": "boolean"
               },
               "message": {
                 "description": "Fixed, human-readable text.",
@@ -3469,6 +3473,10 @@
                   "type": "string"
                 },
                 "type": "array"
+              },
+              "tool_changes": {
+                "description": "Tool-change apply and dismiss 412 only: the current change, to review again.",
+                "type": "object"
               }
             },
             "required": [
@@ -4182,7 +4190,7 @@
             "writeOnly": true
           },
           "client_secret": {
-            "description": "oauth_dcr / oauth_login: your OAuth client secret (with client_id).",
+            "description": "oauth_dcr / oauth_login: your OAuth client secret (with client_id). For a public client (no secret) send \"-\".",
             "maxLength": 8192,
             "minLength": 1,
             "type": "string",
@@ -5203,7 +5211,7 @@
             "type": "string"
           },
           "client_secret": {
-            "description": "The client secret. Required on every rotation.",
+            "description": "The client secret. Required on every rotation; \"-\" for a public client (no secret).",
             "maxLength": 8192,
             "minLength": 1,
             "type": "string",
@@ -5921,6 +5929,13 @@
           "mcp_id": {
             "type": "string"
           },
+          "next_cursor": {
+            "description": "Pass as cursor for the next page; null on the last page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "request_id": {
             "description": "Request correlation id (also in X-Request-ID).",
             "type": "string"
@@ -5979,6 +5994,7 @@
         "required": [
           "mcp_id",
           "scoped_settings",
+          "next_cursor",
           "version",
           "request_id"
         ],
@@ -6934,6 +6950,13 @@
           "status": {
             "description": "off, unchecked, clean, pending, applied, dismissed, skipped or error.",
             "type": "string"
+          },
+          "version": {
+            "description": "Version of the change awaiting review, derived from the exact difference shown; send it quoted in If-Match to apply or dismiss. null when nothing is pending.",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -7257,7 +7280,7 @@
       },
       "UpstreamAuthPut": {
         "additionalProperties": false,
-        "description": "Static credential and extras: one shared key, or the shape of a key each user brings (`mode`). Not available for OAuth MCPs.",
+        "description": "Static credential and extras: one shared key, or the shape of a key each user brings (`mode`). OAuth MCPs take only `extra_headers` and `extra_query_params`; a static credential (type, token, header_name, query_param, scheme, mode) is refused.",
         "minProperties": 1,
         "properties": {
           "extra_headers": {
@@ -7820,7 +7843,7 @@
     }
   },
   "info": {
-    "description": "Manage the MCPs of a Quilr MCP Gateway tenant programmatically: inventory, creation and removal, settings, upstream credentials, tool reviews, OAuth connections and analytics.\n\n**Authentication.** A tenant administrator enables management for the tenant and issues management keys in the Quilr console (MCP Gateway, Management API tab) or with the Administration endpoints (tenant administrator token). Every other endpoint takes a management key as `Authorization: Bearer qmcpmgmt_...`. Each operation lists the scopes it always requires in `x-scopes`; `x-conditional-scopes` lists scopes that are added when the request body carries credentials or settings. An empty `x-scopes` on an Administration operation means a tenant administrator token.\n\n**Writes.** Changes to an existing MCP configuration require `If-Match` with the quoted `version` (ETag) from the latest read (`428` when missing, `412` when stale). Creates take an `Idempotency-Key`; retrying with the same key within 24 hours returns the original result instead of creating twice.\n\n**Responses.** Every JSON response carries `request_id` (also in `X-Request-ID`) and `Cache-Control: no-store`. Errors use `{\"error\": {\"code\", \"message\", ...}, \"request_id\"}`; `error.fields` names the offending request paths and never echoes submitted values. Lists are paginated with `limit` and an opaque `cursor` (`next_cursor` is null on the last page). Timestamps are UTC RFC 3339 (`...Z`).\n\n**Policy.** When QuilrQL policies govern the tenant, stored MCP settings are saved but not enforced until the policy engine is turned off; responses flag this with an `inactive_under_quilrql` warning.",
+    "description": "Manage the MCPs of a Quilr MCP Gateway tenant programmatically: inventory, creation and removal, settings, upstream credentials, tool reviews, OAuth connections and analytics.\n\n**Authentication.** A tenant administrator enables management for the tenant and issues management keys in the Quilr console (MCP Gateway, Management API tab) or with the Administration endpoints (tenant administrator token). Every other endpoint takes a management key as `Authorization: Bearer qmcpmgmt_...`. Each operation lists the scopes it always requires in `x-scopes`; `x-conditional-scopes` lists scopes that are added when the request body carries credentials or settings. An empty `x-scopes` on an Administration operation means a tenant administrator token.\n\n**Writes.** Changes to an existing MCP configuration require `If-Match` with the quoted `version` (ETag) from the latest read (`428` when missing, `412` when stale). Creates take an `Idempotency-Key`; retrying with the same key within 24 hours returns the original result instead of creating twice.\n\n**Responses.** Every JSON response carries `request_id` (also in `X-Request-ID`) and `Cache-Control: no-store`. Errors use `{\"error\": {\"code\", \"message\", ...}, \"request_id\"}`; `error.fields` names the offending request paths (analytics reports: an object keyed by query parameter) and never echoes submitted values. Lists are paginated with `limit` and an opaque `cursor` (`next_cursor` is null on the last page). Timestamps are UTC RFC 3339 (`...Z`).\n\n**Policy.** When QuilrQL policies govern the tenant, stored MCP settings are saved but not enforced until the policy engine is turned off; responses flag this with an `inactive_under_quilrql` warning.",
     "title": "MCP Gateway Management API",
     "version": "1.0.0"
   },
@@ -10980,7 +11003,7 @@
     },
     "/mcpgateway/management/v1/mcps/api": {
       "post": {
-        "description": "Exposes a REST API as MCP tools: one tool per selected OpenAPI operation (`openapi`), or a generic request tool restricted by `access` rules. Preview the spec first with POST /mcps/api:preview and pass its `preview_token`. Requires an Idempotency-Key; retrying with the same key and body within 24 hours returns the original response, a different body under the same key is 409 `idempotency_conflict`.",
+        "description": "Exposes a REST API as MCP tools: one tool per selected OpenAPI operation (`openapi`), or a generic request tool restricted by `access` rules. Preview the spec first with POST /mcps/api:preview and pass its `preview_token`. Spec errors use the same codes on create, preview, configuration changes and resync: 400 `spec_missing`, `spec_invalid`, `unsupported_encoding`, `blocked_destination` (the URL points somewhere the gateway does not call), `invalid_operation_override` (with `unknown_operations`), `no_operations_selected`; 410 `preview_expired` (preview again); 413 `spec_too_large`; 422 `tools_too_large`; 502 `fetch_failed` (the document could not be downloaded). Requests are limited to 1 MiB, so an inline document (`spec_text` or `spec_base64`) over about 750 KB must be sent as `source_url` instead. Requires an Idempotency-Key; retrying with the same key and body within 24 hours returns the original response, a different body under the same key is 409 `idempotency_conflict`.",
         "operationId": "Create_an_api_mcp",
         "parameters": [
           {
@@ -11088,8 +11111,14 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
+          "410": {
+            "$ref": "#/components/responses/Gone"
+          },
           "413": {
             "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
@@ -11127,7 +11156,7 @@
     },
     "/mcpgateway/management/v1/mcps/api:preview": {
       "post": {
-        "description": "Fetches or parses an OpenAPI document without saving anything and lists its operations with the selection the given `access` rules and `overrides` produce. Returns a `preview_token` (reuse it to reselect or to create without re-fetching).",
+        "description": "Fetches or parses an OpenAPI document without saving anything and lists its operations with the selection the given `access` rules and `overrides` produce. Returns a `preview_token` (reuse it to reselect or to create without re-fetching). Spec errors use the same codes on create, preview, configuration changes and resync: 400 `spec_missing`, `spec_invalid`, `unsupported_encoding`, `blocked_destination` (the URL points somewhere the gateway does not call), `invalid_operation_override` (with `unknown_operations`), `no_operations_selected`; 410 `preview_expired` (preview again); 413 `spec_too_large`; 422 `tools_too_large`; 502 `fetch_failed` (the document could not be downloaded). Requests are limited to 1 MiB, so an inline document (`spec_text` or `spec_base64`) over about 750 KB must be sent as `source_url` instead.",
         "operationId": "Preview_an_api_spec",
         "parameters": [],
         "requestBody": {
@@ -11198,8 +11227,14 @@
           "408": {
             "$ref": "#/components/responses/BodyTimeout"
           },
+          "410": {
+            "$ref": "#/components/responses/Gone"
+          },
           "413": {
             "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
@@ -11928,7 +11963,7 @@
         ]
       },
       "patch": {
-        "description": "Merges the sent fields into the saved configuration and republishes the tools (`tool_diff`). Sending `base_url` or `remote_connector_id` (even unchanged), and nonempty `fixed_params`, need credentials:write. 400 `no_operations_selected` when nothing would be exposed, `invalid_operation_override` for unknown operations, `spec_missing` when switching to OpenAPI without a document. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Merges the sent fields into the saved configuration and republishes the tools (`tool_diff`). Sending `base_url` or `remote_connector_id` (even unchanged), and nonempty `fixed_params`, need credentials:write. 400 `no_operations_selected` when nothing would be exposed, `invalid_operation_override` for unknown operations, `spec_missing` when switching to OpenAPI without a document. Spec errors use the same codes on create, preview, configuration changes and resync: 400 `spec_missing`, `spec_invalid`, `unsupported_encoding`, `blocked_destination` (the URL points somewhere the gateway does not call), `invalid_operation_override` (with `unknown_operations`), `no_operations_selected`; 410 `preview_expired` (preview again); 413 `spec_too_large`; 422 `tools_too_large`; 502 `fetch_failed` (the document could not be downloaded). Requests are limited to 1 MiB, so an inline document (`spec_text` or `spec_base64`) over about 750 KB must be sent as `source_url` instead. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Update_REST_API_config",
         "parameters": [
           {
@@ -12069,17 +12104,26 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
+          "410": {
+            "$ref": "#/components/responses/Gone"
+          },
           "412": {
             "$ref": "#/components/responses/VersionConflict"
           },
           "413": {
             "$ref": "#/components/responses/BodyTooLarge"
           },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
           "428": {
             "$ref": "#/components/responses/PreconditionRequired"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamUnavailable"
           },
           "503": {
             "$ref": "#/components/responses/Unavailable"
@@ -12222,7 +12266,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/api-config/resync": {
       "post": {
-        "description": "Downloads the document again from its source URL and reports added and removed operations. `apply=true` saves it: overrides of operations that still exist are kept and new operations are saved turned off. 409 `spec_uploaded` for an uploaded document, `not_openapi` for generic MCPs, `no_operations_selected` when `apply=true` would leave no operation selected (a report without `apply` returns it in `error`). `apply=true` needs If-Match with the quoted `version` from the latest read (428 when missing, 412 when stale); without `apply`, If-Match is optional.",
+        "description": "Downloads the document again from its source URL and reports added and removed operations. `apply=true` saves it: overrides of operations that still exist are kept and new operations are saved turned off. 409 `spec_uploaded` for an uploaded document, `not_openapi` for generic MCPs, `no_operations_selected` when `apply=true` would leave no operation selected (a report without `apply` returns it in `error`). `apply=true` needs If-Match with the quoted `version` from the latest read (428 when missing, 412 when stale); without `apply`, If-Match is optional. Spec errors use the same codes on create, preview, configuration changes and resync: 400 `spec_missing`, `spec_invalid`, `unsupported_encoding`, `blocked_destination` (the URL points somewhere the gateway does not call), `invalid_operation_override` (with `unknown_operations`), `no_operations_selected`; 410 `preview_expired` (preview again); 413 `spec_too_large`; 422 `tools_too_large`; 502 `fetch_failed` (the document could not be downloaded). Requests are limited to 1 MiB, so an inline document (`spec_text` or `spec_base64`) over about 750 KB must be sent as `source_url` instead.",
         "operationId": "Resync_REST_API",
         "parameters": [
           {
@@ -12331,11 +12375,17 @@
           "413": {
             "$ref": "#/components/responses/BodyTooLarge"
           },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
           "428": {
             "$ref": "#/components/responses/PreconditionRequired"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamUnavailable"
           },
           "503": {
             "$ref": "#/components/responses/Unavailable"
@@ -14035,7 +14085,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:test": {
       "post": {
-        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects, checked by policies and approvals and logged. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).",
+        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects, checked by policies and approvals and logged. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).\n\n**Ambiguous failures.** 502 `test_run_failed` (with `error.may_have_run`: true) means the run failed before a result came back: the tool may have run, and its calls may have changed data. Check the MCP's logs before running it again. To retry safely, send an `Idempotency-Key`: the same key and body within 24 hours returns the stored answer (the result, or the stored failure, including that 502) instead of running the tool again; requests with one key that arrive while it runs get its answer, or 409 `test_run_in_progress` (retry shortly). A new key runs the tool again.",
         "operationId": "Test_custom_tool",
         "parameters": [
           {
@@ -14045,6 +14095,18 @@
             "name": "mcp_id",
             "required": true,
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional client-chosen token (1 to 200 characters). With it, the same token and body within 24 hours returns the stored answer (a result or a failure) instead of running again; a different body under the same token is 409 `idempotency_conflict`.",
+            "example": "test-summarize-2026-11-14",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             }
           }
@@ -14152,6 +14214,9 @@
           },
           "429": {
             "$ref": "#/components/responses/Busy"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamUnavailable"
           },
           "503": {
             "$ref": "#/components/responses/Unavailable"
@@ -14623,7 +14688,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/scoped-settings": {
       "get": {
-        "description": "Overrides of tools, dlp and token_saving for one user or smart group.",
+        "description": "Overrides of tools, dlp and token_saving for one user or smart group, ordered by scope type and value and paginated with `limit` and `cursor`. `scope_type` with `scope_value` returns only that scope's override (an empty list when there is none). `version` is the MCP configuration version of the page it comes with.",
         "operationId": "List_scoped_settings",
         "parameters": [
           {
@@ -14635,6 +14700,48 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "Page size, 1 to 200 (default 50).",
+            "example": 50,
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The `next_cursor` of the previous page. 409 `collection_changed` when the list changed; restart.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "With scope_value: only the override for this scope, user or smart_group. Matched exactly after trimming spaces. Send both or neither (one alone is 400).",
+            "example": "user",
+            "in": "query",
+            "name": "scope_type",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "With scope_type: only the override for this user email or smart group name, matched exactly (case kept) after trimming spaces. Send both or neither.",
+            "example": "dana@example.com",
+            "in": "query",
+            "name": "scope_value",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -14643,6 +14750,7 @@
               "application/json": {
                 "example": {
                   "mcp_id": "a1b2c3d4",
+                  "next_cursor": null,
                   "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
                   "scoped_settings": [
                     {
@@ -14690,6 +14798,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
@@ -15659,7 +15770,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes": {
       "get": {
-        "description": "Status, the tools added, removed or modified upstream, and when it was last checked.",
+        "description": "Status, the tools added, removed or modified upstream, and when it was last checked. A pending change carries `version` (also the ETag): the If-Match value for apply and dismiss.",
         "operationId": "Read_tool_changes",
         "parameters": [
           {
@@ -15696,7 +15807,8 @@
                     "removed": [],
                     "resolved_at": null,
                     "resolved_by": null,
-                    "status": "pending"
+                    "status": "pending",
+                    "version": "c3f1a9e07b52d4c68e1f0a2b"
                   }
                 },
                 "schema": {
@@ -15752,7 +15864,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes/apply": {
       "post": {
-        "description": "Replaces the cached tool list with the upstream one and closes the change. New tools may still be held for review. 409 `no_pending_tool_changes` when nothing is awaiting review.",
+        "description": "Adopts the change you reviewed: send its `version` quoted in If-Match (428 when missing). The upstream tool list is fetched again and adopted only when it still matches the reviewed change; otherwise nothing is adopted and the answer is 412 `tool_changes_changed` with the current change in `error.tool_changes` (review it and retry with its `version`). A change that was replaced or closed since the read is 412 `version_conflict`, also with `error.tool_changes`. New tools may still be held for review. 409 `no_pending_tool_changes` when nothing is awaiting review.",
         "operationId": "Apply_tool_changes",
         "parameters": [
           {
@@ -15760,6 +15872,16 @@
             "example": "a1b2c3d4",
             "in": "path",
             "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"c3f1a9e07b52d4c68e1f0a2b\"",
+            "in": "header",
+            "name": "If-Match",
             "required": true,
             "schema": {
               "type": "string"
@@ -15799,7 +15921,8 @@
                     "removed": [],
                     "resolved_at": "2026-11-14T09:05:00Z",
                     "resolved_by": "admin@example.com",
-                    "status": "applied"
+                    "status": "applied",
+                    "version": null
                   }
                 },
                 "schema": {
@@ -15838,8 +15961,14 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
           "413": {
             "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
@@ -15856,7 +15985,7 @@
             "ManagementKey": []
           }
         ],
-        "summary": "Adopt the upstream tool list",
+        "summary": "Adopt the reviewed upstream tool list",
         "tags": [
           "Tool changes"
         ],
@@ -15914,7 +16043,8 @@
                     "removed": [],
                     "resolved_at": null,
                     "resolved_by": null,
-                    "status": "pending"
+                    "status": "pending",
+                    "version": "c3f1a9e07b52d4c68e1f0a2b"
                   }
                 },
                 "schema": {
@@ -15979,7 +16109,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes/dismiss": {
       "post": {
-        "description": "Keeps the cached tool list and stops flagging this upstream list; a different upstream list opens a new change. 409 `no_pending_tool_changes` when nothing is awaiting review.",
+        "description": "Keeps the cached tool list and stops flagging this upstream list; a different upstream list opens a new change. Send the reviewed change's `version` quoted in If-Match (428 when missing); a change that was replaced since the read is 412 `version_conflict` with the current change in `error.tool_changes`. 409 `no_pending_tool_changes` when nothing is awaiting review.",
         "operationId": "Dismiss_tool_changes",
         "parameters": [
           {
@@ -15987,6 +16117,16 @@
             "example": "a1b2c3d4",
             "in": "path",
             "name": "mcp_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"c3f1a9e07b52d4c68e1f0a2b\"",
+            "in": "header",
+            "name": "If-Match",
             "required": true,
             "schema": {
               "type": "string"
@@ -16026,7 +16166,8 @@
                     "removed": [],
                     "resolved_at": null,
                     "resolved_by": null,
-                    "status": "dismissed"
+                    "status": "dismissed",
+                    "version": null
                   }
                 },
                 "schema": {
@@ -16065,8 +16206,14 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
           "413": {
             "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
@@ -16712,7 +16859,7 @@
         ]
       },
       "put": {
-        "description": "Creates, rotates or changes the static credential and/or the extra headers and query parameters. `mode: user_required` makes every user bring their own key (they save it from the sign-in link, `GET /mcps/{mcp_id}/sign-in-link`); the shared key is deleted. Omitted extras keep the stored ones; {} clears them. Not available for OAuth MCPs. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Creates, rotates or changes the static credential and/or the extra headers and query parameters. `mode: user_required` makes every user bring their own key (they save it from the sign-in link, `GET /mcps/{mcp_id}/sign-in-link`); the shared key is deleted. Omitted extras keep the stored ones; {} clears them. On OAuth MCPs only the extra headers and query parameters can be set (sent upstream with each user's OAuth token); a static credential is refused with 400. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Put_upstream_auth",
         "parameters": [
           {
@@ -17872,7 +18019,7 @@
         "parameters": [
           {
             "description": "Quoted `version` (ETag) from the latest read of this resource.",
-            "example": "\"r4\"",
+            "example": "\"t5e0c2b9a7d413f86\"",
             "in": "header",
             "name": "If-Match",
             "required": true,
@@ -18661,7 +18808,7 @@
     },
     "/mcpgateway/management/v1/tool-changes": {
       "get": {
-        "description": "One row per MCP: whether the upstream tool list differs from the cached one.",
+        "description": "One row per MCP: whether the upstream tool list differs from the cached one. Pending rows carry the change's `version` for apply and dismiss.",
         "operationId": "List_tool_changes",
         "parameters": [
           {
@@ -18719,7 +18866,8 @@
                       "removed": [],
                       "resolved_at": null,
                       "resolved_by": null,
-                      "status": "pending"
+                      "status": "pending",
+                      "version": "c3f1a9e07b52d4c68e1f0a2b"
                     }
                   ],
                   "next_cursor": null,

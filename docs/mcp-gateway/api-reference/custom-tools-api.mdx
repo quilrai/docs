@@ -106,7 +106,9 @@ curl -s -X PUT "$BASE/mcps/$MCP/custom-tools/recent_unread_summary" \
   }'
 
 # Try it as yourself (real calls), or try unsaved changes with "draft".
+# The Idempotency-Key makes a retry return the stored answer instead of running again.
 curl -s -X POST "$BASE/mcps/$MCP/custom-tools:test" -H "Authorization: Bearer $KEY" \
+  -H 'Idempotency-Key: try-unread-summary-1' \
   -H 'Content-Type: application/json' -d '{"name": "recent_unread_summary", "arguments": {"limit": 10}}'
 ```
 
@@ -166,6 +168,33 @@ The run is real. It runs as the key owner, with their own connection to the MCP,
 
 Test runs are not available for OAuth passthrough MCPs, where each client brings its own token (`409 test_run_unavailable`); test those from a client.
 
+### Retry safely {#retry-safely}
+
+Because a test run makes real calls, a failure without an answer is ambiguous. `502 test_run_failed` means the run failed before a result came back: the tool may have run, and its calls may have changed data. The error says so with `"may_have_run": true`:
+
+```json
+{
+  "error": {
+    "code": "test_run_failed",
+    "message": "The test run failed before a result came back. The tool may have run, and its calls may have changed data: check the MCP's logs before running it again. Retrying with the same Idempotency-Key returns this answer; a new key runs the tool again",
+    "may_have_run": true
+  },
+  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+}
+```
+
+Check the MCP's logs before you run it again: every tool call the script made is logged. To retry without running the tool twice, send an `Idempotency-Key` header with each test run (optional, 1 to 200 characters without control characters; a malformed key is `400 idempotency_key_required`):
+
+| Situation | Result |
+| --- | --- |
+| Same key and same body within 24 hours | The stored answer is returned and the tool does not run again: the result, or the stored failure (including the `502` above and refusals such as `404 custom_tool_not_found`). |
+| Same key while the first run is still going | The request waits for the run on the same gateway process and gets its answer. A request that reaches another process gets `409 test_run_in_progress` with `operation_id`; retry after `Retry-After`. |
+| Same key with a different body | `409 idempotency_conflict`. |
+| A new key | The tool runs again. |
+| Same key after 24 hours | `409 idempotency_replay_expired`; use a new key. |
+
+A run interrupted by a gateway restart never records an answer, so its key keeps answering `409 test_run_in_progress`. Its outcome is unknown: check the logs, then use a new key if you still want to run it.
+
 ## Approvals {#approvals}
 
 When a tool the script calls needs a user's [approval](../protect/human-approval), the run stops at that call and the caller gets the approval request. The answer lists the steps that already ran in `completed_steps`. After the user approves, the caller calls the custom tool again, which runs the script **from the start**: the completed steps run again. Put steps that need approval before steps that change data. In a test run this shows as `outcome: approval_required` with the waiting step in `run.approval_required`.
@@ -186,14 +215,17 @@ If the script returns while tool calls it started are still running, the answer 
 | Status | Code | Meaning |
 | --- | --- | --- |
 | 400 | `invalid_request` | The definition is invalid, for example a schema that uses `$ref`, `$id` or anchors. `error.fields` names the field; a syntax error in the script also carries `line`. |
+| 400 | `idempotency_key_required` | The test run's `Idempotency-Key` is over 200 characters or has control characters. |
 | 404 | `custom_tool_not_found` | No custom tool with this name on the MCP. |
 | 404 | `custom_tool_version_not_found` | No saved version with this `tool_version` in the tool's history. |
 | 409 | `tool_name_taken` | One of the MCP's own tools already uses this name. |
 | 409 | `custom_tool_limit` | The MCP already has 50 custom tools. |
 | 409 | `test_run_unavailable` | The MCP is an OAuth passthrough MCP: each client brings its own token, so a test run cannot use the key owner's connection. |
+| 409 | `test_run_in_progress` | A test run with this `Idempotency-Key` has not recorded an answer yet (`operation_id`, `Retry-After`). See [retry safely](#retry-safely). |
+| 409 | `idempotency_conflict` | The `Idempotency-Key` was used for a test run with a different body. |
 | 412 | `version_conflict` | `If-Match` is stale: the MCP changed since you read it. Read the list again and retry. |
 | 428 | `precondition_required` | `If-Match` missing on a write. |
-| 502 | `test_run_failed` | The test run could not be completed. |
+| 502 | `test_run_failed` | The test run failed before a result came back; the tool may have run (`"may_have_run": true`). Check the logs, and retry with the same `Idempotency-Key` to get the stored answer. |
 
 See [errors](./management-api#errors) for the shared error shape and retry rules.
 

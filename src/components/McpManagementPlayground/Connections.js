@@ -142,13 +142,18 @@ function UpstreamAuth({ id, onChanged }) {
   let jsonError = null;
   if (form) {
     const perUser = form.mode === 'user_required';
-    body = { type: form.type };
-    if (form.mode !== (a?.mode || 'admin_shared')) body.mode = form.mode;
-    // Per-user keys: the shape only; each user saves their own key.
-    if (form.token && !perUser) body.token = form.token;
-    if (form.type === 'header' && form.header_name.trim()) body.header_name = form.header_name.trim();
-    if (form.type === 'query' && form.query_param.trim()) body.query_param = form.query_param.trim();
-    if (form.type === 'bearer' && form.scheme.trim()) body.scheme = form.scheme.trim();
+    if (form.extrasOnly) {
+      // OAuth MCPs: extras only; any static credential field is refused with 400.
+      body = {};
+    } else {
+      body = { type: form.type };
+      if (form.mode !== (a?.mode || 'admin_shared')) body.mode = form.mode;
+      // Per-user keys: the shape only; each user saves their own key.
+      if (form.token && !perUser) body.token = form.token;
+      if (form.type === 'header' && form.header_name.trim()) body.header_name = form.header_name.trim();
+      if (form.type === 'query' && form.query_param.trim()) body.query_param = form.query_param.trim();
+      if (form.type === 'bearer' && form.scheme.trim()) body.scheme = form.scheme.trim();
+    }
     for (const name of ['extra_headers', 'extra_query_params']) {
       if (!form[name].trim()) continue;
       try {
@@ -159,6 +164,7 @@ function UpstreamAuth({ id, onChanged }) {
         jsonError = `${name}: ${e.message}`;
       }
     }
+    if (form.extrasOnly && !jsonError && !Object.keys(body).length) jsonError = 'Enter extra_headers or extra_query_params ({} clears them).';
   }
 
   async function remove() {
@@ -220,7 +226,17 @@ function UpstreamAuth({ id, onChanged }) {
             ]}
           />
           {a.credential_editable === false ? (
-            <Notice>This MCP's credential is not editable through the API (OAuth MCPs connect with connect links).</Notice>
+            <>
+              <Notice>
+                This is an OAuth MCP: it connects with a connect link, so it has no static credential. You can still set the extra headers and query
+                parameters the gateway sends upstream; a body with type, mode, token or another credential field is refused with 400.
+              </Notice>
+              <div className={styles.actionsRow}>
+                <Btn variant="primary" onClick={() => setForm(form ? null : { ...BLANK_AUTH, extrasOnly: true })} aria-expanded={!!form}>
+                  Edit extra headers and query parameters
+                </Btn>
+              </div>
+            </>
           ) : (
             <div className={styles.actionsRow}>
               <Btn variant="primary" onClick={() => setForm(form ? null : { ...BLANK_AUTH, mode: a.mode || 'admin_shared', type: a.type && ['bearer', 'header', 'query'].includes(a.type) ? a.type : 'bearer', header_name: a.header_name || '', query_param: a.query_param || '', scheme: a.scheme || '' })} aria-expanded={!!form}>
@@ -240,45 +256,47 @@ function UpstreamAuth({ id, onChanged }) {
       )}
       {form && (
         <div className={styles.subPanel}>
-          <h3>Set upstream credential</h3>
-          {form.mode === 'user_required' && (
+          <h3>{form.extrasOnly ? 'Set extra headers and query parameters' : 'Set upstream credential'}</h3>
+          {!form.extrasOnly && form.mode === 'user_required' && (
             <Notice>Only how the key is sent is saved (type, header or query parameter, scheme). No token is sent in this mode.</Notice>
           )}
-          <div className={styles.formGrid}>
-            <Field label="Type">
-              <select value={form.type} onChange={(e) => set({ type: e.target.value })}>
-                <option value="bearer">bearer (Authorization header)</option>
-                <option value="header">header (custom header)</option>
-                <option value="query">query (query parameter)</option>
-              </select>
-            </Field>
-            <Field label="Mode" hint={form.mode === 'user_required' ? 'Switching deletes the shared key. Users save their own key after opening the sign-in link.' : a?.mode === 'user_required' ? 'Switching back needs a token. Users\' saved keys are kept but unused.' : 'One key for every user of the organization.'}>
-              <select value={form.mode} onChange={(e) => set({ mode: e.target.value, token: e.target.value === 'user_required' ? '' : form.token })}>
-                <option value="admin_shared">admin_shared (one shared key)</option>
-                <option value="user_required">user_required (each user brings their own key)</option>
-              </select>
-            </Field>
-            {form.mode !== 'user_required' && (
-              <Field label="Token" hint={a?.mode === 'user_required' ? 'Required to switch to admin_shared.' : 'Empty keeps the stored secret (for example to change only the extras).'}>
-                <input type="password" autoComplete="off" value={form.token} onChange={(e) => set({ token: e.target.value })} />
+          {!form.extrasOnly && (
+            <div className={styles.formGrid}>
+              <Field label="Type">
+                <select value={form.type} onChange={(e) => set({ type: e.target.value })}>
+                  <option value="bearer">bearer (Authorization header)</option>
+                  <option value="header">header (custom header)</option>
+                  <option value="query">query (query parameter)</option>
+                </select>
               </Field>
-            )}
-            {form.type === 'header' && (
-              <Field label="Header name">
-                <input value={form.header_name} onChange={(e) => set({ header_name: e.target.value })} placeholder="X-Api-Key" />
+              <Field label="Mode" hint={form.mode === 'user_required' ? 'Switching deletes the shared key. Users save their own key after opening the sign-in link.' : a?.mode === 'user_required' ? 'Switching back needs a token. Users\' saved keys are kept but unused.' : 'One key for every user of the organization.'}>
+                <select value={form.mode} onChange={(e) => set({ mode: e.target.value, token: e.target.value === 'user_required' ? '' : form.token })}>
+                  <option value="admin_shared">admin_shared (one shared key)</option>
+                  <option value="user_required">user_required (each user brings their own key)</option>
+                </select>
               </Field>
-            )}
-            {form.type === 'query' && (
-              <Field label="Query parameter">
-                <input value={form.query_param} onChange={(e) => set({ query_param: e.target.value })} placeholder="api_key" />
-              </Field>
-            )}
-            {form.type === 'bearer' && (
-              <Field label="Scheme (optional)">
-                <input value={form.scheme} onChange={(e) => set({ scheme: e.target.value })} placeholder="Bearer" />
-              </Field>
-            )}
-          </div>
+              {form.mode !== 'user_required' && (
+                <Field label="Token" hint={a?.mode === 'user_required' ? 'Required to switch to admin_shared.' : 'Empty keeps the stored secret (for example to change only the extras).'}>
+                  <input type="password" autoComplete="off" value={form.token} onChange={(e) => set({ token: e.target.value })} />
+                </Field>
+              )}
+              {form.type === 'header' && (
+                <Field label="Header name">
+                  <input value={form.header_name} onChange={(e) => set({ header_name: e.target.value })} placeholder="X-Api-Key" />
+                </Field>
+              )}
+              {form.type === 'query' && (
+                <Field label="Query parameter">
+                  <input value={form.query_param} onChange={(e) => set({ query_param: e.target.value })} placeholder="api_key" />
+                </Field>
+              )}
+              {form.type === 'bearer' && (
+                <Field label="Scheme (optional)">
+                  <input value={form.scheme} onChange={(e) => set({ scheme: e.target.value })} placeholder="Bearer" />
+                </Field>
+              )}
+            </div>
+          )}
           <div className={styles.formGrid}>
             <JsonField label="extra_headers (optional)" rows={3} value={form.extra_headers} onChange={(v) => set({ extra_headers: v })} hint="Omit to keep the stored ones; {} clears them." />
             <JsonField label="extra_query_params (optional)" rows={3} value={form.extra_query_params} onChange={(v) => set({ extra_query_params: v })} hint="Omit to keep the stored ones; {} clears them." />
@@ -301,10 +319,10 @@ function UpstreamAuth({ id, onChanged }) {
                   setForm(null);
                   onChanged();
                   return res;
-                }, 'Credential saved. The token is not shown again.')
+                }, form.extrasOnly ? 'Extras saved. Their values are not shown again.' : 'Credential saved. The token is not shown again.')
               }
             >
-              Save credential
+              {form.extrasOnly ? 'Save extras' : 'Save credential'}
             </ActionButton>
             <Btn onClick={() => setForm(null)}>Cancel</Btn>
           </div>
