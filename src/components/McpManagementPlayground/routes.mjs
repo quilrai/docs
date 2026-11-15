@@ -21,8 +21,8 @@ export function ifMatch(version) {
   return v.startsWith('"') || v.startsWith('W/') ? v : `"${v}"`;
 }
 
-// Settings sections, in console order. GET /capabilities lists the gateway's own
-// in settings_sections; this is the fallback when it does not.
+// Settings sections, in display order. GET /capabilities lists the gateway's own
+// (sorted) in settings_sections; this is the fallback when it does not.
 export const SETTINGS_SECTIONS = [
   'tools',
   'dlp',

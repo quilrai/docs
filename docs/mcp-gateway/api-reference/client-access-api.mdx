@@ -20,7 +20,7 @@ After an MCP is added and configured, these operations hand it out: what a clien
 - `direct.url`: the MCP's own endpoint, `https://<gateway>/<slug>/mcp`.
 - `onemcp.url`: your organization's OneMCP endpoint, and `onemcp.included` (false when the MCP is hidden from OneMCP in its settings).
 - `direct.auth_methods`: how clients authenticate. `sign_in`: the client signs the user in through the gateway (MCP clients that support MCP authorization prompt for it). `api_token`: an MCP API token plus the user's email in the `mcpuser` header (MCPs that do not use OAuth). `upstream_oauth`: OAuth passthrough MCPs, where the client brings the provider's token.
-- `templates` and `token_templates`: ready-to-paste configuration for MCP clients (`mcpServers` JSON, VS Code `servers`, a Claude Code command line), with `<MCP_API_TOKEN>` and `<USER_EMAIL>` placeholders.
+- `direct.templates`, `direct.token_templates` (only for MCPs that take MCP API tokens) and `onemcp.templates`: ready-to-paste configuration for MCP clients (`mcpServers` JSON, VS Code `servers`, a Claude Code command line), with `<MCP_API_TOKEN>` and `<USER_EMAIL>` placeholders.
 - `sign_in_link`: the [sign-in link](#sign-in-link) to hand to users.
 
 ## Sign-in link {#sign-in-link}
@@ -28,7 +28,7 @@ After an MCP is added and configured, these operations hand it out: what a clien
 `GET /mcps/{mcp_id}/sign-in-link` returns a link to hand to the people who use the MCP, for example on an internal page or in an onboarding message:
 
 ```json
-{"mcp_id": "a1b2c3d4", "url": "https://mcp.example.com/user/dashboard?connect=a1b2c3d4",
+{"mcp_id": "a1b2c3d4", "url": "https://mcpgateway.example.com/user/dashboard?connect=a1b2c3d4",
  "connection": "oauth", "requires_user_action": true}
 ```
 

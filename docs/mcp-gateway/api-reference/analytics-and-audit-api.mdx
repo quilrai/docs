@@ -40,8 +40,8 @@ For full tool-call logs in your own data platform, use the [Log Export API](./lo
 | --- | --- |
 | `from`, `to` | `from` is inclusive and `to` exclusive. RFC 3339 times with a timezone, or dates: `from` is UTC midnight and `to` runs through the end of that UTC day. |
 | `granularity` | `total` (default), `month`, `week`, `day` or `hour`. `hour` covers at most 14 days. Periods start on UTC boundaries. |
-| `group_by` | Up to two dimensions from the table above. |
-| Filters | Comma-separated values, at most 50. |
+| `group_by` | Up to two dimensions from the table above, comma-separated in one parameter (`group_by=mcp,tool`). Repeating `group_by` is `400`. |
+| Filters | Comma-separated values, at most 50, each at most 320 characters. |
 | `outcome` | `blocked` (DLP or policy block), else `error`, else `success`. |
 | `sort`, `limit`, `cursor` | Aggregate reports return up to 5,000 rows per page (default 500); `/requests` and `/users` up to 1,000 (default 100). |
 

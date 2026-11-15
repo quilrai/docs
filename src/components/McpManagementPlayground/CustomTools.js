@@ -310,7 +310,7 @@ function Editor({ id, tool, isNew, version, taken, onSaved, onDeleted, onReload,
             <input value={form.max_tool_calls} onChange={(e) => set({ max_tool_calls: e.target.value })} inputMode="numeric" />
           </Field>
         </div>
-        <Field label="Description" hint="What the tool does and when to use it. Models read this to pick the tool." wide>
+        <Field label="Description" hint="What the tool does and when to use it, at most 2,000 characters. Models read this to pick the tool." wide>
           <textarea rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} />
         </Field>
         <JsonField
@@ -318,32 +318,32 @@ function Editor({ id, tool, isNew, version, taken, onSaved, onDeleted, onReload,
           rows={6}
           value={form.input_schema}
           onChange={(v) => set({ input_schema: v })}
-          hint='type: object with typed top-level properties, required and additionalProperties (default false). At most 50 properties.'
+          hint='type: object with typed top-level properties (identifier names, each with a type), required and additionalProperties (default false). At most 50 properties and 16 KiB. No $ref, $id or anchors; $schema only at the top level; no unevaluatedProperties with patternProperties; patterns at most 512 characters.'
         />
         <JsonField
           label="Defaults"
           rows={3}
           value={form.defaults}
           onChange={(v) => set({ defaults: v })}
-          hint="Clients see each default as default and do not have to send it; values a call sends replace it."
+          hint="Each names an input schema property. Clients see each default as default and do not have to send it; values a call sends replace it. At most 16 KiB."
         />
         <JsonField
           label="Fixed arguments"
           rows={3}
           value={form.fixed_args}
           onChange={(v) => set({ fixed_args: v })}
-          hint="Always in args, hidden from clients and never replaced by a caller (for example a project id). Names must not be input schema properties. Not for secrets: reads return them."
+          hint="Always in args, hidden from clients and never replaced by a caller (for example a project id). Names must not be input schema properties. At most 16 KiB. Not for secrets: reads return them."
         />
         <JsonField
           label="Output schema (optional)"
           rows={4}
           value={form.output_schema}
           onChange={(v) => set({ output_schema: v })}
-          hint="type: object. Clients get it as outputSchema and the result as structured content; a result that does not match is an error. Empty: none."
+          hint="type: object, at most 16 KiB, same schema rules as the input schema. Clients get it as outputSchema and the result as structured content; a result that does not match is an error. Empty: none."
         />
         <Field
           label="Script (Python)"
-          hint='args holds the arguments. Call a tool as await tool_name(...) or await call_tool("name", {...}). The last expression is the result. 60 s, 50 tool calls, 64 KiB; no files, network or environment.'
+          hint='args holds the arguments. Call a tool as await tool_name(...) or await call_tool("name", {...}). The last expression is the result, at most 80,000 characters. 60 s, 50 tool calls, 64 KiB; no files, network or environment.'
           wide
         >
           <textarea className={styles.code} rows={12} value={form.code} onChange={(e) => set({ code: e.target.value })} spellCheck="false" />

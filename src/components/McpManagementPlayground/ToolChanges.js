@@ -7,7 +7,7 @@ import { MCP_PREFIX, mcpPath } from './routes.mjs';
 import { McpPicker, useMcpName } from './common';
 
 const FAILED = 'No data: the request failed (see the error above).';
-const TONES = { pending: 'warn', clean: 'ok', applied: 'ok', dismissed: 'off', error: 'err', skipped: 'off', off: 'off' };
+const TONES = { pending: 'warn', clean: 'ok', applied: 'ok', dismissed: 'off', error: 'err', skipped: 'off', off: 'off', unchecked: 'off' };
 const StatusPill = ({ status }) => <Pill tone={TONES[status]}>{status || 'unknown'}</Pill>;
 
 export default function ToolChanges() {

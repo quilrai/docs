@@ -22,7 +22,7 @@ import styles from '../ManagementPlayground/styles.module.css';
 import { mcpPath } from './routes.mjs';
 import { McpPicker, useMcpName } from './common';
 
-const TONES = { held: 'warn', pending: 'warn', rejected: 'err', approved: 'ok' };
+const TONES = { held: 'warn', rejected: 'err' };
 
 export default function ToolReviews() {
   const { client, urlParam } = usePlayground();
@@ -48,17 +48,21 @@ function Reviews({ id }) {
   const action = useAction();
   const d = reviews.data;
   const all = d?.tools || [];
-  const isHeld = (t) => t.status === 'held' || t.status === 'pending';
+  const isHeld = (t) => t.status === 'held';
+  // Approve admits held or rejected tools; reject applies to held ones only.
+  const canPick = (t) => t.status === 'held' || t.status === 'rejected';
+  const heldPicked = picked.filter((n) => all.some((t) => t.name === n && isHeld(t)));
   const rows = heldOnly ? all.filter(isHeld) : all;
   const toggle = (toolName, on) => setPicked((p) => (on ? [...new Set([...p, toolName])] : p.filter((n) => n !== toolName)));
 
   async function decide(kind) {
-    if (!picked.length) return;
+    const tools = kind === 'reject' ? heldPicked : picked;
+    if (!tools.length) return;
     if (
       kind === 'reject' &&
       !(await confirm({
-        title: `Reject ${picked.length} tool${picked.length > 1 ? 's' : ''}?`,
-        body: `${picked.join(', ')} stay hidden from every client of ${name}.`,
+        title: `Reject ${tools.length} tool${tools.length > 1 ? 's' : ''}?`,
+        body: `${tools.join(', ')} stay hidden from every client of ${name}.`,
         confirmLabel: 'Reject',
         tone: 'danger',
         call: `POST ${mcpPath(id, '/tool-reviews/reject')}`,
@@ -66,17 +70,17 @@ function Reviews({ id }) {
     )
       return;
     await action.run(async () => {
-      const res = await client.call({ method: 'POST', path: mcpPath(id, `/tool-reviews/${kind}`), body: { tools: picked }, source: kind === 'approve' ? 'Approve tools' : 'Reject tools' });
+      const res = await client.call({ method: 'POST', path: mcpPath(id, `/tool-reviews/${kind}`), body: { tools }, source: kind === 'approve' ? 'Approve tools' : 'Reject tools' });
       reviews.setData(res);
       setPicked([]);
       return res;
-    }, `${kind === 'approve' ? 'Approved' : 'Rejected'} ${picked.join(', ')}.`);
+    }, `${kind === 'approve' ? 'Approved' : 'Rejected'} ${tools.join(', ')}.`);
   }
 
   return (
     <Panel
       title={`Tools of ${name}`}
-      subtitle="Select held tools, then approve or reject them together."
+      subtitle="Select held tools, then approve or reject them together. Rejected tools can still be approved."
       actions={
         <>
           <ApiChips calls={[['GET', '/mcps/{mcp_id}/tool-reviews'], ['POST', '/mcps/{mcp_id}/tool-reviews/approve'], ['POST', '/mcps/{mcp_id}/tool-reviews/reject']]} />
@@ -107,8 +111,8 @@ function Reviews({ id }) {
             <ActionButton method="POST" path="/mcps/{mcp_id}/tool-reviews/approve" variant="primary" disabled={!picked.length} onClick={() => decide('approve')}>
               <CircleCheck size={13} aria-hidden /> Approve {picked.length || ''}
             </ActionButton>
-            <ActionButton method="POST" path="/mcps/{mcp_id}/tool-reviews/reject" variant="danger" disabled={!picked.length} onClick={() => decide('reject')}>
-              <CircleX size={13} aria-hidden /> Reject {picked.length || ''}
+            <ActionButton method="POST" path="/mcps/{mcp_id}/tool-reviews/reject" variant="danger" disabled={!heldPicked.length} onClick={() => decide('reject')}>
+              <CircleX size={13} aria-hidden /> Reject {heldPicked.length || ''}
             </ActionButton>
           </div>
           <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
@@ -125,7 +129,7 @@ function Reviews({ id }) {
               {
                 label: 'Select',
                 render: (r) =>
-                  isHeld(r) ? (
+                  canPick(r) ? (
                     <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
                       <input type="checkbox" aria-label={`Select ${r.name}`} checked={picked.includes(r.name)} onChange={(e) => toggle(r.name, e.target.checked)} />
                     </span>

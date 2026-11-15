@@ -26,17 +26,28 @@ A custom tool is a definition plus a script:
 
 | Field | Meaning |
 | --- | --- |
-| `description` | What the tool does and when to use it. Models read it to pick the tool. Required. |
-| `input_schema` | JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default `false`). At most 50 properties. Write it out in full: `$ref`, `$id` and anchors are refused with `400`. |
-| `defaults` | Default argument values. Clients see each one as `default` in the tool's schema and do not have to send it. |
-| `fixed_args` | Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends, for example a fixed project id. Names must not be `input_schema` properties. Not for secrets: reads return them, so keep credentials in the MCP's [upstream credentials](./settings-and-credentials-api#upstream-credentials). |
-| `output_schema` | Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's `outputSchema` and the result as structured content; a result that does not match is returned as an error. Like `input_schema`, it must be written out in full, with no `$ref`, `$id` or anchors. |
-| `code` | The Python script. Required. |
+| `description` | What the tool does and when to use it. Models read it to pick the tool. Required, at most 2,000 characters. |
+| `input_schema` | JSON Schema of the arguments: `type: object` with top-level `properties`, `required` and `additionalProperties` (default `false`). The only other top-level keys allowed are `description`, `title` and `$schema`; `title` and `$schema` are not saved. Property names are identifiers (letters, digits and `_`, at most 64 characters) and every property needs a `type` (string, number, integer, boolean, array, object). At most 50 properties and 16 KiB. See [schema rules](#schema-rules). |
+| `defaults` | Default argument values, each naming an `input_schema` property and matching its schema. Clients see each one as `default` in the tool's schema and do not have to send it. At most 16 KiB. |
+| `fixed_args` | Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends, for example a fixed project id. Names are identifiers and must not be `input_schema` properties. At most 16 KiB. Not for secrets: reads return them, so keep credentials in the MCP's [upstream credentials](./settings-and-credentials-api#upstream-credentials). |
+| `output_schema` | Optional JSON Schema (`type: object`) of the result, at most 16 KiB. Clients receive it as the tool's `outputSchema` and the result as structured content; a result that does not match is returned as an error. The [schema rules](#schema-rules) apply. |
+| `code` | The Python script, at most 64 KiB (UTF-8). Required. |
 | `enabled` | `false` hides the tool from clients. Default `true`. |
-| `annotations` | Hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. |
-| `limits` | `timeout_s` (1 to 60) and `max_tool_calls` (1 to 50) per run, to lower the defaults for one tool. |
+| `annotations` | Hints for clients: `title` (at most 200 characters) and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. |
+| `limits` | `timeout_s` (1 to 60) and `max_tool_calls` (1 to 50) per run, to lower the defaults for one tool. The other limits cannot be changed per tool. |
 
-The name goes in the path: a letter, then letters, digits, `_` or `-`, at most 64 characters.
+The name goes in the path: a letter, then letters, digits, `_` or `-`, at most 64 characters. Names starting with `quilr_`, and names ending in `find_relevant_tools`, `call_tool` or `run_code` (in any case), are reserved for gateway tools.
+
+### Schema rules {#schema-rules}
+
+`input_schema` and `output_schema` are checked on every save (`400 invalid_request` otherwise):
+
+- Write the schema out in full: `$ref`, `$id`, `$anchor`, `$dynamicRef`, `$dynamicAnchor` and `$recursiveRef` are refused.
+- `$schema` is allowed only at the top level.
+- `unevaluatedProperties` is refused when `patternProperties` appears anywhere in the schema.
+- Each `pattern` and `patternProperties` key is at most 512 characters.
+
+When a call is checked against the schema, each regular expression match may take at most 1 second and the whole check at most 5 seconds. Call arguments are limited to 32 MB and 64 levels of nesting.
 
 The script:
 
@@ -51,11 +62,13 @@ The script:
 | --- | --- |
 | Run time | 60 seconds |
 | Tool calls per run | 50 |
-| Script size | 64 KiB |
+| Script size | 64 KiB (UTF-8) |
 | Result size | 80,000 characters |
 | Custom tools per MCP | 50 |
 
 `print()` output is shown only in [test runs](#test).
+
+Each organization can run a limited number of custom tools at the same time. A run waits up to 10 seconds for a free slot; after that it fails as busy without running.
 
 ## Example: unread email summary {#example}
 
@@ -67,8 +80,12 @@ unread = [m for m in msgs["value"] if not m["isRead"]]
 {"unread": len(unread), "items": [{"from": m["from"], "subject": m["subject"]} for m in unread]}
 ```
 
+The commands use `jq` to read the version.
+
 ```bash
-BASE=https://mcpgateway.quilr.ai/mcpgateway/management/v1
+export GW='https://mcpgateway.quilr.ai'   # your MCP Gateway host
+export KEY='<management-key>'             # needs read and tools:write
+BASE="$GW/mcpgateway/management/v1"
 MCP=a1b2c3d4
 
 # The functions a script can call, with Python signatures.
@@ -101,7 +118,7 @@ curl -s -X POST "$BASE/mcps/$MCP/custom-tools:test" -H "Authorization: Bearer $K
 - `PATCH /mcps/{mcp_id}/custom-tools/{name}` changes the sent fields and keeps the rest. Send `{"enabled": false}` to hide the tool from clients, and `{"enabled": true}` to show it again.
 - `DELETE /mcps/{mcp_id}/custom-tools/{name}` removes it.
 
-Every save checks the definition: the script for syntax errors (`400` with the `line`), the schema and defaults, and the name, which must not be one of the MCP's own tools (`409 tool_name_taken`) or a gateway tool name. Names the script calls that are not tools of the MCP come back as `warnings`; they do not block the save, because a tool hidden from you may be visible to your users. Warnings are checked against the MCP's current tools on every read, so a tool the MCP has since dropped shows up there. `tool_version` grows by one on every save. Clients see a change within a few seconds, in their next tool list.
+Every save checks the definition: the script for syntax errors (`400` with the `line`), the schema and defaults, and the name, which must not be one of the MCP's own tools (`409 tool_name_taken`) or a [reserved gateway tool name](#script). Names the script calls that are not tools of the MCP come back as `warnings`; they do not block the save, because a tool hidden from you may be visible to your users. Warnings are checked against the MCP's current tools on every read, so a tool the MCP has since dropped shows up there. `tool_version` grows by one on every save. Clients see a change within a few seconds, in their next tool list.
 
 ## Version history {#versions}
 
@@ -138,16 +155,16 @@ The run is real. It runs as the key owner, with their own connection to the MCP,
 
 | Response field | Meaning |
 | --- | --- |
-| `outcome` | `ok`, `error` (the script or a tool failed), `approval_required` (a call is waiting for approval) or `refused` (the tool did not run: hidden from the key owner, blocked by a policy, no connection, or invalid arguments). |
+| `outcome` | `ok`, `error` (the script or a tool failed), `approval_required` (a call is waiting for approval) or `refused` (the tool did not run: hidden from the key owner, blocked by a policy, no connection, invalid arguments, or no free run slot). With `refused`, `run` is `null`. |
 | `client_result` | The MCP result a client would get. |
 | `mocked_tools` | The tools answered from `mocks` instead of being called. |
 | `error` | The error message, when there is one. |
 | `run.calls` | Each tool call the script made, in order, with `ok` and the time it took. |
 | `run.result` | The script's result. |
 | `run.logs` | `print()` output. |
-| `run.error_kind` | `script_error`, `timeout`, `memory`, `max_tool_calls`, `invalid_arguments` or `approval_required`. |
+| `run.error_kind` | `script_error`, `timeout`, `memory`, `max_tool_calls`, `result_too_large` (over 80,000 characters), `output_schema` (the result does not match it), `runner_error` (the sandbox failed) or `approval_required`. |
 
-Test runs are not available for MCPs where each user signs in with their own token (`409 test_run_unavailable`); test those from a client.
+Test runs are not available for OAuth passthrough MCPs, where each client brings its own token (`409 test_run_unavailable`); test those from a client.
 
 ## Approvals {#approvals}
 
@@ -173,7 +190,7 @@ If the script returns while tool calls it started are still running, the answer 
 | 404 | `custom_tool_version_not_found` | No saved version with this `tool_version` in the tool's history. |
 | 409 | `tool_name_taken` | One of the MCP's own tools already uses this name. |
 | 409 | `custom_tool_limit` | The MCP already has 50 custom tools. |
-| 409 | `test_run_unavailable` | Each user signs in to this MCP with their own token, so a test run cannot use the key owner's connection. |
+| 409 | `test_run_unavailable` | The MCP is an OAuth passthrough MCP: each client brings its own token, so a test run cannot use the key owner's connection. |
 | 412 | `version_conflict` | `If-Match` is stale: the MCP changed since you read it. Read the list again and retry. |
 | 428 | `precondition_required` | `If-Match` missing on a write. |
 | 502 | `test_run_failed` | The test run could not be completed. |

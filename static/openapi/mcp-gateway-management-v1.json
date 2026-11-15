@@ -2440,17 +2440,17 @@
         "description": "The whole tool. Omitted optional fields take their defaults.",
         "properties": {
           "annotations": {
-            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. `title` is at most 200 characters.",
             "type": "object"
           },
           "code": {
-            "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
           },
           "defaults": {
-            "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+            "description": "Default argument values, at most 16 KiB. Clients see them as `default` and do not have to send them; values a call sends replace them.",
             "type": "object"
           },
           "description": {
@@ -2464,11 +2464,11 @@
             "type": "boolean"
           },
           "fixed_args": {
-            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. At most 16 KiB. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
             "type": "object"
           },
           "input_schema": {
-            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). Allowed top-level keys: `type`, `properties`, `required`, `additionalProperties`, `description`, `$schema` and `title` (the last two are dropped on save). Property names are identifiers (letters, digits and _, at most 64 characters) and every property needs a `type`. At most 50 properties and 16 KiB. No `$ref`, `$id`, `$anchor`, `$dynamicRef`, `$dynamicAnchor` or `$recursiveRef`; `$schema` only at the top level; `unevaluatedProperties` is refused when `patternProperties` appears anywhere in the schema. Each `pattern` or `patternProperties` key is at most 512 characters. When a call is checked, a regex match that takes over 1 s, or a check that takes over 5 s, fails the call. Call arguments are limited to 32 MB and 64 levels of nesting.",
             "type": "object"
           },
           "limits": {
@@ -2476,7 +2476,7 @@
             "type": "object"
           },
           "output_schema": {
-            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error. At most 16 KiB. The same rules as `input_schema` apply to references, `$schema`, `unevaluatedProperties`, pattern length and match time.",
             "type": [
               "object",
               "null"
@@ -2717,17 +2717,17 @@
         "minProperties": 1,
         "properties": {
           "annotations": {
-            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. `title` is at most 200 characters.",
             "type": "object"
           },
           "code": {
-            "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
           },
           "defaults": {
-            "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+            "description": "Default argument values, at most 16 KiB. Clients see them as `default` and do not have to send them; values a call sends replace them.",
             "type": "object"
           },
           "description": {
@@ -2741,11 +2741,11 @@
             "type": "boolean"
           },
           "fixed_args": {
-            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. At most 16 KiB. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
             "type": "object"
           },
           "input_schema": {
-            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). Allowed top-level keys: `type`, `properties`, `required`, `additionalProperties`, `description`, `$schema` and `title` (the last two are dropped on save). Property names are identifiers (letters, digits and _, at most 64 characters) and every property needs a `type`. At most 50 properties and 16 KiB. No `$ref`, `$id`, `$anchor`, `$dynamicRef`, `$dynamicAnchor` or `$recursiveRef`; `$schema` only at the top level; `unevaluatedProperties` is refused when `patternProperties` appears anywhere in the schema. Each `pattern` or `patternProperties` key is at most 512 characters. When a call is checked, a regex match that takes over 1 s, or a check that takes over 5 s, fails the call. Call arguments are limited to 32 MB and 64 levels of nesting.",
             "type": "object"
           },
           "limits": {
@@ -2753,7 +2753,7 @@
             "type": "object"
           },
           "output_schema": {
-            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error. At most 16 KiB. The same rules as `input_schema` apply to references, `$schema`, `unevaluatedProperties`, pattern length and match time.",
             "type": [
               "object",
               "null"
@@ -2788,17 +2788,17 @@
             "description": "Unsaved changes to try: merged over the saved tool, or a whole new tool when none is saved under `name`.",
             "properties": {
               "annotations": {
-                "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+                "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. `title` is at most 200 characters.",
                 "type": "object"
               },
               "code": {
-                "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+                "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
                 "maxLength": 65536,
                 "minLength": 1,
                 "type": "string"
               },
               "defaults": {
-                "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+                "description": "Default argument values, at most 16 KiB. Clients see them as `default` and do not have to send them; values a call sends replace them.",
                 "type": "object"
               },
               "description": {
@@ -2812,11 +2812,11 @@
                 "type": "boolean"
               },
               "fixed_args": {
-                "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+                "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. At most 16 KiB. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
                 "type": "object"
               },
               "input_schema": {
-                "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
+                "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). Allowed top-level keys: `type`, `properties`, `required`, `additionalProperties`, `description`, `$schema` and `title` (the last two are dropped on save). Property names are identifiers (letters, digits and _, at most 64 characters) and every property needs a `type`. At most 50 properties and 16 KiB. No `$ref`, `$id`, `$anchor`, `$dynamicRef`, `$dynamicAnchor` or `$recursiveRef`; `$schema` only at the top level; `unevaluatedProperties` is refused when `patternProperties` appears anywhere in the schema. Each `pattern` or `patternProperties` key is at most 512 characters. When a call is checked, a regex match that takes over 1 s, or a check that takes over 5 s, fails the call. Call arguments are limited to 32 MB and 64 levels of nesting.",
                 "type": "object"
               },
               "limits": {
@@ -2824,7 +2824,7 @@
                 "type": "object"
               },
               "output_schema": {
-                "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+                "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error. At most 16 KiB. The same rules as `input_schema` apply to references, `$schema`, `unevaluatedProperties`, pattern length and match time.",
                 "type": [
                   "object",
                   "null"
@@ -2883,7 +2883,7 @@
             "type": "boolean"
           },
           "outcome": {
-            "description": "refused: the tool did not run (hidden from the key owner, a policy, no connection, invalid arguments).",
+            "description": "refused: the tool did not run (hidden from the key owner, a policy, no connection, invalid arguments, no free run slot after waiting up to 10 s).",
             "enum": [
               "ok",
               "error",
@@ -2928,7 +2928,7 @@
                     "type": "array"
                   },
                   "error_kind": {
-                    "description": "script_error, timeout, memory, max_tool_calls, invalid_arguments or approval_required.",
+                    "description": "script_error, timeout, memory, max_tool_calls, approval_required, result_too_large (over 80,000 characters), output_schema (the result does not match it) or runner_error. Invalid arguments and a busy run slot give outcome `refused` with `run` null.",
                     "type": [
                       "string",
                       "null"
@@ -2977,17 +2977,17 @@
         "description": "A definition to check without saving.",
         "properties": {
           "annotations": {
-            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`.",
+            "description": "Tool hints for clients: `title` and the booleans `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. `title` is at most 200 characters.",
             "type": "object"
           },
           "code": {
-            "description": "Python script. `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
           },
           "defaults": {
-            "description": "Default argument values. Clients see them as `default` and do not have to send them; values a call sends replace them.",
+            "description": "Default argument values, at most 16 KiB. Clients see them as `default` and do not have to send them; values a call sends replace them.",
             "type": "object"
           },
           "description": {
@@ -3001,11 +3001,11 @@
             "type": "boolean"
           },
           "fixed_args": {
-            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
+            "description": "Values the script always gets in `args`, hidden from clients and never replaced by what a caller sends (for example a fixed project id). Names must not be input_schema properties. At most 16 KiB. Not for secrets: they are returned by reads; keep credentials in the MCP's upstream credentials.",
             "type": "object"
           },
           "input_schema": {
-            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). At most 50 properties; no `$ref`.",
+            "description": "JSON Schema of the arguments: `type: object` with typed top-level `properties` (string, number, integer, boolean, array, object), `required` and `additionalProperties` (default false). Allowed top-level keys: `type`, `properties`, `required`, `additionalProperties`, `description`, `$schema` and `title` (the last two are dropped on save). Property names are identifiers (letters, digits and _, at most 64 characters) and every property needs a `type`. At most 50 properties and 16 KiB. No `$ref`, `$id`, `$anchor`, `$dynamicRef`, `$dynamicAnchor` or `$recursiveRef`; `$schema` only at the top level; `unevaluatedProperties` is refused when `patternProperties` appears anywhere in the schema. Each `pattern` or `patternProperties` key is at most 512 characters. When a call is checked, a regex match that takes over 1 s, or a check that takes over 5 s, fails the call. Call arguments are limited to 32 MB and 64 levels of nesting.",
             "type": "object"
           },
           "limits": {
@@ -3017,7 +3017,7 @@
             "type": "string"
           },
           "output_schema": {
-            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error.",
+            "description": "Optional JSON Schema (`type: object`) of the result. Clients receive it as the tool's outputSchema and the result as structured content; a result that does not match is returned as an error. At most 16 KiB. The same rules as `input_schema` apply to references, `$schema`, `unevaluatedProperties`, pattern length and match time.",
             "type": [
               "object",
               "null"
@@ -9797,7 +9797,7 @@
                     "slug": "quilr-ai-github",
                     "source": "catalog",
                     "tool_count": 0,
-                    "transport_type": "streamable_http",
+                    "transport_type": "http",
                     "upstream_host": "https://tracker.example.com",
                     "version": "r1"
                   },
@@ -10691,7 +10691,7 @@
             }
           },
           {
-            "description": "Exact transport type, for example streamable_http or sse.",
+            "description": "Exact transport type: http or sse.",
             "in": "query",
             "name": "transport_type",
             "required": false,
@@ -10739,7 +10739,7 @@
                       "slug": "files",
                       "source": "custom",
                       "tool_count": 12,
-                      "transport_type": "streamable_http",
+                      "transport_type": "http",
                       "upstream_host": "https://files.example.com",
                       "version": "r4"
                     }
@@ -10897,7 +10897,7 @@
                     "slug": "tracker",
                     "source": "custom",
                     "tool_count": 0,
-                    "transport_type": "streamable_http",
+                    "transport_type": "http",
                     "upstream_host": "https://tracker.example.com",
                     "version": "r1"
                   },
@@ -11044,7 +11044,7 @@
                     "slug": "billing-api",
                     "source": "api",
                     "tool_count": 12,
-                    "transport_type": "streamable_http",
+                    "transport_type": "http",
                     "upstream_host": null,
                     "version": "r1"
                   },
@@ -11380,7 +11380,7 @@
                     "slug": "files",
                     "source": "custom",
                     "tool_count": 12,
-                    "transport_type": "streamable_http",
+                    "transport_type": "http",
                     "upstream_host": "https://files.example.com",
                     "version": "r4"
                   },
@@ -11508,7 +11508,7 @@
                     "slug": "files",
                     "source": "custom",
                     "tool_count": 12,
-                    "transport_type": "streamable_http",
+                    "transport_type": "http",
                     "upstream_host": "https://files.example.com",
                     "version": "r5"
                   },
@@ -11928,7 +11928,7 @@
         ]
       },
       "patch": {
-        "description": "Merges the sent fields into the saved configuration and republishes the tools (`tool_diff`). Changing `base_url` or `remote_connector_id`, and nonempty `fixed_params`, need credentials:write. 400 `no_operations_selected` when nothing would be exposed, `invalid_operation_override` for unknown operations, `spec_missing` when switching to OpenAPI without a document. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Merges the sent fields into the saved configuration and republishes the tools (`tool_diff`). Sending `base_url` or `remote_connector_id` (even unchanged), and nonempty `fixed_params`, need credentials:write. 400 `no_operations_selected` when nothing would be exposed, `invalid_operation_override` for unknown operations, `spec_missing` when switching to OpenAPI without a document. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Update_REST_API_config",
         "parameters": [
           {
@@ -12097,7 +12097,7 @@
         "x-conditional-scopes": [
           {
             "scope": "credentials:write",
-            "when": "The body changes `base_url` or `remote_connector_id` (saved credentials then go to the new destination), any `openapi.overrides.*.fixed_params` is nonempty, or `openapi.source_url` has a query string or user info."
+            "when": "The body sends `base_url` or `remote_connector_id`, even unchanged (saved credentials then go to that destination), any `openapi.overrides.*.fixed_params` is nonempty, or `openapi.source_url` has a query string or user info."
           }
         ],
         "x-scopes": [
@@ -12222,7 +12222,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/api-config/resync": {
       "post": {
-        "description": "Downloads the document again from its source URL and reports added and removed operations. `apply=true` saves it: overrides of operations that still exist are kept and new operations are saved turned off. 409 `spec_uploaded` for an uploaded document, `not_openapi` for generic MCPs. `apply=true` needs If-Match.",
+        "description": "Downloads the document again from its source URL and reports added and removed operations. `apply=true` saves it: overrides of operations that still exist are kept and new operations are saved turned off. 409 `spec_uploaded` for an uploaded document, `not_openapi` for generic MCPs, `no_operations_selected` when `apply=true` would leave no operation selected (a report without `apply` returns it in `error`). `apply=true` needs If-Match with the quoted `version` from the latest read (428 when missing, 412 when stale); without `apply`, If-Match is optional.",
         "operationId": "Resync_REST_API",
         "parameters": [
           {
@@ -12325,8 +12325,14 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
           "413": {
             "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
           },
           "429": {
             "$ref": "#/components/responses/Busy"
@@ -12534,7 +12540,7 @@
                     "slug": "files",
                     "source": "custom",
                     "tool_count": 12,
-                    "transport_type": "streamable_http",
+                    "transport_type": "http",
                     "upstream_host": "https://files.example.com",
                     "version": "r4"
                   },
@@ -14067,7 +14073,7 @@
                   "client_result": {
                     "content": [
                       {
-                        "text": "{\"unread\": 1, \"items\": [...]}",
+                        "text": "{\"unread\": 1, \"items\": [{\"from\": \"ana@example.com\", \"subject\": \"Q3 plan\"}]}",
                         "type": "text"
                       }
                     ],
@@ -14093,7 +14099,12 @@
                     "logs": "",
                     "ms": 840,
                     "result": {
-                      "items": [],
+                      "items": [
+                        {
+                          "from": "ana@example.com",
+                          "subject": "Q3 plan"
+                        }
+                      ],
                       "unread": 1
                     },
                     "run_id": "6a2f0c1d9e8b4a7f",

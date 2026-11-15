@@ -53,7 +53,7 @@ export default function Audit() {
     <div className={styles.stack}>
       <Panel
         title="Audit"
-        subtitle="Configuration changes made in the console and through this API, newest first. Events record what changed (changed_fields), never before or after values. Pages follow next_cursor; 409 collection_changed means start again from the newest."
+        subtitle="Configuration changes made in the console and through this API, newest first. Events record what changed (changed_fields), never before or after values. Pages follow next_cursor; new events never invalidate a cursor."
         actions={
           <>
             <ApiChips calls={[['GET', '/audit']]} />
@@ -115,9 +115,6 @@ export default function Audit() {
           </Btn>
         </form>
         <ErrorBox error={list.error} />
-        {list.error?.code === 'collection_changed' && (
-          <Btn onClick={list.first}>Start again from the newest</Btn>
-        )}
         <div className={`${styles.split} ${styles.masterDetail}`}>
           <div>
             <Table

@@ -231,7 +231,7 @@ function Aliases() {
   return (
     <Panel
       title="Tool-argument aliases"
-      subtitle="Rewrite the arguments clients send before a call reaches the MCP: rename a parameter (param_alias) or normalize values (value_normalization). Each alias is checked against the tool's input schema."
+      subtitle="Rewrite the arguments clients send before a call reaches the MCP: rename a parameter (param_alias), normalize values (value_normalization), or move arguments into or out of an arguments object (envelope_wrap, envelope_unwrap). Each alias is checked against the tool's input schema."
       actions={
         <>
           <ApiChips
@@ -288,7 +288,7 @@ function Aliases() {
             <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="Why this alias exists" />
           </Field>
         </div>
-        <JsonField label="spec" value={form.spec} onChange={(v) => setForm({ ...form, spec: v })} rows={9} hint="tool_name must be a tool of the MCP; from/to (or param/from_values/to_value) must fit its input schema." />
+        <JsonField label="spec" value={form.spec} onChange={(v) => setForm({ ...form, spec: v })} rows={9} hint="tool_name must be a tool of the MCP; from/to (param_alias) or param/match/from_values/to_value (value_normalization, match is exact or normalized and required) must fit its input schema. envelope_wrap needs a schema that declares arguments; envelope_unwrap one that does not." />
         <div className={styles.actionsRow}>
           <ActionButton method="POST" path="/tool-arg-aliases" variant="primary" disabled={!form.mcp_id || !!spec.error || spec.value === undefined} onClick={create}>
             <Plus size={13} aria-hidden /> Create alias

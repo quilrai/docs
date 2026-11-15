@@ -96,7 +96,7 @@ export default function Mcps() {
               ))}
             </select>
           </Field>
-          <Field label="Transport type" hint="Exact, for example streamable_http or sse.">
+          <Field label="Transport type" hint="Exact: http or sse.">
             <input value={filters.transport_type} onChange={(e) => set({ transport_type: e.target.value })} />
           </Field>
           <Field label="Page size">

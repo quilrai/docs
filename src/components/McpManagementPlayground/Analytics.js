@@ -95,7 +95,8 @@ const REPORTS = {
     filters: ['tool', 'user', 'outcome', 'request_id'],
     sorts: [],
     limit: { def: 100, max: 1000 },
-    from: () => daysAgo(1),
+    // Empty: the server's default, the last 24 hours (a date would reach back to yesterday's UTC midnight).
+    from: () => '',
     metrics: [],
   },
   users: {
@@ -130,6 +131,11 @@ const FILTER_LABELS = {
   direction: ['Directions', 'input, output'],
   request_id: ['Request ids', ''],
 };
+
+// Each side is always present; show '-' when neither side has an outcome, a block or categories.
+function hasDlp(dlp) {
+  return !!dlp && Object.values(dlp).some((side) => side && (side.outcome || side.blocked || (side.categories || []).length));
+}
 
 function blankForm(report, mcp) {
   const r = REPORTS[report];
@@ -232,7 +238,7 @@ function Report({ report, initialMcp }) {
             setApplied(form);
           }}
         >
-          <Field label="From" hint="Inclusive, UTC.">
+          <Field label="From" hint="Inclusive, UTC. Empty: the report's default range.">
             <input type="date" value={form.from} onChange={(e) => set({ from: e.target.value })} />
           </Field>
           <Field label="To" hint="A date includes that whole UTC day. Empty: now.">
@@ -450,7 +456,7 @@ function columnsFor(report, { periodic, groups, metrics, mcpName }) {
       },
       { label: 'Duration', render: (row) => <span className={styles.num}>{ms(row.duration_ms)}</span> },
       { label: 'Via', render: (row) => fmt(row.called_via || row.agent) },
-      { label: 'DLP', render: (row) => (row.dlp && Object.keys(row.dlp).length ? <code>{JSON.stringify(row.dlp)}</code> : '-') },
+      { label: 'DLP', render: (row) => (hasDlp(row.dlp) ? <code>{JSON.stringify(row.dlp)}</code> : '-') },
       { label: 'Request id', render: (row) => <code>{fmt(row.request_id)}</code> },
     ];
   }

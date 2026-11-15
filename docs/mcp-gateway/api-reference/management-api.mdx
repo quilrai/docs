@@ -72,7 +72,7 @@ A key acts for the whole organization within its scopes, and its writes are made
 ## Defaults
 
 - Management keys have **no expiry by default**. You can set one when you issue the key.
-- A key's writes act as the administrator who issued it. If that administrator leaves the organization, the key's writes fail with `409 key_owner_unavailable`; issue a new key.
+- A key's writes act as the administrator who issued it. If that administrator leaves the organization, the key's writes fail with `409 key_owner_unavailable`, as do reads made on that administrator's behalf (custom tools, MCP API tokens, the OAuth client, tool changes, OAuth scope options and aliases); issue a new key.
 - Credentials set through the API are shared by all users of the organization.
 - Setting changes apply immediately to the MCP's own endpoint and to OneMCP.
 - A create that carries `settings` or `"enabled": false` adds the MCP disabled, applies the settings, and sets the requested state last, so an interrupted create never leaves the MCP usable without its settings.
@@ -133,7 +133,7 @@ curl "$GW/mcpgateway/management/v1/mcps?limit=50" \
   "items": [
     {
       "id": "a1b2c3d4", "slug": "files", "name": "Files", "enabled": true,
-      "transport_type": "streamable_http", "execution_type": "remote",
+      "transport_type": "http", "execution_type": "remote",
       "endpoint_urls": {"mcp": "https://mcpgateway.example.com/files/mcp"},
       "upstream_host": "https://files.example.com", "auth_type": "api_key",
       "oauth_mode": null, "source": "custom", "tool_count": 12,
@@ -159,7 +159,7 @@ curl --request POST "$GW/mcpgateway/management/v1/mcps" \
            "settings": {"dlp": {"data_risk_action": "redact"}}}'
 ```
 
-This body carries a credential and settings, so the key needs `credentials:write` and `settings:write` in addition to `mcps:write` (see [conditional scopes](#conditional-scopes)). The `201` response is `{"mcp": {...}, "warnings": [...], "operation_id": "...", "connection": {...}}`.
+This body carries a credential and settings, so the key needs `credentials:write` and `settings:write` in addition to `mcps:write` (see [conditional scopes](#conditional-scopes)). The `201` response is `{"mcp": {...}, "warnings": [...], "operation_id": "...", "connection": {...}}`, plus `connect` for an OAuth MCP that needs a connect link.
 
 To check what a URL needs before adding it, call `POST /mcps:probe`. See the [MCPs API](./mcps-api) for every way to add an MCP.
 
@@ -267,7 +267,7 @@ Management keys start with `qmcpmgmt_`. The key establishes the tenant: MCPs of 
 
 Turning management off **suspends** every key: each answers `403 management_disabled_for_tenant` until management is turned on again. Keys that are still unexpired and unrevoked then work again.
 
-Writes made with a key act as the administrator who issued it. Audit events record that administrator, the key id and `via: management_api`. If the administrator leaves the organization, the key's writes fail with `409 key_owner_unavailable`; issue a new key.
+Writes made with a key act as the administrator who issued it. Audit events record that administrator, the key id and `via: management_api`. If the administrator leaves the organization, the key's writes, and reads made on that administrator's behalf, fail with `409 key_owner_unavailable`; issue a new key.
 
 Keys have no expiry unless you set one. Revoking a key is immediate and permanent. Revoked and expired keys cannot be changed (`409 terminal_key_state`); issue a new key instead.
 
@@ -278,9 +278,9 @@ All scopes listed for an operation are required. No scope implies another.
 | Scope | Allows |
 | --- | --- |
 | `read` | Read MCPs, tools, settings, credential metadata, tool reviews, connection state, the catalog, operations, the audit trail, analytics and the OpenAPI document. |
-| `mcps:write` | Create, rename, enable, disable and remove MCPs; install catalog MCPs; check MCP URLs; preview REST API specs; refresh tools; issue OAuth connect links. |
+| `mcps:write` | Create, rename, enable, disable and remove MCPs; install catalog MCPs; check MCP URLs; preview REST API specs; change and resync REST API configuration; refresh tools; issue OAuth connect links. |
 | `settings:write` | Change MCP settings and per-user or per-smart-group overrides; send `settings` with a create. |
-| `credentials:write` | Set or remove upstream credentials and extra headers or query parameters; any create, check or preview that carries credentials. |
+| `credentials:write` | Set or remove upstream credentials and extra headers or query parameters; rotate an MCP's OAuth client; any create, check or preview that carries credentials. |
 | `tool_reviews:write` | Approve or reject tools held for review; check, adopt or dismiss upstream tool changes. |
 | `tokens:write` | Issue and revoke MCP API tokens. |
 | `connections:write` | Revoke a user's stored credentials for an MCP. |
@@ -303,7 +303,7 @@ Some operations need extra scopes depending on what the body carries. The OpenAP
 | `POST /catalog/{catalog_id}/install` | `auth_token`, `oauth_client_id`, `oauth_client_secret`, `upstream_auth_extra_headers`, `upstream_auth_extra_query_params` or `transport_values` | |
 | `POST /mcps/api` | `auth_token` or any `upstream_auth_*` field, nonempty `openapi.overrides.*.fixed_params`, or `base_url` or `openapi.source_url` with userinfo or a query string | `settings` is present |
 | `POST /mcps/api:preview` | `fetch_headers`, or `source_url` with userinfo or a query string | |
-| `PATCH /mcps/{mcp_id}/api-config` | `base_url` or `remote_connector_id` changes (saved credentials go to the new destination), nonempty `openapi.overrides.*.fixed_params`, or `openapi.source_url` with userinfo or a query string | |
+| `PATCH /mcps/{mcp_id}/api-config` | the body sends `base_url` or `remote_connector_id` (saved credentials go to that destination), nonempty `openapi.overrides.*.fixed_params`, or `openapi.source_url` with userinfo or a query string | |
 | `POST /mcps/{mcp_id}/api-config/resync` | `fetch_headers` | |
 
 A request missing a scope is refused with `403 insufficient_scope` and `error.required_scopes` before anything is written. Scopes are checked again just before a write, so a key that is revoked or narrowed while its request waits is refused.
@@ -328,25 +328,38 @@ Tenant settings control `{"enabled": true}`. Key lists return metadata only, nev
 
 ### Versions and If-Match
 
-Resources that can be changed carry `version`, also returned as the `ETag` header. Changes to an existing resource require `If-Match` with that quoted value:
+Resources that can be changed carry `version`, also returned as the `ETag` header. The operations listed below require `If-Match` with that quoted value:
 
 - Missing: `428 precondition_required`.
 - Stale: `412 version_conflict`. Read again, reapply your change and retry.
 
 An MCP has one configuration version (`r<N>`) shared by its name, enabled state, settings, overrides and upstream credentials, so a change to any of them changes the ETag for all of them. Live values (tool counts, connection state, usage) never change the version.
 
-These operations take `If-Match`: `PATCH` and `DELETE /mcps/{mcp_id}`, `PATCH /mcps/{mcp_id}/settings`, `PUT` and `DELETE /mcps/{mcp_id}/scoped-settings/{scope_type}/{scope_value}`, `PUT` and `DELETE /mcps/{mcp_id}/upstream-auth`, and the administration `PATCH .../settings` and `PATCH` / `DELETE .../keys/{key_id}`.
+These operations take `If-Match`:
+
+- `PATCH` and `DELETE /mcps/{mcp_id}`
+- `PATCH /mcps/{mcp_id}/settings`
+- `PUT` and `DELETE /mcps/{mcp_id}/scoped-settings/{scope_type}/{scope_value}`
+- `PUT` and `DELETE /mcps/{mcp_id}/upstream-auth`
+- `PUT /mcps/{mcp_id}/agents/{agent}`
+- `PUT /mcps/{mcp_id}/oauth-client`
+- `PATCH /mcps/{mcp_id}/api-config`, and `POST /mcps/{mcp_id}/api-config/resync?apply=true` (optional without `apply=true`)
+- `PUT`, `PATCH` and `DELETE /mcps/{mcp_id}/custom-tools/{name}`, and `POST /mcps/{mcp_id}/custom-tools/{name}/restore`
+- `PATCH /tenant/settings` (the tenant settings `version`)
+- the administration `PATCH .../settings` and `PATCH` / `DELETE .../keys/{key_id}`
+
+These do not take `If-Match`: tool review approve and reject, MCP API token revoke, agent delete, alias `PUT`, `PATCH` and `DELETE`, MCP request dismiss, user connection revoke, and tool change apply and dismiss.
 
 ### Idempotency and recovery {#idempotency}
 
-Creates require an `Idempotency-Key` header, 1 to 200 characters of your choosing: `POST /mcps`, `POST /mcps/api`, `POST /catalog/{catalog_id}/install` and administration key issuance.
+Creates require an `Idempotency-Key` header, 1 to 200 characters of your choosing, without control characters: `POST /mcps`, `POST /mcps/api`, `POST /catalog/{catalog_id}/install`, `POST /mcps/{mcp_id}/tokens` and administration key issuance.
 
 | Situation | Result |
 | --- | --- |
 | Same key and same request within 24 hours | The original response is returned: the same MCP, the same key secret, the same connect link. |
 | Same key with a different method, path or body | `409 idempotency_conflict` |
 | Same key after 24 hours | `409 idempotency_replay_expired`; use a new key. |
-| Missing header | `400 idempotency_key_required` |
+| Missing header, or a key over 200 characters or with control characters | `400 idempotency_key_required` |
 
 If a create is interrupted, the response may be `503 operation_pending` with `operation_id`. Retry the same request with the same `Idempotency-Key`: the gateway finishes or cleanly redoes it and never creates a duplicate. `GET /operations/{op_id}` shows its state; only the key that started the operation can read it. Concurrent creates of the same name answer `409 operation_in_progress`; an existing slug answers `409 slug_conflict`.
 
@@ -359,7 +372,7 @@ List endpoints take `limit` (1 to 200, default 50) and `cursor`. Pass the `next_
 - Each endpoint accepts only its documented query parameters, each at most once. Anything else is `400 invalid_request`.
 - Unknown body fields, at any depth, are refused with `400` and their paths in `error.fields`.
 - Bodies are at most 1 MiB (`413 body_too_large`) and must arrive within 10 seconds (`408 body_timeout`).
-- At most 32 management requests are in flight per gateway. Beyond that you get `429 management_busy` with `Retry-After`.
+- At most 32 management requests are in flight per gateway, and one organization may use at most half of them. Beyond either limit you get `429 management_busy` with `Retry-After`; other organizations' calls are still admitted.
 
 ### Errors
 
@@ -381,12 +394,13 @@ Every error has the same shape:
 | Status | Code | Meaning |
 | --- | --- | --- |
 | 400 | `invalid_request` | Invalid body, path or query parameter (`fields`). |
-| 400 | `idempotency_key_required` | Create without `Idempotency-Key`. |
+| 400 | `idempotency_key_required` | Create without a valid `Idempotency-Key`. |
 | 400 | `invalid_configuration` | The configuration was refused or conflicts with an existing MCP. |
 | 400 | `upstream_auth_failed` | The upstream MCP server rejected the credentials or could not list tools. |
 | 400 | `oauth_registration_failed` | Dynamic client registration failed; supply OAuth client credentials. |
 | 400 | `no_operations_selected`, `invalid_operation_override` | A REST API change would expose no operation, or names operations not in the document (`unknown_operations`). |
-| 400 | `spec_missing`, `spec_invalid`, `spec_too_large`, `blocked_destination` | OpenAPI document missing, unreadable, too large, or at a destination the gateway does not call. |
+| 400 | `spec_missing`, `spec_invalid`, `blocked_destination` | OpenAPI document missing, unreadable, or at a destination the gateway does not call. |
+| 400 | `unsupported_encoding`, `invalid_api_backend` | The OpenAPI document's encoding is not supported; the REST API configuration is invalid. |
 | 401 | `invalid_management_key` | Missing, unknown, expired or revoked key. |
 | 401 | `invalid_admin_token` | Administration endpoint without a valid administrator token. |
 | 403 | `insufficient_scope` | The key lacks a scope (`required_scopes`). |
@@ -398,6 +412,7 @@ Every error has the same shape:
 | 404 | `connect_link_not_found` | Unknown connect link. |
 | 404 | `custom_tool_not_found` | No custom tool with that name on the MCP. |
 | 404 | `custom_tool_version_not_found` | No saved version with that number in the custom tool's history. |
+| 405 | `method_not_allowed` | The path does not take this method. |
 | 408 | `body_timeout` | Body not received within 10 seconds. |
 | 409 | `conflict` | Conflicts with the current state. |
 | 409 | `slug_conflict`, `already_installed` | Name already taken; catalog MCP already installed. |
@@ -411,6 +426,9 @@ Every error has the same shape:
 | 409 | `no_pending_tool_changes` | No upstream tool change is awaiting review. |
 | 409 | `oauth_mcp_uses_sign_in` | OAuth MCPs do not take MCP API tokens. |
 | 409 | `token_revoked` | The token was revoked before its interrupted issue completed; issue a new one. |
+| 409 | `operation_not_pending` | The interrupted operation is no longer pending. |
+| 409 | `key_conflict` | Management key identity conflict; retry, or issue a new key. |
+| 409 | `no_operations_selected` | `POST /mcps/{mcp_id}/api-config/resync?apply=true` would leave no operation selected. |
 | 409 | `agent_exists`, `built_in_agent` | Agent keyword taken; built-in agents cannot be deleted. |
 | 409 | `alias_id_in_use`, `request_not_pending` | Alias id belongs to another organization; request already resolved. |
 | 409 | `oauth_connection_required` | Refresh of an OAuth MCP the key's administrator has not connected. |
@@ -418,24 +436,28 @@ Every error has the same shape:
 | 409 | `pending_first_client` | OAuth passthrough MCPs cannot be refreshed by the gateway. |
 | 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
 | 409 | `not_api_mcp`, `not_openapi`, `spec_uploaded` | Not a REST API MCP; not built from an OpenAPI document; the document was uploaded, so send a new one instead of resyncing. |
-| 409 | `tool_name_taken`, `custom_tool_limit`, `test_run_unavailable` | A custom tool name one of the MCP's own tools uses; 50 custom tools already; no test runs for MCPs where each user signs in with their own token. See [custom tool errors](./custom-tools-api#errors). |
+| 409 | `tool_name_taken`, `custom_tool_limit`, `test_run_unavailable` | One of the MCP's own tools already uses the name; the MCP already has 50 custom tools; test runs are not available on OAuth passthrough MCPs. See [custom tool errors](./custom-tools-api#errors). |
 | 409 | `not_oauth_mcp`, `oauth_client_not_custom` | No gateway OAuth client; the gateway registered the client itself, so it cannot be rotated. |
 | 409 | `connect_link_used` | Connect link already used. |
+| 410 | `gone` | The resource is no longer available. |
 | 410 | `connect_link_expired` | Connect link expired. |
 | 410 | `connect_link_revoked` | The management key that issued the connect link was revoked or expired. |
 | 410 | `preview_expired` | The OpenAPI preview expired; preview the document again. |
 | 412 | `version_conflict` | `If-Match` is stale (`current_version` when known). |
 | 413 | `body_too_large` | Body over 1 MiB. |
+| 413 | `spec_too_large` | The OpenAPI document is too large. |
 | 422 | `install_input_required` | Catalog install needs more values (`missing_fields`). |
 | 422 | `result_too_large` | Report would exceed 100,000 rows. |
+| 422 | `tools_too_large` | The selected REST API operations produce more tool definitions than allowed. |
 | 428 | `precondition_required` | `If-Match` missing. |
-| 429 | `management_busy`, `report_busy`, `rate_limited` | Too many requests; honor `Retry-After`. |
+| 429 | `management_busy`, `report_busy`, `rate_limited` | Too many requests; honor `Retry-After`. `management_busy` can also mean your organization is over its share of concurrent management calls. |
 | 502 | `upstream_unavailable`, `oauth_initiation_failed` | The upstream MCP server or OAuth provider is unreachable or refused. |
 | 502 | `fetch_failed` | The OpenAPI document could not be downloaded. |
 | 502 | `test_run_failed` | A custom tool test run could not be completed. |
 | 503 | `operation_pending` | Create incomplete; retry with the same `Idempotency-Key`. |
 | 503 | `storage_unavailable`, `service_unavailable`, `mcp_busy` | Temporary; retry after `Retry-After`. |
 | 503 | `query_timeout`, `data_unavailable` | Analytics temporarily unavailable. |
+| 504 | `upstream_timeout` | The upstream MCP server did not respond in time. |
 
 **Retry guidance:** `429` and `503` are safe to retry after `Retry-After`. Retry creates only with the same `Idempotency-Key`. On `412`, read the resource again before retrying.
 

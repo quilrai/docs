@@ -275,10 +275,10 @@ function CustomMcp() {
             <Field label="Token" hint="Write-only: never returned, masked in activity and snippets.">
               <input type="password" autoComplete="off" value={form.token} onChange={(e) => set({ token: e.target.value })} />
             </Field>
-            <Field label="Header name (optional)" hint="Default: Authorization bearer.">
+            <Field label="Header name (optional)" hint="Default: Authorization bearer. Use this or a query parameter, not both.">
               <input value={form.header_name} onChange={(e) => set({ header_name: e.target.value })} placeholder="X-Api-Key" />
             </Field>
-            <Field label="Query parameter (optional)" hint="Send the token as a query parameter instead.">
+            <Field label="Query parameter (optional)" hint="Send the token as a query parameter instead of a header (not both).">
               <input value={form.query_param} onChange={(e) => set({ query_param: e.target.value })} />
             </Field>
             <Field label="Scheme (optional)">
@@ -315,14 +315,14 @@ function CustomMcp() {
       </details>
       <p className={styles.muted}>
         This body needs {needs.map((s) => <code key={s}>{s} </code>)}
-        {!probed && transport && ' Check the URL first (step 1) to create.'}
+        {!probed && transport && ' Checking the URL first (step 1) is optional but shows what auth it needs.'}
       </p>
       <div className={styles.actionsRow}>
         <ActionButton
           method="POST"
           path="/mcps"
           variant="primary"
-          disabled={!body.name || !transport || !!jsonError || !probed}
+          disabled={!body.name || !transport || !!jsonError}
           onClick={() => create.run(`${MCP_PREFIX}/mcps`, body)}
         >
           Create MCP

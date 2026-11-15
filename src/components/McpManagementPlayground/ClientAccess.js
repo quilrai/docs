@@ -43,6 +43,8 @@ export default function ClientAccess() {
   const { client, urlParam } = usePlayground();
   const id = urlParam('mcp');
   const [generation, setGeneration] = useState(0);
+  // An agent toggle changes the MCP version: the OAuth client panel re-reads it.
+  const [mcpVersionTick, setMcpVersionTick] = useState(0);
   if (!client) return <ConnectFirst what="hand MCPs out to clients" />;
   return (
     <div className={styles.stack}>
@@ -56,9 +58,9 @@ export default function ClientAccess() {
         <>
           <Setup key={`setup-${id}`} id={id} />
           <SignInLink key={`link-${id}`} id={id} />
-          <OAuthClient key={`oauth-${id}`} id={id} />
+          <OAuthClient key={`oauth-${id}`} id={id} versionTick={mcpVersionTick} />
           <Tokens key={`tokens-${id}`} id={id} generation={generation} />
-          <McpAgents key={`agents-${id}-${generation}`} id={id} />
+          <McpAgents key={`agents-${id}-${generation}`} id={id} onChanged={() => setMcpVersionTick((t) => t + 1)} />
         </>
       ) : (
         <p className={styles.muted}>Select an MCP to see its client setup, tokens and agents.</p>
@@ -263,7 +265,7 @@ function Tokens({ id, generation }) {
   );
 }
 
-function McpAgents({ id }) {
+function McpAgents({ id, onChanged }) {
   const { client } = usePlayground();
   const name = useMcpName(id);
   const view = useLoad(() => client.call({ path: mcpPath(id, '/agents'), source: 'MCP agents' }), [client, id]);
@@ -280,6 +282,7 @@ function McpAgents({ id }) {
         source: `${enabled ? 'Allow' : 'Block'} agent`,
       });
       view.setData(out);
+      onChanged?.();
       return out;
     }, `${enabled ? 'Allowed' : 'Blocked'} ${agent.display_name} on ${name}.`);
     if (!res) view.reload();
@@ -489,9 +492,9 @@ function SignInLink({ id }) {
 
 const BLANK_ROTATION = { client_secret: '', client_id: '', reconnect: '' };
 
-function OAuthClient({ id }) {
+function OAuthClient({ id, versionTick = 0 }) {
   const { client, confirm } = usePlayground();
-  const data = useLoad(() => client.call({ path: mcpPath(id, '/oauth-client'), source: 'OAuth client' }), [client, id]);
+  const data = useLoad(() => client.call({ path: mcpPath(id, '/oauth-client'), source: 'OAuth client' }), [client, id, versionTick]);
   const [form, setForm] = useState(null);
   const [rotation, setRotation] = useState(null);
   const action = useAction();

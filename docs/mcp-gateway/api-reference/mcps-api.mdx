@@ -24,7 +24,7 @@ Each MCP has a `source`:
 
 ## List and inspect MCPs {#inventory}
 
-`GET /mcps` returns enabled and disabled MCPs, sorted by name. Filter with `name` (case-insensitive substring), `slug`, `enabled`, `auth_type`, `transport_type` and `source`. `tool_count` and `connection_state` are live values; they never invalidate a cursor.
+`GET /mcps` returns enabled and disabled MCPs, sorted by name. Filter with `name` (case-insensitive substring), `slug`, `enabled`, `auth_type` (`api_key`, `no_auth`, `oauth` or `oauth_passthrough`), `transport_type` (`http` or `sse`) and `source`. The listed `auth_type` maps from the create `auth.type`: `static` lists as `api_key`, `none` as `no_auth`, and `oauth_dcr` and `oauth_login` as `oauth`. `tool_count` and `connection_state` are live values; they never invalidate a cursor.
 
 `GET /mcps/{mcp_id}` returns one MCP with its last tool-fetch errors (fixed codes, never upstream text) and its `version`, the ETag of the MCP configuration. `GET /mcps/{mcp_id}/tools` lists cached tools, resources and prompts. Each tool carries its enabled and confirmation settings, its review state (held or rejected tools are listed too) and its all-time call count.
 
@@ -62,7 +62,7 @@ OAuth MCPs (`oauth_dcr` and `oauth_login`) are created with `connection.state` `
 
 ### Settings and state on create
 
-`settings` and `enabled` apply before the MCP is returned. A create that carries `settings` or `"enabled": false` adds the MCP disabled, applies the settings, and sets the requested state last. An interrupted create therefore never leaves the MCP usable without its settings: it stays disabled until a retry with the same `Idempotency-Key` completes.
+`POST /mcps` and `POST /mcps/api` accept `settings` and `enabled`; a catalog install takes neither, so change them after it. They apply before the MCP is returned. A create that carries `settings` or `"enabled": false` adds the MCP disabled, applies the settings, and sets the requested state last. An interrupted create therefore never leaves the MCP usable without its settings: it stays disabled until a retry with the same `Idempotency-Key` completes.
 
 ## Change and remove an MCP {#update}
 
