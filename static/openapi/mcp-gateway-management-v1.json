@@ -3452,7 +3452,7 @@
                 "description": "Offending request paths (body.x, query.y, path.z) as a list; analytics reports instead return an object keyed by query parameter name with the reason, for example {\"from\": \"must be before to\"}."
               },
               "may_have_run": {
-                "description": "test_run_failed only: true when the tool may have run before the failure.",
+                "description": "test_run_failed only: true when the tool may have run before the failure, false when it did not run.",
                 "type": "boolean"
               },
               "message": {
@@ -14085,7 +14085,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:test": {
       "post": {
-        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects, checked by policies and approvals and logged. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).\n\n**Ambiguous failures.** 502 `test_run_failed` (with `error.may_have_run`: true) means the run failed before a result came back: the tool may have run, and its calls may have changed data. Check the MCP's logs before running it again. To retry safely, send an `Idempotency-Key`: the same key and body within 24 hours returns the stored answer (the result, or the stored failure, including that 502) instead of running the tool again; requests with one key that arrive while it runs get its answer, or 409 `test_run_in_progress` (retry shortly). A new key runs the tool again.",
+        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects, checked by policies and approvals and logged. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).\n\n**Ambiguous failures.** 502 `test_run_failed` with `error.may_have_run`: true means the run failed after the script started: the tool may have run, and its calls may have changed data. Check the MCP's logs before running it again. `may_have_run`: false means it failed before the script started; nothing ran.\n\n**Retries.** Send an `Idempotency-Key` to retry safely. When the script started (a result, a script error or the ambiguous 502), the same key and body within 24 hours return that stored answer instead of running again. When the tool certainly did not run (custom tools busy, invalid arguments, refused before the script, unknown tool or MCP, a failure before dispatch), nothing is stored and a retry with the same key runs. Requests with one key that arrive while it runs wait for its answer, or get 409 `test_run_in_progress` (retry after `Retry-After`). A run that never recorded an answer within 3 minutes (the gateway stopped) becomes a stored 502 `test_run_failed` with `may_have_run`: true; it is never run again under that key. A different body under the key is 409 `idempotency_conflict`; a new key runs the tool again.",
         "operationId": "Test_custom_tool",
         "parameters": [
           {
@@ -15864,7 +15864,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes/apply": {
       "post": {
-        "description": "Adopts the change you reviewed: send its `version` quoted in If-Match (428 when missing). The upstream tool list is fetched again and adopted only when it still matches the reviewed change; otherwise nothing is adopted and the answer is 412 `tool_changes_changed` with the current change in `error.tool_changes` (review it and retry with its `version`). A change that was replaced or closed since the read is 412 `version_conflict`, also with `error.tool_changes`. New tools may still be held for review. 409 `no_pending_tool_changes` when nothing is awaiting review.",
+        "description": "Adopts the change you reviewed: send its `version` quoted in If-Match (428 when missing). The upstream tool list is fetched again and adopted only when it still matches the reviewed change; otherwise nothing is adopted and the answer is 412 `tool_changes_changed` with the current change in `error.tool_changes` (review it and retry with its `version`). A change that was replaced or closed since the read (by a check, another apply or a dismiss) is 412 `version_conflict`, also with `error.tool_changes` (its `version` is null when nothing is pending any more). New tools may still be held for review. 409 `tool_changes_unavailable` when the upstream tool list cannot be read now (nothing adopted).",
         "operationId": "Apply_tool_changes",
         "parameters": [
           {
@@ -16109,7 +16109,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/tool-changes/dismiss": {
       "post": {
-        "description": "Keeps the cached tool list and stops flagging this upstream list; a different upstream list opens a new change. Send the reviewed change's `version` quoted in If-Match (428 when missing); a change that was replaced since the read is 412 `version_conflict` with the current change in `error.tool_changes`. 409 `no_pending_tool_changes` when nothing is awaiting review.",
+        "description": "Keeps the cached tool list and stops flagging this upstream list; a different upstream list opens a new change. Send the reviewed change's `version` quoted in If-Match (428 when missing); a change that was replaced, applied or dismissed since the read is 412 `version_conflict` with the current state in `error.tool_changes` (`version` null when nothing is pending).",
         "operationId": "Dismiss_tool_changes",
         "parameters": [
           {
@@ -16202,9 +16202,6 @@
           },
           "408": {
             "$ref": "#/components/responses/BodyTimeout"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
           },
           "412": {
             "$ref": "#/components/responses/VersionConflict"

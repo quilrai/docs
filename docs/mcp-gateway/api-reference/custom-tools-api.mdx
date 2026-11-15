@@ -170,7 +170,12 @@ Test runs are not available for OAuth passthrough MCPs, where each client brings
 
 ### Retry safely {#retry-safely}
 
-Because a test run makes real calls, a failure without an answer is ambiguous. `502 test_run_failed` means the run failed before a result came back: the tool may have run, and its calls may have changed data. The error says so with `"may_have_run": true`:
+Because a test run makes real calls, a failure without an answer can be ambiguous. `502 test_run_failed` means the run failed before a result came back, and `may_have_run` says whether the tool could have run:
+
+- `"may_have_run": true`: the script started, or the run never recorded an answer. The tool may have run, and its calls may have changed data. The outcome is unknown.
+- `"may_have_run": false`: the run could not start, so nothing ran. Retrying is safe, and a retry with the same `Idempotency-Key` runs it.
+
+An ambiguous failure looks like this:
 
 ```json
 {
@@ -183,17 +188,18 @@ Because a test run makes real calls, a failure without an answer is ambiguous. `
 }
 ```
 
-Check the MCP's logs before you run it again: every tool call the script made is logged. To retry without running the tool twice, send an `Idempotency-Key` header with each test run (optional, 1 to 200 characters without control characters; a malformed key is `400 idempotency_key_required`):
+After an ambiguous failure, check the MCP's logs before you run it again: every tool call the script made is logged. To retry without running the tool twice, send an `Idempotency-Key` header with each test run (optional, 1 to 200 characters without control characters; a malformed key is `400 idempotency_key_required`). Only runs whose script started are stored under the key:
 
 | Situation | Result |
 | --- | --- |
-| Same key and same body within 24 hours | The stored answer is returned and the tool does not run again: the result, or the stored failure (including the `502` above and refusals such as `404 custom_tool_not_found`). |
-| Same key while the first run is still going | The request waits for the run on the same gateway process and gets its answer. A request that reaches another process gets `409 test_run_in_progress` with `operation_id`; retry after `Retry-After`. |
+| Same key and same body within 24 hours, after the script started | The stored answer is returned and the tool does not run again: the result (including a script error) or the ambiguous `502` above. A stored answer is returned even if the MCP was removed since. |
+| Same key after a run that certainly did not run the tool | Nothing was stored, so the retry runs the tool. This covers custom tools being busy, arguments that do not match the schema, a refusal before the script, an unknown tool or MCP (`404`) and a failure before dispatch (`502` with `"may_have_run": false`). |
+| Same key while the first run is still going | The request waits for the run on the same gateway process and gets its answer. A request that reaches another process gets `409 test_run_in_progress` with `operation_id`; retry after `Retry-After` (1 second). |
 | Same key with a different body | `409 idempotency_conflict`. |
-| A new key | The tool runs again. |
+| A new key | The tool runs again. Against an MCP that was removed, `404 not_found`. |
 | Same key after 24 hours | `409 idempotency_replay_expired`; use a new key. |
 
-A run interrupted by a gateway restart never records an answer, so its key keeps answering `409 test_run_in_progress`. Its outcome is unknown: check the logs, then use a new key if you still want to run it.
+A run interrupted by a gateway restart never records an answer. After 3 minutes its key answers `502 test_run_failed` with `"may_have_run": true`, stored like any answer: the outcome is unknown and the tool is never run again under that key. Check the logs, then use a new key if you still want to run it.
 
 ## Approvals {#approvals}
 
@@ -221,11 +227,11 @@ If the script returns while tool calls it started are still running, the answer 
 | 409 | `tool_name_taken` | One of the MCP's own tools already uses this name. |
 | 409 | `custom_tool_limit` | The MCP already has 50 custom tools. |
 | 409 | `test_run_unavailable` | The MCP is an OAuth passthrough MCP: each client brings its own token, so a test run cannot use the key owner's connection. |
-| 409 | `test_run_in_progress` | A test run with this `Idempotency-Key` has not recorded an answer yet (`operation_id`, `Retry-After`). See [retry safely](#retry-safely). |
+| 409 | `test_run_in_progress` | A test run with this `Idempotency-Key` is still running (`operation_id`, `Retry-After`). See [retry safely](#retry-safely). |
 | 409 | `idempotency_conflict` | The `Idempotency-Key` was used for a test run with a different body. |
 | 412 | `version_conflict` | `If-Match` is stale: the MCP changed since you read it. Read the list again and retry. |
 | 428 | `precondition_required` | `If-Match` missing on a write. |
-| 502 | `test_run_failed` | The test run failed before a result came back; the tool may have run (`"may_have_run": true`). Check the logs, and retry with the same `Idempotency-Key` to get the stored answer. |
+| 502 | `test_run_failed` | The test run failed before a result came back. With `"may_have_run": true` the tool may have run: check the logs; the same `Idempotency-Key` returns this stored answer. With `"may_have_run": false` nothing ran: retry, with the same key or a new one. |
 
 See [errors](./management-api#errors) for the shared error shape and retry rules.
 

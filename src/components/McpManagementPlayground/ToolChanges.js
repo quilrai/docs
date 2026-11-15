@@ -108,8 +108,12 @@ function Change({ id }) {
           setStale(
             e.code === 'tool_changes_changed'
               ? 'Upstream no longer serves the change you reviewed, so nothing was adopted. The new change is shown below: review it and adopt again.'
-              : 'The change was replaced since you read it. The current change is shown below: review it and try again.',
+              : !current.version
+                ? `Nothing is pending any more: the change was already ${current.status === 'dismissed' ? 'dismissed' : current.status === 'applied' ? 'applied' : 'closed'}${current.resolved_by ? ` by ${current.resolved_by}` : ''}. The current state is shown below.`
+                : 'The change was replaced since you read it. The current change is shown below: review it and try again.',
           );
+        } else if (e?.code === 'tool_changes_unavailable') {
+          setStale('The gateway cannot read the upstream tool list right now (for example upstream lists no tools), so nothing was adopted. Retry later.');
         }
         throw e;
       }

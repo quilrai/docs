@@ -364,7 +364,7 @@ Creates require an `Idempotency-Key` header, 1 to 200 characters of your choosin
 | Same key after 24 hours | `409 idempotency_replay_expired`; use a new key. |
 | Missing header on a create, or a key over 200 characters or with control characters | `400 idempotency_key_required` |
 
-[Custom tool test runs](./custom-tools-api#retry-safely) (`POST /mcps/{mcp_id}/custom-tools:test`) take an optional `Idempotency-Key` with the same rules: the same key and body within 24 hours return the stored answer instead of running the tool again.
+[Custom tool test runs](./custom-tools-api#retry-safely) (`POST /mcps/{mcp_id}/custom-tools:test`) take an optional `Idempotency-Key` with the same rules: once the script has started, the same key and body within 24 hours return the stored answer instead of running the tool again. A run that certainly did not run the tool is not stored, so a retry with the same key runs it.
 
 If a create is interrupted, the response may be `503 operation_pending` with `operation_id`. Retry the same request with the same `Idempotency-Key`: the gateway finishes or cleanly redoes it and never creates a duplicate. `GET /operations/{op_id}` shows its state; only the key that started the operation can read it. Concurrent creates of the same name answer `409 operation_in_progress`; an existing slug answers `409 slug_conflict`.
 
@@ -428,7 +428,7 @@ Every error has the same shape:
 | 409 | `terminal_key_state` | Revoked or expired keys cannot change. |
 | 409 | `policy_dependency` | The active QuilrQL policy depends on it. |
 | 409 | `tools_not_awaiting_review` | A named tool is not held for review. |
-| 409 | `no_pending_tool_changes` | No upstream tool change is awaiting review. |
+| 409 | `tool_changes_unavailable` | Tool-change apply: the upstream tool list cannot be read now; nothing was adopted. Retry later. |
 | 409 | `oauth_mcp_uses_sign_in` | OAuth MCPs do not take MCP API tokens. |
 | 409 | `token_revoked` | The token was revoked before its interrupted issue completed; issue a new one. |
 | 409 | `operation_not_pending` | The interrupted operation is no longer pending. |
@@ -441,7 +441,7 @@ Every error has the same shape:
 | 409 | `pending_first_client` | OAuth passthrough MCPs cannot be refreshed by the gateway. |
 | 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
 | 409 | `not_api_mcp`, `not_openapi`, `spec_uploaded` | Not a REST API MCP; not built from an OpenAPI document; the document was uploaded, so send a new one instead of resyncing. |
-| 409 | `test_run_in_progress` | A custom tool test run with this `Idempotency-Key` has not recorded an answer yet; retry after `Retry-After`. See [retry safely](./custom-tools-api#retry-safely). |
+| 409 | `test_run_in_progress` | A custom tool test run with this `Idempotency-Key` is still running; retry after `Retry-After`. See [retry safely](./custom-tools-api#retry-safely). |
 | 409 | `tool_name_taken`, `custom_tool_limit`, `test_run_unavailable` | One of the MCP's own tools already uses the name; the MCP already has 50 custom tools; test runs are not available on OAuth passthrough MCPs. See [custom tool errors](./custom-tools-api#errors). |
 | 409 | `not_oauth_mcp`, `oauth_client_not_custom` | No gateway OAuth client; the gateway registered the client itself, so it cannot be rotated. |
 | 409 | `connect_link_used` | Connect link already used. |
@@ -449,7 +449,7 @@ Every error has the same shape:
 | 410 | `connect_link_expired` | Connect link expired. |
 | 410 | `connect_link_revoked` | The management key that issued the connect link was revoked or expired. |
 | 410 | `preview_expired` | The OpenAPI preview expired; preview the document again. |
-| 412 | `version_conflict` | `If-Match` is stale (`current_version` when known; on tool-change apply and dismiss, `tool_changes` holds the current change). |
+| 412 | `version_conflict` | `If-Match` is stale (`current_version` when known; on tool-change apply and dismiss, `tool_changes` holds the current state, also when the change was applied or dismissed meanwhile). |
 | 412 | `tool_changes_changed` | Tool-change apply: upstream no longer serves the reviewed change, so nothing was adopted (`tool_changes` holds the new change). |
 | 413 | `body_too_large` | Body over 1 MiB. |
 | 413 | `spec_too_large` | The OpenAPI document is over 10 MiB. An inline document is also bound by the 1 MiB body limit (`body_too_large`); send `source_url` instead. |
@@ -460,13 +460,13 @@ Every error has the same shape:
 | 429 | `management_busy`, `report_busy`, `rate_limited` | Too many requests; honor `Retry-After`. `management_busy` can also mean your organization is over its share of concurrent management calls. |
 | 502 | `upstream_unavailable`, `oauth_initiation_failed` | The upstream MCP server or OAuth provider is unreachable or refused. |
 | 502 | `fetch_failed` | The OpenAPI document could not be downloaded. |
-| 502 | `test_run_failed` | A custom tool test run failed before a result came back; the tool may have run (`"may_have_run": true`). See [retry safely](./custom-tools-api#retry-safely). |
+| 502 | `test_run_failed` | A custom tool test run failed before a result came back: `may_have_run` is `true` when the script started or the run never recorded an answer, `false` when nothing ran. See [retry safely](./custom-tools-api#retry-safely). |
 | 503 | `operation_pending` | Create incomplete; retry with the same `Idempotency-Key`. |
 | 503 | `storage_unavailable`, `service_unavailable`, `mcp_busy` | Temporary; retry after `Retry-After`. |
 | 503 | `query_timeout`, `data_unavailable` | Analytics temporarily unavailable. On a deployment without an analytics store, `data_unavailable` is permanent. |
 | 504 | `upstream_timeout` | The upstream MCP server did not respond in time. |
 
-**Retry guidance:** `429` and `503` are safe to retry after `Retry-After`, except `data_unavailable` on a deployment without an analytics store. Retry creates only with the same `Idempotency-Key`. On `412`, read the resource again before retrying. A `502 test_run_failed` may have run the tool: check the MCP's logs, and retry only with the same `Idempotency-Key`.
+**Retry guidance:** `429` and `503` are safe to retry after `Retry-After`, except `data_unavailable` on a deployment without an analytics store. Retry creates only with the same `Idempotency-Key`. On `412`, read the resource again before retrying. A `502 test_run_failed` with `"may_have_run": true` may have run the tool: check the MCP's logs before running it again with a new key; with `false` nothing ran and a retry is safe.
 
 ## OpenAPI document {#openapi}
 

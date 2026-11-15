@@ -508,7 +508,9 @@ function TestRun({ id, name, draft, draftReady, saved }) {
     const ok = await confirm({
       title: reuse ? `Retry ${name} with the same Idempotency-Key?` : `Run ${name} now?`,
       body: reuse
-        ? 'The last run with this request ended without a known outcome. Retrying with the same Idempotency-Key returns its stored answer instead of running the tool again; if that run is still going, the gateway may answer 409 test_run_in_progress.'
+        ? retry.current.notRun
+          ? 'The last attempt did not run the tool (may_have_run false), so nothing was stored under its Idempotency-Key. Retrying with the same key runs the tool now, with real effects.'
+          : 'The last run with this request ended without a known outcome. Retrying with the same Idempotency-Key returns its stored answer instead of running the tool again; if that run is still going, the gateway answers 409 test_run_in_progress.'
         : 'The test run is real: it runs as you (the key owner) with your connection to the MCP, and every tool the script calls that is not mocked has its real effects, checked by policies and approvals and logged.',
       confirmLabel: reuse ? 'Retry' : 'Run',
       call: `POST ${mcpPath(id, '/custom-tools:test')}`,
@@ -531,11 +533,14 @@ function TestRun({ id, name, draft, draftReady, saved }) {
         setResult(res);
         return res;
       } catch (e) {
-        // Keep the key only when the outcome is unknown: the run may have happened
-        // (502 test_run_failed, no response) or is still going (409 test_run_in_progress).
-        const unknown = !e?.status || e.code === 'test_run_failed' || e.code === 'test_run_in_progress' || e.status === 503;
-        if (!unknown) retry.current = null;
-        setRetryable(unknown);
+        // Keep the key for a same-key retry when the outcome is unknown (502 with
+        // may_have_run true, no response, 409 test_run_in_progress) - the retry returns the
+        // stored answer - or when nothing ran (502 may_have_run false): nothing was stored,
+        // so the same key runs it.
+        const retryable = !e?.status || e.code === 'test_run_failed' || e.code === 'test_run_in_progress' || e.status === 503;
+        if (!retryable) retry.current = null;
+        else retry.current = { ...retry.current, notRun: e?.payload?.error?.may_have_run === false };
+        setRetryable(retryable);
         throw e;
       }
     });
@@ -575,16 +580,23 @@ function TestRun({ id, name, draft, draftReady, saved }) {
         )}
       </div>
       <ErrorBox error={action.error} onDismiss={() => action.setError(null)} />
-      {action.error?.payload?.error?.may_have_run && (
+      {action.error?.payload?.error?.may_have_run === true && (
         <Notice tone="warn">
-          may_have_run: the test run failed before a result came back, so the tool may have run and its calls may have changed data. Check the
-          MCP&apos;s logs before running it again. Retry with the same Idempotency-Key to get this stored answer; a new key runs the tool again.
+          may_have_run true: the run failed after the script started (or never recorded an answer), so the tool may have run and its calls may
+          have changed data. The outcome is unknown: check the MCP&apos;s logs before running it again. Retrying with the same Idempotency-Key
+          returns this stored answer; a new key runs the tool again.
+        </Notice>
+      )}
+      {action.error?.payload?.error?.may_have_run === false && (
+        <Notice>
+          may_have_run false: the run could not start, so the tool did not run. It is safe to retry; the same Idempotency-Key runs it, since
+          nothing was stored.
         </Notice>
       )}
       {action.error?.code === 'test_run_in_progress' && (
         <Notice tone="warn">
-          A run with this Idempotency-Key has not recorded an answer yet. Retry with the same key shortly. If the gateway restarted during the
-          run, its outcome is unknown: check the logs and run again with a new key.
+          A run with this Idempotency-Key is still running. Retry with the same key in a moment to get its answer. If the gateway stopped during
+          the run, the key answers 502 test_run_failed with may_have_run true after 3 minutes.
         </Notice>
       )}
       {r && (
