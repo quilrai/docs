@@ -28,7 +28,7 @@ The response also lists `connected_admins`, the administrators with an OAuth con
 
 ## Refresh tools {#refresh}
 
-`POST /mcps/{mcp_id}/capabilities:refresh` (scope `mcps:write`) fetches tools, resources and prompts from the upstream server now, as the administrator who issued the key, and replaces the cached lists. New tools may be held for review (`held_tools`); see [tool reviews](./settings-and-credentials-api#tool-reviews).
+`POST /mcps/{mcp_id}/capabilities:refresh` (scope `mcps:write`) fetches tools, resources and prompts from the upstream server now, as the administrator who issued the key, and replaces the cached lists. New tools may be held for review (`held_tools`); see [tool reviews](./settings-and-credentials-api#tool-reviews). A pending [tool change](./tenant-and-tool-changes-api) that proposes exactly the fetched tool list is closed as applied; a change to any other list stays pending, so review it as usual.
 
 | Response | Meaning |
 | --- | --- |

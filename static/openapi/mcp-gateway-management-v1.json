@@ -12541,7 +12541,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/capabilities:refresh": {
       "post": {
-        "description": "Fetches tools, resources and prompts from the upstream server now, as the administrator who owns the key, and replaces the cached lists (new tools may be held for review). OAuth MCPs need that administrator's connection (409 `oauth_connection_required`); passthrough MCPs answer 409 `pending_first_client`.",
+        "description": "Fetches tools, resources and prompts from the upstream server now, as the administrator who owns the key, and replaces the cached lists (new tools may be held for review). A pending tool change proposing exactly the fetched tool list is closed as applied; a change to any other list stays pending. OAuth MCPs need that administrator's connection (409 `oauth_connection_required`); passthrough MCPs answer 409 `pending_first_client`.",
         "operationId": "Refresh_tools",
         "parameters": [
           {
