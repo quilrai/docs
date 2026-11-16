@@ -92,7 +92,20 @@ export function subgroupOf(path) {
   return SUBGROUP_LABELS[key] || null;
 }
 
-export function buildIndex(spec) {
+/**
+ * buildIndex(spec, options): options default to the LLM Gateway rules.
+ *   adminPrefix   tenant-admin route prefix (also detected from TenantAdminJWT security)
+ *   tagOrder      preferred tag order; declared spec tags follow
+ *   isAliasPath   path -> true for query-locator alias routes
+ *   subgroupOf    path -> explorer sub-group label, or null
+ */
+export function buildIndex(spec, options = {}) {
+  const {
+    adminPrefix = ADMIN_PREFIX,
+    tagOrder = DEFAULT_TAG_ORDER,
+    isAliasPath: aliasRule = isAliasPath,
+    subgroupOf: subgroupRule = subgroupOf,
+  } = options;
   const operations = [];
   const paths = (spec && spec.paths) || {};
   for (const [path, item] of Object.entries(paths)) {
@@ -105,9 +118,9 @@ export function buildIndex(spec) {
       const merged = [...shared.filter((p) => !ownParams.some((o) => o.name === p.name && o.in === p.in)), ...ownParams];
       const parameters = merged.map((p) => resolveRef(spec, p)).filter((p) => p && p.name);
       const security = JSON.stringify(op.security || spec.security || []);
-      const isAdmin = path.startsWith(ADMIN_PREFIX) || security.includes('TenantAdminJWT');
+      const isAdmin = path.startsWith(adminPrefix) || security.includes('TenantAdminJWT');
       const aliasOf =
-        op['x-alias-of'] || (isAliasPath(path) ? op.operationId?.replace(/_query$/, '') || true : null);
+        op['x-alias-of'] || (aliasRule(path) ? op.operationId?.replace(/_query$/, '') || true : null);
       const id = op.operationId || `${method}_${path}`.replace(/[^A-Za-z0-9_]+/g, '_');
       operations.push({
         id,
@@ -124,13 +137,13 @@ export function buildIndex(spec) {
         requestBody: resolveRef(spec, op.requestBody),
         responses: op.responses || {},
         template: compileTemplate(path),
-        subgroup: subgroupOf(path),
+        subgroup: subgroupRule(path),
       });
     }
   }
   const tagNames = [];
   const declared = Array.isArray(spec?.tags) ? spec.tags.map((t) => t.name) : [];
-  for (const name of [...DEFAULT_TAG_ORDER.filter((t) => declared.includes(t)), ...declared, ...DEFAULT_TAG_ORDER]) {
+  for (const name of [...tagOrder.filter((t) => declared.includes(t)), ...declared, ...tagOrder]) {
     if (!tagNames.includes(name) && operations.some((op) => op.tags.includes(name))) tagNames.push(name);
   }
   for (const op of operations) for (const t of op.tags) if (!tagNames.includes(t)) tagNames.push(t);
@@ -271,12 +284,14 @@ function toPython(value, indent = 0) {
   return `{\n${entries.map(([k, v]) => `${inner}${JSON.stringify(k)}: ${toPython(v, indent + 1)}`).join(',\n')},\n${pad}}`;
 }
 
+export const DEFAULT_ENV_NAMES = { management: 'QUILR_MANAGEMENT_KEY', admin: 'QUILR_TENANT_ADMIN_JWT' };
+
 /**
- * request: { method, url, headers: {name: value}, bodyText, tokenKind }
- * The credential is always an environment variable placeholder.
+ * request: { method, url, headers: {name: value}, bodyText, tokenKind, envNames }
+ * The credential is always an environment variable placeholder (envNames per product).
  */
-export function buildSnippets({ method, url, headers = {}, bodyText, tokenKind = 'management' }) {
-  const envName = tokenKind === 'admin' ? 'QUILR_TENANT_ADMIN_JWT' : 'QUILR_MANAGEMENT_KEY';
+export function buildSnippets({ method, url, headers = {}, bodyText, tokenKind = 'management', envNames = DEFAULT_ENV_NAMES }) {
+  const envName = tokenKind === 'admin' ? envNames.admin : envNames.management;
   let parsed;
   let hasBody = bodyText !== undefined && bodyText !== null && String(bodyText).trim() !== '';
   if (hasBody) {
@@ -336,7 +351,7 @@ console.log(response.status, await response.json());`;
   return { curl: curl.join(' \\\n'), python, javascript };
 }
 
-export function curlForActivity(entry) {
+export function curlForActivity(entry, envNames = DEFAULT_ENV_NAMES) {
   const body = entry.requestBody;
   return buildSnippets({
     method: entry.method,
@@ -346,5 +361,6 @@ export function curlForActivity(entry) {
     ),
     bodyText: body === null || body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
     tokenKind: entry.tokenKind,
+    envNames,
   }).curl;
 }

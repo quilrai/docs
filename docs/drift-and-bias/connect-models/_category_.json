@@ -1,0 +1,10 @@
+{
+  "label": "Connect models",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Plug"
+  }
+}

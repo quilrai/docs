@@ -200,6 +200,16 @@ Clients without OAuth can call a single non-OAuth MCP's URL with an [API token](
 
 If sign-in succeeds but calls are refused, check that the client is allowed under [Allowed Agents](../servers-and-connections/allowed-agents) and that you can reach the MCP under [access control](../protect/server-access).
 
+## Limits {#limits}
+
+These limits apply to every MCP request, on an MCP's own endpoint and on OneMCP. The values below are the defaults; your deployment can set different ones.
+
+| Limit | Default | What happens |
+| --- | --- | --- |
+| MCP request body | 32 MiB | A larger request is refused with HTTP `413` and a JSON-RPC error. Nothing is sent upstream. |
+| Time to receive a request body | 60 seconds | A body not received in full within this time is refused with HTTP `408`. |
+| Tool result | 32 MiB | A larger result is replaced by a tool error (`isError: true`) that says the result is too large. The upstream tool call has already run, so any change it made has happened. Ask for less data, for example with filters or pagination. |
+
 ## Agent Configuration
 
 - Each AI agent (OpenAI, Claude, Cursor, etc.) connects to the **Quilr gateway** URL shown on the server card, or to OneMCP

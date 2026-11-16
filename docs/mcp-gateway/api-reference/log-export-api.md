@@ -41,7 +41,7 @@ MCP Gateway exposes two export scopes:
 
 Both scopes use the same endpoint, header, query parameters, pagination model, and response format. In tenant-scoped exports, each `mcpgateway.tool_call` event still includes the concrete backend in `backend.id` and `backend.name`.
 
-Admin backend management responses include `log_export_key` for each backend and `tenant_log_export_key` for the tenant. Treat both as bearer secrets. They cannot call MCP tools, but they can read exportable tool call logs for their scope.
+Admin backend management responses in the console include `log_export_key` for each backend and `tenant_log_export_key` for the tenant. The Management API never returns these keys. Treat both as bearer secrets. They cannot call MCP tools, but they can read exportable tool call logs for their scope.
 
 ## Query Parameters
 

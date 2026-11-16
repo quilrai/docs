@@ -1,0 +1,10 @@
+{
+  "label": "Alerts, baselines and export",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "Activity"
+  }
+}

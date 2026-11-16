@@ -5,6 +5,7 @@ sidebar_label: "MCP Threat Detection"
 sidebar_custom_props:
   icon: Network
 console_path: /red-teaming/mcp-scan
+description: "Scan an MCP server's code, dependencies and exposed tools, and build a threat model before you trust it."
 aliases: [MCP scan, scan an MCP server, MCP assessment, MCP red teaming, MCP threat detection, MCP security, tool poisoning, MCP repository scan, live MCP server, authorized scope]
 ---
 

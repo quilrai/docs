@@ -3,12 +3,34 @@ sidebar_position: 1
 sidebar_label: "Changelog"
 sidebar_custom_props:
   icon: ClipboardList
-description: "What changed in Red Teaming, newest first."
+description: "What changed across the Assessment Suite (Red Teaming and Drift & Bias), newest first."
 ---
 
-# Red Teaming Changelog
+# Assessment Suite Changelog
 
-What changed in Red Teaming, newest first.
+What changed in Red Teaming and Drift & Bias, newest first.
+
+## ML model alerts, baselines and exports (2026-11-13)
+
+- **Alerts** has ML model alert rules: alert on data drift, prediction drift, performance, fairness or a failed training run, at **Moderate and up** or **Severe only**. Alerts go to your Red Teaming alert channels, and every rule change is recorded in the audit log
+- **Baselines** shows each ML model version's reference: the rows your pipeline sent as reference, or else its first 7 days
+- Export Center has a new source, **ML model monitoring**: one row per check with its drift, performance and fairness results. Only totals and scores are exported, never your rows, predictions or labels
+- ML models have model cards too, with the same **Download Markdown** and **Save as PDF** buttons
+
+## Connect MLflow to Drift & Bias (2026-11-13)
+
+- The new **MLflow** integration in **Settings → Integrations** connects your MLflow tracking server or Databricks workspace with a token, a username and password, or no sign-in. Credentials are stored encrypted
+- Choose which registered models to **Monitor**. Drift & Bias reads their versions, training runs, datasets and feature importance. Model files and datasets are never downloaded
+- Models refresh every 6 hours, and **Refresh models** syncs straight away
+- Aliases such as `champion` show on each version, and training runs show their MLflow run names
+
+## Monitor your own ML models in Drift & Bias (2026-11-13)
+
+- Drift & Bias now covers your classic machine learning models, such as classifiers and regression models, next to your LLMs. **Overview** is split into **LLMs** and **ML models**, and a new **ML models** tab lists each model with its status and open findings
+- Open a model to see its lineage, data and prediction drift, performance, fairness for each group you choose to protect, the features that matter most and how they changed between versions, its training runs and its check history
+- **Explain a prediction** looks up one scored row and shows its features, prediction, label and the features that pushed it the most
+- Models are checked every 6 hours. A check is skipped when nothing has changed since the last one, but every model is still checked at least once a day. **Check now** and **Check all** run a check straight away
+- Check history is kept for 180 days. A model's latest check and any check behind an open finding are always kept
 
 ## Live bias checks on real traffic (2026-11-10)
 

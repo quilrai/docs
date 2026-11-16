@@ -33,7 +33,7 @@ Select **Create export** to build your own export. The builder has five numbered
 
 | Step | What you set |
 |---|---|
-| **01 Source** | **Export name** and **Source**: **Inventory**, **Users**, **Audit logs**, **Findings**, **Interactions** or **Policy Engine**. The source cannot be changed after the export is created. |
+| **01 Source** | **Export name** and **Source**: **Inventory**, **Users**, **Audit logs**, **Findings**, **Interactions**, **Policy Engine**, **Drift & Bias runs** or **ML model monitoring** (see [Drift & Bias export](../../drift-and-bias/alerts-baselines-and-export/export.md)). The source cannot be changed after the export is created. |
 | **02 Query** | The period, search and visual conditions that choose matching records. Policy Engine exports always capture the current policies. |
 | **03 Fields** | The fields to include. Conversation content in Findings and Interactions exports needs a role that may export content; other fields stay available without it. |
 | **04 Delivery** | **Format**: **JSONL** (line-delimited JSON for pipelines and scripts) or **Excel workbook**. **Schedule**: **One time**, **Daily**, **Weekly** or **Monthly**, with **Timezone** (IANA, for example America/New_York), **Weekday** or **Day of month** (1 to 28), **Hour** and **Minute**. **Notify me in the console** shows an in-app notification when a run completes or fails. |

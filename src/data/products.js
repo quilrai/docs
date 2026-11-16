@@ -70,6 +70,7 @@ export const products = [
       {title: 'Add an MCP server', desc: 'From the library, a URL, or your own API', to: '/mcp-gateway/servers-and-connections/adding-mcp-servers'},
       {title: 'Set up OneMCP', desc: 'One endpoint with dynamic tool calling', to: '/mcp-gateway/get-started/onemcp'},
       {title: 'Lock down tools', desc: 'Who can call what, and what needs approval', to: '/mcp-gateway/protect/server-access'},
+      {title: 'Automate MCPs', desc: 'Add, configure and connect MCPs with the Management API', to: '/mcp-gateway/api-reference/management-api'},
     ],
   },
   {
@@ -114,6 +115,7 @@ export const products = [
     id: 'red',
     slug: 'red-teaming',
     name: 'Red Teaming',
+    suite: 'assessments',
     icon: 'Target',
     sub: 'Attack your own AI before others do',
     tagline:
@@ -126,6 +128,26 @@ export const products = [
       {title: 'Red team an AI workflow', desc: 'Hide attacks in documents, images or data records', to: '/red-teaming/configure-and-run/ai-workflow'},
       {title: 'Red team an AI app or agent', desc: 'Attack any HTTP, WebSocket, or voice endpoint', to: '/red-teaming/configure-and-run/agent'},
       {title: 'Compare models', desc: 'Run the same attacks on 2 to 8 models', to: '/red-teaming/configure-and-run/model'},
+    ],
+  },
+  {
+    id: 'drift',
+    slug: 'drift-and-bias',
+    name: 'Drift & Bias',
+    suite: 'assessments',
+    icon: 'Scale',
+    sub: 'Keep models accurate and fair after launch',
+    tagline:
+      'Watch your classic ML models for drift, performance loss and unfair outcomes, next to the bias checks for your LLMs.',
+    shot: '/img/drift-and-bias/2-ml-models-tab.jpg',
+    shotCaption: 'Console › Assessments › Drift & Bias › ML models',
+    primary: {label: 'Get started', to: '/drift-and-bias/get-started/overview'},
+    consolePath: 'Assessments > Drift & Bias',
+    tasks: [
+      {title: 'Connect a model from your pipeline', desc: 'Register it, then send scored rows', to: '/drift-and-bias/connect-models/pipeline-push'},
+      {title: 'Connect an MLflow registry', desc: 'Pick which registered models to monitor', to: '/drift-and-bias/connect-models/mlflow'},
+      {title: 'Read a model page', desc: 'Drift, performance, fairness and lineage', to: '/drift-and-bias/monitor-ml-models/model-page'},
+      {title: 'Set up alerts', desc: 'Five triggers per model', to: '/drift-and-bias/alerts-baselines-and-export/alerts'},
     ],
   },
   {
@@ -189,6 +211,25 @@ export const products = [
   },
 ];
 
+// Suites group several products under one navbar tab with a menu, in the
+// order the products are listed above. A product joins a suite with
+// `suite: '<id>'`; it keeps its own URL, sidebar and landing page. Add a
+// future Assessments module as a new product with `suite: 'assessments'`.
+export const suites = [
+  {
+    id: 'assessments',
+    name: 'Assessment Suite',
+    icon: 'Target',
+    accent: 'red',
+    // Suite-wide pages listed in the menu after the products.
+    links: [
+      {label: 'Release notes', sub: 'What changed across the suite', to: '/red-teaming/release-notes/changelog', icon: 'History'},
+    ],
+  },
+];
+
+export const suiteById = Object.fromEntries(suites.map((s) => [s.id, s]));
+
 export const productById = Object.fromEntries(products.map((p) => [p.id, p]));
 export const productBySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
 
@@ -226,6 +267,10 @@ export const crossLinks = [
 export const syntheticCategories = [
   {root: 'console', after: 'console/govern', label: 'Assessments', icon: 'Target', links: [
     {label: 'Red Teaming', href: '/red-teaming', product: 'red'},
+    {label: 'Drift & Bias', href: '/drift-and-bias', product: 'drift'},
+  ]},
+  {root: 'drift-and-bias', after: null, label: 'Release notes', icon: 'History', links: [
+    {label: 'Changelog', href: '/red-teaming/release-notes/changelog', product: 'red'},
   ]},
   {root: 'integrations', after: null, label: 'Sign-in', icon: 'KeyRound', links: [
     {label: 'SAML and Okta', href: '/console/settings-organization/single-sign-on', product: 'console'},
