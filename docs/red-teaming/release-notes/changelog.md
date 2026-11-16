@@ -10,6 +10,18 @@ description: "What changed across the Assessment Suite (Red Teaming and Drift & 
 
 What changed in Red Teaming and Drift & Bias, newest first.
 
+## Threat Modeling (2026-11-16)
+
+- New **Threat Modeling** page under **Assessments**, above Red Teaming. Create a threat model for a system from a description, design documents, diagrams, Mermaid or PlantUML, a .zip of its source code, or an asset from your inventory
+- The analysis works through seven stages, from business objectives and technical scope to threats, weaknesses, attack paths and risk scoring, and usually takes 10–20 minutes
+- **Overview** shows active threats by risk level, an executive summary, top recommendations and a likelihood × impact risk matrix
+- **Threats** is the threat register. Search and filter it, add your own threats, and set each one's owner, status, scores and countermeasures. Dismiss a threat with a reason and it stays on record
+- **Attack paths** shows how weaknesses could be chained together. **Diagram** shows the system's zones, components and data flows with their threats; drag to rearrange it, and download it as PNG
+- **Stages** shows what each stage found. Edit a stage's output, or run chosen stages again
+- **Reassess** a model when the system changes: describe what changed or add new documents. Your edits and dismissals are kept
+- Export a model as a PDF report, an SVG diagram, an Excel threat register or the full model as JSON. Every change and export is recorded in the model's **Audit** tab and in the audit log
+- Threat Modeling uses the same access as Red Teaming
+
 ## ML model alerts, baselines and exports (2026-11-13)
 
 - **Alerts** has ML model alert rules: alert on data drift, prediction drift, performance, fairness or a failed training run, at **Moderate and up** or **Severe only**. Alerts go to your Red Teaming alert channels, and every rule change is recorded in the audit log
