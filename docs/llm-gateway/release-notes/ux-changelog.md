@@ -10,6 +10,13 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## ElevenLabs: the full generation API and exact transcription cost (2026-11-16)
+
+- ElevenLabs' own API beyond speech and transcription, for the ElevenLabs SDK: speech and dialogue with character timing and streaming, stored transcripts, sound effects, music, voice changer, audio isolation, voice design, forced alignment, dubbing, and the model and voice lists
+- Guardrails scan every text that leaves the gateway (dialogue lines, prompts, lyrics, voice descriptions, alignment text) and stored transcripts on return; uploaded audio is forwarded unchanged
+- ElevenLabs' reported billing is logged on every call; on transcription its exact USD charge is the request's cost
+- Details: [ElevenLabs](../apps-and-providers/provider-support#elevenlabs)
+
 ## ElevenLabs provider (2026-11-13)
 
 - New provider type `elevenlabs` on the **ElevenLabs** tile ("Text to speech & speech to text"), with an API key; checking the key and listing models generates no audio

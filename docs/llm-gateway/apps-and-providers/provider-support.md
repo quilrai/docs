@@ -208,7 +208,7 @@ These rules apply to every speech provider:
 
 | Topic | Behavior |
 |-------|----------|
-| Billing | Text to speech is billed per character sent for character-priced models (`tts-1`, `tts-1-hd`, Orpheus, ElevenLabs, Bulbul). `gpt-4o-mini-tts` is billed from OpenAI's token usage when you request `stream_format: "sse"`; for binary audio OpenAI reports no usage, so the gateway estimates the tokens from the text and the audio's length and marks them estimated. Transcription is billed per second of audio: the duration the provider reports, or the uploaded file's measured length when it reports none (Groq, Sarvam, translations). `gpt-4o-*-transcribe` models are billed from their token usage. |
+| Billing | Text to speech is billed per character sent for character-priced models (`tts-1`, `tts-1-hd`, Orpheus, ElevenLabs, Bulbul). `gpt-4o-mini-tts` is billed from OpenAI's token usage when you request `stream_format: "sse"`; for binary audio OpenAI reports no usage, so the gateway estimates the tokens from the text and the audio's length and marks them estimated. Transcription is billed per second of audio: the duration the provider reports, or the uploaded file's measured length when it reports none (Groq, Sarvam, translations). `gpt-4o-*-transcribe` models are billed from their token usage. ElevenLabs reports what it billed on every call (credits, and on transcription the exact USD charge on your plan); the log keeps it, and when ElevenLabs reports the USD charge it is the request's cost (marked `provider_reported_cost`) unless you set your own model costs on the provider. |
 | Budgets | Speech requests count toward request limits. Token and spend budgets do not charge them. |
 | Request id | Every speech response carries `x-quilr-request-id`, the id of its request log entry. |
 | Upload size | Audio uploads above 200 MB are refused with `413` and `attachment_too_large` before reaching the provider. Providers apply their own lower limits (25 MB for OpenAI-style APIs). |
@@ -663,8 +663,21 @@ The gateway lists the text-to-speech models your key can use from ElevenLabs' `/
 | Speech to text (OpenAI shape) | `/openai_compatible/v1/audio/transcriptions` | ✓ | `scribe_v2` |
 | Text to speech (ElevenLabs shape) | `/elevenlabs/v1/text-to-speech/{voice_id}`, `.../stream` | ✓ | `eleven_v3` |
 | Speech to text (ElevenLabs shape) | `/elevenlabs/v1/speech-to-text` | ✓ | `scribe_v2` |
+| Speech with character timing | `/elevenlabs/v1/text-to-speech/{voice_id}/with-timestamps`, `.../stream/with-timestamps` | ✓ | `eleven_v3` |
+| Text to dialogue (several voices) | `/elevenlabs/v1/text-to-dialogue`, `/stream`, `/with-timestamps`, `/stream/with-timestamps` | ✓ | `eleven_v3` |
+| Stored transcripts | `GET`/`DELETE /elevenlabs/v1/speech-to-text/transcripts/{transcription_id}` | ✓ | - |
+| Sound effects | `/elevenlabs/v1/sound-generation` | ✓ | - |
+| Music | `/elevenlabs/v1/music`, `/stream`, `/detailed`, `/detailed/stream`, `/plan`, `/stem-separation`, `/video-to-music` | ✓ (paid ElevenLabs plan) | `music_v1` |
+| Voice changer | `/elevenlabs/v1/voice-changer/{voice_id}`, `/stream` | ✓ | `eleven_multilingual_sts_v2` |
+| Audio isolation | `/elevenlabs/v1/audio-isolation`, `/stream` | ✓ | - |
+| Voice design | `/elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `/elevenlabs/v1/text-to-voice` | ✓ (paid ElevenLabs plan) | - |
+| Forced alignment | `/elevenlabs/v1/forced-alignment` | ✓ | - |
+| Dubbing | `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language}`, `/{dubbing_id}/transcript/{language}` | ✓ | - |
+| Models and voices | `GET /elevenlabs/v1/models`, `/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | ✓ | - |
 | Speech translation, chat, embeddings | - | - (ElevenLabs has none) | - |
-| Realtime transcription, voice agents, voice cloning, dubbing, sound effects, music | - | - (not routed) | - |
+| Realtime WebSocket speech, voice agents (Agents platform), voice cloning, Studio, account and workspace APIs | - | - (not routed) | - |
+
+Every `/elevenlabs/` route goes to the app's ElevenLabs provider; a `model_id` must be one of the app's models. Text that leaves the gateway is scanned by guardrails in full: the text to speak and its `previous_text` / `next_text`, every dialogue line, sound and music prompts, music styles and lyric lines, voice descriptions, alignment text and dubbing names. A blocked request answers 400; redacted text is what ElevenLabs receives. Stored transcripts are scanned before they are returned. Uploaded audio and video are forwarded unchanged and are not scanned. ElevenLabs refusals keep ElevenLabs' status and code, marked `X-Quilr-Error-Source: upstream`.
 
 ### ElevenLabs examples
 
@@ -683,6 +696,17 @@ curl "https://guardrails-usa-2.quilr.ai/elevenlabs/v1/text-to-speech/JBFqnCBsd6R
 # Speech to text with word timings
 curl https://guardrails-usa-2.quilr.ai/elevenlabs/v1/speech-to-text \
   -H "xi-api-key: <Quilr key>" -F model_id=scribe_v2 -F file=@meeting.mp3
+
+# Two-voice dialogue
+curl https://guardrails-usa-2.quilr.ai/elevenlabs/v1/text-to-dialogue \
+  -H "xi-api-key: <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model_id": "eleven_v3", "inputs": [{"text": "Hi there.", "voice_id": "JBFqnCBsd6RMkjVDRZzb"}, {"text": "Hello!", "voice_id": "EXAVITQu4vr4xnSDxMaL"}]}' \
+  --output dialogue.mp3
+
+# Sound effect from a prompt
+curl https://guardrails-usa-2.quilr.ai/elevenlabs/v1/sound-generation \
+  -H "xi-api-key: <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"text": "a short door knock", "duration_seconds": 1}' --output knock.mp3
 ```
 
 With the ElevenLabs SDK, set the base URL to `https://guardrails-usa-2.quilr.ai/elevenlabs` and the API key to your Quilr key; the SDK's `xi-api-key` header carries it. `xi-api-key` is accepted on the `/elevenlabs/` routes only; the OpenAI-shaped routes take `Authorization: Bearer`, `api-key` or `x-api-key`.
