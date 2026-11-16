@@ -14,11 +14,42 @@ import {ApiReference} from '@site/src/components/ManagementApi/mcp';
 
 A custom tool is your own tool on an MCP: a short Python script that calls the MCP's tools with default parameters and simple logic, such as listing recent emails and keeping only the unread ones with sender and subject. There is no model in the loop: the script chains calls, filters and trims results, and returns one answer.
 
-Users and agents see a custom tool as one more tool of that MCP, on the MCP's own endpoint and in [OneMCP](../get-started/onemcp). It works for remote, MCP Library and [REST API](./rest-api-mcps-api) MCPs. Every tool the script calls runs as the user who called the custom tool, with the usual policies, approvals, DLP and logging, so a custom tool can never do more than that user could do tool by tool.
-
-The custom tool itself is governed like any other tool: per-tool settings (confirmation, enabled), policies, quotas and DLP apply to its own name, its arguments and its result, and again to every tool it calls.
+Users and agents see a custom tool as one more tool of that MCP, on the MCP's own endpoint and in [OneMCP](../get-started/onemcp). It works for remote, MCP Library and [REST API](./rest-api-mcps-api) MCPs. Every tool the script calls runs as the user who called the custom tool, with that user's connection to the MCP, and is logged.
 
 Reading custom tools needs `read`. Creating, changing, deleting and test-running them needs `tools:write` (see [scopes](./management-api#scopes)). Try every call in the [MCP Management API playground](/mcp-gateway-management-playground?tab=custom-tools).
+
+## What you authorize {#authorization}
+
+The custom tool is what you authorize. Its own call goes through everything any tool call does:
+
+- who can use it: turn it on or off and scope it to users or smart groups like any tool, or allow or deny it with a policy rule on its name;
+- DLP on its arguments, and DLP on its result, which covers everything the script read;
+- confirmation (approvals) and quotas;
+- logging.
+
+The calls its script makes skip the called tool's own checks: that tool's enabled setting, policy rules, quotas, DLP and confirmation do not apply when a custom tool calls it. Each of those calls is still logged, with the custom tool and the run id. So set the controls on the custom tool, and require confirmation on the custom tool itself when its script changes data.
+
+A script can call any tool the MCP offers, including tools turned off in the MCP's settings (for everyone, or for some users or smart groups) and tools hidden by a discovery policy. It cannot call tools held for [tool review](./settings-and-credentials-api#tool-reviews), tools the upstream server no longer offers, other MCPs' tools or other custom tools.
+
+### Example: put a check in front of a tool {#guarded-tool}
+
+On a Box MCP, users should read files only from approved folders. Turn off `read_file` in the MCP's [tool settings](./settings-and-credentials-api#settings) (or deny it with a policy rule), and add a custom tool `read_file_safe` that looks up the file's folder and calls `read_file` only for allowed folders. The allowed folder IDs go in `fixed_args`, so callers can neither see nor change them:
+
+```python
+info = await get_file_info(file_id=args["file_id"])
+folder_id = info["parent"]["id"]
+if folder_id not in args["allowed_folder_ids"]:
+    result = {"allowed": False, "reason": "This file is not in an approved folder."}
+else:
+    result = {"allowed": True, "content": await read_file(file_id=args["file_id"])}
+result
+```
+
+with `"input_schema": {"type": "object", "properties": {"file_id": {"type": "string"}}, "required": ["file_id"]}` and `"fixed_args": {"allowed_folder_ids": ["1234567890", "2345678901"]}`. Users can no longer list or call `read_file`; they can call `read_file_safe`. Tool and argument names depend on the MCP: [list the functions](#functions) to see them.
+
+:::warning Hiding a tool from discovery does not block it
+A discovery policy only hides a tool from tool lists. A user who knows its name can still call it. To block a tool, turn it off in the MCP's settings or deny it with a policy rule.
+:::
 
 ## Write the script {#script}
 
@@ -52,7 +83,7 @@ When a call is checked against the schema, each regular expression match may tak
 The script:
 
 - **Reads its arguments from `args`**: the `defaults` with what the caller sent on top, plus the `fixed_args`, which a caller cannot change.
-- **Calls the MCP's tools.** Each tool of the MCP is an async function (`await list_messages(folder="inbox")`), and `await call_tool("list_messages", {...})` calls any of them by its exact name. [List the functions](#functions) to see their Python signatures.
+- **Calls the MCP's tools.** Each tool of the MCP is an async function (`await list_messages(folder="inbox")`), and `await call_tool("list_messages", {...})` calls any of them by its exact name, including tools turned off for users (see [what you authorize](#authorization)). [List the functions](#functions) to see their Python signatures.
 - **Gets each tool's result** as its structured content, or its text parsed as JSON, or the text. On a REST API MCP each call returns `{"status", "headers", "body"}`, with a JSON body already parsed.
 - **Returns the value of its last expression.** Text is returned as is; anything else as JSON. With an `output_schema`, the result must match it. A result over 80,000 characters is returned as an error, so filter or trim what the script returns.
 - **Handles failures** with `ToolError`: a failing tool call raises it, and the script can catch it. An uncaught error makes the custom tool return an error with the script's message.
@@ -88,7 +119,8 @@ export KEY='<management-key>'             # needs read and tools:write
 BASE="$GW/mcpgateway/management/v1"
 MCP=a1b2c3d4
 
-# The functions a script can call, with Python signatures.
+# The functions a script can call, with Python signatures
+# ("hidden_from_clients": true marks tools turned off for everyone).
 curl -s "$BASE/mcps/$MCP/custom-tools:functions" -H "Authorization: Bearer $KEY"
 
 # Writes need the MCP's current version as If-Match.
@@ -120,7 +152,7 @@ curl -s -X POST "$BASE/mcps/$MCP/custom-tools:test" -H "Authorization: Bearer $K
 - `PATCH /mcps/{mcp_id}/custom-tools/{name}` changes the sent fields and keeps the rest. Send `{"enabled": false}` to hide the tool from clients, and `{"enabled": true}` to show it again.
 - `DELETE /mcps/{mcp_id}/custom-tools/{name}` removes it.
 
-Every save checks the definition: the script for syntax errors (`400` with the `line`), the schema and defaults, and the name, which must not be one of the MCP's own tools (`409 tool_name_taken`) or a [reserved gateway tool name](#script). Names the script calls that are not tools of the MCP come back as `warnings`; they do not block the save, because a tool hidden from you may be visible to your users. Warnings are checked against the MCP's current tools on every read, so a tool the MCP has since dropped shows up there. `tool_version` grows by one on every save. Clients see a change within a few seconds, in their next tool list.
+Every save checks the definition: the script for syntax errors (`400` with the `line`), the schema and defaults, and the name, which must not be one of the MCP's own tools (`409 tool_name_taken`) or a [reserved gateway tool name](#script). Names the script calls that are not tools of the MCP, or that are waiting for tool review, come back as `warnings`; they do not block the save. Tools turned off or hidden from users are tools of the MCP, so they are not warned about. Warnings are checked against the MCP's current tools on every read, so a tool the MCP has since dropped shows up there. `tool_version` grows by one on every save. Clients see a change within a few seconds, in their next tool list.
 
 ## Version history {#versions}
 
@@ -135,7 +167,7 @@ Every save is kept, up to the last 20.
 
 ## List the functions a script can call {#functions}
 
-`GET /mcps/{mcp_id}/custom-tools:functions` returns one async function per tool of the MCP, with a Python signature built from the tool's input schema (for example `async def list_messages(folder: str = None, top: int = None)`) and its summary. It also lists the globals every script has (`args`, `call_tool`, `ToolError`) and the run limits. Use it as the reference while you write the script.
+`GET /mcps/{mcp_id}/custom-tools:functions` returns one async function per tool a script can call: every tool the MCP offers now, including tools turned off for users, but not tools waiting for tool review. `hidden_from_clients` is `true` for a tool turned off in the MCP's settings for everyone: users cannot list or call it, custom tools can. Tools turned off only for some users or groups, or hidden by a policy, show `false`. Each function has a Python signature built from the tool's input schema (for example `async def list_messages(folder: str = None, top: int = None)`) and its summary. It also lists the globals every script has (`args`, `call_tool`, `ToolError`) and the run limits. Use it as the reference while you write the script.
 
 ## Test-run {#test}
 
@@ -153,11 +185,11 @@ Every save is kept, up to the last 20.
 - `draft` tries unsaved changes: its fields are merged over the saved tool, or form a whole new tool when nothing is saved under `name`. A disabled tool can be tested.
 - `mocks` maps tool names to results (at most 50): those tools are not called, and the script gets the given value instead. Use it to try a script that changes data without changing it. The response lists them in `mocked_tools`.
 
-The run is real. It runs as the key owner, with their own connection to the MCP, through the same path a client call takes, so the tools it calls (except mocked ones) have real effects and are checked by policies and approvals and logged. Test with arguments that are safe to run, or mock the tools that change data.
+The run is real. It runs as the key owner, with their own connection to the MCP, through the same path a client call takes, so the tools it calls (except mocked ones) have real effects and are logged. The checks of the custom tool's own call (policies, confirmation, DLP) apply as for a client call. Test with arguments that are safe to run, or mock the tools that change data.
 
 | Response field | Meaning |
 | --- | --- |
-| `outcome` | `ok`, `error` (the script or a tool failed), `approval_required` (a call is waiting for approval) or `refused` (the tool did not run: hidden from the key owner, blocked by a policy, no connection, invalid arguments, or no free run slot). With `refused`, `run` is `null`. |
+| `outcome` | `ok`, `error` (the script or a tool failed), `approval_required` (the call is waiting for approval) or `refused` (the tool did not run: hidden from the key owner, blocked by a policy, no connection, invalid arguments, or no free run slot). With `refused`, `run` is `null`. |
 | `client_result` | The MCP result a client would get. |
 | `mocked_tools` | The tools answered from `mocks` instead of being called. |
 | `error` | The error message, when there is one. |
@@ -203,7 +235,7 @@ A run is never given up while it is still running, however long it takes: the re
 
 ## Approvals {#approvals}
 
-When a tool the script calls needs a user's [approval](../protect/human-approval), the run stops at that call and the caller gets the approval request. The answer lists the steps that already ran in `completed_steps`. After the user approves, the caller calls the custom tool again, which runs the script **from the start**: the completed steps run again. Put steps that need approval before steps that change data. In a test run this shows as `outcome: approval_required` with the waiting step in `run.approval_required`.
+[Approvals](../protect/human-approval) happen on the custom tool's own call, before its script runs. The tools the script calls skip their own confirmation, so require confirmation on the custom tool, not on the tools it calls, when its script changes data. In a test run a pending approval shows as `outcome: approval_required`.
 
 If the script returns while tool calls it started are still running, the answer carries the result with a `warning` and the `unfinished_steps`, so the caller can check their outcome before repeating them.
 
@@ -212,8 +244,9 @@ If the script returns while tool calls it started are still running, the answer 
 - A custom tool is listed with the MCP's other tools: on the MCP's own endpoint by its name, and in OneMCP with the MCP's prefix like its other tools. Discovery in OneMCP finds it too.
 - Each default appears as `default` in the tool's input schema, and arguments with a default are not required. `fixed_args` are not shown.
 - With an `output_schema`, clients get it as `outputSchema` and the result as structured content.
-- The MCP's per-tool settings (confirmation, enabled), [tool visibility](../protect/tool-visibility), policies, quotas and DLP apply to a custom tool by its name, its arguments and its result, like any tool. Use them to turn a custom tool off for some users or groups; use `enabled: false` to turn it off for everyone.
-- Each tool the script calls is checked and logged as its own call, so usage analytics show both the custom tool and the calls it made. Saves and deletes appear in the audit trail.
+- The MCP's per-tool settings (confirmation, enabled), [tool visibility](../protect/tool-visibility), policies, quotas and DLP apply to a custom tool by its name, its arguments and its result, like any tool. Use them to turn a custom tool off for some users or groups; use `enabled: false` to turn it off for everyone. They are not applied again to the tools it calls (see [what you authorize](#authorization)).
+- Turning a tool off, or denying it with a policy rule, keeps users from calling it on every path, while custom tools can still call it.
+- Each tool the script calls is logged as its own call, with the custom tool and the run id, so usage analytics show both the custom tool and the calls it made. Saves and deletes appear in the audit trail.
 - If the MCP later gains a tool with the same name, that tool wins: clients see the MCP's tool, and the custom tool shows `status: shadowed` until you rename or delete it.
 
 ## Errors {#errors}

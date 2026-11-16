@@ -432,7 +432,7 @@ function Functions({ id, open, onOpen }) {
   return (
     <Panel
       title="Functions a script can call"
-      subtitle="One async function per tool of this MCP, with a Python signature built from the tool's input schema, plus the globals every script has and the run limits."
+      subtitle="One async function per tool a script can call: every tool the MCP offers, including tools turned off for users (not tools waiting for tool review). Calls from a script skip the called tool's own settings, policies, quotas, DLP and confirmation; the custom tool's own call keeps them. Plus the globals every script has and the run limits."
       actions={
         <>
           <ApiChips calls={[['GET', '/mcps/{mcp_id}/custom-tools:functions']]} />
@@ -454,13 +454,31 @@ function Functions({ id, open, onOpen }) {
           <Table
             rows={data.functions || []}
             rowKey={(r) => r.tool}
-            empty="This MCP lists no tools you can see."
+            empty="This MCP offers no tools a script can call."
             columns={[
-              { label: 'Signature', render: (r) => <code>{r.signature}</code> },
+              {
+                label: 'Signature',
+                render: (r) => (
+                  <>
+                    <code>{r.signature}</code>
+                    {r.hidden_from_clients ? (
+                      <>
+                        {' '}
+                        <Pill tone="warn">hidden from clients</Pill>
+                      </>
+                    ) : null}
+                  </>
+                ),
+              },
               { label: 'Tool', render: (r) => (r.function !== r.tool ? <span>call_tool(<code>{JSON.stringify(r.tool)}</code>, ...)</span> : <code>{r.tool}</code>) },
               { label: 'Summary', render: (r) => fmt(r.summary) },
             ]}
           />
+          {(data.functions || []).some((f) => f.hidden_from_clients) && (
+            <p className={styles.muted}>
+              Hidden from clients: turned off in the MCP&apos;s settings for everyone. Users cannot list or call it; custom tools can.
+            </p>
+          )}
           <KeyValue
             items={[
               ...Object.entries(data.globals || {}).map(([k, v]) => [<code key={k}>{k}</code>, String(v)]),

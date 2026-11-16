@@ -2398,7 +2398,7 @@
                 "type": "array"
               },
               "warnings": {
-                "description": "Names the script calls that are not tools of the MCP, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here).",
+                "description": "Names the script calls that are not tools of the MCP or are waiting for tool review, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here). Tools turned off or hidden from users are tools of the MCP and are not listed here.",
                 "items": {
                   "type": "string"
                 },
@@ -2444,7 +2444,7 @@
             "type": "object"
           },
           "code": {
-            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
@@ -2527,6 +2527,10 @@
               "properties": {
                 "function": {
                   "type": "string"
+                },
+                "hidden_from_clients": {
+                  "description": "true when the tool is turned off in the MCP's settings for everyone: users cannot list or call it, custom tools can. Tools turned off only for some users or groups, or hidden by a policy, show false.",
+                  "type": "boolean"
                 },
                 "input_schema": {
                   "type": "object"
@@ -2668,7 +2672,7 @@
                   "type": "array"
                 },
                 "warnings": {
-                  "description": "Names the script calls that are not tools of the MCP, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here).",
+                  "description": "Names the script calls that are not tools of the MCP or are waiting for tool review, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here). Tools turned off or hidden from users are tools of the MCP and are not listed here.",
                   "items": {
                     "type": "string"
                   },
@@ -2721,7 +2725,7 @@
             "type": "object"
           },
           "code": {
-            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
@@ -2792,7 +2796,7 @@
                 "type": "object"
               },
               "code": {
-                "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+                "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
                 "maxLength": 65536,
                 "minLength": 1,
                 "type": "string"
@@ -2981,7 +2985,7 @@
             "type": "object"
           },
           "code": {
-            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
@@ -3128,7 +3132,7 @@
                 "type": "array"
               },
               "warnings": {
-                "description": "Names the script calls that are not tools of the MCP, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here).",
+                "description": "Names the script calls that are not tools of the MCP or are waiting for tool review, checked against the MCP's current tools on every read (so a tool the MCP dropped shows up here). Tools turned off or hidden from users are tools of the MCP and are not listed here.",
                 "items": {
                   "type": "string"
                 },
@@ -13991,7 +13995,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:functions": {
       "get": {
-        "description": "One async function per tool of the MCP, with a Python signature built from the tool's input schema, plus the globals every script has (`args`, `call_tool`, `ToolError`) and the run limits.",
+        "description": "One async function per tool a script can call: every tool the MCP offers now, including tools turned off for users (`hidden_from_clients`), but not tools waiting for tool review. Each has a Python signature built from the tool's input schema. Also the globals every script has (`args`, `call_tool`, `ToolError`) and the run limits.",
         "operationId": "List_custom_tool_functions",
         "parameters": [
           {
@@ -14013,6 +14017,7 @@
                   "functions": [
                     {
                       "function": "list_messages",
+                      "hidden_from_clients": false,
                       "input_schema": {
                         "type": "object"
                       },
@@ -14085,7 +14090,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:test": {
       "post": {
-        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects, checked by policies and approvals and logged. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).\n\n**Ambiguous failures.** 502 `test_run_failed` with `error.may_have_run`: true means the run failed after the script started: the tool may have run, and its calls may have changed data. Check the MCP's logs before running it again. `may_have_run`: false means it failed before the script started; nothing ran.\n\n**Retries.** Send an `Idempotency-Key` to retry safely. When the script started (a result, a script error or the ambiguous 502), the same key and body within 24 hours return that stored answer instead of running again. When the tool certainly did not run (custom tools busy, invalid arguments, refused before the script, unknown tool or MCP, a failure before dispatch), nothing is stored and a retry with the same key runs. Requests with one key that arrive while it runs wait for its answer, or get 409 `test_run_in_progress` (retry after `Retry-After`); a run is never given up while it is still running, however long it takes. A run whose gateway process stopped (no sign of life for 30 seconds) becomes a stored 502 `test_run_failed` with `may_have_run`: true, and the original request, if it still answers, returns that same answer; it is never run again under that key. A different body under the key is 409 `idempotency_conflict`; a new key runs the tool again.",
+        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects and are logged; the checks of the custom tool's own call (policies, approvals, DLP) apply as for a client call. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).\n\n**Ambiguous failures.** 502 `test_run_failed` with `error.may_have_run`: true means the run failed after the script started: the tool may have run, and its calls may have changed data. Check the MCP's logs before running it again. `may_have_run`: false means it failed before the script started; nothing ran.\n\n**Retries.** Send an `Idempotency-Key` to retry safely. When the script started (a result, a script error or the ambiguous 502), the same key and body within 24 hours return that stored answer instead of running again. When the tool certainly did not run (custom tools busy, invalid arguments, refused before the script, unknown tool or MCP, a failure before dispatch), nothing is stored and a retry with the same key runs. Requests with one key that arrive while it runs wait for its answer, or get 409 `test_run_in_progress` (retry after `Retry-After`); a run is never given up while it is still running, however long it takes. A run whose gateway process stopped (no sign of life for 30 seconds) becomes a stored 502 `test_run_failed` with `may_have_run`: true, and the original request, if it still answers, returns that same answer; it is never run again under that key. A different body under the key is 409 `idempotency_conflict`; a new key runs the tool again.",
         "operationId": "Test_custom_tool",
         "parameters": [
           {
@@ -19707,7 +19712,7 @@
       "name": "User sign-in"
     },
     {
-      "description": "Add your own tools to an MCP: a short Python script that calls the MCP's tools with default parameters and simple logic (chain, filter, trim). Users and agents see a custom tool like any other tool of the MCP; every tool the script calls runs as the caller with the usual policies, approvals, DLP and logging.",
+      "description": "Add your own tools to an MCP: a short Python script that calls the MCP's tools with default parameters and simple logic (chain, filter, trim). Users and agents see a custom tool like any other tool of the MCP. The custom tool is what you authorize: its own call gets the usual access checks, policies, quotas, approvals, DLP on its arguments and result, and logging. The tools its script calls run as the caller and are logged, but skip their own per-tool checks (enabled setting, policies, quotas, DLP, approvals). So a custom tool can put a check in front of a tool: turn off `read_file` for users (in the MCP's settings or with a policy that denies it) and add `read_file_safe`, which checks the file's folder with `get_file_info` and only then calls `read_file`. Users still cannot call the turned-off tool themselves. A discovery policy only hides a tool from tool lists; it does not stop users from calling it.",
       "name": "Custom tools"
     },
     {
