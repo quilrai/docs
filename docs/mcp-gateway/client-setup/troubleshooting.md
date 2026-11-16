@@ -76,6 +76,7 @@ For raw authenticated protocol diagnostics, use a real MCP client or Inspector. 
 | Client refuses a tool before a gateway log appears | Client tool approval or workspace policy | Check vendor tool permissions and managed allowlists |
 | Gateway policy denies a tool | Gateway access, tool visibility, guardrail, quota, or published policy | Inspect the denial reason and change only the intended administrative rule |
 | Tool schema stays old after configuration change | Client cached catalog or published integration snapshot | Refresh the client integration's metadata and retest in a new conversation |
+| HTTP `413` or `408` on an MCP request, or a tool error saying the result is too large | Request or result over the gateway's [size and time limits](../get-started/integration-guide#limits) | Send smaller arguments or ask the tool for less data (filters, pagination); a refused result means the tool already ran |
 | Disconnect/reconnect loop | Client session, ingress buffering/timeout, upstream transport failure | Capture timestamps and session-related logs; verify streaming/header handling and use current client version |
 
 ## Safe support bundle

@@ -296,7 +296,11 @@ const config = {
                             },
                             {
                                 to: '/llm-gateway-management-playground',
-                                label: 'Management API playground',
+                                label: 'LLM Gateway Management API playground',
+                            },
+                            {
+                                to: '/mcp-gateway-management-playground',
+                                label: 'MCP Gateway Management API playground',
                             },
                         ],
                     },

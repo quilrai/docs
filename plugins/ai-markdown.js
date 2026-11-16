@@ -14,6 +14,8 @@
  *     (components imported from ManagementApi/inference) they read the
  *     inference spec, and its tables (<ErrorCodeTable>, <ResponseHeaderTable>,
  *     <CredentialTable>, <SpecDownloads>, <RegionTable>, <GatewayFeatureTable>) become markdown tables.
+ *     MCP Gateway Management API pages (components imported from
+ *     ManagementApi/mcp) read the MCP Gateway management spec.
  *   - Product landing pages (<ProductLanding product="..."/>) become a real
  *     page: name, tagline, tasks and the section map from the sidebar.
  *   - Deployment SOP components (<InstallSop>, <SopLink>) become links to the
@@ -35,6 +37,9 @@ const OPENAPI_PATH = '/openapi/llm-gateway-management-v1.json';
 // The Inference API page imports the same components from ManagementApi/inference (its own spec).
 const INFERENCE_OPENAPI_PATH = '/openapi/llm-gateway-inference-v1.json';
 const INFERENCE_IMPORT = /from\s+['"]@site\/src\/components\/ManagementApi\/inference['"]/;
+// MCP Gateway Management API pages import the same components from ManagementApi/mcp (its own spec).
+const MCP_OPENAPI_PATH = '/openapi/mcp-gateway-management-v1.json';
+const MCP_IMPORT = /from\s+['"]@site\/src\/components\/ManagementApi\/mcp['"]/;
 const MAGIC = '(?:diff-add|diff-remove|highlight-next-line|highlight-start|highlight-end)';
 // A line holding only a magic comment, in any comment syntax Prism uses.
 const MAGIC_LINE = new RegExp(
@@ -216,11 +221,13 @@ function inferenceComponents(text, {site, siteDir}) {
 function apiComponents(text, {site, siteDir, fullText}) {
   if (!/<(ApiReference|SchemaReference|EndpointDirectory|ResourceCards|ManagementHero|GatewayFeatureTable|ResponseHeaderTable|ErrorCodeTable|CredentialTable|SpecDownloads|RegionTable)\b/.test(text)) return text;
   if (INFERENCE_IMPORT.test(fullText || '')) return inferenceComponents(text, {site, siteDir});
-  const spec = loadSpec(siteDir);
+  const mcp = MCP_IMPORT.test(fullText || '');
+  const specPath = mcp ? MCP_OPENAPI_PATH : OPENAPI_PATH;
+  const spec = loadSpec(siteDir, specPath);
   const ops = operations(spec);
-  const specUrl = `${site}${OPENAPI_PATH}`;
+  const specUrl = `${site}${specPath}`;
   return text
-    .replace(/<ManagementHero\s*\/>/g, `OpenAPI reference for the Management API v1: ${specUrl}`)
+    .replace(/<ManagementHero\s*\/>/g, `OpenAPI reference for the ${mcp ? 'MCP Gateway ' : ''}Management API v1: ${specUrl}`)
     .replace(/<ResourceCards\s*\/>/g, () =>
       spec
         ? ['Resources in the API:', '', ...spec.tags.map((t) => `- ${t.name}${t.description ? `: ${t.description}` : ''}`)].join('\n')
