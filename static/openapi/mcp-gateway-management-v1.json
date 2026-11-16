@@ -2444,7 +2444,7 @@
             "type": "object"
           },
           "code": {
-            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last top-level expression is the tool's result (assign a value computed inside an `if` or loop and end with it). `asyncio`, `datetime`, `json`, `math`, `re` and `time` are already imported. No files, network, environment or imports beyond the sandbox's standard modules. A script that reads a name it never defines or imports is refused on save (400 with the `line`).",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
@@ -2725,7 +2725,7 @@
             "type": "object"
           },
           "code": {
-            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last top-level expression is the tool's result (assign a value computed inside an `if` or loop and end with it). `asyncio`, `datetime`, `json`, `math`, `re` and `time` are already imported. No files, network, environment or imports beyond the sandbox's standard modules. A script that reads a name it never defines or imports is refused on save (400 with the `line`).",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
@@ -2796,7 +2796,7 @@
                 "type": "object"
               },
               "code": {
-                "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+                "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last top-level expression is the tool's result (assign a value computed inside an `if` or loop and end with it). `asyncio`, `datetime`, `json`, `math`, `re` and `time` are already imported. No files, network, environment or imports beyond the sandbox's standard modules. A script that reads a name it never defines or imports is refused on save (400 with the `line`).",
                 "maxLength": 65536,
                 "minLength": 1,
                 "type": "string"
@@ -2838,7 +2838,7 @@
             "type": "object"
           },
           "mocks": {
-            "description": "Tool name to result: these tools are not called, the script gets the given value instead. Use it to try a script that changes data without changing it.",
+            "description": "Exact tool name (the `tool` field of custom-tools:functions) to result: these tools are not called, the script gets the given value instead. Use it to try a script that changes data without changing it. A name the MCP does not offer is refused with 400 before anything runs.",
             "maxProperties": 50,
             "type": "object"
           },
@@ -2985,7 +2985,7 @@
             "type": "object"
           },
           "code": {
-            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last expression is the tool's result. No files, network, environment or imports beyond the sandbox's standard modules.",
+            "description": "Python script, at most 65536 bytes as UTF-8 (`maxLength` counts characters, so a script with non-ASCII text can be refused below it). `args` holds the arguments (defaults plus what the caller sent). Each tool of the MCP is an async function (`await list_messages(folder=\"inbox\")`), and `await call_tool(\"<tool name>\", {...})` calls any of them by name. This includes tools turned off for users (in the MCP's settings or by a policy) and tools hidden from tool lists. These calls skip the called tool's own enabled setting, policies, quotas, DLP and approvals; the custom tool's own call carries those checks. Tools waiting for tool review, tools the MCP no longer offers, other MCPs' tools and other custom tools cannot be called. The value of the last top-level expression is the tool's result (assign a value computed inside an `if` or loop and end with it). `asyncio`, `datetime`, `json`, `math`, `re` and `time` are already imported. No files, network, environment or imports beyond the sandbox's standard modules. A script that reads a name it never defines or imports is refused on save (400 with the `line`).",
             "maxLength": 65536,
             "minLength": 1,
             "type": "string"
@@ -5918,6 +5918,25 @@
           "version": {
             "description": "Opaque resource version. Send its quoted value in If-Match.",
             "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "type": "array"
           }
         },
         "required": [
@@ -13522,7 +13541,7 @@
         ]
       },
       "put": {
-        "description": "Saves the whole tool under `name` (201 when new). The name must not be one the MCP's own tools use (409 `tool_name_taken`) or a gateway tool name. The script is checked for syntax errors (400 with the `line`); names it calls that are not tools of the MCP come back as `warnings`. An MCP can have up to 50 custom tools (409 `custom_tool_limit`). Clients see the change within seconds. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Saves the whole tool under `name` (201 when new). The name must not be one the MCP's own tools use (409 `tool_name_taken`) or a gateway tool name. The script is checked for syntax errors and for names it reads but never defines or imports (400 with the `line`); names it calls that are not tools of the MCP come back as `warnings`. An MCP can have up to 50 custom tools (409 `custom_tool_limit`). Clients see the change within seconds. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Save_custom_tool",
         "parameters": [
           {
@@ -14090,7 +14109,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/custom-tools:test": {
       "post": {
-        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects and are logged; the checks of the custom tool's own call (policies, approvals, DLP) apply as for a client call. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough).\n\n**Ambiguous failures.** 502 `test_run_failed` with `error.may_have_run`: true means the run failed after the script started: the tool may have run, and its calls may have changed data. Check the MCP's logs before running it again. `may_have_run`: false means it failed before the script started; nothing ran.\n\n**Retries.** Send an `Idempotency-Key` to retry safely. When the script started (a result, a script error or the ambiguous 502), the same key and body within 24 hours return that stored answer instead of running again. When the tool certainly did not run (custom tools busy, invalid arguments, refused before the script, unknown tool or MCP, a failure before dispatch), nothing is stored and a retry with the same key runs. Requests with one key that arrive while it runs wait for its answer, or get 409 `test_run_in_progress` (retry after `Retry-After`); a run is never given up while it is still running, however long it takes. A run whose gateway process stopped (no sign of life for 30 seconds) becomes a stored 502 `test_run_failed` with `may_have_run`: true, and the original request, if it still answers, returns that same answer; it is never run again under that key. A different body under the key is 409 `idempotency_conflict`; a new key runs the tool again.",
+        "description": "Runs the saved tool, or `draft` changes over it (or a new tool not saved yet), as the key owner with their own connection to the MCP, through the same path a client call takes. The tools it calls are real calls with real effects and are logged; the checks of the custom tool's own call (policies, approvals, DLP) apply as for a client call. Returns what a client would get plus each call made, print() output and the error. A disabled tool can be tested. 409 `test_run_unavailable` for MCPs where each user signs in with their own token (OAuth passthrough); 409 `mcp_disabled` when the MCP is disabled (nothing ran). `mocks` names must be tools the MCP offers (400 otherwise, before anything runs); `mocked_tools` lists the mocks the script actually called.\n\n**Ambiguous failures.** 502 `test_run_failed` with `error.may_have_run`: true means the run failed after the script started: the tool may have run, and its calls may have changed data. Check the MCP's logs before running it again. `may_have_run`: false means it failed before the script started; nothing ran.\n\n**Retries.** Send an `Idempotency-Key` to retry safely. When the script started (a result, a script error or the ambiguous 502), the same key and body within 24 hours return that stored answer instead of running again. When the tool certainly did not run (custom tools busy, invalid arguments, refused before the script, unknown tool or MCP, a failure before dispatch), nothing is stored and a retry with the same key runs. Requests with one key that arrive while it runs wait for its answer, or get 409 `test_run_in_progress` (retry after `Retry-After`); a run is never given up while it is still running, however long it takes. A run whose gateway process stopped (no sign of life for 30 seconds) becomes a stored 502 `test_run_failed` with `may_have_run`: true, and the original request, if it still answers, returns that same answer; it is never run again under that key. A different body under the key is 409 `idempotency_conflict`; a new key runs the tool again.",
         "operationId": "Test_custom_tool",
         "parameters": [
           {
@@ -14830,7 +14849,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/scoped-settings/{scope_type}/{scope_value}": {
       "delete": {
-        "description": "Removes the override; `deleted` is false when none existed. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Removes the override; `deleted` is false when none existed (the version is then unchanged). Under QuilrQL the answer carries an `inactive_under_quilrql` warning. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Delete_scoped_settings",
         "parameters": [
           {
@@ -14960,7 +14979,7 @@
         ]
       },
       "put": {
-        "description": "Stores the override for one user (email of this tenant) or smart group. A user override wins over smart group overrides, which win over the MCP settings. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Stores the override for one user (email of this tenant) or smart group. A user override wins over smart group overrides, which win over the MCP settings. Saving an override identical to the stored one keeps the version. Under QuilrQL the override is saved with an `inactive_under_quilrql` warning. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Put_scoped_settings",
         "parameters": [
           {
@@ -16636,7 +16655,7 @@
     },
     "/mcpgateway/management/v1/mcps/{mcp_id}/upstream-auth": {
       "delete": {
-        "description": "Removes the static credential and, unless `keep_extras=true`, the extra headers and query parameters. Refused with 409 `policy_dependency` while the active QuilrQL policy depends on them. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "description": "Removes the static credential and, unless `keep_extras=true`, the extra headers and query parameters (a REST API MCP keeps its extra headers and query parameters: clear them with `PUT` `{\"extra_headers\": {}, \"extra_query_params\": {}}`). Refused with 409 `policy_dependency` while the active QuilrQL policy depends on them. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
         "operationId": "Delete_upstream_auth",
         "parameters": [
           {
@@ -16650,7 +16669,7 @@
             }
           },
           {
-            "description": "true keeps the extra headers and query parameters; default false removes them too.",
+            "description": "true keeps the extra headers and query parameters; default false removes them too. A REST API MCP always keeps them (clear them with PUT {\"extra_headers\": {}, \"extra_query_params\": {}}).",
             "in": "query",
             "name": "keep_extras",
             "required": false,
@@ -17778,6 +17797,42 @@
             "description": "Comma-separated values (at most 50); matches any. User emails (case-insensitive).",
             "in": "query",
             "name": "user",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated values (at most 50); matches any. Exact agent values.",
+            "in": "query",
+            "name": "agent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated values (at most 50); matches any. Exact called via values.",
+            "in": "query",
+            "name": "called_via",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated values (at most 50); matches any. Exact auth mode values.",
+            "in": "query",
+            "name": "auth_mode",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated values (at most 50); matches any. Exact transport values.",
+            "in": "query",
+            "name": "transport",
             "required": false,
             "schema": {
               "type": "string"

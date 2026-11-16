@@ -23,7 +23,7 @@ Reports cover tool calls made through the gateway you call, for your organizatio
 | `GET /mcps/{mcp_id}/usage` | 7 days | 92 days | As `/usage`, restricted to one MCP | As `/usage` |
 | `GET /latency` | 7 days | 92 days | `mcp`, `tool`, `transport`, `outcome` | As `/usage` |
 | `GET /dlp/summary` | 7 days | 92 days | `mcp`, `tool`, `user`, `category`, `direction` | Same as group by |
-| `GET /requests` | 24 hours | 31 days | None | `mcp`, `tool`, `user`, `outcome`, `blocked`, `request_id` |
+| `GET /requests` | 24 hours | 31 days | None | `mcp`, `tool`, `user`, `agent`, `called_via`, `auth_mode`, `transport`, `outcome`, `blocked`, `request_id` |
 | `GET /users` | 30 days | 92 days | None | `mcp`, `tool`, `user`, `agent`, `called_via`, `auth_mode`, `transport`, `outcome` |
 
 - `/usage` returns tool calls, outcomes, unique users and tools, durations and payload sizes per period and dimension, with totals of the whole selection.
