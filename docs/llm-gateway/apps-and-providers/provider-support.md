@@ -647,7 +647,7 @@ Batch, embed-job and dataset ids belong to the Cohere account that created them,
 
 | Provider type | Console tile and API | What one key serves |
 |---------------|----------------------|---------------------|
-| `elevenlabs` | **ElevenLabs** › Speech | Text to speech with the Eleven v4, v3, Multilingual and Flash models, and speech to text with the Scribe models. |
+| `elevenlabs` | **ElevenLabs** › Speech | Text to speech with the Eleven v4, v3, Multilingual and Flash models, speech to text with the Scribe models, and ElevenLabs' other generation APIs (dialogue, sound effects, music, voice changer, voice design, dubbing). |
 
 ### Add the provider
 
@@ -655,7 +655,7 @@ Batch, embed-job and dataset ids belong to the Cohere account that created them,
 2. Select the **ElevenLabs** tile ("Text to speech & speech to text"), then **Speech**.
 3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
 
-The gateway lists the text-to-speech models your key can use from ElevenLabs' `/v1/models`, plus the Scribe models (`scribe_v3`, `scribe_v2`, `scribe_v2_medical`, `scribe_v1`), which ElevenLabs does not list. Validation reads that list, so checking a key generates no audio and costs nothing.
+The gateway lists the text-to-speech models your key can use from ElevenLabs' `/v1/models`, plus the models ElevenLabs does not list there: the Scribe models (`scribe_v3`, `scribe_v2`, `scribe_v2_medical`, `scribe_v1`), `eleven_text_to_sound_v2` (sound effects), `music_v1` (music), `eleven_multilingual_sts_v2` and `eleven_english_sts_v2` (voice changer) and `eleven_multilingual_ttv_v2` (voice design). Select the ones the app may use. Validation reads that list, so checking a key generates no audio and costs nothing.
 
 | API | Path | ElevenLabs | Example model |
 |-----|------|:----------:|---------------|
@@ -666,18 +666,20 @@ The gateway lists the text-to-speech models your key can use from ElevenLabs' `/
 | Speech with character timing | `/elevenlabs/v1/text-to-speech/{voice_id}/with-timestamps`, `.../stream/with-timestamps` | ✓ | `eleven_v3` |
 | Text to dialogue (several voices) | `/elevenlabs/v1/text-to-dialogue`, `/stream`, `/with-timestamps`, `/stream/with-timestamps` | ✓ | `eleven_v3` |
 | Stored transcripts | `GET`/`DELETE /elevenlabs/v1/speech-to-text/transcripts/{transcription_id}` | ✓ | - |
-| Sound effects | `/elevenlabs/v1/sound-generation` | ✓ | - |
+| Sound effects | `/elevenlabs/v1/sound-generation` | ✓ | `eleven_text_to_sound_v2` |
 | Music | `/elevenlabs/v1/music`, `/stream`, `/detailed`, `/detailed/stream`, `/plan`, `/stem-separation`, `/video-to-music` | ✓ (paid ElevenLabs plan) | `music_v1` |
 | Voice changer | `/elevenlabs/v1/voice-changer/{voice_id}`, `/stream` | ✓ | `eleven_multilingual_sts_v2` |
 | Audio isolation | `/elevenlabs/v1/audio-isolation`, `/stream` | ✓ | - |
-| Voice design | `/elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `/elevenlabs/v1/text-to-voice` | ✓ (paid ElevenLabs plan) | - |
+| Voice design | `/elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `/elevenlabs/v1/text-to-voice` | ✓ (paid ElevenLabs plan) | `eleven_multilingual_ttv_v2` |
 | Forced alignment | `/elevenlabs/v1/forced-alignment` | ✓ | - |
 | Dubbing | `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language}`, `/{dubbing_id}/transcript/{language}` | ✓ | - |
 | Models and voices | `GET /elevenlabs/v1/models`, `/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | ✓ | - |
 | Speech translation, chat, embeddings | - | - (ElevenLabs has none) | - |
 | Realtime WebSocket speech, voice agents (Agents platform), voice cloning, Studio, account and workspace APIs | - | - (not routed) | - |
 
-Every `/elevenlabs/` route goes to the app's ElevenLabs provider; a `model_id` must be one of the app's models. Text that leaves the gateway is scanned by guardrails in full: the text to speak and its `previous_text` / `next_text`, every dialogue line, sound and music prompts, music styles and lyric lines, voice descriptions, alignment text and dubbing names. A blocked request answers 400; redacted text is what ElevenLabs receives. Stored transcripts are scanned before they are returned. Uploaded audio and video are forwarded unchanged and are not scanned. ElevenLabs refusals keep ElevenLabs' status and code, marked `X-Quilr-Error-Source: upstream`.
+Every `/elevenlabs/` route goes to the app's ElevenLabs provider; a `model_id` must be one of the app's models (otherwise `403 model_access_denied`). When a request leaves `model_id` out, the model ElevenLabs uses by default is the one checked and sent: `eleven_multilingual_v2` for speech, `eleven_v3` for dialogue, `eleven_text_to_sound_v2` for sound effects, `music_v1` for music and `eleven_english_sts_v2` for the voice changer. Voice design, previews, remix and saving a designed voice need `eleven_multilingual_ttv_v2` among the app's models. A form that sends `model_id` twice, or a part without a plain `name="..."`, is refused with `400`.
+
+Text that leaves the gateway is scanned by guardrails in full: the text to speak and its `previous_text` / `next_text`, every dialogue line, sound and music prompts, music styles and lyrics (`music_v1` sections and `music_v2` chunks, including a plan's source plan), voice descriptions, alignment text and dubbing names. A blocked request answers 400; redacted text is what ElevenLabs receives. Stored transcripts (every channel and any transcript edit) and dubbing transcripts (JSON, SRT and WebVTT) are scanned before they are returned. Uploaded audio and video are forwarded unchanged and are not scanned. ElevenLabs refusals keep ElevenLabs' status and code, marked `X-Quilr-Error-Source: upstream`.
 
 ### ElevenLabs examples
 
@@ -718,10 +720,10 @@ With the ElevenLabs SDK, set the base URL to `https://guardrails-usa-2.quilr.ai/
 | Voices | `voice` (OpenAI shape) or the path's `voice_id` must be an ElevenLabs voice id from your ElevenLabs account. OpenAI voice names such as `alloy` are not mapped. |
 | Audio formats | `response_format` `mp3` (default), `opus`, `pcm` (24 kHz) and `wav` (24 kHz) map to ElevenLabs formats; you can also pass an ElevenLabs `output_format` value such as `mp3_44100_192`. `aac` and `flac` are refused with `400`. Some formats need a higher ElevenLabs plan. |
 | Unsupported OpenAI options | `instructions`, `stream_format: "sse"` on speech, and `prompt`, `stream=true`, `srt` and `vtt` on transcription are refused with `400` rather than ignored. `webhook` and `use_multi_channel` work on `/elevenlabs/v1/speech-to-text` only. |
-| Streaming | `/elevenlabs/v1/text-to-speech/{voice_id}/stream` relays audio as it arrives. The OpenAI-shaped speech route returns the whole file. |
+| Streaming | The `/stream` routes (speech, dialogue, music, voice changer, audio isolation) relay audio as it arrives. If ElevenLabs fails partway, the transfer ends with an error rather than as a complete file. The OpenAI-shaped speech route returns the whole file. |
 | Transcripts | `verbose_json` returns the text, language, duration and word timings. |
 | Guardrails | Every text ElevenLabs receives is scanned: the text to speak with `previous_text` and `next_text`, and transcription `keyterms` and `transcript_edit`. The returned transcript is scanned too; a redacted transcript is returned without word timings, entities or extra export formats, since those repeat the text. `webhook=true` and `transcript_edit` are refused with `400` on `/elevenlabs/v1/speech-to-text` while the app's guardrails or a QuilrQL policy apply: ElevenLabs would deliver a webhook transcript without the gateway seeing it, and `transcript_edit` returns a second, edited transcript that is not scanned. Query parameters such as `enable_logging=false` (zero retention) are passed to ElevenLabs unchanged. Uploaded audio is forwarded unchanged and never logged. |
-| Billing | Text to speech per character sent ($0.08 per 1,000 for v4, v3 and Multilingual v2; $0.04 for v4 Turbo, v3 Conversational, Flash and Turbo); speech to text per second of audio from ElevenLabs' reported duration ($0.20 per hour, `scribe_v2_medical` included). Options ElevenLabs charges extra for are billed too: `keyterms` (+$0.05 per hour, and at least 20 seconds with more than 100 keyterms), `transcript_edit` (+$0.07 per hour, at least 10 seconds), `detect_speaker_roles` (+10%), and `use_multi_channel` (every channel at the full duration). The request log shows how the billed audio was reached. Speech requests count toward request limits; token and spend budgets do not charge them. |
+| Billing | Text to speech per character sent ($0.08 per 1,000 for v4, v3 and Multilingual v2; $0.04 for v4 Turbo, v3 Conversational, Flash and Turbo); speech to text per second of audio from ElevenLabs' reported duration ($0.20 per hour, `scribe_v2_medical` included). Options ElevenLabs charges extra for are billed too: `keyterms` (+$0.05 per hour, and at least 20 seconds with more than 100 keyterms), `transcript_edit` (+$0.07 per hour, at least 10 seconds), `detect_speaker_roles` (+10%), and `use_multi_channel` (every channel at the full duration). The request log shows how the billed audio was reached. The other APIs are billed at ElevenLabs' list prices: sound effects $0.12 and music $0.15 per minute of generated audio; voice changer and audio isolation $0.12 per minute of audio sent; dubbing $0.50 per minute of the uploaded media ($0.33 with `watermark=true`). Voice design, forced alignment, stem separation and music plans have no published price and are logged as unpriced. Every call also logs the credits ElevenLabs reports, and when ElevenLabs reports the exact charge in US dollars (transcription), that charge is the logged cost. Speech requests count toward request limits; token and spend budgets do not charge them. |
 | Errors | ElevenLabs' status code is kept and its error status (for example `invalid_api_key`) becomes `error.code`; ElevenLabs' message is not passed through because it can quote your text. |
 
 ## Endpoint families
