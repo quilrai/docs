@@ -208,7 +208,7 @@ These rules apply to every speech provider:
 
 | Topic | Behavior |
 |-------|----------|
-| Billing | Text to speech is billed per character sent for character-priced models (`tts-1`, `tts-1-hd`, Orpheus, ElevenLabs, Bulbul). `gpt-4o-mini-tts` is billed from OpenAI's token usage when you request `stream_format: "sse"`; for binary audio OpenAI reports no usage, so the gateway estimates the tokens from the text and the audio's length and marks them estimated. Transcription is billed per second of audio: the duration the provider reports, or the uploaded file's measured length when it reports none (Groq, Sarvam, translations). `gpt-4o-*-transcribe` models are billed from their token usage. ElevenLabs reports what it billed on every call (credits, and on transcription the exact USD charge on your plan); the log keeps it, and when ElevenLabs reports the USD charge it is the request's cost (marked `provider_reported_cost`) unless you set your own model costs on the provider. |
+| Billing | Text to speech is billed per character sent for character-priced models (`tts-1`, `tts-1-hd`, Orpheus, ElevenLabs, Bulbul). `gpt-4o-mini-tts` is billed from OpenAI's token usage when you request `stream_format: "sse"`; for binary audio OpenAI reports no usage, so the gateway estimates the tokens from the text and the audio's length and marks them estimated. Transcription is billed per second of audio: the duration the provider reports, or the uploaded file's measured length when it reports none (Groq, Sarvam, translations). `gpt-4o-*-transcribe` models are billed from their token usage; with `response_format` `text`, `srt` or `vtt` OpenAI returns no usage, so the gateway estimates the audio input tokens from the audio's length (10 per second) and marks them estimated. ElevenLabs reports what it billed on every call (credits, and on transcription the exact USD charge on your plan); the log keeps it, and when ElevenLabs reports the USD charge it is the request's cost (marked `provider_reported_cost`) unless you set your own model costs on the provider. |
 | Budgets | Speech requests count toward request limits. Token and spend budgets do not charge them. |
 | Request id | Every speech response carries `x-quilr-request-id`, the id of its request log entry. |
 | Upload size | Audio uploads above 200 MB are refused with `413` and `attachment_too_large` before reaching the provider. Providers apply their own lower limits (25 MB for OpenAI-style APIs). |
@@ -643,7 +643,7 @@ Batch, embed-job and dataset ids belong to the Cohere account that created them,
 
 ## ElevenLabs
 
-`elevenlabs` calls `https://api.elevenlabs.io` for text to speech and speech to text. It takes one API key; the console always uses that endpoint. Through the Management API you can instead set `base_url` to one of ElevenLabs' own hosts (`https://api.us.elevenlabs.io` or the data-residency hosts `https://api.eu.residency.elevenlabs.io`, `https://api.in.residency.elevenlabs.io`, `https://api.sg.residency.elevenlabs.io`); any other value is refused. ElevenLabs serves speech only, so it has no chat or embeddings.
+`elevenlabs` calls `https://api.elevenlabs.io` for text to speech, speech to text and ElevenLabs' other generation APIs (see [ElevenLabs routes](#elevenlabs-routes)). It takes one API key; the console always uses that endpoint. Through the Management API you can instead set `base_url` to one of ElevenLabs' own hosts (`https://api.us.elevenlabs.io` or the data-residency hosts `https://api.eu.residency.elevenlabs.io`, `https://api.in.residency.elevenlabs.io`, `https://api.sg.residency.elevenlabs.io`); any other value is refused. ElevenLabs serves speech only, so it has no chat or embeddings.
 
 | Provider type | Console tile and API | What one key serves |
 |---------------|----------------------|---------------------|
@@ -725,6 +725,31 @@ With the ElevenLabs SDK, set the base URL to `https://guardrails-usa-2.quilr.ai/
 | Guardrails | Every text ElevenLabs receives is scanned: the text to speak with `previous_text` and `next_text`, and transcription `keyterms` and `transcript_edit`. The returned transcript is scanned too; a redacted transcript is returned without word timings, entities or extra export formats, since those repeat the text. `webhook=true` and `transcript_edit` are refused with `400` on `/elevenlabs/v1/speech-to-text` while the app's guardrails or a QuilrQL policy apply: ElevenLabs would deliver a webhook transcript without the gateway seeing it, and `transcript_edit` returns a second, edited transcript that is not scanned. Query parameters such as `enable_logging=false` (zero retention) are passed to ElevenLabs unchanged. Uploaded audio is forwarded unchanged and never logged. |
 | Billing | Text to speech per character sent ($0.08 per 1,000 for v4, v3 and Multilingual v2; $0.04 for v4 Turbo, v3 Conversational, Flash and Turbo); speech to text per second of audio from ElevenLabs' reported duration ($0.20 per hour, `scribe_v2_medical` included). Options ElevenLabs charges extra for are billed too: `keyterms` (+$0.05 per hour, and at least 20 seconds with more than 100 keyterms), `transcript_edit` (+$0.07 per hour, at least 10 seconds), `detect_speaker_roles` (+10%), and `use_multi_channel` (every channel at the full duration). The request log shows how the billed audio was reached. The other APIs are billed at ElevenLabs' list prices: sound effects $0.12 and music $0.15 per minute of generated audio; voice changer and audio isolation $0.12 per minute of audio sent; dubbing $0.50 per minute of the uploaded media ($0.33 with `watermark=true`). Voice design, forced alignment, stem separation and music plans have no published price and are logged as unpriced. Every call also logs the credits ElevenLabs reports, and when ElevenLabs reports the exact charge in US dollars (transcription), that charge is the logged cost. Speech requests count toward request limits; token and spend budgets do not charge them. |
 | Errors | ElevenLabs' status code is kept and its error status (for example `invalid_api_key`) becomes `error.code`; ElevenLabs' message is not passed through because it can quote your text. |
+
+### ElevenLabs routes {#elevenlabs-routes}
+
+ElevenLabs' own APIs, in ElevenLabs' request and response format, for ElevenLabs providers only. Point the ElevenLabs SDK at `https://guardrails-usa-2.quilr.ai/elevenlabs`. Every route below is on by default.
+
+| Route | What it does | Guardrails | Model checked |
+|-------|--------------|------------|---------------|
+| `POST /elevenlabs/v1/text-to-speech/{voice_id}`, `/stream`, `/with-timestamps`, `/stream/with-timestamps` | Speech, whole file or streamed, optionally with character timing | Request (`text`, `previous_text`, `next_text`) | `model_id`, default `eleven_multilingual_v2` |
+| `POST /elevenlabs/v1/text-to-dialogue`, `/stream`, `/with-timestamps`, `/stream/with-timestamps` | Several voices in one clip | Request (every line) | `model_id`, default `eleven_v3` |
+| `POST /elevenlabs/v1/speech-to-text` | Transcribe uploaded audio or video | Request (`keyterms`, `transcript_edit`) and response | `model_id` (required) |
+| `GET`, `DELETE /elevenlabs/v1/speech-to-text/transcripts/{transcription_id}` | Read or delete a stored transcript | Response (every channel and edit) | - |
+| `POST /elevenlabs/v1/sound-generation` | Sound effect from a prompt | Request (`text`) | `model_id`, default `eleven_text_to_sound_v2` |
+| `POST /elevenlabs/v1/music`, `/stream`, `/detailed`, `/detailed/stream` | Compose music | Request (prompt, styles, lyrics) | `model_id`, default `music_v1` |
+| `POST /elevenlabs/v1/music/plan` | Build a composition plan | Request (prompt and source plan) | `model_id`, default `music_v1` |
+| `POST /elevenlabs/v1/music/video-to-music` | Music for an uploaded video | Request (`description`, `tags`) | `model_id`, default `music_v1` |
+| `POST /elevenlabs/v1/music/stem-separation` | Split uploaded audio into stems | - (audio only) | - |
+| `POST /elevenlabs/v1/voice-changer/{voice_id}`, `/stream` | Re-voice uploaded speech | - (audio only) | `model_id`, default `eleven_english_sts_v2` |
+| `POST /elevenlabs/v1/audio-isolation`, `/stream` | Remove background noise | - (audio only) | - |
+| `POST /elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `POST /elevenlabs/v1/text-to-voice` | Design, preview, remix and save a voice | Request (voice description, preview text, voice name) | `eleven_multilingual_ttv_v2` |
+| `POST /elevenlabs/v1/forced-alignment` | Align text to uploaded audio | Request (`text`) | - |
+| `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language_code}` | Dub uploaded media and fetch the result | Request (`name`) | - |
+| `GET /elevenlabs/v1/dubbing/{dubbing_id}/transcript/{language_code}` | Dubbing transcript (JSON, SRT or WebVTT) | Response | - |
+| `GET /elevenlabs/v1/models`, `/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | List models and voices | - | - |
+
+Stored transcripts, dubbings and designed voices belong to the ElevenLabs account that created them, so later calls must use the same app.
 
 ## Endpoint families
 
