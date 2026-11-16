@@ -10,6 +10,12 @@ description: "What changed across the Assessment Suite (Red Teaming and Drift & 
 
 What changed in Red Teaming and Drift & Bias, newest first.
 
+## Clearer reasons when a run fails (2026-11-16)
+
+- When an assessment or Drift & Bias run stops with an error, its reason now starts with a status that says what kind of failure it was, such as **503 Service Unavailable** or **504 Gateway Timeout**, followed by what happened and what to do next
+- Runs on QuilrAI-hosted models say when the hosted models couldn't be reached, refused to start the run, or the chosen model isn't available, instead of a generic error
+- Runs that can't connect to the target, or time out waiting for it, say so and ask you to check that the target is reachable
+
 ## Threat Modeling (2026-11-16)
 
 - New **Threat Modeling** page under **Assessments**, above Red Teaming. Create a threat model for a system from a description, design documents, diagrams, Mermaid or PlantUML, a .zip of its source code, or an asset from your inventory
