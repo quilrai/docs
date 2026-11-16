@@ -212,8 +212,8 @@ These rules apply to every speech provider:
 | Budgets | Speech requests count toward request limits. Token and spend budgets do not charge them. |
 | Request id | Every speech response carries `x-quilr-request-id`, the id of its request log entry. |
 | Upload size | Audio uploads above 200 MB are refused with `413` and `attachment_too_large` before reaching the provider. Providers apply their own lower limits (25 MB for OpenAI-style APIs). |
-| Errors | A provider failure on the ElevenLabs and Sarvam routes carries `X-Quilr-Error-Source: upstream`, `X-Quilr-Error-Code` and `"source": "upstream"` in the error body, like every other route; the provider's own message is never echoed. A refusal by the gateway itself (for example `webhook=true` under guardrails) carries no upstream marker. |
-| Guardrails | The text to speak and the returned transcript are scanned. When response guardrails apply, `stream=true` transcription is returned after the scan as one `transcript.text.delta` and the final `transcript.text.done` event. A redacted `verbose_json` transcript is returned without word timings, which would repeat the original text. |
+| Errors | A provider failure carries `X-Quilr-Error-Source: upstream`, like every other route. On the ElevenLabs and Sarvam routes it also carries `X-Quilr-Error-Code` and `"source": "upstream"` in the error body, and the provider's own message is never echoed. A refusal by the gateway itself (for example `webhook=true` under guardrails) carries no upstream marker. |
+| Guardrails | The text to speak and the returned transcript are scanned, and so is every text hint sent with the audio: a transcription `prompt` for every provider, and ElevenLabs `previous_text`, `next_text`, `keyterms` and `transcript_edit`. Each field is scanned in full and can block the request or be redacted before it is sent. When response guardrails apply, `stream=true` transcription is returned after the scan as one `transcript.text.delta` and the final `transcript.text.done` event. A redacted `verbose_json` transcript is returned without word timings, which would repeat the original text. |
 
 ## Sarvam Speech and Text
 
