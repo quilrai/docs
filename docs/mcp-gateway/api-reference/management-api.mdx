@@ -442,7 +442,7 @@ Every error has the same shape:
 | 409 | `oauth_not_applicable` | The MCP does not use gateway-managed OAuth. |
 | 409 | `not_api_mcp`, `not_openapi`, `spec_uploaded` | Not a REST API MCP; not built from an OpenAPI document; the document was uploaded, so send a new one instead of resyncing. |
 | 409 | `test_run_in_progress` | A custom tool test run with this `Idempotency-Key` is still running; retry after `Retry-After`. See [retry safely](./custom-tools-api#retry-safely). |
-| 409 | `tool_name_taken`, `custom_tool_limit`, `test_run_unavailable` | One of the MCP's own tools already uses the name; the MCP already has 50 custom tools; test runs are not available on OAuth passthrough MCPs. See [custom tool errors](./custom-tools-api#errors). |
+| 409 | `tool_name_taken`, `custom_tool_limit`, `test_run_unavailable`, `mcp_disabled` | One of the MCP's own tools already uses the name; the MCP already has 50 custom tools; test runs are not available on OAuth passthrough MCPs; a test run on a disabled MCP. See [custom tool errors](./custom-tools-api#errors). |
 | 409 | `not_oauth_mcp`, `oauth_client_not_custom` | No gateway OAuth client; the gateway registered the client itself, so it cannot be rotated. |
 | 409 | `connect_link_used` | Connect link already used. |
 | 410 | `gone` | The resource is no longer available. |

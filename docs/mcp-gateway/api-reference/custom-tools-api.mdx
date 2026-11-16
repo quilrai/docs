@@ -84,8 +84,9 @@ The script:
 
 - **Reads its arguments from `args`**: the `defaults` with what the caller sent on top, plus the `fixed_args`, which a caller cannot change.
 - **Calls the MCP's tools.** Each tool of the MCP is an async function (`await list_messages(folder="inbox")`), and `await call_tool("list_messages", {...})` calls any of them by its exact name, including tools turned off for users (see [what you authorize](#authorization)). [List the functions](#functions) to see their Python signatures.
-- **Gets each tool's result** as its structured content, or its text parsed as JSON, or the text. On a REST API MCP each call returns `{"status", "headers", "body"}`, with a JSON body already parsed.
-- **Returns the value of its last expression.** Text is returned as is; anything else as JSON. With an `output_schema`, the result must match it. A result over 80,000 characters is returned as an error, so filter or trim what the script returns.
+- **Gets each tool's result** as its structured content, or its text parsed as JSON, or the text. On a REST API MCP each call returns `{"status", "headers", "body"}`, with a JSON body already parsed. Servers built with FastMCP often return a plain-text answer as structured content `{"result": "..."}`, so read `r["result"]` there; a test run shows the shape.
+- **Returns the value of its last top-level expression.** Text is returned as is; anything else as JSON. A value computed inside an `if`, loop or `try` block is not the last expression: assign it (`out = ...`) and end the script with `out`. With an `output_schema`, the result must match it. A result over 80,000 characters is returned as an error, so filter or trim what the script returns.
+- **Has `asyncio`, `datetime`, `json`, `math`, `re` and `time` already imported.** Importing them again is fine.
 - **Handles failures** with `ToolError`: a failing tool call raises it, and the script can catch it. An uncaught error makes the custom tool return an error with the script's message.
 - **Runs in a sandbox** with no files, network or environment, and no imports beyond the sandbox's standard modules. It cannot call other custom tools or OneMCP's own tools, only the tools of its MCP.
 
@@ -152,7 +153,7 @@ curl -s -X POST "$BASE/mcps/$MCP/custom-tools:test" -H "Authorization: Bearer $K
 - `PATCH /mcps/{mcp_id}/custom-tools/{name}` changes the sent fields and keeps the rest. Send `{"enabled": false}` to hide the tool from clients, and `{"enabled": true}` to show it again.
 - `DELETE /mcps/{mcp_id}/custom-tools/{name}` removes it.
 
-Every save checks the definition: the script for syntax errors (`400` with the `line`), the schema and defaults, and the name, which must not be one of the MCP's own tools (`409 tool_name_taken`) or a [reserved gateway tool name](#script). Names the script calls that are not tools of the MCP, or that are waiting for tool review, come back as `warnings`; they do not block the save. Tools turned off or hidden from users are tools of the MCP, so they are not warned about. Warnings are checked against the MCP's current tools on every read, so a tool the MCP has since dropped shows up there. `tool_version` grows by one on every save. Clients see a change within a few seconds, in their next tool list.
+Every save checks the definition: the script for syntax errors and for names it reads but never defines or imports, such as `client.list()` with no `client` (both `400` with the `line`), the schema and defaults, and the name, which must not be one of the MCP's own tools (`409 tool_name_taken`) or a [reserved gateway tool name](#script). Names the script calls that are not tools of the MCP, or that are waiting for tool review, come back as `warnings`; they do not block the save, because the MCP may list them again later. Tools turned off or hidden from users are tools of the MCP, so they are not warned about. Warnings are checked against the MCP's current tools on every read, so a tool the MCP has since dropped shows up there. `tool_version` grows by one on every save. Clients see a change within a few seconds, in their next tool list.
 
 ## Version history {#versions}
 
@@ -182,8 +183,8 @@ Every save is kept, up to the last 20.
 ```
 
 - `arguments` are sent as a client would send them.
-- `draft` tries unsaved changes: its fields are merged over the saved tool, or form a whole new tool when nothing is saved under `name`. A disabled tool can be tested.
-- `mocks` maps tool names to results (at most 50): those tools are not called, and the script gets the given value instead. Use it to try a script that changes data without changing it. The response lists them in `mocked_tools`.
+- `draft` tries unsaved changes: its fields are merged over the saved tool, or form a whole new tool when nothing is saved under `name`. Errors in a draft name its field as `body.draft.<field>`. A disabled tool can be tested; a disabled MCP answers `409 mcp_disabled` and nothing runs.
+- `mocks` maps exact tool names (the `tool` field of `custom-tools:functions`) to results (at most 50): those tools are not called, and the script gets the given value instead. Use it to try a script that changes data without changing it. A name the MCP does not offer is refused with `400` before anything runs, so a typo can never turn into a real call. The response lists the mocks the script actually called in `mocked_tools`.
 
 The run is real. It runs as the key owner, with their own connection to the MCP, through the same path a client call takes, so the tools it calls (except mocked ones) have real effects and are logged. The checks of the custom tool's own call (policies, confirmation, DLP) apply as for a client call. Test with arguments that are safe to run, or mock the tools that change data.
 
@@ -191,7 +192,7 @@ The run is real. It runs as the key owner, with their own connection to the MCP,
 | --- | --- |
 | `outcome` | `ok`, `error` (the script or a tool failed), `approval_required` (the call is waiting for approval) or `refused` (the tool did not run: hidden from the key owner, blocked by a policy, no connection, invalid arguments, or no free run slot). With `refused`, `run` is `null`. |
 | `client_result` | The MCP result a client would get. |
-| `mocked_tools` | The tools answered from `mocks` instead of being called. |
+| `mocked_tools` | The tools the script called that were answered from `mocks` instead of being called. |
 | `error` | The error message, when there is one. |
 | `run.calls` | Each tool call the script made, in order, with `ok` and the time it took. |
 | `run.result` | The script's result. |
@@ -253,13 +254,14 @@ If the script returns while tool calls it started are still running, the answer 
 
 | Status | Code | Meaning |
 | --- | --- | --- |
-| 400 | `invalid_request` | The definition is invalid, for example a schema that uses `$ref`, `$id` or anchors. `error.fields` names the field; a syntax error in the script also carries `line`. |
+| 400 | `invalid_request` | The definition is invalid, for example a schema that uses `$ref`, `$id` or anchors. `error.fields` names the field; a syntax error or an undefined name in the script also carries `line`. Also a `mocks` name the MCP does not offer (`body.mocks`). |
 | 400 | `idempotency_key_required` | The test run's `Idempotency-Key` is over 200 characters or has control characters. |
 | 404 | `custom_tool_not_found` | No custom tool with this name on the MCP. |
 | 404 | `custom_tool_version_not_found` | No saved version with this `tool_version` in the tool's history. |
 | 409 | `tool_name_taken` | One of the MCP's own tools already uses this name. |
 | 409 | `custom_tool_limit` | The MCP already has 50 custom tools. |
 | 409 | `test_run_unavailable` | The MCP is an OAuth passthrough MCP: each client brings its own token, so a test run cannot use the key owner's connection. |
+| 409 | `mcp_disabled` | Test run on a disabled MCP: nothing ran. Enable the MCP and retry (the same `Idempotency-Key` runs it). |
 | 409 | `test_run_in_progress` | A test run with this `Idempotency-Key` is still running (`operation_id`, `Retry-After`). See [retry safely](#retry-safely). |
 | 409 | `idempotency_conflict` | The `Idempotency-Key` was used for a test run with a different body. |
 | 412 | `version_conflict` | `If-Match` is stale: the MCP changed since you read it. Read the list again and retry. |
