@@ -11,7 +11,7 @@ import TabItem from '@theme/TabItem';
 
 # Quick Start
 
-Updated on 3 November 2026.
+Updated on 16 November 2026.
 
 Create an app, configure your SDK to use the gateway, and send a first request.
 
@@ -102,7 +102,7 @@ Click **Create app**. There is no guardrail step. New apps have the following cl
 
 | Setting | Default |
 |---------|---------|
-| **Default guardrail action** | **Monitor**. You can change it later to Block, Redact or Partial redact. |
+| **Default guardrail action** | **Monitor**. You can change it later to Block, Redact, Partial redact or [Tokenize](../protect/security-guardrails#tokenize). |
 | **Data risks** | All six on: PII, PHI, financial, payment card, insurance, authentication secrets |
 | **Adversarial risks** | 12 of 13 on. **Malicious scripts** is off. |
 | **Dependency security check**, **Latest-version suggestions**, **Task adherence** | Off. These are [Guardian Agent](../protect/guardian-agent) checks. |

@@ -99,6 +99,9 @@ TASK -> WHERE
   Tokens (N active) > Revoke > Revoke token. Status: Online | Degraded | Offline | Status unknown.
 - Set guardrails (PII, secrets, prompt injection, hallucination, source IPs) -> Configure > Guardrails
   (Action mix, Default action, DATA RISKS / adversarial categories; "Copy from another app")
+  Data-risk actions: Redact | Partial redact | Tokenize | Block | Monitor. Tokenize sends placeholders such as
+  <PERSON_1> to the model and puts the real values back in the reply (chat, Anthropic Messages, Responses,
+  Gemini, Bedrock Runtime); elsewhere it acts as Redact. Not offered in Policy Engine detection rules yet.
 - Check uploaded files -> workspace Settings > Attachments > Scan attachments (off by default).
   Allowed files and limits: per-file-kind Allow | Strip | Block; Max file size (MB), Max attachments per
   request (MB), Max new files per request, Max PDF pages; limit action Monitor | Strip | Block.

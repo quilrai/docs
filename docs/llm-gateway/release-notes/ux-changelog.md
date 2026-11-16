@@ -10,6 +10,14 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Data risks: Tokenize action (2026-11-16)
+
+- **New action, Tokenize**, next to Redact and Partial redact for data-risk categories, sub-categories and precision detections: the model sees placeholders such as `<PERSON_1>` and `<ACCOUNT_1>`, and the user gets the real values back in the reply
+- The same value keeps the same placeholder for the whole conversation (kept for 24 hours), and placeholders belong to one user: another user who reuses the conversation id gets nothing back
+- Works on chat completions, Anthropic Messages, OpenAI Responses, native Gemini and Bedrock Runtime, with streaming and tool calls; other surfaces, including SDK Mode, treat it as Redact
+- Set it in the app's guardrail settings or with `data_risk_action`, `category_actions` and `sub_category_actions` in the Management API
+- Details: [Tokenize](../protect/security-guardrails#tokenize)
+
 ## Response cache: normalized and semantic matching (2026-11-13)
 
 - **Choose how closely a repeat must match**: **Exact** (default, unchanged), **Normalized** (also ignores case, punctuation at word edges, repeated spaces and a fixed list of words such as *the*, *my*, *please* and *thanks*) or **Semantic** (also matches a reworded latest user message)
