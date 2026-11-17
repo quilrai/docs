@@ -10,6 +10,12 @@ description: "What changed across the Assessment Suite (Red Teaming and Drift & 
 
 What changed in Red Teaming and Drift & Bias, newest first.
 
+## Threat Modeling links a model to more kinds of Inventory assets (2026-11-17)
+
+- When you create or edit a threat model, choose its asset in a popup instead of a dropdown. Search by name and filter by type
+- MCP servers and models from your Inventory can now be linked, as well as AI applications and agents
+- Each result shows its type and the application or vendor it belongs to, and the linked asset's name is shown in bold on the form
+
 ## Clearer Threat Modeling errors when the analysis service is unavailable (2026-11-17)
 
 - When the analysis service's usage limit has been reached, Threat Modeling now says so and asks you to contact your administrator, instead of showing a generic error. The run stops straight away rather than retrying first
