@@ -13,9 +13,9 @@ import TabItem from '@theme/TabItem';
 
 # Security guardrails
 
-Updated on 3 November 2026.
+Updated on 16 November 2026.
 
-Detect sensitive data and adversarial input in prompts and responses, then monitor, redact or block it. Set the basics per app in the app's settings; use the Policy Engine's **Data & Adversarial Risks** card when you need rules that depend on who is calling, which model, or which part of the request.
+Detect sensitive data and adversarial input in prompts and responses, then monitor, redact, tokenize or block it. Set the basics per app in the app's settings; use the Policy Engine's **Data & Adversarial Risks** card when you need rules that depend on who is calling, which model, or which part of the request.
 
 ## Configure this control
 
@@ -69,6 +69,7 @@ Because the default action is Monitor, a new app records detections without chan
 | **Monitor** | The request passes unchanged and the detection is logged. | All categories |
 | **Partial redact** | Masks part of each detected value and forwards the rest. | Data risks, precision detections |
 | **Redact** | Replaces each detected value and forwards the request. | Data risks, precision detections |
+| **Tokenize** | Replaces each detected value with a placeholder such as `<PERSON_1>` before the model sees it, and puts the real value back in the response. See [Tokenize](#tokenize). | Data risks, precision detections |
 | **Block** | Rejects the whole request. | All categories |
 
 - **Adversarial risks and the hallucination check support Block or Monitor only.** There is no value to redact.
@@ -76,7 +77,30 @@ Because the default action is Monitor, a new app records detections without chan
 - **Set everything to default** clears per-category actions so every category follows the default action.
 - The **Action mix** panel counts categories by action, including categories that are off.
 
-**Image Risks** uses Monitor, Strip or Block. Strip removes the whole image. Text redaction and partial redaction inside an attachment also remove that attachment, rather than editing the original file. See [attachment actions](./attachment-scanning#actions-and-unreadable-files).
+**Image Risks** uses Monitor, Strip or Block. Strip removes the whole image. Text redaction, partial redaction and tokenization inside an attachment also remove that attachment, rather than editing the original file. See [attachment actions](./attachment-scanning#actions-and-unreadable-files).
+
+### Tokenize {#tokenize}
+
+Use Tokenize when users need the real values in the answer but the model provider must not see them. The gateway swaps each detected value for a typed placeholder, and swaps it back in the response.
+
+| | Text |
+|---|---|
+| User sends | Draft a renewal reminder for Rahul Mehta, policy no. 4587-2291. |
+| Model sees | Draft a renewal reminder for `<PERSON_1>`, policy no. `<ACCOUNT_1>`. |
+| Model writes | Dear `<PERSON_1>`, your policy `<ACCOUNT_1>` is due for renewal. |
+| User gets | Dear Rahul Mehta, your policy 4587-2291 is due for renewal. |
+
+- **Same value, same placeholder.** A value keeps its placeholder for the whole conversation, so later turns stay consistent. Each new value gets the next number for its type (`<PERSON_2>`, `<EMAIL_1>`).
+- **One conversation, one user.** The gateway keeps the placeholders of a conversation for 24 hours after its last request. A conversation is identified by its conversation id (for example the `x-conversation-id` header or `previous_response_id`), or by its first message when there is none. When the gateway knows who is calling (user identity, a named user key, a separate app key, or the request's `user` field), the placeholders also belong to that user, so another user who sends the same conversation id never gets the values back.
+- **Streaming and tool calls.** Placeholders are restored in streamed responses and in tool-call arguments.
+- **Stricter actions win.** If another category redacts or blocks the same value, that action applies instead.
+- **New values in the response.** When the category also checks responses, a sensitive value the model writes that was not in the conversation is redacted, as with Redact.
+- **Where Tokenize works.** Chat completions, Anthropic Messages, OpenAI Responses, native Gemini `generateContent` and Bedrock Runtime (`converse`, `invoke_model`), with and without streaming. Everywhere else, including SDK Mode, embeddings, speech and attachments, Tokenize behaves as Redact.
+- **Logs** show placeholder counts and types, never the original values.
+
+:::warning
+Placeholders are restored inside tool-call arguments. If the model can call tools you do not trust, a prompt injection could make it pass a placeholder to such a tool, which would then receive the real value. Use Redact for those apps.
+:::
 
 ## Data risks {#data-risks}
 
@@ -100,7 +124,7 @@ Each text data-risk category has these settings:
 | Enabled | On / off | On (Code Scripts and Queries off) |
 | Risk level | None, Low, Medium, High | High |
 | Applies to | Request only, Request & response, Response only | Request & response |
-| Action | Redact, Partial redact, Block, Monitor | App default action |
+| Action | Redact, Partial redact, Tokenize, Block, Monitor | App default action |
 | Sub-category sensitivity | Low, Medium, High per sub-category | Set per sub-category |
 
 Image Risks applies to request images and has a switch and action per image type. It requires **Scan attachments** and **Classify images** in the app's **Attachments** section, or the equivalent published Policy Engine configuration. [Document extraction and OCR](./attachment-scanning#document-text-and-ocr) let the text data types above inspect supported files as well as message text.
@@ -153,7 +177,7 @@ Each category has an on/off switch and a **Block | Monitor** action. Its scope i
 
 ## Precision detections {#precision-detections}
 
-Exact-match patterns for structured identifiers. Use them when you need a specific identifier detected in addition to the contextual data risk categories. Each detection has its own switch and action (Redact, Partial redact, Block or Monitor; default Monitor), and all are off until you turn them on. A red dot marks a high-sensitivity identifier.
+Exact-match patterns for structured identifiers. Use them when you need a specific identifier detected in addition to the contextual data risk categories. Each detection has its own switch and action (Redact, Partial redact, Tokenize, Block or Monitor; default Monitor), and all are off until you turn them on. A red dot marks a high-sensitivity identifier.
 
 ![Precision detections list with a switch, Reset to default, and an action selector for each identifier](/img/llm-gateway/ui/app-guardrails-precision-detections.png)
 
@@ -214,6 +238,8 @@ Select data types, a findings threshold, an action, and whether the rule applies
 
 The highest-priority matching action applies to the request or response; the stricter action wins ties. A higher-priority Monitor or Redact can cancel a lower-priority Block, including a block selected by another data type. Non-blocking redaction is selected per data type. Check the panel's **How rules combine** explanation before adding an exception, and test requests containing several data types together.
 
+Detection rules do not offer Tokenize yet. To tokenize, set the action in the app's settings (**Classic settings**) or with the Management API.
+
 Without a rule here, nothing is redacted or blocked. A type is scanned only when a rule needs it, so the absence of a finding does not by itself prove that the type was checked.
 
 ### Language Blocking
@@ -249,8 +275,8 @@ The table below describes the text guardrails. [Attachment scanning](./attachmen
 | OpenAI Realtime (websocket) | Not scanned | Not scanned |
 | [Endpoint families](../api-reference/endpoint-families) (moderations, images, OCR, completions, files, batches, videos), including the Mistral and xAI [vendor routes](../apps-and-providers/provider-support#vendor-routes) | Not scanned | Not scanned |
 
-- **Streaming:** request-side checks run as normal. Response-side redaction and blocking apply only when the gateway holds the full response, so streamed chunks pass through unmodified.
-- **Copilot Studio** cannot accept rewritten tool input, so Redact and Partial redact become Block. See [Copilot Studio](../../integrations/pull-ai-usage-and-inventory/microsoft-copilot-studio).
+- **Streaming:** request-side checks run as normal. Response-side redaction and blocking apply only when the gateway holds the full response, so streamed chunks pass through unmodified. [Tokenize](#tokenize) placeholders are still restored in streamed chunks.
+- **Copilot Studio** cannot accept rewritten tool input, so Redact, Partial redact and Tokenize become Block. See [Copilot Studio](../../integrations/pull-ai-usage-and-inventory/microsoft-copilot-studio).
 - **Realtime** sessions log the handshake, byte counters and usage, but do not run DLP. Use [SDK Mode](../apps-and-providers/sdk-mode) to scan Realtime transcripts out of band.
 
 ## Related {#related}
