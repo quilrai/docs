@@ -10,6 +10,12 @@ description: "What changed across the Assessment Suite (Red Teaming and Drift & 
 
 What changed in Red Teaming and Drift & Bias, newest first.
 
+## Clearer Threat Modeling errors when the analysis service is unavailable (2026-11-17)
+
+- When the analysis service's usage limit has been reached, Threat Modeling now says so and asks you to contact your administrator, instead of showing a generic error. The run stops straight away rather than retrying first
+- When the analysis service is busy, the message asks you to try again in a few minutes
+- Uploaded inputs that can't be read for either reason show the same explanation
+
 ## MCP scans check Go dependencies and grade more servers (2026-11-17)
 
 - MCP server scans now check Go dependencies pinned to a specific commit for known vulnerabilities. Before, these were reported as failed lookups, so scans of most Go servers showed **Dependency intelligence did not complete** and no grade
