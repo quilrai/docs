@@ -282,7 +282,7 @@ When request attachments are recognized, the response adds `attachments` with `s
 | `items[].data_types`, `items[].image_labels` | The detected attachment text types and visual image categories. |
 | `items[].action`, `items[].stripped`, `items[].incomplete`, `items[].unscannable` | The per-file action and coverage flags. |
 
-Monitor keeps the original inline content. Redact or Partial redact removes the whole affected attachment, rather than editing its pixels or document contents. The returned `messages`, `processed_text` and applicable placeholder view reflect that removal. An attachment-only removal still produces `status: "redacted"`, `action: "redact"`, even if the surrounding message text is unchanged.
+Monitor keeps the original inline content. Redact, Partial redact or Tokenize removes the whole affected attachment, rather than editing its pixels or document contents. The returned `messages`, `processed_text` and applicable placeholder view reflect that removal. An attachment-only removal still produces `status: "redacted"`, `action: "redact"`, even if the surrounding message text is unchanged.
 
 Attachment blocks, including file type and configured limit blocks, use the existing HTTP 200 SDK verdict: `status: "blocked"`, `action: "block"` and an `error` with the attachment code. Do not forward content after a block. Attachment errors do not appear as text entity placeholders.
 
@@ -336,7 +336,7 @@ This example assumes `NAME` is detected and its configured action is `redact`:
 ```
 
 - `original_json`, `processed_json`, and `placeholder_masking.json` are actual JSON values. The corresponding `*_text` fields contain serialized JSON for compatibility.
-- `processed_json` follows the configured redact or partial-redact action. Safe and monitor-only values stay unchanged. Keys, nesting, array order, empty containers, booleans, and `null` are preserved. A masked number becomes a string; unchanged numbers keep their numeric type.
+- `processed_json` follows the configured redact or partial-redact action. SDK Mode has no response to restore, so a [Tokenize](../protect/security-guardrails#tokenize) action is applied as redact. Safe and monitor-only values stay unchanged. Keys, nesting, array order, empty containers, booleans, and `null` are preserved. A masked number becomes a string; unchanged numbers keep their numeric type.
 - Blocked results have `action: "block"`, `processed_json: null`, `processed_text: null`, and `error` details. Placeholder output remains available for inspection and does not override the block. Check `action` before consuming content; `null` can also be a valid safe JSON root.
 - `entity_json_paths` maps each detected entity to matching value locations. Placeholder entries include `json_paths` for replaced locations. These are JSON Pointers: `/contacts/0/email` addresses an array item, `~` is escaped as `~0`, `/` as `~1`, and `""` means the root.
 

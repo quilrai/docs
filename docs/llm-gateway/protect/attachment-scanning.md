@@ -13,7 +13,7 @@ import TabItem from '@theme/TabItem';
 
 # Attachment scanning
 
-Updated on 4 November 2026.
+Updated on 16 November 2026.
 
 Check files sent with a model request before they reach the provider. The gateway extracts document text, reads text in images and scanned PDFs with OCR, and identifies image risks such as payment cards or ID documents. Your enabled data risks decide what to monitor, remove or block.
 
@@ -193,7 +193,7 @@ The same choices can be scoped to people, groups or applications on the Policy E
 | **Strip** | Removes the attachment and tells the model it was removed, while the rest of the request can continue. |
 | **Block** | Rejects the whole request before it reaches the provider. |
 
-**Redact** and **Partial redact** findings in an attachment currently remove the entire attachment. The gateway does not rewrite a PDF or Office file, obscure pixels in an image, or replace a document with redacted extracted text. Where the client format cannot safely represent a removed attachment, a Strip decision becomes Block.
+**Redact**, **Partial redact** and **Tokenize** findings in an attachment currently remove the entire attachment. The gateway does not rewrite a PDF or Office file, obscure pixels in an image, or replace a document with redacted extracted text. Where the client format cannot safely represent a removed attachment, a Strip decision becomes Block.
 
 Two additional controls handle content the gateway cannot read:
 
