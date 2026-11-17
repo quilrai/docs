@@ -112,5 +112,6 @@ For the [Management API](../api-reference/management-api), the app's switches ar
 - [Standalone SDK token savings](../apps-and-providers/sdk-token-savings)
 - [MCP Gateway token saving](../../mcp-gateway/protect/token-saving)
 - [Response cache](./response-cache)
+- [Conversation compaction](./conversation-compaction) - summarize the older part of long conversations
 - [Prompt store](./prompt-store)
 - [Costs and savings](../../console/observe/costs-and-savings)

@@ -567,5 +567,6 @@ The panel's **Activity** tab shows per route and app over 24 h, 7 d or 30 d: con
 - [Gateway access and allowed models](../protect/gateway-access-and-allowed-models)
 - [Token saving](./token-saving) - prompt compression
 - [Response cache](./response-cache) - answer repeat requests without calling the model
+- [Conversation compaction](./conversation-compaction) - keep long conversations within the model's context
 - [Author, simulate and publish](../../console/govern/author-simulate-and-publish)
 - [Policy Engine overview](../../console/govern/policy-engine)

@@ -106,6 +106,7 @@ The groups follow a model request from access to returned response.
 | Which model and limits? | Routing Groups & Fallbacks | [Routing and failover](../../llm-gateway/cost-and-traffic/routing-and-fallbacks) |
 | Which model and limits? | Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
 | Which model and limits? | Token Savings | [Token saving](../../llm-gateway/cost-and-traffic/token-saving) |
+| Which model and limits? | Conversation Compaction | [Conversation compaction](../../llm-gateway/cost-and-traffic/conversation-compaction) |
 | What may return? | Hallucination Protection | [Hallucination protection](../../llm-gateway/protect/hallucination-protection) |
 | What may return? | Error Messages | [Error messages](../../llm-gateway/protect/error-messages) |
 
@@ -194,7 +195,7 @@ The engine switch is tenant-wide. While the LLM Gateway engine is on, these sect
 | Identity Aware (Enforce identity, Enforce conversation ID) | Identity & Network Trust |
 | Prompt Store (Require system prompt from store, Universal system prompt) | Prompt Store & Enforcement |
 
-Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls, Budgets & Usage Limits, Model Visibility and Error Messages are configured in the engine. See [Switching from classic settings](./switching-from-classic-settings).
+Still managed in the app: LLM providers, custom detections, self-service, alerts, API keys, API integration and audit log. Gateway Access, Tool Controls, Budgets & Usage Limits, Model Visibility, Error Messages and Conversation Compaction are configured in the engine. See [Switching from classic settings](./switching-from-classic-settings).
 
 ## Related
 
