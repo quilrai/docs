@@ -3419,6 +3419,12 @@
         "scheme": "bearer",
         "type": "http"
       },
+      "QuilrElevenLabsKey": {
+        "description": "ElevenLabs SDK style `xi-api-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
+        "in": "header",
+        "name": "xi-api-key",
+        "type": "apiKey"
+      },
       "QuilrGoogApiKey": {
         "description": "Gemini SDK style `x-goog-api-key` with a Quilr API key (`sk-quilr-...`) or a Quilr-verified JWT.",
         "in": "header",

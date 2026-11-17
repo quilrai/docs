@@ -51,6 +51,7 @@ One row per provider type. The type is what you select in the console and what y
 | `oracle` | Oracle OCI Generative AI | ✓ | Soon | Soon | - | - | - | - | - | Manual |
 | `oracle_responses` | Oracle OCI Generative AI | Soon | Soon | ✓ | - | - | - | - | - | Manual |
 | `sarvam` | Sarvam | ✓ | Soon | Soon | - | - | - | - | ✓ | ✓ |
+| `elevenlabs` | ElevenLabs (speech only) | - | - | - | - | - | - | - | ✓ | ✓ |
 | `cohere_rerank` | Cohere | - | - | - | - | - | - | ✓ | - | ✓ |
 | `jina_rerank` | Jina | - | - | - | - | - | - | ✓ | - | ✓ |
 | `voyage_rerank` | Voyage | - | - | - | - | - | - | ✓ | - | ✓ |
@@ -61,7 +62,7 @@ One row per provider type. The type is what you select in the console and what y
 
 - **Gemini generateContent and Bedrock Converse / InvokeModel** clients reach the same conversational providers. The [format explorer](../api-reference/any-to-any-formats#format-explorer) shows how each client format reaches each provider, model by model.
 - **Chat** on `vertex_ai` and the `anthropic_messages*` types uses the built-in adapters described in [Chat Completions adapters](../api-reference/any-to-any-formats#chat-completions-adapters).
-- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), Groq in [Groq](#groq), Perplexity in [Perplexity](#perplexity), and Cohere in [Cohere](#cohere). **Speech** on `cohere` is transcription only.
+- **Speech** on `mistral` is transcription only. xAI and Mistral also serve the extra APIs in [xAI and Mistral](#xai-and-mistral). Cerebras is described in [Cerebras](#cerebras), Groq in [Groq](#groq), Perplexity in [Perplexity](#perplexity), Cohere in [Cohere](#cohere), and ElevenLabs in [ElevenLabs](#elevenlabs). **Speech** on `cohere` is transcription only.
 - `bedrock` also serves native Bedrock Runtime calls from boto3. `vertex_ai` also serves the native Vertex AI routes.
 - **Speech** is text-to-speech and speech-to-text. Sarvam also serves translation, transliteration and language detection.
 - **Manual**: enter Oracle model IDs yourself.
@@ -109,6 +110,7 @@ Every provider also has a **Provider label** and a **Models** list. Field names 
 | `groq` | API key | API key | - (the endpoint is fixed: `https://api.groq.com/openai/v1`) | Console, API |
 | `perplexity` | API key | API key | - (the endpoint is fixed: `https://api.perplexity.ai`) | Console, API |
 | `cohere` | API key | API key | - (the endpoint is fixed: `https://api.cohere.com`) | Console, API |
+| `elevenlabs` | API key | API key | Base URL (`base_url`): an ElevenLabs regional or data-residency host only (default `https://api.elevenlabs.io`) | Console (API key), API |
 | `typesafe` | API key | API key | - (the endpoint is fixed: `https://api.typesafe.ai/v1`) | Console, API |
 | `cohere_rerank`, `jina_rerank`, `voyage_rerank` | API key | API key | Base URL (default: the vendor's API) | Console, API |
 | `azureopenai` | API key | API key, Azure endpoint (`azure_endpoint`) | Azure API version (`azure_api_version`, default `2024-10-21`; the consoles require it) | Console, API |
@@ -189,7 +191,7 @@ All three rerank paths take a Cohere-compatible body (`model`, `query`, `documen
 
 ## TTS & STT
 
-`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai`, `sarvam` and `groq` (Whisper and Orpheus models; see [Groq](#groq)). `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`), and so does `cohere` (`cohere-transcribe-03-2026`; `language` is required). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
+`/openai_compatible/v1/audio/speech`, `/audio/transcriptions` and `/audio/translations` work with `openai`, `azureopenai`, `sarvam` and `groq` (Whisper and Orpheus models; see [Groq](#groq)). `elevenlabs` serves `/audio/speech` and `/audio/transcriptions` (see [ElevenLabs](#elevenlabs)). `mistral` serves `/audio/transcriptions` only (Voxtral models, for example `voxtral-mini-latest`), and so does `cohere` (`cohere-transcribe-03-2026`; `language` is required). Azure deployments use the `/openai/deployments/{deployment}/` prefix.
 
 On a Sarvam provider these routes adapt to Sarvam's APIs:
 
@@ -201,6 +203,17 @@ On a Sarvam provider these routes adapt to Sarvam's APIs:
 | `response_format` | `output_audio_codec` (default MP3; `pcm` is raw linear16) |
 
 Transcriptions accept `response_format` of `json`, `verbose_json` or `text`, and `timestamp_granularities[]=segment`. `model` is required.
+
+These rules apply to every speech provider:
+
+| Topic | Behavior |
+|-------|----------|
+| Billing | Text to speech is billed per character sent for character-priced models (`tts-1`, `tts-1-hd`, Orpheus, ElevenLabs, Bulbul). `gpt-4o-mini-tts` is billed from OpenAI's token usage when you request `stream_format: "sse"`; for binary audio OpenAI reports no usage, so the gateway estimates the tokens from the text and the audio's length and marks them estimated. Transcription is billed per second of audio: the duration the provider reports, or the uploaded file's measured length when it reports none (Groq, Sarvam, translations). `gpt-4o-*-transcribe` models are billed from their token usage; with `response_format` `text`, `srt` or `vtt` OpenAI returns no usage, so the gateway estimates the audio input tokens from the audio's length (10 per second) and marks them estimated. ElevenLabs reports what it billed on every call (credits, and on transcription the exact USD charge on your plan); the log keeps it, and when ElevenLabs reports the USD charge it is the request's cost (marked `provider_reported_cost`) unless you set your own model costs on the provider. |
+| Budgets | Speech requests count toward request limits. Token and spend budgets do not charge them. |
+| Request id | Every speech response carries `x-quilr-request-id`, the id of its request log entry. |
+| Upload size | Audio uploads above 200 MB are refused with `413` and `attachment_too_large` before reaching the provider. Providers apply their own lower limits (25 MB for OpenAI-style APIs). |
+| Errors | A provider failure carries `X-Quilr-Error-Source: upstream`, like every other route. On the ElevenLabs and Sarvam routes it also carries `X-Quilr-Error-Code` and `"source": "upstream"` in the error body, and the provider's own message is never echoed. A refusal by the gateway itself (for example `webhook=true` under guardrails) carries no upstream marker. |
+| Guardrails | The text to speak and the returned transcript are scanned, and so is every text hint sent with the audio: a transcription `prompt` for every provider, and ElevenLabs `previous_text`, `next_text`, `keyterms` and `transcript_edit`. Each field is scanned in full and can block the request or be redacted before it is sent. When response guardrails apply, `stream=true` transcription is returned after the scan as one `transcript.text.delta` and the final `transcript.text.done` event. A redacted `verbose_json` transcript is returned without word timings, which would repeat the original text. |
 
 ## Sarvam Speech and Text
 
@@ -482,7 +495,7 @@ curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/speech \
 | Speech | Orpheus returns WAV only; the gateway asks for WAV when you send no `response_format`. Each Orpheus model's terms must be accepted once in the Groq console for the key's organization, or Groq answers `model_terms_required` (also shown by **Check key and list models**). `/audio/translations` works on `whisper-large-v3` only. |
 | Streaming | Chat and Responses. Streams always carry usage, so billing has it. |
 | Capacity | Groq's `498` `capacity_exceeded` (flex tier full) is treated as a rate limit, so [routing failover](../cost-and-traffic/routing-and-fallbacks) can retry or move the request. |
-| Billing | Chat by tokens, Whisper by audio seconds, Orpheus by characters. Groq's browser search tool (`{"type": "browser_search"}` on gpt-oss models) adds $5 per 1,000 searches and $1 per 1,000 page visits, on Chat and Responses. |
+| Billing | Chat by tokens, Whisper by audio seconds, Orpheus by characters. Groq bills a transcription shorter than 10 seconds as 10 seconds; the gateway records the actual length, so very short clips are logged slightly below Groq's invoice. Groq's browser search tool (`{"type": "browser_search"}` on gpt-oss models) adds $5 per 1,000 searches and $1 per 1,000 page visits, on Chat and Responses. |
 
 ## Perplexity
 
@@ -627,6 +640,117 @@ Cohere's own APIs, in Cohere's request and response format, for Cohere providers
 | `/cohere/v1/datasets`, `/usage`, `/{id}` | Upload (multipart), list, get, delete datasets and read usage | - | When the deployment enables files |
 
 Batch, embed-job and dataset ids belong to the Cohere account that created them, so later calls must use the same app. Cohere's raw model list and API key check are not exposed; the gateway's model list applies the app's model visibility.
+
+## ElevenLabs
+
+`elevenlabs` calls `https://api.elevenlabs.io` for text to speech, speech to text and ElevenLabs' other generation APIs (see [ElevenLabs routes](#elevenlabs-routes)). It takes one API key; the console always uses that endpoint. Through the Management API you can instead set `base_url` to one of ElevenLabs' own hosts (`https://api.us.elevenlabs.io` or the data-residency hosts `https://api.eu.residency.elevenlabs.io`, `https://api.in.residency.elevenlabs.io`, `https://api.sg.residency.elevenlabs.io`); any other value is refused. ElevenLabs serves speech only, so it has no chat or embeddings.
+
+| Provider type | Console tile and API | What one key serves |
+|---------------|----------------------|---------------------|
+| `elevenlabs` | **ElevenLabs** › Speech | Text to speech with the Eleven v4, v3, Multilingual and Flash models, speech to text with the Scribe models, and ElevenLabs' other generation APIs (dialogue, sound effects, music, voice changer, voice design, dubbing). |
+
+### Add the provider
+
+1. Open **Settings > Models > Models** and click **Add your own models** (the same picker appears when you create or edit an app).
+2. Select the **ElevenLabs** tile ("Text to speech & speech to text"), then **Speech**.
+3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
+
+The gateway lists the text-to-speech models your key can use from ElevenLabs' `/v1/models`, plus the models ElevenLabs does not list there: the Scribe models (`scribe_v3`, `scribe_v2`, `scribe_v2_medical`, `scribe_v1`), `eleven_text_to_sound_v2` (sound effects), `music_v1` (music), `eleven_multilingual_sts_v2` and `eleven_english_sts_v2` (voice changer) `eleven_multilingual_ttv_v2` (voice design) and `elevenlabs-dubbing` (dubbing). Select the ones the app may use. Validation reads that list, so checking a key generates no audio and costs nothing.
+
+| API | Path | ElevenLabs | Example model |
+|-----|------|:----------:|---------------|
+| Text to speech (OpenAI shape) | `/openai_compatible/v1/audio/speech` | ✓ | `eleven_flash_v2_5` |
+| Speech to text (OpenAI shape) | `/openai_compatible/v1/audio/transcriptions` | ✓ | `scribe_v2` |
+| Text to speech (ElevenLabs shape) | `/elevenlabs/v1/text-to-speech/{voice_id}`, `.../stream` | ✓ | `eleven_v3` |
+| Speech to text (ElevenLabs shape) | `/elevenlabs/v1/speech-to-text` | ✓ | `scribe_v2` |
+| Speech with character timing | `/elevenlabs/v1/text-to-speech/{voice_id}/with-timestamps`, `.../stream/with-timestamps` | ✓ | `eleven_v3` |
+| Text to dialogue (several voices) | `/elevenlabs/v1/text-to-dialogue`, `/stream`, `/with-timestamps`, `/stream/with-timestamps` | ✓ | `eleven_v3` |
+| Stored transcripts | `GET`/`DELETE /elevenlabs/v1/speech-to-text/transcripts/{transcription_id}` | ✓ | - |
+| Sound effects | `/elevenlabs/v1/sound-generation` | ✓ | `eleven_text_to_sound_v2` |
+| Music | `/elevenlabs/v1/music`, `/stream`, `/detailed`, `/detailed/stream`, `/plan`, `/stem-separation`, `/video-to-music` | ✓ (paid ElevenLabs plan) | `music_v1` |
+| Voice changer | `/elevenlabs/v1/voice-changer/{voice_id}`, `/stream` | ✓ | `eleven_multilingual_sts_v2` |
+| Audio isolation | `/elevenlabs/v1/audio-isolation`, `/stream` | ✓ | - |
+| Voice design | `/elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `/elevenlabs/v1/text-to-voice` | ✓ (paid ElevenLabs plan) | `eleven_multilingual_ttv_v2` |
+| Forced alignment | `/elevenlabs/v1/forced-alignment` | ✓ | - |
+| Dubbing | `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language}`, `/{dubbing_id}/transcript/{language}` | ✓ | `elevenlabs-dubbing` |
+| Models and voices | `GET /elevenlabs/v1/models`, `/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | ✓ | - |
+| Speech translation, chat, embeddings | - | - (ElevenLabs has none) | - |
+| Realtime WebSocket speech, voice agents (Agents platform), voice cloning, Studio, account and workspace APIs | - | - (not routed) | - |
+
+Every `/elevenlabs/` route goes to the app's ElevenLabs provider; a `model_id` must be one of the app's models (otherwise `403 model_access_denied`). When a request leaves `model_id` out, the model ElevenLabs uses by default is the one checked and sent: `eleven_multilingual_v2` for speech, `eleven_v3` for dialogue, `eleven_text_to_sound_v2` for sound effects, `music_v1` for music and `eleven_english_sts_v2` for the voice changer. Voice design, previews, remix and saving a designed voice need `eleven_multilingual_ttv_v2` among the app's models. Dubbing takes no model, so every dubbing route (create, list, get, delete, audio, transcript) needs `elevenlabs-dubbing` among the app's models: dubbing projects belong to the ElevenLabs account, so only apps you enable can create, read or delete them. Reading or deleting a stored transcript likewise needs one of the Scribe models among the app's models. Content-based policy rules see the text each route sends (the same fields guardrails scan), never a `messages` or `input` field the client adds. A form that sends `model_id` twice, or a part without a plain `name="..."`, is refused with `400`.
+
+Text that leaves the gateway is scanned by guardrails in full: the text to speak and its `previous_text` / `next_text`, every dialogue line, sound and music prompts, music styles and lyrics (`music_v1` sections and `music_v2` chunks, including a plan's source plan), voice descriptions, alignment text and dubbing names. A blocked request answers 400; redacted text is what ElevenLabs receives. Stored transcripts (every channel and any transcript edit) and dubbing transcripts (JSON, SRT and WebVTT) are scanned before they are returned. Uploaded audio and video are forwarded unchanged and are not scanned. ElevenLabs refusals keep ElevenLabs' status and code, marked `X-Quilr-Error-Source: upstream`.
+
+### ElevenLabs examples
+
+```bash
+# Text to speech with the OpenAI SDK shape (voice is an ElevenLabs voice id)
+curl https://guardrails-usa-2.quilr.ai/openai_compatible/v1/audio/speech \
+  -H "Authorization: Bearer <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model": "eleven_flash_v2_5", "input": "Hello from the gateway.", "voice": "JBFqnCBsd6RMkjVDRZzb", "response_format": "mp3"}' \
+  --output hello.mp3
+
+# ElevenLabs' own streaming route: audio arrives as ElevenLabs produces it
+curl "https://guardrails-usa-2.quilr.ai/elevenlabs/v1/text-to-speech/JBFqnCBsd6RMkjVDRZzb/stream?output_format=mp3_44100_128" \
+  -H "xi-api-key: <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"text": "Hello from the gateway.", "model_id": "eleven_v3"}' --output hello.mp3
+
+# Speech to text with word timings
+curl https://guardrails-usa-2.quilr.ai/elevenlabs/v1/speech-to-text \
+  -H "xi-api-key: <Quilr key>" -F model_id=scribe_v2 -F file=@meeting.mp3
+
+# Two-voice dialogue
+curl https://guardrails-usa-2.quilr.ai/elevenlabs/v1/text-to-dialogue \
+  -H "xi-api-key: <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"model_id": "eleven_v3", "inputs": [{"text": "Hi there.", "voice_id": "JBFqnCBsd6RMkjVDRZzb"}, {"text": "Hello!", "voice_id": "EXAVITQu4vr4xnSDxMaL"}]}' \
+  --output dialogue.mp3
+
+# Sound effect from a prompt
+curl https://guardrails-usa-2.quilr.ai/elevenlabs/v1/sound-generation \
+  -H "xi-api-key: <Quilr key>" -H "Content-Type: application/json" \
+  -d '{"text": "a short door knock", "duration_seconds": 1}' --output knock.mp3
+```
+
+With the ElevenLabs SDK, set the base URL to `https://guardrails-usa-2.quilr.ai/elevenlabs` and the API key to your Quilr key; the SDK's `xi-api-key` header carries it. `xi-api-key` is accepted on the `/elevenlabs/` routes only; the OpenAI-shaped routes take `Authorization: Bearer`, `api-key` or `x-api-key`.
+
+### ElevenLabs behavior
+
+| Topic | ElevenLabs |
+|-------|------------|
+| Voices | `voice` (OpenAI shape) or the path's `voice_id` must be an ElevenLabs voice id from your ElevenLabs account. OpenAI voice names such as `alloy` are not mapped. |
+| Audio formats | `response_format` `mp3` (default), `opus`, `pcm` (24 kHz) and `wav` (24 kHz) map to ElevenLabs formats; you can also pass an ElevenLabs `output_format` value such as `mp3_44100_192`. `aac` and `flac` are refused with `400`. Some formats need a higher ElevenLabs plan. |
+| Unsupported OpenAI options | `instructions`, `stream_format: "sse"` on speech, and `prompt`, `stream=true`, `srt` and `vtt` on transcription are refused with `400` rather than ignored. `webhook` and `use_multi_channel` work on `/elevenlabs/v1/speech-to-text` only. |
+| Streaming | The `/stream` routes (speech, dialogue, music, voice changer, audio isolation) relay audio as it arrives. If ElevenLabs fails partway, the transfer ends with an error rather than as a complete file. The OpenAI-shaped speech route returns the whole file. |
+| Transcripts | `verbose_json` returns the text, language, duration and word timings. |
+| Guardrails | Every text ElevenLabs receives is scanned: the text to speak with `previous_text` and `next_text`, and transcription `keyterms` and `transcript_edit`. The returned transcript is scanned too; a redacted transcript is returned without word timings, entities or extra export formats, since those repeat the text. `webhook=true` and `transcript_edit` are refused with `400` on `/elevenlabs/v1/speech-to-text` while the app's guardrails or a QuilrQL policy apply: ElevenLabs would deliver a webhook transcript without the gateway seeing it, and `transcript_edit` returns a second, edited transcript that is not scanned. Query parameters such as `enable_logging=false` (zero retention) are passed to ElevenLabs unchanged. Uploaded audio is forwarded unchanged and never logged. |
+| Billing | Text to speech per character sent ($0.08 per 1,000 for v4, v3 and Multilingual v2; $0.04 for v4 Turbo, v3 Conversational, Flash and Turbo); speech to text per second of audio from ElevenLabs' reported duration ($0.20 per hour, `scribe_v2_medical` included). Options ElevenLabs charges extra for are billed too: `keyterms` (+$0.05 per hour, and at least 20 seconds with more than 100 keyterms), `transcript_edit` (+$0.07 per hour, at least 10 seconds), `detect_speaker_roles` (+10%), and `use_multi_channel` (every channel at the full duration). The request log shows how the billed audio was reached. The other APIs are billed at ElevenLabs' list prices: sound effects $0.12 and music $0.15 per minute of generated audio; voice changer and audio isolation $0.12 per minute of audio sent; dubbing $0.50 per minute of the uploaded media ($0.33 with `watermark=true`). Voice design, forced alignment, stem separation and music plans have no published price and are logged as unpriced. Every call also logs the credits ElevenLabs reports, and when ElevenLabs reports the exact charge in US dollars (transcription), that charge is the logged cost. Speech requests count toward request limits; token and spend budgets do not charge them. |
+| Errors | ElevenLabs' status code is kept and its error status (for example `invalid_api_key`) becomes `error.code`; ElevenLabs' message is not passed through because it can quote your text. |
+
+### ElevenLabs routes {#elevenlabs-routes}
+
+ElevenLabs' own APIs, in ElevenLabs' request and response format, for ElevenLabs providers only. Point the ElevenLabs SDK at `https://guardrails-usa-2.quilr.ai/elevenlabs`. Every route below is on by default.
+
+| Route | What it does | Guardrails | Model checked |
+|-------|--------------|------------|---------------|
+| `POST /elevenlabs/v1/text-to-speech/{voice_id}`, `/stream`, `/with-timestamps`, `/stream/with-timestamps` | Speech, whole file or streamed, optionally with character timing | Request (`text`, `previous_text`, `next_text`) | `model_id`, default `eleven_multilingual_v2` |
+| `POST /elevenlabs/v1/text-to-dialogue`, `/stream`, `/with-timestamps`, `/stream/with-timestamps` | Several voices in one clip | Request (every line) | `model_id`, default `eleven_v3` |
+| `POST /elevenlabs/v1/speech-to-text` | Transcribe uploaded audio or video | Request (`keyterms`, `transcript_edit`) and response | `model_id` (required) |
+| `GET`, `DELETE /elevenlabs/v1/speech-to-text/transcripts/{transcription_id}` | Read or delete a stored transcript | Response (every channel and edit) | Any `scribe_*` model |
+| `POST /elevenlabs/v1/sound-generation` | Sound effect from a prompt | Request (`text`) | `model_id`, default `eleven_text_to_sound_v2` |
+| `POST /elevenlabs/v1/music`, `/stream`, `/detailed`, `/detailed/stream` | Compose music | Request (prompt, styles, lyrics) | `model_id`, default `music_v1` |
+| `POST /elevenlabs/v1/music/plan` | Build a composition plan | Request (prompt and source plan) | `model_id`, default `music_v1` |
+| `POST /elevenlabs/v1/music/video-to-music` | Music for an uploaded video | Request (`description`, `tags`) | `model_id`, default `music_v1` |
+| `POST /elevenlabs/v1/music/stem-separation` | Split uploaded audio into stems | - (audio only) | - |
+| `POST /elevenlabs/v1/voice-changer/{voice_id}`, `/stream` | Re-voice uploaded speech | - (audio only) | `model_id`, default `eleven_english_sts_v2` |
+| `POST /elevenlabs/v1/audio-isolation`, `/stream` | Remove background noise | - (audio only) | - |
+| `POST /elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `POST /elevenlabs/v1/text-to-voice` | Design, preview, remix and save a voice | Request (voice description, preview text, voice name) | `eleven_multilingual_ttv_v2` |
+| `POST /elevenlabs/v1/forced-alignment` | Align text to uploaded audio | Request (`text`) | - |
+| `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language_code}` | Dub uploaded media and fetch the result | Request (`name`) | `elevenlabs-dubbing` |
+| `GET /elevenlabs/v1/dubbing/{dubbing_id}/transcript/{language_code}` | Dubbing transcript (JSON, SRT or WebVTT) | Response | `elevenlabs-dubbing` |
+| `GET /elevenlabs/v1/models` | List models, filtered to the app's models and its policy | - | - |
+| `GET /elevenlabs/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | List voices | - | - |
+
+Stored transcripts, dubbings and designed voices belong to the ElevenLabs account that created them, so later calls must use the same app.
 
 ## Endpoint families
 
