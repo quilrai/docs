@@ -10,6 +10,12 @@ description: "What changed across the Assessment Suite (Red Teaming and Drift & 
 
 What changed in Red Teaming and Drift & Bias, newest first.
 
+## MCP scans check Go dependencies and grade more servers (2026-11-17)
+
+- MCP server scans now check Go dependencies pinned to a specific commit for known vulnerabilities. Before, these were reported as failed lookups, so scans of most Go servers showed **Dependency intelligence did not complete** and no grade
+- Dependencies listed with only a version range, such as `^1.2`, no longer stop a scan from being graded. They are counted as not checked, because there is no exact version to look up
+- A scan still shows **N/A** if a dependency lookup fails or if no dependency could be checked
+
 ## Clearer reasons when a run fails (2026-11-16)
 
 - When an assessment or Drift & Bias run stops with an error, its reason now starts with a status that says what kind of failure it was, such as **503 Service Unavailable** or **504 Gateway Timeout**, followed by what happened and what to do next
