@@ -3,12 +3,12 @@ sidebar_position: 1
 sidebar_label: "Changelog"
 sidebar_custom_props:
   icon: ClipboardList
-description: "What changed across the Assessment Suite (Red Teaming, Threat Modeling and Drift & Bias), newest first."
+description: "What changed in Red Teaming, newest first."
 ---
 
 # Assessment Suite Changelog
 
-What changed in Red Teaming, Threat Modeling and Drift & Bias, newest first.
+What changed in Red Teaming, newest first.
 
 ## Threat Modeling links a model to more kinds of Inventory assets (2026-11-17)
 
