@@ -655,7 +655,7 @@ Batch, embed-job and dataset ids belong to the Cohere account that created them,
 2. Select the **ElevenLabs** tile ("Text to speech & speech to text"), then **Speech**.
 3. Keep or edit the **Provider label**, paste the **API key**, click **Check key and list models**, then select the models and save. See [Providers and Models](./providers-and-models#add-a-provider).
 
-The gateway lists the text-to-speech models your key can use from ElevenLabs' `/v1/models`, plus the models ElevenLabs does not list there: the Scribe models (`scribe_v3`, `scribe_v2`, `scribe_v2_medical`, `scribe_v1`), `eleven_text_to_sound_v2` (sound effects), `music_v1` (music), `eleven_multilingual_sts_v2` and `eleven_english_sts_v2` (voice changer) and `eleven_multilingual_ttv_v2` (voice design). Select the ones the app may use. Validation reads that list, so checking a key generates no audio and costs nothing.
+The gateway lists the text-to-speech models your key can use from ElevenLabs' `/v1/models`, plus the models ElevenLabs does not list there: the Scribe models (`scribe_v3`, `scribe_v2`, `scribe_v2_medical`, `scribe_v1`), `eleven_text_to_sound_v2` (sound effects), `music_v1` (music), `eleven_multilingual_sts_v2` and `eleven_english_sts_v2` (voice changer) `eleven_multilingual_ttv_v2` (voice design) and `elevenlabs-dubbing` (dubbing). Select the ones the app may use. Validation reads that list, so checking a key generates no audio and costs nothing.
 
 | API | Path | ElevenLabs | Example model |
 |-----|------|:----------:|---------------|
@@ -672,12 +672,12 @@ The gateway lists the text-to-speech models your key can use from ElevenLabs' `/
 | Audio isolation | `/elevenlabs/v1/audio-isolation`, `/stream` | ✓ | - |
 | Voice design | `/elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `/elevenlabs/v1/text-to-voice` | ✓ (paid ElevenLabs plan) | `eleven_multilingual_ttv_v2` |
 | Forced alignment | `/elevenlabs/v1/forced-alignment` | ✓ | - |
-| Dubbing | `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language}`, `/{dubbing_id}/transcript/{language}` | ✓ | - |
+| Dubbing | `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language}`, `/{dubbing_id}/transcript/{language}` | ✓ | `elevenlabs-dubbing` |
 | Models and voices | `GET /elevenlabs/v1/models`, `/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | ✓ | - |
 | Speech translation, chat, embeddings | - | - (ElevenLabs has none) | - |
 | Realtime WebSocket speech, voice agents (Agents platform), voice cloning, Studio, account and workspace APIs | - | - (not routed) | - |
 
-Every `/elevenlabs/` route goes to the app's ElevenLabs provider; a `model_id` must be one of the app's models (otherwise `403 model_access_denied`). When a request leaves `model_id` out, the model ElevenLabs uses by default is the one checked and sent: `eleven_multilingual_v2` for speech, `eleven_v3` for dialogue, `eleven_text_to_sound_v2` for sound effects, `music_v1` for music and `eleven_english_sts_v2` for the voice changer. Voice design, previews, remix and saving a designed voice need `eleven_multilingual_ttv_v2` among the app's models. A form that sends `model_id` twice, or a part without a plain `name="..."`, is refused with `400`.
+Every `/elevenlabs/` route goes to the app's ElevenLabs provider; a `model_id` must be one of the app's models (otherwise `403 model_access_denied`). When a request leaves `model_id` out, the model ElevenLabs uses by default is the one checked and sent: `eleven_multilingual_v2` for speech, `eleven_v3` for dialogue, `eleven_text_to_sound_v2` for sound effects, `music_v1` for music and `eleven_english_sts_v2` for the voice changer. Voice design, previews, remix and saving a designed voice need `eleven_multilingual_ttv_v2` among the app's models. Dubbing takes no model, so every dubbing route (create, list, get, delete, audio, transcript) needs `elevenlabs-dubbing` among the app's models: dubbing projects belong to the ElevenLabs account, so only apps you enable can create, read or delete them. Content-based policy rules see the text each route sends (the same fields guardrails scan), never a `messages` or `input` field the client adds. A form that sends `model_id` twice, or a part without a plain `name="..."`, is refused with `400`.
 
 Text that leaves the gateway is scanned by guardrails in full: the text to speak and its `previous_text` / `next_text`, every dialogue line, sound and music prompts, music styles and lyrics (`music_v1` sections and `music_v2` chunks, including a plan's source plan), voice descriptions, alignment text and dubbing names. A blocked request answers 400; redacted text is what ElevenLabs receives. Stored transcripts (every channel and any transcript edit) and dubbing transcripts (JSON, SRT and WebVTT) are scanned before they are returned. Uploaded audio and video are forwarded unchanged and are not scanned. ElevenLabs refusals keep ElevenLabs' status and code, marked `X-Quilr-Error-Source: upstream`.
 
@@ -745,9 +745,10 @@ ElevenLabs' own APIs, in ElevenLabs' request and response format, for ElevenLabs
 | `POST /elevenlabs/v1/audio-isolation`, `/stream` | Remove background noise | - (audio only) | - |
 | `POST /elevenlabs/v1/text-to-voice/design`, `/create-previews`, `/{voice_id}/remix`, `POST /elevenlabs/v1/text-to-voice` | Design, preview, remix and save a voice | Request (voice description, preview text, voice name) | `eleven_multilingual_ttv_v2` |
 | `POST /elevenlabs/v1/forced-alignment` | Align text to uploaded audio | Request (`text`) | - |
-| `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language_code}` | Dub uploaded media and fetch the result | Request (`name`) | - |
-| `GET /elevenlabs/v1/dubbing/{dubbing_id}/transcript/{language_code}` | Dubbing transcript (JSON, SRT or WebVTT) | Response | - |
-| `GET /elevenlabs/v1/models`, `/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | List models and voices | - | - |
+| `/elevenlabs/v1/dubbing` (create, list), `/{dubbing_id}` (get, delete), `/{dubbing_id}/audio/{language_code}` | Dub uploaded media and fetch the result | Request (`name`) | `elevenlabs-dubbing` |
+| `GET /elevenlabs/v1/dubbing/{dubbing_id}/transcript/{language_code}` | Dubbing transcript (JSON, SRT or WebVTT) | Response | `elevenlabs-dubbing` |
+| `GET /elevenlabs/v1/models` | List models, filtered to the app's models and its policy | - | - |
+| `GET /elevenlabs/v1/voices`, `/v2/voices`, `/v1/voices/{voice_id}`, `/v1/shared-voices` | List voices | - | - |
 
 Stored transcripts, dubbings and designed voices belong to the ElevenLabs account that created them, so later calls must use the same app.
 
