@@ -141,7 +141,7 @@ A quota pool names an upstream ceiling that several providers or models share, s
 
 ## Outbound IPs {#outbound-ips}
 
-Quilr outbound IPs give a provider's calls fixed source addresses, two per region, that you allowlist on the provider. See [Outbound IPs](../apps-and-providers/outbound-ips) for the addresses and the console steps.
+Quilr outbound IPs give a provider's calls fixed source addresses per region that you allowlist on the provider. See [Outbound IPs](../apps-and-providers/outbound-ips) for the addresses and the console steps.
 
 - **Default for all providers.** `GET /egress-proxy` returns `enabled`, `region` and `regions` (each with `code`, `name`, `ips` and `available`). `PUT /egress-proxy` takes `enabled`, `region` or both, and needs `config:write`. Region codes are `us`, `eu` and `in`. Changes reach every gateway server within `applies_within_seconds`.
 - **One provider.** Set `provider_settings.use_egress_proxy` on the provider: a region code for that region, `true` for the default's region, `false` for direct, or `null` to follow the default. It always wins over the default.

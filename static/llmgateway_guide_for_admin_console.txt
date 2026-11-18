@@ -85,8 +85,8 @@ TASK -> WHERE
   the connected connector. Binary, Docker and Kubernetes examples are in the remote connector docs.
 - Give provider calls fixed source IPs to allowlist -> LLM Gateway > Outbound IPs (drawer "Outbound IPs").
   Default for providers: turn on "Use Quilr outbound IPs" > Region (United States | Europe | India) > Save
-  ("Choose a region to save." = no region selected). "Quilr outbound IP addresses" lists both IPs of every
-  region, with Copy per region. One provider: Models > Providers tab > the provider > Connection > Network
+  ("Choose a region to save." = no region selected). "Quilr outbound IP addresses" lists every region's IPs,
+  with Copy per region. One provider: Models > Providers tab > the provider > Connection > Network
   route card > Change > Network route (Organization default · ... | Direct from Quilr gateway servers |
   Quilr outbound IPs > region) > Test > Save. New provider: Add provider > Name and credentials > Network
   route > Test & continue. Needs a public https endpoint on port 443 and no connector link.

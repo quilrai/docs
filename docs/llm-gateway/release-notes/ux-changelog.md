@@ -12,9 +12,9 @@ Recent interface improvements and quality-of-life changes.
 
 ## Outbound IPs (2026-11-18)
 
-- **New drawer, Outbound IPs**, on the LLM Gateway page: send provider calls from two fixed Quilr IP addresses per region (United States, Europe, India) and allowlist them on the provider
+- **New drawer, Outbound IPs**, on the LLM Gateway page: send provider calls from fixed Quilr IP addresses in the region you choose (United States, Europe, India) and allowlist them on the provider
 - Turn it on for every provider under **Default for providers**, or for one provider in its **Network route**; a provider's own route always wins
-- The drawer lists both addresses of each region with a **Copy** button
+- The drawer lists each region's addresses with a **Copy** button
 - Changing a provider's route needs a passing test before it saves
 - Works for providers with a public `https` endpoint on port 443; private endpoints keep using remote connectors
 - Management API: `GET` and `PUT /egress-proxy`, and `provider_settings.use_egress_proxy` on providers
