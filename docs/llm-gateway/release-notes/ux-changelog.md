@@ -17,7 +17,7 @@ Recent interface improvements and quality-of-life changes.
 - The drawer lists each region's addresses with a **Copy** button
 - Changing a provider's route needs a passing test before it saves
 - Works for providers with a public `https` endpoint on port 443; private endpoints keep using remote connectors
-- Management API: `GET` and `PUT /egress-proxy`, and `provider_settings.use_egress_proxy` on providers
+- Management API: `GET` and `PUT /outbound-ips`, and `provider_settings.use_outbound_ips` on providers
 - Details: [Outbound IPs](../apps-and-providers/outbound-ips)
 
 ## Conversation compaction (2026-11-17)
