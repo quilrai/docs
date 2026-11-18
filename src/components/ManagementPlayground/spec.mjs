@@ -7,31 +7,35 @@ import { ADMIN_PREFIX, MANAGEMENT_PREFIX, REDACTED, redactSecrets } from './clie
 const SNIPPET_SECRET = '<set-this-secret>';
 
 const SECRET_REFERENCE_KEYS = new Set(['secret', 'username_secret', 'password_secret']);
+const SECRET_REFERENCE_PARENTS = new Set(['auth', 'signing']);
+const HOOK_PATH = /\/hooks(\/|\?|$)/;
 
 /**
- * Puts back secret *names* that redaction hid: in a body with a `secrets`
- * map (hooks), `auth.secret` / `signing.secret` and similar name an entry of
- * that map, they are not values. Without them the request is rejected.
+ * Hook bodies name their secrets in `auth` / `signing` (`"secret": "token"`
+ * points at an entry of `secrets`, or at one already saved on a PATCH). Those
+ * are names, not values, so they stay in the snippet; every value under
+ * `secrets` is still replaced. Only hook requests, only those two objects.
  */
-function restoreSecretReferences(original, redacted, names) {
+function restoreHookSecretNames(original, redacted, parentKey = '') {
   if (!original || typeof original !== 'object' || !redacted || typeof redacted !== 'object') return redacted;
-  if (Array.isArray(original)) return redacted.map((item, i) => restoreSecretReferences(original[i], item, names));
-  const own = original.secrets && typeof original.secrets === 'object' && !Array.isArray(original.secrets)
-    ? new Set([...names, ...Object.keys(original.secrets)])
-    : names;
+  if (Array.isArray(original)) return redacted;
   const out = { ...redacted };
   for (const [key, value] of Object.entries(original)) {
-    if (SECRET_REFERENCE_KEYS.has(key) && typeof value === 'string' && own.has(value)) out[key] = value;
-    else if (value && typeof value === 'object' && key !== 'secrets') {
-      out[key] = restoreSecretReferences(value, redacted[key], own);
+    if (SECRET_REFERENCE_PARENTS.has(parentKey) && SECRET_REFERENCE_KEYS.has(key) && typeof value === 'string') {
+      out[key] = value;
+    } else if (key !== 'secrets' && value && typeof value === 'object') {
+      out[key] = restoreHookSecretNames(value, redacted[key], key);
     }
   }
   return out;
 }
 
 /** Snippets never carry typed secrets; each one becomes a placeholder to fill in. */
-function withSecretPlaceholders(value) {
-  const redacted = restoreSecretReferences(value, redactSecrets(value), new Set());
+function withSecretPlaceholders(value, url = '') {
+  let redacted = redactSecrets(value);
+  if (HOOK_PATH.test(new URL(url, 'https://x.invalid').pathname)) {
+    redacted = restoreHookSecretNames(value, redacted);
+  }
   return JSON.parse(JSON.stringify(redacted).split(REDACTED).join(SNIPPET_SECRET));
 }
 
@@ -320,7 +324,7 @@ export function buildSnippets({ method, url, headers = {}, bodyText, tokenKind =
   let hasBody = bodyText !== undefined && bodyText !== null && String(bodyText).trim() !== '';
   if (hasBody) {
     try {
-      parsed = withSecretPlaceholders(JSON.parse(bodyText));
+      parsed = withSecretPlaceholders(JSON.parse(bodyText), url);
     } catch {
       parsed = undefined;
     }
