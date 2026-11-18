@@ -13,9 +13,9 @@ import {ApiReference} from '@site/src/components/ManagementApi/mcp';
 
 # Hooks API
 
-**Check tool calls with your own API.** A hook sends each tool call to an HTTPS endpoint you run. Your endpoint answers allow, flag or block: before the tool runs, to stop an action, or after it runs, to stop the AI from seeing the result. Your rules stay on your own server. An export hook instead sends every finished tool call to your endpoint in batches, for example to your SIEM.
+**Check tool calls with your own API.** A hook sends each tool call to an HTTPS endpoint you run. Your endpoint answers allow, flag or block: before the tool runs, to stop an action, or after it runs, to stop the AI from seeing the result. Your rules stay on your own server. An export hook instead sends finished tool calls to your endpoint in batches, for example to your SIEM.
 
-Hooks are created and changed only through the Management API. The console shows them read-only: go to **Settings > AI Gateway > MCP Gateway > Management API** and click **Configured hooks**. Reading hooks needs `read`; creating, changing, deleting and testing them needs `hooks:write` (see [scopes](./management-api#scopes)). Try every call in the [MCP Management API playground](/mcp-gateway-management-playground).
+Hooks are created and changed only through the Management API. The console shows them read-only: go to **Settings > AI Gateway > MCP Gateway > Management API** and click **Configured hooks**. Reading hooks needs `read`; creating, changing, deleting and testing them needs `hooks:write` (see [scopes](./management-api#scopes)). You can run the management-key calls in the [MCP Management API playground](/mcp-gateway-management-playground). The administrator route that lists an organization's hooks (`GET /mcpgateway/management-admin/v1/tenants/{tenant_id}/hooks`) needs a tenant administrator token and is reference only (see [Administration endpoints](./management-api#administration-endpoints)).
 
 | Stage | When it runs | What your endpoint can do |
 | --- | --- | --- |
@@ -23,11 +23,13 @@ Hooks are created and changed only through the Management API. The console shows
 | `post_call` | After the tool runs, before the result goes back to the AI. | Allow, flag or block the result. A block replaces the result with an error; the tool has already run. |
 | `on_complete` | After the tool call finished: allowed, blocked or failed. | Receive the call in a batch of records (see [Export finished tool calls](#export)). It never changes the call. |
 
+**DLP and `post_call`.** Without the Policy Engine, response DLP runs before the `post_call` hook, so the hook gets the redacted result. With the Policy Engine on, response DLP runs after the `post_call` hook, so the hook gets the tool result before redaction (`send.result` is `true` by default on `post_call`). Set `send.result` to `false` if your endpoint must not receive it.
+
 Hooks run on every tool call through the MCP's own endpoint and through [OneMCP](../get-started/onemcp), and on a custom tool's own call. The calls a custom tool's script makes do not run hooks.
 
 ## Example {#example}
 
-Block the AI from deleting Jira issues, everywhere:
+Block the AI from deleting Jira issues. The hook runs only on the Jira MCP's `delete_issue` tool:
 
 ```bash
 curl -X POST https://mcpgateway.quilr.ai/mcpgateway/management/v1/hooks \
@@ -36,6 +38,8 @@ curl -X POST https://mcpgateway.quilr.ai/mcpgateway/management/v1/hooks \
   -d '{
     "name": "ACME tool check",
     "stage": "pre_call",
+    "all_mcps": false,
+    "scope": {"mcp_ids": ["a1b2c3d4"], "tools": ["delete_issue"]},
     "endpoint": {
       "url": "https://hooks.example.com/mcp/check",
       "timeout_ms": 1500,
@@ -47,11 +51,13 @@ curl -X POST https://mcpgateway.quilr.ai/mcpgateway/management/v1/hooks \
   }'
 ```
 
-Your endpoint receives every tool call and answers, for example:
+Replace `a1b2c3d4` with the Jira MCP's id from `GET /mcps`. Your endpoint receives each `delete_issue` call and answers, for example:
 
 ```json
 {"decision": "block", "user_message": "Deleting issues is not allowed by ACME policy."}
 ```
+
+To let a call through, answer `{"decision": "allow"}`.
 
 ## The hook resource {#resource}
 
@@ -76,7 +82,7 @@ Your endpoint receives every tool call and answers, for example:
 
 **Secrets.** Secret values are encrypted and never returned: reads show `********`. On `PATCH`, send `********` to keep a value, a new value to rotate it, or `null` to remove it; leave `secrets` out to keep them all. Every secret must be used by `auth` or `signing`.
 
-`PATCH` merges the top-level fields you send over the hook. `PATCH` and `DELETE` need `If-Match` with the hook's `version` in quotes, for example `If-Match: "h1"` (see [versions and If-Match](./management-api#versions-and-if-match)). To change a hook to or from `on_complete`, send `null` for the fields the new stage does not take: `endpoint` and `mode`, or `export`.
+`PATCH` merges the top-level fields you send over the hook. `PATCH` and `DELETE` need `If-Match` with the hook's `version` in quotes, for example `If-Match: "h1"` (see [versions and If-Match](./management-api#versions-and-if-match)). To change a hook to or from `on_complete`, send `null` for the fields the new stage does not take: `endpoint` and `mode`, or `export`. `send` goes back to the new stage's defaults unless you send it.
 
 ## What your endpoint receives {#request}
 
@@ -125,7 +131,7 @@ A call fails on a timeout, a connection error, a non-`2xx` or unreadable reply, 
 
 ## Export finished tool calls {#export}
 
-An `on_complete` hook sends one record per finished tool call to `export.url`, in batches. Records cover every tool call through the MCP's own endpoint and [OneMCP](../get-started/onemcp), including calls a hook or DLP blocked and calls that failed.
+An `on_complete` hook sends one record per finished tool call to `export.url`, in batches. Records cover tool calls through the MCP's own endpoint and through [OneMCP](../get-started/onemcp), including calls a hook or DLP blocked and calls that failed. Each call a custom tool's script makes is exported as its own record, with no hooks in it.
 
 ```bash
 curl -X POST https://mcpgateway.quilr.ai/mcpgateway/management/v1/hooks \
@@ -180,7 +186,7 @@ Your endpoint receives a `POST` with `{"records": [...]}`:
 
 - **Delivery:** any `2xx` within 30 seconds delivers the batch. Each batch is tried up to 3 times with the same `Idempotency-Key`, so deduplicate on it. Batches are signed and authenticated like other hook calls.
 - **While your endpoint is down:** after a batch fails all its tries, the hook is unhealthy. The gateway keeps only the latest 100 records for it and sends one probe batch every 30 seconds; when one succeeds, normal delivery resumes.
-- **Retention:** each gateway server queues at most 50,000 records per hook and 256 MB for all hooks together; the oldest are dropped first. Deleting or disabling a hook drops its queued records.
+- **Retention:** each gateway server queues at most 50,000 records per hook and 256 MB for all hooks together; the oldest are dropped first. Deleting or disabling a hook drops its queued records, and so does changing `export.url` or `send`: records captured for the old settings are never sent to the new ones. A single record larger than `export.max_batch_bytes` is dropped. Dropped records are counted in `dropped`.
 - **Health:** `GET /hooks/{hook_id}/stats` shows the queue on the gateway server that answers. Its `export` object has `healthy`, `queued`, `queued_bytes`, `delivered`, `dropped`, `failed_batches`, `last_error` and `last_success` (`export` is `null` for `pre_call` and `post_call` hooks); `breaker_open` shows whether a `pre_call` or `post_call` hook is being skipped. The console shows a summary under **Export health (this server)**.
 
 ## Verify calls {#signing}

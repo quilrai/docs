@@ -1,5 +1,5 @@
 QUILR ADMIN CONSOLE (v2): MCP GATEWAY GUIDE FOR BROWSING AGENTS
-Updated on 14 November 2026.
+Updated on 18 November 2026.
 Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
@@ -60,11 +60,17 @@ WORKSPACE DRAWER ("MCP Gateway workspace")
 TASK -> WHERE
 - Management API keys -> Management API tab > "Allow management keys for this organization" switch
   (off = every key suspended), then "Issue a management key": Key name*, Expiry (leave blank for no expiry),
-  Scopes (Read, Manage MCPs, Change settings, Set credentials, Review tools) > Issue key. Dialog
+  Scopes (Read, Manage MCPs, Change settings, Set credentials, Review tools, ..., Custom tools, Manage hooks) > Issue key. Dialog
   "Management key created" shows the key once (Copy key > Done). Table "Management keys": Name, Scopes, Status,
   Fingerprint, Created, Expires, Last used, Actions (edit: Key name, Expiry, Never expires > Save changes;
   revoke: "Revoke <name>?" > Revoke key). API docs: https://docs.quilrai.dev/mcp-gateway/api-reference/management-api
   Try the key from the browser: https://docs.quilrai.dev/mcp-gateway-management-playground
+- See hooks (read-only) -> Management API tab > card "Hooks" > Configured hooks (drawer "Configured hooks",
+  "Managed through the Management API. Change hooks there."). Per hook: name, stage tag (Before tool call /
+  After tool call / Export), Enforce / Observe, Enabled / Disabled; MCPs, Tools, Destination or Exports to,
+  Timeout, If the hook fails, Batching, Authentication, Data sent, Export health (this server), Last changed.
+  Create, change, delete and test hooks only through the API (key scope "Manage hooks" = hooks:write; reading
+  needs Read). Docs: https://docs.quilrai.dev/mcp-gateway/api-reference/hooks-api
 - Add remote MCP -> Add MCP server (dialog "Add MCP") > "Remote server" > Name, Slug (optional), Transport URL,
   "Connection route": Public internet / Via Remote Connector: <name>, Description > "How the gateway signs in":
   Auto-detect (recommended) / OAuth passthrough / Upstream API key > optional "Custom headers & query parameters"
@@ -158,6 +164,8 @@ POLICY ENGINE (MCP)
   Replay activity: Time range, Advanced replay options > Run check. Neither changes live traffic.
 - History: published Versions, actor/reason, Previous version/Live version comparison, changes,
   Technical details/source/diff. Restore republishes as a new version.
+- "External hooks" line on Controls (only when hooks exist): "N enabled: ..." per stage, tag "Managed by API",
+  View hooks opens the same read-only "Configured hooks" drawer. Hooks are set only through the Management API.
 - Panel links use ?tile=<id>&tab=controls or activity. Observed ids: server-access, onemcp, web-search,
   claims-forwarding, invocation, human-approval, usage-limits, data-risks, token-saving.
 - Governed per-server Tools, Guardrails, Token saving, Tool list and Group & User Rules show
