@@ -1,0 +1,188 @@
+---
+title: "Self-service API"
+sidebar_position: 6.93
+sidebar_label: "Self-service API"
+sidebar_custom_props:
+  badge: new
+  icon: UserCog
+description: "LLM Gateway Management API v1 for self-service: access plans (profiles), model options and app templates, suspensions, evaluate and coverage with personal-key impact, requests (exceptions), app owners, personal keys across apps and the self-service usage report."
+aliases: [self-service api, profiles api, access plans api, exceptions api, personal keys api, self-service usage api, blueprint eligibility, key impact, app owners api]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Self-service API
+
+Configure [LLM Gateway self-service](../self-service/overview) from scripts and pipelines: access plans, model options and app templates, suspensions, requests for more, app owners and people's personal keys. Every call here is what the console's **Self-service** tab uses.
+
+The API keeps the older names. The console's terms map as follows:
+
+| Console | API |
+|---------|-----|
+| Access plan | Profile (`/self-service/profiles`) |
+| Model option | Tier (`tiers` in `/self-service/settings`) |
+| App template | Blueprint (`blueprints` in `/self-service/settings`) |
+| Request | Exception (`/self-service/exceptions`) |
+| App owner | Owner (`/apps/{app_name}/self-service-owners`) |
+| Viewer access, Settings request access, Direct settings update, View and copy API key values, All-logs visibility | Roles `self_service_viewer`, `settings_update_requester`, `settings_update_direct`, `show_api_key`, `show_logs_for_all_users` |
+
+| Call | Does | Scope |
+| --- | --- | --- |
+| `GET`/`POST /self-service/profiles`, `GET`/`PUT`/`DELETE /self-service/profiles/{profile_id}` | List, create, read, replace and delete access plans. | `read` / `config:write` |
+| `PUT /self-service/settings` | People without a plan (`deny_without_profile`), model options (`tiers`) and app templates (`blueprints`). | `config:write` |
+| `PUT /self-service/suspensions`, `POST /self-service/suspensions/remove` | Suspend a person or lift it. | `config:write` |
+| `POST /self-service/evaluate` | What one person gets and why, optionally with a draft plan. | `read` |
+| `GET`/`POST /self-service/coverage` | People per plan and what a change would cut off, with personal-key impact for drafts. | `read` |
+| `GET /self-service/blueprint_eligibility` | Whether apps can be app templates, and the policies that block them. | `read` |
+| `GET /self-service/exceptions`, `GET /self-service/exceptions/{exception_id}` | List or read requests. | `read` |
+| `POST /self-service/exceptions/{exception_id}/approve`, `/reject`, `/revoke` | Decide requests. | `config:write` |
+| `PUT /apps/{app_name}/self-service-owners` | Set an app's owners. | `config:write` |
+| `GET /self-service/usage` | The self-service usage report. | `read` |
+| `GET /self-service-keys`, `/apps/{app_name}/self-service-keys[/{key_id}]` | Personal keys across apps, or per app on a person's behalf. | `read` / `keys:write` |
+| `GET /apps?origin=blueprint&created_by=` | Apps people created from app templates. | `read` |
+
+Try them in the [Management API playground](/llm-gateway-management-playground?tab=self-service). Authentication, errors and retry rules are on the [Management API](./management-api#conventions) page.
+
+## Access plans (profiles) {#access-plans-profiles}
+
+A profile has `name` (1-80 characters, unique in any capitalization), `description`, `smart_groups` (1-50 existing groups), `sections` (any of `my_usage`, `llm_gateway`, `mcp_gateway`, `workflow_agents`, `skills`), `llm_apps` (`shown` or `hidden`), `default_app` (the starter app; required when `llm_apps` is `hidden`, and it must use personal keys), `grants` (up to 20 `{apps: "all" | [names], roles: [...]}`), `ceiling` (`{roles: [...], apps: "all" | [names]}`), `keys` (`{max_active_per_person: 1-10, max_lifetime_days: 1-3650 | null}`), and optionally `models` and `app_creation`. The server adds `profile_id`, `revision`, `updated_at` and `updated_by`.
+
+The console's ability choices map to `grants` and `ceiling`: **Always** is a grant, **Only if the app allows** is a role in the ceiling without a grant, and **Never** is a role left out of the ceiling. `ceiling.roles` must include `self_service_viewer` (400 `self_service_profile_ceiling_requires_viewer`).
+
+- `models`: `{tiers: [tier_id], tier_names_only, max_reasoning_effort: low | medium | high | null}`. It applies to requests made with a person's personal key. With `tier_names_only`, only the allowed tier models can be called (403 `self_service_model_not_allowed`) and listed; otherwise other tier models are refused and every other model behaves as before. A higher reasoning effort is lowered to the cap, never refused.
+- `app_creation`: `{blueprints: [names], max_apps_per_person: 0-20, settings: direct | request | hidden}`. People create apps from those blueprints up to the cap and own them; past it, they request another app.
+
+Which profile applies: the matching profile whose best Smart Group has the lowest effective priority (the group's priority override, else its priority, else 100); ties go to the lower name, then the lower `profile_id`. See [Smart groups API rank](./smart-groups-api#rank).
+
+Writes send the `revision` from your latest read (`?revision=N` on DELETE); a stale one is 409 `self_service_profile_revision_conflict` with `current_revision`. Creates take an `Idempotency-Key`. There are at most 200 profiles per organization (409 `self_service_profile_limit_reached`).
+
+## Settings, model options and app templates
+
+`PUT /self-service/settings` takes `{deny_without_profile?, tiers?, blueprints?, revision}`. **Every field except `revision` is optional: an omitted field keeps its saved value**, so you can send only `tiers` or only `blueprints`. Send `revision: 0` for settings never saved.
+
+- `deny_without_profile`: `true` gives people without a profile no self-service access (their personal keys stop within the access cache lifetime).
+- `tiers`: at most 10 `{tier_id, label, model, rank, description}`. `model` is a model name your policies route; rank 1 is the lowest. The label is a display name, not an alias.
+- `blueprints`: at most 50 existing apps `{app_name, label, description}`.
+
+Removing a tier or blueprint a profile still uses is 409 `self_service_catalog_in_use` with the `profiles`. The response can carry `warnings`, for example a tier model that is also an app name or provider model, or a blueprint with app-scoped policies (`blueprint_has_app_policies`).
+
+### Check app templates first
+
+`GET /self-service/blueprint_eligibility?app=A&app=B` (1-50 names) answers, per app, `{app_name, found, app_scoped_policies, app_scoped_policy_names, eligible}`. An app is `eligible` when it exists and no policy rule could match it by its identity: such rules would not govern the copies, so the app is refused as a blueprint. **`app_scoped_policy_names` lists every such policy** by name, in policy order (empty when none), so you can fix each one and check again. Unknown apps come back as given with `found: false`. A policy read failure is 503, never "eligible".
+
+## Check one person: evaluate
+
+`POST /self-service/evaluate {email, draft_profile?, replaces_profile_id?}` explains how the person's access is decided: `suspended`, the winning `profile` and every `matched` one, `sections`, per-app roles in `apps[]`, `denied` and `blocked`, and what the profile gives: `llm_apps` (the starter app and its status), `models`, `keys`, `app_creation` and active `exceptions`. With `draft_profile` (validated like a create; errors are reported as `draft_profile.<field>`), the draft is evaluated as if saved, in place of `replaces_profile_id` or as an extra profile with id `draft`. Nothing is stored.
+
+## Count people: coverage and key impact
+
+`GET /self-service/coverage` counts people per profile (`winning` and `matching`), people without one, suspended people, and `deny_without_profile.cut_off`: people without a profile who would lose access if `deny_without_profile` were turned on.
+
+`POST /self-service/coverage` counts the same for an unsaved change. Send any of:
+
+| Input | Counts as if |
+| --- | --- |
+| `draft_profile`, `replaces_profile_id` | This profile were saved (in place of that one). |
+| `remove_profile_id` | This saved profile were deleted. Not with `draft_profile`. |
+| `deny_without_profile` | The no-profile rule had this value. |
+| `draft_apps` | These apps' self-service settings were saved: 1-50 `{app_name, enable_self_service?, access_control?, owners?}`; a field left out keeps its stored value. |
+
+With any draft input, the response adds **`key_impact`**: for every owner of an active personal key and that key's app, whether the key works under the saved state and under the draft (app on personal keys, owner holds viewer access). `lost` and `gained` each give counts of `people`, `apps` and `personal_keys`, plus up to 50 `entries` `{email, app_name, personal_keys}` and `truncated`. `exact` is false when more than 20,000 active personal keys exist. `key_impact` is `null` on GET and without a draft.
+
+```bash
+export API="$MANAGEMENT_URL/llmgateway/management/v1"
+auth=(-H "Authorization: Bearer $MANAGEMENT_KEY" -H "Content-Type: application/json")
+
+# Who would lose personal keys if Support Bot moved to a shared key?
+curl -s -X POST "$API/self-service/coverage" "${auth[@]}" \
+  -d '{"draft_apps": [{"app_name": "Support Bot", "enable_self_service": false}]}' \
+  | jq '.key_impact.lost'
+```
+
+## Suspensions
+
+`PUT /self-service/suspensions {email, reason?}` suspends a person: no self-service access at all, and their personal keys stop within the access cache lifetime. `POST /self-service/suspensions/remove {email}` lifts it (`removed` is null when the person was not suspended).
+
+## Requests (exceptions)
+
+People ask for a `budget_increase` or `app_access` on one app (reviewed by the app's owners, or admins when it has none), or a `tier_upgrade`, `key_lifetime` or `app_create` (admins). A budget increase goes to admins when the budget it would raise covers more than that app.
+
+- `GET /self-service/exceptions?status=&kind=&requester=&app=` lists them; **`GET /self-service/exceptions/{exception_id}`** reads one (404 `self_service_exception_not_found` outside your organization).
+- `POST .../approve {ends_at?, comment?}`: every approval ends (`ends_at`, at most 365 days away, default the requested date), except `app_create`. After `ends_at` the effect stops and the request reads `expired`.
+- `POST .../reject {reason}` and `POST .../revoke {reason?}` (ends an approval early).
+
+A management key decides as an administrator: it may decide any request, including those owners review, and `decided_by` is `management_key:<key_id>`. Nobody decides their own request (`self_service_exception_self_approval`). **Deciding a request that is no longer pending is 409 `self_service_exception_not_pending`** with its current `status`. A budget increase with no per-person budget on the app is 409 `self_service_exception_no_budget`, and the request stays pending.
+
+Statuses: `pending`, `approved`, `rejected`, `cancelled`, `revoked`, `failed`, `expired`.
+
+## App owners
+
+`PUT /apps/{app_name}/self-service-owners {owners: [emails]}` (at most 20; `[]` removes all) sets who reviews the app's requests. It takes the same per-app lock as `PATCH /apps/{app_name}`, so neither overwrites the other: a PATCH sent meanwhile waits, then answers 412 when its `If-Match` is stale.
+
+In `PATCH /apps/{app_name}`, the `self_service` section replaces the stored self-service object, so send every field you keep (`access_control`, `max_api_key_ttl_days`, `owners`). Two exceptions: omitted or empty `owners` keep the stored owners, and `origin` is read-only.
+
+## Apps people created
+
+`GET /apps?origin=blueprint` lists apps people created from a blueprint; `origin=admin` lists every other app; `created_by=<email>` narrows to one creator (case-insensitive). Such apps carry a read-only `origin` `{kind: "blueprint", blueprint_app, blueprint_config_version, created_by, created_at}`.
+
+## Personal API keys
+
+Manage a person's personal keys without the person signing in. New keys are `sk-quilr-ss-<48 hex>`; older `sk-quilr-<app>:ss1.<identity>.<suffix>` keys keep working.
+
+| Call | Notes |
+| --- | --- |
+| `GET /apps/{app_name}/self-service-keys` | `user_email`, `status`, `limit`, `cursor`. |
+| `POST /apps/{app_name}/self-service-keys` | `keys:write`; `{user_email, key_name, expires_in_days?}` with `Idempotency-Key`. The same checks as the person's own create (personal keys on, viewer access, lifetime and key caps). The value is returned once, in `key.secret`. An omitted `expires_in_days` takes the app's maximum lifetime. |
+| `GET`/`PATCH`/`DELETE /apps/{app_name}/self-service-keys/{key_id}` | Read, rename or re-expire (`{key_name?, expires_in_days?}`), or revoke. Optional `If-Match`. |
+| **`GET /self-service-keys`** | **Every app's personal keys**, newest first; each item names its `app_name`. Filters: `app_name` (404 when unknown), `owner_email`, `status` (`active`, `expired`, `revoked`). |
+
+Reads return metadata only (`key_id`, `key_name`, `user_email`, `app_name`, `status`, `created_at`, `expires_at`, `last_used_at`, `revoked_at`, `created_via`, `version`), never a key value or hash.
+
+Both lists page with `limit` (1-200, default 50) and `cursor`. A cursor is bound to its organization and filters: send the same filters with it, or the answer is 400. **409 `collection_changed`** means a key entered or left the listing since the previous page (for example a key was issued, or revoked or expired under a `status` filter): drop the cursor and restart from the first page with the same filters. Keys already read may appear again.
+
+```bash
+# Every active personal key of one person, across apps
+cursor=""
+while :; do
+  page=$(curl -s "$API/self-service-keys?owner_email=alice%40example.com&status=active&limit=200${cursor:+&cursor=$cursor}" "${auth[@]}")
+  if [ "$(echo "$page" | jq -r '.error.code // empty')" = "collection_changed" ]; then cursor=""; continue; fi
+  echo "$page" | jq -r '.items[] | [.app_name, .key_name, .key_id] | @tsv'
+  cursor=$(echo "$page" | jq -r '.next_cursor // empty')
+  [ -z "$cursor" ] && break
+done
+```
+
+## Usage report
+
+`GET /self-service/usage` is the report behind the console's **Usage report**: per app its credential mode, the people its self-service roles reach, personal-key counts, settings change requests and traffic by identity (`self_service_api_key`, `admin_api_key`, `identified_user`, `anonymous`); per person their apps, roles, keys, change requests and usage.
+
+| Parameter | Meaning |
+| --- | --- |
+| `from_date`, `to_date` | A date or ISO date-time. Default the last 30 UTC days, at most 366. |
+| `app_name` | Repeatable or comma-separated; 400 when unknown. |
+| `include_all_apps` | Include every active app, not only apps that use self-service. |
+| `top_users_limit` | 1-500, default 25. |
+
+Costs are estimates: unpriced models count 0 and are listed in `models_without_pricing`.
+
+## Errors and timing
+
+Profile and settings writes answer 400 `self_service_profile_invalid` (with `field`), `self_service_profile_unknown_role`, `self_service_profile_unknown_section`, `self_service_profile_default_app_required`, `self_service_profile_default_app_not_personal_keys`, `self_service_profile_unknown_smart_group`, `self_service_profile_unknown_app` or `self_service_invalid_email`; 409 `self_service_profile_duplicate_name`; 404 `self_service_profile_not_found`; and 503 `self_service_profile_storage_unavailable` (retry). A create retried with its `Idempotency-Key` after its profile was deleted is 409 `self_service_profile_deleted`.
+
+Changes reach every gateway server within a configuration sync. Personal keys of a person who loses access stop authenticating within the self-service access cache lifetime (default 60 seconds) after that.
+
+## Endpoints
+
+<ApiReference tags={['Users']} paths={['/self-service', '/apps/{app_name}/self-service-owners']} />
+
+### Personal key endpoints
+
+<ApiReference tags={['Credentials']} paths={['/self-service-keys', '/apps/{app_name}/self-service-keys']} />
+
+## Related
+
+- [Self-service overview](../self-service/overview) - concepts and how access is decided.
+- [Self-service admin guide](../self-service/admin-guide) - the same setup in the console.
+- [Smart groups API](./smart-groups-api) - the groups and ranks profiles match on.
+- [Users API](./users-api) - everyone who uses the gateway.
+- [Management API](./management-api) - authentication, errors and retry rules.

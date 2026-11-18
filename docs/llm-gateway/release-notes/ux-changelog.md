@@ -10,6 +10,19 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Self-service redesign (2026-11-18)
+
+- **Self-service is its own tab** on the LLM Gateway page, with sub-tabs **Overview**, **Access plans**, **Apps**, **Model options**, **Providers**, **Requests** and **People**, plus a **How self-service works** explainer and a **Usage report**
+- New screen names: **Access plan** (was profile), **App template** (blueprint), **Model option** (model tier), **Request** (exception) and **App owner**; the API keeps its names
+- **Access plans** set each ability to **Always**, **Only if the app allows** or **Never**; new plans default to **Only if the app allows**, so they grant nothing extra. **What a developer sees** previews the unsaved plan for a sample person, and **Count who it reaches** counts it
+- **Check what someone gets** (Overview) and **Check a person** (People) show which plan applies and where each ability on each app comes from
+- Before saving or deleting a plan, switching people without a plan to **No self-service**, or applying a bulk app change, the console names everyone who would lose access to apps they hold personal keys for; an unknown or partial impact needs an acknowledgement
+- **Apps**: change many apps at once with a preview, set app owners, revoke personal keys, and see why an app cannot be a template (the policies that depend on its identity, with **Recheck**)
+- **Requests** splits requests waiting for you from those waiting for app owners, and lists active approvals; settings changes have their own tab
+- New personal keys look like `sk-quilr-ss-<48 hex>`; older `ss1` keys keep working
+- Management API: `GET /self-service/usage`, `GET /self-service/exceptions/{exception_id}`, tenant-wide `GET /self-service-keys`, `GET /apps?origin=&created_by=`, personal-key impact (`key_impact`) on `POST /self-service/coverage` with `draft_apps`, `remove_profile_id` and `deny_without_profile`, `app_scoped_policy_names` on blueprint eligibility, and `PUT /apps/{app_name}/self-service-owners`
+- Details: [Self-service overview](../self-service/overview), [Admin guide](../self-service/admin-guide), [Access plans](../self-service/access-plans) and [Self-service API](../api-reference/self-service-api)
+
 ## Outbound IPs (2026-11-18)
 
 - **New drawer, Outbound IPs**, on the LLM Gateway page: send provider calls from fixed Quilr IP addresses in the region you choose (United States, Europe, India) and allowlist them on the provider

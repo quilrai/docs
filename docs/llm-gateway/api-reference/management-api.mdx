@@ -33,8 +33,8 @@ Use the Management API to configure LLM Gateway apps, shared providers, quota po
 
 | Console scope | API scope | Grants |
 | --- | --- | --- |
-| **Read** | `read` | Apps, providers, quota pools, key metadata, prompts, catalogs, history, usage, guardrail activity, provider health, request explanations, users, new-model reviews and the OpenAPI document |
-| **Configure apps** | `config:write` | Create apps and change their settings, availability, providers and prompts |
+| **Read** | `read` | Apps, providers, quota pools, key metadata, prompts, catalogs, history, usage, guardrail activity, provider health, request explanations, users, self-service settings and reports, new-model reviews and the OpenAPI document |
+| **Configure apps** | `config:write` | Create apps and change their settings, availability, providers and prompts; configure self-service (access plans, model options, app templates, suspensions, app owners) and decide self-service requests |
 | **Manage providers** | `providers:write` | Create, update, delete and test shared providers and quota pools, and discover models |
 | **Issue app keys** | `credentials:write` | Issue, extend and revoke Quilr keys for apps |
 | **Reveal app keys** | `credentials:read` | Read the value of an active app key. Every reveal is audited. |
@@ -76,6 +76,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Usage | Requests, outcomes, tokens and cost over all time or any range, by period and up to two of app, model, provider, user, key, source and outcome. Per-key last use. See the [Usage API](./usage-api). | Aggregates only; bulk request logs come from the [Log Export API](./log-export-api). |
 | Monitoring | Latency distributions, gateway feature metrics (cache, token saving, failover), a filterable request list, guardrail activity, provider and model health with routing state, and why one request was routed, blocked, limited or failed over. See the [Monitoring API](./monitoring-api). | Read only. Never returns prompt or response text or detected values. |
 | Users | Everyone who uses the gateway, with app access, personal keys, last activity and usage. See the [Users API](./users-api). | Read only; people are added through your identity provider or the console. |
+| Self-service | Access plans (profiles), model options, app templates, suspensions, evaluate and coverage with personal-key impact, requests, app owners, personal keys across apps and the usage report. See the [Self-service API](./self-service-api). | No policy revision is published. |
 | QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. The typed budgets, routing and limits APIs cover those cards without QuilrQL. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
 | Smart groups | List groups with their rank (`priority`) and strength (`rank`), create and edit virtual groups and their members, override a synced group's rank (`priority`), and preview who changes governing group. See the [Smart groups API](./smart-groups-api). | Synced groups' members come from your directory; only their rank can be overridden. |
@@ -268,6 +269,7 @@ To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expir
 | Report spend, requests and tokens | [Usage API](./usage-api) |
 | Build latency, cache or error dashboards, list requests, check guardrail activity or provider health, or explain one request | [Monitoring API](./monitoring-api) |
 | Review who uses the gateway | [Users API](./users-api) |
+| Configure self-service access plans, decide requests or manage personal keys | [Self-service API](./self-service-api) |
 | Approve models a provider started offering | [Review new models](./providers-and-configuration-api#model-reviews) |
 | Try any call from the browser | [Management API playground](/llm-gateway-management-playground) |
 
@@ -306,8 +308,8 @@ All scopes listed for an operation are required. No scope implies another.
 
 | Scope | Grants |
 | --- | --- |
-| `read` | Read apps, providers, quota pools, credentials metadata, prompts, catalogs, history, operation status, usage (including per-key last use), guardrail activity, provider health, request explanations, users, new-model reviews and the OpenAPI document. |
-| `config:write` | Change app settings, attachments and prompts; roll back and recover app writes; decide new-model reviews of providers an app holds with its own keys. |
+| `read` | Read apps, providers, quota pools, credentials metadata, prompts, catalogs, history, operation status, usage (including per-key last use), guardrail activity, provider health, request explanations, users, self-service profiles, evaluate, coverage, requests, personal keys and the usage report, new-model reviews and the OpenAPI document. |
+| `config:write` | Change app settings, attachments and prompts; roll back and recover app writes; decide new-model reviews of providers an app holds with its own keys; change self-service profiles, settings (model options and app templates), suspensions and app owners, and approve, reject or revoke self-service requests. |
 | `providers:write` | Create, update and delete shared providers and quota pools; run provider tests and model discovery; decide new-model reviews of shared providers. |
 | `credentials:write` | Issue, change expiry of and revoke gateway keys. |
 | `credentials:read` | Reveal the secret of an active gateway key. |
@@ -323,7 +325,7 @@ All scopes listed for an operation are required. No scope implies another.
 | `incidents:read` | Read incident mark-downs and status. `read` and `incidents:write` also allow these reads. |
 | `incidents:write` | Mark providers down, preview, restore, reset cooldowns and drop session pins. Never a policy revision. |
 | `hooks:write` | Create, change, delete and test [external hooks](./hooks-api). Each write publishes a policy revision. Reading hooks, the field catalog, previews and stats needs `read`. |
-| `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf. Reading them needs `read` (see the [Users API](./users-api)). |
+| `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf. Reading them needs `read` (see the [Self-service API](./self-service-api#personal-api-keys)). |
 
 App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`. `GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
 
@@ -367,7 +369,7 @@ Paginated lists accept `limit` (1-200, default 50) and `cursor`:
 {"items": [], "next_cursor": null, "request_id": "req_example"}
 ```
 
-There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag` and `enabled=true|false`. Provider lists support [type, enabled, tag and model filters](./providers-and-configuration-api#list-filters). Group and definition lists support no additional filters; audit lists filter by `actor`, `operation`, `resource`, `since` and `until`. Budget lists have their own filters and accept `limit` up to 500 (default 100). Routing and limit control lists also accept `limit` up to 500 (default 100) and filter by `source`, `app`, `requested_model`, `mode` and `references`; see [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency). App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
+There is no `has_more`; continue while `next_cursor` is non-null. A changed collection returns `409 collection_changed`; restart pagination. App lists additionally support `name` substring, `tag`, `enabled=true|false`, and `origin=blueprint|admin` with `created_by` for [apps people created in self-service](./self-service-api#apps-people-created). Provider lists support [type, enabled, tag and model filters](./providers-and-configuration-api#list-filters). Group and definition lists support no additional filters; audit lists filter by `actor`, `operation`, `resource`, `since` and `until`. Budget lists have their own filters and accept `limit` up to 500 (default 100). Routing and limit control lists also accept `limit` up to 500 (default 100) and filter by `source`, `app`, `requested_model`, `mode` and `references`; see [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency). App-provider attachments return an ordered `provider_labels` array and app `version`, not a paginated collection.
 
 ### Versions and preconditions
 
