@@ -46,7 +46,7 @@ const SECTIONS = [
 
 export default function Apps() {
   const { client, urlParam, setParam } = usePlayground();
-  const [filters, setFilters] = useState({ name: '', tag: '', enabled: '' });
+  const [filters, setFilters] = useState({ name: '', tag: '', enabled: '', origin: '', created_by: '' });
   const [applied, setApplied] = useState(filters);
   const [creating, setCreating] = useState(false);
   const list = useCollection(
@@ -56,7 +56,7 @@ export default function Apps() {
         query: { ...applied, limit: 50, cursor },
         source: 'Apps',
       }),
-    [client, applied.name, applied.tag, applied.enabled],
+    [client, applied.name, applied.tag, applied.enabled, applied.origin, applied.created_by],
     !!client,
   );
   if (!client) return <ConnectFirst what="manage apps" />;
@@ -98,6 +98,16 @@ export default function Apps() {
               <option value="false">Disabled</option>
             </select>
           </Field>
+          <Field label="Origin" hint="blueprint: apps people created from a template in self-service.">
+            <select value={filters.origin} onChange={(e) => setFilters({ ...filters, origin: e.target.value })}>
+              <option value="">All</option>
+              <option value="blueprint">blueprint</option>
+              <option value="admin">admin</option>
+            </select>
+          </Field>
+          <Field label="Created by" hint="Only apps this person created from a template.">
+            <input value={filters.created_by} onChange={(e) => setFilters({ ...filters, created_by: e.target.value })} />
+          </Field>
           <Btn type="submit">Apply filters</Btn>
         </form>
         <ErrorBox error={list.error} />
@@ -114,6 +124,7 @@ export default function Apps() {
             { label: 'Mode', key: 'mode' },
             { label: 'Providers', render: (r) => (r.provider_labels || []).join(', ') || r.provider_mode || '-' },
             { label: 'Tags', render: (r) => (r.tags || []).join(', ') || '-' },
+            { label: 'Origin', render: (r) => (r.origin ? <Pill>from {r.origin.blueprint_app} by {r.origin.created_by}</Pill> : '-') },
           ]}
         />
         <Pager list={list} />

@@ -144,7 +144,7 @@ When your organization moves to Access Control V2, Access Groups no longer apply
 | [Policy Engine](../govern/author-simulate-and-publish) | Scope a rule to a Smart Group, or add a **Smart groups** condition |
 | [Roles and permissions](./roles-and-permissions) | Give a role to everyone in a group, including people who join later |
 | [MCP Gateway server access](../../mcp-gateway/protect/server-access) and [Group & User Rules](../../mcp-gateway/protect/group-and-user-rules) | Allow or deny a group on a server, or give it different tool and guardrail settings |
-| [LLM Gateway self-service](../../llm-gateway/self-service/admin-guide#smart-groups) | Allow or deny self-service access for a group |
+| [LLM Gateway self-service](../../llm-gateway/self-service/access-plans) | Give a group an access plan, or allow or deny it self-service on an app |
 | [Browser controls](../../browser-extension/policy-engine/browser-controls) | Narrow a control to a group |
 | [Export Center](../settings-data/export-center) | Share an export with a group. Access follows current membership. |
 

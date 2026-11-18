@@ -17,6 +17,7 @@ import {
   FileText,
   HeartPulse,
   Users as UsersIcon,
+  UserCog,
   UsersRound,
   Webhook,
   SlidersHorizontal,
@@ -42,6 +43,7 @@ import Usage from './Usage';
 import Monitoring from './Monitoring';
 import Users from './Users';
 import SmartGroups from './SmartGroups';
+import SelfService from './SelfService';
 import Catalogs from './Catalogs';
 import HistoryWorkspace from './HistoryWorkspace';
 import Administration from './Administration';
@@ -64,6 +66,7 @@ export const WORKSPACES = [
   { id: 'credentials', label: 'Credentials', Icon: KeyRound, Component: Credentials },
   { id: 'users', label: 'Users', Icon: UsersIcon, Component: Users },
   { id: 'smart-groups', label: 'Smart groups', Icon: UsersRound, Component: SmartGroups },
+  { id: 'self-service', label: 'Self-service', Icon: UserCog, Component: SelfService },
   { id: 'prompts', label: 'Prompts', Icon: FileText, Component: Prompts },
   { id: 'budgets', label: 'Budgets', Icon: Wallet, Component: Budgets },
   { id: 'routing', label: 'Routing', Icon: Route, Component: Routing },
@@ -151,7 +154,7 @@ export const LLM_PRODUCT = {
   hero: {
     eyebrow: 'LLM GATEWAY / MANAGEMENT API V1',
     title: 'Management API playground',
-    text: 'Administer apps, providers, credentials, prompts, smart groups, budgets, routing, limits, incidents and hooks, review usage, guardrail activity, provider health and users, and see the exact API call behind every action.',
+    text: 'Administer apps, providers, credentials, prompts, smart groups, self-service, budgets, routing, limits, incidents and hooks, review usage, guardrail activity, provider health and users, and see the exact API call behind every action.',
   },
   links: [
     { to: '/llm-gateway-playground', label: 'Gateway playground' },

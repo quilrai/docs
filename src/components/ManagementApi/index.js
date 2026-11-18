@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {BarChart3, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, Users, UsersRound, Wallet, Webhook, Workflow} from 'lucide-react';
+import {BarChart3, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, UserCog, Users, UsersRound, Wallet, Webhook, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -39,7 +39,7 @@ const api = createApiReference({
     eyebrow: 'LLM GATEWAY / MANAGEMENT V1',
     title: 'Configure your gateway.',
     subtitle: 'Keep every change intentional.',
-    text: 'Manage apps, shared providers, quota pools, access keys, prompts, budgets, routing, rate limits, incidents and external hooks, and read usage, guardrail activity, provider health and users, from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.',
+    text: 'Manage apps, shared providers, quota pools, access keys, prompts, budgets, routing, rate limits, incidents, external hooks and self-service, and read usage, guardrail activity, provider health and users, from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.',
     actions: [
       {label: 'Start with an example', to: './management-api#quick-start', primary: true},
       {label: 'Open the playground', to: playground, Icon: Play},
@@ -62,6 +62,7 @@ const api = createApiReference({
     ['Usage','Requests, tokens and cost by period, app, model, provider, user, key, source or outcome.','usage-api',BarChart3],
     ['Monitoring','Guardrail activity, provider health, and why one request was routed, blocked or failed over.','monitoring-api',HeartPulse],
     ['Users','Who uses the gateway: app access, personal keys, last activity and usage.','users-api',Users],
+    ['Self-service','Access plans, model options, app templates, requests, app owners and personal keys for the developer portal.','self-service-api',UserCog],
     ['Authentication','Enable access and issue scoped management keys.','management-api#authentication',ShieldCheck],
     ['Gateway credentials','Issue, rename, reveal, expire and revoke app keys.','apps-and-credentials-api#credentials',KeyRound],
     ['QuilrQL behavior','Understand app defaults and policy-governed settings.','policy-api',Workflow],
@@ -71,7 +72,11 @@ const api = createApiReference({
   aliasOf: op => op['x-alias-of'],
   shortPath,
   directoryNote: ({aliasCount}) => aliasCount>0 && <> (plus {aliasCount} <Link to="./management-api#names-and-pagination"><code>/app?app_name=</code> aliases</Link> for app names that contain <code>/</code> or <code>%</code>)</>,
-  href: op => `./${shortPath(op.path).startsWith('/smart-groups') ? 'smart-groups-api' : pageFor[op.tags[0]] || 'management-api'}#${op.operationId}`,
+  href: op => {
+    const rest = shortPath(op.path);
+    const page = rest.startsWith('/smart-groups') ? 'smart-groups-api' : rest.includes('self-service') ? 'self-service-api' : pageFor[op.tags[0]] || 'management-api';
+    return `./${page}#${op.operationId}`;
+  },
   requirements: op => <div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : scopeNote(op) ? <code>{scopeNote(op)}</code> : <code>Verified tenant administrator</code>}</div>,
   aliasNote: (op, [alias]) => <p className={styles.aliasNote}>Also at <code>{shortPath(alias.path)}?app_name=...</code> for app names that contain <code>/</code> or <code>%</code>.</p>,
   curl: curlFor,

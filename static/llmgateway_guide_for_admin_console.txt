@@ -1,11 +1,14 @@
 QUILR ADMIN CONSOLE (v2) - LLM GATEWAY NAVIGATION GUIDE FOR BROWSING AGENTS
-Updated on 11 November 2026.
+Updated on 18 November 2026.
+Self-service tab checked against the current console: 2026-11-18.
 Attachment controls and image-risk labels checked against the current console: 2026-11-02.
 Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
 - Sidebar: Settings > AI Gateway > LLM Gateway        URL /settings/llm-gateway
-- Page tabs: Applications (default) | Management API   /settings/llm-gateway/management-api
+- Page tabs: Applications (default) | Self-service | Management API
+  Self-service: /settings/llm-gateway/self-service ; Management API: /settings/llm-gateway/management-api
+- Header button Approvals (top right): settings changes developers asked for, waiting for an admin
 - Sibling: Settings > AI Gateway > Models              /settings/models (opens /settings/models/models)
 - Not visible? The user lacks LLM Gateway access; a warning banner means management is disabled for the organization.
 
@@ -134,10 +137,11 @@ TASK -> WHERE
   type the Prompt, turn on "Apply to every request" > Save settings (no Prompt ID; added before the request's
   own system prompt). With the Policy Engine on, set it on the Policy Engine "Prompt Store & Enforcement"
   card instead (see POLICY ENGINE)
-- Self-service for developers -> Configure > Self-Service > Self-service Enabled switch, then Capabilities grid
-  (per capability: Allow all users / Allow emails / Allow smart groups / Deny emails / Deny smart groups) > Save settings
-- Approve self-service change requests -> Configure > Audit Log > Change requests
-- Who uses self-service -> header Self-service usage
+- Self-service for developers -> Self-service tab (see SELF-SERVICE below). One app's self-service settings are
+  also under Configure > Self-Service on the app card.
+- Approve self-service settings change requests -> Self-service > Requests > Settings changes, or header Approvals,
+  or the app's Configure > Audit Log > Change requests
+- Who uses self-service -> Self-service > Overview > Usage report (also header "Self-service usage")
 - Add / revoke / change the expiry of a Quilr key -> card Manage keys (API Keys section) > "Add a Quilr key":
   Quilr key name*, Expiry > Add key; per key in Keys list: Edit expiry / Revoke
 - Get integration snippet / base URL / key -> card Integration docs (API Integration section: pick Quilr key > Copy;
@@ -180,6 +184,54 @@ TASK -> WHERE
   cost metadata remains. Check Default after applying a template: people cards can require identity retention.
   Review impact > Apply and confirm; Save draft does not apply changes.
 - Exports -> Settings > Data management > Export Center
+
+SELF-SERVICE (developer portal settings; tab on the LLM Gateway page)
+- Sub-tabs: Overview | Access plans | Apps | Model options | Providers | Requests | People, plus
+  "How self-service works" (explainer drawer). Routes under /settings/llm-gateway/self-service/:
+  overview, access-plans, apps, model-options, providers, requests, people. Old URLs setup, applications,
+  profiles and model-tiers redirect to overview, apps, access-plans and model-options.
+- Screen names vs API names: Access plan = profile, App template = blueprint, Model option = tier,
+  Request = exception, App owner = owner. Abilities: Viewer access, Settings request access, Direct settings
+  update, View and copy API key values, All-logs visibility (API roles self_service_viewer,
+  settings_update_requester, settings_update_direct, show_api_key, show_logs_for_all_users).
+- Overview: "Check what someone gets" (Email, App (optional) > Check); cards 1 Who can use it (Personal keys
+  On for N of M apps, Choose apps; People with an access plan; People without an access plan: "Keep each app's
+  own settings" (default) | "No self-service" > dialog "Turn off self-service for people without an access
+  plan?" lists people who would lose personal keys > Deny them), 2 What they get (plans in rank order; Manage
+  access plans; Smart Groups and rank), 3 What they can ask for (Review requests). Usage report button.
+- Access plans: table Rank, Access plan, Smart Groups, Portal sections, What it gives, Actions (edit, delete).
+  New access plan drawer sections: Who it's for (Name*, Description, Smart Groups) | Which apps they see (All
+  apps | Chosen apps | One starter app for everyone) | What they can do in those apps (per ability: Always |
+  Only if the app allows | Never; Viewer access has no Never; new plans default to Only if the app allows) |
+  Portal sections (My usage, LLM Gateway, MCP Gateway, Workflow agents, Skills) | Which models they can call
+  (Limit models with model options, option checkboxes, Only these model names, Max reasoning effort) | Keys
+  (Active keys per app 1-10, No lifetime cap, Longest key lifetime (days)) | Creating their own apps (Let them
+  create their own apps from templates, Templates they may copy, Apps per developer 0-20, Settings on their
+  own app: Change directly | Ask for changes | Don't see settings). Right panel: What a developer sees (Sample
+  person), Every reason app by app, Count who it reaches, What this plan does, in words. Create plan / Save plan
+  opens a personal-key impact check first. Lowest matching Smart Group rank wins; plans do not combine.
+- Apps: search, filters Keys | Access | App owners; columns App, Keys, App owners, Developers can copy it, Who can.
+  Click an app = drawer with tabs Access and keys (Credential mode: Shared application key | Personal API keys;
+  Maximum key lifetime; per ability All users + Allow/Deny emails + Allow/Deny smart groups; App owners (max
+  20); Personal keys table with Owner filter, Show revoked and expired, Revoke; Save settings) | Developers can
+  copy it (Make it a template..., Recheck; lists policies that depend on the app's identity) | Change history
+  (the app's Audit Log). Select rows > Change settings... > Change (Add or remove people or Smart Groups on a
+  role | Turn "All users" on or off for a role | Set the credential mode | Set or remove the maximum key
+  lifetime | Add or remove app owners) > Preview changes (names people who lose personal-key access) >
+  Apply to N applications.
+- Model options: Add model option; per option label, model (routing group or typed name), description, up/down
+  order (rank, lightest first), delete; Save model options. The label is not an alias; developers call the model.
+- Providers: Self-service access grid for platform providers (Viewer access, Change request access, Direct
+  change access); same as Settings > AI Gateway > Models > Self-service access (Open in Models).
+- Requests: tabs Requests | Settings changes. Requests views: Waiting for you | Waiting for app owners | Active
+  approvals | Decided; filters Kind, Requester. Decide: Approve request (Approved until, at most a year; a new
+  app is permanent) | Reject request (reason) | Revoke approval. Nobody approves their own request.
+- People: Check a person (Email > Check): Why list, app table, Their personal keys (Revoke), Reason for
+  suspending (admins only) > Suspend self-service | Restore self-service, Apps they created; suspended list.
+- A personal key stops within about a minute when its owner loses Viewer access on the app or is suspended.
+- Developer portal: sidebar account footer > Switch to Self Service (/self-service). Portal tabs My usage | LLM
+  Gateway | MCP Gateway | Workflow agents | Skills; LLM Gateway buttons Analytics, Platform providers, Models,
+  Requests; app card Keys & Connect > Create API key. "Admin console" (top right) returns.
 
 POLICY ENGINE (LLM)
 - Workspace: /policy/engine/llm-gateway. Selector: LLM Gateway | MCP Gateway | Endpoint Agent | Cloud & SaaS.
@@ -250,6 +302,8 @@ DEEP LINKS (query parameters on /settings/llm-gateway)
 - ?create=1                         Create App dialog
 - ?providers=manage | add           Provider configuration drawer (add opens Add your own models)
 - ?self_service_usage=1             Self-service usage drawer
+- /settings/llm-gateway/self-service/requests?tab=settings   Requests > Settings changes;
+  ?view=owners|active|decided selects a Requests view
 - ?outbound_ips=1                   Outbound IPs drawer
 - ?audit=global                     workspace on Audit tab, all apps
 - ?workspace=analytics|activity|usage|health|settings|audit   opens workspace on that tab
@@ -305,7 +359,10 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/rate-token-and-budget-limits.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/token-saving.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/prompt-store.md
+- https://docs.quilrai.dev/llm-gateway/self-service/overview.md
 - https://docs.quilrai.dev/llm-gateway/self-service/admin-guide.md
+- https://docs.quilrai.dev/llm-gateway/self-service/access-plans.md
+- https://docs.quilrai.dev/llm-gateway/api-reference/self-service-api.md
 - https://docs.quilrai.dev/llm-gateway/monitor/analytics-and-insights.md
 - https://docs.quilrai.dev/llm-gateway/monitor/app-audit-log.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/management-api.md
