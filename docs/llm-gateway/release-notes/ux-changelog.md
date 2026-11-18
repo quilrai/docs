@@ -10,6 +10,16 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Conversation compaction (2026-11-17)
+
+- **New Policy Engine control, Conversation Compaction:** when a conversation passes a user-message or token limit, the gateway summarizes its older messages with a model you choose and sends the instructions, the summary and the latest turns to the answering model
+- Set either limit or both, how many recent user turns stay as written (default 5) and the summary length (default 2,000 tokens); **Off** exempts a narrower scope
+- The summary model can be any model on the app's providers or on any shared provider; its calls are logged and billed as their own requests
+- The default summary instructions can be replaced with your own (**Write custom instructions**), for example to keep ticket numbers or promised follow-ups
+- Later turns reuse the summary until the conversation passes the limit again; responses carry `x-quilr-compaction: applied` or `reused`
+- Works on Chat Completions, Responses, Anthropic Messages, Gemini and Bedrock; requests whose history the provider keeps are sent as received
+- Details: [Conversation compaction](../cost-and-traffic/conversation-compaction)
+
 ## ElevenLabs: the full generation API and exact transcription cost (2026-11-16)
 
 - ElevenLabs' own API beyond speech and transcription, for the ElevenLabs SDK: speech and dialogue with character timing and streaming, stored transcripts, sound effects, music, voice changer, audio isolation, voice design, forced alignment, dubbing, and the model and voice lists

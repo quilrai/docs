@@ -158,6 +158,8 @@ TASK -> WHERE
 - Govern all apps with policies -> sidebar Policy Engine > LLM Gateway tab (/policy/engine/llm-gateway)
 - Hide models from GET /v1/models and Get available models (still callable by name) -> Policy Engine >
   LLM Gateway > Model Visibility card (see POLICY ENGINE)
+- Summarize long conversations before they reach the model -> Policy Engine > LLM Gateway >
+  Conversation Compaction card (see POLICY ENGINE)
 - Costs across gateway -> sidebar Costs & Savings: Overview | Attribution | Savings | Habits | Providers
 - Findings across sources -> sidebar Findings & Interactions (LLM traffic shows source "LLM Gateway")
 - App as an asset -> sidebar Inventory > open the app: Analytics | Requests | Usage & cost | Settings
@@ -183,7 +185,8 @@ POLICY ENGINE (LLM)
   Who can use AI?: Gateway Access, Identity & Network Trust, Allowed Models, Model Visibility,
   Prompt Store & Enforcement.
   What should be checked?: Data & Adversarial Risks, Guardian Agent, Tool Controls, Attachments.
-  Which model and limits?: Routing Groups & Fallbacks, Budgets & Usage Limits, Token Savings.
+  Which model and limits?: Routing Groups & Fallbacks, Budgets & Usage Limits, Token Savings,
+  Conversation Compaction.
   What may return?: Hallucination Protection, Error Messages.
 - Open an area > read What happens today, section defaults and How rules combine > start from a recipe
   or blank rule > Applies to > outcome > Reads as > Save to draft > Review & publish.
@@ -210,6 +213,12 @@ POLICY ENGINE (LLM)
   Longest grant, No end date allowed, Raise the limit automatically (+% each time, up to N per period, At the limit |
   At a share used, optional Smart groups). Grants tab: Newest first | Ending soonest | Ending in 7 days; New grant >
   For: A person | Members of a smart group. Usage: Runs out, Running out soon.
+- Conversation Compaction: one form per rule: Compaction On | Off, More than this many user messages,
+  More than this many tokens (either limit starts compaction), Latest user turns (kept as written),
+  Summary model (app providers or any shared provider), Summary instructions (Use the default
+  instructions | Write custom instructions, up to 8,192 characters, prefilled with the default text),
+  Maximum summary tokens. Recipes: Compact long conversations, Don't compact for... Responses carry
+  x-quilr-compaction: applied | reused.
 - Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression,
   Minify JSON tool outputs, Clean up tool output, Remove encoded content, Response cache.
   Response cache: match Exact (default) | Normalized | Semantic; Similarity (Semantic only) Narrow (default) |

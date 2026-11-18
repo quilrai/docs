@@ -62,6 +62,7 @@
   "/llm-gateway/features/token-saving": "/llm-gateway/cost-and-traffic/token-saving",
   "/token-saving": "/llm-gateway/cost-and-traffic/token-saving",
   "/policy-engine/llm-controls/token-savings": "/llm-gateway/cost-and-traffic/token-saving",
+  "/policy-engine/llm-controls/conversation-compaction": "/llm-gateway/cost-and-traffic/conversation-compaction",
   "/llm-gateway/features/prompt-store": "/llm-gateway/cost-and-traffic/prompt-store",
   "/policy-engine/llm-controls/prompt-store-enforcement": "/llm-gateway/cost-and-traffic/prompt-store",
   "/llm-gateway/features/agent-monitoring": "/llm-gateway/monitor/agent-monitoring",
