@@ -11,7 +11,8 @@ WHERE
 
 PAGE LAYOUT (Applications tab, top to bottom)
 - Header buttons: Overall analytics | Provider health | Self-service usage | Audit log |
-  Provider configuration | Remote connectors | GPU connectors (needs Integrations read) | Create App (primary) |
+  Provider configuration | Remote connectors | GPU connectors (needs Integrations read) | Outbound IPs |
+  Create App (primary) |
   "..." (More LLM Gateway actions) > Copy all-apps log key
 - Metric strip: REQUESTS (People calling, Models in use, Success; click = analytics) |
   APPLICATIONS (click Active/Inactive/Expired = filter) |
@@ -82,6 +83,13 @@ TASK -> WHERE
   qrc_... token (shown once). Run the shared quilr-connector binary or container in the private network.
   In Provider configuration, set the provider's private Base URL, then Network route > Remote connectors >
   the connected connector. Binary, Docker and Kubernetes examples are in the remote connector docs.
+- Give provider calls fixed source IPs to allowlist -> LLM Gateway > Outbound IPs (drawer "Outbound IPs").
+  Default for providers: turn on "Use Quilr outbound IPs" > Region (United States | Europe | India) > Save
+  ("Choose a region to save." = no region selected). "Quilr outbound IP addresses" lists every region's IPs,
+  with Copy per region. One provider: Models > Providers tab > the provider > Connection > Network
+  route card > Change > Network route (Organization default · ... | Direct from Quilr gateway servers |
+  Quilr outbound IPs > region) > Test > Save. New provider: Add provider > Name and credentials > Network
+  route > Test & continue. Needs a public https endpoint on port 443 and no connector link.
 - Run providers on the organization's own GPU servers (on-premises gateway) -> LLM Gateway > GPU connectors
   (drawer "GPU connectors"; "GPU connectors aren't available for your organization" = QuilrAI has not turned
   them on) > New GPU connector: ID* (1-63 lowercase letters, digits or hyphens; permanent, never reused),
@@ -242,6 +250,7 @@ DEEP LINKS (query parameters on /settings/llm-gateway)
 - ?create=1                         Create App dialog
 - ?providers=manage | add           Provider configuration drawer (add opens Add your own models)
 - ?self_service_usage=1             Self-service usage drawer
+- ?outbound_ips=1                   Outbound IPs drawer
 - ?audit=global                     workspace on Audit tab, all apps
 - ?workspace=analytics|activity|usage|health|settings|audit   opens workspace on that tab
 - &app=<appId>  or  &apps=<id1,id2> scope (max 24); no app = all apps
