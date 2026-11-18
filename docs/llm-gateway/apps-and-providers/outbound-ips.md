@@ -5,7 +5,7 @@ sidebar_custom_props:
   icon: Globe
 description: "Send provider calls from fixed Quilr IP addresses that you allowlist on the provider."
 console_path: []
-aliases: [outbound ips, egress ips, egress proxy, static ip, fixed ip, ip allowlist, ip whitelist, source ip, firewall, network acl, quilr outbound ips, network route]
+aliases: [outbound ips, egress ips, static ip, fixed ip, ip allowlist, ip whitelist, source ip, firewall, network acl, quilr outbound ips, network route]
 ---
 
 # Outbound IPs
