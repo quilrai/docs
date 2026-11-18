@@ -196,12 +196,15 @@ With `endpoint.signing`, every call carries `X-Quilr-Signature: t=<unix seconds>
 ```python
 import hashlib, hmac, time
 
-def verify(header: str, body: bytes, secret: str, max_age: int = 300) -> bool:
-    parts = dict(item.split("=", 1) for item in header.split(","))
-    if abs(time.time() - int(parts["t"])) > max_age:
+def verify(header: str | None, body: bytes, secret: str, max_age: int = 300) -> bool:
+    parts = dict(item.split("=", 1) for item in (header or "").split(",") if "=" in item)
+    stamp, signature = parts.get("t", ""), parts.get("v1", "")
+    if not stamp.isdigit() or not signature:
+        return False  # missing or malformed header
+    if abs(time.time() - int(stamp)) > max_age:
         return False
-    expected = hmac.new(secret.encode(), f"{parts['t']}.".encode() + body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, parts["v1"])
+    expected = hmac.new(secret.encode(), f"{stamp}.".encode() + body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
 ```
 
 ## Security {#security}

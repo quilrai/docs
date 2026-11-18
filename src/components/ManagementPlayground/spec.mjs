@@ -6,9 +6,33 @@ import { ADMIN_PREFIX, MANAGEMENT_PREFIX, REDACTED, redactSecrets } from './clie
 
 const SNIPPET_SECRET = '<set-this-secret>';
 
+const SECRET_REFERENCE_KEYS = new Set(['secret', 'username_secret', 'password_secret']);
+
+/**
+ * Puts back secret *names* that redaction hid: in a body with a `secrets`
+ * map (hooks), `auth.secret` / `signing.secret` and similar name an entry of
+ * that map, they are not values. Without them the request is rejected.
+ */
+function restoreSecretReferences(original, redacted, names) {
+  if (!original || typeof original !== 'object' || !redacted || typeof redacted !== 'object') return redacted;
+  if (Array.isArray(original)) return redacted.map((item, i) => restoreSecretReferences(original[i], item, names));
+  const own = original.secrets && typeof original.secrets === 'object' && !Array.isArray(original.secrets)
+    ? new Set([...names, ...Object.keys(original.secrets)])
+    : names;
+  const out = { ...redacted };
+  for (const [key, value] of Object.entries(original)) {
+    if (SECRET_REFERENCE_KEYS.has(key) && typeof value === 'string' && own.has(value)) out[key] = value;
+    else if (value && typeof value === 'object' && key !== 'secrets') {
+      out[key] = restoreSecretReferences(value, redacted[key], own);
+    }
+  }
+  return out;
+}
+
 /** Snippets never carry typed secrets; each one becomes a placeholder to fill in. */
 function withSecretPlaceholders(value) {
-  return JSON.parse(JSON.stringify(redactSecrets(value)).split(REDACTED).join(SNIPPET_SECRET));
+  const redacted = restoreSecretReferences(value, redactSecrets(value), new Set());
+  return JSON.parse(JSON.stringify(redacted).split(REDACTED).join(SNIPPET_SECRET));
 }
 
 const METHODS = ['get', 'post', 'put', 'patch', 'delete'];

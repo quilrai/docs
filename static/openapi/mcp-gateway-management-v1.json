@@ -11829,7 +11829,7 @@
           },
           {
             "description": "Quoted `version` (ETag) from the latest read of this resource.",
-            "example": "\"r4\"",
+            "example": "\"h1\"",
             "in": "header",
             "name": "If-Match",
             "required": true,
@@ -12051,7 +12051,7 @@
           },
           {
             "description": "Quoted `version` (ETag) from the latest read of this resource.",
-            "example": "\"r4\"",
+            "example": "\"h1\"",
             "in": "header",
             "name": "If-Match",
             "required": true,
