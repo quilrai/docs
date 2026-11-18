@@ -10,6 +10,16 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Outbound IPs (2026-11-18)
+
+- **New drawer, Outbound IPs**, on the LLM Gateway page: send provider calls from two fixed Quilr IP addresses per region (United States, Europe, India) and allowlist them on the provider
+- Turn it on for every provider under **Default for providers**, or for one provider in its **Network route**; a provider's own route always wins
+- The drawer lists both addresses of each region with a **Copy** button
+- Changing a provider's route needs a passing test before it saves
+- Works for providers with a public `https` endpoint on port 443; private endpoints keep using remote connectors
+- Management API: `GET` and `PUT /egress-proxy`, and `provider_settings.use_egress_proxy` on providers
+- Details: [Outbound IPs](../apps-and-providers/outbound-ips)
+
 ## Conversation compaction (2026-11-17)
 
 - **New Policy Engine control, Conversation Compaction:** when a conversation passes a user-message or token limit, the gateway summarizes its older messages with a model you choose and sends the instructions, the summary and the latest turns to the answering model
