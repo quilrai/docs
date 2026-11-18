@@ -25,7 +25,6 @@ Allowlist every address listed for the region you choose. Addresses may be added
 :::warning Before you turn it on
 - **Not for private networks.** The provider must be reachable on the public internet over `https` (port 443). To reach a model in a private network, use a [remote connector](./remote-connectors) instead.
 - **Not with connectors.** A provider linked to a [remote connector](./remote-connectors) or a [GPU server](./gpu-connectors) can't also use outbound IPs.
-- **Not for Quilr SDK or Copilot Studio providers.**
 - **No fallback.** If the gateway can't reach the provider through the region you chose, the call fails. It is never sent from another address.
 - **Allowlist first.** Add the addresses on the provider before you turn this on, or its calls are rejected.
 :::
