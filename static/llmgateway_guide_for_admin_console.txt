@@ -215,8 +215,10 @@ POLICY ENGINE (LLM)
   For: A person | Members of a smart group. Usage: Runs out, Running out soon.
 - Conversation Compaction: one form per rule: Compaction On | Off, More than this many user messages,
   More than this many tokens (either limit starts compaction), Latest user turns (kept as written),
-  Summary model (app providers or any shared provider), Maximum summary tokens. Recipes: Compact long
-  conversations, Don't compact for... Responses carry x-quilr-compaction: applied | reused.
+  Summary model (app providers or any shared provider), Summary instructions (Use the default
+  instructions | Write custom instructions, up to 8,192 characters, prefilled with the default text),
+  Maximum summary tokens. Recipes: Compact long conversations, Don't compact for... Responses carry
+  x-quilr-compaction: applied | reused.
 - Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression,
   Minify JSON tool outputs, Clean up tool output, Remove encoded content, Response cache.
   Response cache: match Exact (default) | Normalized | Semantic; Similarity (Semantic only) Narrow (default) |

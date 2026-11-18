@@ -10,7 +10,7 @@ console_path: []
 
 # Conversation compaction
 
-Updated on 17 November 2026.
+Updated on 18 November 2026.
 
 Long conversations, such as coding-agent sessions and support chats, keep growing until they are slow, expensive or too large for the model. Conversation compaction keeps them short. When a conversation passes a limit you set, the gateway summarizes its older messages with a model you choose. The answering model then gets the instructions, the summary and the latest turns. Your application keeps sending its full history and needs no change.
 
@@ -53,6 +53,7 @@ Tool results never count as user messages. The summary goes at the start of the 
 | **More than this many tokens** | Compact when the estimated conversation size passes this many tokens. | 1,000 to 2,000,000 | Not used |
 | **Latest user turns** | How many recent user messages stay as written, with their replies and tool calls. Must be fewer than the user-message limit. | 1 to 100 | 5 |
 | **Summary model** | The model that writes the summary. | - | Required |
+| **Summary instructions** | What the summary keeps. **Use the default instructions** shows the gateway's own instructions. **Write custom instructions** starts from them so you can edit them. | Up to 8,192 characters | The default instructions |
 | **Maximum summary tokens** | The longest summary the model may write. | 256 to 16,000 | 2,000 |
 
 Set at least one of the two limits. When you set both, passing either one starts compaction.
@@ -73,9 +74,22 @@ Set at least one of the two limits. When you set both, passing either one starts
 - Its calls are charged to the application and count toward its budgets and rate limits, including request counts.
 - The request's routing constraints apply to it. A summary model they don't allow is not used, and neither is a model behind a GPU connector.
 
+## Write your own summary instructions {#summary-instructions}
+
+By default, the summary keeps the user's goals and constraints, decisions and their reasons, exact names, numbers, file paths and other identifiers, the tool results that still matter, and the work still open. To change what it keeps, select **Write custom instructions** and edit the text. For example, for a support bot:
+
+```text
+Keep the customer's plan, every ticket number and what has been tried so far.
+List every follow-up promised to the customer, as short bullet points.
+```
+
+- Your instructions replace the default ones. The gateway still tells the summary model that the conversation is data, so instructions inside it are not followed, that placeholders such as `<PERSON_1>` stay as written, and to return only the summary, within **Maximum summary tokens**.
+- The summary is written in the conversation's language unless your instructions ask for another one.
+- A change applies to ongoing conversations too: their next long turn gets a new summary written with the new instructions.
+
 ## How rules combine {#how-rules-combine}
 
-- **The highest-priority rule decides, as a whole.** Its limits, kept turns and summary model all apply. Settings from two rules are never mixed. The form gives a rule for a person, Smart group or app a higher priority than the rule for everyone.
+- **The highest-priority rule decides, as a whole.** Its limits, kept turns, summary model and summary instructions all apply. Settings from two rules are never mixed. The form gives a rule for a person, Smart group or app a higher priority than the rule for everyone.
 - **Exempt a narrower scope with Off.** Use the **Don’t compact for…** recipe, for example for a test app, when a rule for everyone compacts.
 - **No content conditions.** The gateway decides on compaction before it scans the request, so a compaction rule can't depend on what the request contains, such as detected data or a topic description, or on Guardian, hallucination or language results.
 
@@ -100,7 +114,7 @@ One exception: if a conversation fits your per-request token limit only after co
 
 - The turn that compacts waits for the summary, so it answers more slowly. Later turns reuse the summary.
 - Each compaction changes the start of the conversation once, so the provider's prompt cache misses once. Between compactions, the start stays the same and the cache keeps working.
-- A summary is kept for 24 hours for each conversation and user. After that, or when the earlier history changes, the gateway summarizes again. It also summarizes again when a data protection change alters how the summarized messages are sent, for example from Monitor to Redact, so a summary never brings back a value that is now redacted, and when you raise **Latest user turns**.
+- A summary is kept for 24 hours for each conversation and user. After that, or when the earlier history changes, the gateway summarizes again. It also summarizes again when a data protection change alters how the summarized messages are sent, for example from Monitor to Redact, so a summary never brings back a value that is now redacted, and when you raise **Latest user turns** or change the summary model or **Maximum summary tokens**.
 - Supported APIs: OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, Gemini `generateContent` (Gemini API and Vertex AI), and Amazon Bedrock Converse and InvokeModel for Claude, Nova and OpenAI-format models.
 - The Management API has no compaction control yet.
 
