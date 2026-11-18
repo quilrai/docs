@@ -21743,126 +21743,6 @@
         ],
         "type": "object"
       },
-      "EgressProxyResponse": {
-        "additionalProperties": true,
-        "properties": {
-          "egress_proxy": {
-            "additionalProperties": true,
-            "properties": {
-              "applies_within_seconds": {
-                "description": "A change reaches every server in the region within this many seconds.",
-                "type": "integer"
-              },
-              "available": {
-                "description": "false where this gateway can't call out from the chosen region's outbound IPs: the setting is stored but changes nothing.",
-                "type": "boolean"
-              },
-              "enabled": {
-                "description": "true: every provider without a use_egress_proxy setting of its own calls out from the Quilr outbound IPs. false or null: those providers are called directly.",
-                "type": [
-                  "boolean",
-                  "null"
-                ]
-              },
-              "region": {
-                "description": "The region whose Quilr outbound IPs are used; null: the gateway's own region.",
-                "enum": [
-                  "us",
-                  "eu",
-                  "in",
-                  null
-                ],
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "regions": {
-                "items": {
-                  "additionalProperties": true,
-                  "properties": {
-                    "available": {
-                      "type": "boolean"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "ips": {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "name",
-                    "ips",
-                    "available"
-                  ],
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              "updated_at": {
-                "description": "When the setting was last changed.",
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "updated_by": {
-                "description": "Who changed it last.",
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            },
-            "required": [
-              "enabled",
-              "region",
-              "regions",
-              "available",
-              "applies_within_seconds"
-            ],
-            "type": "object"
-          }
-        },
-        "required": [
-          "egress_proxy"
-        ],
-        "type": "object"
-      },
-      "EgressProxyUpdate": {
-        "additionalProperties": false,
-        "properties": {
-          "enabled": {
-            "description": "true: every provider without a use_egress_proxy setting of its own calls out from the Quilr outbound IPs. false or null: those providers are called directly.",
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
-          "region": {
-            "description": "The region whose Quilr outbound IPs are used; null: the gateway's own region.",
-            "enum": [
-              "us",
-              "eu",
-              "in",
-              null
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "type": "object"
-      },
       "Empty": {
         "additionalProperties": false,
         "properties": {},
@@ -26606,6 +26486,126 @@
         ],
         "type": "object"
       },
+      "OutboundIpsResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "outbound_ips": {
+            "additionalProperties": true,
+            "properties": {
+              "applies_within_seconds": {
+                "description": "A change reaches every server in the region within this many seconds.",
+                "type": "integer"
+              },
+              "available": {
+                "description": "false where this gateway can't call out from the chosen region's outbound IPs: the setting is stored but changes nothing.",
+                "type": "boolean"
+              },
+              "enabled": {
+                "description": "true: every provider without a use_outbound_ips setting of its own calls out from the Quilr outbound IPs. false or null: those providers are called directly.",
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "region": {
+                "description": "The region whose Quilr outbound IPs are used; null: the gateway's own region.",
+                "enum": [
+                  "us",
+                  "eu",
+                  "in",
+                  null
+                ],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "regions": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "available": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "ips": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "name",
+                    "ips",
+                    "available"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "updated_at": {
+                "description": "When the setting was last changed.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "updated_by": {
+                "description": "Who changed it last.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "enabled",
+              "region",
+              "regions",
+              "available",
+              "applies_within_seconds"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "outbound_ips"
+        ],
+        "type": "object"
+      },
+      "OutboundIpsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "description": "true: every provider without a use_outbound_ips setting of its own calls out from the Quilr outbound IPs. false or null: those providers are called directly.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "region": {
+            "description": "The region whose Quilr outbound IPs are used; null: the gateway's own region.",
+            "enum": [
+              "us",
+              "eu",
+              "in",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "PolicyAuthority": {
         "additionalProperties": true,
         "properties": {
@@ -30093,8 +30093,8 @@
             "maxItems": 16,
             "type": "array"
           },
-          "use_egress_proxy": {
-            "description": "This provider's own Quilr outbound IP setting: a region code calls it from that region's outbound IPs (listed by GET /egress-proxy), true from the account's region, false calls it directly, null or omitted follows the account-wide setting (/egress-proxy). Refused for a provider linked to a connector, and for one whose endpoint is not a public host over https on port 443.",
+          "use_outbound_ips": {
+            "description": "This provider's own Quilr outbound IP setting: a region code calls it from that region's outbound IPs (listed by GET /outbound-ips), true from the account's region, false calls it directly, null or omitted follows the account-wide setting (/outbound-ips). Refused for a provider linked to a connector, and for one whose endpoint is not a public host over https on port 443.",
             "enum": [
               true,
               false,
@@ -30261,8 +30261,8 @@
             "maxItems": 16,
             "type": "array"
           },
-          "use_egress_proxy": {
-            "description": "This provider's own Quilr outbound IP setting: a region code calls it from that region's outbound IPs (listed by GET /egress-proxy), true from the account's region, false calls it directly, null or omitted follows the account-wide setting (/egress-proxy). Refused for a provider linked to a connector, and for one whose endpoint is not a public host over https on port 443.",
+          "use_outbound_ips": {
+            "description": "This provider's own Quilr outbound IP setting: a region code calls it from that region's outbound IPs (listed by GET /outbound-ips), true from the account's region, false calls it directly, null or omitted follows the account-wide setting (/outbound-ips). Refused for a provider linked to a connector, and for one whose endpoint is not a public host over https on port 443.",
             "enum": [
               true,
               false,
@@ -34262,7 +34262,7 @@
         ],
         "type": "object"
       },
-      "TenantEgressProxyView": {
+      "TenantOutboundIpsView": {
         "additionalProperties": true,
         "properties": {
           "applies_within_seconds": {
@@ -34274,7 +34274,7 @@
             "type": "boolean"
           },
           "enabled": {
-            "description": "true: every provider without a use_egress_proxy setting of its own calls out from the Quilr outbound IPs. false or null: those providers are called directly.",
+            "description": "true: every provider without a use_outbound_ips setting of its own calls out from the Quilr outbound IPs. false or null: those providers are called directly.",
             "type": [
               "boolean",
               "null"
@@ -35045,224 +35045,6 @@
   },
   "openapi": "3.1.0",
   "paths": {
-    "/llmgateway/management-admin/v1/tenants/{tenant_id}/egress-proxy": {
-      "get": {
-        "description": "The same view as GET /egress-proxy, plus the settings version.",
-        "operationId": "Read_tenant_egress_proxy",
-        "parameters": [
-          {
-            "description": "Quilr tenant ID.",
-            "example": "your-tenant-id",
-            "in": "path",
-            "name": "tenant_id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "applies_within_seconds": 120,
-                  "available": true,
-                  "enabled": true,
-                  "region": "in",
-                  "regions": [
-                    {
-                      "available": true,
-                      "code": "in",
-                      "ips": [
-                        "203.0.113.10"
-                      ],
-                      "name": "India"
-                    }
-                  ],
-                  "request_id": "req_example",
-                  "updated_at": null,
-                  "updated_by": null,
-                  "version": "6c5b4a392817"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/TenantEgressProxyView"
-                }
-              }
-            },
-            "description": "Success",
-            "headers": {
-              "Cache-Control": {
-                "$ref": "#/components/headers/Cache-Control"
-              },
-              "ETag": {
-                "$ref": "#/components/headers/ETag"
-              },
-              "X-Request-ID": {
-                "$ref": "#/components/headers/X-Request-ID"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "429": {
-            "$ref": "#/components/responses/Busy"
-          },
-          "503": {
-            "$ref": "#/components/responses/Unavailable"
-          }
-        },
-        "security": [
-          {
-            "TenantAdminJWT": []
-          }
-        ],
-        "summary": "Read the tenant's outbound IP setting",
-        "tags": [
-          "Administration"
-        ],
-        "x-scopes": []
-      },
-      "put": {
-        "description": "Sets enabled, region, or both. Send the quoted version from the latest read in If-Match.",
-        "operationId": "Set_tenant_egress_proxy",
-        "parameters": [
-          {
-            "description": "Quilr tenant ID.",
-            "example": "your-tenant-id",
-            "in": "path",
-            "name": "tenant_id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Quoted version from the latest read of the resource. Prompt, attachment, conversion and rollback writes use the app version.",
-            "example": "\"3f1c0a9e5b7d\"",
-            "in": "header",
-            "name": "If-Match",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "example": {
-                "enabled": true,
-                "region": "in"
-              },
-              "schema": {
-                "$ref": "#/components/schemas/EgressProxyUpdate"
-              }
-            }
-          },
-          "required": false
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "applies_within_seconds": 120,
-                  "available": true,
-                  "enabled": true,
-                  "region": "in",
-                  "regions": [
-                    {
-                      "available": true,
-                      "code": "in",
-                      "ips": [
-                        "203.0.113.10"
-                      ],
-                      "name": "India"
-                    }
-                  ],
-                  "request_id": "req_example",
-                  "updated_at": null,
-                  "updated_by": null,
-                  "version": "6c5b4a392817"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/TenantEgressProxyView"
-                }
-              }
-            },
-            "description": "Success",
-            "headers": {
-              "Cache-Control": {
-                "$ref": "#/components/headers/Cache-Control"
-              },
-              "ETag": {
-                "$ref": "#/components/headers/ETag"
-              },
-              "X-Request-ID": {
-                "$ref": "#/components/headers/X-Request-ID"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "408": {
-            "$ref": "#/components/responses/BodyTimeout"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "412": {
-            "$ref": "#/components/responses/VersionConflict"
-          },
-          "413": {
-            "$ref": "#/components/responses/BodyTooLarge"
-          },
-          "428": {
-            "$ref": "#/components/responses/PreconditionRequired"
-          },
-          "429": {
-            "$ref": "#/components/responses/Busy"
-          },
-          "503": {
-            "$ref": "#/components/responses/Unavailable"
-          }
-        },
-        "security": [
-          {
-            "TenantAdminJWT": []
-          }
-        ],
-        "summary": "Set the tenant's outbound IP setting",
-        "tags": [
-          "Administration"
-        ],
-        "x-scopes": []
-      }
-    },
     "/llmgateway/management-admin/v1/tenants/{tenant_id}/hooks": {
       "get": {
         "description": "Read-only view of the tenant's external hooks for the console: the active policy revision and every hook in the same view as GET /controls/hooks (secrets masked as ********). Hooks are configured only through the Management API. While the policy engine is off for the tenant the answer is {\"revision\": null, \"hooks\": []}.",
@@ -35923,6 +35705,224 @@
           }
         ],
         "summary": "Update a management key",
+        "tags": [
+          "Administration"
+        ],
+        "x-scopes": []
+      }
+    },
+    "/llmgateway/management-admin/v1/tenants/{tenant_id}/outbound-ips": {
+      "get": {
+        "description": "The same view as GET /outbound-ips, plus the settings version.",
+        "operationId": "Read_tenant_outbound_ips",
+        "parameters": [
+          {
+            "description": "Quilr tenant ID.",
+            "example": "your-tenant-id",
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "applies_within_seconds": 120,
+                  "available": true,
+                  "enabled": true,
+                  "region": "in",
+                  "regions": [
+                    {
+                      "available": true,
+                      "code": "in",
+                      "ips": [
+                        "203.0.113.10"
+                      ],
+                      "name": "India"
+                    }
+                  ],
+                  "request_id": "req_example",
+                  "updated_at": null,
+                  "updated_by": null,
+                  "version": "6c5b4a392817"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TenantOutboundIpsView"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "TenantAdminJWT": []
+          }
+        ],
+        "summary": "Read the tenant's outbound IP setting",
+        "tags": [
+          "Administration"
+        ],
+        "x-scopes": []
+      },
+      "put": {
+        "description": "Sets enabled, region, or both. Send the quoted version from the latest read in If-Match.",
+        "operationId": "Set_tenant_outbound_ips",
+        "parameters": [
+          {
+            "description": "Quilr tenant ID.",
+            "example": "your-tenant-id",
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted version from the latest read of the resource. Prompt, attachment, conversion and rollback writes use the app version.",
+            "example": "\"3f1c0a9e5b7d\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "enabled": true,
+                "region": "in"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/OutboundIpsUpdate"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "applies_within_seconds": 120,
+                  "available": true,
+                  "enabled": true,
+                  "region": "in",
+                  "regions": [
+                    {
+                      "available": true,
+                      "code": "in",
+                      "ips": [
+                        "203.0.113.10"
+                      ],
+                      "name": "India"
+                    }
+                  ],
+                  "request_id": "req_example",
+                  "updated_at": null,
+                  "updated_by": null,
+                  "version": "6c5b4a392817"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TenantOutboundIpsView"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "TenantAdminJWT": []
+          }
+        ],
+        "summary": "Set the tenant's outbound IP setting",
         "tags": [
           "Administration"
         ],
@@ -68507,198 +68507,6 @@
         ]
       }
     },
-    "/llmgateway/management/v1/egress-proxy": {
-      "get": {
-        "description": "The account-wide Quilr outbound IP setting and every region's addresses. A provider's own use_egress_proxy setting (in its provider_settings) always wins: a region code or true calls it from the Quilr outbound IPs, false calls it directly. A provider without one follows this account-wide setting; with neither set, the provider is called directly. Outbound IPs work for a provider on a public host over https on port 443; a provider linked to a connector keeps its connector. region picks which Quilr region's outbound IPs are used (GET lists every region's addresses). The setting is kept per region.",
-        "operationId": "Get_egress_proxy",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "egress_proxy": {
-                    "applies_within_seconds": 120,
-                    "available": true,
-                    "enabled": true,
-                    "region": "in",
-                    "regions": [
-                      {
-                        "available": true,
-                        "code": "in",
-                        "ips": [
-                          "203.0.113.10"
-                        ],
-                        "name": "India"
-                      }
-                    ],
-                    "updated_at": "2026-11-16T10:00:00Z",
-                    "updated_by": "management_key:mk_example"
-                  },
-                  "request_id": "req_example"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/EgressProxyResponse"
-                }
-              }
-            },
-            "description": "Success",
-            "headers": {
-              "Cache-Control": {
-                "$ref": "#/components/headers/Cache-Control"
-              },
-              "ETag": {
-                "$ref": "#/components/headers/ETag"
-              },
-              "X-Request-ID": {
-                "$ref": "#/components/headers/X-Request-ID"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "422": {
-            "$ref": "#/components/responses/Unprocessable"
-          },
-          "429": {
-            "$ref": "#/components/responses/Busy"
-          },
-          "503": {
-            "$ref": "#/components/responses/Unavailable"
-          }
-        },
-        "security": [
-          {
-            "ManagementKey": []
-          }
-        ],
-        "summary": "Read the outbound IP setting",
-        "tags": [
-          "Providers"
-        ],
-        "x-scopes": [
-          "read"
-        ]
-      },
-      "put": {
-        "description": "Set the account-wide setting: enabled true, false, or null to clear it, and the region. A provider's own use_egress_proxy setting (in its provider_settings) always wins: a region code or true calls it from the Quilr outbound IPs, false calls it directly. A provider without one follows this account-wide setting; with neither set, the provider is called directly. Outbound IPs work for a provider on a public host over https on port 443; a provider linked to a connector keeps its connector. region picks which Quilr region's outbound IPs are used (GET lists every region's addresses). The setting is kept per region.",
-        "operationId": "Set_egress_proxy",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "example": {
-                "enabled": true,
-                "region": "in"
-              },
-              "schema": {
-                "$ref": "#/components/schemas/EgressProxyUpdate"
-              }
-            }
-          },
-          "required": false
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "egress_proxy": {
-                    "applies_within_seconds": 120,
-                    "available": true,
-                    "enabled": true,
-                    "region": "in",
-                    "regions": [
-                      {
-                        "available": true,
-                        "code": "in",
-                        "ips": [
-                          "203.0.113.10"
-                        ],
-                        "name": "India"
-                      }
-                    ],
-                    "updated_at": "2026-11-16T10:00:00Z",
-                    "updated_by": "management_key:mk_example"
-                  },
-                  "request_id": "req_example"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/EgressProxyResponse"
-                }
-              }
-            },
-            "description": "Success",
-            "headers": {
-              "Cache-Control": {
-                "$ref": "#/components/headers/Cache-Control"
-              },
-              "ETag": {
-                "$ref": "#/components/headers/ETag"
-              },
-              "X-Request-ID": {
-                "$ref": "#/components/headers/X-Request-ID"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "408": {
-            "$ref": "#/components/responses/BodyTimeout"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "413": {
-            "$ref": "#/components/responses/BodyTooLarge"
-          },
-          "422": {
-            "$ref": "#/components/responses/Unprocessable"
-          },
-          "429": {
-            "$ref": "#/components/responses/Busy"
-          },
-          "503": {
-            "$ref": "#/components/responses/Unavailable"
-          }
-        },
-        "security": [
-          {
-            "ManagementKey": []
-          }
-        ],
-        "summary": "Turn Quilr outbound IPs on or off",
-        "tags": [
-          "Providers"
-        ],
-        "x-scopes": [
-          "config:write"
-        ]
-      }
-    },
     "/llmgateway/management/v1/failover/summary": {
       "get": {
         "description": "Retries, failovers and outcomes per target over a window.",
@@ -71222,6 +71030,198 @@
         "summary": "Recover a pending operation",
         "tags": [
           "History"
+        ],
+        "x-scopes": [
+          "config:write"
+        ]
+      }
+    },
+    "/llmgateway/management/v1/outbound-ips": {
+      "get": {
+        "description": "The account-wide Quilr outbound IP setting and every region's addresses. A provider's own use_outbound_ips setting (in its provider_settings) always wins: a region code or true calls it from the Quilr outbound IPs, false calls it directly. A provider without one follows this account-wide setting; with neither set, the provider is called directly. Outbound IPs work for a provider on a public host over https on port 443; a provider linked to a connector keeps its connector. region picks which Quilr region's outbound IPs are used (GET lists every region's addresses). The setting is kept per region.",
+        "operationId": "Get_outbound_ips",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "outbound_ips": {
+                    "applies_within_seconds": 120,
+                    "available": true,
+                    "enabled": true,
+                    "region": "in",
+                    "regions": [
+                      {
+                        "available": true,
+                        "code": "in",
+                        "ips": [
+                          "203.0.113.10"
+                        ],
+                        "name": "India"
+                      }
+                    ],
+                    "updated_at": "2026-11-16T10:00:00Z",
+                    "updated_by": "management_key:mk_example"
+                  },
+                  "request_id": "req_example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OutboundIpsResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read the outbound IP setting",
+        "tags": [
+          "Providers"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "put": {
+        "description": "Set the account-wide setting: enabled true, false, or null to clear it, and the region. A provider's own use_outbound_ips setting (in its provider_settings) always wins: a region code or true calls it from the Quilr outbound IPs, false calls it directly. A provider without one follows this account-wide setting; with neither set, the provider is called directly. Outbound IPs work for a provider on a public host over https on port 443; a provider linked to a connector keeps its connector. region picks which Quilr region's outbound IPs are used (GET lists every region's addresses). The setting is kept per region.",
+        "operationId": "Set_outbound_ips",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "enabled": true,
+                "region": "in"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/OutboundIpsUpdate"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "outbound_ips": {
+                    "applies_within_seconds": 120,
+                    "available": true,
+                    "enabled": true,
+                    "region": "in",
+                    "regions": [
+                      {
+                        "available": true,
+                        "code": "in",
+                        "ips": [
+                          "203.0.113.10"
+                        ],
+                        "name": "India"
+                      }
+                    ],
+                    "updated_at": "2026-11-16T10:00:00Z",
+                    "updated_by": "management_key:mk_example"
+                  },
+                  "request_id": "req_example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OutboundIpsResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Turn Quilr outbound IPs on or off",
+        "tags": [
+          "Providers"
         ],
         "x-scopes": [
           "config:write"
