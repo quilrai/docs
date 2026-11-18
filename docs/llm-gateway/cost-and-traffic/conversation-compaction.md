@@ -23,7 +23,7 @@ Say you compact a support bot's conversations past 20 user messages and keep the
 1. A user sends the 21st message, so the conversation is over the limit.
 2. The gateway sends the 16 older turns to your summary model, which writes a summary.
 3. The answering model receives the instructions, the summary and the latest 5 user messages with their replies and tool calls.
-4. Later turns reuse the summary. The gateway summarizes again only when the conversation passes the limit again, adding the newly older turns to the summary.
+4. Later turns reuse the summary. The gateway summarizes again when the conversation passes the limit again, adding the newly older turns to the summary.
 
 These are never summarized:
 
@@ -100,7 +100,7 @@ One exception: if a conversation fits your per-request token limit only after co
 
 - The turn that compacts waits for the summary, so it answers more slowly. Later turns reuse the summary.
 - Each compaction changes the start of the conversation once, so the provider's prompt cache misses once. Between compactions, the start stays the same and the cache keeps working.
-- A summary is kept for 24 hours for each conversation and user. After that, or when the earlier history changes, the gateway summarizes again.
+- A summary is kept for 24 hours for each conversation and user. After that, or when the earlier history changes, the gateway summarizes again. It also summarizes again when a data protection change alters how the summarized messages are sent, for example from Monitor to Redact, so a summary never brings back a value that is now redacted, and when you raise **Latest user turns**.
 - Supported APIs: OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, Gemini `generateContent` (Gemini API and Vertex AI), and Amazon Bedrock Converse and InvokeModel for Claude, Nova and OpenAI-format models.
 - The Management API has no compaction control yet.
 
