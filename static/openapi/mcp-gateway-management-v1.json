@@ -441,7 +441,7 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Name of each MCP in a hook's `scope.mcp_ids`; an MCP that was deleted is absent.",
+            "description": "Name of each MCP in a hook's `scope.mcp_ids`; an MCP that was deleted or is not this tenant's is absent.",
             "type": "object"
           },
           "request_id": {
@@ -4595,7 +4595,7 @@
                 "type": "null"
               }
             ],
-            "description": "on_complete only: this server's delivery state."
+            "description": "on_complete only: this server's delivery state; null when it cannot be read."
           },
           "hook_id": {
             "type": "string"
@@ -11657,7 +11657,7 @@
         ]
       },
       "post": {
-        "description": "Adds a hook (201). It applies to tool calls within a few seconds. 400 `blocked_destination` when the URL is not a public https address, 400 `unknown_secret` when auth or signing names a secret not sent under `secrets`, 422 `hook_limit` over the limits.",
+        "description": "Adds a hook (201). It applies to tool calls within a few seconds. 400 `invalid_request` when the URL is not https, 400 `blocked_destination` when it points to a private or Quilr address, 400 `unknown_secret` when auth or signing names a secret not sent under `secrets`, 422 `hook_limit` over the limits.",
         "operationId": "Create_hook",
         "parameters": [],
         "requestBody": {

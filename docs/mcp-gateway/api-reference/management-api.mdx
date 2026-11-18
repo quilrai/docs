@@ -407,7 +407,7 @@ Every error has the same shape:
 | 400 | `upstream_auth_failed` | The upstream MCP server rejected the credentials or could not list tools. |
 | 400 | `oauth_registration_failed` | Dynamic client registration with the provider failed (`oauth_dcr` without your own client); supply OAuth client credentials. Used only for that failure. |
 | 400 | `no_operations_selected`, `invalid_operation_override` | A REST API change would expose no operation, or names operations not in the document (`unknown_operations`). |
-| 400 | `spec_missing`, `spec_invalid`, `blocked_destination` | OpenAPI document missing, unreadable, or at a destination the gateway does not call. OpenAPI document errors use the same codes on create, preview, `PATCH .../api-config` and resync. A hook URL that is not a public https address is also `blocked_destination`. |
+| 400 | `spec_missing`, `spec_invalid`, `blocked_destination` | OpenAPI document missing, unreadable, or at a destination the gateway does not call. OpenAPI document errors use the same codes on create, preview, `PATCH .../api-config` and resync. A hook URL that points to a Quilr, private or local address is also `blocked_destination`. |
 | 400 | `unknown_secret` | A hook's auth or signing names a secret not sent under `secrets`. See [hook errors](./hooks-api#errors). |
 | 400 | `unsupported_encoding`, `invalid_api_backend` | The OpenAPI document's encoding is not supported; the REST API configuration is invalid. |
 | 401 | `invalid_management_key` | Missing, unknown, expired or revoked key. |

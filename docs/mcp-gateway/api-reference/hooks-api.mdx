@@ -15,7 +15,7 @@ import {ApiReference} from '@site/src/components/ManagementApi/mcp';
 
 **Check tool calls with your own API.** A hook sends each tool call to an HTTPS endpoint you run. Your endpoint answers allow, flag or block: before the tool runs, to stop an action, or after it runs, to stop the AI from seeing the result. Your rules stay on your own server. An export hook instead sends every finished tool call to your endpoint in batches, for example to your SIEM.
 
-Hooks are created and changed only through the Management API. The console lists them read-only under **Settings > AI Gateway > MCP Gateway > Management API > Configured hooks**. Reading hooks needs `read`; creating, changing, deleting and testing them needs `hooks:write` (see [scopes](./management-api#scopes)). Try every call in the [MCP Management API playground](/mcp-gateway-management-playground).
+Hooks are created and changed only through the Management API. The console shows them read-only: go to **Settings > AI Gateway > MCP Gateway > Management API** and click **Configured hooks**. Reading hooks needs `read`; creating, changing, deleting and testing them needs `hooks:write` (see [scopes](./management-api#scopes)). Try every call in the [MCP Management API playground](/mcp-gateway-management-playground).
 
 | Stage | When it runs | What your endpoint can do |
 | --- | --- | --- |
@@ -57,18 +57,18 @@ Your endpoint receives every tool call and answers, for example:
 
 | Field | Meaning |
 | --- | --- |
-| `name` | Required. Up to 200 characters. |
-| `description` | Optional. |
+| `name` | Required. Up to 128 characters. |
+| `description` | Optional. Up to 2000 characters. |
 | `enabled` | Default `true`. Disabled hooks are kept but never called. |
-| `stage` | Required. `pre_call` or `post_call`. |
-| `mode` | `pre_call` and `post_call`. `enforce` (default): the decision is applied. `observe`: the decision is only recorded; use it to try a new hook safely. |
+| `stage` | Required. `pre_call`, `post_call` or `on_complete`. |
+| `mode` | `pre_call` and `post_call` only. `enforce` (default): the decision is applied. `observe`: the decision is only recorded; use it to try a new hook safely. |
 | `all_mcps` | Default `true`: every MCP. Set `false` and list MCPs in `scope.mcp_ids`. |
-| `scope.mcp_ids` | MCP ids (`GET /mcps`) the hook applies to when `all_mcps` is `false`. |
+| `scope.mcp_ids` | MCP ids (`GET /mcps`) the hook applies to. Required when `all_mcps` is `false`, and must be empty when it is `true`. |
 | `scope.tools` | Tool names the hook applies to. Empty means every tool. On OneMCP, the MCP's own tool name. |
 | `endpoint.url` | Required for `pre_call` and `post_call`. A public `https` address. No user information in the URL, no fragment. |
 | `endpoint.timeout_ms` | 100 to 10000, default 1500. |
-| `endpoint.on_failure` | `allow` (default) or `block`: what happens when your endpoint does not answer properly. |
-| `endpoint.auth` | `{"type": "none"}` (default), `bearer` (`secret`), `basic` (`username_secret`, `password_secret`) or `api_key` (`header`, `secret`). Values are secret names. |
+| `endpoint.on_failure` | `allow` (default) or `block`: what an `enforce` hook does when your endpoint does not answer properly. |
+| `endpoint.auth` | `{"type": "none"}` (default), `bearer` (`secret`), `basic` (`username_secret`, `password_secret`) or `api_key` (`secret`, and `header`, default `X-API-Key`). Values are secret names. |
 | `endpoint.signing` | `{"secret": "<name>"}` to sign every call (see [Verify calls](#signing)). |
 | `export` | Required for `on_complete`, which takes no `mode` or `endpoint`. `url`, `auth`, `signing` as for `endpoint`, plus batching (see [Export finished tool calls](#export)). |
 | `send` | `arguments`, `result`, `user`. Set one to `false` to leave the tool arguments, the result (on `post_call` and `on_complete`) or the user's email out. All three default to `true`, except on `on_complete`, where `arguments` and `result` default to `false`. |
@@ -76,7 +76,7 @@ Your endpoint receives every tool call and answers, for example:
 
 **Secrets.** Secret values are encrypted and never returned: reads show `********`. On `PATCH`, send `********` to keep a value, a new value to rotate it, or `null` to remove it; leave `secrets` out to keep them all. Every secret must be used by `auth` or `signing`.
 
-`PATCH` merges the top-level fields you send over the hook. `PATCH` and `DELETE` need `If-Match` with the hook's `version`. To change a hook to or from `on_complete`, send `null` for the fields the new stage does not take: `endpoint` and `mode`, or `export`.
+`PATCH` merges the top-level fields you send over the hook. `PATCH` and `DELETE` need `If-Match` with the hook's `version` in quotes, for example `If-Match: "h1"` (see [versions and If-Match](./management-api#versions-and-if-match)). To change a hook to or from `on_complete`, send `null` for the fields the new stage does not take: `endpoint` and `mode`, or `export`.
 
 ## What your endpoint receives {#request}
 
@@ -89,7 +89,7 @@ A `POST` with JSON:
   "stage": "pre_call",
   "request_id": "0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
   "tenant_id": "tenant-123",
-  "timestamp": "2026-11-17T10:00:00.00Z",
+  "timestamp": "2026-11-17T10:00:00.000Z",
   "mcp": {"id": "a1b2c3d4", "name": "Jira Cloud"},
   "tool": {"name": "delete_issue"},
   "arguments": {"issue_key": "OPS-42"},
@@ -107,9 +107,9 @@ Answer `2xx` with JSON:
 | --- | --- |
 | `decision` | Required. `allow`, `flag` (continue, and record the flag) or `block`. |
 | `reason` | Recorded with the call (up to 1000 characters). Never shown to the AI. |
-| `user_message` | Shown as the tool's error when the call is blocked. Without it: "This tool call was blocked by your organization's tool-call check." |
-| `labels` | Up to 20 strings, recorded with the call. |
-| `metadata` | JSON, recorded with the call. |
+| `user_message` | Shown as the tool's error when the call is blocked. Without it: "This tool call was blocked by your organization's tool-call check." Up to 1000 characters. |
+| `labels` | Up to 20 strings of up to 64 characters, recorded with the call. |
+| `metadata` | A JSON object, recorded with the call. |
 
 The reply can be at most 64 KB. A non-`2xx` status, a body that is not JSON, or a missing or unknown `decision` is a failure.
 
@@ -119,9 +119,9 @@ The reply can be at most 64 KB. A non-`2xx` status, a body that is not JSON, or 
 
 ## Timeouts and failures {#failures}
 
-A call fails on a timeout, a connection error, a non-`2xx` or unreadable reply, a reply over 64 KB, or a destination the gateway does not call. Then `endpoint.on_failure` applies: `allow` lets the call continue, `block` stops it.
+A call fails on a timeout, a connection error, a non-`2xx` or unreadable reply, a reply over 64 KB, or a destination the gateway does not call. Then `endpoint.on_failure` applies: `allow` lets the call continue, `block` stops it. On an `observe` hook the failure is only recorded.
 
-**Circuit breaker.** After 5 failures in a row, the hook is skipped for 30 seconds and its `on_failure` applies without a call.
+**Circuit breaker.** After 5 failures in a row on a gateway server, that server skips the hook for 30 seconds and applies its `on_failure` without a call. Export hooks have no breaker.
 
 ## Export finished tool calls {#export}
 
@@ -155,7 +155,7 @@ Your endpoint receives a `POST` with `{"records": [...]}`:
       "hook": "hook_9b8c7d6e5f4a3b2c1d0e",
       "request_id": "0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
       "tenant_id": "tenant-123",
-      "timestamp": "2026-11-17T10:00:01.20Z",
+      "timestamp": "2026-11-17T10:00:01.200Z",
       "mcp": {"id": "a1b2c3d4", "name": "Jira Cloud"},
       "tool": {"name": "delete_issue"},
       "outcome": {"status": "blocked", "blocked_by": "pre_call_hook", "failure_stage": null},
@@ -180,8 +180,8 @@ Your endpoint receives a `POST` with `{"records": [...]}`:
 
 - **Delivery:** any `2xx` within 30 seconds delivers the batch. Each batch is tried up to 3 times with the same `Idempotency-Key`, so deduplicate on it. Batches are signed and authenticated like other hook calls.
 - **While your endpoint is down:** after a batch fails all its tries, the hook is unhealthy. The gateway keeps only the latest 100 records for it and sends one probe batch every 30 seconds; when one succeeds, normal delivery resumes.
-- **Retention:** at most 50,000 records or 256 MB are queued per hook on each gateway server; the oldest are dropped first. Deleting or disabling a hook drops its queued records.
-- **Health:** `GET /hooks/{hook_id}/stats` shows the queue on the gateway server that answers: `healthy`, `queued`, `queued_bytes`, `delivered`, `dropped`, `failed_batches`, `last_error` and `last_success`. The console shows the same under **Export health (this server)**.
+- **Retention:** each gateway server queues at most 50,000 records per hook and 256 MB for all hooks together; the oldest are dropped first. Deleting or disabling a hook drops its queued records.
+- **Health:** `GET /hooks/{hook_id}/stats` shows the queue on the gateway server that answers. Its `export` object has `healthy`, `queued`, `queued_bytes`, `delivered`, `dropped`, `failed_batches`, `last_error` and `last_success` (`export` is `null` for `pre_call` and `post_call` hooks); `breaker_open` shows whether a `pre_call` or `post_call` hook is being skipped. The console shows a summary under **Export health (this server)**.
 
 ## Verify calls {#signing}
 
@@ -200,7 +200,7 @@ def verify(header: str, body: bytes, secret: str, max_age: int = 300) -> bool:
 
 ## Security {#security}
 
-- The URL must be a public `https` address. Quilr addresses and private or local addresses are refused when you save (`400 blocked_destination`) and again when the gateway connects. Redirects are not followed.
+- The URL must be a public `https` address. Quilr addresses and private or local IP addresses are refused when you save (`400 blocked_destination`); a host name that resolves to a private address is refused when the gateway connects. Redirects are not followed.
 - Secret values are encrypted at rest, sent only in headers, and never returned.
 - Turn off `send.arguments`, `send.result` or `send.user` to keep that data off your endpoint.
 
@@ -218,14 +218,14 @@ def verify(header: str, body: bytes, secret: str, max_age: int = 300) -> bool:
 | Reply size | 64 KB |
 | Secrets per hook | 8 |
 
-Going over a limit is `422 hook_limit`.
+Going over the hook count or the `enforce` hooks per stage is `422 hook_limit`. An out-of-range timeout or more than 8 secrets is `400 invalid_request`.
 
 ## Errors {#errors}
 
 | Status | Code | Meaning |
 | --- | --- | --- |
 | 400 | `invalid_request` | A field is missing or invalid; `fields` names it. |
-| 400 | `blocked_destination` | The URL is not a public `https` address the gateway calls. |
+| 400 | `blocked_destination` | The URL points to a Quilr address or a private or local address. A URL that is not `https` is `400 invalid_request`. |
 | 400 | `unknown_secret` | `auth` or `signing` names a secret not sent under `secrets`. |
 | 403 | `insufficient_scope` | The key lacks `hooks:write` (writes and tests) or `read`. |
 | 404 | `not_found` | No hook with that id in your organization. |
