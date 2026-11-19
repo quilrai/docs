@@ -43,6 +43,7 @@ Use the Management API to configure LLM Gateway apps, shared providers, quota po
 | **Configure budgets** | `budgets:policy` | Edit budgets, pricing, exemptions and alert destinations |
 | **Manage hooks** | `hooks:write` | Create, change, delete and test [external hooks](./hooks-api) |
 | **Manage personal keys** | `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf |
+| **Manage agents** | `agents:write` | Declare and undeclare [agents](./agents-api) and create, change and delete agent groups |
 
 Routing, rate limit and incident scopes (`routing:*`, `limits:*`, `incidents:*`) are described under [Scopes](#scopes).
 
@@ -80,6 +81,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | QuilrQL behavior | Read authority metadata; eligible new apps receive allowed-models defaults when authority is already enabled. | General policy authoring and publishing: **Not Generally Available**. The typed budgets, routing and limits APIs cover those cards without QuilrQL. |
 | Prompt Store | List, read, create, replace and delete app prompts. | Prompt content and policy enforcement are distinct. |
 | Smart groups | List groups with their rank (`priority`) and strength (`rank`), create and edit virtual groups and their members, override a synced group's rank (`priority`), and preview who changes governing group. See the [Smart groups API](./smart-groups-api). | Synced groups' members come from your directory; only their rank can be overridden. |
+| Agents | List agents and coding tools seen in gateway traffic, declare agents with an owner and tags, create agent groups with match rules, and read families. See the [Agents API](./agents-api). | Agent identity is self-reported by the client: a label, not authentication. Writes are not policy changes. |
 | Custom definitions | Read and use existing definitions in app configuration. | Definition editing: **Not Generally Available**. |
 | History | Read redacted config versions and audit, restore eligible app settings. | Request logs come from the [Log Export API](./log-export-api). Red-team jobs: **Not Generally Available** through management v1. |
 
@@ -326,10 +328,11 @@ All scopes listed for an operation are required. No scope implies another.
 | `incidents:write` | Mark providers down, preview, restore, reset cooldowns and drop session pins. Never a policy revision. |
 | `hooks:write` | Create, change, delete and test [external hooks](./hooks-api). Each write publishes a policy revision. Reading hooks, the field catalog, previews and stats needs `read`. |
 | `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf. Reading them needs `read` (see the [Self-service API](./self-service-api#personal-api-keys)). |
+| `agents:write` | Declare, change and undeclare agents, and create, change and delete agent groups (see the [Agents API](./agents-api)). Reading agents, groups and families needs `read`. |
 
 App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`. `GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
 
-Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The eighteen scopes above are the accepted scopes and apply tenant-wide.
+Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The nineteen scopes above are the accepted scopes and apply tenant-wide.
 
 ### Administration boundary
 

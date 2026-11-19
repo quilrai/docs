@@ -10,7 +10,7 @@ aliases: [policy engine, policy studio, quilrql, llm gateway policies, mcp gatew
 
 # Policy Engine overview
 
-Updated on 10 November 2026.
+Updated on 20 November 2026.
 
 Use the Policy Engine to decide who can use your gateways, what requests are checked, and what may return. Open **Govern > Policy Engine**, then choose **LLM Gateway** or **MCP Gateway**.
 
@@ -33,6 +33,7 @@ Each gateway has its own engine status and these sections:
 | **Test** | **Try a situation** or **Replay activity** before publishing. |
 | **History** | Compare published versions and review what changed. |
 | **Groups** (LLM Gateway only) | Rank smart groups (**Rank**: lower number wins; **Strength**: the resulting position, **#1** strongest) and create virtual groups. The best-ranked group governs a person who is in several groups. See [Budgets for several groups](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups). |
+| **Agents** (LLM Gateway only) | See the agents and coding tools seen in gateway traffic in the last 30 days, declare agents with an owner and tags, and build agent groups. Views: **All agents**, **Review**, **Agent groups**, **Families**. See [Agents and coding tools](../../llm-gateway/protect/agents-and-coding-tools). |
 
 **POLICY ENGINE ON** means published policies govern that gateway. The header shows when it was updated. A control's status summarizes its configured scope; it is not proof that a particular request will match.
 
