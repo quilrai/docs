@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference} from '@s
 
 Use a management key to manage your organization's MCPs from scripts, CI pipelines, infrastructure-as-code and internal tools. Each key belongs to **one tenant**, carries explicit scopes, and works only while management is enabled for the organization.
 
-With the Management API you can list and inspect MCPs, add, install and remove them, change their settings and upstream credentials, review new tools, connect OAuth MCPs, add custom tools, and read usage analytics and the audit trail. Explore complete input specifications and examples on the pages below, download the [OpenAPI 3.1 reference](/openapi/mcp-gateway-management-v1.json), or send live calls from the [MCP Management API playground](/mcp-gateway-management-playground). Every endpoint below has a **Try it in the playground** link.
+With the Management API you can list and inspect MCPs, add, install and remove them, change their settings and upstream credentials, review new tools, connect OAuth MCPs, add custom tools, add hooks that check tool calls, and read usage analytics and the audit trail. Explore complete input specifications and examples on the pages below, download the [OpenAPI 3.1 reference](/openapi/mcp-gateway-management-v1.json), or send live calls from the [MCP Management API playground](/mcp-gateway-management-playground). Every endpoint below has a **Try it in the playground** link.
 
 ## Enable in the console
 
@@ -38,6 +38,7 @@ With the Management API you can list and inspect MCPs, add, install and remove t
 | **Manage agents** | `agents:write` | Create and delete custom agents. |
 | **Tenant settings** | `tenant_settings:write` | Change tenant switches, tool-argument aliases and MCP requests. |
 | **Custom tools** | `tools:write` | Create, change, delete and test-run custom tools. Test runs call the MCP as the key owner. |
+| **Manage hooks** | `hooks:write` | Create, change, delete and test hooks that call your own HTTPS API before or after tool calls. Reading hooks needs Read. |
 
 The **Management keys** table lists each key's **Name**, **Scopes**, **Status**, **Fingerprint**, **Created**, **Expires**, **Last used** and **Actions**. Use the edit action to change a key's **Key name**, scopes or **Expiry** (or select **Never expires**), then click **Save changes**. Use the revoke action and confirm with **Revoke key**: automation using the key stops working, and revocation cannot be undone.
 
@@ -229,6 +230,7 @@ Abbreviated: report rows carry more fields. See the [Analytics and audit API](./
 | Expose a REST API as MCP tools | [Add a REST API as an MCP](./mcps-api#Create_an_api_mcp) |
 | Change which REST API operations become tools | [REST API MCPs](./rest-api-mcps-api) |
 | Add your own tool that chains an MCP's tools | [Custom tools](./custom-tools-api) |
+| Check or block tool calls with your own HTTPS API, or export finished tool calls | [Hooks](./hooks-api) |
 | Give people a link to connect an MCP themselves | [Sign-in link](./client-access-api#sign-in-link) |
 | Have each person bring their own API key | [Upstream credentials](./settings-and-credentials-api#upstream-credentials) |
 | Rotate an OAuth client secret | [OAuth client rotation](./client-access-api#oauth-client) |
@@ -289,6 +291,7 @@ All scopes listed for an operation are required. No scope implies another.
 | `agents:write` | Create and delete custom agents. |
 | `tenant_settings:write` | Change tenant switches (Dynamic Tool Calling, Memories, new-tool review), manage tool-argument aliases and dismiss users' MCP requests. |
 | `tools:write` | Create, change, delete and test-run [custom tools](./custom-tools-api). Test runs call the MCP as the key owner, with real effects. |
+| `hooks:write` | Create, change, delete and test [hooks](./hooks-api). A test sends a sample call to your endpoint. |
 
 Allowing or blocking an agent on an MCP (`PUT /mcps/{mcp_id}/agents/{agent}`) changes MCP configuration and needs `settings:write`.
 
@@ -404,7 +407,8 @@ Every error has the same shape:
 | 400 | `upstream_auth_failed` | The upstream MCP server rejected the credentials or could not list tools. |
 | 400 | `oauth_registration_failed` | Dynamic client registration with the provider failed (`oauth_dcr` without your own client); supply OAuth client credentials. Used only for that failure. |
 | 400 | `no_operations_selected`, `invalid_operation_override` | A REST API change would expose no operation, or names operations not in the document (`unknown_operations`). |
-| 400 | `spec_missing`, `spec_invalid`, `blocked_destination` | OpenAPI document missing, unreadable, or at a destination the gateway does not call. OpenAPI document errors use the same codes on create, preview, `PATCH .../api-config` and resync. |
+| 400 | `spec_missing`, `spec_invalid`, `blocked_destination` | OpenAPI document missing, unreadable, or at a destination the gateway does not call. OpenAPI document errors use the same codes on create, preview, `PATCH .../api-config` and resync. A hook URL that points to a Quilr, private or local address is also `blocked_destination`. |
+| 400 | `unknown_secret` | A hook's auth or signing names a secret not sent under `secrets`. See [hook errors](./hooks-api#errors). |
 | 400 | `unsupported_encoding`, `invalid_api_backend` | The OpenAPI document's encoding is not supported; the REST API configuration is invalid. |
 | 401 | `invalid_management_key` | Missing, unknown, expired or revoked key. |
 | 401 | `invalid_admin_token` | Administration endpoint without a valid administrator token. |
@@ -454,6 +458,7 @@ Every error has the same shape:
 | 413 | `body_too_large` | Body over 1 MiB. |
 | 413 | `spec_too_large` | The OpenAPI document is over 10 MiB. An inline document is also bound by the 1 MiB body limit (`body_too_large`); send `source_url` instead. |
 | 422 | `install_input_required` | Catalog install needs more values (`missing_fields`). |
+| 422 | `hook_limit` | 10 hooks already, or a 4th enabled enforcing hook on the same stage. See [hook limits](./hooks-api#limits). |
 | 422 | `result_too_large` | Report would exceed 100,000 rows. |
 | 422 | `tools_too_large` | The selected REST API operations produce more tool definitions than allowed. |
 | 428 | `precondition_required` | `If-Match` missing. |

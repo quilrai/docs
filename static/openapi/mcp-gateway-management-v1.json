@@ -282,6 +282,181 @@
         },
         "type": "object"
       },
+      "AdminHookList": {
+        "additionalProperties": true,
+        "properties": {
+          "hooks": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "all_mcps": {
+                  "default": true,
+                  "description": "true: every MCP of the tenant. false: only `scope.mcp_ids`.",
+                  "type": "boolean"
+                },
+                "created_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "created_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "endpoint": {
+                  "description": "pre_call and post_call hooks.",
+                  "type": "object"
+                },
+                "export": {
+                  "description": "on_complete hooks.",
+                  "type": "object"
+                },
+                "export_health": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "properties": {
+                        "delivered": {
+                          "type": "integer"
+                        },
+                        "dropped": {
+                          "description": "Records discarded by the queue limits.",
+                          "type": "integer"
+                        },
+                        "failed_batches": {
+                          "type": "integer"
+                        },
+                        "healthy": {
+                          "description": "false after a failed batch, until one is delivered.",
+                          "type": "boolean"
+                        },
+                        "last_success": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "queued": {
+                          "type": "integer"
+                        },
+                        "scope": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "on_complete hooks: the answering server's delivery state; null when it cannot be read."
+                },
+                "hook_id": {
+                  "type": "string"
+                },
+                "mode": {
+                  "default": "enforce",
+                  "description": "pre_call and post_call only. observe: called and logged, never changes the call.",
+                  "enum": [
+                    "enforce",
+                    "observe",
+                    null
+                  ],
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "name": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "scope": {
+                  "type": "object"
+                },
+                "secrets": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "send": {
+                  "type": "object"
+                },
+                "stage": {
+                  "description": "pre_call and post_call need `endpoint`; on_complete needs `export`.",
+                  "enum": [
+                    "pre_call",
+                    "post_call",
+                    "on_complete"
+                  ],
+                  "type": "string"
+                },
+                "updated_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "updated_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "version": {
+                  "description": "Opaque resource version. Send its quoted value in If-Match.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "hook_id",
+                "name",
+                "stage",
+                "enabled",
+                "version"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "limits": {
+            "type": "object"
+          },
+          "mcp_names": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Name of each MCP in a hook's `scope.mcp_ids`; an MCP that was deleted or is not this tenant's is absent.",
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hooks",
+          "limits",
+          "mcp_names",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "Agent": {
         "additionalProperties": true,
         "properties": {
@@ -3500,6 +3675,998 @@
         ],
         "type": "object"
       },
+      "Hook": {
+        "additionalProperties": true,
+        "properties": {
+          "hook": {
+            "additionalProperties": true,
+            "properties": {
+              "all_mcps": {
+                "default": true,
+                "description": "true: every MCP of the tenant. false: only `scope.mcp_ids`.",
+                "type": "boolean"
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "created_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "enabled": {
+                "default": true,
+                "type": "boolean"
+              },
+              "endpoint": {
+                "description": "pre_call and post_call hooks.",
+                "type": "object"
+              },
+              "export": {
+                "description": "on_complete hooks.",
+                "type": "object"
+              },
+              "hook_id": {
+                "type": "string"
+              },
+              "mode": {
+                "default": "enforce",
+                "description": "pre_call and post_call only. observe: called and logged, never changes the call.",
+                "enum": [
+                  "enforce",
+                  "observe",
+                  null
+                ],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              "scope": {
+                "type": "object"
+              },
+              "secrets": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              "send": {
+                "type": "object"
+              },
+              "stage": {
+                "description": "pre_call and post_call need `endpoint`; on_complete needs `export`.",
+                "enum": [
+                  "pre_call",
+                  "post_call",
+                  "on_complete"
+                ],
+                "type": "string"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "updated_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "version": {
+                "description": "Opaque resource version. Send its quoted value in If-Match.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "hook_id",
+              "name",
+              "stage",
+              "enabled",
+              "version"
+            ],
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "version": {
+            "description": "Opaque resource version. Send its quoted value in If-Match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hook",
+          "version",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "HookCreate": {
+        "additionalProperties": false,
+        "description": "pre_call and post_call need `endpoint`; on_complete needs `export` and takes no `mode` or `endpoint`.",
+        "properties": {
+          "all_mcps": {
+            "default": true,
+            "description": "true: every MCP of the tenant. false: only `scope.mcp_ids`.",
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 2000,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "auth": {
+                    "additionalProperties": false,
+                    "description": "How the gateway signs in to your service. bearer: `Authorization: Bearer <secret>`; basic: username and password secrets; api_key: the secret in `header`.",
+                    "properties": {
+                      "header": {
+                        "description": "api_key only: the header that carries the key (default `X-API-Key`).",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "password_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "type": {
+                        "enum": [
+                          "none",
+                          "bearer",
+                          "basic",
+                          "api_key"
+                        ],
+                        "type": "string"
+                      },
+                      "username_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "on_failure": {
+                    "default": "allow",
+                    "description": "What a failed call means (timeout, an answer other than 2xx, an unreadable reply). Applies to `enforce` hooks.",
+                    "enum": [
+                      "allow",
+                      "block"
+                    ],
+                    "type": "string"
+                  },
+                  "signing": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "secret": {
+                            "description": "Name of a value under `secrets`.",
+                            "maxLength": 64,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "secret"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Sign every request with the HMAC secret named here."
+                  },
+                  "timeout_ms": {
+                    "default": 1500,
+                    "maximum": 10000,
+                    "minimum": 100,
+                    "type": "integer"
+                  },
+                  "url": {
+                    "description": "https URL on a public address.",
+                    "maxLength": 2048,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "pre_call and post_call only."
+          },
+          "export": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "on_complete only: where and how finished tool calls are sent in batches.",
+                "properties": {
+                  "auth": {
+                    "additionalProperties": false,
+                    "description": "How the gateway signs in to your service. bearer: `Authorization: Bearer <secret>`; basic: username and password secrets; api_key: the secret in `header`.",
+                    "properties": {
+                      "header": {
+                        "description": "api_key only: the header that carries the key (default `X-API-Key`).",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "password_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "type": {
+                        "enum": [
+                          "none",
+                          "bearer",
+                          "basic",
+                          "api_key"
+                        ],
+                        "type": "string"
+                      },
+                      "username_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "batch_size": {
+                    "default": 100,
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "flush_ms": {
+                    "default": 5000,
+                    "maximum": 60000,
+                    "minimum": 250,
+                    "type": "integer"
+                  },
+                  "max_batch_bytes": {
+                    "default": 4194304,
+                    "maximum": 8388608,
+                    "minimum": 65536,
+                    "type": "integer"
+                  },
+                  "signing": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "secret": {
+                            "description": "Name of a value under `secrets`.",
+                            "maxLength": 64,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "secret"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Sign every batch with the HMAC secret named here."
+                  },
+                  "url": {
+                    "description": "https URL on a public address.",
+                    "maxLength": 2048,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mode": {
+            "default": "enforce",
+            "description": "pre_call and post_call only. observe: called and logged, never changes the call.",
+            "enum": [
+              "enforce",
+              "observe",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "scope": {
+            "additionalProperties": false,
+            "properties": {
+              "mcp_ids": {
+                "description": "MCPs the hook applies to when `all_mcps` is false.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              "tools": {
+                "description": "Only these tool names; empty means every tool.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "secrets": {
+            "additionalProperties": {
+              "maxLength": 4096,
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "description": "Write only, by name (`[a-z][a-z0-9_]*`). Reads show `********`. On a change, sending `********` keeps the saved value, `null` removes it; leaving `secrets` out keeps all of them. Every secret must be used by the auth or signing of `endpoint` (or `export`).",
+            "maxProperties": 8,
+            "type": "object"
+          },
+          "send": {
+            "additionalProperties": false,
+            "description": "Which parts of the call your service receives.",
+            "properties": {
+              "arguments": {
+                "description": "Default true, false for on_complete.",
+                "type": "boolean"
+              },
+              "result": {
+                "description": "Default true for post_call, false for on_complete. Never sent on pre_call.",
+                "type": "boolean"
+              },
+              "user": {
+                "default": true,
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "stage": {
+            "description": "pre_call and post_call need `endpoint`; on_complete needs `export`.",
+            "enum": [
+              "pre_call",
+              "post_call",
+              "on_complete"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "stage"
+        ],
+        "type": "object"
+      },
+      "HookDeleted": {
+        "additionalProperties": true,
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          },
+          "hook_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hook_id",
+          "deleted",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "HookList": {
+        "additionalProperties": true,
+        "properties": {
+          "hooks": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "all_mcps": {
+                  "default": true,
+                  "description": "true: every MCP of the tenant. false: only `scope.mcp_ids`.",
+                  "type": "boolean"
+                },
+                "created_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "created_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "endpoint": {
+                  "description": "pre_call and post_call hooks.",
+                  "type": "object"
+                },
+                "export": {
+                  "description": "on_complete hooks.",
+                  "type": "object"
+                },
+                "hook_id": {
+                  "type": "string"
+                },
+                "mode": {
+                  "default": "enforce",
+                  "description": "pre_call and post_call only. observe: called and logged, never changes the call.",
+                  "enum": [
+                    "enforce",
+                    "observe",
+                    null
+                  ],
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "name": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "scope": {
+                  "type": "object"
+                },
+                "secrets": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "send": {
+                  "type": "object"
+                },
+                "stage": {
+                  "description": "pre_call and post_call need `endpoint`; on_complete needs `export`.",
+                  "enum": [
+                    "pre_call",
+                    "post_call",
+                    "on_complete"
+                  ],
+                  "type": "string"
+                },
+                "updated_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "updated_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "version": {
+                  "description": "Opaque resource version. Send its quoted value in If-Match.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "hook_id",
+                "name",
+                "stage",
+                "enabled",
+                "version"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "limits": {
+            "type": "object"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hooks",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "HookPatch": {
+        "additionalProperties": false,
+        "description": "Fields to change; the rest keep their saved values. `endpoint`, `export`, `scope` and `send` are replaced as a whole. To move a hook to or from on_complete, send `null` for the fields the new stage does not take (`endpoint` and `mode`, or `export`).",
+        "minProperties": 1,
+        "properties": {
+          "all_mcps": {
+            "default": true,
+            "description": "true: every MCP of the tenant. false: only `scope.mcp_ids`.",
+            "type": "boolean"
+          },
+          "description": {
+            "maxLength": 2000,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "auth": {
+                    "additionalProperties": false,
+                    "description": "How the gateway signs in to your service. bearer: `Authorization: Bearer <secret>`; basic: username and password secrets; api_key: the secret in `header`.",
+                    "properties": {
+                      "header": {
+                        "description": "api_key only: the header that carries the key (default `X-API-Key`).",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "password_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "type": {
+                        "enum": [
+                          "none",
+                          "bearer",
+                          "basic",
+                          "api_key"
+                        ],
+                        "type": "string"
+                      },
+                      "username_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "on_failure": {
+                    "default": "allow",
+                    "description": "What a failed call means (timeout, an answer other than 2xx, an unreadable reply). Applies to `enforce` hooks.",
+                    "enum": [
+                      "allow",
+                      "block"
+                    ],
+                    "type": "string"
+                  },
+                  "signing": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "secret": {
+                            "description": "Name of a value under `secrets`.",
+                            "maxLength": 64,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "secret"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Sign every request with the HMAC secret named here."
+                  },
+                  "timeout_ms": {
+                    "default": 1500,
+                    "maximum": 10000,
+                    "minimum": 100,
+                    "type": "integer"
+                  },
+                  "url": {
+                    "description": "https URL on a public address.",
+                    "maxLength": 2048,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "pre_call and post_call only."
+          },
+          "export": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "on_complete only: where and how finished tool calls are sent in batches.",
+                "properties": {
+                  "auth": {
+                    "additionalProperties": false,
+                    "description": "How the gateway signs in to your service. bearer: `Authorization: Bearer <secret>`; basic: username and password secrets; api_key: the secret in `header`.",
+                    "properties": {
+                      "header": {
+                        "description": "api_key only: the header that carries the key (default `X-API-Key`).",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "password_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "type": {
+                        "enum": [
+                          "none",
+                          "bearer",
+                          "basic",
+                          "api_key"
+                        ],
+                        "type": "string"
+                      },
+                      "username_secret": {
+                        "description": "Name of a value under `secrets`.",
+                        "maxLength": 64,
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "batch_size": {
+                    "default": 100,
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "flush_ms": {
+                    "default": 5000,
+                    "maximum": 60000,
+                    "minimum": 250,
+                    "type": "integer"
+                  },
+                  "max_batch_bytes": {
+                    "default": 4194304,
+                    "maximum": 8388608,
+                    "minimum": 65536,
+                    "type": "integer"
+                  },
+                  "signing": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "secret": {
+                            "description": "Name of a value under `secrets`.",
+                            "maxLength": 64,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "secret"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Sign every batch with the HMAC secret named here."
+                  },
+                  "url": {
+                    "description": "https URL on a public address.",
+                    "maxLength": 2048,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mode": {
+            "default": "enforce",
+            "description": "pre_call and post_call only. observe: called and logged, never changes the call.",
+            "enum": [
+              "enforce",
+              "observe",
+              null
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "scope": {
+            "additionalProperties": false,
+            "properties": {
+              "mcp_ids": {
+                "description": "MCPs the hook applies to when `all_mcps` is false.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              "tools": {
+                "description": "Only these tool names; empty means every tool.",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "secrets": {
+            "additionalProperties": {
+              "maxLength": 4096,
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "description": "Write only, by name (`[a-z][a-z0-9_]*`). Reads show `********`. On a change, sending `********` keeps the saved value, `null` removes it; leaving `secrets` out keeps all of them. Every secret must be used by the auth or signing of `endpoint` (or `export`).",
+            "maxProperties": 8,
+            "type": "object"
+          },
+          "send": {
+            "additionalProperties": false,
+            "description": "Which parts of the call your service receives.",
+            "properties": {
+              "arguments": {
+                "description": "Default true, false for on_complete.",
+                "type": "boolean"
+              },
+              "result": {
+                "description": "Default true for post_call, false for on_complete. Never sent on pre_call.",
+                "type": "boolean"
+              },
+              "user": {
+                "default": true,
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "stage": {
+            "description": "pre_call and post_call need `endpoint`; on_complete needs `export`.",
+            "enum": [
+              "pre_call",
+              "post_call",
+              "on_complete"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "HookStats": {
+        "additionalProperties": true,
+        "properties": {
+          "breaker_open": {
+            "description": "pre_call and post_call: skipped after 5 failures in a row.",
+            "type": "boolean"
+          },
+          "export": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "delivered": {
+                    "type": "integer"
+                  },
+                  "dropped": {
+                    "description": "Records discarded by the queue limits.",
+                    "type": "integer"
+                  },
+                  "failed_batches": {
+                    "type": "integer"
+                  },
+                  "healthy": {
+                    "description": "false after a failed batch, until one is delivered.",
+                    "type": "boolean"
+                  },
+                  "last_error": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "last_success": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "queued": {
+                    "type": "integer"
+                  },
+                  "queued_bytes": {
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "on_complete only: this server's delivery state; null when it cannot be read."
+          },
+          "hook_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hook_id",
+          "stage",
+          "scope",
+          "export",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "HookTestResult": {
+        "additionalProperties": true,
+        "properties": {
+          "error": {
+            "description": "timeout, http_status, connect_error, blocked_destination, reply_too_large, reply_not_json or reply_without_decision.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hook_id": {
+            "type": "string"
+          },
+          "ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "reply": {
+            "description": "Your service's answer, as the gateway read it (null for on_complete).",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Request correlation id (also in X-Request-ID).",
+            "type": "string"
+          },
+          "status_code": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "hook_id",
+          "ok",
+          "request_id"
+        ],
+        "type": "object"
+      },
       "LatencyReport": {
         "additionalProperties": true,
         "properties": {
@@ -3733,6 +4900,7 @@
                 "agents:write",
                 "connections:write",
                 "credentials:write",
+                "hooks:write",
                 "mcps:write",
                 "read",
                 "settings:write",
@@ -3790,6 +4958,7 @@
                 "agents:write",
                 "connections:write",
                 "credentials:write",
+                "hooks:write",
                 "mcps:write",
                 "read",
                 "settings:write",
@@ -3897,6 +5066,7 @@
                 "agents:write",
                 "connections:write",
                 "credentials:write",
+                "hooks:write",
                 "mcps:write",
                 "read",
                 "settings:write",
@@ -7872,6 +9042,197 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/mcpgateway/management-admin/v1/tenants/{tenant_id}/hooks": {
+      "get": {
+        "description": "Every hook of the tenant, read only, secrets masked, with the names of the MCPs they are scoped to. Listed even while management keys are suspended, because hooks still run.",
+        "operationId": "List_tenant_hooks",
+        "parameters": [
+          {
+            "description": "Your tenant id; must be the administrator's tenant.",
+            "example": "tenant-123",
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "hooks": [
+                    {
+                      "all_mcps": false,
+                      "created_at": "2026-11-16T09:00:00Z",
+                      "created_by": "key:7c1e",
+                      "description": "Checks file tools before they run.",
+                      "enabled": true,
+                      "endpoint": {
+                        "auth": {
+                          "secret": "token",
+                          "type": "bearer"
+                        },
+                        "on_failure": "allow",
+                        "signing": {
+                          "secret": "signing_key"
+                        },
+                        "timeout_ms": 1500,
+                        "url": "https://hooks.example.com/mcp/pre-call"
+                      },
+                      "hook_id": "hook_3f9a1c2b7d4e5f60a1b2",
+                      "mode": "enforce",
+                      "name": "Block exports to personal drives",
+                      "scope": {
+                        "mcp_ids": [
+                          "a1b2c3d4"
+                        ],
+                        "tools": [
+                          "upload_file"
+                        ]
+                      },
+                      "secrets": {
+                        "signing_key": "********",
+                        "token": "********"
+                      },
+                      "send": {
+                        "arguments": true,
+                        "result": true,
+                        "user": true
+                      },
+                      "stage": "pre_call",
+                      "updated_at": "2026-11-16T09:00:00Z",
+                      "updated_by": "key:7c1e",
+                      "version": "h1"
+                    },
+                    {
+                      "all_mcps": true,
+                      "created_at": "2026-11-16T09:00:00Z",
+                      "created_by": "key:7c1e",
+                      "description": null,
+                      "enabled": true,
+                      "export": {
+                        "auth": {
+                          "secret": "token",
+                          "type": "bearer"
+                        },
+                        "batch_size": 100,
+                        "flush_ms": 5000,
+                        "max_batch_bytes": 4194304,
+                        "signing": null,
+                        "url": "https://siem.example.com/mcp"
+                      },
+                      "export_health": {
+                        "delivered": 1840,
+                        "dropped": 0,
+                        "failed_batches": 0,
+                        "healthy": true,
+                        "last_success": "2026-11-16T09:30:00Z",
+                        "queued": 0,
+                        "scope": "node"
+                      },
+                      "hook_id": "hook_9b8c7d6e5f4a3b2c1d0e",
+                      "name": "Tool calls to SIEM",
+                      "scope": {
+                        "mcp_ids": [],
+                        "tools": []
+                      },
+                      "secrets": {
+                        "token": "********"
+                      },
+                      "send": {
+                        "arguments": false,
+                        "result": false,
+                        "user": true
+                      },
+                      "stage": "on_complete",
+                      "updated_at": "2026-11-16T09:00:00Z",
+                      "updated_by": "key:7c1e",
+                      "version": "h1"
+                    }
+                  ],
+                  "limits": {
+                    "export": {
+                      "batch_size": {
+                        "default": 100,
+                        "max": 1000,
+                        "min": 1
+                      },
+                      "flush_ms": {
+                        "default": 5000,
+                        "max": 60000,
+                        "min": 250
+                      },
+                      "max_batch_bytes": {
+                        "default": 4194304,
+                        "max": 8388608,
+                        "min": 65536
+                      }
+                    },
+                    "max_enforcing_per_stage": 3,
+                    "max_hooks": 10,
+                    "timeout_ms": {
+                      "default": 1500,
+                      "max": 10000,
+                      "min": 100
+                    }
+                  },
+                  "mcp_names": {
+                    "a1b2c3d4": "Files"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHookList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "TenantAdminJWT": []
+          }
+        ],
+        "summary": "List hooks (console)",
+        "tags": [
+          "Administration"
+        ],
+        "x-scopes": []
+      }
+    },
     "/mcpgateway/management-admin/v1/tenants/{tenant_id}/keys": {
       "get": {
         "description": "Every management key of the tenant (active, expired and revoked), without secrets.",
@@ -9456,6 +10817,7 @@
                     "agents:write",
                     "connections:write",
                     "credentials:write",
+                    "hooks:write",
                     "mcps:write",
                     "read",
                     "settings:write",
@@ -10158,6 +11520,863 @@
         ],
         "x-scopes": [
           "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/hooks": {
+      "get": {
+        "description": "Every hook of the tenant, enabled or not, with secrets masked, plus the limits.",
+        "operationId": "List_hooks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "hooks": [
+                    {
+                      "all_mcps": false,
+                      "created_at": "2026-11-16T09:00:00Z",
+                      "created_by": "key:7c1e",
+                      "description": "Checks file tools before they run.",
+                      "enabled": true,
+                      "endpoint": {
+                        "auth": {
+                          "secret": "token",
+                          "type": "bearer"
+                        },
+                        "on_failure": "allow",
+                        "signing": {
+                          "secret": "signing_key"
+                        },
+                        "timeout_ms": 1500,
+                        "url": "https://hooks.example.com/mcp/pre-call"
+                      },
+                      "hook_id": "hook_3f9a1c2b7d4e5f60a1b2",
+                      "mode": "enforce",
+                      "name": "Block exports to personal drives",
+                      "scope": {
+                        "mcp_ids": [
+                          "a1b2c3d4"
+                        ],
+                        "tools": [
+                          "upload_file"
+                        ]
+                      },
+                      "secrets": {
+                        "signing_key": "********",
+                        "token": "********"
+                      },
+                      "send": {
+                        "arguments": true,
+                        "result": true,
+                        "user": true
+                      },
+                      "stage": "pre_call",
+                      "updated_at": "2026-11-16T09:00:00Z",
+                      "updated_by": "key:7c1e",
+                      "version": "h1"
+                    }
+                  ],
+                  "limits": {
+                    "export": {
+                      "batch_size": {
+                        "default": 100,
+                        "max": 1000,
+                        "min": 1
+                      },
+                      "flush_ms": {
+                        "default": 5000,
+                        "max": 60000,
+                        "min": 250
+                      },
+                      "max_batch_bytes": {
+                        "default": 4194304,
+                        "max": 8388608,
+                        "min": 65536
+                      }
+                    },
+                    "max_enforcing_per_stage": 3,
+                    "max_hooks": 10,
+                    "timeout_ms": {
+                      "default": 1500,
+                      "max": 10000,
+                      "min": 100
+                    }
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookList"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "List hooks",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "post": {
+        "description": "Adds a hook (201). It applies to tool calls within a few seconds. 400 `invalid_request` when the URL is not https, 400 `blocked_destination` when it points to a private or Quilr address, 400 `unknown_secret` when auth or signing names a secret not sent under `secrets`, 422 `hook_limit` over the limits.",
+        "operationId": "Create_hook",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "all_mcps": false,
+                "description": "Checks file tools before they run.",
+                "endpoint": {
+                  "auth": {
+                    "secret": "token",
+                    "type": "bearer"
+                  },
+                  "on_failure": "allow",
+                  "signing": {
+                    "secret": "signing_key"
+                  },
+                  "timeout_ms": 1500,
+                  "url": "https://hooks.example.com/mcp/pre-call"
+                },
+                "mode": "enforce",
+                "name": "Block exports to personal drives",
+                "scope": {
+                  "mcp_ids": [
+                    "a1b2c3d4"
+                  ],
+                  "tools": [
+                    "upload_file"
+                  ]
+                },
+                "secrets": {
+                  "signing_key": "example-signing-value",
+                  "token": "example-token-value"
+                },
+                "stage": "pre_call"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/HookCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "hook": {
+                    "all_mcps": false,
+                    "created_at": "2026-11-16T09:00:00Z",
+                    "created_by": "key:7c1e",
+                    "description": "Checks file tools before they run.",
+                    "enabled": true,
+                    "endpoint": {
+                      "auth": {
+                        "secret": "token",
+                        "type": "bearer"
+                      },
+                      "on_failure": "allow",
+                      "signing": {
+                        "secret": "signing_key"
+                      },
+                      "timeout_ms": 1500,
+                      "url": "https://hooks.example.com/mcp/pre-call"
+                    },
+                    "hook_id": "hook_3f9a1c2b7d4e5f60a1b2",
+                    "mode": "enforce",
+                    "name": "Block exports to personal drives",
+                    "scope": {
+                      "mcp_ids": [
+                        "a1b2c3d4"
+                      ],
+                      "tools": [
+                        "upload_file"
+                      ]
+                    },
+                    "secrets": {
+                      "signing_key": "********",
+                      "token": "********"
+                    },
+                    "send": {
+                      "arguments": true,
+                      "result": true,
+                      "user": true
+                    },
+                    "stage": "pre_call",
+                    "updated_at": "2026-11-16T09:00:00Z",
+                    "updated_by": "key:7c1e",
+                    "version": "h1"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "h1"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Hook"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Create a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/hooks/{hook_id}": {
+      "delete": {
+        "description": "Removes the hook and its secrets. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Delete_hook",
+        "parameters": [
+          {
+            "description": "Hook id, from the create response or the list.",
+            "example": "hook_3f9a1c2b7d4e5f60a1b2",
+            "in": "path",
+            "name": "hook_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"h1\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "deleted": true,
+                  "hook_id": "hook_3f9a1c2b7d4e5f60a1b2",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookDeleted"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Delete a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
+        ]
+      },
+      "get": {
+        "description": "One hook, secrets masked. `version` is the If-Match value for changes.",
+        "operationId": "Read_hook",
+        "parameters": [
+          {
+            "description": "Hook id, from the create response or the list.",
+            "example": "hook_3f9a1c2b7d4e5f60a1b2",
+            "in": "path",
+            "name": "hook_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "hook": {
+                    "all_mcps": false,
+                    "created_at": "2026-11-16T09:00:00Z",
+                    "created_by": "key:7c1e",
+                    "description": "Checks file tools before they run.",
+                    "enabled": true,
+                    "endpoint": {
+                      "auth": {
+                        "secret": "token",
+                        "type": "bearer"
+                      },
+                      "on_failure": "allow",
+                      "signing": {
+                        "secret": "signing_key"
+                      },
+                      "timeout_ms": 1500,
+                      "url": "https://hooks.example.com/mcp/pre-call"
+                    },
+                    "hook_id": "hook_3f9a1c2b7d4e5f60a1b2",
+                    "mode": "enforce",
+                    "name": "Block exports to personal drives",
+                    "scope": {
+                      "mcp_ids": [
+                        "a1b2c3d4"
+                      ],
+                      "tools": [
+                        "upload_file"
+                      ]
+                    },
+                    "secrets": {
+                      "signing_key": "********",
+                      "token": "********"
+                    },
+                    "send": {
+                      "arguments": true,
+                      "result": true,
+                      "user": true
+                    },
+                    "stage": "pre_call",
+                    "updated_at": "2026-11-16T09:00:00Z",
+                    "updated_by": "key:7c1e",
+                    "version": "h1"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "h1"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Hook"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      },
+      "patch": {
+        "description": "Changes the sent fields and keeps the rest, for example `{\"enabled\": false}` to pause it or `{\"mode\": \"observe\"}` to try it without blocking. Send the quoted `version` from the latest read in If-Match (428 when missing, 412 when stale).",
+        "operationId": "Update_hook",
+        "parameters": [
+          {
+            "description": "Hook id, from the create response or the list.",
+            "example": "hook_3f9a1c2b7d4e5f60a1b2",
+            "in": "path",
+            "name": "hook_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Quoted `version` (ETag) from the latest read of this resource.",
+            "example": "\"h1\"",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "mode": "observe"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/HookPatch"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "hook": {
+                    "all_mcps": false,
+                    "created_at": "2026-11-16T09:00:00Z",
+                    "created_by": "key:7c1e",
+                    "description": "Checks file tools before they run.",
+                    "enabled": true,
+                    "endpoint": {
+                      "auth": {
+                        "secret": "token",
+                        "type": "bearer"
+                      },
+                      "on_failure": "allow",
+                      "signing": {
+                        "secret": "signing_key"
+                      },
+                      "timeout_ms": 1500,
+                      "url": "https://hooks.example.com/mcp/pre-call"
+                    },
+                    "hook_id": "hook_3f9a1c2b7d4e5f60a1b2",
+                    "mode": "observe",
+                    "name": "Block exports to personal drives",
+                    "scope": {
+                      "mcp_ids": [
+                        "a1b2c3d4"
+                      ],
+                      "tools": [
+                        "upload_file"
+                      ]
+                    },
+                    "secrets": {
+                      "signing_key": "********",
+                      "token": "********"
+                    },
+                    "send": {
+                      "arguments": true,
+                      "result": true,
+                      "user": true
+                    },
+                    "stage": "pre_call",
+                    "updated_at": "2026-11-16T09:00:00Z",
+                    "updated_by": "key:7c1e",
+                    "version": "h2"
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "version": "h2"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Hook"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "412": {
+            "$ref": "#/components/responses/VersionConflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Change a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/hooks/{hook_id}/stats": {
+      "get": {
+        "description": "For an on_complete hook, the answering gateway server's export state: queued, delivered, dropped and failed batches, the last error and the last delivery. `export` is null for pre_call and post_call hooks.",
+        "operationId": "Read_hook_stats",
+        "parameters": [
+          {
+            "description": "Hook id, from the create response or the list.",
+            "example": "hook_3f9a1c2b7d4e5f60a1b2",
+            "in": "path",
+            "name": "hook_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "breaker_open": false,
+                  "export": {
+                    "delivered": 1840,
+                    "dropped": 0,
+                    "failed_batches": 0,
+                    "healthy": true,
+                    "last_error": null,
+                    "last_success": "2026-11-16T09:30:00Z",
+                    "queued": 0,
+                    "queued_bytes": 0
+                  },
+                  "hook_id": "hook_9b8c7d6e5f4a3b2c1d0e",
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "scope": "node",
+                  "stage": "on_complete"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookStats"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Read a hook's delivery state",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "read"
+        ]
+      }
+    },
+    "/mcpgateway/management/v1/hooks/{hook_id}/test": {
+      "post": {
+        "description": "Sends a sample request for the hook's stage (with `\"test\": true` and example values, never real data) to its endpoint, with its auth and signing, and returns what happened. An on_complete hook gets one sample batch `{\"records\": [...]}`, sent once and outside its queue. Works for disabled hooks. Nothing is blocked or logged as a tool call.",
+        "operationId": "Test_hook",
+        "parameters": [
+          {
+            "description": "Hook id, from the create response or the list.",
+            "example": "hook_3f9a1c2b7d4e5f60a1b2",
+            "in": "path",
+            "name": "hook_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": null,
+                  "hook_id": "hook_3f9a1c2b7d4e5f60a1b2",
+                  "ms": 84,
+                  "ok": true,
+                  "reply": {
+                    "decision": "allow",
+                    "labels": [],
+                    "metadata": null,
+                    "reason": null,
+                    "user_message": null
+                  },
+                  "request_id": "8d0f6c1e2a4b4c9d9e7f1a2b3c4d5e6f",
+                  "status_code": 200
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HookTestResult"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/Cache-Control"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "408": {
+            "$ref": "#/components/responses/BodyTimeout"
+          },
+          "413": {
+            "$ref": "#/components/responses/BodyTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/Busy"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ManagementKey": []
+          }
+        ],
+        "summary": "Send a test call to a hook",
+        "tags": [
+          "Hooks"
+        ],
+        "x-scopes": [
+          "hooks:write"
         ]
       }
     },
@@ -19771,6 +21990,10 @@
       "name": "Custom tools"
     },
     {
+      "description": "Call your own HTTPS service on tool calls. A `pre_call` hook runs after DLP and approvals, before the tool runs, and can stop the call. A `post_call` hook runs after the tool answered, before the result reaches the user, and can replace the result with an error (the tool has already run). Your service answers with JSON: `{\"decision\": \"allow\" | \"flag\" | \"block\", \"reason\", \"user_message\", \"labels\", \"metadata\"}`. Hooks of one stage are called in parallel and the strictest `enforce` decision wins (block, then flag, then allow); `observe` hooks are called and logged but never change the call. A timeout, an answer other than 2xx, or a reply without a valid `decision` is a failure, handled by `endpoint.on_failure` (`allow` by default, or `block`). After 5 failures in a row a hook is skipped for 30 seconds. Decisions are logged with the tool call.\n\n**What your service receives.** A POST with `{\"version\": \"1\", \"stage\", \"hook\", \"request_id\", \"tenant_id\", \"timestamp\", \"mcp\": {\"id\", \"name\"}, \"tool\": {\"name\"}, \"arguments\", \"result\" (post_call only), \"user\": {\"email\"}}`. `send` turns `arguments`, `result` and `user` off. With `endpoint.signing`, the `X-Quilr-Signature` header is `t=<unix seconds>,v1=<hex HMAC-SHA256 of \"<t>.<body>\">`.\n\n**Export (`on_complete`).** An `on_complete` hook never changes the call. After every tool call (allowed, blocked or failed) the gateway queues a record and POSTs `{\"records\": [...]}` to `export.url` in batches: when `export.batch_size` records (default 100) or `export.max_batch_bytes` are queued, or when the oldest record is `export.flush_ms` old (default 5000). A record is `{\"version\": \"1\", \"stage\": \"on_complete\", \"hook\", \"request_id\", \"tenant_id\", \"timestamp\", \"mcp\", \"tool\", \"outcome\": {\"status\": \"success\" | \"error\" | \"blocked\", \"blocked_by\", \"failure_stage\"}, \"latency_ms\", \"hooks\", \"user\", and with `send.arguments` / `send.result` (both off by default here) \"arguments\" and \"result\"}`. Any 2xx is delivered. A failed batch is tried 3 times; after that the hook is retried every 30 seconds and only its latest 100 records are kept. Batches carry `Idempotency-Key`, the same for retries of one batch. Queues and delivery are per gateway server; `GET /hooks/{hook_id}/stats` shows the answering server's.\n\n**Limits.** At most 10 hooks per tenant and 3 enabled `enforce` hooks per stage (422 `hook_limit`). Endpoints must be https on a public address; redirects are not followed. Changes reach every tool call within a few seconds.",
+      "name": "Hooks"
+    },
+    {
       "description": "Tenant-administrator endpoints that enable management for a tenant and issue management keys. Authenticated with a tenant administrator token, not a management key.",
       "name": "Administration"
     }
@@ -19779,6 +22002,7 @@
     "agents:write": "Create and delete custom agents.",
     "connections:write": "Revoke a user's stored credentials for an MCP.",
     "credentials:write": "Set or remove upstream credentials and extra headers or query parameters (also needed for any create, check or preview that carries credentials).",
+    "hooks:write": "Create, change, delete and test external hooks on tool calls.",
     "mcps:write": "Create, rename, enable, disable and remove MCPs, install catalog MCPs, check MCP URLs, preview REST API specs, refresh tools and issue OAuth connect links.",
     "read": "Read MCPs, tools, settings, credential metadata, tool reviews, connection state, the catalog, operations, analytics and this document.",
     "settings:write": "Change MCP settings and per-user or per-smart-group overrides (also needed to send settings with a create).",

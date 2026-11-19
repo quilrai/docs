@@ -1,0 +1,247 @@
+---
+title: "Hooks API"
+sidebar_position: 3.7
+sidebar_label: "Hooks API"
+sidebar_custom_props:
+  badge: new
+  icon: ShieldCheck
+description: "MCP Gateway Management API v1: hooks that call your own HTTPS API before or after every tool call to allow, flag or block it, or export finished tool calls in batches; create, change, delete and test hooks."
+aliases: [hooks api, external hooks, tool call hook, pre_call, post_call, on_complete, tool call export, webhook, custom tool check, hook signing]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi/mcp';
+
+# Hooks API
+
+**Check tool calls with your own API.** A hook sends each tool call to an HTTPS endpoint you run. Your endpoint answers allow, flag or block: before the tool runs, to stop an action, or after it runs, to stop the AI from seeing the result. Your rules stay on your own server. An export hook instead sends finished tool calls to your endpoint in batches, for example to your SIEM.
+
+Hooks are created and changed only through the Management API. The console shows them read-only: go to **Settings > AI Gateway > MCP Gateway > Management API** and click **Configured hooks**. Reading hooks needs `read`; creating, changing, deleting and testing them needs `hooks:write` (see [scopes](./management-api#scopes)). You can run the management-key calls in the [MCP Management API playground](/mcp-gateway-management-playground). The administrator route that lists an organization's hooks (`GET /mcpgateway/management-admin/v1/tenants/{tenant_id}/hooks`) needs a tenant administrator token and is reference only (see [Administration endpoints](./management-api#administration-endpoints)).
+
+| Stage | When it runs | What your endpoint can do |
+| --- | --- | --- |
+| `pre_call` | After Quilr's own checks on the call (DLP on the arguments, approvals), before the tool runs. | Allow, flag or block the call. A block means the tool never runs. |
+| `post_call` | After the tool runs, before the result goes back to the AI. | Allow, flag or block the result. A block replaces the result with an error; the tool has already run. |
+| `on_complete` | After the tool call finished: allowed, blocked or failed. | Receive the call in a batch of records (see [Export finished tool calls](#export)). It never changes the call. |
+
+**DLP and `post_call`.** Without the Policy Engine, response DLP runs before the `post_call` hook, so the hook gets the redacted result. With the Policy Engine on, response DLP runs after the `post_call` hook, so the hook gets the tool result before redaction (`send.result` is `true` by default on `post_call`). Set `send.result` to `false` if your endpoint must not receive it.
+
+Hooks run on every tool call through the MCP's own endpoint and through [OneMCP](../get-started/onemcp), and on a custom tool's own call. The calls a custom tool's script makes do not run hooks.
+
+## Example {#example}
+
+Block the AI from deleting Jira issues. The hook runs only on the Jira MCP's `delete_issue` tool:
+
+```bash
+curl -X POST https://mcpgateway.quilr.ai/mcpgateway/management/v1/hooks \
+  -H "Authorization: Bearer $QUILR_MCP_MANAGEMENT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ACME tool check",
+    "stage": "pre_call",
+    "all_mcps": false,
+    "scope": {"mcp_ids": ["a1b2c3d4"], "tools": ["delete_issue"]},
+    "endpoint": {
+      "url": "https://hooks.example.com/mcp/check",
+      "timeout_ms": 1500,
+      "on_failure": "block",
+      "auth": {"type": "bearer", "secret": "token"},
+      "signing": {"secret": "signing_key"}
+    },
+    "secrets": {"token": "<your token>", "signing_key": "<your signing key>"}
+  }'
+```
+
+Replace `a1b2c3d4` with the Jira MCP's id from `GET /mcps`. Your endpoint receives each `delete_issue` call and answers, for example:
+
+```json
+{"decision": "block", "user_message": "Deleting issues is not allowed by ACME policy."}
+```
+
+To let a call through, answer `{"decision": "allow"}`.
+
+## The hook resource {#resource}
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Required. Up to 128 characters. |
+| `description` | Optional. Up to 2000 characters. |
+| `enabled` | Default `true`. Disabled hooks are kept but never called. |
+| `stage` | Required. `pre_call`, `post_call` or `on_complete`. |
+| `mode` | `pre_call` and `post_call` only. `enforce` (default): the decision is applied. `observe`: the decision is only recorded; use it to try a new hook safely. |
+| `all_mcps` | Default `true`: every MCP. Set `false` and list MCPs in `scope.mcp_ids`. |
+| `scope.mcp_ids` | MCP ids (`GET /mcps`) the hook applies to. Required when `all_mcps` is `false`, and must be empty when it is `true`. |
+| `scope.tools` | Tool names the hook applies to. Empty means every tool. On OneMCP, the MCP's own tool name. |
+| `endpoint.url` | Required for `pre_call` and `post_call`. A public `https` address. No user information in the URL, no fragment. |
+| `endpoint.timeout_ms` | 100 to 10000, default 1500. |
+| `endpoint.on_failure` | `allow` (default) or `block`: what an `enforce` hook does when your endpoint does not answer properly. |
+| `endpoint.auth` | `{"type": "none"}` (default), `bearer` (`secret`), `basic` (`username_secret`, `password_secret`) or `api_key` (`secret`, and `header`, default `X-API-Key`). Values are secret names. |
+| `endpoint.signing` | `{"secret": "<name>"}` to sign every call (see [Verify calls](#signing)). |
+| `export` | Required for `on_complete`, which takes no `mode` or `endpoint`. `url`, `auth`, `signing` as for `endpoint`, plus batching (see [Export finished tool calls](#export)). |
+| `send` | `arguments`, `result`, `user`. Set one to `false` to leave the tool arguments, the result (on `post_call` and `on_complete`) or the user's email out. All three default to `true`, except on `on_complete`, where `arguments` and `result` default to `false`. |
+| `secrets` | Secret values by name, for example `{"token": "..."}`. Write only. |
+
+**Secrets.** Secret values are encrypted and never returned: reads show `********`. On `PATCH`, send `********` to keep a value, a new value to rotate it, or `null` to remove it; leave `secrets` out to keep them all. Every secret must be used by `auth` or `signing`.
+
+`PATCH` merges the top-level fields you send over the hook. `PATCH` and `DELETE` need `If-Match` with the hook's `version` in quotes, for example `If-Match: "h1"` (see [versions and If-Match](./management-api#versions-and-if-match)). To change a hook to or from `on_complete`, send `null` for the fields the new stage does not take: `endpoint` and `mode`, or `export`. `send` goes back to the new stage's defaults unless you send it.
+
+## What your endpoint receives {#request}
+
+A `POST` with JSON:
+
+```json
+{
+  "version": "1",
+  "hook": "hook_3f2a9c0b1d4e5f6a7b8c",
+  "stage": "pre_call",
+  "request_id": "0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
+  "tenant_id": "tenant-123",
+  "timestamp": "2026-11-17T10:00:00.000Z",
+  "mcp": {"id": "a1b2c3d4", "name": "Jira Cloud"},
+  "tool": {"name": "delete_issue"},
+  "arguments": {"issue_key": "OPS-42"},
+  "user": {"email": "dana@example.com"}
+}
+```
+
+On `post_call` it also carries `result`: the tool's `content`, `isError` and `structuredContent`. `request_id` is the same for the `pre_call` and `post_call` of one tool call. A test call (`POST /hooks/{hook_id}/test`) carries `"test": true` and sample values.
+
+## What your endpoint returns {#reply}
+
+Answer `2xx` with JSON:
+
+| Field | Meaning |
+| --- | --- |
+| `decision` | Required. `allow`, `flag` (continue, and record the flag) or `block`. |
+| `reason` | Recorded with the call (up to 1000 characters). Never shown to the AI. |
+| `user_message` | Shown as the tool's error when the call is blocked. Without it: "This tool call was blocked by your organization's tool-call check." Up to 1000 characters. |
+| `labels` | Up to 20 strings of up to 64 characters, recorded with the call. |
+| `metadata` | A JSON object, recorded with the call. |
+
+The reply can be at most 64 KB. A non-`2xx` status, a body that is not JSON, or a missing or unknown `decision` is a failure.
+
+**Several hooks.** Hooks on the same stage run in parallel. The strictest `enforce` decision wins (`block` over `flag` over `allow`). `observe` hooks never change the call.
+
+**What the AI sees on a block.** The tool call returns an error result (`isError: true`) whose text is your `user_message`. Every call records each hook that ran: hook id, name, stage, mode, decision, latency, the HTTP status, and an error code or your `reason` and `labels`.
+
+## Timeouts and failures {#failures}
+
+A call fails on a timeout, a connection error, a non-`2xx` or unreadable reply, a reply over 64 KB, or a destination the gateway does not call. Then `endpoint.on_failure` applies: `allow` lets the call continue, `block` stops it. On an `observe` hook the failure is only recorded.
+
+**Circuit breaker.** After 5 failures in a row on a gateway server, that server skips the hook for 30 seconds and applies its `on_failure` without a call. Export hooks have no breaker.
+
+## Export finished tool calls {#export}
+
+An `on_complete` hook sends one record per finished tool call to `export.url`, in batches. Records cover tool calls through the MCP's own endpoint and through [OneMCP](../get-started/onemcp), including calls a hook or DLP blocked and calls that failed. Each call a custom tool's script makes is exported as its own record, with no hooks in it.
+
+```bash
+curl -X POST https://mcpgateway.quilr.ai/mcpgateway/management/v1/hooks \
+  -H "Authorization: Bearer $QUILR_MCP_MANAGEMENT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Tool calls to SIEM",
+    "stage": "on_complete",
+    "export": {
+      "url": "https://siem.example.com/mcp",
+      "auth": {"type": "bearer", "secret": "token"},
+      "batch_size": 200,
+      "flush_ms": 5000
+    },
+    "secrets": {"token": "<your token>"}
+  }'
+```
+
+Your endpoint receives a `POST` with `{"records": [...]}`:
+
+```json
+{
+  "records": [
+    {
+      "version": "1",
+      "stage": "on_complete",
+      "hook": "hook_9b8c7d6e5f4a3b2c1d0e",
+      "request_id": "0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
+      "tenant_id": "tenant-123",
+      "timestamp": "2026-11-17T10:00:01.200Z",
+      "mcp": {"id": "a1b2c3d4", "name": "Jira Cloud"},
+      "tool": {"name": "delete_issue"},
+      "outcome": {"status": "blocked", "blocked_by": "pre_call_hook", "failure_stage": null},
+      "latency_ms": 120,
+      "hooks": [{"hook_id": "hook_3f2a9c0b1d4e5f6a7b8c", "name": "ACME tool check", "stage": "pre_call",
+                 "mode": "enforce", "decision": "block", "ms": 38, "status_code": 200, "error": null}],
+      "user": {"email": "dana@example.com"}
+    }
+  ]
+}
+```
+
+- `outcome.status` is `success`, `error` (the tool or the MCP failed) or `blocked`. `blocked_by` is `pre_call_hook`, `post_call_hook`, `dlp_input` or `dlp_output`.
+- `hooks` lists the `pre_call` and `post_call` hooks that ran on the call. `request_id` matches theirs.
+- `arguments` (the tool arguments as the AI sent them) and `result` (what the AI received) are included only with `send.arguments` and `send.result`.
+
+| Setting | Values |
+| --- | --- |
+| `export.batch_size` | 1 to 1000 records, default 100. |
+| `export.flush_ms` | 250 to 60000, default 5000. A partly filled batch is sent after this time. |
+| `export.max_batch_bytes` | 64 KB to 8 MB, default 4 MB. |
+
+- **Delivery:** any `2xx` within 30 seconds delivers the batch. Each batch is tried up to 3 times with the same `Idempotency-Key`, so deduplicate on it. Batches are signed and authenticated like other hook calls.
+- **While your endpoint is down:** after a batch fails all its tries, the hook is unhealthy. The gateway keeps only the latest 100 records for it and sends one probe batch every 30 seconds; when one succeeds, normal delivery resumes.
+- **Retention:** each gateway server queues at most 50,000 records per hook and 256 MB for all hooks together; the oldest are dropped first. Deleting or disabling a hook drops its queued records, and so does changing `export.url` or `send`: records captured for the old settings are never sent to the new ones. A single record larger than `export.max_batch_bytes` is dropped. Dropped records are counted in `dropped`.
+- **Health:** `GET /hooks/{hook_id}/stats` shows the queue on the gateway server that answers. Its `export` object has `healthy`, `queued`, `queued_bytes`, `delivered`, `dropped`, `failed_batches`, `last_error` and `last_success` (`export` is `null` for `pre_call` and `post_call` hooks); `breaker_open` shows whether a `pre_call` or `post_call` hook is being skipped. The console shows a summary under **Export health (this server)**.
+
+## Verify calls {#signing}
+
+With `endpoint.signing`, every call carries `X-Quilr-Signature: t=<unix seconds>,v1=<hex>`, where the hex value is the HMAC-SHA256 of `<t>.` followed by the raw body, keyed with your signing secret. Recompute it and compare, and reject old timestamps:
+
+```python
+import hashlib, hmac, time
+
+def verify(header: str | None, body: bytes, secret: str, max_age: int = 300) -> bool:
+    parts = dict(item.split("=", 1) for item in (header or "").split(",") if "=" in item)
+    stamp, signature = parts.get("t", ""), parts.get("v1", "")
+    if not stamp.isdigit() or not signature:
+        return False  # missing or malformed header
+    if abs(time.time() - int(stamp)) > max_age:
+        return False
+    expected = hmac.new(secret.encode(), f"{stamp}.".encode() + body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+## Security {#security}
+
+- The URL must be a public `https` address. Quilr addresses and private or local IP addresses are refused when you save (`400 blocked_destination`); a host name that resolves to a private address is refused when the gateway connects. Redirects are not followed.
+- Secret values are encrypted at rest, sent only in headers, and never returned.
+- Turn off `send.arguments`, `send.result` or `send.user` to keep that data off your endpoint.
+
+## Test a hook {#test}
+
+`POST /hooks/{hook_id}/test` sends a sample call for the hook's stage to your endpoint (with `"test": true`, a sample tool, and a sample result on `post_call`), whether the hook is enabled or not, and returns `ok`, `status_code`, `ms`, `error` and your `reply` as the gateway read it. An `on_complete` test sends one batch with one sample record, once, and `reply` is `null`. Use it after creating a hook and after rotating secrets.
+
+## Limits {#limits}
+
+| Limit | Value |
+| --- | --- |
+| Hooks per organization | 10 |
+| Enabled `enforce` hooks per stage (`pre_call`, `post_call`) | 3 |
+| Timeout | 100 to 10000 ms (default 1500) |
+| Reply size | 64 KB |
+| Secrets per hook | 8 |
+
+Going over the hook count or the `enforce` hooks per stage is `422 hook_limit`. An out-of-range timeout or more than 8 secrets is `400 invalid_request`.
+
+## Errors {#errors}
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| 400 | `invalid_request` | A field is missing or invalid; `fields` names it. |
+| 400 | `blocked_destination` | The URL points to a Quilr address or a private or local address. A URL that is not `https` is `400 invalid_request`. |
+| 400 | `unknown_secret` | `auth` or `signing` names a secret not sent under `secrets`. |
+| 403 | `insufficient_scope` | The key lacks `hooks:write` (writes and tests) or `read`. |
+| 404 | `not_found` | No hook with that id in your organization. |
+| 412 | `version_conflict` | The hook changed since you read it; read it again and retry. |
+| 422 | `hook_limit` | See [Limits](#limits). |
+| 428 | `precondition_required` | `PATCH` or `DELETE` without `If-Match`. |
+
+## Endpoints {#endpoints}
+
+<ApiReference tags={['Hooks']} />
