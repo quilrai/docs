@@ -114,9 +114,9 @@ The **Effective controls** tab of an agent's drawer shows what the gateway appli
 
 ![Effective controls for the KYC Reviewer agent on onboarding-service: access allowed by an agent rule at priority 940, allowed and rejected models, a route and an agent-group quota decided at priority 930, and a per-person quota at priority 600](/img/llm-gateway/ui/agents-effective-controls.png)
 
-Each row names the rule that decided it, its priority and rule number. **Agent**, **Agent group** and **Agent family** tags mark rules scoped to the agent, one of its groups or its family; **API managed** marks controls set through the Management API. The check evaluates the live policy for a sample request: access, allowed and rejected models, routing and quotas. Data protection, Guardian and content routing depend on the prompt and are not shown.
+With a **Requested model**, a **Requested model** row says whether that model would be refused, for example "gpt-5.4 would be refused", and which rule decides it. When an agent's own model list applies, **Allowed models** notes that it replaces every app and person list. Each row names the rule that decided it, its priority and rule number. **Agent**, **Agent group** and **Agent family** tags mark rules scoped to the agent, one of its groups or its family; **API managed** marks controls set through the Management API. The check evaluates the live policy for a sample request: access, allowed and rejected models, routing and quotas. Data protection, Guardian and content routing depend on the prompt and are not shown.
 
-![Effective controls for qa_pin_1 with requested model gpt-5.4: the only allowed model is claude-haiku-5-5, decided by an agent model-access rule at priority 940](/img/llm-gateway/ui/agents-effective-model-allowlist.png)
+![Effective controls for qa_pin_1 with requested model gpt-5.4: the agent list claude-haiku-5-5 replaces every app and person list, and gpt-5.4 would be refused, both decided by an agent model-access rule at priority 940](/img/llm-gateway/ui/agents-effective-model-allowlist.png)
 
 ### Agent groups {#agent-groups}
 
@@ -161,9 +161,9 @@ Select **Create group** (**Save** when editing). To delete a group, open it and 
 
 ![Delete agent group confirmation dialog](/img/llm-gateway/ui/agents-group-delete-confirm.png)
 
-If a published rule, control or budget still names the group, the dialog lists them and asks again. **Delete anyway** deletes the group, and those rules then match no agent. Remove or change them first if they should keep applying.
+If a published rule, control or budget still names the group, the dialog lists them, for example **Budgets · Management API, rule 7**, and asks again. **Delete anyway** deletes the group, and those rules then match no agent. Remove or change them first if they should keep applying.
 
-![Delete agent group dialog warning that the group is still used by a policy rule, a Management API route and a budget, with Delete anyway](/img/llm-gateway/ui/agents-group-delete-in-use.png)
+![Delete agent group dialog warning that QA phase 2 bots is still used by Budgets · Management API, rule 7, with Delete anyway](/img/llm-gateway/ui/agents-group-delete-in-use.png)
 
 Limits: 200 groups per organization, 5,000 listed keys per group, 50 name and id patterns per group, and an agent counts in at most 64 groups.
 
@@ -222,7 +222,7 @@ The budget list shows how many agents each budget counted and which are closest 
 
 ![Budget QA p2, 2 requests per agent per day for each agent in QA phase 2 bots: 2 agents counted, 1 blocked, custom/qa_p2_a at its limit; and a 1 request per minute rate limit for custom/qa_rl_1](/img/llm-gateway/ui/agents-budget-usage.png)
 
-- Requests that name no agent are not counted by a per-agent budget. To refuse them instead, set `missing_id: refuse` on the quota in the technical source or the [Budgets API](../api-reference/budgets-api).
+- Requests that name no agent are not counted by a per-agent budget. To refuse them instead, tick **Refuse requests that have no agent id** under **Each agent**, or set `missing_id: refuse` on the quota in the technical source or the [Budgets API](../api-reference/budgets-api).
 - A refused request gets `429` `quota_exceeded`, with the budget's label in the message, for example "Request limit 'QA p2: 2 requests per agent per day' (rolling day) reached (2 requests)".
 - Agent ids come from the client, so a caller that sends a new id on every request starts a new allowance each time. Prefer **Each agent in a group** with a group of declared agents, and keep a shared budget on the app as a ceiling.
 

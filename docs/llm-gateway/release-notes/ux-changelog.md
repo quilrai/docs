@@ -35,9 +35,9 @@ Recent interface improvements and quality-of-life changes.
 - **Per-agent budgets**: **Who** offers **Agent group**, **Each agent in a group**, **Each agent** and **Each agent run**; the budget list shows agents counted and the ones closest to their limit
 - An agent's **Allowed Models** list replaces its app's and people's lists
 - Policy rules have an **Agent** field section (`agent.key`, `agent.groups`, `agent.family`, `agent.surface` and more) with values filled from your agents
-- **Effective controls** tab in the agent drawer: access, models, routing and quotas for an agent, with the rule that decided each
+- **Effective controls** tab in the agent drawer: access, models, routing and quotas for an agent, with the rule that decided each, and whether a requested model would be refused
 - Deleting an agent group that rules still use warns and lists them before **Delete anyway**
-- Management API: `/agents`, `/agents/_declare`, `/agent-groups`, `/agent-groups/{group_id}/members` and `/agent-families`, with the new `agents:write` scope (**Manage agents**); `POST /agents/{key}/effective`; `agents`, `agent_groups` and `agent_families` in every control scope and budget `applies_to`; `409 group_in_use` with `?force=true`
+- Management API: `/agents`, `/agents/_declare`, `/agent-groups`, `/agent-groups/{group_id}/members` and `/agent-families`, with the new `agents:write` scope (**Manage agents**); `POST /agents/{key}/effective`; `agents`, `agent_groups` and `agent_families` in every control scope and budget `applies_to`; `409 group_in_use` with `?force=true`; agent-scoped access controls may set `block: false` to let an agent through an app or person block
 - Details: [Agents and coding tools](../protect/agents-and-coding-tools) and [Agents API](../api-reference/agents-api)
 
 ## Self-service redesign (2026-11-18)

@@ -252,7 +252,7 @@ Every scope in the managed controls (`/controls/access`, `/controls/model-access
 | `agent_groups` | Agent group ids, built-in ids included. | 930 |
 | `agent_families` | A family (`claude_code`) or a family and surface (`claude_code/cli`). | 920 |
 
-The most specific scope wins: agent 940, agent group 930, agent family 920, then person, group and app rules. Budgets all count: every matching budget is charged. An allowed-models list scoped to agents replaces the app, person and group lists (`allow_mode: replace`); lists at the same level combine, and denied models always apply.
+The most specific scope wins: agent 940, agent group 930, agent family 920, then person, group and app rules. Budgets all count: every matching budget is charged. Agent rows can loosen as well as tighten. On access controls, `block: false` (or `require_identity` / `require_conversation_id`: `false`) is accepted only on agent scopes and lets the agent through an app or person block; see [Access controls](./gateway-features-api). An allowed-models list scoped to agents replaces the app, person and group lists (`allow_mode: replace`); lists at the same level combine, and denied models always apply.
 
 ```bash
 # Only claude-haiku-5-5 for one agent
@@ -260,6 +260,12 @@ curl -X PUT "$API/controls/model-access/kyc-models" \
   -H "Authorization: Bearer $MANAGEMENT_KEY" -H "Content-Type: application/json" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"scope": {"agents": ["custom/kyc_reviewer"]}, "allow": ["claude-haiku-5-5"]}'
+
+# Let one approved agent through when its app is blocked
+curl -X PUT "$API/controls/access/kyc-allowed" \
+  -H "Authorization: Bearer $MANAGEMENT_KEY" -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"scope": {"agents": ["custom/kyc_reviewer"]}, "settings": {"block": false}}'
 
 # 1,000 requests a day for each agent in a group
 curl -X POST "$API/budgets" \
