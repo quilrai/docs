@@ -10,6 +10,11 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Threat Modeling analyses run more reliably (2026-11-20)
+
+- Analysis stages that could intermittently stop with "The analysis failed. Try again" now complete reliably — the transient failures behind that message have been fixed, so a run no longer fails part-way for no clear reason
+- If the analysis service isn't fully set up, a run now stops with a clear "not configured" message pointing you to your administrator, instead of a generic failure
+
 ## MCP scans check a server before you fill out the form (2026-11-20)
 
 - Paste a live MCP server URL and the scan now **checks it first**, then tells you what it needs: whether it is reachable, whether it requires sign-in, and — when it does — how it signs callers in (for example an OAuth2 access token or a bearer token)
