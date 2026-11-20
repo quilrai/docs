@@ -10,6 +10,19 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Model Ops: Replays (2026-11-20)
+
+- **New tab, Model Ops**, on the LLM Gateway page, with **Replays**: send requests the gateway already logged again and compare the answers, cost and latency with the originals
+- Four kinds: **Compare models** (up to 4 models plus the same model now as a control), **What-if routing** (up to 3 rules, with what each would match and save shown for free before you start), **Token saving** (off against the methods you pick) and **One request**
+- Pick requests from a Logs filter: **Balanced**, **Random**, **Where the money is**, **Largest**, **Smallest**, **Tool coverage** or **Custom**, up to 500 per run; results are re-weighted to your real mix of requests
+- An optional judge model returns **Better**, **Equivalent** or **Worse** with reasons and 1 to 5 scores; add what matters in your own words, or write your own judge instructions
+- Each run has its own spend cap (the estimate plus 25% by default, $200 at most), runs in the background and shows progress while it runs; 2 runs at a time
+- The source application's content policies apply to every replay; access, quota and routing rules are skipped, and calls never draw on an application's quota
+- Settings a target model does not support (such as adaptive thinking or the effort setting) are adjusted and the answer says why
+- **Logs**: **Replay these** in the header and **Replay…** in a request's drawer; replay calls carry a **Replay** or **Replay judge** tag and a **Replay calls** filter
+- New permission, **Run LLM replays**, for admins by default
+- Details: [Replays](../model-ops/replays), [Set up a replay](../model-ops/set-up-a-replay) and [Read replay results](../model-ops/read-replay-results)
+
 ## Self-service redesign (2026-11-18)
 
 - **Self-service is its own tab** on the LLM Gateway page, with sub-tabs **Overview**, **Access plans**, **Apps**, **Model options**, **Providers**, **Requests** and **People**, plus a **How self-service works** explainer and a **Usage report**

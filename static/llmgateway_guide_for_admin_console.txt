@@ -1,13 +1,15 @@
 QUILR ADMIN CONSOLE (v2) - LLM GATEWAY NAVIGATION GUIDE FOR BROWSING AGENTS
-Updated on 18 November 2026.
+Updated on 20 November 2026.
+Model Ops tab checked against the current console: 2026-11-20.
 Self-service tab checked against the current console: 2026-11-18.
 Attachment controls and image-risk labels checked against the current console: 2026-11-02.
 Labels below are the exact on-screen text. ">" means "then click".
 
 WHERE
 - Sidebar: Settings > AI Gateway > LLM Gateway        URL /settings/llm-gateway
-- Page tabs: Applications (default) | Self-service | Management API
-  Self-service: /settings/llm-gateway/self-service ; Management API: /settings/llm-gateway/management-api
+- Page tabs: Applications (default) | Self-service | Management API | Model Ops
+  Self-service: /settings/llm-gateway/self-service ; Management API: /settings/llm-gateway/management-api ;
+  Model Ops: /settings/llm-gateway/model-ops (opens Replays, /settings/llm-gateway/model-ops/replays)
 - Header button Approvals (top right): settings changes developers asked for, waiting for an admin
 - Sibling: Settings > AI Gateway > Models              /settings/models (opens /settings/models/models)
 - Not visible? The user lacks LLM Gateway access; a warning banner means management is disabled for the organization.
@@ -142,6 +144,8 @@ TASK -> WHERE
 - Approve self-service settings change requests -> Self-service > Requests > Settings changes, or header Approvals,
   or the app's Configure > Audit Log > Change requests
 - Who uses self-service -> Self-service > Overview > Usage report (also header "Self-service usage")
+- Try other models / a routing rule / token saving on logged requests -> Model Ops tab > Replays > New replay
+  (see MODEL OPS below); from Logs: header "Replay these" (current filter) or a request's drawer "Replay…"
 - Add / revoke / change the expiry of a Quilr key -> card Manage keys (API Keys section) > "Add a Quilr key":
   Quilr key name*, Expiry > Add key; per key in Keys list: Edit expiry / Revoke
 - Get integration snippet / base URL / key -> card Integration docs (API Integration section: pick Quilr key > Copy;
@@ -232,6 +236,24 @@ SELF-SERVICE (developer portal settings; tab on the LLM Gateway page)
 - Developer portal: sidebar account footer > Switch to Self Service (/self-service). Portal tabs My usage | LLM
   Gateway | MCP Gateway | Workflow agents | Skills; LLM Gateway buttons Analytics, Platform providers, Models,
   Requests; app card Keys & Connect > Create API key. "Admin console" (top right) returns.
+
+MODEL OPS (tab on the LLM Gateway page; needs Read LLM analytics to view, Run LLM replays to start/stop/delete)
+- Replays (/settings/llm-gateway/model-ops/replays): button New replay; start cards Compare models | What-if
+  routing | Token saving off and on | One request; limits line (500 requests and 4 models per run, 2 runs at a
+  time, spend cap at most $200). Table: Run, Kind, Requests, Sent to, Judge, Status, Spent / cap, Started.
+- New replay (/settings/llm-gateway/model-ops/replays/new?kind=compare|what_if|token_saving|single): kind switch
+  One request | Compare models | What-if routing | Token saving (switching resets the form). Sections: Name;
+  Source (Filter, period, "Change in Logs", Matching; One request: Request id); Send to · up to 4 ("Same model,
+  now" control + Add a model) | Rules (Condition, Send to, Add a rule) | Compare (A off, B methods); Which
+  requests to replay (Balanced | Random | Where the money is | Largest | Smallest | Tool coverage | Custom;
+  Requests 60/120/200/500); Request (Temperature, Max output tokens, Token saving); Judge · optional (Judge
+  model, Judge every replay | half of them | a quarter, Strict, Also score 1 to 5, Default instructions + "What
+  matters here" | Write your own + Reset to default); Estimate card with "Stop when spend reaches ($)" > Start run.
+- Run page (/settings/llm-gateway/model-ops/replays/<run id>): Progress, Results so far, Just finished; Stop run
+  (active) | Delete (ended); How this run was set up; Results (per kind); Requests table (filters Verdict, On,
+  Result, Kind, Slice) > a row opens the request side by side (.../replays/<run id>/requests/<n>) with Checks,
+  Adjusted, Policy on the answer, Judge verdict, Open in Logs, "Highlight differences from the original".
+- Logs: replay calls are tagged Replay / Replay judge; filter "Replay calls" (more filters).
 
 POLICY ENGINE (LLM)
 - Workspace: /policy/engine/llm-gateway. Selector: LLM Gateway | MCP Gateway | Endpoint Agent | Cloud & SaaS.
@@ -363,6 +385,9 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/self-service/admin-guide.md
 - https://docs.quilrai.dev/llm-gateway/self-service/access-plans.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/self-service-api.md
+- https://docs.quilrai.dev/llm-gateway/model-ops/replays.md
+- https://docs.quilrai.dev/llm-gateway/model-ops/set-up-a-replay.md
+- https://docs.quilrai.dev/llm-gateway/model-ops/read-replay-results.md
 - https://docs.quilrai.dev/llm-gateway/monitor/analytics-and-insights.md
 - https://docs.quilrai.dev/llm-gateway/monitor/app-audit-log.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/management-api.md

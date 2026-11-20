@@ -1,0 +1,10 @@
+{
+  "label": "Model Ops",
+  "position": 6.5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": null,
+  "customProps": {
+    "icon": "FlaskConical"
+  }
+}
