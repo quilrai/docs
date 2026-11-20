@@ -17,7 +17,7 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 | Collection | Path | What it sets | Read scope | Write scope |
 | --- | --- | --- | --- | --- |
-| Access controls | `/controls/access` | `block`, `require_identity`, `require_conversation_id` (each only `true`) and `allowed_source_ips`. | `read` | `config:write` |
+| Access controls | `/controls/access` | `block`, `require_identity`, `require_conversation_id` (only `true`, except on [agent scopes](./agents-api#agent-scopes), which may also set `false`) and `allowed_source_ips`. | `read` | `config:write` |
 | Token saving | `/controls/token-saving` | Which [token saving](../cost-and-traffic/token-saving) methods run on request bodies. | `read` | `config:write` |
 | Response cache | `/controls/response-cache` | `enabled`, `match` (`exact`, `normalized`, `semantic`) and `similarity` (`narrow`, `balanced`, `wider`) of the [response cache](../cost-and-traffic/response-cache) for non-streaming chat and Messages requests. Embeddings are always exact. | `read` | `config:write` |
 | Cache warm | `/controls/cache-warm` | `extend_cache_lifetime`, `refresh_requests`, `min_prompt_tokens`, `stop_after_idle_minutes`. | `read` | `config:write` |
@@ -28,7 +28,7 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 ## Scope
 
-`scope` takes any of `apps`, `app_tags`, `smart_groups` and `users`. A resource applies to a request that matches every key it sets (within a key, any listed value matches).
+`scope` takes any of `apps`, `app_tags`, `smart_groups`, `users`, `agents`, `agent_groups` and `agent_families` ([agent scopes](./agents-api#agent-scopes)). A resource applies to a request that matches every key it sets (within a key, any listed value matches).
 
 - **Access controls** with an empty scope apply to every request of every app. That is allowed only with `all_apps: true`; without it the write is `422 access_scope_required`, and `all_apps: true` with a non-empty scope is `400`. The response still carries the warning `access_applies_to_everyone`.
 - **Feature settings** with an empty scope apply to every app.
@@ -37,7 +37,7 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 | Kind | Rule |
 | --- | --- |
-| Access controls | Only tighten. Every matching control applies and the strictest wins: any `block` blocks, any `require_*` requires, and `allowed_source_ips` lists from every matching control intersect. They also combine with access rules written in the console. A control that sets nothing restrictive, or sets a value to `false`, is `422 access_not_restrictive`. |
+| Access controls | Controls scoped to apps, app tags, smart groups or people only tighten. Every matching control applies and the strictest wins: any `block` blocks, any `require_*` requires, and `allowed_source_ips` lists from every matching control intersect. They also combine with access rules written in the console, which never loosen them. A control that sets nothing restrictive, or sets a value to `false`, is `422 access_not_restrictive`. Controls scoped to `agents`, `agent_groups` or `agent_families` may also loosen: `block: false` lets the agent through, and `require_*: false` lifts the requirement, even when an app, person or console rule blocks it. The most specific agent scope wins (agent, then agent group, then family); at the same level the strictest wins. An emergency lockdown published in the console after them still wins. |
 | Feature settings | Win over console rules of the same kind where they match. Between two feature resources that match a request, the higher `rank` (0 to 49) wins. The list settings `show_only`, `hide`, `mappings` and `id_headers` combine across every matching resource and console rule. Two resources of one collection with the same rank, scopes that can overlap and different values are `422 feature_conflict`. |
 
 ## Writes and versions

@@ -162,7 +162,7 @@ TASK -> WHERE
   (off = every key suspended), then "Issue a management key": Key name*, Expiry, Scopes (Read, Configure apps,
   Manage providers, Issue app keys, Reveal app keys, Read budgets, Manage budget grants, Configure budgets,
   Read routing, Manage routing, Manage routing constraints, Read limits, Manage limits, Grant limit raises,
-  Read incidents, Manage incidents, Manage hooks, Manage personal keys)
+  Read incidents, Manage incidents, Manage hooks, Manage personal keys, Manage agents)
   > Issue key. Table: Name, Scopes, Status, Created, Expires, Last used, Actions. The key value is shown once.
   Try the key from the browser: https://docs.quilrai.dev/llm-gateway-management-playground
 - External hooks (your own API called on gateway traffic) -> Management API tab > "Configured hooks": read-only
@@ -176,6 +176,10 @@ TASK -> WHERE
   LLM Gateway > Model Visibility card (see POLICY ENGINE)
 - Summarize long conversations before they reach the model -> Policy Engine > LLM Gateway >
   Conversation Compaction card (see POLICY ENGINE)
+- See which agents and coding tools (Claude Code, Codex, ...) use the gateway, declare agents, agent groups ->
+  Policy Engine > LLM Gateway > Agents (see POLICY ENGINE). Allow/block, budget, rate limit, route or limit models
+  for an agent, agent group or family -> any control's Applies to > Agents | Agent groups | More targeting options >
+  Agent family. What applies to one agent -> Agents > open agent > Effective controls (see POLICY ENGINE)
 - Costs across gateway -> sidebar Costs & Savings: Overview | Attribution | Savings | Habits | Providers
 - Findings across sources -> sidebar Findings & Interactions (LLM traffic shows source "LLM Gateway")
 - App as an asset -> sidebar Inventory > open the app: Analytics | Requests | Usage & cost | Settings
@@ -257,12 +261,37 @@ MODEL OPS (tab on the LLM Gateway page; needs Read LLM analytics to view, Run LL
 
 POLICY ENGINE (LLM)
 - Workspace: /policy/engine/llm-gateway. Selector: LLM Gateway | MCP Gateway | Endpoint Agent | Cloud & SaaS.
-- Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Groups | Test | History.
+- Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Groups | Agents | Test | History.
 - Groups (/policy/engine/llm-gateway/groups): Rank column = editable number (API field priority; lower wins, ties by
   name, turned-off groups govern no one); Strength column = resulting position, #1 strongest (API field rank).
   Edit rank / Reset to synced rank, New virtual group, Edit group, Delete group.
   Saving a rank opens "Change group rank?" listing people who change governing group, budgets they switch
   and only the rank ties the change creates.
+- Agents (/policy/engine/llm-gateway/agents): views All agents | Review (N) | Agent groups | Families; Search name,
+  key, owner or tag. All agents table: Agent (name + key such as custom/agent_7xC or claude_code/~cli), Family,
+  Status (observed | declared), Groups, People 30d, Requests 30d, Last seen, Open / Declare. Lists agents seen in
+  the last 30 days plus declared ones; new traffic appears within about 5 minutes. Review = undeclared agents first
+  seen in the last 7 days, Declare all N. Agent drawer: Key, Status, Groups, Apps (30 days), Requests (30 days),
+  People (30 days), Last seen; Display name, Owner (a label only), Description, Tags > Save | Remove declaration.
+  A family row (<family>/~<surface>, e.g. Claude Code . cli) is a detected client that named no agent: no
+  declare. Agent groups: built-in All agents, Undeclared agents, Coding tools (read only, View); New agent group
+  drawer: Group id, Name, Description, Agents in this group (keys), Never in this group (exclusion wins), Match
+  rules (Families, Agent names, Agent ids, Apps, App tags, Agent tags, At most this many people in 30 days,
+  Declared Any | Declared | Not declared; rules AND, values OR), Members now > Create group / Save / Delete
+  ("Delete agent group?" > Delete group; if rules still name it: "This group is still used" + list > Delete anyway).
+  Agent drawer tabs: Details | Effective controls (App, Person, Requested model > Check: Access, Allowed models,
+  Rejected models, Routing, Quota rows with Decided by <policy> . Priority . rule and Agent / Agent group /
+  Agent family / API managed tags). Families: surfaces with request counts, Agents 30d, Requests 30d.
+  Agent identity is self-reported by the client: a label, not authentication. Needs LLM Gateway read to view,
+  update to declare or edit groups, delete to remove.
+- Coding tool / agent rules: Policies > Add rule; field "client app" (request.client.name: claude_code, codex,
+  cline, gemini_cli, ...) + Request access > deny; quotas (limits.quotas) in the code view. Fields
+  request.metadata.agent_id / agent_run_id / conversation_id in the technical source. Client app comes from
+  the tool's headers: not a security boundary. Agent fields (Agent section of the field list): agent.key (Agent),
+  agent.groups, agent.family, agent.surface, agent.id, agent.name, agent.type, agent.run_id, agent.presence,
+  agent.declared, agent.tags; values autofill. Scope priorities: agent 940 > agent group 930 > agent family 920 >
+  people/groups/apps; budgets all count; an agent's allowed-models list replaces other lists
+  (routing.model_allowlist). Quotas can group by agent.key / agent.family / agent.run_id.
 - Controls groups and areas:
   Who can use AI?: Gateway Access, Identity & Network Trust, Allowed Models, Model Visibility,
   Prompt Store & Enforcement.
@@ -290,7 +319,7 @@ POLICY ENGINE (LLM)
   Exemptions | Model prices. Search limits; there is no separate Rate, Token & Timeout Limits area.
   Per-group budgets: "When someone is in several of these groups" > Their strongest group's budget applies (by rank)
   (default for new) | Every group's budget applies (strictest wins). Sets created via the API show "Managed by API".
-  Who also offers Each conversation | Each agent | Each agent run (one-time allowance by default; ids from
+  Who also offers Agent group | Each agent in a group | Each conversation | Each agent | Each agent run (one-time allowance by default; ids from
   x-conversation-id / x-quilr-agent-id / x-quilr-agent-run-id). More options > Allow grants: Highest allowed limit,
   Longest grant, No end date allowed, Raise the limit automatically (+% each time, up to N per period, At the limit |
   At a share used, optional Smart groups). Grants tab: Newest first | Ending soonest | Ending in 7 days; New grant >
@@ -377,6 +406,7 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/protect/attachment-scanning.md
 - https://docs.quilrai.dev/llm-gateway/protect/identity-and-network-trust.md
 - https://docs.quilrai.dev/llm-gateway/protect/model-visibility.md
+- https://docs.quilrai.dev/llm-gateway/protect/agents-and-coding-tools.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/routing-and-fallbacks.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/rate-token-and-budget-limits.md
 - https://docs.quilrai.dev/llm-gateway/cost-and-traffic/token-saving.md
@@ -393,4 +423,5 @@ DOCS (deeper reading; .md URLs return raw markdown)
 - https://docs.quilrai.dev/llm-gateway/api-reference/management-api.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/budgets-api.md
 - https://docs.quilrai.dev/llm-gateway/api-reference/hooks-api.md
+- https://docs.quilrai.dev/llm-gateway/api-reference/agents-api.md
 - Policy Engine: https://docs.quilrai.dev/console/govern/policy-engine.md

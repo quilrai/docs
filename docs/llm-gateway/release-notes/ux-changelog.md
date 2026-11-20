@@ -23,6 +23,23 @@ Recent interface improvements and quality-of-life changes.
 - New permission, **Run LLM replays**, for admins by default
 - Details: [Replays](../model-ops/replays), [Set up a replay](../model-ops/set-up-a-replay) and [Read replay results](../model-ops/read-replay-results)
 
+## Agents and coding tools (2026-11-20)
+
+- **New Policy Engine tab, Agents** (**Govern > Policy Engine > LLM Gateway > Agents**): every agent and coding tool seen in gateway traffic in the last 30 days, with family, status, groups, people, requests and last seen
+- Agents are identified from what the client sends: `x-quilr-agent-id` and related headers or request metadata, W3C baggage, LiteLLM, Copilot Studio and OpenClaw ids, Claude Code and Codex subagents, and coding tools detected from their headers (`claude_code/~cli`). Identity is a label, not authentication
+- **Review** lists new undeclared agents with **Declare all**; declaring records a display name, owner, description and tags
+- **Agent groups**: built-in **All agents**, **Undeclared agents** and **Coding tools**, plus your own groups from listed keys, exclusions and match rules (families, names, ids, apps, app tags, agent tags, declared, people in 30 days)
+- **Families** shows each family's surfaces and request counts
+- Policy rules can block, cap or budget a coding tool with the **Client app** condition (`request.client.name`), and target agents, runs and sessions with `request.metadata.agent_id`, `agent_run_id` and `conversation_id`
+- **Agent scopes on controls**: **Applies to** offers **Agents** and **Agent groups**, and **Agent family** under **More targeting options**, on access, budgets and rate limits, routing and allowed models. The most specific scope wins (agent 940, agent group 930, family 920, above people and apps); budgets all count
+- **Per-agent budgets**: **Who** offers **Agent group**, **Each agent in a group**, **Each agent** and **Each agent run**; the budget list shows agents counted and the ones closest to their limit
+- An agent's **Allowed Models** list replaces its app's and people's lists
+- Policy rules have an **Agent** field section (`agent.key`, `agent.groups`, `agent.family`, `agent.surface` and more) with values filled from your agents
+- **Effective controls** tab in the agent drawer: access, models, routing and quotas for an agent, with the rule that decided each, and whether a requested model would be refused
+- Deleting an agent group that rules still use warns and lists them before **Delete anyway**
+- Management API: `/agents`, `/agents/_declare`, `/agent-groups`, `/agent-groups/{group_id}/members` and `/agent-families`, with the new `agents:write` scope (**Manage agents**); `POST /agents/{key}/effective`; `agents`, `agent_groups` and `agent_families` in every control scope and budget `applies_to`; `409 group_in_use` with `?force=true`; agent-scoped access controls may set `block: false` to let an agent through an app or person block
+- Details: [Agents and coding tools](../protect/agents-and-coding-tools) and [Agents API](../api-reference/agents-api)
+
 ## Self-service redesign (2026-11-18)
 
 - **Self-service is its own tab** on the LLM Gateway page, with sub-tabs **Overview**, **Access plans**, **Apps**, **Model options**, **Providers**, **Requests** and **People**, plus a **How self-service works** explainer and a **Usage report**

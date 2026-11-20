@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {BarChart3, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, UserCog, Users, UsersRound, Wallet, Webhook, Workflow} from 'lucide-react';
+import {BarChart3, Bot, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, UserCog, Users, UsersRound, Wallet, Webhook, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -54,6 +54,7 @@ const api = createApiReference({
     ['Quota pools','Describe upstream limits that several providers or models share.','providers-and-configuration-api#quota-pools',Boxes],
     ['Budgets','Set spend, request and token budgets and group budget sets, track usage and issue grants.','budgets-api',Wallet],
     ['Smart groups','Rank groups, manage virtual groups and preview who changes governing group.','smart-groups-api',UsersRound],
+    ['Agents','List agents and coding tools seen in traffic, declare agents and build agent groups.','agents-api',Bot],
     ['Routing and failover','Routes, weighted destinations, failover and constraints, with dry runs, history and restore.','routing-and-failover-api',Route],
     ['Rate limits','Request and token rate limits, request guards, temporary raises and effective limits.','rate-limits-api',Timer],
     ['Access and features','Access controls, token saving, response cache, cache warm, model visibility, error messages and prompt enforcement.','gateway-features-api',Lock],
