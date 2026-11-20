@@ -15,7 +15,7 @@ What changed in Red Teaming, newest first.
 - MCP server scans can now **actively test** a live server you own, invoking its own tools to confirm what an attacker could do, rather than only reading its advertised surface. Each finding is labelled **Confirmed**, when the server's own response proved it, or **Suspected**, when it is inferred from the surface
 - Active testing covers twelve attack scenarios from a standard MCP penetration test. Eight run without opting in to anything destructive: authentication bypass, broken object-level authorization (BOLA), privilege escalation, path traversal, SSRF, credential exposure, tool chaining and session hijacking. These read or probe without changing state
 - Four destructive families are each off until you turn them on and acknowledge them: arbitrary file write, cross-tenant modification, command injection and a bounded resource-exhaustion check. Each one runs only against a target you attest you own
-- Give the scan a **second identity** — another tenant's headers — to turn the authorization checks (BOLA, cross-tenant modification) from **Suspected** into **Confirmed**. Credentials are encrypted, used for the scan, and never written to scan history or reports
+- Give the scan a **second identity** — another tenant's headers — to let it **Confirm** cross-tenant modification by acting as one identity and checking the other can reach the result. The broken-object-access (BOLA) check stays **Suspected** without it. Credentials are encrypted, used for the scan, and never written to scan history or reports
 - The report gains an **Active testing** section summarising every probe the scan ran and how the server responded
 
 ## Threat Modeling links a model to more kinds of Inventory assets (2026-11-17)
