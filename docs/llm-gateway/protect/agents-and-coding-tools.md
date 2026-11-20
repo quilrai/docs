@@ -3,16 +3,16 @@ sidebar_position: 7.5
 sidebar_label: "Agents and coding tools"
 sidebar_custom_props:
   icon: Bot
-description: "See which agents and coding tools send LLM Gateway traffic, declare and group agents on the Agents tab, and block, cap or budget coding tools such as Claude Code and Codex with policy rules."
+description: "See which agents and coding tools send LLM Gateway traffic, declare and group agents, scope access, budgets, rate limits, routing and allowed models to an agent, agent group or family, and check an agent's effective controls."
 console_path: /policy/engine/llm-gateway/agents
-aliases: [agents tab, llm gateway agents, agent groups, agent registry, declare agent, coding tools, coding agent controls, block claude code, claude code budget, subagents, client app, agent families]
+aliases: [agents tab, llm gateway agents, agent groups, agent registry, declare agent, coding tools, coding agent controls, block claude code, claude code budget, subagents, client app, agent families, agent scope, per agent budget, each agent in a group, effective controls, agent model allowlist, agent.key, agent.groups]
 ---
 
 # Agents and coding tools
 
 Updated on 20 November 2026.
 
-The LLM Gateway works out which agent or coding tool sent each request. The **Agents** tab lists every agent seen in the last 30 days, lets you declare the ones you know and gather them into agent groups. Policy rules then block, cap or budget coding tools and agents.
+The LLM Gateway works out which agent or coding tool sent each request. The **Agents** tab lists every agent seen in the last 30 days, lets you declare the ones you know and gather them into agent groups. Controls and policy rules then allow or block, budget, rate limit, route and limit the models of one agent, an agent group or a whole family, and **Effective controls** shows what applies to an agent and why.
 
 <ConsolePath
   console="QuilrAI console"
@@ -21,7 +21,7 @@ The LLM Gateway works out which agent or coding tool sent each request. The **Ag
 />
 
 :::warning Agent identity is a label, not authentication
-Every agent signal is sent by the client. A caller can send any agent id, copy another agent's id or leave the headers out. Use agents to see and govern normal traffic. Use gateway keys, [identity and network trust](./identity-and-network-trust) and [gateway access](./gateway-access-and-allowed-models) when you need to know who called.
+The gateway authenticates the caller by its API key or token. The agent is then worked out from what that caller sends, so every agent signal comes from the client: a caller can send any agent id, copy another agent's id or leave the headers out. Agent controls apply to whatever agent a request names, exactly like user and app controls, so use them to govern normal traffic. Use gateway keys, [identity and network trust](./identity-and-network-trust) and [gateway access](./gateway-access-and-allowed-models) when you need to know who called.
 :::
 
 ## What counts as an agent {#what-is-an-agent}
@@ -104,9 +104,19 @@ Declaring records what an agent is and who owns it. It does not change how its r
 
 ![Agent drawer for the declared KYC Reviewer agent with key, status, groups, apps, requests, people, last seen and the display name, owner, description and tags fields](/img/llm-gateway/ui/agents-drawer-declared.png)
 
-The drawer of a family row such as **Claude Code · cli** shows the same activity but has nothing to declare, since the client named no agent.
+The drawer of a family row such as **Claude Code · cli** shows the same activity but has nothing to declare, since the client named no agent. Set controls on it with the agent family scope.
 
 ![Drawer of the Claude Code cli family row, a detected client that named no agent](/img/llm-gateway/ui/agents-drawer-family.png)
+
+### Effective controls {#effective-controls}
+
+The **Effective controls** tab of an agent's drawer shows what the gateway applies to that agent now. Optionally fill in an **App**, a **Person** and a **Requested model** to see what applies to that request, then select **Check**.
+
+![Effective controls for the KYC Reviewer agent on onboarding-service: access allowed by an agent rule at priority 940, allowed and rejected models, a route and an agent-group quota decided at priority 930, and a per-person quota at priority 600](/img/llm-gateway/ui/agents-effective-controls.png)
+
+Each row names the rule that decided it, its priority and rule number. **Agent**, **Agent group** and **Agent family** tags mark rules scoped to the agent, one of its groups or its family; **API managed** marks controls set through the Management API. The check evaluates the live policy for a sample request: access, allowed and rejected models, routing and quotas. Data protection, Guardian and content routing depend on the prompt and are not shown.
+
+![Effective controls for qa_pin_1 with requested model gpt-5.4: the only allowed model is claude-haiku-5-5, decided by an agent model-access rule at priority 940](/img/llm-gateway/ui/agents-effective-model-allowlist.png)
 
 ### Agent groups {#agent-groups}
 
@@ -151,6 +161,10 @@ Select **Create group** (**Save** when editing). To delete a group, open it and 
 
 ![Delete agent group confirmation dialog](/img/llm-gateway/ui/agents-group-delete-confirm.png)
 
+If a published rule, control or budget still names the group, the dialog lists them and asks again. **Delete anyway** deletes the group, and those rules then match no agent. Remove or change them first if they should keep applying.
+
+![Delete agent group dialog warning that the group is still used by a policy rule, a Management API route and a budget, with Delete anyway](/img/llm-gateway/ui/agents-group-delete-in-use.png)
+
 Limits: 200 groups per organization, 5,000 listed keys per group, 50 name and id patterns per group, and an agent counts in at most 64 groups.
 
 ### Families {#families}
@@ -163,26 +177,116 @@ Every family seen in the last 30 days, with its surfaces and their request count
 
 Viewing the tab needs LLM Gateway read access. Declaring agents and creating or editing groups needs update access. Removing a declaration or deleting a group needs delete access.
 
-## Control coding tools and agents {#control-coding-tools-and-agents}
+## Control agents, agent groups and families {#control-agents}
 
-Controls are policy rules. Add them in **Govern > Policy Engine > LLM Gateway > Policies > Add rule**, or write them in **Edit technical source**. Rules save as an unpublished change. **Review & publish** shows the change and its safety check, and the gateway applies a published revision within about a minute. See [Author, simulate and publish](../../console/govern/author-simulate-and-publish).
+Agents are a scope, like people, groups and apps. Every control that has an **Applies to** section can target:
 
-These fields carry agent identity:
+| Scope | Matches | Priority it gets |
+|---|---|---|
+| **Agents** | One or more agent keys, such as `custom/kyc_reviewer` or `claude_code/subagent`. | 940 |
+| **Agent groups** | Every agent in one of the groups, built-in groups included. | 930 |
+| **Agent family** (under **More targeting options**) | A whole family such as `claude_code`, or one surface such as **Claude Code · cli**. | 920 |
+
+The most specific scope wins: an agent rule beats an agent-group rule, which beats a family rule, which beats every person, group and app rule (900 and below). So you can block Claude Code for an app and still allow one approved agent, or give one agent a tighter model list than its app. An agent rule can loosen as well as tighten, exactly like a person rule. Budgets are the exception: every matching budget counts, so an agent's budget adds to the app's budget instead of replacing it.
+
+A request that names no agent never matches an agent scope.
+
+### Scope a control to agents {#scope-a-control}
+
+1. Open the control on the **Controls** tab, for example **Gateway Access**, and pick a recipe or **Add**.
+2. Under **Applies to**, select **Agents** or **Agent groups**, or open **More targeting options** and select **Agent family**. Pick values from the list: it is filled from your agents, groups and families, and you can type a key or a pattern.
+3. Choose the outcome, then **Save to draft** and **Review & publish**.
+
+The form shows the priority the scope sets, for example "Priority 930 (set from who it applies to)". Change it in the full editor if you need to.
+
+![Gateway Access rule applying to agent group QA phase 2 bots, Deny, priority 930 set from who it applies to](/img/llm-gateway/ui/agents-scope-agent-group.png)
+
+![Agent family picker listing Custom agent, Copilot Studio, OpenClaw, Claude Code, Claude Code cli, Claude Code desktop and Codex, priority 920](/img/llm-gateway/ui/agents-scope-family.png)
+
+The Controls overview counts agent scopes, for example "On for 2 apps, 3 people and 1 agent".
+
+### Budget each agent {#agent-budgets}
+
+In **Budgets & Usage Limits**, the **Who** list of a budget or rate limit has four agent choices:
+
+| Who | Counts |
+|---|---|
+| **Agent group** | One shared allowance for every agent in the groups you pick. |
+| **Each agent in a group** | A separate allowance for every agent in the groups you pick. |
+| **Each agent** | A separate allowance for every agent. |
+| **Each agent run** | A separate allowance for every run of an agent. |
+
+![Budget form with Who set to Each agent in a group, agent group QA phase 2 bots, 100 requests a day](/img/llm-gateway/ui/agents-budget-each-agent-in-group.png)
+
+The budget list shows how many agents each budget counted and which are closest to their limit:
+
+![Budget QA p2, 2 requests per agent per day for each agent in QA phase 2 bots: 2 agents counted, 1 blocked, custom/qa_p2_a at its limit; and a 1 request per minute rate limit for custom/qa_rl_1](/img/llm-gateway/ui/agents-budget-usage.png)
+
+- Requests that name no agent are not counted by a per-agent budget. To refuse them instead, set `missing_id: refuse` on the quota in the technical source or the [Budgets API](../api-reference/budgets-api).
+- A refused request gets `429` `quota_exceeded`, with the budget's label in the message, for example "Request limit 'QA p2: 2 requests per agent per day' (rolling day) reached (2 requests)".
+- Agent ids come from the client, so a caller that sends a new id on every request starts a new allowance each time. Prefer **Each agent in a group** with a group of declared agents, and keep a shared budget on the app as a ceiling.
+
+### Limit an agent's models {#agent-models}
+
+On **Allowed Models**, an allowed-models list scoped to an agent, agent group or family **replaces** the lists from its app, people and groups: the agent can use only the models in its own list. Lists at the same level (two agent groups, say) combine. Rejected models always apply.
+
+For example, with the app allowing `gpt-5.4` and `claude-haiku-5-5` and an agent rule allowing only `claude-haiku-5-5`, the agent gets `403` `policy_model_not_allowed` for `gpt-5.4`, while the app's other traffic keeps both models. Use [Effective controls](#effective-controls) with a **Requested model** to check.
+
+### Agent fields in rules {#agent-fields}
+
+In **Policies > Add rule**, the field list has an **Agent** section. Values are filled from your traffic and registry.
+
+![Field picker with the Agent section: Agent is declared, Agent family, Agent groups, Agent ID, Agent and Agent name](/img/llm-gateway/ui/policy-field-picker-agent.png)
 
 | Field | Visual builder | Holds |
 |---|---|---|
+| `agent.key` | **Agent** | The agent key, such as `custom/kyc_reviewer` or `claude_code/~cli`. |
+| `agent.groups` | **Agent groups** | Group ids the agent is in now, built-in groups included. |
+| `agent.family` | **Agent family** | `claude_code`, `codex`, `custom` and so on. |
+| `agent.surface` | **Agent surface** | `cli`, `desktop`, `subagent` and so on. |
+| `agent.id`, `agent.name`, `agent.type` | **Agent ID**, **Agent name**, **Agent type** | What the client sent. |
+| `agent.run_id` | **Agent run ID** | The run id. |
+| `agent.declared`, `agent.tags` | **Agent is declared**, **Agent tags** | From your declaration. |
+| `agent.presence` | **Agent presence** | `agent`, `family_only` (a detected tool that named no agent) or `none`. |
 | `request.client.name` | **Client app** | The detected coding tool: `claude_code`, `codex`, `cline`, `gemini_cli` and so on. |
-| `request.metadata.agent_id` | Code view | The declared agent id, or a Claude Code subagent id. |
-| `request.metadata.agent_run_id` | Code view | The agent run id. |
-| `request.metadata.conversation_id` | Code view | The conversation id. A Claude Code session id counts. |
 
-![Client app value list in the visual rule builder: aider, claude_code, claude_desktop, cline, codex, continue, crush, gemini_cli, gemini_code_assist](/img/llm-gateway/ui/policy-client-app-values.png)
+Family, surface, groups and tags compare case-insensitively.
+
+![Agent value picker suggesting custom/qa_block_1 and custom/qa_block_2 for the search qa_block](/img/llm-gateway/ui/policy-agent-value-autofill.png)
+
+To block one agent: **Add rule**, condition **agent** **is any of** the agent key, outcome **Request access** → **deny**.
+
+![New rule: agent is any of custom/qa_block_1, then Request access deny](/img/llm-gateway/ui/policy-rule-deny-agent.png)
+
+The same rules in the technical source:
+
+```text
+policy block_one_agent priority 940 {
+  request where agent.key in ["custom/kyc_reviewer"] then { access.action = deny; }
+}
+
+policy regulated_agents_models priority 930 {
+  request where arrayAny(agent.groups, g => g in ["regulated-workflows"]) then {
+    routing.model_allowlist = ["claude-sonnet-4-5", "gpt-4.1-mini"];
+  }
+}
+
+policy per_agent_daily priority 930 {
+  request where arrayAny(agent.groups, g => g in ["regulated-workflows"]) then {
+    limits.quotas = [{ id: "regulated_daily", metric: requests, limit: 1000, group_by: ["agent.key"], window: { kind: rolling, unit: day } }];
+  }
+}
+```
+
+`routing.model_allowlist` is the replacing list described above; `routing.allowed_models` adds to the other lists. Quotas can group by `agent.key`, `agent.family` or `agent.run_id`.
 
 :::note Client app is not a security boundary
 `request.client.name` comes from the headers the tool sends. It controls normal tool traffic, but a caller that strips those headers is not matched: the same key without Claude Code headers is allowed.
 :::
 
-In the visual builder, **Client app** conditions and **Request access** outcomes are point and click. Budget and request amounts (**Named usage quotas**) are edited in the code view.
+## Coding tool recipes {#control-coding-tools-and-agents}
+
+The recipes below match the coding tool with **Client app**. `agent.family` works the same way and also covers subagents and family scopes.
 
 ### Block Claude Code for an app {#block-claude-code-for-an-app}
 
@@ -253,16 +357,16 @@ Use the same `limits.quotas` shape with a different condition or `group_by`:
 | Cap | Condition | Quota |
 |---|---|---|
 | $20 per person per Claude Code session | `request.client.name == "claude_code"` | `metric: spend_usd, limit: 20, group_by: ["user.email", "request.metadata.conversation_id"], window: { kind: lifetime }` |
-| Claude Code subagents only | `request.client.name == "claude_code" and request.metadata.agent_id != null` | Any metric and window |
-| One declared agent | `request.metadata.agent_id == "agent_7xC"` | `group_by: ["request.metadata.agent_id"]` |
+| Claude Code subagents only | `agent.key == "claude_code/subagent"` | Any metric and window |
+| Each agent in a group | `arrayAny(agent.groups, g => g in ["regulated-workflows"])` | `group_by: ["agent.key"]` |
 
-The **Budgets & Usage Limits** control also has **Each conversation**, **Each agent** and **Each agent run** budgets. See [Cap a conversation or an agent](../cost-and-traffic/budget-recipes#conversation-agent-caps).
-
-Policy conditions name a coding tool or an agent id. They cannot name an agent group or an agent key yet.
+See also [Cap a conversation or an agent](../cost-and-traffic/budget-recipes#conversation-agent-caps).
 
 ## Manage agents with the API {#api}
 
-The [Agents API](../api-reference/agents-api) lists agents, declares them in bulk, and creates and edits agent groups, with the `agents:write` management scope.
+The [Agents API](../api-reference/agents-api) lists agents, declares them in bulk, creates and edits agent groups, and shows an agent's effective controls, with the `agents:write` management scope.
+
+Every Management API control scope (`/controls/*`) and every budget's `applies_to` also take `agents`, `agent_groups` and `agent_families` lists, with the same precedence as the console. See [Agent scopes](../api-reference/agents-api#agent-scopes).
 
 ## Related {#related}
 

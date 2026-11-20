@@ -28,7 +28,7 @@ import {ApiReference} from '@site/src/components/ManagementApi';
 
 ## Scope
 
-`scope` takes any of `apps`, `app_tags`, `smart_groups` and `users`. A resource applies to a request that matches every key it sets (within a key, any listed value matches).
+`scope` takes any of `apps`, `app_tags`, `smart_groups`, `users`, `agents`, `agent_groups` and `agent_families` ([agent scopes](./agents-api#agent-scopes)). A resource applies to a request that matches every key it sets (within a key, any listed value matches).
 
 - **Access controls** with an empty scope apply to every request of every app. That is allowed only with `all_apps: true`; without it the write is `422 access_scope_required`, and `all_apps: true` with a non-empty scope is `400`. The response still carries the warning `access_applies_to_everyone`.
 - **Feature settings** with an empty scope apply to every app.

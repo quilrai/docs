@@ -5,16 +5,16 @@ sidebar_label: "Agents API"
 sidebar_custom_props:
   badge: new
   icon: Bot
-description: "LLM Gateway Management API v1: list the agents and coding tools seen in gateway traffic, declare agents with an owner and tags, create agent groups with match rules, list a group's members and read agent families."
-aliases: [agents api, agent registry, declare agents, agent groups api, agent families, agents:write]
+description: "LLM Gateway Management API v1: list the agents and coding tools seen in gateway traffic, declare agents with an owner and tags, create agent groups with match rules, scope controls and budgets to agents, groups or families, and check an agent's effective controls."
+aliases: [agents api, agent registry, declare agents, agent groups api, agent families, agents:write, agent scopes, effective controls, group_in_use]
 ---
 
 # Agents API
 
-Read the agents the LLM Gateway has seen in the last 30 days, **declare** the ones you know with an owner and tags, and gather agents into **agent groups**. The same data appears on the **Agents** tab under **Govern > Policy Engine > LLM Gateway** in the console. See [Agents and coding tools](../protect/agents-and-coding-tools) for how the gateway identifies agents.
+Read the agents the LLM Gateway has seen in the last 30 days, **declare** the ones you know with an owner and tags, gather agents into **agent groups**, scope controls and budgets to them, and check what applies to an agent. The same data appears on the **Agents** tab under **Govern > Policy Engine > LLM Gateway** in the console. See [Agents and coding tools](../protect/agents-and-coding-tools) for how the gateway identifies agents.
 
 :::warning Agent identity is a label
-Agents are identified from what the client sends (`x-quilr-agent-id` and related headers, request metadata, W3C baggage or a detected coding tool such as Claude Code). A caller can send any id, so treat an agent as a label, never as authentication.
+Agents are identified from what the client sends (`x-quilr-agent-id` and related headers, request metadata, W3C baggage or a detected coding tool such as Claude Code). The caller is authenticated by its API key or token; the agent is worked out from what it sends. A caller can send any id, so treat an agent as a label, never as authentication.
 :::
 
 <StepFlow steps={[
@@ -28,6 +28,7 @@ Agents are identified from what the client sends (`x-quilr-agent-id` and related
 | `GET /agents` | List agents seen in the last 30 days and every declared agent. | `read` |
 | `POST /agents/_declare` | Declare up to 500 agents at once with the same owner and tags. | `agents:write` |
 | `GET /agents/{key}` | Read one agent. | `read` |
+| `POST /agents/{key}/effective` | What the live policy applies to the agent for a sample request. | `read` |
 | `PUT /agents/{key}` | Declare an agent, or replace its declaration. | `agents:write` |
 | `PATCH /agents/{key}` | Change some fields of a declared agent. | `agents:write` |
 | `DELETE /agents/{key}` | Remove a declaration. The agent stays listed while it appears in traffic. | `agents:write` |
@@ -35,7 +36,7 @@ Agents are identified from what the client sends (`x-quilr-agent-id` and related
 | `GET /agent-groups/{group_id}` | Read one group. | `read` |
 | `PUT /agent-groups/{group_id}` | Create or replace a group. | `agents:write` |
 | `PATCH /agent-groups/{group_id}` | Change some fields of a group. | `agents:write` |
-| `DELETE /agent-groups/{group_id}` | Delete a group. | `agents:write` |
+| `DELETE /agent-groups/{group_id}` | Delete a group. Refused while rules name it, unless `force=true`. | `agents:write` |
 | `GET /agent-groups/{group_id}/members` | List a group's current members and how each one matched. | `read` |
 | `GET /agent-families` | List families with their surfaces and 30-day counts. | `read` |
 
@@ -169,7 +170,12 @@ Every `match` field you send must hold (AND); any value in one list may match (O
 
 - `PUT` answers `201` for a new group and `200` for a replaced one, with `{agent_group, registry_version, applies_within_seconds}`.
 - `PATCH` changes only the fields you send; `404 agent_group_not_found` when the group does not exist.
-- `DELETE` answers `{deleted: true, id, registry_version}`.
+- `DELETE` answers `{deleted: true, id, registry_version}`. While a published rule, control or budget names the group, it answers `409 group_in_use` with `references`, one entry per rule (`kind`, `policy`, `rule_index`, `priority`). Change those first, or send `?force=true` to delete anyway; the rules then match no agent.
+
+```json
+{"error": {"code": "group_in_use", "message": "1 policy rule(s) name this agent group; change them first, or delete with ?force=true (those rules then match no agent)",
+  "references": [{"kind": "managed", "policy": "quilr_managed_budgets", "rule_index": 6, "priority": 50}]}}
+```
 
 Limits: 200 groups per organization, 5,000 keys per group, 50 `name_globs` and `id_globs` combined per group, and an agent counts in at most 64 groups.
 
@@ -203,6 +209,71 @@ Limits: 200 groups per organization, 5,000 keys per group, 50 `name_globs` and `
 }
 ```
 
+## Effective controls {#effective}
+
+`POST /agents/{key}/effective` evaluates the live policy for a sample request from the agent and says what applies and which rule decided it. It is a simulation: nothing is logged or charged. The body is optional:
+
+```bash
+curl -X POST "$API/agents/custom%2Fkyc_reviewer/effective" \
+  -H "Authorization: Bearer $MANAGEMENT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"app": "onboarding-service", "user": "dev@example.com", "requested_model": "gpt-5.4"}'
+```
+
+```json
+{
+  "agent": {"key": "custom/kyc_reviewer", "family": "custom", "presence": "agent", "declared": true,
+            "groups": ["all-agents", "regulated-workflows"]},
+  "revision": 7, "policy_enabled": true,
+  "access": {"action": "allow", "decided_by": {"policy": "kyc_allow", "rule_index": 0, "priority": 940, "managed": false, "agent_scope": "agent"}},
+  "models": {"allowed_models": ["claude-sonnet-4-5"], "denied_models": ["gpt-4o"], "allow_mode": "replace",
+             "requested_model_allowed": false, "decided_by": {"policy": "quilr_managed_agent_model_access_930", "rule_index": 0, "priority": 930, "managed": true, "agent_scope": "agent_group"}},
+  "routing": {"group": null, "targets": null, "decided_by": null},
+  "quotas": [{"id": "regulated_daily", "metric": "requests", "limit": 1000, "window": {"kind": "rolling", "unit": "day"},
+              "group_by": ["agent.key"], "mode": "enforce", "decided_by": {"policy": "quilr_managed_budgets", "rule_index": 3, "priority": 50, "managed": true, "agent_scope": "agent_group"}}],
+  "rules": [{"policy": "kyc_allow", "rule_index": 0, "priority": 940, "agent_scope": "agent", "effects": ["access.action"]}],
+  "simulated": ["access", "models", "routing", "quotas"],
+  "not_simulated": ["data protection", "guardian", "content routing"]
+}
+```
+
+- `app`, `user` and `requested_model` are optional strings. Unknown fields answer `400 invalid_request`.
+- `agent_scope` is `agent`, `agent_group` or `agent_family` when the deciding rule is scoped to the agent, one of its groups or its family, else `null`. `managed` is `true` for Management API controls.
+- `allow_mode` is `replace` when an agent-scoped list replaced the other allowed-model lists, `union` when the lists combine. `requested_model_allowed` is set when you send `requested_model`.
+- `503 policy_unavailable` when the live policy could not be loaded within 10 seconds. Retry.
+
+## Agent scopes {#agent-scopes}
+
+Every scope in the managed controls (`/controls/access`, `/controls/model-access`, `/controls/routes`, `/controls/rate-limits` and the others) and every budget's `applies_to` take three agent lists next to `apps`, `smart_groups` and `users`:
+
+| Field | Values | Priority |
+| --- | --- | --- |
+| `agents` | Agent keys, such as `custom/kyc_reviewer`. | 940 |
+| `agent_groups` | Agent group ids, built-in ids included. | 930 |
+| `agent_families` | A family (`claude_code`) or a family and surface (`claude_code/cli`). | 920 |
+
+The most specific scope wins: agent 940, agent group 930, agent family 920, then person, group and app rules. Budgets all count: every matching budget is charged. An allowed-models list scoped to agents replaces the app, person and group lists (`allow_mode: replace`); lists at the same level combine, and denied models always apply.
+
+```bash
+# Only claude-haiku-5-5 for one agent
+curl -X PUT "$API/controls/model-access/kyc-models" \
+  -H "Authorization: Bearer $MANAGEMENT_KEY" -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"scope": {"agents": ["custom/kyc_reviewer"]}, "allow": ["claude-haiku-5-5"]}'
+
+# 1,000 requests a day for each agent in a group
+curl -X POST "$API/budgets" \
+  -H "Authorization: Bearer $MANAGEMENT_KEY" -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"id": "regulated_daily", "label": "1,000 requests per agent per day", "metric": "requests", "limit": 1000,
+       "window": {"kind": "rolling", "unit": "day"}, "per": ["agent_key"],
+       "applies_to": {"agent_groups": ["regulated-workflows"]}}'
+```
+
+- Budgets and rate limits can count per `agent_key` (or `agent.key`), `agent_family` and `agent.run_id`. A request that names no agent is not counted by such a budget; `"missing_id": "refuse"` refuses it instead. The `agent` alias still means the legacy `request.metadata.agent_id`.
+- Reads return the lists back, for example a budget's `applies_to.agent_groups`.
+- `422 agent_key_invalid` for a malformed key, `422 agent_group_unknown` for a group id that does not exist.
+
 ## Writes and errors
 
 - `PUT`, `PATCH` and `DELETE` take an optional `If-Match: "<version>"` with the `version` a read returned. A stale version answers `412 version_conflict`.
@@ -218,16 +289,19 @@ Limits: 200 groups per organization, 5,000 keys per group, 50 `name_globs` and `
 | `404` | `agent_group_not_found` | No group has this id. |
 | `409` | `builtin_group_read_only` | A write to a built-in group. |
 | `409` | `agent_group_limit` | The organization already has 200 groups. |
+| `409` | `group_in_use` | `DELETE` of a group that published rules still name. The body lists `references`; retry with `?force=true` to delete anyway. |
 | `412` | `version_conflict` | `If-Match` is stale. Read again and retry. |
 | `422` | `agent_key_invalid` | The key is not `<family>/<id>`. |
 | `422` | `agent_key_family_only` | A family key (`<family>/~<surface>`) was declared. |
-| `422` | `agent_group_unknown` | `GET /agents?group=` names no group. |
+| `422` | `agent_group_unknown` | `GET /agents?group=`, a control scope or a budget's `applies_to` names no group. |
 | `422` | `validation_failed` | An unknown field, a bad group id, too many tags, keys or patterns, or a value of the wrong type. `field` names it. |
 | `503` | `central_service_required` | A write on an isolated deployment. Make the change on the central service. |
 | `503` | `management_storage_unavailable` | The change could not be saved. Retry. |
+| `503` | `policy_unavailable` | The live policy could not be read in time (effective check, or the in-use check before a group delete). Retry; a delete can also use `?force=true`. |
 
 ## Related
 
-- [Agents and coding tools](../protect/agents-and-coding-tools) - the Agents tab and policy rules for coding tools and agents.
+- [Agents and coding tools](../protect/agents-and-coding-tools) - the Agents tab, agent scopes in the console and policy rules for coding tools and agents.
+- [Budgets API](./budgets-api) - budget fields, including `applies_to` and `per`.
 - [Agent monitoring](../monitor/agent-monitoring) - the agent and tracing signals the gateway logs.
 - [Management API](./management-api) - authentication, errors and retry rules for every endpoint.

@@ -31,7 +31,13 @@ Recent interface improvements and quality-of-life changes.
 - **Agent groups**: built-in **All agents**, **Undeclared agents** and **Coding tools**, plus your own groups from listed keys, exclusions and match rules (families, names, ids, apps, app tags, agent tags, declared, people in 30 days)
 - **Families** shows each family's surfaces and request counts
 - Policy rules can block, cap or budget a coding tool with the **Client app** condition (`request.client.name`), and target agents, runs and sessions with `request.metadata.agent_id`, `agent_run_id` and `conversation_id`
-- Management API: `/agents`, `/agents/_declare`, `/agent-groups`, `/agent-groups/{group_id}/members` and `/agent-families`, with the new `agents:write` scope (**Manage agents**)
+- **Agent scopes on controls**: **Applies to** offers **Agents** and **Agent groups**, and **Agent family** under **More targeting options**, on access, budgets and rate limits, routing and allowed models. The most specific scope wins (agent 940, agent group 930, family 920, above people and apps); budgets all count
+- **Per-agent budgets**: **Who** offers **Agent group**, **Each agent in a group**, **Each agent** and **Each agent run**; the budget list shows agents counted and the ones closest to their limit
+- An agent's **Allowed Models** list replaces its app's and people's lists
+- Policy rules have an **Agent** field section (`agent.key`, `agent.groups`, `agent.family`, `agent.surface` and more) with values filled from your agents
+- **Effective controls** tab in the agent drawer: access, models, routing and quotas for an agent, with the rule that decided each
+- Deleting an agent group that rules still use warns and lists them before **Delete anyway**
+- Management API: `/agents`, `/agents/_declare`, `/agent-groups`, `/agent-groups/{group_id}/members` and `/agent-families`, with the new `agents:write` scope (**Manage agents**); `POST /agents/{key}/effective`; `agents`, `agent_groups` and `agent_families` in every control scope and budget `applies_to`; `409 group_in_use` with `?force=true`
 - Details: [Agents and coding tools](../protect/agents-and-coding-tools) and [Agents API](../api-reference/agents-api)
 
 ## Self-service redesign (2026-11-18)
