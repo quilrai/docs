@@ -10,6 +10,12 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## MCP scans check a server before you fill out the form (2026-11-20)
+
+- Paste a live MCP server URL and the scan now **checks it first**, then tells you what it needs: whether it is reachable, whether it requires sign-in, and — when it does — how it signs callers in (for example an OAuth2 access token or a bearer token)
+- When the server is open, the sign-in fields stay out of your way; when it needs a credential, the form **opens the right field and names what to enter**, so you are not guessing which header or token to supply
+- If the server can't be reached, the form says so and still lets you start the scan
+
 ## MCP scans prove findings by exercising the server (2026-11-20)
 
 - MCP server scans can now **actively test** a live server you own, invoking its own tools to confirm what an attacker could do, rather than only reading its advertised surface. Each finding is labelled **Confirmed**, when the server's own response proved it, or **Suspected**, when it is inferred from the surface
