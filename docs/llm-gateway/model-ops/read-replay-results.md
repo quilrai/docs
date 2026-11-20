@@ -15,7 +15,7 @@ Open a run from **Model Ops > Replays** to follow it and read its results. The p
 
 ## Follow a run {#progress}
 
-**Progress** shows how many requests have finished, how long is left, each model's answers, the judge, and the spend against the cap. **Results so far** shows each model's share of answers that are the same or better than the original. **Just finished** lists the latest requests.
+**Progress** shows how many requests have finished, how long is left, each model's answers, the judge, and the spend against the cap. **Results so far** shows each model's share of answers that are the same or better than the original; once the run ends, the card is called **Scores**. **Just finished** lists the latest requests.
 
 ![Run page while running, with the Progress card per model, the judge and spend, Results so far, and Just finished](/img/llm-gateway/ui/model-ops/run-progress.jpg)
 
@@ -91,7 +91,7 @@ Each column shows:
 - **Checks**, worked out without a model: **Finish** reason, **Tool call** (for example, **Same tool, different arguments**), **Length** and **Word overlap** against the original, **JSON**, **Refusal**, and **Token saving**.
 - **Adjusted**: settings the model does not support, which were changed or left out so it could answer, with the reason. For example, `thinking (the model does not support adaptive thinking; a fixed thinking budget was used)`.
 - **Policy on the answer**: what the content policies found.
-- The judge's verdict, its reasons and the 1 to 5 scores, or **Decided by a free check; the judge was not called.**
+- The judge's verdict, its reasons and the 1 to 5 scores, or **Decided by a free check; the judge was not called.** The judge saw the answers as A and B, so its reasons use those letters; the line under them says which answer was A and which was B.
 
 **Highlight differences from the original** marks removed text in red and added text in green. **Open in Logs** opens each call in Logs. **Run on more requests like this** starts a compare run on requests from the same model.
 
