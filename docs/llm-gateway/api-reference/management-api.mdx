@@ -17,7 +17,7 @@ import {ManagementHero, ResourceCards, EndpointDirectory, ApiReference, SchemaRe
 
 Use a dedicated management key to configure the LLM Gateway from deployment pipelines, internal tools and administration scripts. Each key belongs to **one tenant**, carries explicit permissions, and works only when both deployment enablement and tenant opt-in are active.
 
-Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets, routing and failover, rate limits, incident controls, external hooks and stored configuration, and to read usage, guardrail activity, provider health, users and the explanation of a single request. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
+Use the Management API to configure LLM Gateway apps, shared providers, quota pools, credentials, prompts, budgets, routing and failover, rate limits, incident controls, external hooks, gateway functions and stored configuration, and to read usage, guardrail activity, provider health, users and the explanation of a single request. Explore complete input specifications and examples, download the OpenAPI reference, or send live calls from the [Management API playground](/llm-gateway-management-playground).
 
 ## Enable in the console
 
@@ -44,10 +44,13 @@ Use the Management API to configure LLM Gateway apps, shared providers, quota po
 | **Manage hooks** | `hooks:write` | Create, change, delete and test [external hooks](./hooks-api) |
 | **Manage personal keys** | `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf |
 | **Manage agents** | `agents:write` | Declare and undeclare [agents](./agents-api) and create, change and delete agent groups |
+| **Manage functions** | `functions:write` | Create, change, delete and test [gateway functions](./functions-api) and their data, attach them to requests, and read or erase stored function memory values |
 
 Routing, rate limit and incident scopes (`routing:*`, `limits:*`, `incidents:*`) are described under [Scopes](#scopes).
 
-A key acts for the whole organization within its scopes and cannot be limited to one app. Revoke a key from the keys table on the same tab. See [Authentication and management keys](#authentication) for details.
+A key acts for the whole organization within its scopes and cannot be limited to one app. Revoke a key from the keys table on the same tab.
+
+The **History** card on the same tab lists the changes made through the Management API, newest first: who made each change (a key or a console administrator), the operation, the resource and whether it succeeded. Filter by operation or resource, open **Show changes** on a row to see what changed (secrets are masked), and click **Load more** for older rows. The same events come from [`GET /audit`](./providers-and-configuration-api#audit). See [Authentication and management keys](#authentication) for details.
 
 ## Choose a resource
 
@@ -74,6 +77,7 @@ A key acts for the whole organization within its scopes and cannot be limited to
 | Access and gateway features | Access controls (block, require identity or a conversation ID, allowed source IPs) and gateway features: token saving, response cache, cache warm, model visibility, error messages, conversation headers and prompt enforcement. See the [Access and gateway features API](./gateway-features-api). | Each write publishes a policy revision. Needs the Policy Engine on. |
 | Incidents | Mark a provider down for every app or chosen apps with an expiry, preview, restore, reset cooldowns and drop session pins. | Not a policy change; works with the Policy Engine on or off. |
 | Hooks | Call your own HTTPS API before the model call (`pre_call`) or before a non-streaming response is returned (`post_call`) to allow, flag or block, or export finished requests in batches (`on_complete`). Preview, test and stats. See the [Hooks API](./hooks-api). | Each write publishes a policy revision. Needs the Policy Engine on. The console lists hooks read-only under **Configured hooks**. |
+| Functions | Create, version, validate and test-run Python functions and remote MCP server functions, store the data they read, list and erase what they remembered, and attach them to requests with function bindings. See the [Functions API](./functions-api). | A function does nothing until a binding or a console policy rule attaches it. Each binding write publishes a policy revision. Needs the Policy Engine on. |
 | Usage | Requests, outcomes, tokens and cost over all time or any range, by period and up to two of app, model, provider, user, key, source and outcome. Per-key last use. See the [Usage API](./usage-api). | Aggregates only; bulk request logs come from the [Log Export API](./log-export-api). |
 | Monitoring | Latency distributions, gateway feature metrics (cache, token saving, failover), a filterable request list, guardrail activity, provider and model health with routing state, and why one request was routed, blocked, limited or failed over. See the [Monitoring API](./monitoring-api). | Read only. Never returns prompt or response text or detected values. |
 | Users | Everyone who uses the gateway, with app access, personal keys, last activity and usage. See the [Users API](./users-api). | Read only; people are added through your identity provider or the console. |
@@ -268,6 +272,7 @@ To re-enable, read the latest ETag and PATCH `{"enabled":true}`. Keys that expir
 | Route a model alias, shift traffic or set failover | [Routing and failover API](./routing-and-failover-api) |
 | Set request and token rate limits | [Rate limits API](./rate-limits-api) |
 | Take a provider out of routing during an outage | [Incidents API](./incidents-api) |
+| Run your own code on requests | [Functions API](./functions-api) and the [Gateway functions](../cost-and-traffic/gateway-functions) guide |
 | Report spend, requests and tokens | [Usage API](./usage-api) |
 | Build latency, cache or error dashboards, list requests, check guardrail activity or provider health, or explain one request | [Monitoring API](./monitoring-api) |
 | Review who uses the gateway | [Users API](./users-api) |
@@ -329,10 +334,11 @@ All scopes listed for an operation are required. No scope implies another.
 | `hooks:write` | Create, change, delete and test [external hooks](./hooks-api). Each write publishes a policy revision. Reading hooks, the field catalog, previews and stats needs `read`. |
 | `keys:write` | Issue, rename, change the expiry of and revoke personal API keys on a user's behalf. Reading them needs `read` (see the [Self-service API](./self-service-api#personal-api-keys)). |
 | `agents:write` | Declare, change and undeclare agents, and create, change and delete agent groups (see the [Agents API](./agents-api)). Reading agents, groups and families needs `read`. |
+| `functions:write` | Create, change, delete, restore, validate and test-run [gateway functions](./functions-api), write function data, create and change function bindings (each binding write publishes a policy revision), delete function memory and read its values. Reading functions, data, bindings and the memory list needs `read`. |
 
 App creation requires **both** `config:write` and `credentials:write` because it issues an initial gateway credential. Attaching an existing provider needs `config:write`; changing that shared provider needs `providers:write`. `GET /capabilities` returns the calling key's scopes in `caller.scopes`, so a tool can hide actions it cannot perform.
 
-Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The nineteen scopes above are the accepted scopes and apply tenant-wide.
+Policy scopes (`policy:write`, `policy:publish`) and app-restricted management keys are **Not Generally Available**. The twenty scopes above are the accepted scopes and apply tenant-wide.
 
 ### Administration boundary
 
@@ -420,13 +426,15 @@ Capabilities fields are at the response root, including `schema_version`, `scope
 | `403` | Tenant suspended or insufficient permission. |
 | `404` | Deployment disabled or resource missing/outside tenant. |
 | `408` | Request body read timed out. |
-| `409` | Identity/dependency/idempotency conflict, changed collection or report rows between pages, terminal key state, or `policy_not_enabled` for routing and limit controls while the Policy Engine is off. |
+| `409` | Identity/dependency/idempotency conflict, changed collection or report rows between pages, terminal key state, `policy_not_enabled` for routing and limit controls while the Policy Engine is off, or `function_in_use` when deleting a [gateway function](./functions-api#errors) that a rule still runs. |
 | `412` | Stale version. |
 | `413` | Request exceeds 1 MiB. |
 | `422` | Unprocessable request, such as a model review decision a model cannot take, or a usage query over 100,000 result rows (`result_too_large`). |
 | `428` | Required `If-Match` missing. |
 | `429` | Management concurrency limit reached. |
-| `503` | Storage unavailable, operation pending, or a node that does not accept management calls. Reports (usage, guardrail activity, provider health, users, request explanations) answer `503 query_timeout` when a query exceeds its time or read limits (narrow it and retry) and `503 data_unavailable` when their data cannot be read right now. |
+| `503` | Storage unavailable, operation pending, a configuration change already in progress (`configuration_busy`: retry), or a node that does not accept management calls. Reports (usage, guardrail activity, provider health, users, request explanations) answer `503 query_timeout` when a query exceeds its time or read limits (narrow it and retry) and `503 data_unavailable` when their data cannot be read right now. |
+
+Codes specific to gateway functions, such as `function_in_use`, `unknown_function`, `function_kind_not_allowed` and `function_loop_conflict`, and the `function_blocked` and `function_failed` codes gateway clients receive, are listed under [Functions API errors](./functions-api#errors).
 
 Deletes return JSON with `200`, not `204`. Provider tests and model discovery always return `200` with the outcome in the body; inspect `outcome` and `code`. See [tests and model discovery](./providers-and-configuration-api#tests-and-discovery).
 

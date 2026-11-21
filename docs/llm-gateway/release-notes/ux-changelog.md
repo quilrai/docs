@@ -10,6 +10,18 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Gateway functions (2026-11-22)
+
+- **New: gateway functions.** Run your own Python scripts, or a remote MCP server's tools, inside gateway requests. A function can run **Before the model is called** (add context, rewrite the latest message, answer or block), as one of the **Tools the model can call**, **On the model's answer** (rewrite, block or ask the model again) or **After the request** (record or export). Nothing runs unless you attach a function
+- **New Policy Engine control, Functions** (**Govern > Policy Engine > LLM Gateway > Controls > Functions**): attach saved functions to everyone, people, smart groups or applications, per stage, with **Observe only**, **Tool search**, **Tool limits**, **Hold streamed answers** and **Retries**
+- **New Policy Engine tab, Functions**: your functions read-only with their script, settings and versions, plus **Function data**, **Memory**, **Background runs** and an **Activity** card for 24 hours, 7 days or 30 days
+- Scripts can read your function data, keep short-term state and long-term memory, call your HTTPS APIs on allowed hosts with write-only secrets, and ask a model
+- **Logs**: a **Functions** section in a request's details, **Functions** and **Function** filters, and a **Request kind** filter with **Function call**, **Conversation summary** and **Cache warming** tags
+- **Counting change**: requests the gateway makes itself (a function's own model calls, conversation summaries and cache warming) are now ordinary requests in every total: requests, tokens, cost, latency and error rates, in the console and in the Usage and Monitoring APIs
+- **Management API settings**: a **History** card lists every change made through the Management API, and keys have a new **Manage functions** scope
+- Management API: `/functions`, `/functions/_validate`, `/functions/_test`, `/function-data`, `/function-memory`, `/controls/functions` and `/functions/_on_complete/status`, with the new `functions:write` scope
+- Details: [Gateway functions](../cost-and-traffic/gateway-functions) and the [Functions API](../api-reference/functions-api)
+
 ## Model Ops: Replays (2026-11-20)
 
 - **New tab, Model Ops**, on the LLM Gateway page, with **Replays**: send requests the gateway already logged again and compare the answers, cost and latency with the originals

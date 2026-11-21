@@ -319,7 +319,7 @@ function ProviderHealth() {
   return (
     <Panel
       title="Provider health"
-      subtitle="Per provider and model: outcomes over a window, latency, failovers away, and how routing treats each target right now. Guardrail blocks, limit rejections and background cache-refresh requests are excluded. Results can be up to 60 seconds old."
+      subtitle="Per provider and model: outcomes over a window, latency, failovers away, and how routing treats each target right now. Guardrail blocks and limit rejections are excluded; requests the gateway makes itself are counted. Results can be up to 60 seconds old."
       actions={
         <>
           <ApiChips calls={[['GET', '/provider-health'], ['GET', '/failover/summary']]} />

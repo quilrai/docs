@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Braces, Building2, HeartPulse, Layers, Route, Server, Siren, Timer, Users, Wallet, Webhook } from 'lucide-react';
+import { BarChart3, Braces, Building2, HeartPulse, Layers, Route, Server, Siren, SquareFunction, Timer, Users, Wallet, Webhook } from 'lucide-react';
 import { MANAGEMENT_PREFIX } from './client.mjs';
 import { ApiChips, Btn, ErrorBox, JsonView, KeyValue, Panel, Pill, Table, usePlayground } from './ui';
 import { useLoad } from './shared';
@@ -52,6 +52,7 @@ export default function Overview() {
               ['limits', Timer, 'Rate limits', 'Request and token limits, request guards, temporary raises and effective limits.'],
               ['incidents', Siren, 'Incidents', 'Mark a provider down during an outage, check it applied, then restore it.'],
               ['hooks', Webhook, 'Hooks', 'Call your own API before the model call or after the response, or export finished requests.'],
+              ['functions', SquareFunction, 'Functions', 'Run your own scripts on requests: list functions, check and test-run a script, and attach functions with bindings.'],
               ['administration', Building2, 'Bootstrap access', 'No management key yet? Enable management and issue one with a tenant-admin token.'],
               ['explorer', Braces, 'API Explorer', 'Browse every operation with its schema, then send it and copy cURL, Python or JavaScript.'],
             ].map(([id, Icon, title, text]) => (

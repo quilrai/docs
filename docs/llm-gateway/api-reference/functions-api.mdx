@@ -1,0 +1,410 @@
+---
+title: "Functions API"
+sidebar_position: 6.87
+sidebar_label: "Functions API"
+sidebar_custom_props:
+  badge: new
+  icon: Code
+description: "LLM Gateway Management API v1: gateway functions, the data and memory they use, function bindings that attach them to requests, and the background run status."
+aliases: [functions api, gateway functions api, function bindings, function data, function memory, functions:write, controls functions, function_in_use, on_complete status]
+---
+
+import {ApiReference} from '@site/src/components/ManagementApi';
+
+# Functions API
+
+**Run your own code on gateway requests.** A gateway function is a Python script, or a remote MCP server, that the gateway runs for the requests you choose. This API creates and tests functions, stores the data they read, lists what they remembered, and attaches them to requests with function bindings.
+
+For what functions can do, the script reference and worked examples, see [Gateway functions](../cost-and-traffic/gateway-functions). This page is the API reference.
+
+Functions, their data and their memory are created and changed only through the Management API. The console shows them read-only under **Govern > Policy Engine > LLM Gateway > Functions**, and lets you attach saved functions to requests in the **Functions** control. Try every operation in the [Management API playground](/llm-gateway-management-playground?tab=functions).
+
+## Routes
+
+Every path is relative to `https://<your-gateway-host>/llmgateway/management/v1` and takes `Authorization: Bearer <management key>`. Reads need the `read` scope. Everything else needs `functions:write` (**Manage functions** in the console), including validating and test-running.
+
+| Method and path | Scope | Purpose |
+| --- | --- | --- |
+| `GET /functions` | `read` | List functions (without code), the built-in function names and the limits. |
+| `POST /functions/_validate` | `functions:write` | Check a definition without saving it. |
+| `POST /functions/_test` | `functions:write` | Run a saved function, or an unsaved definition, with mocks. |
+| `GET /functions/_on_complete/status` | `read` | How background functions are doing on the server that answers. |
+| `GET /functions/{function_id}` | `read` | One function with its code. |
+| `PUT /functions/{function_id}` | `functions:write` | Create or replace a function. |
+| `PATCH /functions/{function_id}` | `functions:write` | Change some fields. |
+| `DELETE /functions/{function_id}` | `functions:write` | Delete a function that nothing runs any more. |
+| `GET /functions/{function_id}/versions` | `read` | The newest 20 versions. |
+| `POST /functions/{function_id}/restore` | `functions:write` | Make a kept version current. |
+| `GET /function-data` | `read` | List data entries (`?namespace=`), sizes only. |
+| `GET /function-data/{namespace}/{entry_key}` | `read` | One entry with its value. |
+| `PUT /function-data/{namespace}/{entry_key}` | `functions:write` | Create or replace an entry. |
+| `DELETE /function-data/{namespace}/{entry_key}` | `functions:write` | Delete an entry. |
+| `GET /function-memory` | `read` | List what functions remembered: keys, sizes and times. `include_values=true` needs `functions:write`. |
+| `DELETE /function-memory/{memory_scope}/{entry_key}` | `functions:write` | Delete one remembered entry. |
+| `DELETE /function-memory` | `functions:write` | Erase everything remembered for one user, or the organization-wide entries. |
+| `GET /controls/functions` | `read` | List function bindings, then console policy rules that attach functions (read-only rows). |
+| `GET /controls/functions/{id}` | `read` | One binding with its ETag. |
+| `PUT /controls/functions/{id}` | `functions:write` | Create or replace a binding. |
+| `PATCH /controls/functions/{id}` | `functions:write` | JSON merge patch of a binding. |
+| `DELETE /controls/functions/{id}` | `functions:write` | Delete a binding. |
+
+Function, data and memory writes go to the QuilrAI-hosted regional service. A self-hosted node connected to it answers `503 central_service_required`.
+
+## Functions {#functions}
+
+### Definition
+
+A function id starts with a lower-case letter and has up to 64 lower-case letters, digits and underscores. Ids that start with `quilr_` and the built-in names (`web_search`, `fetch_url`, `get_category`, `inject_data`, `datetime`, `tool_search`) are reserved.
+
+| Field | What it is | Default |
+| --- | --- | --- |
+| `kind` | `python` (a script) or `mcp` (a [remote MCP server](#mcp-server-functions)). | `python` |
+| `code` | Python source, up to 64 KiB. See the [script reference](../cost-and-traffic/gateway-functions#script-reference). | Required for `python` |
+| `args_schema` | JSON Schema object with typed properties (up to 50 properties, 16 KiB, no references). Describes `args`; for a tool it is what the model is told to send. | `{"type": "object", "properties": {}}` |
+| `display_name`, `description` | Shown in the console. For a tool, `description` is what the model reads to decide when to call it. | None |
+| `timeout_ms` | Longest run, outside calls included: 100 to 60000. | `5000` |
+| `on_failure` | `allow`: a failed run is skipped and the request continues. `block`: the request is refused with `503 function_failed`. | `allow` |
+| `allowed_hosts` | Host names `http_request` may call, up to 50. `*.example.com` allows subdomains. Never IP addresses. | `[]` (no host) |
+| `llm_targets` | Provider labels, or `label/model` names, that `call_llm` and `run_agent` may use, up to 20. | `[]` (no model) |
+| `secrets` | Named write-only secrets, up to 20. See [Secrets](#secrets). | `{}` |
+| `max_host_calls` | Outside calls one run may make: 1 to 50. | `20` |
+| `max_output_chars` | Longest result: 1 to 80000 characters. | `80000` |
+| `deterministic` | `true` when the same input always gives the same result. | `false` |
+| `detokenize_args` | Allow a tool binding to pass the real values behind [tokenized data](../protect/security-guardrails) to this function. Needs `allowed_hosts`. | `false` |
+
+Create a function:
+
+```bash
+curl --request PUT \
+  "$MANAGEMENT_URL/llmgateway/management/v1/functions/add_account_context" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "display_name": "Add account context",
+    "description": "Adds the customer plan in front of the latest user message.",
+    "code": "plans = await data.get(\"support/plans\", {})\nemail = (request.get(\"user\") or {}).get(\"email\")\nawait conv.add_context(\"Customer plan: \" + plans.get(email, \"free\"))\n{\"added\": True}",
+    "timeout_ms": 2000
+  }'
+```
+
+The response returns `function` (with `version`, `etag`, `updated_at` and `updated_by`), `changed`, `warnings` and `applies_within_seconds`. A save reaches every gateway server within about two minutes.
+
+### Versions and concurrency
+
+- **Versions.** Every change makes a new version. A save that changes nothing returns `changed: false`. The newest 20 versions are kept, and `POST /functions/{function_id}/restore` with `{"version": 3}` saves the chosen version as a new one.
+- **ETag.** Reads return an `etag`. Send it in `If-Match` on `PUT`, `PATCH`, `DELETE` and restore. A stale value answers `412 version_conflict`. `If-Match: "absent"` creates only.
+- **PATCH.** `null` resets a field to its default. Inside `secrets`, `null` removes that secret.
+
+### Secrets {#secrets}
+
+Secrets are write-only and stored encrypted. Reads show `********`. A script never sees a secret value: `http_request` attaches the secrets a call names, and an MCP server function names them in its headers.
+
+| To | Send |
+| --- | --- |
+| Keep every stored secret on `PUT` | Leave `secrets` out. |
+| Keep one secret | That name with the value `********`. |
+| Remove a secret on `PUT` | Leave its name out of the `secrets` object. |
+| Remove a secret on `PATCH` | That name with `null`. |
+
+### MCP server functions {#mcp-server-functions}
+
+A function of kind `mcp` is a remote MCP server whose tools the model may call. It has no `code` and no `args_schema`, and can only be attached as a tool.
+
+```json
+{
+  "kind": "mcp",
+  "description": "Issue tracker",
+  "allowed_hosts": ["mcp.example.com"],
+  "secrets": {"token": "<your-mcp-token>"},
+  "mcp": {
+    "url": "https://mcp.example.com/mcp",
+    "headers": {"Authorization": {"secret": "token", "prefix": "Bearer "}},
+    "tools": ["search_issues"],
+    "user_header": "X-User-Email",
+    "tool_timeout_ms": 10000,
+    "max_tools": 32
+  }
+}
+```
+
+| `mcp` field | What it is |
+| --- | --- |
+| `url` | An `https://` URL whose host is in `allowed_hosts`. |
+| `headers` | Up to 16 headers: plain text, or `{"secret", "prefix"}` naming one of `secrets`. `Authorization` and `Cookie` can only come from a secret. |
+| `tools` | The tools to offer, by the server's own names (up to 256). Leave out to offer all. |
+| `max_tools` | 1 to 64, default 32. Applied after `tools`, in the server's order. |
+| `user_header` | When set, each tool call carries the request's user email in this header. A request without a known user is sent without the header. |
+| `tool_timeout_ms` | Longest single tool call: 100 to 60000. Defaults to `timeout_ms`. |
+
+`timeout_ms`, `on_failure`, `detokenize_args`, `display_name` and `description` are also accepted. Each tool is offered to the model as `mcp__<function id>__<tool name>`.
+
+### Validate and test {#validate-and-test}
+
+`POST /functions/_validate` takes `{"function": {...}}` and returns `valid`, `errors` (what a save would refuse), `warnings` (which do not block a save) and `uses` (the script features the code calls). For an MCP server function it checks the shape only and connects to nothing.
+
+`POST /functions/_test` runs a saved function (`function_id`) or an unsaved definition (`function`) in the sandbox. Nothing is sent anywhere and nothing is stored: outside calls answer from `mocks`.
+
+```bash
+curl --request POST \
+  "$MANAGEMENT_URL/llmgateway/management/v1/functions/_test" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "function_id": "add_account_context",
+    "request": {"user": {"email": "ana@example.com"}},
+    "mocks": {
+      "data": {"support/plans": {"ana@example.com": "enterprise"}},
+      "conv": {"messages": [{"role": "user", "text": "Where is my invoice?"}]}
+    }
+  }'
+```
+
+```json
+{
+  "ok": true,
+  "ms": 1,
+  "calls": [{"name": "data_get", "ok": true, "ms": 0}],
+  "logs": "",
+  "actions": [{"kind": "add_context", "where": "user", "text": "Customer plan: enterprise"}],
+  "result": {"added": true},
+  "request_id": "req_example"
+}
+```
+
+| Request field | What it is |
+| --- | --- |
+| `function_id` or `function` | A saved function, or an unsaved definition. Send one, not both. |
+| `args` | The arguments the script reads as `args`. |
+| `request` | The request details the script reads as `request`. |
+| `mocks` | Answers for outside calls by name, for example `{"web_search": [...]}` or `{"http_request": {"status": 200, "json": {...}}}`. `{"$error": "message"}` makes a call fail. A call with no mock fails inside the script. |
+| `mocks.data`, `mocks.kv`, `mocks.memory` | Objects of key to value, for example `{"support/plans": {...}}` for data, `{"conversation/seen": true}` for `kv` and `{"user/preferences": {...}}` for `memory` (the key is `scope/key`). Function data falls back to the stored entries when it is not mocked. |
+| `mocks.conv` | The conversation the script reads: `{"system": "...", "messages": [{"role", "text"}]}`. |
+| `mocks.response` | Tests a function that reviews the model's answer: `{"text", "tool_calls": [{id, name, arguments}], "stop_reason", "model", "usage", "attempt"}`, every key optional. The result has `stage: "post_call"`. |
+| `mocks.event` | Tests a background function: any JSON object, read as `event`. The result has `stage: "on_complete"`. Send `mocks.response` or `mocks.event`, not both. |
+
+The response has `ok`, `ms`, `calls`, `logs`, then `result` or `outcome` (`respond`, `block` or `retry`), `actions` (what the script asked to change, applied to nothing), and `error` with `code` and `message` when the run failed. A failed run still answers HTTP `200`.
+
+For an MCP server function, a test connects, lists the tools and returns `ok`, `tools`, `tool_count`, `dropped` and `server` without calling a tool. `mocks: {"tools": [...]}` skips the connection. An unsaved definition's secrets are never stored, so test a server that needs a credential by `function_id`.
+
+Test runs are limited to 30 a minute per organization (`429 function_test_rate_limited`).
+
+### Delete a function that is still attached
+
+`DELETE /functions/{function_id}` answers `409 function_in_use` while a rule of your active policy runs the function or offers it as a tool, whether the rule comes from a function binding or from the console:
+
+```json
+{
+  "error": {
+    "code": "function_in_use",
+    "message": "1 policy rule(s) run this function; remove it from them first.",
+    "references": [{"kind": "managed", "policy": "quilr_managed_functions_o10", "rule_index": 0, "priority": 889}]
+  },
+  "request_id": "req_example"
+}
+```
+
+`kind` is `managed` for a binding of this API (change it through `/controls/functions`) and `policy` for a console policy rule. There is no `force` option. A disabled binding does not hold its functions. When the active policy cannot be read, the delete answers `503 policy_unavailable` and deletes nothing; retry.
+
+## Function data {#function-data}
+
+Function data is reference content your scripts read: instruction text, lookup tables, lists. Scripts read it with `data.get("namespace/key")` and search it with `data.search(...)`. Scripts cannot change it.
+
+```bash
+curl --request PUT \
+  "$MANAGEMENT_URL/llmgateway/management/v1/function-data/support/plans" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --data '{"value": {"ana@example.com": "enterprise"}, "description": "Plan per customer"}'
+```
+
+- **Names.** A namespace starts with a lower-case letter and has up to 64 lower-case letters, digits, `-` and `_`. A key has up to 200 letters, digits and `. _ -`.
+- **Values.** Any JSON value up to 256 KB. Up to 5,000 entries per organization.
+- **Lists.** `GET /function-data` returns sizes and descriptions, never values. Read one entry for its value.
+- **Concurrency.** Send the `etag` of a read in `If-Match` to avoid overwriting someone else's change.
+
+## Function memory {#function-memory}
+
+Function memory is what your scripts remembered with `memory.set`. It lasts until it expires or you delete it, and is shared by all of your functions. The API lists and erases it; only scripts write it.
+
+- **List.** `GET /function-memory` takes `scope` (`tenant` or `user`), `owner`, `prefix`, `limit` (1 to 1000, default 200) and `include_values`. Each entry has `scope`, `owner`, `key`, `bytes`, `expires_at`, `updated_at` and `updated_by`. `truncated: true` means more entries exist.
+- **Users.** A user is shown as a digest (`u:...`), never as an email. Filter with `owner=<email>`.
+- **Values.** Returned only with `include_values=true`, which needs `functions:write` and is recorded in the [audit log](#audit).
+- **Delete one entry.** `DELETE /function-memory/{memory_scope}/{entry_key}`. For the `user` scope, name the user with `owner=<email>`.
+- **Erase a person.** `DELETE /function-memory?owner=<email>` erases everything functions remembered about one user. `?scope=tenant` erases the organization-wide entries. The response is `{erased, failed, scope, owner}`; repeat the call until `failed` is `0`.
+- **Timing.** The list is read from the server that answers, so a value written elsewhere can take a few minutes to appear. Deletes reach every server within a few minutes.
+
+## Function bindings {#function-bindings}
+
+A function does nothing until something attaches it to requests. A function binding says which functions run on which requests, at which stage. You can also attach functions in the console; see [Attach a function](../cost-and-traffic/gateway-functions#attach-a-function).
+
+Bindings are a managed control, like routes and rate limits. Each write publishes one policy revision, `If-Match` and `Idempotency-Key` work the same way, `?dry_run=true` previews, and `POST /controls/_batch` changes several at once. See [Writes, versions and idempotency](./routing-and-failover-api#writes-versions-and-idempotency). Bindings apply while the Policy Engine is on for the LLM Gateway.
+
+```bash
+curl --request PUT \
+  "$MANAGEMENT_URL/llmgateway/management/v1/controls/functions/support-context" \
+  --header "Authorization: Bearer $MANAGEMENT_KEY" \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "description": "Account context and order lookup for the support bot",
+    "scope": {"apps": ["support-bot"]},
+    "order": 10,
+    "functions": [
+      {"id": "add_account_context", "run": "per_conversation"}
+    ],
+    "tools": [
+      {"id": "lookup_order"}
+    ],
+    "loop": {"max_turns": 4, "max_tool_calls": 12},
+    "post_call": [
+      {"id": "check_answer", "buffer": true, "max_retries": 1}
+    ],
+    "on_complete": [
+      {"id": "report_failures"}
+    ]
+  }'
+```
+
+A binding needs at least one entry in `functions`, `tools`, `post_call` or `on_complete`. Reads return every item with its defaults filled.
+
+| Field | What it does | Limits and default |
+| --- | --- | --- |
+| `scope` | Which requests: `apps`, `app_tags`, `smart_groups`, `users`, `agents`, `agent_groups`, `agent_families`. Every non-empty list must match. | Empty selects every request. |
+| `match.requested_models` | Only requests that ask for one of these models. | Optional |
+| `enabled` | `false` keeps the binding and runs nothing. | `true` |
+| `order` | When several bindings apply, the lower `order` runs first. The same `order` runs in id order. | 0 to 99, default 50 |
+| `functions` | Run before the request is sent to the model, in the listed order. | Up to 8 items |
+| `tools` | Offered to the model as tools. The gateway runs each call and continues the answer. | Up to 32 items |
+| `loop` | Limits for tool calling. Needs `tools`. | See below |
+| `post_call` | Run on the model's answer before the client gets it, in the listed order. | Up to 16 items |
+| `on_complete` | Run in the background after the request is finished. | Up to 16 items |
+
+**Items by stage**
+
+| List | Item fields |
+| --- | --- |
+| `functions` | `id`; `args` (fixed arguments); `run`: `per_message` (default, every request) or `per_conversation` (once per conversation); `observe: true` runs the function and logs what it would do without changing the request. |
+| `tools` | `id`; `args` (fixed arguments, used in place of whatever the model sends for the same names); `defer: true` keeps the tool out of the request until the model finds it with `tool_search`; `detokenize_args: true` gives the function the real values behind tokenized data in the model's arguments. The id `tool_search` is the gateway's own tool for finding deferred tools: it takes no other field, and a list with a deferred tool must contain it. |
+| `loop` | `max_turns` (1 to 10, default 5): how many more times the model may be called after tool results. `max_tool_calls` (1 to 50, default 20): tool calls per request in total. `on_tool_error`: `continue` (default) gives the model the error so it can carry on; `stop` ends the answer there. |
+| `post_call` | `id`; `args`; `observe: true`; `max_retries` (0 to 2, default 1): how many times this function may ask the model to answer again; `buffer` (default `false`): hold a streamed answer until the function has passed it. `observe: true` with `buffer: true` is refused. |
+| `on_complete` | `id`; `args`. |
+
+- **Arguments.** `args` is an object of plain JSON values, at most 4,096 characters as JSON. Numbers must be finite and written without an exponent: send a decimal below 0.0001, or 1e16 and above, as text.
+- **One function, several bindings.** A function id may appear once per list. A function named by two bindings runs once, with the settings of the binding that runs first.
+- **Per request.** At most 16 functions run at each stage, and the model is offered at most 32 gateway tools. Anything past that is left out.
+- **Tool limits across bindings.** When several bindings with a `loop` apply to one request, the one with the lowest `order` decides all three values. Two enabled bindings with the same `order` that can apply to the same request must not set different `loop` values (`422 function_loop_conflict`). Give them the same `loop`, different `order` values, or `scope.apps` or `match.requested_models` lists with nothing in common.
+- **MCP server functions** can only be named in `tools` (`422 function_kind_not_allowed`). `args` on an MCP server tool are ignored.
+- **Built-in names** (`tool_search`, `web_search`, `fetch_url`, `get_category`, `inject_data`, `datetime`) cannot be named in `post_call` or `on_complete`.
+- At most 50 bindings per organization.
+
+### With console policies
+
+A console policy rule can attach functions too. Both count: the lists are combined, and for tool limits the higher policy priority decides. Bindings from this API sit at policy priorities 800 to 899 (`899 - order`). A console rule with a priority above 899 runs its functions before every binding here, one below 800 after them, and one inside 800 to 899 between them by priority.
+
+Console rules that attach functions are listed read-only in `GET /controls/functions`. Bindings from this API are read-only in the console, where they carry a **Managed by API** tag.
+
+## Background run status {#background-run-status}
+
+`GET /functions/_on_complete/status` reports how the functions that run after a request are doing:
+
+```json
+{
+  "scope": "this_server",
+  "queued": 0,
+  "running": 0,
+  "succeeded": 412,
+  "failed": 3,
+  "dropped": 0,
+  "oldest_queued_at": null,
+  "functions": [
+    {"id": "report_failures", "queued": 0, "running": 0, "written": 415, "succeeded": 412, "failed": 3, "dropped": 0, "retried": 1, "last_error": "timeout", "last_error_at": 1795286331.06, "last_success": 1795286402.5}
+  ],
+  "request_id": "req_example"
+}
+```
+
+`written` counts the records saved for the function, and `dropped` the records that were never run. The numbers are those of the server that answers the call, not of the whole deployment, so repeated calls can answer from different servers.
+
+## Audit {#audit}
+
+Function, data, memory and binding writes are recorded in the management audit log, with definitions shown with masked secrets and data values shown as sizes only. Read it with `GET /audit`, filtered by `actor`, `operation`, `resource`, `since` and `until`; see [Audit](./providers-and-configuration-api#audit). A test run is one `function_test` event that holds the function id, the stage and whether it passed, never code, arguments, mocks or output. A rejected write is recorded with its error code as the result.
+
+In the console, the same events are under **Settings > AI Gateway > LLM Gateway > Management API > History**.
+
+## Errors {#errors}
+
+Management API errors use the usual envelope, `{"error": {"code", "message", ...}, "request_id"}`.
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `invalid_request` | A malformed body, an unknown field, or a bad query value. |
+| 403 | `insufficient_scope` | The key lacks `read` (reads) or `functions:write` (everything else). |
+| 404 | `function_not_found`, `function_version_not_found`, `function_data_not_found` | The function, version or data entry does not exist. |
+| 409 | `function_in_use` | A delete of a function that a rule still runs or offers as a tool. `references` lists the rules. |
+| 409 | `function_limit_reached`, `function_data_limit_reached` | The organization has 200 functions or 5,000 data entries. |
+| 409 | `policy_not_enabled` | A binding write while the Policy Engine is off for the LLM Gateway. |
+| 412 | `version_conflict` | The `If-Match` value is stale. Read again. |
+| 422 | `invalid_function`, `invalid_function_id`, `reserved_function_id`, `invalid_function_code`, `invalid_function_args` | The definition, id, code or arguments are not valid. `field` names the problem. |
+| 422 | `invalid_data_key`, `invalid_function_data`, `function_data_too_large` | A data namespace, key or value is not valid, or the value is over 256 KB. |
+| 422 | `unknown_function` | A binding names a function you do not have. `function_ids` lists them. Create the function first. |
+| 422 | `function_kind_not_allowed` | A binding names an MCP server function outside `tools`. `function_ids` lists them. |
+| 422 | `function_loop_conflict` | Two bindings that can apply to the same request set different `loop` values at the same `order`. `conflicts` names them. |
+| 422 | `validation_failed`, `unsupported_fields`, `too_many_resources` | Any other invalid binding value, a field a binding does not take, or more than 50 bindings. |
+| 429 | `function_test_rate_limited` | More than 30 test runs a minute. |
+| 503 | `policy_unavailable` | A delete could not check the active policy. Nothing was deleted; retry. |
+| 503 | `configuration_busy` | Another change to the same configuration is in progress. Retry. |
+| 503 | `function_sandbox_unavailable` | Functions cannot run on the server that answered. |
+| 503 | `central_service_required`, `management_storage_unavailable` | A write sent to a node that does not accept it, or storage could not save the change. |
+
+Binding writes also return the usual control errors (`428 precondition_required`, `429 publish_rate_limited` and the others in [Management API errors](./management-api#conventions)).
+
+Two more codes can come back when you publish a policy in the console, not from this API:
+
+| Status | Code | When |
+| --- | --- | --- |
+| 422 | `unknown_function_reference` | A policy rule names a function that does not exist. This blocks validate and publish. |
+| 503 | `function_catalog_unavailable` | The list of functions could not be read while publishing. Retry. |
+
+Gateway clients, not Management API callers, receive these when a function refuses a request:
+
+| Status | Code | When |
+| --- | --- | --- |
+| 403 | `function_blocked` | A function blocked the request or the answer. |
+| 503 | `function_failed` | A function with `on_failure: block` could not run. |
+| 400 | `function_unsupported_request` | The request has a shape a required function cannot review, such as several answers at once. |
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Functions per organization | 200 |
+| Script size | 64 KiB |
+| Run time | 100 to 60000 ms, default 5000 |
+| Outside calls per run | 1 to 50, default 20 |
+| Result size | Up to 80,000 characters |
+| Versions kept | 20 per function |
+| Secrets | 20 per function, 8,192 characters each |
+| Allowed hosts, model targets | 50 hosts, 20 targets per function |
+| Function data | 5,000 entries, 256 KB each |
+| Function memory | 500 keys per user, 5,000 organization-wide, 16 KB per value, up to 365 days |
+| Bindings per organization | 50 |
+| Per binding | 8 `functions`, 32 `tools`, 16 `post_call`, 16 `on_complete` |
+| Per request | 16 functions per stage; 32 gateway tools offered |
+| Test runs | 30 a minute per organization |
+
+## Endpoints
+
+### Functions, data and memory
+
+<ApiReference tags={['Catalogs']} paths={['/functions', '/function-data', '/function-memory']} />
+
+### Function bindings
+
+<ApiReference tags={['Function bindings']} paths={['/controls/functions']} />
+
+## Related
+
+- [Gateway functions](../cost-and-traffic/gateway-functions) - what functions do, the script reference and worked examples.
+- [Management API](./management-api) - authentication, scopes, errors and retry rules.
+- [Routing and failover API](./routing-and-failover-api) - the write, ETag and dry-run rules shared by every control.
+- [Hooks API](./hooks-api) - call your own HTTPS API instead of running a script in the gateway.
+- [Management API playground](/llm-gateway-management-playground?tab=functions) - list functions, check and test-run a script, and manage bindings from the browser.

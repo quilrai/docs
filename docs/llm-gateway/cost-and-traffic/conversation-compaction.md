@@ -96,8 +96,8 @@ List every follow-up promised to the customer, as short bullet points.
 ## Check what happened {#logs-and-billing}
 
 - Responses to compacted requests carry the `x-quilr-compaction` header: `applied` when the gateway summarized on this turn, `reused` when it reused an earlier summary.
-- Each summary call appears in the logs as its own request, with the routing mode **Compaction**.
-- Summary calls count in spend. Request counts, latency and error rates leave them out.
+- Each summary call appears in the logs as its own request, tagged **Conversation summary**. Filter on them with **Request kind**.
+- Summary calls are ordinary requests: they count in request totals, tokens, spend, latency and error rates.
 
 ## When conversations are sent in full {#when-compaction-is-skipped}
 
