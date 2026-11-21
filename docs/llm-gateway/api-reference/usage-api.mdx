@@ -50,7 +50,7 @@ Filters narrow every number, including `totals`, and `totals` always equals the 
 | Field | Meaning |
 | --- | --- |
 | `requests` | Requests with every outcome, including the requests the gateway makes itself: background cache-refresh requests, conversation summary calls and model calls made by [gateway functions](../cost-and-traffic/gateway-functions#function-model-calls). |
-| `blocked` | Refused by a policy check before the model call, or blocked by a guardrail. |
+| `blocked` | Refused by a policy check before the model call, or blocked by a guardrail, an external hook or a [gateway function](../cost-and-traffic/gateway-functions). |
 | `rate_limited` | Refused by a gateway rate limit, token limit or quota. |
 | `errors` | Failed upstream or in the gateway (status 400 or above), excluding blocked and rate-limited requests. A provider's own 429 counts here. |
 | `input_tokens`, `output_tokens` | Input includes cached input; `cache_read_tokens` and `cache_write_tokens` break it down. `reasoning_tokens` is part of output where the provider reports it. |

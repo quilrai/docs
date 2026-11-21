@@ -87,7 +87,7 @@ Every setting, including `on_failure`, `allowed_hosts`, `llm_targets` and `secre
 
 Test before you attach. Neither call stores anything or sends anything outside the gateway.
 
-- **Check** a definition with `POST /functions/_validate`. It returns the errors a save would refuse and warnings.
+- **Check** a definition with `POST /functions/_validate`. It returns the errors a save would refuse and warnings. This checks syntax and shape only. Code that tries to read files, open network connections or read the environment gets a warning where the check recognizes it, and fails when it runs.
 - **Run** a function with `POST /functions/_test`. Outside calls answer from the `mocks` you send, and the response shows the result, the calls the script made and what it asked to change.
 
 ```bash
@@ -233,7 +233,7 @@ Save it with a schema, the host it may call and its secret:
 }
 ```
 
-- **Tool limits.** By default the model may be called 5 more times after tool results (**Follow-up model requests**, 1 to 10) and a request may make 20 tool calls in total (**Tool calls per request**, 1 to 50). When a tool fails, the model is told and carries on, or the answer ends there (**When a tool call fails**).
+- **Tool limits.** By default the model may be called 5 more times after tool results (**Follow-up model requests**, 1 to 10) and a request may make 20 tool calls in total (**Tool calls per request**, 1 to 50). When a tool fails, the model is told and carries on, or the answer ends there (**When a tool call fails**). An answer that ends there is a normal `200` that is usually empty, not an error.
 - **Fixed arguments.** Arguments you set on the attachment are hidden from the model and always used.
 - **Tool search.** With many tools, turn on **Found through tool search** for the ones needed rarely. The model gets one search tool and looks them up when it needs them, so a long tool list is not sent with every request.
 - **Results** are text of up to 20,000 characters. A failed tool gives the model a short error word, never your error text.
@@ -304,7 +304,7 @@ Non-streamed answers are always held, so every function can change them.
 
 ## After the request {#on-complete}
 
-An `on_complete` function runs in the background once the request is finished, including requests that ended in an error. It reads the finished request as `event`.
+An `on_complete` function runs in the background once the request is finished, including requests that ended in an error and requests a function ended itself: answered in place of the model, blocked, or refused because a required function failed. It reads the finished request as `event`.
 
 ```python
 # Send failed requests to your own alerting endpoint.
@@ -327,6 +327,7 @@ if event["status_code"] >= 400:
 
 - A function can run more than once for the same request, so make it safe to repeat.
 - Runs happen on the gateway server that served the request. They are not shown on the request's log; see [Background runs](#see-what-functions-did).
+- A request refused before functions run does not start background functions: a failed sign-in, a limit, data protection or an external hook that blocked it.
 - Requests the gateway makes itself, and replays, do not start background functions.
 
 ## Script reference {#script-reference}
@@ -351,7 +352,7 @@ A script is Python. Top-level `await` is allowed, and the last expression is the
 | --- | --- |
 | `await data.get("namespace/key", default=None)` | Read [function data](../api-reference/functions-api#function-data). Scripts cannot change it. |
 | `await data.search(query, namespace=None, limit=5, mode="keyword")` | Find the best matching data entries: a list of `{namespace, key, score, value}`. `limit` is at most 20. `mode="semantic"` ranks by meaning where available, and otherwise runs as a keyword search. |
-| `await kv.get(scope, key, default=None)`, `kv.set(scope, key, value, ttl_seconds=3600)`, `kv.delete(scope, key)` | Short-term state for up to 7 days. `scope` is `"tenant"`, `"user"` or `"conversation"`. |
+| `await kv.get(scope, key, default=None)`, `kv.set(scope, key, value, ttl_seconds=3600)`, `kv.delete(scope, key)` | Short-term state for up to 7 days. `scope` is `"tenant"`, `"user"` or `"conversation"`. A read that does not answer in time raises `ToolError`; see [Short-term state](#short-term-state). |
 | `await memory.get(scope, key, default=None)`, `memory.set(scope, key, value, ttl_days=None)`, `memory.delete(scope, key)`, `memory.list(scope, prefix="", limit=50)` | Long-term memory, kept until it expires or is deleted. `scope` is `"tenant"` or `"user"`. Shared by all of your functions. |
 
 The `user` scope is the request's user email as the gateway identified it, or the personal or app key when there is no email. A request with neither has no `user` scope. Identity is as trustworthy as your app's [identity setup](../protect/identity-and-network-trust).
@@ -364,8 +365,8 @@ The `user` scope is the request's user email as the gateway identified it, or th
 | `await call_llm(target, messages, schema=None, max_tokens=None)` | Ask a model. `target` is one of the function's `llm_targets`: a provider label or `label/model`. Returns `{content, json, tool_calls, finish_reason, model, usage, request_id}`. With `schema`, `json` holds the parsed result. |
 | `await run_agent(target, system, tools, input, max_iterations=5)` | Let a model work with up to 16 of your other functions as tools. Returns `{output, iterations, tool_calls, finished}`. |
 | `await get_category(text, categories)` | Pick which of 2 to 20 categories fits a text, with Quilr's own classifier. Returns `{category, status, reason}`; `status` is `ok` or `not_evaluated`. |
-| `await web_search(query, limit=5)` | Search the web: a list of `{url, title, snippet}`. Where web search is available on your gateway. |
-| `await fetch_url(url)` | Fetch a public page as `{url, markdown}`. Where web search is available on your gateway. |
+| `await web_search(query, limit=5)` | Search the web: a list of `{url, title, snippet}`. Needs web search enabled for your deployment; otherwise the call raises `ToolError`. |
+| `await fetch_url(url)` | Fetch a public page as `{url, markdown}`. Needs web search enabled for your deployment; otherwise the call raises `ToolError`. |
 
 **Outcomes**
 
@@ -388,6 +389,22 @@ A call that fails raises `ToolError`, which the script can catch. A call that is
 
 To see or erase what functions remembered, including everything about one person, use the [function memory](../api-reference/functions-api#function-memory) routes. Values are stored encrypted.
 
+### Short-term state {#short-term-state}
+
+`kv.get` returns your `default` only when the key is absent. When the store does not answer in time, the read raises `ToolError` instead, so a script that reads, changes and writes back never mistakes a slow read for an empty one. If you do not catch the error, the function fails and its `on_failure` setting decides. Catch it when the function can do without the value:
+
+```python
+# Count the user messages of a conversation. Skip the count when state is unavailable.
+try:
+    seen = await kv.get("conversation", "messages_seen", 0)
+    await kv.set("conversation", "messages_seen", seen + 1, ttl_seconds=86400)
+except ToolError:
+    seen = None
+{"seen": seen}
+```
+
+`kv.set` returns `False` when the write could not be stored.
+
 ## Where functions run {#where-functions-run}
 
 | API | Before the model | Tools | On the answer | After the request |
@@ -401,7 +418,7 @@ To see or erase what functions remembered, including everything about one person
 Functions do not run on:
 
 - Other APIs, such as embeddings, Realtime and Assistants.
-- Requests served by a private gateway. The request's log details say so.
+- Requests that run on a privately hosted gateway, such as a [GPU connector](../apps-and-providers/gpu-connectors). The request's log details say so.
 - Bedrock InvokeModel bodies of other model families.
 
 When a function with `on_failure: block` is attached and the request has a shape it cannot work on, the gateway refuses the request with `400 function_unsupported_request` instead of letting it pass unchecked. This covers Chat Completions with `n` above 1 and Responses with `background: true` for answer functions, and unsupported Bedrock bodies for functions that run before the model.
@@ -443,11 +460,13 @@ You can give `function_blocked` and `function_failed` friendlier text with [erro
 
 **Change history.** Every function, data, memory and attachment change made through the Management API is listed under **Settings > AI Gateway > LLM Gateway > Management API > History**, and in `GET /audit`.
 
-**Background runs.** `GET /functions/_on_complete/status` and the **Background runs** section show what is waiting and, per function, how many runs succeeded, failed or were dropped, with the last error. The numbers are per gateway server.
+**Background runs.** `GET /functions/_on_complete/status` and the **Background runs** section show what is waiting and, per function, how many runs succeeded, failed or were dropped, with the last error. The numbers are those of the one gateway server that took the call, so repeated calls can show different numbers.
+
+**Management API.** `GET /requests` items carry `functions` (`ran` and `failed`), and [`GET /requests/{request_id}/explain`](../api-reference/monitoring-api#explain-a-request) returns a `functions` section with each stage and up to 50 runs. A request a function blocked has the outcome `blocked` in usage, the request list, latency and the explanation.
 
 ### Requests a function sends to models {#function-model-calls}
 
-Each `call_llm` or `run_agent` model call is its own request in the logs, tagged **Function call**, and is billed to the application like any request. Extra model turns for tools are part of the original request.
+Each `call_llm` or `run_agent` model call is its own request in the logs, tagged **Function call**, and is billed to the application like any request. In the Management API it has `request_kind: "function"` and a `function_call` that names the request and the function that made it. Extra model turns for tools are part of the original request.
 
 Requests the gateway makes itself are ordinary requests: they count in request totals, tokens, cost, latency and error rates everywhere, including the [Usage API](../api-reference/usage-api) and [Monitoring API](../api-reference/monitoring-api). In the logs, the **Request kind** filter tells them apart: **Function call**, **Conversation summary** and **Cache warming**.
 
@@ -483,7 +502,7 @@ More limits are listed in the [Functions API](../api-reference/functions-api#lim
 
 Some applications ask the model's provider to search the web, for example with Anthropic's `web_search` tool, the Responses `web_search` tool or Chat Completions `web_search_options`. Not every provider supports this: Claude on AWS Bedrock, for example, refuses the tool. For an application that has this turned on, the gateway runs the search itself on providers that cannot, so the same request works wherever it is routed.
 
-- It is off by default and turned on per application. Ask your QuilrAI contact to turn it on.
+- It is off by default. QuilrAI turns it on per application on request.
 - Providers that have their own web search keep using it.
 - Each extra model turn is priced like any request, and these answers are not stored in the response cache.
 - Citations are not added to the answer; the model cites URLs in its text.

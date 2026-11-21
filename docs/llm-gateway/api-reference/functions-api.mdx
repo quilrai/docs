@@ -28,7 +28,7 @@ Every path is relative to `https://<your-gateway-host>/llmgateway/management/v1`
 | `GET /functions` | `read` | List functions (without code), the built-in function names and the limits. |
 | `POST /functions/_validate` | `functions:write` | Check a definition without saving it. |
 | `POST /functions/_test` | `functions:write` | Run a saved function, or an unsaved definition, with mocks. |
-| `GET /functions/_on_complete/status` | `read` | How background functions are doing on the server that answers. |
+| `GET /functions/_on_complete/status` | `read` | How background functions are doing on the one server that took the call. |
 | `GET /functions/{function_id}` | `read` | One function with its code. |
 | `PUT /functions/{function_id}` | `functions:write` | Create or replace a function. |
 | `PATCH /functions/{function_id}` | `functions:write` | Change some fields. |
@@ -54,7 +54,7 @@ Function, data and memory writes go to the QuilrAI-hosted regional service. A se
 
 ### Definition
 
-A function id starts with a lower-case letter and has up to 64 lower-case letters, digits and underscores. Ids that start with `quilr_` and the built-in names (`web_search`, `fetch_url`, `get_category`, `inject_data`, `datetime`, `tool_search`) are reserved.
+A function id starts with a lower-case letter and has up to 64 lower-case letters, digits and underscores. Ids that start with `quilr_` and the built-in names (`web_search`, `fetch_url`, `get_category`, `inject_data`, `datetime`, `tool_search`) are reserved (`422 reserved_function_id`). `mcp` is a kind, not a reserved id.
 
 | Field | What it is | Default |
 | --- | --- | --- |
@@ -92,7 +92,8 @@ The response returns `function` (with `version`, `etag`, `updated_at` and `updat
 ### Versions and concurrency
 
 - **Versions.** Every change makes a new version. A save that changes nothing returns `changed: false`. The newest 20 versions are kept, and `POST /functions/{function_id}/restore` with `{"version": 3}` saves the chosen version as a new one.
-- **ETag.** Reads return an `etag`. Send it in `If-Match` on `PUT`, `PATCH`, `DELETE` and restore. A stale value answers `412 version_conflict`. `If-Match: "absent"` creates only.
+- **ETag.** `GET /functions/{function_id}` sends an `ETag` header: the body `etag` in double quotes. Send that header value as it is, quotes included, in `If-Match` on `PUT`, `PATCH`, `DELETE` and restore. A stale value answers `412 version_conflict`, and so does the `etag` without its quotes. `If-Match: "absent"` creates only.
+- **No dry run.** The function, function data and function memory routes have no dry run: `?dry_run=true` answers `400 invalid_request` and changes nothing. So does any other query parameter a route does not read; `fields` lists them. To check a definition without saving it, use `POST /functions/_validate`. Function bindings do support `?dry_run=true`.
 - **PATCH.** `null` resets a field to its default. Inside `secrets`, `null` removes that secret.
 
 ### Secrets {#secrets}
@@ -141,6 +142,8 @@ A function of kind `mcp` is a remote MCP server whose tools the model may call. 
 ### Validate and test {#validate-and-test}
 
 `POST /functions/_validate` takes `{"function": {...}}` and returns `valid`, `errors` (what a save would refuse), `warnings` (which do not block a save) and `uses` (the script features the code calls). For an MCP server function it checks the shape only and connects to nothing.
+
+Validation checks syntax and shape: the code parses, fits the size limit and reads no name it never defines. It also returns a `function_sandbox_warning` when the code imports a module or calls a builtin that reaches for files, the network, the process or the environment, such as `import os` or `open(...)`. The definition is still `valid` and can be saved, but that code fails when it runs. The sandbox is what enforces, and the warning list is not complete (`eval` and `exec`, for example, are not flagged), so test-run a function before you attach it. A save returns the same warnings.
 
 `POST /functions/_test` runs a saved function (`function_id`) or an unsaved definition (`function`) in the sandbox. Nothing is sent anywhere and nothing is stored: outside calls answer from `mocks`.
 
@@ -220,13 +223,13 @@ curl --request PUT \
 - **Names.** A namespace starts with a lower-case letter and has up to 64 lower-case letters, digits, `-` and `_`. A key has up to 200 letters, digits and `. _ -`.
 - **Values.** Any JSON value up to 256 KB. Up to 5,000 entries per organization.
 - **Lists.** `GET /function-data` returns sizes and descriptions, never values. Read one entry for its value.
-- **Concurrency.** Send the `etag` of a read in `If-Match` to avoid overwriting someone else's change.
+- **Concurrency.** `GET /function-data/{namespace}/{entry_key}` sends an `ETag` header. Send its value, quotes included, in `If-Match` to avoid overwriting someone else's change.
 
 ## Function memory {#function-memory}
 
 Function memory is what your scripts remembered with `memory.set`. It lasts until it expires or you delete it, and is shared by all of your functions. The API lists and erases it; only scripts write it.
 
-- **List.** `GET /function-memory` takes `scope` (`tenant` or `user`), `owner`, `prefix`, `limit` (1 to 1000, default 200) and `include_values`. Each entry has `scope`, `owner`, `key`, `bytes`, `expires_at`, `updated_at` and `updated_by`. `truncated: true` means more entries exist.
+- **List.** `GET /function-memory` takes `scope` (`tenant` or `user`), `owner`, `prefix`, `limit` (1 to 1000, default 200; another value is `400`) and `include_values`. Each entry has `scope`, `owner`, `key`, `bytes`, `expires_at`, `updated_at` and `updated_by`. `truncated: true` means more entries exist.
 - **Users.** A user is shown as a digest (`u:...`), never as an email. Filter with `owner=<email>`.
 - **Values.** Returned only with `include_values=true`, which needs `functions:write` and is recorded in the [audit log](#audit).
 - **Delete one entry.** `DELETE /function-memory/{memory_scope}/{entry_key}`. For the `user` scope, name the user with `owner=<email>`.
@@ -284,13 +287,13 @@ A binding needs at least one entry in `functions`, `tools`, `post_call` or `on_c
 | --- | --- |
 | `functions` | `id`; `args` (fixed arguments); `run`: `per_message` (default, every request) or `per_conversation` (once per conversation); `observe: true` runs the function and logs what it would do without changing the request. |
 | `tools` | `id`; `args` (fixed arguments, used in place of whatever the model sends for the same names); `defer: true` keeps the tool out of the request until the model finds it with `tool_search`; `detokenize_args: true` gives the function the real values behind tokenized data in the model's arguments. The id `tool_search` is the gateway's own tool for finding deferred tools: it takes no other field, and a list with a deferred tool must contain it. |
-| `loop` | `max_turns` (1 to 10, default 5): how many more times the model may be called after tool results. `max_tool_calls` (1 to 50, default 20): tool calls per request in total. `on_tool_error`: `continue` (default) gives the model the error so it can carry on; `stop` ends the answer there. |
+| `loop` | `max_turns` (1 to 10, default 5): how many more times the model may be called after tool results. `max_tool_calls` (1 to 50, default 20): tool calls per request in total. `on_tool_error`: `continue` (default) gives the model the error so it can carry on; `stop` ends the answer there: the client gets a normal `200` whose answer is usually empty, not an error. |
 | `post_call` | `id`; `args`; `observe: true`; `max_retries` (0 to 2, default 1): how many times this function may ask the model to answer again; `buffer` (default `false`): hold a streamed answer until the function has passed it. `observe: true` with `buffer: true` is refused. |
 | `on_complete` | `id`; `args`. |
 
 - **Arguments.** `args` is an object of plain JSON values, at most 4,096 characters as JSON. Numbers must be finite and written without an exponent: send a decimal below 0.0001, or 1e16 and above, as text.
 - **One function, several bindings.** A function id may appear once per list. A function named by two bindings runs once, with the settings of the binding that runs first.
-- **Per request.** At most 16 functions run at each stage, and the model is offered at most 32 gateway tools. Anything past that is left out.
+- **Per request.** At most 16 functions run at each stage. The model is offered at most 32 gateway tools, and an MCP server function counts once per tool it offers. The first 64 tool items across the bindings that apply are considered; one that does not fit is left out and logged.
 - **Tool limits across bindings.** When several bindings with a `loop` apply to one request, the one with the lowest `order` decides all three values. Two enabled bindings with the same `order` that can apply to the same request must not set different `loop` values (`422 function_loop_conflict`). Give them the same `loop`, different `order` values, or `scope.apps` or `match.requested_models` lists with nothing in common.
 - **MCP server functions** can only be named in `tools` (`422 function_kind_not_allowed`). `args` on an MCP server tool are ignored.
 - **Built-in names** (`tool_search`, `web_search`, `fetch_url`, `get_category`, `inject_data`, `datetime`) cannot be named in `post_call` or `on_complete`.
@@ -322,7 +325,7 @@ Console rules that attach functions are listed read-only in `GET /controls/funct
 }
 ```
 
-`written` counts the records saved for the function, and `dropped` the records that were never run. The numbers are those of the server that answers the call, not of the whole deployment, so repeated calls can answer from different servers.
+`written` counts the records saved for the function, and `dropped` the records that were never run. The numbers are those of the one server that took this call, not of the region or the whole deployment. Behind a load balancer, repeated calls can be answered by different servers and show different numbers, and a run that happened on another server is not counted here.
 
 ## Audit {#audit}
 
@@ -336,13 +339,13 @@ Management API errors use the usual envelope, `{"error": {"code", "message", ...
 
 | Status | Code | When |
 | --- | --- | --- |
-| 400 | `invalid_request` | A malformed body, an unknown field, or a bad query value. |
+| 400 | `invalid_request` | A malformed body, an unknown field, a bad query value, or a query parameter the route does not read (`dry_run` included). |
 | 403 | `insufficient_scope` | The key lacks `read` (reads) or `functions:write` (everything else). |
 | 404 | `function_not_found`, `function_version_not_found`, `function_data_not_found` | The function, version or data entry does not exist. |
 | 409 | `function_in_use` | A delete of a function that a rule still runs or offers as a tool. `references` lists the rules. |
 | 409 | `function_limit_reached`, `function_data_limit_reached` | The organization has 200 functions or 5,000 data entries. |
 | 409 | `policy_not_enabled` | A binding write while the Policy Engine is off for the LLM Gateway. |
-| 412 | `version_conflict` | The `If-Match` value is stale. Read again. |
+| 412 | `version_conflict` | The `If-Match` value is stale, or is the `etag` without its double quotes. Read again. |
 | 422 | `invalid_function`, `invalid_function_id`, `reserved_function_id`, `invalid_function_code`, `invalid_function_args` | The definition, id, code or arguments are not valid. `field` names the problem. |
 | 422 | `invalid_data_key`, `invalid_function_data`, `function_data_too_large` | A data namespace, key or value is not valid, or the value is over 256 KB. |
 | 422 | `unknown_function` | A binding names a function you do not have. `function_ids` lists them. Create the function first. |
@@ -388,7 +391,7 @@ Gateway clients, not Management API callers, receive these when a function refus
 | Function memory | 500 keys per user, 5,000 organization-wide, 16 KB per value, up to 365 days |
 | Bindings per organization | 50 |
 | Per binding | 8 `functions`, 32 `tools`, 16 `post_call`, 16 `on_complete` |
-| Per request | 16 functions per stage; 32 gateway tools offered |
+| Per request | 16 functions per stage; 32 gateway tools offered (64 tool items considered) |
 | Test runs | 30 a minute per organization |
 
 ## Endpoints

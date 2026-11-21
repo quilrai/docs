@@ -34038,6 +34038,195 @@
             },
             "type": "object"
           },
+          "function_call": {
+            "additionalProperties": true,
+            "description": "Only on a request with request_kind function: the request whose function made this model call, and that function's id.",
+            "properties": {
+              "function_id": {
+                "type": "string"
+              },
+              "parent_gateway_request_id": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "functions": {
+            "additionalProperties": true,
+            "description": "Gateway functions that ran for the request: ids, stages, counts and timings. Code, arguments, results and error text are never returned. ran counts function runs; reused counts functions whose earlier result for the conversation was applied again without running; not_run counts attached functions that did not run; model_calls counts the model calls the functions made (each is its own request with request_kind function). When truncated is above 0 the gateway kept only the first 50 entries, so ran, failed, function_ids and runs are lower bounds. A function block is outcome blocked with request_error.code function_blocked. Absent when no function was attached.",
+            "properties": {
+              "failed": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "function_ids": {
+                "description": "Ids of the functions that ran, at most 32.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "model_calls": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "not_run": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "on_complete": {
+                "additionalProperties": true,
+                "description": "Background functions: how many were attached and whether the request was queued for them. Their runs are not listed here.",
+                "properties": {
+                  "bindings": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "queued": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "post_call": {
+                "additionalProperties": true,
+                "description": "Functions on the model's answer. late: they ran after a stream had already been sent, so they changed nothing.",
+                "properties": {
+                  "blocked": {
+                    "type": "boolean"
+                  },
+                  "late": {
+                    "type": "boolean"
+                  },
+                  "ran": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "replaced": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "retries": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "pre_call": {
+                "additionalProperties": true,
+                "description": "Functions before the model call. outcome: continue, respond (the function answered, no model call), block or failed.",
+                "properties": {
+                  "outcome": {
+                    "type": "string"
+                  },
+                  "ran": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "ran": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "reused": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "runs": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "builtin": {
+                      "type": "boolean"
+                    },
+                    "error_code": {
+                      "type": "string"
+                    },
+                    "function_id": {
+                      "type": "string"
+                    },
+                    "mcp_tool": {
+                      "type": "string"
+                    },
+                    "ms": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "stage": {
+                      "enum": [
+                        "pre_call",
+                        "tool",
+                        "post_call",
+                        "on_complete",
+                        "other"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              "stages": {
+                "items": {
+                  "enum": [
+                    "pre_call",
+                    "tool",
+                    "post_call",
+                    "on_complete"
+                  ]
+                },
+                "type": "array"
+              },
+              "tools": {
+                "additionalProperties": true,
+                "description": "Functions the model called as tools: model turns, calls, and why the loop ended.",
+                "properties": {
+                  "failed_calls": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "stop": {
+                    "type": "string"
+                  },
+                  "tool_calls": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "turns": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              },
+              "truncated": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "web_search": {
+                "additionalProperties": true,
+                "properties": {
+                  "failed_searches": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "searches": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
           "gateway_request_id": {
             "description": "The explained request (its x-quilr-request-id). The top-level request_id identifies this management call.",
             "type": "string"
@@ -34731,10 +34920,12 @@
                 "type": "string"
               },
               "request_kind": {
-                "description": "client: sent by your client. cache_refresh: one of the background cache-refresh requests the gateway sends to keep a provider prompt cache warm.",
+                "description": "client: sent by your client. cache_refresh: one of the background cache-refresh requests the gateway sends to keep a provider prompt cache warm. compaction: a summary call the gateway made to shorten a long conversation. function: a model call a gateway function made (see function_call).",
                 "enum": [
                   "client",
-                  "cache_refresh"
+                  "cache_refresh",
+                  "compaction",
+                  "function"
                 ]
               },
               "requested_model": {
@@ -34955,6 +35146,49 @@
             ],
             "type": "object"
           },
+          "function_call": {
+            "description": "Set when request_kind is function: the request whose function made this model call.",
+            "properties": {
+              "function_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "parent_request_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "parent_request_id",
+              "function_id"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "functions": {
+            "description": "Gateway function runs of the request and how many failed; null when no function was attached. The explanation lists them.",
+            "properties": {
+              "failed": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "ran": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "ran",
+              "failed"
+            ],
+            "type": [
+              "object",
+              "null"
+            ]
+          },
           "guardrails": {
             "description": "Categories and actions only; detected values are never returned.",
             "properties": {
@@ -35085,7 +35319,7 @@
             ]
           },
           "outcome": {
-            "description": "served, blocked (guardrails, access or hooks), error (status 400 or above) or rate_limited (rate limits and quotas).",
+            "description": "served, blocked (guardrails, access, hooks or a gateway function), error (status 400 or above) or rate_limited (rate limits and quotas).",
             "enum": [
               "served",
               "blocked",
@@ -35110,6 +35344,15 @@
           "request_id": {
             "description": "The x-quilr-request-id the client received.",
             "type": "string"
+          },
+          "request_kind": {
+            "description": "client: sent by your client. cache_refresh, compaction, function: a request the gateway made itself (a prompt-cache refresh, a conversation summary, a model call made by a gateway function).",
+            "enum": [
+              "client",
+              "cache_refresh",
+              "compaction",
+              "function"
+            ]
           },
           "requested_model": {
             "description": "Model the client asked for.",
@@ -77720,7 +77963,7 @@
     },
     "/llmgateway/management/v1/function-data/{namespace}/{entry_key}": {
       "delete": {
-        "description": "Delete the entry. Send If-Match with the etag a read returned to avoid overwriting someone else's change.",
+        "description": "Delete the entry. Send If-Match with the ETag header value a read returned (the etag in double quotes) to avoid overwriting someone else's change. This route has no dry run: a dry_run query parameter is a 400.",
         "operationId": "Delete_function_data",
         "parameters": [
           {
@@ -77827,7 +78070,7 @@
         ]
       },
       "get": {
-        "description": "One entry with its value.",
+        "description": "One entry with its value. The ETag response header is the etag in double quotes; send it as it is in If-Match.",
         "operationId": "Get_function_data",
         "parameters": [
           {
@@ -77925,7 +78168,7 @@
         ]
       },
       "put": {
-        "description": "Store any JSON value up to 256 KB. Scripts read it with data.get('namespace/key') and cannot change it. Send If-Match with the etag a read returned to avoid overwriting someone else's change.",
+        "description": "Store any JSON value up to 256 KB. Scripts read it with data.get('namespace/key') and cannot change it. Send If-Match with the ETag header value a read returned (the etag in double quotes) to avoid overwriting someone else's change. This route has no dry run: a dry_run query parameter is a 400.",
         "operationId": "Put_function_data",
         "parameters": [
           {
@@ -78711,7 +78954,7 @@
     },
     "/llmgateway/management/v1/functions/_validate": {
       "post": {
-        "description": "Check a definition without saving it. Errors are what a save would refuse; warnings do not block a save.",
+        "description": "Check a definition without saving it. Errors are what a save would refuse; warnings do not block a save. This checks syntax and shape. Code that imports a module or calls a builtin that reaches for files, the network, the process or the environment (import os, open) gets a warning and fails when it runs: the sandbox is what enforces.",
         "operationId": "Validate_function",
         "parameters": [],
         "requestBody": {
@@ -78806,7 +79049,7 @@
     },
     "/llmgateway/management/v1/functions/{function_id}": {
       "delete": {
-        "description": "Delete the function. While a policy rule or a function binding still runs it or offers it to the model as a tool, the delete answers 409 function_in_use with those references (kind, policy, rule_index, priority); remove the function from them first. There is no override. 503 policy_unavailable when the active policy cannot be read to check; retry. Send If-Match with the etag a read returned to avoid overwriting someone else's change.",
+        "description": "Delete the function. While a policy rule or a function binding still runs it or offers it to the model as a tool, the delete answers 409 function_in_use with those references (kind, policy, rule_index, priority); remove the function from them first. There is no override. 503 policy_unavailable when the active policy cannot be read to check; retry. Send If-Match with the ETag header value a read returned (the etag in double quotes) to avoid overwriting someone else's change. This route has no dry run: a dry_run query parameter is a 400.",
         "operationId": "Delete_function",
         "parameters": [
           {
@@ -78902,7 +79145,7 @@
         ]
       },
       "get": {
-        "description": "One function with its code. Secrets are shown as ********.",
+        "description": "One function with its code. Secrets are shown as ********. The ETag response header is the etag in double quotes; send it as it is in If-Match.",
         "operationId": "Get_function",
         "parameters": [
           {
@@ -79004,7 +79247,7 @@
         ]
       },
       "patch": {
-        "description": "Change some fields. null resets a field to its default; inside secrets, null removes that secret. Send If-Match with the etag a read returned to avoid overwriting someone else's change.",
+        "description": "Change some fields. null resets a field to its default; inside secrets, null removes that secret. Send If-Match with the ETag header value a read returned (the etag in double quotes) to avoid overwriting someone else's change. This route has no dry run: a dry_run query parameter is a 400.",
         "operationId": "Patch_function",
         "parameters": [
           {
@@ -79127,7 +79370,7 @@
         ]
       },
       "put": {
-        "description": "Create the function or replace its definition. Each change makes a new version; a save that changes nothing returns changed false. Leave secrets out to keep the stored ones. Send If-Match with the etag a read returned to avoid overwriting someone else's change.",
+        "description": "Create the function or replace its definition. Each change makes a new version; a save that changes nothing returns changed false. Leave secrets out to keep the stored ones. Send If-Match with the ETag header value a read returned (the etag in double quotes) to avoid overwriting someone else's change. This route has no dry run: a dry_run query parameter is a 400.",
         "operationId": "Put_function",
         "parameters": [
           {
@@ -79254,7 +79497,7 @@
     },
     "/llmgateway/management/v1/functions/{function_id}/restore": {
       "post": {
-        "description": "Make an earlier kept version current. It is saved as a new version. Send If-Match with the etag a read returned to avoid overwriting someone else's change.",
+        "description": "Make an earlier kept version current. It is saved as a new version. Send If-Match with the ETag header value a read returned (the etag in double quotes) to avoid overwriting someone else's change. This route has no dry run: a dry_run query parameter is a 400.",
         "operationId": "Restore_function_version",
         "parameters": [
           {
@@ -84498,6 +84741,8 @@
                         "moved": false,
                         "sends": null
                       },
+                      "function_call": null,
+                      "functions": null,
                       "guardrails": {
                         "actions": [
                           "blocked"
@@ -84531,6 +84776,7 @@
                       "provider": "Prod OpenAI",
                       "provider_type": "openai",
                       "request_id": "4f9a2c1e-8b7d-4e3a-9c21-0d5e6f7a8b90",
+                      "request_kind": "client",
                       "requested_model": "gpt-4.1",
                       "response_cache": null,
                       "status_code": 403,
