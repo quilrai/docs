@@ -162,9 +162,16 @@ TASK -> WHERE
   (off = every key suspended), then "Issue a management key": Key name*, Expiry, Scopes (Read, Configure apps,
   Manage providers, Issue app keys, Reveal app keys, Read budgets, Manage budget grants, Configure budgets,
   Read routing, Manage routing, Manage routing constraints, Read limits, Manage limits, Grant limit raises,
-  Read incidents, Manage incidents, Manage hooks, Manage personal keys, Manage agents)
+  Read incidents, Manage incidents, Manage hooks, Manage personal keys, Manage agents, Manage functions)
   > Issue key. Table: Name, Scopes, Status, Created, Expires, Last used, Actions. The key value is shown once.
   Try the key from the browser: https://docs.quilrai.dev/llm-gateway-management-playground
+- Changes made through the Management API -> Management API tab > History: newest first, who (key or console
+  admin), operation, resource, result; filter by operation or resource; Show changes; Load more.
+- Gateway functions (your own Python scripts or remote MCP servers run on requests) -> create and change only
+  through the Management API (scope functions:write):
+  https://docs.quilrai.dev/llm-gateway/api-reference/functions-api ; see them read-only at Policy Engine >
+  LLM Gateway > Functions; attach them at Policy Engine > LLM Gateway > Controls > Functions (see POLICY ENGINE).
+  Guide: https://docs.quilrai.dev/llm-gateway/cost-and-traffic/gateway-functions
 - External hooks (your own API called on gateway traffic) -> Management API tab > "Configured hooks": read-only
   list of each hook's stage, mode, scope and destination. Create and change hooks only through the Management
   API (scope hooks:write): https://docs.quilrai.dev/llm-gateway/api-reference/hooks-api
@@ -261,7 +268,7 @@ MODEL OPS (tab on the LLM Gateway page; needs Read LLM analytics to view, Run LL
 
 POLICY ENGINE (LLM)
 - Workspace: /policy/engine/llm-gateway. Selector: LLM Gateway | MCP Gateway | Endpoint Agent | Cloud & SaaS.
-- Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Groups | Agents | Test | History.
+- Header: POLICY ENGINE ON, Updated time, More. Sections: Controls | Policies | Groups | Agents | Functions | Test | History.
 - Groups (/policy/engine/llm-gateway/groups): Rank column = editable number (API field priority; lower wins, ties by
   name, turned-off groups govern no one); Strength column = resulting position, #1 strongest (API field rank).
   Edit rank / Reset to synced rank, New virtual group, Edit group, Delete group.
@@ -297,7 +304,7 @@ POLICY ENGINE (LLM)
   Prompt Store & Enforcement.
   What should be checked?: Data & Adversarial Risks, Guardian Agent, Tool Controls, Attachments.
   Which model and limits?: Routing Groups & Fallbacks, Budgets & Usage Limits, Token Savings,
-  Conversation Compaction.
+  Conversation Compaction, Functions.
   What may return?: Hallucination Protection, Error Messages.
 - Open an area > read What happens today, section defaults and How rules combine > start from a recipe
   or blank rule > Applies to > outcome > Reads as > Save to draft > Review & publish.
@@ -330,6 +337,19 @@ POLICY ENGINE (LLM)
   instructions | Write custom instructions, up to 8,192 characters, prefilled with the default text),
   Maximum summary tokens. Recipes: Compact long conversations, Don't compact for... Responses carry
   x-quilr-compaction: applied | reused.
+- Functions (control): What happens today, Configured order (Before the model is called | Tools the model can
+  call | On the model's answer | After the request), Rules. Attach functions > Applies to (Everyone | People |
+  Smart groups | Applications) > per stage Add function / Add tool. Options: How often it runs in a conversation
+  (On every message | Once per conversation), Observe only, Arguments; tools: Found through tool search,
+  Restore tokenized values in arguments, Tool search, Tool limits (Follow-up model requests 1-10, Tool calls per
+  request 1-50, When a tool call fails: Tell the model and carry on | End the answer); answer: Hold streamed
+  answers, Retries 0-2. Priority (higher runs first) > Save to draft > Review & publish. Rules set through the
+  Management API show Managed by API and are changed there. MCP server functions attach only as tools.
+- Functions (tab, read-only): Functions table (Function, Kind Python | MCP server, In policies, Version, If a run
+  fails, Time limit, Updated), Built into the gateway, Activity (24 hours | 7 days | 30 days), Function data,
+  Memory, Background runs. Logs: request details > Functions section; filters Functions (A function ran | No
+  function ran), Function, Request kind (Function call | Conversation summary | Cache warming). Calls the gateway
+  makes itself count as ordinary requests in every total.
 - Token Savings: Smart JSON compression, HTML to text, Markdown to text, Text compression,
   Minify JSON tool outputs, Clean up tool output, Remove encoded content, Response cache.
   Response cache: match Exact (default) | Normalized | Semantic; Similarity (Semantic only) Narrow (default) |

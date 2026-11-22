@@ -34,6 +34,7 @@ Each gateway has its own engine status and these sections:
 | **History** | Compare published versions and review what changed. |
 | **Groups** (LLM Gateway only) | Rank smart groups (**Rank**: lower number wins; **Strength**: the resulting position, **#1** strongest) and create virtual groups. The best-ranked group governs a person who is in several groups. See [Budgets for several groups](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits#budgets-for-several-groups). |
 | **Agents** (LLM Gateway only) | See the agents and coding tools seen in gateway traffic in the last 30 days, declare agents with an owner and tags, and build agent groups. Views: **All agents**, **Review**, **Agent groups**, **Families**. See [Agents and coding tools](../../llm-gateway/protect/agents-and-coding-tools). |
+| **Functions** (LLM Gateway only) | See your gateway functions read-only: Python scripts and remote MCP servers, their versions, **Function data**, **Memory**, **Background runs** and an **Activity** card. Functions are created through the Management API and attached in the **Functions** control. See [Gateway functions](../../llm-gateway/cost-and-traffic/gateway-functions). |
 
 **POLICY ENGINE ON** means published policies govern that gateway. The header shows when it was updated. A control's status summarizes its configured scope; it is not proof that a particular request will match.
 
@@ -108,6 +109,7 @@ The groups follow a model request from access to returned response.
 | Which model and limits? | Budgets & Usage Limits | [Rate, token and budget limits](../../llm-gateway/cost-and-traffic/rate-token-and-budget-limits) |
 | Which model and limits? | Token Savings | [Token saving](../../llm-gateway/cost-and-traffic/token-saving) |
 | Which model and limits? | Conversation Compaction | [Conversation compaction](../../llm-gateway/cost-and-traffic/conversation-compaction) |
+| Which model and limits? | Functions | [Gateway functions](../../llm-gateway/cost-and-traffic/gateway-functions) |
 | What may return? | Hallucination Protection | [Hallucination protection](../../llm-gateway/protect/hallucination-protection) |
 | What may return? | Error Messages | [Error messages](../../llm-gateway/protect/error-messages) |
 

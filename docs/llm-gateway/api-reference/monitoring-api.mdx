@@ -98,7 +98,7 @@ Every measure is `{count, avg_ms, p50_ms, p90_ms, p95_ms, p99_ms, max_ms, histog
 | `limit`, `cursor` | 1 to 200 rows per page and the previous `next_cursor`. | `50` |
 
 - **Combining rows.** Percentiles of different rows cannot be added or averaged. Ask for the grouping you need (`totals` is computed directly), or add up the histogram buckets, which are exact.
-- **Not counted.** Requests refused by rate limits, quotas or access rules, and background cache-refresh requests.
+- **Not counted.** Requests refused by rate limits, quotas or access rules. The requests the gateway makes itself (background cache-refresh requests, conversation summary calls and model calls made by gateway functions) are counted.
 - Results can be up to 60 seconds old. Queries are limited to 20 seconds (`503 query_timeout`); at most 5,000 rows (`truncated`).
 
 ## Feature metrics
@@ -142,7 +142,9 @@ Each item has the `request_id` (the `x-quilr-request-id` the client received), `
 | `limit`, `cursor` | 1 to 200 items per page and the previous `next_cursor`. | `50` |
 
 - **Paging.** Pages continue from the last item, so requests that arrive while you page never shift or repeat items. A cursor only works with the same other parameters (`400` otherwise). Without `from`, the first page fixes the start of the range for the following pages.
-- Rate-limited and refused requests are included (see `outcome`); background cache-refresh requests are not. Recent requests appear within a few minutes. For every log line in bulk, use the [Log Export API](./log-export-api).
+- Rate-limited and refused requests are included (see `outcome`), and so are the requests the gateway makes itself: background cache-refresh requests, conversation summary calls and model calls made by gateway functions. `request_kind` tells them apart: `client`, `cache_refresh`, `compaction` or `function`.
+- **Gateway functions.** `functions` is `{ran, failed}`, the [gateway function](../cost-and-traffic/gateway-functions) runs of the request, or `null` when no function was attached. On a `function` request, `function_call` is `{parent_request_id, function_id}`: the request whose function made this model call. A request a function blocked (`function_blocked`) has the outcome `blocked`; a required function that could not run (`503 function_failed`) is an `error`.
+- Recent requests appear within a few minutes. For every log line in bulk, use the [Log Export API](./log-export-api).
 
 ## Debug a request
 
@@ -180,6 +182,7 @@ curl -s "$API/requests/6f1c2a9e-1b2c-4d3e-8f90-1234567890ab/explain" "${auth[@]}
 | `failover` | Every attempt in order with its provider, model, tier, outcome, status and failure class (the same classes as [provider health](#provider-health)), plus totals and whether the failover chain was exhausted. |
 | `guardrails` | Categories and actions (`blocked`, `redacted`, `monitored`) per direction, and the policy rules that decided them. Categories are the same `{id, name, type}` objects as in [guardrail activity](#guardrail-activity). Detected values are never returned. |
 | `limits` | Budget charges per budget and window (`charge_status`: `complete`, `deferred` or `failed`; each charge's `mode`: `enforce`, `alert` or `paused`), and the limit or budget that refused the request, if any (`limit_type`: `budget` or `rate`). |
+| `functions` | [Gateway function](../cost-and-traffic/gateway-functions) activity: counts (`ran`, `failed`, `reused`, `not_run`, `model_calls`), `function_ids`, `stages`, one block per stage that had functions attached (`pre_call`, `tools`, `post_call`, `on_complete`, `web_search`) and up to 50 `runs` (`function_id`, `stage`, `ok`, `ms`, and `mcp_tool` or `error_code` when set). Ids, counts and timings only: never code, arguments, results or error text. Absent when no function was attached. |
 | `error` | The error code, status, failure class, who raised it (`gateway` or `provider`), and whether a friendly error message replaced the original. |
 
 Values you will see in the sections:
@@ -188,6 +191,8 @@ Values you will see in the sections:
 - **`routing.upstream.mode`**: `native`, `endpoint_switch`, `adapter`, `translate` or `unsupported`. **`routing.session.key_source`**: `previous_response_id`, `conversation_id`, `client_session_id`, `prompt_cache_key` or `conversation_prefix`.
 - **Attempt `outcome`**: `served`, `retry`, `failover`, `final_error`, `skipped`, `cancelled`, or a same-target follow-up send (`adaptation`, `format_retry`, `agent_check_retry`). **Attempt `kind`**: `response`, `stream`, `cache_hit`, `adaptation`, `format_retry` or `agent_check_retry`.
 - **`failure_class`** (on attempts and on `error`): `rate_limited`, `timeout_or_connection`, `upstream_5xx`, `auth_or_permission`, `client_4xx` or `other`.
+
+- **`summary.request_kind`**: `client`, or `cache_refresh`, `compaction` or `function` for a request the gateway made itself. A `function` request also has `function_call` with `parent_gateway_request_id` and `function_id`. A function's block is outcome `blocked` with `request_error.code` `function_blocked`.
 
 Sections that do not apply, or that the gateway did not record for this request, are omitted. A rule with `managed: true` belongs to a control managed through this API or the console (routes, limits, budgets) rather than a policy you wrote.
 
@@ -208,7 +213,7 @@ Sections that do not apply, or that the gateway did not record for this request,
 - **Counts.** `requests_flagged` counts requests with at least one detection the guardrails acted on; `requests_blocked`, `requests_redacted` (masked or partially masked) and `requests_monitored` (allowed and recorded, including advisory notes) split it by action. `detections` counts each distinct category, action and direction on a request once. On rows grouped by `category`, `action` or `direction`, one request with two matching categories counts in both rows, so do not add `requests_flagged` across those rows: for flagged requests per period, run the same query without those dimensions (`group_by` empty or `app`, `user`, `model`), or chart `detections`.
 - **Scanned.** `requests_scanned` counts every scanned request in the app, user, model and time scope. Category, action and direction filters do not narrow it, and it is `null` on rows grouped by category, action or direction.
 - **Categories.** Each category is `{id, name, type}`: the id and display name from app settings and policies, or a custom definition's id and name. A redaction type such as `EMAIL` comes back as `{"id": "EMAIL", "name": "Email Address", "type": "data_risk"}`.
-- **Not counted.** Requests refused by rate limits, quotas or access rules before they were scanned, the background cache-refresh requests, and requests of apps with guardrails off.
+- **Not counted.** Requests refused by rate limits, quotas or access rules before they were scanned, and requests of apps with guardrails off.
 - **Totals and pages.** `totals` always covers the whole selection. Rows are ordered by period, then group keys. A cursor stops working (`409`) when the result changes between pages; start again from the first page. `truncated: true` means more than 5,000 rows matched.
 - **Freshness and cost.** Results can be up to 60 seconds old, and recent requests appear within a few minutes. `generated_at` is when the data was read and `data_through` the effective end of the range (your `to`, or the time of the read). A summary that exceeds its 20-second time or read limits returns `503 query_timeout`; narrow the range or add filters and retry. `503 data_unavailable` means the data cannot be read right now.
 
@@ -237,7 +242,7 @@ curl -s "$API/guardrails/summary?from=$FROM&group_by=category,action&app=Support
 | `latency_ms`, `time_to_first_token_ms` | p50 and p95 upstream latency of successful requests, and time to first token of successful streamed requests. On a provider, percentiles are set only when it has one model; read the models otherwise. |
 | `routing_state.state` | `healthy`, `unknown` (this server's routing state could not be read for the target; see `routing_state_scope`), `half_open` (a probe request is allowed), `cooling_down` (paused after rate limiting), `circuit_open` (skipped after repeated failures) or `marked_down` (an admin [mark-down](./incidents-api) applies), with `until` and the active `mark_downs`. |
 
-- **Excluded traffic.** Guardrail blocks, limit rejections and background cache-refresh requests are not provider traffic.
+- **Excluded traffic.** Guardrail blocks and limit rejections are not provider traffic. The requests the gateway makes itself (background cache-refresh requests, conversation summary calls and model calls made by gateway functions) are counted.
 - **Configured providers without traffic** are listed with zero requests; `configured: false` marks a label seen only in traffic (renamed or deleted since).
 - **Routing state is per server.** Cooldowns and circuit state are what routing on the server you called sees now, and every gateway server keeps its own (`routing_state_scope`). Admin mark-downs apply on every server. State is read through each app's routing preview (at most 25 apps within 5 seconds): `routing_state_scope` reports `apps_total`, `apps_attempted`, `apps_evaluated` (read) and `apps_failed`, and `complete` is `true` only when every app was read. When it is `false`, a target without a state read shows `unknown`, never `healthy`.
 - Results can be up to 60 seconds old; `generated_at` is when the traffic outcomes were read. `truncated: true` means more than 500 provider and model pairs had traffic; the busiest are returned.

@@ -84,6 +84,8 @@ Identity-based views depend on the caller information supplied with requests. Se
 
 ## Read the figures in context
 
+Requests the gateway makes itself are counted like any other request in totals, tokens, cost, latency and error rates: a [gateway function](../cost-and-traffic/gateway-functions#function-model-calls)'s own model calls, [conversation summary](../cost-and-traffic/conversation-compaction) calls and cache-warming requests. In **Logs** they carry a **Function call**, **Conversation summary** or **Cache warming** tag, and the **Request kind** filter shows or hides them.
+
 Costs are estimates, not a provider invoice. Agent/configuration groupings describe observed traffic, and a signal is a starting point for investigation. Read the period, scope, freshness and any unavailable-data message alongside a number.
 
 **Overall analytics** opens Insights. To inspect individual calls directly, return to the application card and select **Logs** for **Activity > Requests**. **Interactions** groups calls into conversations and **Findings** shows guardrail detections. App settings remain under the card's **Configure** actions.

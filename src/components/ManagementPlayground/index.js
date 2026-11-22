@@ -21,6 +21,7 @@ import {
   UsersRound,
   Webhook,
   SlidersHorizontal,
+  SquareFunction,
 } from 'lucide-react';
 import bundledSpec from '@site/static/openapi/llm-gateway-management-v1.json';
 import { ADMIN_PREFIX, LIVE_SPEC_PATH, MANAGEMENT_PREFIX } from './client.mjs';
@@ -38,6 +39,7 @@ import Routing from './Routing';
 import Limits from './Limits';
 import Incidents from './Incidents';
 import Hooks from './Hooks';
+import Functions from './Functions';
 import Features from './Features';
 import Usage from './Usage';
 import Monitoring from './Monitoring';
@@ -73,6 +75,7 @@ export const WORKSPACES = [
   { id: 'limits', label: 'Limits', Icon: Timer, Component: Limits },
   { id: 'incidents', label: 'Incidents', Icon: Siren, Component: Incidents },
   { id: 'hooks', label: 'Hooks', Icon: Webhook, Component: Hooks },
+  { id: 'functions', label: 'Functions', Icon: SquareFunction, Component: Functions },
   { id: 'features', label: 'Features and access', Icon: SlidersHorizontal, Component: Features },
   { id: 'catalogs', label: 'Catalogs', Icon: Library, Component: Catalogs },
   { id: 'history', label: 'History', Icon: HistoryIcon, Component: HistoryWorkspace },

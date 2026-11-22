@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import {BarChart3, Bot, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, Terminal, Timer, UserCog, Users, UsersRound, Wallet, Webhook, Workflow} from 'lucide-react';
+import {BarChart3, Bot, Lock, BookOpen, Boxes, Download, FlaskConical, HeartPulse, KeyRound, Layers, Play, Route, ShieldCheck, Siren, SlidersHorizontal, SquareFunction, Terminal, Timer, UserCog, Users, UsersRound, Wallet, Webhook, Workflow} from 'lucide-react';
 import spec from '@site/static/openapi/llm-gateway-management-v1.json';
 import styles from './styles.module.css';
 import {createApiReference} from './core';
@@ -16,7 +16,7 @@ const playground = '/llm-gateway-management-playground';
 const tryIt = operationId => `${playground}?tab=explorer&op=${encodeURIComponent(operationId)}`;
 // Operations whose scope depends on the collections they touch (batch, restore, history reads).
 const scopeNote = op => op['x-scopes-per-op'] ? 'Write (or read) scope of each collection it touches' : null;
-const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Routing:'routing-and-failover-api', Limits:'rate-limits-api', Incidents:'incidents-api', Hooks:'hooks-api', Access:'gateway-features-api', 'Gateway features':'gateway-features-api', Usage:'usage-api', Monitoring:'monitoring-api', Users:'users-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
+const pageFor = {Apps:'apps-and-credentials-api', Providers:'providers-and-configuration-api', 'Quota pools':'providers-and-configuration-api', Credentials:'apps-and-credentials-api', Administration:'management-api', Policy:'policy-api', Prompts:'prompts-api', Budgets:'budgets-api', Routing:'routing-and-failover-api', Limits:'rate-limits-api', Incidents:'incidents-api', Hooks:'hooks-api', 'Function bindings':'functions-api', Access:'gateway-features-api', 'Gateway features':'gateway-features-api', Usage:'usage-api', Monitoring:'monitoring-api', Users:'users-api', Catalogs:'providers-and-configuration-api', History:'providers-and-configuration-api', Reference:'management-api'};
 // Examples use the server's default region (https://{region}.quilr.ai with region at its default).
 const host = serverUrl(spec);
 const scopeDescriptions = spec['x-scope-descriptions'] || {};
@@ -39,7 +39,7 @@ const api = createApiReference({
     eyebrow: 'LLM GATEWAY / MANAGEMENT V1',
     title: 'Configure your gateway.',
     subtitle: 'Keep every change intentional.',
-    text: 'Manage apps, shared providers, quota pools, access keys, prompts, budgets, routing, rate limits, incidents, external hooks and self-service, and read usage, guardrail activity, provider health and users, from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.',
+    text: 'Manage apps, shared providers, quota pools, access keys, prompts, budgets, routing, rate limits, incidents, external hooks, gateway functions and self-service, and read usage, guardrail activity, provider health and users, from one tenant-scoped API. Start with a workflow, explore every request field, or try calls live in the playground.',
     actions: [
       {label: 'Start with an example', to: './management-api#quick-start', primary: true},
       {label: 'Open the playground', to: playground, Icon: Play},
@@ -60,6 +60,7 @@ const api = createApiReference({
     ['Access and features','Access controls, token saving, response cache, cache warm, model visibility, error messages and prompt enforcement.','gateway-features-api',Lock],
     ['Incidents','Mark a provider down during an outage, check it applied, then restore it.','incidents-api',Siren],
     ['Hooks','Call your own API to allow, flag or block requests and responses, or export finished requests.','hooks-api',Webhook],
+    ['Functions','Run your own Python or a remote MCP server\'s tools on requests: before the model call, as tools, on the answer or after the request.','functions-api',SquareFunction],
     ['Usage','Requests, tokens and cost by period, app, model, provider, user, key, source or outcome.','usage-api',BarChart3],
     ['Monitoring','Guardrail activity, provider health, and why one request was routed, blocked or failed over.','monitoring-api',HeartPulse],
     ['Users','Who uses the gateway: app access, personal keys, last activity and usage.','users-api',Users],
@@ -75,7 +76,7 @@ const api = createApiReference({
   directoryNote: ({aliasCount}) => aliasCount>0 && <> (plus {aliasCount} <Link to="./management-api#names-and-pagination"><code>/app?app_name=</code> aliases</Link> for app names that contain <code>/</code> or <code>%</code>)</>,
   href: op => {
     const rest = shortPath(op.path);
-    const page = rest.startsWith('/smart-groups') ? 'smart-groups-api' : rest.includes('self-service') ? 'self-service-api' : pageFor[op.tags[0]] || 'management-api';
+    const page = rest.startsWith('/smart-groups') ? 'smart-groups-api' : /^\/(functions|function-data|function-memory)(\/|$)/.test(rest) ? 'functions-api' : rest.includes('self-service') ? 'self-service-api' : pageFor[op.tags[0]] || 'management-api';
     return `./${page}#${op.operationId}`;
   },
   requirements: op => <div className={styles.scopeRow}><span>REQUIRES</span>{op['x-scopes'].length ? op['x-scopes'].map(scope=><code key={scope} title={scopeDescriptions[scope]}>{scope}</code>) : scopeNote(op) ? <code>{scopeNote(op)}</code> : <code>Verified tenant administrator</code>}</div>,
