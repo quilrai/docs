@@ -63,6 +63,7 @@ A function id starts with a lower-case letter and has up to 64 lower-case letter
 | `args_schema` | JSON Schema object with typed properties (up to 50 properties, 16 KiB, no references). Describes `args`; for a tool it is what the model is told to send. | `{"type": "object", "properties": {}}` |
 | `display_name`, `description` | Shown in the console. For a tool, `description` is what the model reads to decide when to call it. | None |
 | `timeout_ms` | Longest run, outside calls included: 100 to 60000. | `5000` |
+| `max_cpu_ms` | Longest time the script itself may compute in one run, waits on outside calls not counted: 10 to 1000. A run past it fails with `cpu_limit`. `python` only. | `200` |
 | `on_failure` | `allow`: a failed run is skipped and the request continues. `block`: the request is refused with `503 function_failed`. | `allow` |
 | `allowed_hosts` | Host names `http_request` may call, up to 50. `*.example.com` allows subdomains. Never IP addresses. | `[]` (no host) |
 | `llm_targets` | Provider labels, or `label/model` names, that `call_llm` and `run_agent` may use, up to 20. | `[]` (no model) |
@@ -382,6 +383,7 @@ Gateway clients, not Management API callers, receive these when a function refus
 | Functions per organization | 200 |
 | Script size | 64 KiB |
 | Run time | 100 to 60000 ms, default 5000 |
+| Script compute time per run | 10 to 1000 ms, default 200 |
 | Outside calls per run | 1 to 50, default 20 |
 | Result size | Up to 80,000 characters |
 | Versions kept | 20 per function |
