@@ -10,6 +10,15 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Key expiry warnings (2026-11-23)
+
+- **New: key expiry warnings.** Quilr keys with an expiry are flagged at 120, 90, 60 and 30 days before they expire
+- **LLM Gateway page**: a banner names how many keys expire within 120 days and the soonest, amber and then red at 30 days or less, with **Review all**
+- **API Keys section**: **Expires in *N* days** on each key, and a count of keys expiring within 120 days
+- **Needs attention**: the expiring-keys count now looks 120 days ahead (was 30)
+- **Alerts**: to get a message at each warning point, add an **API key expiry** rule in LLM Gateway › Alerts (email, Slack or webhook)
+- Details: [Key expiry warnings](../apps-and-providers/applications-and-keys#key-expiry-warnings) and [Alerts](../monitor/alerts#api-key-expiry)
+
 ## Gateway functions (2026-11-22)
 
 - **New: gateway functions.** Run your own Python scripts, or a remote MCP server's tools, inside gateway requests. A function can run **Before the model is called** (add context, rewrite the latest message, answer or block), as one of the **Tools the model can call**, **On the model's answer** (rewrite, block or ask the model again) or **After the request** (record or export). Nothing runs unless you attach a function

@@ -21,7 +21,7 @@ PAGE LAYOUT (Applications tab, top to bottom)
   "..." (More LLM Gateway actions) > Copy all-apps log key
 - Metric strip: REQUESTS (People calling, Models in use, Success; click = analytics) |
   APPLICATIONS (click Active/Inactive/Expired = filter) |
-  NEEDS ATTENTION (Not routable / No guardrails / Expiring in 30d = filter) |
+  NEEDS ATTENTION (Not routable / No guardrails / Expiring in 120d = filter) |
   STOPPED BY GUARDRAILS (Redacted, Failed requests, p95 latency)
 - Warning banner if an app has every provider disabled: Configure <app> or Review all
 - "Providers & models" strip: View in Models | Provider configuration; one tile per platform
@@ -132,7 +132,10 @@ TASK -> WHERE
 - Set rate limits / token budgets / concurrency -> workspace Settings > Rate and Token Limits
 - Token saving (compression/caching) -> Configure > Token Saving
 - Routing (weighted, token-based, custom) -> Configure > Routing
-- Failure-rate alerts (email/webhook) -> workspace Settings > Alerts
+- Alerts (failures, spikes, health, spend, budgets, key expiry; email/Slack/webhook) -> LLM Gateway > Alerts tab
+  (Rules, Coverage, Channels, Activity); an app's workspace Settings > Alerts shows the rules that cover it
+- Key expiry warnings (120/90/60/30 days) -> console: banner on the LLM Gateway page (Review all / Review <app> keys)
+  and "Expires in N days" per key in API Keys; messages: LLM Gateway > Alerts > Rules > "API key expiry" rule
 - Identity / JWT / conversation ID enforcement -> workspace Settings > Identity Aware
 - Prompt Store (approved prompts + Universal system prompt + enforcement) -> Configure > Prompts
 - One prompt added to every request of an app -> Configure > Prompts > "Universal system prompt" card:
