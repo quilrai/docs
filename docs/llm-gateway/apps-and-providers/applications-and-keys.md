@@ -40,7 +40,19 @@ Every app starts with one key, named in Create App (default `Default`). To manag
 | **Edit expiry** | Sets, changes or clears the expiry date. |
 | **Revoke** | Stops the key working immediately. Revoked keys stay in the list for the record. |
 
-The app card shows how many keys are active, expired and revoked. The **Needs attention** card counts apps with a key expiring in the next 30 days.
+The app card shows how many keys are active, expired and revoked. The **Needs attention** card counts apps with a key expiring in the next 120 days.
+
+### Key expiry warnings
+
+An active key with an expiry gets warnings at **120, 90, 60 and 30 days** before it expires, so you have time to add a new key and switch your application to it. Requests made with a key are rejected once it expires.
+
+| Where | What you see |
+|-------|--------------|
+| **LLM Gateway page** | A banner, for example "2 API keys across 2 apps expire within 120 days; the soonest in 20 days." It is amber, and red once any key is 30 days or less from expiry. **Review all** filters the apps to those with a key expiring soon; when only one app is affected, **Review *app* keys** opens its keys. |
+| **API Keys section** | Each key shows **Expires in *N* days** (amber, red at 30 days or less), and the header counts the keys expiring within 120 days. |
+| **App webhooks** | One message per key at each warning point, sent to the app's alert webhooks. See [Alerts](../monitor/alerts#key-expiry-warnings). |
+
+Only active keys are counted. Expired keys show **Expired**, revoked keys show **Revoked**, and keys with no expiry or more than 120 days left get no warning. A new expiry date starts the warnings again.
 
 :::tip Rotate without downtime
 Give each environment or team its own key. To rotate one, add a new key, deploy it, then revoke the old one.
