@@ -23937,6 +23937,13 @@
             },
             "type": "array"
           },
+          "max_cpu_ms": {
+            "default": 200,
+            "description": "kind python only: the script's own execution time per run (waits on host functions excluded); a run past it ends with error cpu_limit.",
+            "maximum": 1000,
+            "minimum": 10,
+            "type": "integer"
+          },
           "max_host_calls": {
             "default": 20,
             "maximum": 50,
@@ -24675,6 +24682,13 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "max_cpu_ms": {
+            "default": 200,
+            "description": "kind python only: the script's own execution time per run (waits on host functions excluded); a run past it ends with error cpu_limit.",
+            "maximum": 1000,
+            "minimum": 10,
+            "type": "integer"
           },
           "max_host_calls": {
             "default": 20,
@@ -78684,6 +78698,7 @@
                       "id": "attach_refund_skill",
                       "kind": "python",
                       "llm_targets": [],
+                      "max_cpu_ms": 200,
                       "max_host_calls": 20,
                       "max_output_chars": 80000,
                       "on_failure": "allow",
@@ -79178,6 +79193,7 @@
                     "id": "attach_refund_skill",
                     "kind": "python",
                     "llm_targets": [],
+                    "max_cpu_ms": 200,
                     "max_host_calls": 20,
                     "max_output_chars": 80000,
                     "on_failure": "allow",
@@ -79295,6 +79311,7 @@
                     "id": "attach_refund_skill",
                     "kind": "python",
                     "llm_targets": [],
+                    "max_cpu_ms": 200,
                     "max_host_calls": 20,
                     "max_output_chars": 80000,
                     "on_failure": "allow",
@@ -79420,6 +79437,7 @@
                     "id": "attach_refund_skill",
                     "kind": "python",
                     "llm_targets": [],
+                    "max_cpu_ms": 200,
                     "max_host_calls": 20,
                     "max_output_chars": 80000,
                     "on_failure": "allow",
@@ -79545,6 +79563,7 @@
                     "id": "attach_refund_skill",
                     "kind": "python",
                     "llm_targets": [],
+                    "max_cpu_ms": 200,
                     "max_host_calls": 20,
                     "max_output_chars": 80000,
                     "on_failure": "allow",

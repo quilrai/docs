@@ -438,7 +438,7 @@ Each function's `on_failure` setting decides:
 | `allow` (default) | The run is skipped and the request continues. | The model is told the tool failed. |
 | `block` | The request is refused with `503 function_failed`. | The model is told the tool failed. |
 
-A function fails when its script raises an error, runs longer than `timeout_ms`, makes more outside calls than `max_host_calls`, or the gateway is too busy to run it. Clients never see your error text.
+A function fails when its script raises an error, runs longer than `timeout_ms`, computes for longer than `max_cpu_ms`, makes more outside calls than `max_host_calls`, or the gateway is too busy to run it. Clients never see your error text.
 
 A background function that fails is counted under [Background runs](#see-what-functions-did). The gateway tries it again only when the gateway itself could not run it; a script error or a timeout is final.
 
@@ -472,7 +472,7 @@ Requests the gateway makes itself are ordinary requests: they count in request t
 
 ## Security
 
-- **Sandbox.** Scripts run in a sandbox with no file, network or environment access and a memory limit. They reach the outside only through the calls in the [script reference](#script-reference).
+- **Sandbox.** Scripts run in a sandbox with no file, network or environment access, a memory limit and a compute-time limit (`max_cpu_ms`). They reach the outside only through the calls in the [script reference](#script-reference).
 - **Allowed hosts.** `http_request` and MCP servers reach only the hosts you list in `allowed_hosts`, over HTTPS, on public addresses. Redirects are returned, not followed. Cookies are never kept. Quilr's own hosts and local addresses are refused.
 - **Secrets are write-only.** A secret is stored encrypted and shown as `********`. Scripts never see its value: the gateway attaches it to the calls that name it, and masks it if the other side echoes it back. `Authorization` and `Cookie` headers can only be set from a secret.
 - **Model targets.** `call_llm` and `run_agent` can use only the providers and models in `llm_targets`.
@@ -487,6 +487,7 @@ Requests the gateway makes itself are ordinary requests: they count in request t
 | Functions per organization | 200 |
 | Script size | 64 KiB |
 | Run time (`timeout_ms`) | 100 ms to 60 s, default 5 s |
+| Script compute time per run (`max_cpu_ms`) | 10 ms to 1 s, default 200 ms; waits on outside calls are not counted |
 | Outside calls per run (`max_host_calls`) | 1 to 50, default 20 |
 | Context added by one call | 20,000 characters; 8 conversation changes per run |
 | `http_request` | 256 KiB request and response bodies, 32 headers, 30 s |
