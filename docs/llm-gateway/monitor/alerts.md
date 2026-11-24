@@ -18,7 +18,7 @@ Alerts has two building blocks:
 | **Channels** | Where alerts are sent: **Slack**, **webhook** or **email**. Any channel works for any alert type. |
 | **Rules** | What to watch. A rule has an alert type, the apps, budgets or endpoints it covers, and the channels that hear about it. |
 
-The page also has a **Coverage** tab (which apps have no alerts) and a **History** tab (every delivery and its result).
+The page also has a **Coverage** tab (which apps have no alerts) and an **Activity** tab (every alert and its result per channel).
 
 ## Get started
 
@@ -180,7 +180,7 @@ Rules that watch apps have three scope options:
 
 Budget rules pick budgets. Gateway health rules pick endpoints. Provider health rules pick providers.
 
-Open the **Coverage** tab to see, for each app, which rules and channels apply. Filter to **uncovered** apps to find apps that have no alerts.
+Open the **Coverage** tab to see, for each app, which rules and channels apply. Turn on **Only apps not watched for failures** to find apps with no failure alerts, then select them and use **Add N to rule**.
 
 ## Avoid too many alerts
 
@@ -198,7 +198,7 @@ A channel that keeps failing shows as **Failing**, with the last error. Quilr ne
 | Tool | What it does |
 |------|--------------|
 | **Send test** | Sends a test alert to one channel now. You can send 5 tests per channel in 10 minutes. |
-| **History** tab | Lists each alert with the result for each channel: pending, sent, retrying, failed, suppressed, or email unavailable. |
+| **Activity** tab | Lists each alert with the result for each channel: pending, sent, retrying, failed, suppressed, or email unavailable. |
 
 Webhook URLs and signing secrets are encrypted. After you save, they are never shown again. To change a URL, enter it again. To get a new signing secret, rotate it.
 
@@ -239,7 +239,7 @@ The request also has the headers `X-Quilr-Event-Id` and `X-Quilr-Delivery-Id`.
 
 ### Verify the signature
 
-Signing is optional. Turn on **Sign requests** on the webhook channel. Quilr shows the signing secret once. Copy it then.
+Signing is optional. Turn on **Sign each alert** on the webhook channel. Quilr shows the signing secret once. Copy it then.
 
 Each signed request has this header:
 
@@ -264,29 +264,31 @@ def verify(secret: str, header: str, raw_body: bytes, max_age=300) -> bool:
     return hmac.compare_digest(expected, sent)
 ```
 
-If you lose the secret, select **Rotate secret** on the channel and update your receiver.
+If you lose the secret, select **Rotate signing secret** on the channel and update your receiver.
 
 ## Move from the old alert settings
 
 Before Alerts, you set up alerting in three places: each app's **Settings > Alerts**, budget alert destinations, and gateway health emails. You can import all of them.
 
-1. Open **LLM Gateway > Alerts** and select **Import**.
-2. Review the **dry run**. It shows what will be created and changes nothing.
-3. Select **Apply** to import.
+1. Open **LLM Gateway > Alerts** and select **Review import** in the banner.
+2. Review the plan: **Channels to create**, **Rules to create**, **Warnings** and **Not imported**. Nothing changes yet.
+3. Select **Import**.
 
 How the import works:
 
 - The same Slack or webhook URL becomes one channel, even if many apps used it.
 - Apps with the same settings share one rule.
-- Old rules that were turned off are listed in the dry run but not imported.
-- The dry run also lists warnings, for example a URL that no longer passes checks.
+- A rule never loses a destination or an app: when there are more than 10 channels or 500 apps, it is split into parts.
+- A setting outside today's allowed range (for example a cooldown over 24 hours) is set to the nearest allowed value, and the plan says so.
+- Old rules that were turned off are listed under **Not imported**.
+- **Warnings** lists anything else to check, for example a URL that no longer passes checks.
 
-If your old settings change after the dry run, run it again. The import only applies the plan you reviewed.
+If your old settings change after you review the plan, review it again. The import only applies the plan you reviewed.
 
 After you import:
 
-- The per-app alerting, budget alert destinations and gateway health email settings become read-only. They say "managed in Alerts".
-- Existing webhook and Slack messages keep their old format, so your receivers keep working.
+- The per-app alerting, budget alert destinations and gateway health email settings become read-only. They show **Managed in Alerts** with an **Open Alerts** link.
+- Existing webhook and Slack messages keep their old format, one message per app, so your receivers keep working.
 
 If you do not import, your tenant keeps working exactly as before.
 
