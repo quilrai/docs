@@ -160,7 +160,7 @@ Example: a monthly budget is 40% used after 5 days. At that pace it runs out on 
 
 #### API key expiry
 
-An app's API key is about to expire. The rule warns once for each warning point, and once more when the key has expired. If an app gets a new expiry date, the warnings start again.
+An app's API key is about to expire. Each named key of an app is checked on its own, and the message names the key. The rule warns once for each warning point, and once more when the key has expired. If a key gets a new expiry date, the warnings start again.
 
 | Setting | Default | Range |
 |---------|---------|-------|
