@@ -230,9 +230,9 @@ The MCP's discovered tool names and schemas must match the administrator-reviewe
 
 ## Environment variables
 
-Declare the **names** your MCP needs in `environment`. Administrators approve names, never values. Users supply the actual values locally, to the process that starts their AI client.
+Declare the **names** your MCP needs in `environment`. Administrators approve names, never values. Users supply the actual values locally with `quilr-mcp env set NAME`, which keeps them in the system keychain, and the connector passes each package only its approved names. See [Set package credentials](./connect-your-ai-app#set-package-credentials).
 
-A desktop client launched from a dock may not inherit values set in a shell profile. Document clearly for your users where their values need to be set.
+A variable already set in the AI client's environment takes precedence over a stored value. List the exact names in your package description so users know what to set; a call with a value missing also returns the commands to set it.
 
 ## Specific runtimes
 
