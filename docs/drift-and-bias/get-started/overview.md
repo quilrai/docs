@@ -41,7 +41,7 @@ In the console, open **Assessments** > **Drift & Bias**. It sits next to [Red Te
 QuilrAI never holds the model itself. It learns about a model from one of two sources:
 
 - **Pipeline push:** your pipeline registers the model and sends scored rows and metadata. See [Connect from your pipeline](../connect-models/pipeline-push.md).
-- **MLflow:** QuilrAI reads registered models, versions, runs, dataset inputs and feature importance from an MLflow tracking server or Databricks workspace you connect. Model files and datasets are never downloaded. See [Connect an MLflow registry](../connect-models/mlflow.md).
+- **MLflow:** QuilrAI reads registered models, versions, runs, dataset inputs and feature importance from an MLflow tracking server you connect. Model files and datasets are never downloaded. See [Connect an MLflow registry](../connect-models/mlflow.md).
 
 Exports from Drift & Bias contain check results only. Pushed rows, predictions and labels are never included.
 
