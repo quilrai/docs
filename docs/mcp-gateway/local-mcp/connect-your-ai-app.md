@@ -3,8 +3,11 @@ sidebar_position: 4
 sidebar_label: "Connect your AI app"
 sidebar_custom_props:
   icon: Link
-description: "The one-command user flow for Cursor, Claude Desktop, Claude Code and VS Code - run the version-pinned npm or PyPI connection command, approve the computer in the browser, restart the client, and call a tool. Covers connection states, quilr_connect sign-in, workspace and interpreter flags, and disconnecting."
+description: "The one-command user flow for Cursor, Claude Desktop, Claude Code and VS Code - run the version-pinned npm or PyPI connection command, approve the computer in the browser, restart the client, and call a tool. Covers connection states, quilr_connect sign-in, storing package credentials with quilr-mcp env set (system keychain), workspace and interpreter flags, and disconnecting."
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Connect Your AI App
 
@@ -61,7 +64,7 @@ Or step through it below.
       alt: "Connect your AI app dialog with Cursor and Node.js npm selected, showing the connection command",
       caption: "Choose your AI app and how to install",
       body: "Open Self service -> Your local tools -> Connect your AI app. Pick Cursor, Claude Desktop, Claude Code or VS Code, then choose Node.js with npm or Python with PyPI.",
-      code: "npx --yes --package '@quilrbusiness/local-mcp-runtime@0.3.0' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'YOUR_CONSOLE_URL' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
+      code: "npx --yes --package '@quilrbusiness/local-mcp-runtime@0.5.1' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'YOUR_CONSOLE_URL' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
       codeLabel: "Node.js · npm",
       note: "Replace YOUR_CONSOLE_URL with your organization's console address, or use Copy connection command in your own dialog. The command carries your organization identifier and a pinned version, so a colleague's command will not be right for you.",
     },
@@ -71,7 +74,7 @@ Or step through it below.
       alt: "The same dialog with Python PyPI selected, showing the uvx connection command",
       caption: "Prefer Python? Use the PyPI connector",
       body: "Python tools need no Node.js. Choose Python · PyPI to get the uvx form of the same command. Each MCP still needs its own native runtime.",
-      code: "uvx --from 'quilr-local-mcp-runtime==0.3.0' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'YOUR_CONSOLE_URL' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
+      code: "uvx --from 'quilr-local-mcp-runtime==0.5.1' quilr-mcp connect \\\n  --gateway 'https://mcpgateway.quilr.ai' \\\n  --console 'YOUR_CONSOLE_URL' \\\n  --organization 'YOUR-ORGANIZATION-ID' \\\n  --client cursor",
       codeLabel: "Python · PyPI",
     },
     {
@@ -203,8 +206,79 @@ Signing in to a third-party provider is separate from connecting to Quilr. An ap
 After you finish a provider sign-in, check the operation before retrying it. Actions that may have partly completed are not retried automatically.
 
 :::warning Keep local credentials local
-Your local environment credentials stay on your machine. A desktop client launched from the dock may not inherit values set in your shell profile. Never paste secrets into chat.
+Your local environment credentials stay on your machine. Never paste secrets into chat. To give a package its credentials, see [Set package credentials](#set-package-credentials).
 :::
+
+## Set package credentials
+
+Some MCPs need a provider credential on your computer, such as an API key or client secret. The package declares the variable **names** it needs, your administrator approves those names, and you supply the values. Values never go to the gateway, the package definition or the chat.
+
+Desktop clients such as Claude Desktop start the connector with only the variables in their own config entry, and a client opened from the dock does not read your shell profile. So store the values with the connector itself, which works for every client. This needs connector **0.5.0** or later.
+
+### When a tool asks for a credential
+
+If a value is missing, the tool returns `missing_environment` with one ready-to-run command per missing name, built for your computer and your connection:
+
+```json
+{"state":"needs_action","code":"missing_environment","detail":"Not set: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY","commands":["/usr/local/bin/node /Users/you/.quilr-mcp/connections/0a1b2c.../connector/.../bin/quilr-mcp.mjs env set AWS_ACCESS_KEY_ID --state /Users/you/.quilr-mcp/connections/0a1b2c...","..."]}
+```
+
+1. Copy each command into a terminal on the same computer and run it.
+2. Type or paste the value at the hidden prompt, then press Enter. Nothing is shown and nothing is saved in your shell history.
+3. Ask your AI app to retry the tool. You do not need to restart it.
+
+These commands work even though `quilr-mcp` is not on your PATH, because they name the connector and the connection folder directly.
+
+### Set values ahead of time
+
+Run the same pinned command you connected with, replacing `connect` and its flags with `env set NAME`:
+
+<Tabs groupId="local-mcp-installer">
+<TabItem value="npm" label="Node.js · npm" default>
+
+```bash
+npx --yes --package '@quilrbusiness/local-mcp-runtime@0.5.1' quilr-mcp env set AWS_SECRET_ACCESS_KEY
+```
+
+</TabItem>
+<TabItem value="pypi" label="Python · PyPI">
+
+```bash
+uvx --from 'quilr-local-mcp-runtime==0.5.1' quilr-mcp env set AWS_SECRET_ACCESS_KEY
+```
+
+</TabItem>
+</Tabs>
+
+Repeat for each name the package needs. Your administrator or the package description tells you the names; a first tool call also lists any that are missing.
+
+| Command | What it does |
+|---|---|
+| `quilr-mcp env set NAME` | Prompts for the value with input hidden and stores it. To load a multi-line value such as a private key, pipe it in: `quilr-mcp env set NAME < key.pem` |
+| `quilr-mcp env list` | Shows the stored names and where each is kept. Values are never shown |
+| `quilr-mcp env unset NAME` | Removes a stored value |
+
+If this computer has more than one Quilr connection, add the `--gateway` and `--organization` values from your connection command, or the `--state` path it printed. The command lists the connections when it cannot tell which one you mean.
+
+### Where values are stored
+
+| System | Store |
+|---|---|
+| macOS | Your login Keychain |
+| Windows | Encrypted to your Windows account with DPAPI |
+| Linux | The Secret Service (`secret-tool`, for example GNOME Keyring) |
+
+When no system keychain is available, such as a Linux server without a desktop session, the value is saved in an owner-only file (`secrets.json`, permissions `0600`) in the connection folder, and the command says so. Add `--store keychain` to refuse that fallback, or `--store file` to choose it.
+
+The npm and Python connectors share the same store. Each package receives only the names approved for it.
+
+### Changing a value
+
+Run `env set NAME` again to replace a value. Packages read values when they start, so restart your AI app if the package is already running.
+
+A variable with the same name that is already set in the AI app's environment, for example in the client's MCP config entry, takes precedence over the stored value. Existing setups keep working, and a wrong value there wins over a correct stored one, so remove it from the client config when you switch to `env set`.
+
+If a package does not finish starting within 60 seconds it is stopped with `package_start_timeout`, often because a credential is wrong or expired. When the package declares credentials, the result includes `checkCommand` (runs `env list`) and `setCommand` (runs `env set NAME`) so you can check and replace them. See [Troubleshooting](./troubleshooting#a-package-needs-a-credential).
 
 ## Choosing a workspace or interpreter
 
@@ -234,6 +308,7 @@ The connection command prints its private connection state path. To diagnose or 
 ```bash
 quilr-mcp status --state PATH
 quilr-mcp doctor --state PATH --package ID
+quilr-mcp env list --state PATH
 quilr-mcp disconnect --state PATH
 ```
 
