@@ -160,7 +160,7 @@ Example: a monthly budget is 40% used after 5 days. At that pace it runs out on 
 
 #### API key expiry
 
-An app's API key is about to expire. Each named key of an app is checked on its own, and the message names the key. The rule warns once for each warning point, and once more when the key has expired. If a key gets a new expiry date, the warnings start again.
+An app's API key is about to expire. Each named key of an app is checked on its own, and the message names the key. The rule warns once for each warning point, and once more when the key has expired. The expired message is sent only within 7 days of the expiry date, so a key that ran out long ago (for example one found right after an import, or a revoked key) is skipped instead of alerting late. If a key gets a new expiry date, the warnings start again.
 
 | Setting | Default | Range |
 |---------|---------|-------|
@@ -290,7 +290,7 @@ After you import:
 - The per-app alerting, budget alert destinations and gateway health email settings become read-only. They show **Managed in Alerts** with an **Open Alerts** link.
 - Existing webhook and Slack messages keep their old format, one message per app, so your receivers keep working.
 
-If you do not import, your tenant keeps working exactly as before.
+If you do not import, your tenant keeps working exactly as before. You can still create channels and rules; until you import, each rule shows **Waiting for import** and does not run.
 
 ## Permissions
 
