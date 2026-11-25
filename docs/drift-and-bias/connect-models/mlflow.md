@@ -3,13 +3,13 @@ sidebar_position: 2
 sidebar_label: "From MLflow"
 sidebar_custom_props:
   icon: Database
-description: "Connect an MLflow or Databricks tracking server and choose which registered models Drift & Bias monitors."
-aliases: [MLflow, Databricks, model registry, refresh models, registered models]
+description: "Connect an MLflow tracking server and choose which registered models Drift & Bias monitors."
+aliases: [MLflow, model registry, refresh models, registered models]
 ---
 
 # Connect an MLflow registry
 
-Connect your MLflow tracking server or Databricks workspace, and Drift & Bias reads its registered models, versions, training runs, dataset inputs and feature importance. The connection is read only: model files and datasets are never downloaded.
+Connect your MLflow tracking server, and Drift & Bias reads its registered models, versions, training runs, dataset inputs and feature importance. The connection is read only: model files and datasets are never downloaded.
 
 ## Connect the server
 

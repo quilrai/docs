@@ -89,7 +89,7 @@ What changed in Red Teaming, newest first.
 
 ## Connect MLflow to Drift & Bias (2026-11-13)
 
-- The new **MLflow** integration in **Settings → Integrations** connects your MLflow tracking server or Databricks workspace with a token, a username and password, or no sign-in. Credentials are stored encrypted
+- The new **MLflow** integration in **Settings → Integrations** connects your MLflow tracking server with a token, a username and password, or no sign-in. Credentials are stored encrypted
 - Choose which registered models to **Monitor**. Drift & Bias reads their versions, training runs, datasets and feature importance. Model files and datasets are never downloaded
 - Models refresh every 6 hours, and **Refresh models** syncs straight away
 - Aliases such as `champion` show on each version, and training runs show their MLflow run names
