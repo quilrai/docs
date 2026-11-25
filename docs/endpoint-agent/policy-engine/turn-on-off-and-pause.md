@@ -21,7 +21,7 @@ Four actions in the status strip at the top of **Govern > Policy Engine > Endpoi
 | Term | Meaning |
 | --- | --- |
 | **Previous Endpoint settings** | Per-app settings in Console V1, the earlier QuilrAI console, under **Settings > Endpoint**. They decide on devices while the Policy Engine is off: **Guardrails** (an action for each sensitive-data category in each app), **File Restrictions** and **Group & User Rules** (exceptions for a [Smart Group](../../console/settings-organization/smart-groups) or a person). The status strip calls them existing settings. |
-| **Detection Policy** | A separate rules engine in Console V1, under **Settings > Detection Policy**. |
+| **Detection Policy** | A separate rules engine in Console V1, under **Settings > Detection Policy**. When it is in use, its rules decide on devices instead of the actions in your previous Endpoint settings. |
 | **Version** | A numbered, saved copy of your Sensitive data and Files policies. Each publish, restore, Turn on, pause and resume creates one. **History** keeps every version. |
 | **Converted version** | The version Turn on creates from your previous Endpoint settings alone, shown in **History** as **Converted from the previous settings** or **Regenerated after a settings change**. |
 | **Only monitor** | Every matching rule acts as **Record only**: the request goes through with no message, and the match is recorded. |
@@ -50,7 +50,7 @@ Every action needs the **Update policies** permission and is recorded in [Audit 
 
 ### Before you turn on
 
-- **Detection Policy must be off.** Its rules are not converted, so Turn on is refused while it is on. Plan replacement policies first. See [Console V1 settings](../../console/legacy-v1/administration/settings).
+- **Detection Policy.** If your organization uses Detection Policy, Turn on is refused while it is on, because its rules are not converted. Neither console has a control to switch Detection Policy off; contact QuilrAI support. Switching it off does not convert its rules either: they stop applying, and no policies are created from them. Your previous Endpoint settings then decide on devices straight away, in place of those rules, and Turn on converts them into policies that decide too. People can see blocks or warnings they did not see before. See [Console V1 settings](../../console/legacy-v1/administration/settings).
 - **Check the Endpoint Agent switch.** If it is off, no device follows the policies until you turn it on in **Settings > Endpoint Agent**.
 - **There is no preview or conflict check.** Afterwards, **Controls > All policies** and **History** show rules that lose to other rules.
 
@@ -63,7 +63,7 @@ For surprising conversion results, see [Moving from Endpoint settings](./limits-
 3. Read the **Policy Engine is on for Endpoint Agent** message. If it is amber, something needs attention, such as starter policies left out because of the [size limits](./limits-and-behavior#size-limits).
 4. Review the new version in **History** and the converted policies in **Controls > All policies**.
 
-If Turn on is refused, nothing changes. Fix the reason shown, usually Detection Policy or the size limits, or contact QuilrAI support.
+If Turn on is refused, nothing changes. While Detection Policy is on, every Turn on is refused (see [Before you turn on](#before-you-turn-on)). For any other reason shown, fix it or contact QuilrAI support.
 
 ### What your previous Endpoint settings become
 

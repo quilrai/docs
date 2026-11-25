@@ -9,8 +9,8 @@ description: "Ground rules, the three transition phases, and where to do what wh
 # Moving from Console V1
 
 Both consoles run in parallel on the same data. Governance moves one
-enforcement target at a time, and each move is reviewed, reversible and proven
-before it enforces.
+enforcement target at a time. The ground rules below say how each move is
+reviewed and how it can be reversed.
 
 ## Ground rules
 
@@ -23,10 +23,16 @@ before it enforces.
 - **Governance moves per target, not per console.** A target is governed either
   by its legacy settings or by the Policy Engine, never both. Switching one
   target changes nothing for the others.
-- **Every switch starts with a review and can be turned off.** Conversion is
-  previewed before anything changes, and activation locks the legacy settings.
-  Disabling makes the legacy settings live again as they are stored at that
-  moment. See [What happens to classic settings](../govern/switching-from-classic-settings#what-happens-to-classic-settings).
+- **Gateway switches are previewed and can be turned off.** For the LLM
+  Gateway and MCP Gateway, conversion is previewed before anything changes.
+  While the engine is on, the governed settings sections in Console V2 are
+  locked, though **Edit anyway** still saves them; the Console V1 settings
+  screens are not locked. Disabling makes the legacy settings live again as
+  they are stored at that moment. See [What happens to classic settings](../govern/switching-from-classic-settings#what-happens-to-classic-settings).
+- **Endpoint Agent works differently.** Turn on shows no preview, and your
+  previous Endpoint settings stay editable while the converted version runs.
+  Turn off is not always available: when it is not, the console says why,
+  and **Pause enforcement** still stops blocking. See [Phase 2](#phase-2-the-device-sensors).
 
 ## Phase 1: the gateways
 
@@ -50,12 +56,28 @@ Full detail is in
 
 ## Phase 2: the device sensors
 
-Endpoint Agent and Browser Extension control sets are still undergoing minor
-changes. Their data is already in V2: device status under Users, agentic
-inventory under Agents and Inventory, interactions in the feed. Keep authoring
-their controls where you do today, and do not use **Convert to Policy Engine**
-on the Endpoint Agent tab yet, even if your console shows the button. Quilr will
-confirm when they are settled.
+Endpoint Agent and Browser Extension data is already in V2: device status under
+Users, agentic inventory under Agents and Inventory, interactions in the feed.
+
+- **Endpoint Agent.** Select **Turn on** under **Govern > Policy Engine >
+  Endpoint Agent**. Turn on converts your previous Endpoint settings into
+  policies, which then decide on devices. Unlike the gateways, it shows no
+  conversion preview first: review the new version in **History** afterwards.
+  See [Turn on, turn off and pause](../../endpoint-agent/policy-engine/turn-on-off-and-pause).
+- **Detection Policy.** If your organization uses Detection Policy in Console
+  V1, Turn on is refused while it is on, because its rules are not converted.
+  Neither console has a control to switch Detection Policy off; contact
+  QuilrAI support. Switching it off does not convert its rules either: they
+  stop applying, and no policies are created from them. Your previous
+  Endpoint settings then decide on devices straight away, in place of those
+  rules, and Turn on converts them into policies that decide too, so people
+  can see blocks or warnings they did not see before. Until it is switched
+  off, Detection Policy keeps deciding, and you manage its rules in Console V1
+  under **Settings > Detection Policy**.
+- **Browser Extension.** Its controls are the same controls in both consoles.
+  Manage them in Console V1 or in the Policy Engine; see
+  [Browser Extension policy engine](../../browser-extension/policy-engine/overview)
+  for where. There is no conversion step.
 
 ## Phase 3: data, access and the last of V1
 
@@ -86,7 +108,8 @@ confirm when they are settled.
 | Register MCP servers, connections, OneMCP | Either console | Either console |
 | LLM guardrails, Guardian Agent, limits, routing, identity, token saving, Prompt Store enforcement | V1 or V2 settings | Govern, Policy Engine, LLM Gateway only |
 | MCP tools, guardrails, token saving, group and user rules | V1 or V2 settings | Govern, Policy Engine, MCP Gateway only |
-| Endpoint Agent and Browser Extension controls | Where you do today | Where you do today, until Phase 2 |
+| Endpoint Agent controls | Console V1 settings until you turn on the Policy Engine for Endpoint Agent, then Govern, Policy Engine, Endpoint Agent. While the converted version runs, changes to the Console V1 settings update it; after that, make changes in the Policy Engine. See [Changing previous Endpoint settings](../../endpoint-agent/policy-engine/turn-on-off-and-pause#changing-previous-endpoint-settings-while-the-policy-engine-is-on) | Same |
+| Browser Extension controls | Either console | Either console |
 | Detection models | Either console | Either console, builder in V2 |
 | Retention, exports, dashboards, skills, models catalog | V2 only | V2 only |
 
