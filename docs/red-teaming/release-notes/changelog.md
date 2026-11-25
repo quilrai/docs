@@ -10,6 +10,21 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Comparisons say why a target failed and keep what it scored (2026-11-24)
+
+- When a target in a multi-model comparison fails, it now shows the reason, such as the model being rate limited, every objective ending in an error, or the run being interrupted, instead of **Assessment failed**
+- A failed target keeps the objectives it scored. They are shown as an **Incomplete result** and are never ranked against the other model
+
+## Assessments wait out rate limiting and stop early when it does not clear (2026-11-24)
+
+- When a model keeps rate limiting, the run waits and retries. If the rate limiting doesn't clear, the run stops early and says so, instead of running every remaining objective into the same error
+
+## Long assessments get the time they need (2026-11-24)
+
+- An assessment that is still making progress no longer stops at one hour. Its time limit now grows with the run, based on how long its objectives are taking
+- A run whose objectives stop finishing still ends at its limit
+- A time limit you set at launch is unchanged
+
 ## Threat Modeling analyses run more reliably (2026-11-20)
 
 - Analysis stages that could intermittently stop with "The analysis failed. Try again" now complete reliably — the transient failures behind that message have been fixed, so a run no longer fails part-way for no clear reason
