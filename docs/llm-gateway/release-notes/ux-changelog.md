@@ -17,6 +17,11 @@ Recent interface improvements and quality-of-life changes.
 - **Enable / Disable** for each rule and channel, from its table or its panel, with a confirm prompt
 - **Import**: move the old per-app alerts, budget alert destinations and gateway health emails into Alerts; the old screens then become read-only
 - **App settings**: **Settings > Alerts** shows the rules that cover the app (for example **Alerts · 11 rules**) and links to **Manage in Alerts**
+- **Summaries**: when a rule finds more than 10 alerts at once, one message lists the first 20 by name with counts (for example **2 new, 10 still in breach**); recoveries get their own summary
+- **Emails** show each alert's facts as plain rows with units (for example **Failure rate: 30% (30 of 100 calls)**)
+- **Rule status**: **Check failed** when a check could not run, and **Firing · not enough traffic to re-check** while an open alert waits for enough calls
+- **Activity** names each app and key, provider and model, or endpoint, and shows critical alerts (including expired keys) in red
+- One-time warnings (key expiry, spend, forecast) wait while all of a rule's channels are off, and are sent once one is on again
 - Details: [Alerts](../monitor/alerts)
 
 ## Key expiry warnings (2026-11-23)

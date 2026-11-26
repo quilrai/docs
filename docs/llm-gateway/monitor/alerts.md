@@ -49,7 +49,7 @@ An app's failed calls pass a percentage over a time window.
 | **Repeat every** | 10 min | 1 to 1440 |
 | **Send a recovery message** | On | On or off |
 
-Example: alert when more than 10% of an app's calls fail over 15 minutes, once at least 20 calls came in.
+Example: alert when 10% or more of an app's calls fail over 15 minutes, once at least 20 calls came in.
 
 #### Provider failure rate
 
@@ -91,7 +91,7 @@ Far more requests than usual are blocked or anonymized by guardrails.
 Example: an app usually has 2% of requests blocked. Now 25% are blocked for 30 minutes.
 
 :::note How spikes find "normal"
-Spike alerts compare the latest 15 minutes with the same 15-minute time of day over the previous 7 days. They need at least 5 days of traffic. A new app has no baseline yet, so it does not alert until it has enough history.
+Spike alerts compare the latest 15 minutes with the same 15-minute time of day over the previous 7 days. They need traffic at that same time of day on at least 5 of the previous 7 days. A new app has no baseline yet, so it does not alert until it has enough history.
 :::
 
 ### Health
@@ -159,6 +159,8 @@ At the current burn rate a budget will run out before its period ends.
 
 Example: a monthly budget is 40% used after 5 days. At that pace it runs out on day 12, so it alerts.
 
+Forecasts cover budgets with a calendar period (for example monthly). Budgets with a rolling window are not forecast; use **Budget threshold** for those.
+
 ### Security
 
 #### API key expiry
@@ -187,18 +189,19 @@ Open the **Coverage** tab to see, for each app, which rules and channels apply. 
 
 ## Avoid too many alerts
 
-- **Cooldown.** After an alert, the same rule waits before it alerts again for the same app. You set the wait in **Repeat every** or **Alert again after**.
+- **Cooldown.** While a problem lasts, repeat alerts for the same app are spaced by **Repeat every** or **Alert again after**. The wait only spaces repeats: if the problem recovers and then comes back, the new alert is sent at once.
 - **Recovery message.** When the problem ends, one follow-up message says so. Turn it off with **Send a recovery message**.
-- **Not enough traffic.** If an app has too few requests to judge, the rule does not alert. It also never claims that a problem recovered. The rule shows **Insufficient data**.
-- **Digest.** If one rule finds more than 10 alerting apps in one check, you get one digest message that lists them. You do not get one message for each app.
+- **Not enough traffic.** If an app has too few requests to judge, the rule does not alert, and the rule shows **Not enough data**. It also never claims that a problem recovered without enough calls to check. An alert that is still open for that reason shows **Firing · not enough traffic to re-check**; it closes, with a recovery message, once there are enough calls.
+- **Summary.** If one rule finds more than 10 alerts in one check, you get one summary message instead of one per app. Its title gives the count (for example **12 alerts (2 new, 10 still in breach)**, or **6 expired, 5 expiring** for key expiry). It lists the first 20 items by name, new breaches first, then says how many more there are. More than 10 recoveries in one check come as their own summary, for example **11 recovered**. Channels imported from the old settings still get one message per app, so old receivers keep working.
+- **Check failed.** If Quilr could not check a rule (for example the logs could not be read), the rule shows **Check failed**. It is checked again on the next cycle.
 
 ## Turn a rule or channel off
 
 Every rule and channel has an **Enable** switch in its table, and an **Enable** or **Disable** button at the top of its panel. New rules and channels start on. Quilr asks you to confirm before it changes anything:
 
 - **Disable a rule:** no alerts are sent for it until you enable it again. If the rule is firing, the prompt says so. A disabled rule shows **—** as its status.
-- **Enable a rule:** it is checked again within about 2 minutes. If all its channels are disabled, the prompt warns that no one will get its alerts.
-- **Disable a channel:** no alerts are sent to it until you enable it again. The prompt says how many rules would be left with no channel. In **Activity**, sends to a disabled channel show **Suppressed**.
+- **Enable a rule:** it is checked again within about 2 minutes. Before you import, or when its alert type is switched off for your organization, the prompt says it won't be checked yet. If all its channels are disabled, the prompt warns that no one will get its alerts.
+- **Disable a channel:** no alerts are sent to it until you enable it again. The prompt says how many rules would be left with no channel. In **Activity**, sends to a disabled channel show **Suppressed**. One-time warnings (API key expiry, spend and budget forecast) are not lost: while every channel of a rule is off, they wait and are sent once a channel is on again.
 
 If someone else changed the rule or channel since you opened it, the change is not saved. Select **Reload** to see the latest version, then try again.
 
@@ -213,7 +216,15 @@ A channel that keeps failing shows as **Failing**, with the last error. Quilr ne
 | **Send test** | Sends a test alert to one channel now. You can send 5 tests per channel in 10 minutes. |
 | **Activity** tab | Lists each alert with the result for each channel: pending, sent, retrying, failed, suppressed, or email unavailable. |
 
-Webhook URLs and signing secrets are encrypted. After you save, they are never shown again. To change a URL, enter it again. To get a new signing secret, rotate it.
+Webhook URLs and signing secrets are encrypted. After you save, they are never shown again. To change a URL, enter it again. To get a new signing secret, rotate it. If you turn on **Sign each alert** on an existing webhook, the new secret is shown once when you save.
+
+Each **Send test** is recorded in **Audit Logs**. A test the receiver refused is recorded as failed.
+
+**Activity** keeps alerts for 400 days. Each row names the app (and key), provider and model, endpoint or budget; a summary row shows its title. Critical alerts, including an expired API key and a problem still in breach, are red.
+
+:::note Email details
+Alert emails list the facts as plain rows, with units, for each alert type. For example, a failure rate email shows **Failure rate: 30% (30 of 100 calls)** and **Threshold: 10% over 15 min**, and an API key expiry email shows **Expires on: 26 Nov 2026** and **Days left: 30**.
+:::
 
 :::note Email
 If email is not set up for your deployment, email deliveries show **Email unavailable**. Use Slack or a webhook instead.
@@ -234,8 +245,12 @@ A webhook channel receives a JSON `POST`. Slack channels get a formatted Slack m
   "tenant_id": "acme",
   "rules": [{ "id": "rul_2d10", "name": "Production failure rate" }],
   "subject": { "app_id": "9f2c...", "app_name": "support-bot", "provider_label": null },
-  "text": "support-bot: 18.2% of calls failed in the last 15 minutes (41 of 225).",
-  "data": {},
+  "text": "support-bot: 18.2% of calls failed over 15 min (41 of 225). Top errors: 429 ×30, 500 ×11.",
+  "data": {
+    "failure_rate": 18.22, "failures": 41, "total": 225,
+    "window_minutes": 15, "threshold_pct": 10,
+    "top_errors": [{ "status_code": 429, "count": 30 }, { "status_code": 500, "count": 11 }]
+  },
   "occurred_at": "2026-11-23T11:42:00Z"
 }
 ```
@@ -249,6 +264,8 @@ A webhook channel receives a JSON `POST`. Slack channels get a formatted Slack m
 | `data` | Details that depend on the alert type. |
 
 The request also has the headers `X-Quilr-Event-Id` and `X-Quilr-Delivery-Id`.
+
+A summary has `"subject": { "digest": true, "count": 12 }`. Its `data` has `count`, `app_ids`, and `subjects`: up to 100 items, each with its `title`, `kind` and the item's own `details` (the same fields a single alert's `data` has).
 
 ### Verify the signature
 
@@ -292,11 +309,12 @@ Until your organization imports, alerts work the old way:
 
 - **App failure alerts:** open the app's **Settings > Alerts**. Turn on **App-level alert** (all providers together) or **Per-provider alert** (each provider separately), set the threshold, window, minimum requests and cooldown, add alert emails or webhooks, then select **Save settings**.
 - **Budget alerts:** add webhooks under the budget **Alert destinations**.
-- **Gateway health:** add emails under **Gateway health alerts**.
+
+The old **Gateway health alerts** emails setting saved recipients, but nothing sent alerts to them. To get gateway health alerts, import and add a **Gateway health** rule.
 
 ## Move from the old alert settings
 
-Before Alerts, you set up alerting in three places: each app's **Settings > Alerts**, budget alert destinations, and gateway health emails. You can import all of them.
+Before Alerts, you set up alerting in three places: each app's **Settings > Alerts**, budget alert destinations, and gateway health emails. The import brings all of them over. Gateway health recipients become an email channel; add a **Gateway health** rule and pick your endpoints to send to it, since the old setting never sent alerts. The import cannot be undone.
 
 1. Open **LLM Gateway > Alerts** and select **Review import** in the banner.
 2. Review the plan: **Channels to create**, **Rules to create**, **Warnings** and **Not imported**. Nothing changes yet.
@@ -317,7 +335,7 @@ After you import:
 
 - Each app's **Settings > Alerts** shows the number of rules that cover it (for example **Alerts · 11 rules**, or **No rules**). It lists those rules, with why each one covers the app (**All apps**, **Picked** or a tag), and the channels they send to. It is read-only; select **Manage in Alerts** to change them.
 - Budget alert destinations and gateway health email settings become read-only. They show **Managed in Alerts** with an **Open Alerts** link.
-- Existing webhook and Slack messages keep their old format, one message per app, so your receivers keep working.
+- Failure rate and budget alerts sent to imported webhook and Slack channels keep their old format, one message per app, so your receivers keep working. Other alert types, such as API key expiry, use the new format on every channel.
 
 If you do not import, your organization keeps working exactly as before. You can still create channels and rules; until you import, each rule shows **Waiting for import** and does not run.
 
