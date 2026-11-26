@@ -4,6 +4,7 @@ sidebar_label: "Alerts"
 sidebar_custom_props:
   icon: Activity
 description: "Set up channels and rules in LLM Gateway Alerts to get notified about failures, spikes, provider and gateway health, spend, budgets and key expiry."
+console_path: [/settings/llm-gateway/alerts, /settings/llm-gateway/alerts/rules, /settings/llm-gateway/alerts/coverage, /settings/llm-gateway/alerts/channels, /settings/llm-gateway/alerts/activity]
 aliases: [central alerts, alert rules, alert channels, failure rate alerts, spend alerts, budget alerts, key expiry, webhook signature]
 ---
 
@@ -26,7 +27,9 @@ The page also has a **Coverage** tab (which apps have no alerts) and an **Activi
 2. Open **Rules** and add a rule. Pick a type, the scope and one or more channels.
 3. Open **Coverage** to see which apps still have no alerts.
 
-Only organization-wide admins can change Alerts. Everyone else can read it.
+To open Alerts you need LLM Gateway read access for the whole organization; to change it you need LLM Gateway update access for the whole organization. See [Permissions](#permissions).
+
+If your organization has not imported its old alert settings yet, those settings keep working. See [Before you import](#before-you-import).
 
 ## Alert types
 
@@ -255,16 +258,31 @@ import hmac
 import time
 
 def verify(secret: str, header: str, raw_body: bytes, max_age=300) -> bool:
-    parts = dict(p.split("=", 1) for p in header.split(","))
-    t, sent = parts["t"], parts["v1"]
-    if abs(time.time() - int(t)) > max_age:
+    try:
+        parts = dict(p.split("=", 1) for p in header.split(","))
+        t, sent = parts["t"], parts["v1"]
+        timestamp = int(t)
+        sent.encode("ascii")
+    except (KeyError, ValueError, UnicodeEncodeError):
+        return False  # malformed header: reject it
+    if abs(time.time() - timestamp) > max_age:
         return False
     signed = t.encode() + b"." + raw_body
     expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, sent)
 ```
 
+The timestamp check only limits how old a replayed request can be. A retry, or a request whose response was lost, can arrive twice within that time. Handle each `delivery_id` once: retries keep the same value.
+
 If you lose the secret, select **Rotate signing secret** on the channel and update your receiver.
+
+## Before you import
+
+Until your organization imports, alerts work the old way:
+
+- **App failure alerts:** open the app's **Settings > Alerts**. Turn on **App-level alert** (all providers together) or **Per-provider alert** (each provider separately), set the threshold, window, minimum requests and cooldown, add alert emails or webhooks, then select **Save settings**.
+- **Budget alerts:** add webhooks under the budget **Alert destinations**.
+- **Gateway health:** add emails under **Gateway health alerts**.
 
 ## Move from the old alert settings
 
@@ -294,10 +312,13 @@ If you do not import, your organization keeps working exactly as before. You can
 
 ## Permissions
 
-| Who | Can do |
-|-----|--------|
-| Organization-wide admins | Add, edit and delete channels and rules. Send tests. Run the import. |
-| Everyone else | View channels, rules, coverage and history. |
+| Access | Can do |
+|--------|--------|
+| LLM Gateway read access for the whole organization | View channels, rules, coverage and history. |
+| LLM Gateway update access for the whole organization | Add, edit and delete channels and rules. Send tests. Run the import. |
+| Update access plus permission to reveal secrets | Create a signed webhook channel and rotate its signing secret, because these show the secret. |
+
+Users whose access covers only some apps cannot open Alerts.
 
 ## Limits
 
