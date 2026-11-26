@@ -26,7 +26,7 @@ The page also has a **Coverage** tab (which apps have no alerts) and an **Activi
 2. Open **Rules** and add a rule. Pick a type, the scope and one or more channels.
 3. Open **Coverage** to see which apps still have no alerts.
 
-Only tenant-wide admins can change Alerts. Everyone else can read it.
+Only organization-wide admins can change Alerts. Everyone else can read it.
 
 ## Alert types
 
@@ -290,13 +290,13 @@ After you import:
 - The per-app alerting, budget alert destinations and gateway health email settings become read-only. They show **Managed in Alerts** with an **Open Alerts** link.
 - Existing webhook and Slack messages keep their old format, one message per app, so your receivers keep working.
 
-If you do not import, your tenant keeps working exactly as before. You can still create channels and rules; until you import, each rule shows **Waiting for import** and does not run.
+If you do not import, your organization keeps working exactly as before. You can still create channels and rules; until you import, each rule shows **Waiting for import** and does not run.
 
 ## Permissions
 
 | Who | Can do |
 |-----|--------|
-| Tenant-wide admins | Add, edit and delete channels and rules. Send tests. Run the import. |
+| Organization-wide admins | Add, edit and delete channels and rules. Send tests. Run the import. |
 | Everyone else | View channels, rules, coverage and history. |
 
 ## Limits
