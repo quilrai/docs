@@ -191,7 +191,7 @@ Open the **Coverage** tab to see, for each app, which rules and channels apply. 
 
 - **Cooldown.** While a problem lasts, repeat alerts for the same app are spaced by **Repeat every** or **Alert again after**. The wait only spaces repeats: if the problem recovers and then comes back, the new alert is sent at once.
 - **Recovery message.** When the problem ends, one follow-up message says so. Turn it off with **Send a recovery message**.
-- **Not enough traffic.** If an app has too few requests to judge, the rule does not alert, and the rule shows **Not enough data**. It also never claims that a problem recovered without enough calls to check. An alert that is still open for that reason shows **Firing · not enough traffic to re-check**; it closes, with a recovery message, once there are enough calls.
+- **Not enough traffic.** If an app has too few requests to judge, the rule does not alert, and the rule shows **Not enough data**. It also never claims that a problem recovered without enough calls to check. An alert that is still open for that reason shows **Firing · not enough traffic to re-check**; it is checked again once there are enough calls, and closes with a recovery message only if that check passes.
 - **Summary.** If one rule finds more than 10 alerts in one check, you get one summary message instead of one per app. Its title gives the count (for example **12 alerts (2 new, 10 still in breach)**, or **6 expired, 5 expiring** for key expiry). It lists the first 20 items by name, new breaches first, then says how many more there are. More than 10 recoveries in one check come as their own summary, for example **11 recovered**. Channels imported from the old settings still get one message per app, so old receivers keep working.
 - **Check failed.** If Quilr could not check a rule (for example the logs could not be read), the rule shows **Check failed**. It is checked again on the next cycle.
 
@@ -220,7 +220,7 @@ Webhook URLs and signing secrets are encrypted. After you save, they are never s
 
 Each **Send test** is recorded in **Audit Logs**. A test the receiver refused is recorded as failed.
 
-**Activity** keeps alerts for 400 days. Each row names the app (and key), provider and model, endpoint or budget; a summary row shows its title. Critical alerts, including an expired API key and a problem still in breach, are red.
+**Activity** keeps alerts for 400 days. Each row names the app (and key), provider and model, endpoint or budget; a summary row shows its title. Critical alerts, including an expired API key and a problem still in breach, are red, in Activity and in Slack and email.
 
 :::note Email details
 Alert emails list the facts as plain rows, with units, for each alert type. For example, a failure rate email shows **Failure rate: 30% (30 of 100 calls)** and **Threshold: 10% over 15 min**, and an API key expiry email shows **Expires on: 26 Nov 2026** and **Days left: 30**.
