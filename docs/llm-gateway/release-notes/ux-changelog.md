@@ -10,6 +10,15 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Central Alerts (2026-11-27)
+
+- **New: LLM Gateway > Alerts.** Set up alerts once for the whole organization: **Channels** (Slack, webhook, email), **Rules** (10 alert types, each covering all apps, picked apps or apps with tags), **Coverage** (which apps are watched) and **Activity** (every alert and its result per channel)
+- **Channels**: **Send test**, a signing secret shown once, and **Rotate signing secret**
+- **Enable / Disable** for each rule and channel, from its table or its panel, with a confirm prompt
+- **Import**: move the old per-app alerts, budget alert destinations and gateway health emails into Alerts; the old screens then become read-only
+- **App settings**: **Settings > Alerts** shows the rules that cover the app (for example **Alerts · 11 rules**) and links to **Manage in Alerts**
+- Details: [Alerts](../monitor/alerts)
+
 ## Key expiry warnings (2026-11-23)
 
 - **New: key expiry warnings.** Quilr keys with an expiry are flagged at 120, 90, 60 and 30 days before they expire

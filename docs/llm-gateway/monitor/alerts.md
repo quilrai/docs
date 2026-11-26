@@ -192,6 +192,16 @@ Open the **Coverage** tab to see, for each app, which rules and channels apply. 
 - **Not enough traffic.** If an app has too few requests to judge, the rule does not alert. It also never claims that a problem recovered. The rule shows **Insufficient data**.
 - **Digest.** If one rule finds more than 10 alerting apps in one check, you get one digest message that lists them. You do not get one message for each app.
 
+## Turn a rule or channel off
+
+Every rule and channel has an **Enable** switch in its table, and an **Enable** or **Disable** button at the top of its panel. New rules and channels start on. Quilr asks you to confirm before it changes anything:
+
+- **Disable a rule:** no alerts are sent for it until you enable it again. If the rule is firing, the prompt says so. A disabled rule shows **—** as its status.
+- **Enable a rule:** it is checked again within about 2 minutes. If all its channels are disabled, the prompt warns that no one will get its alerts.
+- **Disable a channel:** no alerts are sent to it until you enable it again. The prompt says how many rules would be left with no channel. In **Activity**, sends to a disabled channel show **Suppressed**.
+
+If someone else changed the rule or channel since you opened it, the change is not saved. Select **Reload** to see the latest version, then try again.
+
 ## Delivery
 
 Alerts are queued and sent to each channel. If a send fails, Quilr tries again after 1 minute, 5 minutes, 30 minutes and 2 hours. That is 5 attempts in all. A reply that says the request itself is wrong (most 4xx errors) fails at once and is not retried. Timeouts (408) and rate limits (429) are retried.
@@ -305,7 +315,8 @@ If your old settings change after you review the plan, review it again. The impo
 
 After you import:
 
-- The per-app alerting, budget alert destinations and gateway health email settings become read-only. They show **Managed in Alerts** with an **Open Alerts** link.
+- Each app's **Settings > Alerts** shows the number of rules that cover it (for example **Alerts · 11 rules**, or **No rules**). It lists those rules, with why each one covers the app (**All apps**, **Picked** or a tag), and the channels they send to. It is read-only; select **Manage in Alerts** to change them.
+- Budget alert destinations and gateway health email settings become read-only. They show **Managed in Alerts** with an **Open Alerts** link.
 - Existing webhook and Slack messages keep their old format, one message per app, so your receivers keep working.
 
 If you do not import, your organization keeps working exactly as before. You can still create channels and rules; until you import, each rule shows **Waiting for import** and does not run.
