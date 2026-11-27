@@ -190,6 +190,8 @@ Open the **Coverage** tab to see, for each app, which rules and channels apply. 
 ## Avoid too many alerts
 
 - **Cooldown.** While a problem lasts, repeat alerts for the same app are spaced by **Repeat every** or **Alert again after**. The wait only spaces repeats: if the problem recovers and then comes back, the new alert is sent at once.
+- **Overlapping rules.** If two rules with the same condition raise the same alert in the same check (for example a rule for all apps and a rule for some apps, both at 10% over 15 min), you get one alert that names both rules, and one recovery message later. A channel both rules use gets one message; a channel only one rule uses still gets it. A rule with a different condition, such as 20% instead of 10%, keeps its own alert.
+- **Repeats.** A repeat alert's title starts with **Still in breach:**, so it does not look like a new problem. Webhooks get the same `title` as the first alert, with `kind` set to `repeat`.
 - **Recovery message.** When the problem ends, one follow-up message says so. Turn it off with **Send a recovery message**.
 - **Not enough traffic.** If an app has too few requests to judge, the rule does not alert, and the rule shows **Not enough data**. It also never claims that a problem recovered without enough calls to check. An alert that is still open for that reason shows **Firing · not enough traffic to re-check**; it is checked again once there are enough calls, and closes with a recovery message only if that check passes.
 - **Summary.** If one rule finds more than 10 alerts in one check, you get one summary message instead of one per app. Its title gives the count (for example **12 alerts (2 new, 10 still in breach)**, or **6 expired, 5 expiring** for key expiry). It lists the first 20 items by name, new breaches first, then says how many more there are. More than 10 recoveries in one check come as their own summary, for example **11 recovered**. Channels imported from the old settings still get one message per app, so old receivers keep working.
@@ -218,12 +220,12 @@ A channel that keeps failing shows as **Failing**, with the last error. Quilr ne
 
 Webhook URLs and signing secrets are encrypted. After you save, they are never shown again. To change a URL, enter it again. To get a new signing secret, rotate it. If you turn on **Sign each alert** on an existing webhook, the new secret is shown once when you save.
 
-Each **Send test** is recorded in **Audit Logs**. A test the receiver refused is recorded as failed.
+Each **Send test** is recorded in **Audit Logs**. A test the receiver refused is recorded as failed. Creating, changing, turning on or off, and deleting a rule or channel, rotating a signing secret, and importing old settings are recorded in **Audit Logs** too. Webhook URLs, secrets and email addresses are never shown there.
 
 **Activity** keeps alerts for 400 days. Each row names the app (and key), provider and model, endpoint or budget; a summary row shows its title. Critical alerts, including an expired API key and a problem still in breach, are red, in Activity and in Slack and email.
 
 :::note Email details
-Alert emails list the facts as plain rows, with units, for each alert type. For example, a failure rate email shows **Failure rate: 30% (30 of 100 calls)** and **Threshold: 10% over 15 min**, and an API key expiry email shows **Expires on: 26 Nov 2026** and **Days left: 30**.
+Alert emails list the facts as plain rows, with units, for each alert type. For example, a failure rate email shows **Failure rate: 30% (30 of 100 calls)** and **Threshold: 10% over 15 min**, and an API key expiry email shows **Expires on: 26 Nov 2026** and **Days left: 30**. Times are shown in UTC, for example **27 Nov 2026, 15:02 UTC**, and a test email shows who sent it by email address.
 :::
 
 :::note Email
