@@ -3,7 +3,7 @@ sidebar_position: 4
 sidebar_label: "Prompt store"
 sidebar_custom_props:
   icon: MessageSquareText
-description: "Store reusable system prompts, reference them at request time, and give an app a universal system prompt that the gateway adds to every request."
+description: "Store reusable system prompts, reference them at request time, keep versions of organization-wide prompts, and give an app a universal system prompt that the gateway adds to every request."
 console_path: []
 aliases: ["prompt store"]
 ---
@@ -13,7 +13,7 @@ import TabItem from '@theme/TabItem';
 
 # Prompt store
 
-Updated on 3 November 2026.
+Updated on 27 November 2026.
 
 Store reusable system prompts centrally, then reference one or more of them and add inline instructions at request time. You can also give an app one universal system prompt that the gateway adds to every request.
 
@@ -59,12 +59,50 @@ The **Prompt Store** tab lists every prompt with its ID, variables and content. 
 | Scope | One app | Every app in the organization |
 | Reference in requests | `quilrai-prompt-store-<id>` | `quilrai-prompt-store-<id>` |
 | Variables | `X-Prompt-Variables` header | `X-Prompt-Variables` header |
+| Versions | Not versioned | Every save is a numbered version; [labels](#versions-and-labels) choose which one requests get |
 
 How the two stores relate:
 
 - The global list also shows the prompts of your active apps. When apps share an ID, the newest app version is the default and conflicting versions get alias IDs.
 - Saving an app-derived ID in the global store creates an organization-level version that takes priority over the app copies.
 - Deleting an app-derived ID in the global store hides it from the global list.
+
+### Versions and labels {#versions-and-labels}
+
+Every save of a Global Prompt Store prompt is kept as a numbered version (v1, v2, v3 and so on) with who saved it, when, and an optional **Change note** of up to 500 characters. Versions cannot be edited or deleted. Saving text that matches the latest version creates no version: the console shows **No new version**.
+
+Labels name versions:
+
+| Label | Points at | Set by |
+|---|---|---|
+| `production` | The version that plain references (`quilrai-prompt-store-<id>`) get. Every prompt has one. | Saving with **Publish to production**, or **Promote to production** |
+| `latest` | Always the newest version, drafts included | Automatic |
+| Your own, for example `staging` or `canary` | Any version you choose | **Set label…** |
+
+The prompt list shows each prompt's labels as tags, for example **v2 · production**, **v3 draft** and **staging · v3**.
+
+**Save a draft.** When you edit an existing prompt, clear **Publish to production** before you save. The new version is kept, production does not move, and only requests that [select the version](#select-a-version) get it. The first version of a new prompt is always production.
+
+**Review history.** Click **History** on a prompt's row. Versions are listed newest first with their labels, author, time and note. Select a version to read its text, use **Compare with** to see what changed against another version, and copy its reference. From there:
+
+- **Promote to production** makes the selected version the one plain references get.
+- **Set label…** points a label at the selected version, creating the label if it is new.
+- **Remove label** removes a custom label. `production` cannot be removed.
+
+**Roll back.** Open **History**, select the earlier version and click **Promote to production**. No version is created, and you can promote the newer version again the same way.
+
+:::caution
+Saving with **Publish to production**, promoting, rolling back and deleting apply immediately to every app that uses the prompt. Drafts and custom labels change nothing for requests that do not select them.
+:::
+
+**Delete a prompt.** Deleting removes the prompt and its labels but keeps its history. Re-creating the same ID continues the numbering (v4 after v3), so a version number always means one text.
+
+Limits and rules:
+
+- Up to 500 versions and 20 labels per prompt.
+- Label names are 1 to 40 lowercase letters, digits, hyphens and underscores, starting with a letter. `latest`, `v` followed by a number, and names that look like credentials (such as `token`, `password` or `api_key`) are reserved.
+- Prompts that come from apps are not versioned. Saving an app-derived ID in the global store creates an organization-level prompt, which starts at v1.
+- Prompts saved before versions existed appear as v1, which is both production and latest.
 
 ### Require store prompt {#require-store-prompt}
 
@@ -198,6 +236,47 @@ Only review the security-sensitive files in this diff.
 
 :::tip
 References and inline text are combined from top to bottom in the order they appear. Put foundational prompts first and request-specific instructions last so the model reads them in a natural order.
+:::
+
+## Select a version {#select-a-version}
+
+Add `@` and a selector to a reference to choose a [version of a Global Prompt Store prompt](#versions-and-labels). A reference without a selector works as before and gets production.
+
+| Reference | Gets |
+|---|---|
+| `quilrai-prompt-store-support` | The production version |
+| `quilrai-prompt-store-support@production` | The production version, same as without a selector |
+| `quilrai-prompt-store-support@v2` | Version 2 |
+| `quilrai-prompt-store-support@latest` | The newest version, including a draft |
+| `quilrai-prompt-store-support@staging` | The version the `staging` label points at |
+
+How selectors behave:
+
+- **Case-insensitive.** `@Staging` and `@staging` are the same label.
+- **Global Prompt Store prompts only.** A selector reads the Global Prompt Store, even when the calling app has its own prompt with the same ID. For any other prompt, such as an app prompt, `@` and the word after it stay in the text exactly as before versions existed.
+- **No fallback.** An unknown label or version is rejected with a 400 (`prompt_store_error`). The gateway never sends a different version instead.
+- **Labels move, numbers do not.** Pin `@v<number>` to keep the exact text. Use `@production` or a custom label to follow whatever version the label points at.
+- **At most 32 selected versions per request.** More are rejected with a 400.
+- **Email addresses stay text.** In `quilrai-prompt-store-support@acme.com`, the reference is `quilrai-prompt-store-support` and `@acme.com` stays as written. Any other `@` word directly after a Global Prompt Store reference is read as a selector, so leave a space between such a reference and text that starts with `@`.
+
+Test a draft before you promote it:
+
+```
+quilrai-prompt-store-support@staging
+
+Answer in Spanish.
+```
+
+To give a selected version its own variables, key them with the selector. A key with the selector wins over the plain key:
+
+```json
+{"quilrai-prompt-store-support@staging": {"name": "Ada"}}
+```
+
+The request log records which version and label each Global Prompt Store reference used. A plain reference is recorded as production when it got the production version.
+
+:::note
+On a self-hosted (isolated) gateway, update every node before callers use selectors. A node on an earlier release resolves the plain reference and leaves the `@<selector>` text in the prompt.
 :::
 
 ## Universal system prompt {#universal-system-prompt}

@@ -309,6 +309,10 @@ POLICY ENGINE (LLM)
 - Open an area > read What happens today, section defaults and How rules combine > start from a recipe
   or blank rule > Applies to > outcome > Reads as > Save to draft > Review & publish.
 - Most panels: Controls | Activity. Prompt Store & Enforcement also has Prompt Store.
+- Prompt Store tab (Global prompts): every save is a version (v1, v2, ...) with an optional Change note.
+  Clear "Publish to production" to save a draft. History on a row: view, Compare with, Promote to production
+  (also rollback), Set label..., Remove label. Plain references get production; requests can pick
+  quilrai-prompt-store-<id>@v<N>, @latest or @<label>. App prompts are not versioned.
 - Gateway Access: Who can send requests, Prompt text rules. Highest priority wins, Deny wins ties.
 - Allowed Models: Search rules; allowed lists combine; a matching rejected list wins regardless of priority.
 - Model Visibility: Model listing, Show only, Hide, Undated aliases, Who still sees hidden models.
