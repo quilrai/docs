@@ -10,6 +10,17 @@ description: "What changed in Red Teaming, newest first."
 
 What changed in Red Teaming, newest first.
 
+## Voice assessments are turned on (2026-11-27)
+
+- Voice agents can now be assessed. Attacks are spoken to the agent as audio, and its spoken replies are transcribed and scored
+- **Detect** no longer shows "Voice assessments need speech on the engine" for a voice agent
+- Voice agents that speak over a WebSocket are supported, including ones that take raw audio
+
+## Assessments run on their own capacity (2026-11-27)
+
+- Red Teaming assessments now run on capacity set aside for them, separate from the rest of the platform's background work
+- Heavy activity elsewhere no longer interrupts a long assessment or a multi-model comparison
+
 ## Comparisons say why a target failed and keep what it scored (2026-11-24)
 
 - When a target in a multi-model comparison fails, it now shows the reason, such as the model being rate limited, every objective ending in an error, or the run being interrupted, instead of **Assessment failed**
