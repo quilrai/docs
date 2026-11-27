@@ -10,6 +10,15 @@ description: "Recent interface improvements - tagging, filtering, and quality-of
 
 Recent interface improvements and quality-of-life changes.
 
+## Prompt versions (2026-11-27)
+
+- **New: versions for Global Prompt Store prompts.** Every save is a numbered version (v1, v2, ...) with its author, time and an optional **Change note**; saving unchanged text creates no version
+- **Labels**: `production` is what plain references get, `latest` is the newest version, and your own labels (such as `staging`) point at any version. The prompt list shows them as tags
+- **Drafts**: clear **Publish to production** when editing to save a version without changing production
+- **History** on each prompt: view and **Compare with** any version, **Promote to production** (also how you roll back), **Set label…** and **Remove label**
+- **Requests can select a version**: `quilrai-prompt-store-<id>@v2`, `@latest` or `@<label>`. Plain references keep getting production, and an unknown label or version is a 400
+- App prompts are not versioned
+- Details: [Versions and labels](../cost-and-traffic/prompt-store#versions-and-labels) and [Select a version](../cost-and-traffic/prompt-store#select-a-version)
 ## Central Alerts (2026-11-27)
 
 - **New: LLM Gateway > Alerts.** Set up alerts once for the whole organization: **Channels** (Slack, webhook, email), **Rules** (10 alert types, each covering all apps, picked apps or apps with tags), **Coverage** (which apps are watched) and **Activity** (every alert and its result per channel)
