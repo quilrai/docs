@@ -345,7 +345,7 @@ If you do not import, your organization keeps working exactly as before. You can
 |--------|--------|
 | LLM Gateway read access for the whole organization | View channels, rules, coverage and history. |
 | LLM Gateway update access for the whole organization | Add, edit and delete channels and rules. Send tests. Run the import. |
-| Update access plus permission to reveal secrets | Create a signed webhook channel and rotate its signing secret, because these show the secret. |
+| Update access plus permission to reveal secrets | Create a signed webhook channel, turn on **Sign each alert** for an existing one, and rotate its signing secret, because these show the secret. |
 
 Users whose access covers only some apps cannot open Alerts.
 
